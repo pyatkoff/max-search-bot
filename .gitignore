@@ -1,0 +1,25 @@
+# Secrets
+config.php
+
+# Runtime / user data
+followup/
+traffic/
+edit_mode/
+
+# Logs
+*.log
+
+# Funnel / analytics runtime
+funnel.csv
+funnel_*.csv
+funnel_before_*.csv
+metrika_offline_queue.csv
+
+# Temporary files
+tmp_*.txt
+tmp*.txt
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
