@@ -19,6 +19,13 @@ metrika_offline_queue.csv
 tmp_*.txt
 tmp*.txt
 
+# Local refactor / emergency backups
+*.before_*
+*.before*
+
+# Local diagnostics checkout/export
+diagnostics/
+
 # OS / editor
 .DS_Store
 .idea/
