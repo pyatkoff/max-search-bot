@@ -36,11 +36,15 @@ class MaxSearchApi extends MaxSearchBase
     // Источник в U-ON: «MAX бот».
     static $uonSourceId = 36;
 
-    // В AI-сценарии строка statusAge может ещё не существовать.
-    // Для возраста ребёнка создаём её перед сохранением значения.
+    // В AI-сценарии строки для возраста ребёнка и даты могут ещё не существовать.
+    // Создаём нужный статус перед сохранением значения, иначе базовый saveLastValue
+    // обновляет только существующую строку и молча ничего не сохраняет.
     public static function saveLastValue($chatID, $status, $value)
     {
-        if ($status == static::$statusAge && static::getLastValue($chatID, $status) === false) {
+        if (
+            in_array($status, [static::$statusAge, static::$statusDate], true) &&
+            static::getLastValue($chatID, $status) === false
+        ) {
             static::setStatus($chatID, $status);
         }
 
