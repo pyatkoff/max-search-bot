@@ -2,10 +2,49 @@
 
 class DestinationAreaResolver
 {
+    public static function resolveAndStore($chatId, $text)
+    {
+        $inferred = self::infer($text);
+        if (!$inferred) return null;
+
+        $country = self::getCountry((int)$inferred['country_id']);
+        $region = self::getRegion((int)$inferred['region_id']);
+        if (!$country || !$region) return null;
+
+        MaxSearchApi::applyAiParameters($chatId, ['country' => (string)$country['UF_NAME']]);
+
+        $dir = dirname(__DIR__) . '/ai_destination';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $file = $dir . '/' . preg_replace('/[^0-9\-]/','',(string)$chatId) . '.json';
+        $old = [];
+        if (is_file($file)) {
+            $tmp = json_decode((string)@file_get_contents($file), true);
+            if (is_array($tmp)) $old = $tmp;
+        }
+
+        $data = array_merge($old, [
+            'country_id' => (int)$country['UF_CID'],
+            'country' => (string)$country['UF_NAME'],
+            'region_id' => (int)$region['UF_TID'],
+            'region' => (string)$region['UF_NAME'],
+            'area' => (string)$inferred['area'],
+            'area_inferred' => true,
+            'area_confidence' => $inferred['confidence'],
+            'area_evidence_count' => $inferred['evidence_count'],
+            'area_evidence_total' => $inferred['evidence_total'],
+            'source_text' => (string)$text,
+            'updated_at' => date('c'),
+        ]);
+        @file_put_contents($file, json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), LOCK_EX);
+
+        MaxSearchApi::funnelLog($chatId, 'destination_area_resolved', $data);
+        return $data;
+    }
+
     /**
      * Определяет туристическую зону, которой нет отдельной строкой в TvApiRegion,
      * по устойчивой привязке отелей из TvApiHotel к одной стране/региону.
-     * Пример: "Лара" отсутствует в HL3, но десятки отелей с отдельным словом LARA
+     * Пример: "Лара" отсутствует в HL3, но большинство отелей с отдельным словом LARA
      * имеют UF_CID=4 и UF_TID=20 (Анталья).
      */
     public static function infer($text)
@@ -51,8 +90,6 @@ class DestinationAreaResolver
                 $total = array_sum(array_column($groups, 'count'));
                 $share = $total > 0 ? ($top['count'] / $total) : 0;
 
-                // Нужен сильный консенсус: не менее 3 отелей и минимум 70% точных
-                // token-совпадений должны вести в один и тот же регион.
                 if ($top['count'] < 3 || $share < 0.70) continue;
 
                 return [
@@ -68,17 +105,32 @@ class DestinationAreaResolver
         return null;
     }
 
+    private static function getCountry($cid)
+    {
+        return self::queryHl(2, ['=UF_CID'=>$cid], ['UF_CID','UF_NAME'], 1)[0] ?? null;
+    }
+
+    private static function getRegion($tid)
+    {
+        return self::queryHl(3, ['=UF_TID'=>$tid], ['UF_TID','UF_CID','UF_NAME','UF_PARENT_TID'], 1)[0] ?? null;
+    }
+
     private static function queryHotels($needle, $limit)
+    {
+        return self::queryHl(6, ['%UF_NAME'=>$needle], ['UF_HID','UF_NAME','UF_CID','UF_TID'], $limit);
+    }
+
+    private static function queryHl($hlId, array $filter, array $select, $limit)
     {
         try {
             \Bitrix\Main\Loader::includeModule('highloadblock');
-            $hl = \Bitrix\Highloadblock\HighloadBlockTable::getById(6)->fetch();
+            $hl = \Bitrix\Highloadblock\HighloadBlockTable::getById((int)$hlId)->fetch();
             if (!$hl) return [];
             $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hl);
             $class = $entity->getDataClass();
             $res = $class::getList([
-                'filter' => ['%UF_NAME' => $needle],
-                'select' => ['UF_HID','UF_NAME','UF_CID','UF_TID'],
+                'filter' => $filter,
+                'select' => $select,
                 'limit' => (int)$limit,
             ]);
             $rows=[];
