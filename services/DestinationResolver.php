@@ -11,15 +11,19 @@ class DestinationResolver
         $text = trim((string)$text);
         if ($text === '') return [];
 
+        // Для поиска destination используем только часть сообщения про место отдыха.
+        // Город после «из» / «с вылетом из» не должен превращаться в страну/регион.
+        $destinationText = self::destinationPart($text);
+
         $current = MaxSearchApi::getAiSearchContext($chatId);
         $old = self::getStored($chatId);
 
         $country = null;
         if (!empty($current['country'])) $country = self::findCountryByName($current['country']);
-        if (!$country) $country = self::findCountryInText($text);
+        if (!$country && $destinationText !== '') $country = self::findCountryInText($destinationText);
 
         $countryId = $country ? (int)$country['UF_CID'] : 0;
-        $region = self::findRegionInText($text, $countryId);
+        $region = $destinationText !== '' ? self::findRegionInText($destinationText, $countryId) : null;
         if ($region && !$countryId) {
             $country = self::findCountryById((int)$region['UF_CID']);
             $countryId = $country ? (int)$country['UF_CID'] : (int)$region['UF_CID'];
@@ -30,9 +34,9 @@ class DestinationResolver
         // РФ и Абхазию подбираем как обычные направления, но справочник отелей HL6
         // для них намеренно не используем: названия дают слишком много ложных совпадений.
         $skipHotels = self::isHotelResolutionDisabledCountry($country);
-        $hotelResult = $skipHotels
+        $hotelResult = ($skipHotels || $destinationText === '')
             ? ['hotel'=>null,'ambiguous'=>false,'matches'=>0]
-            : self::findHotelInText($text, $countryId, $regionId);
+            : self::findHotelInText($destinationText, $countryId, $regionId);
         $hotel = $hotelResult['hotel'] ?? null;
         if ($hotel) {
             $countryId = (int)$hotel['UF_CID'];
@@ -107,6 +111,34 @@ class DestinationResolver
     {
         $name=self::norm($name);
         return in_array($name,['россия','абхазия'],true);
+    }
+
+    /**
+     * Возвращает только часть сообщения, описывающую destination.
+     * «из Питера в Китай» -> «Китай»;
+     * «с вылетом из Москвы» / «туры из Калининграда» -> пустая строка.
+     */
+    private static function destinationPart($text)
+    {
+        $text = trim((string)$text);
+        if ($text === '') return '';
+
+        if (preg_match('/(?:^|\s)из\s+.+?\s+в\s+(.+)$/ui', $text, $m)) {
+            $part = trim((string)($m[1] ?? ''));
+            if ($part !== '') return $part;
+        }
+
+        if (preg_match('/(?:с\s+)?вылет(?:ом)?\s+из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*/ui', $text)) {
+            return '';
+        }
+        if (preg_match('/(?:^|\s)туры?\s+из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*/ui', $text)) {
+            return '';
+        }
+        if (preg_match('/(?:^|\s)из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*\s*$/ui', $text)) {
+            return '';
+        }
+
+        return $text;
     }
 
     private static function findCountryInText($text) { $rows=self::allRows(self::$countryHL,['UF_CID','UF_NAME']); $norm=self::norm($text); $best=null;$bestLen=0; foreach($rows as $row){$name=self::norm($row['UF_NAME']??'');if($name!==''&&self::containsName($norm,$name)&&mb_strlen($name,'UTF-8')>$bestLen){$best=$row;$bestLen=mb_strlen($name,'UTF-8');}} return $best; }
