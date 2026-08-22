@@ -8,7 +8,6 @@ class MaxUpdateHandler
         put_log_in($content);
         $update = json_decode($content, true);
 
-        // Если при подписке задан secret, принимаем webhook только с правильным заголовком MAX.
         $incomingSecret = $_SERVER['HTTP_X_MAX_BOT_API_SECRET'] ?? '';
         if (defined('MAX_SEARCH_WEBHOOK_SECRET') && MAX_SEARCH_WEBHOOK_SECRET !== '' && !hash_equals(MAX_SEARCH_WEBHOOK_SECRET, (string)$incomingSecret)) {
             http_response_code(403);
@@ -36,20 +35,16 @@ class MaxUpdateHandler
             if ($payload !== '') {
                 $clean = preg_replace('/^ya/i', '', $payload);
 
-                // Новый основной формат: {yclid}_region_{region_id}_campaign_{campaign_id}
                 if (preg_match('/^(\d{6,})_region_([^_]*)_campaign_([^_]*)/i', $clean, $m)) {
                     $yclid = $m[1] ?? '';
                     $region = $m[2] ?? '';
                     $campaign = $m[3] ?? '';
                 }
-                // Старый рекламный формат:
-                // {yclid}_key_{matched_keyword}_{region_id}_campaign_{campaign_id}
                 elseif (preg_match('/^(\d{6,})_key_(.*?)_(\d+)_campaign_([^_]+)/i', $clean, $m)) {
                     $yclid = $m[1] ?? '';
                     $region = $m[3] ?? '';
                     $campaign = $m[4] ?? '';
                 }
-                // Короткий формат: ya_{yclid}_r_{region}_c_{campaign}
                 elseif (preg_match('/^_?(\d{6,})_r_([^_]+)(?:_c_([^_]+))?/i', $clean, $m)) {
                     $yclid = $m[1] ?? '';
                     $region = $m[2] ?? '';
@@ -67,6 +62,7 @@ class MaxUpdateHandler
             MaxSearchApi::cancelToursFollowup($internalId);
             MaxSearchApi::deleteAllStatus($internalId);
             MaxSearchApi::setEditMode($internalId,'');
+            if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
             MaxSearchApi::showStart($internalId);
         }
         elseif ($type === 'message_created' && $userId) {
@@ -95,7 +91,6 @@ class MaxUpdateHandler
                 'from' => maxUserAsTelegramLike($user),
                 'data' => $payload,
             ];
-            // Снимаем индикатор нажатия callback у пользователя.
             if ($callbackId !== '') MaxSearchApi::answerCallback($callbackId);
             processQuery($query);
         }
