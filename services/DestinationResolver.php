@@ -36,8 +36,6 @@ class DestinationResolver
             }
         }
 
-        // Справочник назначения приоритетнее догадки AI: если нашли Лару=Турция,
-        // исправляем даже ранее распознанную AI страну (например ошибочную Ларнака=>Кипр).
         if ($country) {
             $resolvedCountry = (string)$country['UF_NAME'];
             if (empty($current['country']) || self::norm($current['country']) !== self::norm($resolvedCountry)) {
@@ -82,8 +80,6 @@ class DestinationResolver
         $tokens=self::tokens($text); $candidates=[];
         foreach($tokens as $token){
             $len=mb_strlen($token,'UTF-8'); if($len<4)continue;
-            // Не режем короткие географические названия. Именно stem "лар" превращал
-            // пользовательскую "Лара" в ложное совпадение с "Ларнака".
             $prefixLen = $len <= 5 ? $len : $len-1;
             $prefix=mb_substr($token,0,$prefixLen,'UTF-8');
             $filter=['%UF_NAME'=>$prefix]; if($countryId>0)$filter['=UF_CID']=$countryId;
@@ -99,25 +95,46 @@ class DestinationResolver
         $nameTokens=self::tokens($name);$textTokens=self::tokens($text);$best=0;
         foreach($nameTokens as $nt){foreach($textTokens as $tt){
             if($nt===$tt)$best=max($best,100+mb_strlen($nt,'UTF-8'));
-            else {
-                $nl=mb_strlen($nt,'UTF-8');$tl=mb_strlen($tt,'UTF-8');
-                // Для коротких названий допускаем только полное совпадение. Для длинных —
-                // мягко допускаем русское окончание (Анталья/Анталье и т.п.).
-                if($nl>=6&&$tl>=6){$prefix=min($nl,$tl)-1;if($prefix>=5&&mb_substr($nt,0,$prefix,'UTF-8')===mb_substr($tt,0,$prefix,'UTF-8'))$best=max($best,10+$prefix);}
-            }
+            else {$nl=mb_strlen($nt,'UTF-8');$tl=mb_strlen($tt,'UTF-8');if($nl>=6&&$tl>=6){$prefix=min($nl,$tl)-1;if($prefix>=5&&mb_substr($nt,0,$prefix,'UTF-8')===mb_substr($tt,0,$prefix,'UTF-8'))$best=max($best,10+$prefix);}}
         }}
         return $best;
     }
 
     private static function findHotelInText($text,$countryId=0,$regionId=0)
     {
-        $tokens=self::tokens($text);$terms=[];$maxN=min(4,count($tokens));
+        $tokens=self::tokens($text);
+        $maxN=min(5,count($tokens));
+
+        // Сначала ищем точное название отеля как непрерывную фразу из сообщения.
+        // Это критично для "Rixos Premium Dubai": общий fuzzy-поиск по словам Rixos/Premium/Dubai
+        // находил десятки Rixos и ошибочно помечал запрос неоднозначным.
+        for($n=$maxN;$n>=2;$n--){
+            for($i=0;$i+$n<=count($tokens);$i++){
+                $term=trim(implode(' ',array_slice($tokens,$i,$n)));
+                if(mb_strlen($term,'UTF-8')<5)continue;
+                $filter=['%UF_NAME'=>$term];
+                if($countryId>0)$filter['=UF_CID']=$countryId;
+                if($regionId>0)$filter['=UF_TID']=$regionId;
+                $rows=self::query(self::$hotelHL,$filter,['UF_HID','UF_NAME','UF_CID','UF_TID','UF_RATE'],30);
+                foreach($rows as $row){
+                    if(self::norm((string)$row['UF_NAME'])===self::norm($term)){
+                        return ['hotel'=>$row,'ambiguous'=>false,'matches'=>1];
+                    }
+                }
+            }
+        }
+
+        $terms=[];
         for($n=$maxN;$n>=1;$n--)for($i=0;$i+$n<=count($tokens);$i++){ $term=trim(implode(' ',array_slice($tokens,$i,$n)));if(mb_strlen($term,'UTF-8')>=4)$terms[$term]=true; }
         $candidates=[];
         foreach(array_keys($terms) as $term){$filter=['%UF_NAME'=>$term];if($countryId>0)$filter['=UF_CID']=$countryId;if($regionId>0)$filter['=UF_TID']=$regionId;foreach(self::query(self::$hotelHL,$filter,['UF_HID','UF_NAME','UF_CID','UF_TID','UF_RATE'],20) as $row)$candidates[(int)$row['UF_HID']]=$row;}
         if(empty($candidates))return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];
         $scored=[];foreach($candidates as $row){$score=self::nameScore((string)$row['UF_NAME'],$text);if($regionId>0&&(int)$row['UF_TID']===$regionId)$score+=5;if($countryId>0&&(int)$row['UF_CID']===$countryId)$score+=2;if($score>0)$scored[]=['score'=>$score,'row'=>$row];}
-        usort($scored,static function($a,$b){return $b['score']<=>$a['score'];});if(empty($scored))return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];$top=$scored[0];$sameTop=array_values(array_filter($scored,static function($x)use($top){return $x['score']===$top['score'];}));$meaningful=array_values(array_filter($tokens,static function($t){return mb_strlen($t,'UTF-8')>=4;}));$ambiguous=count($sameTop)>1||(count($meaningful)<=1&&count($scored)>1&&$regionId<=0);return ['hotel'=>$ambiguous?null:$top['row'],'ambiguous'=>$ambiguous,'matches'=>count($scored)];
+        usort($scored,static function($a,$b){return $b['score']<=>$a['score'];});if(empty($scored))return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];
+        $top=$scored[0];$sameTop=array_values(array_filter($scored,static function($x)use($top){return $x['score']===$top['score'];}));
+        $meaningful=array_values(array_filter($tokens,static function($t){return mb_strlen($t,'UTF-8')>=4;}));
+        $ambiguous=count($sameTop)>1||(count($meaningful)<=1&&count($scored)>1&&$regionId<=0);
+        return ['hotel'=>$ambiguous?null:$top['row'],'ambiguous'=>$ambiguous,'matches'=>count($scored)];
     }
 
     private static function nameScore($name,$text){$a=self::tokens($name);$b=self::tokens($text);if(!$a||!$b)return 0;$score=0;foreach($a as $nt){if(mb_strlen($nt,'UTF-8')<3)continue;foreach($b as $tt){if(mb_strlen($tt,'UTF-8')<3)continue;$len=min(mb_strlen($nt,'UTF-8'),mb_strlen($tt,'UTF-8'));$prefix=min(5,max(3,$len-1));if(mb_substr($nt,0,$prefix,'UTF-8')===mb_substr($tt,0,$prefix,'UTF-8')){$score+=$prefix;break;}}}return $score;}
