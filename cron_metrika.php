@@ -51,7 +51,6 @@ if (!preg_match('/^\d+$/', $counterId)) {
     metrikaFail('METRIKA_COUNTER_ID must be numeric');
 }
 
-// If a previous run stopped after rotating the queue, resume that batch first.
 if (!is_file($processingFile) || filesize($processingFile) === 0) {
     if (!is_file($queueFile) || filesize($queueFile) === 0) {
         echo "OK queue empty\n";
@@ -129,7 +128,6 @@ while (($row = fgetcsv($in)) !== false) {
         continue;
     }
 
-    // Existing queue files contain a CSV header. Ignore it instead of treating it as a Yclid.
     if (
         strcasecmp($yclid, 'Yclid') === 0 &&
         strcasecmp($target, 'Target') === 0 &&
@@ -152,7 +150,12 @@ while (($row = fgetcsv($in)) !== false) {
         metrikaFail('invalid Target at queue line ' . $lineNo, true);
     }
 
-    $timestamp = strtotime($dateRaw);
+    if (preg_match('/^\d{9,12}$/', $dateRaw)) {
+        $timestamp = (int)$dateRaw;
+    } else {
+        $timestamp = strtotime($dateRaw);
+    }
+
     if ($timestamp === false || $timestamp <= 0) {
         fclose($in);
         fclose($out);
@@ -226,7 +229,6 @@ if ($uploadId <= 0) {
     metrikaFail('upload accepted but upload id is missing: ' . substr((string)$response, 0, 1000), true);
 }
 
-// API accepted the batch. Do not retry it: retries can duplicate conversions.
 @unlink($processingFile);
 
 metrikaLog(
