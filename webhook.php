@@ -2,6 +2,7 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/ai/AiRouter.php');
+require_once(__DIR__ . '/services/DestinationResolver.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
 require_once(__DIR__ . '/handlers/AiShortAnswerHandler.php');
@@ -11,8 +12,6 @@ require_once(__DIR__ . '/handlers/MaxUpdateHandler.php');
 
 $is_log = true;
 
-// MAX user_id сохраняем в существующих HL-блоках как отрицательное число.
-// Это изолирует состояние MAX от Telegram, не меняя текущую структуру HL.
 function maxInternalUserId($userId) {
     $id = (int)$userId;
     return $id > 0 ? -$id : $id;
@@ -75,7 +74,6 @@ function maxQueryUserName($query) {
 }
 
 function processMessage($message) {
-	  // process incoming message
 	$message_id = $message['message_id'];
 	$chat_id = $message['chat']['id'];
 	put_log_in($chat_id."!!!!!!!!!!!".$message['text']); 
@@ -93,22 +91,21 @@ function processMessage($message) {
 			MaxSearchApi::cancelToursFollowup($chat_id);
 			MaxSearchApi::deleteAllStatus($chat_id);
 			MaxSearchApi::setEditMode($chat_id,'');
+            DestinationResolver::clear($chat_id);
 			MaxSearchApi::showStart($chat_id);
 		}
 		elseif($message['text']=="/start" || $message['text']=="МЕНЮ" )
 		{
-			// Новый старт полностью завершает предыдущий сценарий,
-			// включая отложенный follow-up.
 			MaxSearchApi::cancelToursFollowup($chat_id);
 			MaxSearchApi::deleteAllStatus($chat_id);
 			MaxSearchApi::setEditMode($chat_id,'');
 			AiDateHandler::clear($chat_id);
+            DestinationResolver::clear($chat_id);
 			MaxSearchApi::showStart($chat_id);
 
 		}
 		else
 		{
-			// STEP 4C: возражение "дорого" работает глобально, а не только в AI-статусе.
 			$plainText = trim((string)$message['text']);
 			if (preg_match('/^(?:дорого|очень дорого|дороговато|слишком дорого)[.!? ]*$/ui', $plainText)) {
 				MaxSearchApi::MaxSend(
@@ -119,11 +116,13 @@ function processMessage($message) {
 			}
 
 			$status = MaxSearchApi::getCurentStatus($chat_id);
-			//MaxSearchApi::showCheckButtons($chat_id);
             if($status==MaxSearchApi::$statusAi || !$status || $status==MaxSearchApi::$statusStart)
             {
-                // Короткие ответы вроде "2", "двое", "4 звезды", "FB" сначала
-                // трактуем строго в контексте последнего заданного AI-вопроса.
+                // До общего AI сверяем текст с живыми справочниками Bitrix:
+                // HL2 страны, HL3 курорты/регионы, HL6 отели.
+                // Если найден курорт/отель, страна заполняется сразу и повторно не спрашивается.
+                DestinationResolver::resolveAndStore($chat_id, $message['text']);
+
                 if (!AiShortAnswerHandler::handle($message, $chat_id)) {
                     AiMessageHandler::handle($message, $chat_id);
                 }
@@ -133,16 +132,11 @@ function processMessage($message) {
                 StateMessageHandler::handle($message, $chat_id, $status);
             }
 		}
-
-		//MaxSearchApi::showCalendarButtons($chat_id,date("m"),date("Y"));
-		//$res = MaxSearchApi::TelegramRequest("sendMessage", array('chat_id' => $chat_id, "text" => "!", "reply_markup"=>['keyboard' => [["МЕНЮ"]],'resize_keyboard' => true,'one_time_keyboard' => true]));
-		//add2log($res);
 	} 	
 }
 function processQuery($query) {
 	CallbackHandler::handle($query);
 }
-
 
 function put_log_in($data){
 	global $is_log;
