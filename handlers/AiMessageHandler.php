@@ -370,145 +370,18 @@ class AiMessageHandler
 
                 $params = is_array($ai['parameters'] ?? null) ? $ai['parameters'] : [];
 
-                // FULL FIX1: дата может быть частью первого длинного запроса.
-                // Если AI её не выделил — достаём понятные формулировки прямо из userText.
-                if (empty($params['date'])) {
-                    $dateTextAll = function_exists('mb_strtolower')
-                        ? mb_strtolower($userText, 'UTF-8')
-                        : strtolower($userText);
+                // Даты из текста пользователя разбираются единым DateParser через AiDateHandler.
+                // Это одновременно служит DATE GUARD: если пользователь явно назвал месяц,
+                // не принимаем случайную AI-дату из другого месяца.
+                $resolvedUserDate = AiDateHandler::rememberMonthFromText($chat_id, $userText);
 
-                    $resolvedInlineDate = '';
-                    $monthsInline = [
-                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
-                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
-                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
-                    ];
-                    $monthInline = 0;
-                    $monthInlineStem = '';
-                    foreach ($monthsInline as $stem=>$num) {
-                        if (strpos($dateTextAll, $stem) !== false) {
-                            $monthInline = $num;
-                            $monthInlineStem = $stem;
-                            break;
-                        }
-                    }
-
-                    if (preg_match('/\bзавтра\b/ui', $dateTextAll)) {
-                        $resolvedInlineDate = date('d.m.Y', strtotime('+1 day'));
-                    } elseif (preg_match('/\bпослезавтра\b/ui', $dateTextAll)) {
-                        $resolvedInlineDate = date('d.m.Y', strtotime('+2 days'));
-                    } elseif (preg_match('/\b(?:ближайш(?:ая|ие|ую)|как\s+можно\s+скорее|поскорее)\b/ui', $dateTextAll)) {
-                        $resolvedInlineDate = date('d.m.Y', strtotime('+1 day'));
-                    } elseif ($monthInline > 0) {
-                        $yearInline=(int)date('Y');
-                        if($monthInline < (int)date('n')) $yearInline++;
-
-                        $dayInline=0;
-                        if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $dateTextAll)) {
-                            $dayInline=5;
-                        } elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui', $dateTextAll)) {
-                            $dayInline=15;
-                        } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $dateTextAll)) {
-                            $dayInline=25;
-                        } elseif (
-                            $monthInlineStem !== '' &&
-                            preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
-                        ) {
-                            $dayInline=min(28,((int)$dm[1])+1);
-                        } elseif (
-                            $monthInlineStem !== '' &&
-                            preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
-                        ) {
-                            $dayInline=(int)$dm[1];
-                        }
-
-                        if ($dayInline > 0 && checkdate($monthInline,$dayInline,$yearInline)) {
-                            $resolvedInlineDate=sprintf('%02d.%02d.%04d',$dayInline,$monthInline,$yearInline);
-                        }
-                    }
-
-                    if ($resolvedInlineDate !== '') {
-                        $params['date']=$resolvedInlineDate;
-                        AiDateHandler::clear($chat_id);
-                    } elseif ($monthInline > 0) {
-                        $pendingInlineYear = (int)date('Y');
-                        if ($monthInline < (int)date('n')) $pendingInlineYear++;
-                        maxSetPendingMonth($chat_id, $monthInline, $pendingInlineYear);
-                    }
-                }
-
-                // DATE GUARD:
-                // Если пользователь явно назвал месяц, не позволяем AI/fallback
-                // сохранить дату из другого месяца.
-                $dateGuardText = function_exists('mb_strtolower')
-                    ? mb_strtolower($userText, 'UTF-8')
-                    : strtolower($userText);
-
-                $dateGuardMonths = [
-                    'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
-                    'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7,
-                    'август'=>8, 'сентябр'=>9, 'октябр'=>10,
-                    'ноябр'=>11, 'декабр'=>12
-                ];
-
-                $dateGuardMonth = 0;
-                $dateGuardStem = '';
-                foreach ($dateGuardMonths as $stem=>$num) {
-                    if (strpos($dateGuardText, $stem) !== false) {
-                        $dateGuardMonth = $num;
-                        $dateGuardStem = $stem;
-                        break;
-                    }
-                }
-
-                if ($dateGuardMonth > 0) {
-                    $dateGuardYear = (int)date('Y');
-                    if ($dateGuardMonth < (int)date('n')) {
-                        $dateGuardYear++;
-                    }
-
-                    // Есть ли явно названное число именно рядом с названием месяца.
-                    $dateGuardExplicitDay = 0;
-                    if (
-                        $dateGuardStem !== '' &&
-                        preg_match(
-                            '/\b(\d{1,2})\s+[а-яё]*'.preg_quote($dateGuardStem,'/').'[а-яё]*/ui',
-                            $dateGuardText,
-                            $dateGuardMatch
-                        )
-                    ) {
-                        $dateGuardExplicitDay = (int)$dateGuardMatch[1];
-                    }
-
-                    $dateGuardExpectedDay = 0;
-
-                    if ($dateGuardExplicitDay > 0) {
-                        $dateGuardExpectedDay = $dateGuardExplicitDay;
-                    } elseif (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $dateGuardText)) {
-                        $dateGuardExpectedDay = 5;
-                    } elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui', $dateGuardText)) {
-                        $dateGuardExpectedDay = 15;
-                    } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $dateGuardText)) {
-                        $dateGuardExpectedDay = 25;
-                    }
-
-                    if ($dateGuardExpectedDay > 0 && checkdate($dateGuardMonth, $dateGuardExpectedDay, $dateGuardYear)) {
-                        // Для точной даты / начала / середины / конца жёстко сохраняем
-                        // дату именно в указанном пользователем месяце.
-                        $params['date'] = sprintf(
-                            '%02d.%02d.%04d',
-                            $dateGuardExpectedDay,
-                            $dateGuardMonth,
-                            $dateGuardYear
-                        );
-                    } else {
-                        // Назван только месяц. Никаких случайных дат из другого месяца.
-                        // Оставляем date незаполненной, чтобы бот уточнил период.
-                        $params['date'] = null;
-                    }
-                }
-
-                if (!empty($params['date'])) {
+                if (!empty($resolvedUserDate['date'])) {
+                    $params['date'] = $resolvedUserDate['date'];
+                } elseif (!empty($resolvedUserDate['month'])) {
+                    // Назван месяц, но точный день/период не определён — спрашиваем уточнение.
+                    $params['date'] = null;
+                } elseif (!empty($params['date'])) {
+                    // AI-дата допустима, если пользователь не назвал противоречащий ей месяц.
                     AiDateHandler::clear($chat_id);
                 }
 
