@@ -26,7 +26,13 @@ class DestinationResolver
         }
 
         $regionId = $region ? (int)$region['UF_TID'] : 0;
-        $hotelResult = self::findHotelInText($text, $countryId, $regionId);
+
+        // РФ и Абхазию подбираем как обычные направления, но справочник отелей HL6
+        // для них намеренно не используем: названия дают слишком много ложных совпадений.
+        $skipHotels = self::isHotelResolutionDisabledCountry($country);
+        $hotelResult = $skipHotels
+            ? ['hotel'=>null,'ambiguous'=>false,'matches'=>0]
+            : self::findHotelInText($text, $countryId, $regionId);
         $hotel = $hotelResult['hotel'] ?? null;
         if ($hotel) {
             $countryId = (int)$hotel['UF_CID'];
@@ -54,13 +60,11 @@ class DestinationResolver
             'hotel' => $hotel ? (string)$hotel['UF_NAME'] : '',
             'hotel_ambiguous' => !empty($hotelResult['ambiguous']),
             'hotel_matches' => (int)($hotelResult['matches'] ?? 0),
+            'hotel_resolution_skipped' => $skipHotels,
             'source_text' => $text,
             'updated_at' => date('c'),
         ];
 
-        // Короткие ответы (дата, питание, количество туристов и т.п.) не должны
-        // сбрасывать уже найденное направление. Но если пользователь явно назвал
-        // новую страну/регион, старый отель от другого направления переносить нельзя.
         $countryChanged = !empty($data['country_id']) && !empty($old['country_id'])
             && (int)$data['country_id'] !== (int)$old['country_id'];
         $regionChanged = !empty($data['region_id']) && !empty($old['region_id'])
@@ -69,12 +73,16 @@ class DestinationResolver
         if (empty($data['country_id']) && !empty($old['country_id'])) {
             $data['country_id'] = (int)$old['country_id'];
             $data['country'] = (string)($old['country'] ?? '');
+            $skipHotels = self::isHotelResolutionDisabledCountryName($data['country']);
+            $data['hotel_resolution_skipped'] = $skipHotels;
         }
         if (empty($data['region_id']) && !empty($old['region_id']) && !$countryChanged) {
             $data['region_id'] = (int)$old['region_id'];
             $data['region'] = (string)($old['region'] ?? '');
         }
-        if (empty($data['hotel_id']) && !empty($old['hotel_id']) && !$countryChanged && !$regionChanged) {
+        // Для РФ/Абхазии старый hotel_id тоже не переносим: отель в этих направлениях
+        // вообще не является частью нашей логики подбора.
+        if (!$skipHotels && empty($data['hotel_id']) && !empty($old['hotel_id']) && !$countryChanged && !$regionChanged) {
             $data['hotel_id'] = (int)$old['hotel_id'];
             $data['hotel'] = (string)($old['hotel'] ?? '');
         }
@@ -90,6 +98,16 @@ class DestinationResolver
     public static function clear($chatId) { $f=self::storeFile($chatId); if(is_file($f)) @unlink($f); }
     private static function store($chatId,array $data) { @file_put_contents(self::storeFile($chatId),json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),LOCK_EX); }
     private static function storeFile($chatId) { $d=dirname(__DIR__).'/ai_destination'; if(!is_dir($d)) @mkdir($d,0755,true); return $d.'/'.preg_replace('/[^0-9\-]/','',(string)$chatId).'.json'; }
+
+    private static function isHotelResolutionDisabledCountry($country)
+    {
+        return is_array($country) && self::isHotelResolutionDisabledCountryName((string)($country['UF_NAME'] ?? ''));
+    }
+    private static function isHotelResolutionDisabledCountryName($name)
+    {
+        $name=self::norm($name);
+        return in_array($name,['россия','абхазия'],true);
+    }
 
     private static function findCountryInText($text) { $rows=self::allRows(self::$countryHL,['UF_CID','UF_NAME']); $norm=self::norm($text); $best=null;$bestLen=0; foreach($rows as $row){$name=self::norm($row['UF_NAME']??'');if($name!==''&&self::containsName($norm,$name)&&mb_strlen($name,'UTF-8')>$bestLen){$best=$row;$bestLen=mb_strlen($name,'UTF-8');}} return $best; }
     private static function findCountryByName($name) { $r=self::query(self::$countryHL,['=UF_NAME'=>trim((string)$name)],['UF_CID','UF_NAME'],1); return $r[0]??null; }
@@ -125,10 +143,6 @@ class DestinationResolver
     {
         $tokens=self::tokens($text);
         $maxN=min(5,count($tokens));
-
-        // Безопасный путь: точное название отеля как непрерывная фраза.
-        // Это позволяет распознать "Rixos Premium Dubai" даже без слова "отель",
-        // но не превращает ответы вроде "завтрак и ужин" в случайные отели.
         for($n=$maxN;$n>=2;$n--){
             for($i=0;$i+$n<=count($tokens);$i++){
                 $term=trim(implode(' ',array_slice($tokens,$i,$n)));
@@ -138,20 +152,11 @@ class DestinationResolver
                 if($regionId>0)$filter['=UF_TID']=$regionId;
                 $rows=self::query(self::$hotelHL,$filter,['UF_HID','UF_NAME','UF_CID','UF_TID','UF_RATE'],30);
                 foreach($rows as $row){
-                    if(self::norm((string)$row['UF_NAME'])===self::norm($term)){
-                        return ['hotel'=>$row,'ambiguous'=>false,'matches'=>1];
-                    }
+                    if(self::norm((string)$row['UF_NAME'])===self::norm($term)) return ['hotel'=>$row,'ambiguous'=>false,'matches'=>1];
                 }
             }
         }
-
-        // Fuzzy-поиск допустим только когда пользователь явно говорит об отеле.
-        // Раньше он запускался на каждом AI-ответе и находил, например,
-        // "НОМЕРА И ЗАВТРАК" на фразу "Завтрак и ужин".
-        if (!self::hasHotelIntent($text)) {
-            return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];
-        }
-
+        if (!self::hasHotelIntent($text)) return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];
         $terms=[];
         for($n=$maxN;$n>=1;$n--)for($i=0;$i+$n<=count($tokens);$i++){ $term=trim(implode(' ',array_slice($tokens,$i,$n)));if(mb_strlen($term,'UTF-8')>=4)$terms[$term]=true; }
         $candidates=[];
