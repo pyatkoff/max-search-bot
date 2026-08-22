@@ -9,19 +9,19 @@ ROOT = Path(__file__).resolve().parents[1]
 WEBHOOK = ROOT / 'webhook.php'
 
 
-def replace_between(text: str, start_marker: str, end_marker: str, replacement: str) -> str:
+def replace_between(text, start_marker, end_marker, replacement):
     start = text.find(start_marker)
     if start < 0:
-        raise RuntimeError(f'start marker not found: {start_marker[:80]}')
+        raise RuntimeError('start marker not found: {}'.format(start_marker[:80]))
     end = text.find(end_marker, start)
     if end < 0:
-        raise RuntimeError(f'end marker not found: {end_marker[:80]}')
+        raise RuntimeError('end marker not found: {}'.format(end_marker[:80]))
     return text[:start] + replacement + text[end:]
 
 
-def main() -> int:
+def main():
     if not WEBHOOK.exists():
-        print(f'ERROR: {WEBHOOK} not found')
+        print('ERROR: {} not found'.format(WEBHOOK))
         return 1
 
     original = WEBHOOK.read_text()
@@ -61,25 +61,27 @@ def main() -> int:
         print('NO_CHANGES')
         return 0
 
-    backup = WEBHOOK.with_name(f'webhook.php.before_date_modules_{datetime.now().strftime("%Y%m%d_%H%M%S")}')
-    shutil.copy2(WEBHOOK, backup)
+    backup = WEBHOOK.with_name('webhook.php.before_date_modules_{}'.format(datetime.now().strftime('%Y%m%d_%H%M%S')))
+    shutil.copy2(str(WEBHOOK), str(backup))
     WEBHOOK.write_text(s)
 
-    lint = subprocess.run(
+    lint = subprocess.Popen(
         ['php', '-l', str(WEBHOOK)],
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
+        stderr=subprocess.STDOUT
     )
-    print(lint.stdout.strip())
+    output = lint.communicate()[0]
+    if not isinstance(output, str):
+        output = output.decode('utf-8', 'replace')
+    print(output.strip())
 
     if lint.returncode != 0:
-        shutil.copy2(backup, WEBHOOK)
+        shutil.copy2(str(backup), str(WEBHOOK))
         print('ROLLBACK: syntax check failed')
         return lint.returncode
 
     print('REFACTOR_OK')
-    print(f'Backup: {backup}')
+    print('Backup: {}'.format(backup))
     print('Changed: webhook.php now uses handlers/AiDateHandler.php for pending month and local/short date parsing.')
     return 0
 
@@ -88,5 +90,5 @@ if __name__ == '__main__':
     try:
         raise SystemExit(main())
     except Exception as e:
-        print(f'ERROR: {e}')
+        print('ERROR: {}'.format(e))
         raise
