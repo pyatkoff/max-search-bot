@@ -2,6 +2,7 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/ai/AiRouter.php');
+require_once(__DIR__ . '/handlers/AiDateHandler.php');
 
 $is_log = true;
 
@@ -42,43 +43,6 @@ function maxExtractContactPhone(array $update) {
         }
     }
     return '';
-}
-
-function maxPendingMonthFile($chatId) {
-    $dir = __DIR__ . '/ai_pending_month';
-    if (!is_dir($dir)) @mkdir($dir, 0755, true);
-    return $dir . '/' . preg_replace('/[^0-9\-]/', '', (string)$chatId) . '.json';
-}
-
-function maxSetPendingMonth($chatId, $month, $year) {
-    $month = (int)$month;
-    $year = (int)$year;
-    if ($month < 1 || $month > 12 || $year < 2020) return;
-
-    @file_put_contents(
-        maxPendingMonthFile($chatId),
-        json_encode(['month'=>$month, 'year'=>$year], JSON_UNESCAPED_UNICODE),
-        LOCK_EX
-    );
-}
-
-function maxGetPendingMonth($chatId) {
-    $file = maxPendingMonthFile($chatId);
-    if (!is_file($file)) return [];
-
-    $data = json_decode((string)@file_get_contents($file), true);
-    if (!is_array($data)) return [];
-
-    $month = (int)($data['month'] ?? 0);
-    $year = (int)($data['year'] ?? 0);
-
-    if ($month < 1 || $month > 12 || $year < 2020) return [];
-    return ['month'=>$month, 'year'=>$year];
-}
-
-function maxClearPendingMonth($chatId) {
-    $file = maxPendingMonthFile($chatId);
-    if (is_file($file)) @unlink($file);
 }
 
 function maxUserAsTelegramLike(array $user) {
@@ -134,7 +98,7 @@ function processMessage($message) {
 			MaxSearchApi::cancelToursFollowup($chat_id);
 			MaxSearchApi::deleteAllStatus($chat_id);
 			MaxSearchApi::setEditMode($chat_id,'');
-			maxClearPendingMonth($chat_id);
+			AiDateHandler::clear($chat_id);
 			MaxSearchApi::showStart($chat_id);
 
 		}
@@ -164,74 +128,42 @@ function processMessage($message) {
                 $current = MaxSearchApi::getAiSearchContext($chat_id);
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
 
-                // Если месяц уже был назван предыдущим сообщением,
-                // понимаем короткий ответ на уточнение даты без AI:
-                // "начало", "середина", "конец", "14", "14 числа".
+                // Короткий ответ на ранее названный месяц: "начало", "середина", "конец", "14".
                 if (in_array('date', $missingNow, true)) {
-                    $pendingMonth = maxGetPendingMonth($chat_id);
+                    $shortDateValue = AiDateHandler::resolvePendingShortDate($chat_id, $userText);
 
-                    if (!empty($pendingMonth)) {
-                        $dateShortText = function_exists('mb_strtolower')
-                            ? mb_strtolower(trim($userText), 'UTF-8')
-                            : strtolower(trim($userText));
+                    if ($shortDateValue !== '') {
+                        MaxSearchApi::saveLastValue(
+                            $chat_id,
+                            MaxSearchApi::$statusDate,
+                            $shortDateValue
+                        );
 
-                        $shortDay = 0;
+                        $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);
 
-                        if (preg_match('/^(?:в\s+)?начал(?:о|е)$/ui', $dateShortText)) {
-                            $shortDay = 5;
-                        } elseif (preg_match('/^(?:в\s+)?середин(?:а|е|у)$/ui', $dateShortText)) {
-                            $shortDay = 15;
-                        } elseif (preg_match('/^(?:в\s+)?кон(?:ец|це)$/ui', $dateShortText)) {
-                            $shortDay = 25;
-                        } elseif (preg_match('/^\s*(\d{1,2})(?:\s*(?:числа|число))?\s*$/ui', $dateShortText, $shortDateMatch)) {
-                            $shortDay = (int)$shortDateMatch[1];
+                        if (empty($missingAfterDate)) {
+                            MaxSearchApi::showCheckButtons($chat_id);
+                        } else {
+                            $dateFallback = [
+                                'city'=>'Из какого города планируете вылет?',
+                                'country'=>'Куда хотите поехать?',
+                                'adults'=>'Сколько будет взрослых туристов?',
+                                'children'=>'Будут дети? Если да — сколько?',
+                                'child_ages'=>'Сколько лет детям?',
+                                'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
+                                'meal'=>'Какое питание предпочитаете?',
+                                'nights'=>'На сколько ночей планируете поездку?',
+                                'date'=>'Какая ориентировочная дата вылета?'
+                            ];
+
+                            MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
+                            MaxSearchApi::MaxSend(
+                                $dateFallback[$missingAfterDate[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
+                                $chat_id
+                            );
                         }
 
-                        $shortMonth = (int)$pendingMonth['month'];
-                        $shortYear = (int)$pendingMonth['year'];
-
-                        if ($shortDay > 0 && checkdate($shortMonth, $shortDay, $shortYear)) {
-                            $shortDateValue = sprintf(
-                                '%02d.%02d.%04d',
-                                $shortDay,
-                                $shortMonth,
-                                $shortYear
-                            );
-
-                            MaxSearchApi::saveLastValue(
-                                $chat_id,
-                                MaxSearchApi::$statusDate,
-                                $shortDateValue
-                            );
-
-                            maxClearPendingMonth($chat_id);
-
-                            $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);
-
-                            if (empty($missingAfterDate)) {
-                                MaxSearchApi::showCheckButtons($chat_id);
-                            } else {
-                                $dateFallback = [
-                                    'city'=>'Из какого города планируете вылет?',
-                                    'country'=>'Куда хотите поехать?',
-                                    'adults'=>'Сколько будет взрослых туристов?',
-                                    'children'=>'Будут дети? Если да — сколько?',
-                                    'child_ages'=>'Сколько лет детям?',
-                                    'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                                    'meal'=>'Какое питание предпочитаете?',
-                                    'nights'=>'На сколько ночей планируете поездку?',
-                                    'date'=>'Какая ориентировочная дата вылета?'
-                                ];
-
-                                MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-                                MaxSearchApi::MaxSend(
-                                    $dateFallback[$missingAfterDate[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-                                    $chat_id
-                                );
-                            }
-
-                            return;
-                        }
+                        return;
                     }
                 }
 
@@ -384,68 +316,11 @@ function processMessage($message) {
                         $localParams['nights']='7';
                     }
 
-                    // Дата для коротких сообщений.
-                    $localMonthOnly=false;
-                    $localResolvedDate='';
-                    $localMonths = [
-                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
-                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
-                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
-                    ];
-
-                    $localMonthNum=0;
-                    $localMonthStem='';
-                    foreach ($localMonths as $monthStem=>$monthNum) {
-                        if (strpos($localText,$monthStem)!==false) {
-                            $localMonthOnly=true;
-                            $localMonthNum=$monthNum;
-                            $localMonthStem=$monthStem;
-                            break;
-                        }
-                    }
-
-                    if (preg_match('/\bзавтра\b/ui',$userText)) {
-                        $localResolvedDate=date('d.m.Y',strtotime('+1 day'));
-                    } elseif (preg_match('/\bпослезавтра\b/ui',$userText)) {
-                        $localResolvedDate=date('d.m.Y',strtotime('+2 days'));
-                    } elseif (preg_match('/\b(?:ближайш(?:ая|ие|ую)|как\s+можно\s+скорее|поскорее)\b/ui',$userText)) {
-                        $localResolvedDate=date('d.m.Y',strtotime('+1 day'));
-                    } elseif ($localMonthNum>0) {
-                        $localYear=(int)date('Y');
-                        if($localMonthNum < (int)date('n')) $localYear++;
-
-                        $localDay=0;
-                        if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui',$userText)) {
-                            $localDay=5;
-                        } elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui',$userText)) {
-                            $localDay=15;
-                        } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui',$userText)) {
-                            $localDay=25;
-                        } elseif (
-                            $localMonthStem!=='' &&
-                            preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
-                        ) {
-                            $localDay=min(28,((int)$dm[1])+1);
-                        } elseif (
-                            $localMonthStem!=='' &&
-                            preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
-                        ) {
-                            $localDay=(int)$dm[1];
-                        }
-
-                        if ($localDay>0 && checkdate($localMonthNum,$localDay,$localYear)) {
-                            $localResolvedDate=sprintf('%02d.%02d.%04d',$localDay,$localMonthNum,$localYear);
-                        }
-                    }
-
-                    if ($localResolvedDate!=='') {
-                        $localParams['date']=$localResolvedDate;
-                        $localMonthOnly=false;
-                        maxClearPendingMonth($chat_id);
-                    } elseif ($localMonthNum > 0) {
-                        $pendingYear = (int)date('Y');
-                        if ($localMonthNum < (int)date('n')) $pendingYear++;
-                        maxSetPendingMonth($chat_id, $localMonthNum, $pendingYear);
+                    // Дата для коротких сообщений вынесена в отдельный обработчик.
+                    $localDateResolved = AiDateHandler::rememberMonthFromText($chat_id, $userText);
+                    $localMonthOnly = !empty($localDateResolved['month']) && empty($localDateResolved['date']);
+                    if (!empty($localDateResolved['date'])) {
+                        $localParams['date'] = $localDateResolved['date'];
                     }
 
                     if (!empty($localParams)) {
@@ -666,7 +541,7 @@ function processMessage($message) {
 
                     if ($resolvedInlineDate !== '') {
                         $params['date']=$resolvedInlineDate;
-                        maxClearPendingMonth($chat_id);
+                        AiDateHandler::clear($chat_id);
                     } elseif ($monthInline > 0) {
                         $pendingInlineYear = (int)date('Y');
                         if ($monthInline < (int)date('n')) $pendingInlineYear++;
@@ -746,7 +621,7 @@ function processMessage($message) {
                 }
 
                 if (!empty($params['date'])) {
-                    maxClearPendingMonth($chat_id);
+                    AiDateHandler::clear($chat_id);
                 }
 
                 @file_put_contents(
