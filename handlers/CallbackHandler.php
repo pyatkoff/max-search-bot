@@ -10,12 +10,22 @@ public static function handle($query) {
 	if($q =="ai_start")
 	{
 		MaxSearchApi::funnelLog($chat_id,'ai_start');
+		// Новый AI-подбор должен начинаться с чистого поискового контекста.
+		// Ставим новую границу statusStart, чтобы getSavedData() не подтягивал
+		// страну/отель/дату из предыдущего подбора этого же chat_id.
+		MaxSearchApi::deletePrevMessage($chat_id);
+		MaxSearchApi::setStatus($chat_id,MaxSearchApi::$statusStart);
 		MaxSearchApi::showAiStart($chat_id);
 	}
 	elseif($q =="start_search" || $q =="back_pick_city")
 	{
 		if($q =="start_search")
+		{
 			MaxSearchApi::funnelLog($chat_id,'start_search');
+			// Поиск «по шагам» тоже является новым подбором, а не продолжением старого.
+			MaxSearchApi::deletePrevMessage($chat_id);
+			MaxSearchApi::setStatus($chat_id,MaxSearchApi::$statusStart);
+		}
 		if($q =="back_pick_city")
 			MaxSearchApi::deletePrevMessage($chat_id,true);
 		MaxSearchApi::showCityButtons($chat_id);
