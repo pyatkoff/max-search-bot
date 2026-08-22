@@ -37,6 +37,12 @@ method_block = function_block.replace(
 
 handler_text = "<?php\n\nclass CallbackHandler\n{\n" + method_block + "\n}\n"
 
+# First replace the original processQuery block while the offsets still refer
+# to the unmodified webhook text. Adding a require before this block would
+# shift start/end and corrupt the replacement.
+wrapper = "function processQuery($query) {\n\tCallbackHandler::handle($query);\n}\n\n\n"
+text = text[:start] + wrapper + text[end:]
+
 require_line = "require_once(__DIR__ . '/handlers/CallbackHandler.php');\n"
 anchor = "require_once(__DIR__ . '/handlers/AiMessageHandler.php');\n"
 
@@ -44,9 +50,6 @@ if require_line not in text:
     if anchor not in text:
         raise RuntimeError('require anchor not found')
     text = text.replace(anchor, anchor + require_line, 1)
-
-wrapper = "function processQuery($query) {\n\tCallbackHandler::handle($query);\n}\n\n\n"
-text = text[:start] + wrapper + text[end:]
 
 stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 backup = WEBHOOK.with_name('webhook.php.before_callback_handler_' + stamp)
