@@ -24,8 +24,10 @@ class AiClient
 
         $ch = curl_init('https://api.openai.com/v1/responses');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+        // Webhook MAX не должен ждать AI десятки секунд:
+        // иначе MAX считает доставку неуспешной и повторяет update.
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . OPENAI_API_KEY,

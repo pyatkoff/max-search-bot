@@ -44,6 +44,43 @@ function maxExtractContactPhone(array $update) {
     return '';
 }
 
+function maxPendingMonthFile($chatId) {
+    $dir = __DIR__ . '/ai_pending_month';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+    return $dir . '/' . preg_replace('/[^0-9\-]/', '', (string)$chatId) . '.json';
+}
+
+function maxSetPendingMonth($chatId, $month, $year) {
+    $month = (int)$month;
+    $year = (int)$year;
+    if ($month < 1 || $month > 12 || $year < 2020) return;
+
+    @file_put_contents(
+        maxPendingMonthFile($chatId),
+        json_encode(['month'=>$month, 'year'=>$year], JSON_UNESCAPED_UNICODE),
+        LOCK_EX
+    );
+}
+
+function maxGetPendingMonth($chatId) {
+    $file = maxPendingMonthFile($chatId);
+    if (!is_file($file)) return [];
+
+    $data = json_decode((string)@file_get_contents($file), true);
+    if (!is_array($data)) return [];
+
+    $month = (int)($data['month'] ?? 0);
+    $year = (int)($data['year'] ?? 0);
+
+    if ($month < 1 || $month > 12 || $year < 2020) return [];
+    return ['month'=>$month, 'year'=>$year];
+}
+
+function maxClearPendingMonth($chatId) {
+    $file = maxPendingMonthFile($chatId);
+    if (is_file($file)) @unlink($file);
+}
+
 function maxUserAsTelegramLike(array $user) {
     $name = trim((string)($user['name'] ?? ''));
     $parts = $name !== '' ? preg_split('/\s+/', $name, 2) : [];
@@ -92,8 +129,12 @@ function processMessage($message) {
 		}
 		elseif($message['text']=="/start" || $message['text']=="МЕНЮ" )
 		{
+			// Новый старт полностью завершает предыдущий сценарий,
+			// включая отложенный follow-up.
+			MaxSearchApi::cancelToursFollowup($chat_id);
 			MaxSearchApi::deleteAllStatus($chat_id);
 			MaxSearchApi::setEditMode($chat_id,'');
+			maxClearPendingMonth($chat_id);
 			MaxSearchApi::showStart($chat_id);
 
 		}
@@ -121,10 +162,81 @@ function processMessage($message) {
                 }
 
                 $current = MaxSearchApi::getAiSearchContext($chat_id);
+                $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
+
+                // Если месяц уже был назван предыдущим сообщением,
+                // понимаем короткий ответ на уточнение даты без AI:
+                // "начало", "середина", "конец", "14", "14 числа".
+                if (in_array('date', $missingNow, true)) {
+                    $pendingMonth = maxGetPendingMonth($chat_id);
+
+                    if (!empty($pendingMonth)) {
+                        $dateShortText = function_exists('mb_strtolower')
+                            ? mb_strtolower(trim($userText), 'UTF-8')
+                            : strtolower(trim($userText));
+
+                        $shortDay = 0;
+
+                        if (preg_match('/^(?:в\s+)?начал(?:о|е)$/ui', $dateShortText)) {
+                            $shortDay = 5;
+                        } elseif (preg_match('/^(?:в\s+)?середин(?:а|е|у)$/ui', $dateShortText)) {
+                            $shortDay = 15;
+                        } elseif (preg_match('/^(?:в\s+)?кон(?:ец|це)$/ui', $dateShortText)) {
+                            $shortDay = 25;
+                        } elseif (preg_match('/^\s*(\d{1,2})(?:\s*(?:числа|число))?\s*$/ui', $dateShortText, $shortDateMatch)) {
+                            $shortDay = (int)$shortDateMatch[1];
+                        }
+
+                        $shortMonth = (int)$pendingMonth['month'];
+                        $shortYear = (int)$pendingMonth['year'];
+
+                        if ($shortDay > 0 && checkdate($shortMonth, $shortDay, $shortYear)) {
+                            $shortDateValue = sprintf(
+                                '%02d.%02d.%04d',
+                                $shortDay,
+                                $shortMonth,
+                                $shortYear
+                            );
+
+                            MaxSearchApi::saveLastValue(
+                                $chat_id,
+                                MaxSearchApi::$statusDate,
+                                $shortDateValue
+                            );
+
+                            maxClearPendingMonth($chat_id);
+
+                            $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);
+
+                            if (empty($missingAfterDate)) {
+                                MaxSearchApi::showCheckButtons($chat_id);
+                            } else {
+                                $dateFallback = [
+                                    'city'=>'Из какого города планируете вылет?',
+                                    'country'=>'Куда хотите поехать?',
+                                    'adults'=>'Сколько будет взрослых туристов?',
+                                    'children'=>'Будут дети? Если да — сколько?',
+                                    'child_ages'=>'Сколько лет детям?',
+                                    'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
+                                    'meal'=>'Какое питание предпочитаете?',
+                                    'nights'=>'На сколько ночей планируете поездку?',
+                                    'date'=>'Какая ориентировочная дата вылета?'
+                                ];
+
+                                MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
+                                MaxSearchApi::MaxSend(
+                                    $dateFallback[$missingAfterDate[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
+                                    $chat_id
+                                );
+                            }
+
+                            return;
+                        }
+                    }
+                }
 
                 // Если сейчас не хватает только возраста детей, короткий ответ
                 // разбираем детерминированно без AI: "5", "5 лет", "5, 8", "5 и 8".
-                $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 if (in_array('child_ages', $missingNow, true)) {
                     $childrenCount = (int)($current['children'] ?? 0);
 
@@ -329,6 +441,11 @@ function processMessage($message) {
                     if ($localResolvedDate!=='') {
                         $localParams['date']=$localResolvedDate;
                         $localMonthOnly=false;
+                        maxClearPendingMonth($chat_id);
+                    } elseif ($localMonthNum > 0) {
+                        $pendingYear = (int)date('Y');
+                        if ($localMonthNum < (int)date('n')) $pendingYear++;
+                        maxSetPendingMonth($chat_id, $localMonthNum, $pendingYear);
                     }
 
                     if (!empty($localParams)) {
@@ -549,6 +666,11 @@ function processMessage($message) {
 
                     if ($resolvedInlineDate !== '') {
                         $params['date']=$resolvedInlineDate;
+                        maxClearPendingMonth($chat_id);
+                    } elseif ($monthInline > 0) {
+                        $pendingInlineYear = (int)date('Y');
+                        if ($monthInline < (int)date('n')) $pendingInlineYear++;
+                        maxSetPendingMonth($chat_id, $monthInline, $pendingInlineYear);
                     }
                 }
 
@@ -621,6 +743,10 @@ function processMessage($message) {
                         // Оставляем date незаполненной, чтобы бот уточнил период.
                         $params['date'] = null;
                     }
+                }
+
+                if (!empty($params['date'])) {
+                    maxClearPendingMonth($chat_id);
                 }
 
                 @file_put_contents(
