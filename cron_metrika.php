@@ -129,6 +129,15 @@ while (($row = fgetcsv($in)) !== false) {
         continue;
     }
 
+    // Existing queue files contain a CSV header. Ignore it instead of treating it as a Yclid.
+    if (
+        strcasecmp($yclid, 'Yclid') === 0 &&
+        strcasecmp($target, 'Target') === 0 &&
+        strcasecmp($dateRaw, 'DateTime') === 0
+    ) {
+        continue;
+    }
+
     if (!preg_match('/^\d+$/', $yclid)) {
         fclose($in);
         fclose($out);
