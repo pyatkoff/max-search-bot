@@ -1,0 +1,145 @@
+name: Apply date parser fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-date-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Patch webhook date parsing
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('webhook.php')
+          s = p.read_text(encoding='utf-8')
+
+          replacements = [
+          ("""                    $localMonths = [
+                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
+                        'мае'=>5, 'май'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
+                    ];
+
+                    $localMonthNum=0;
+                    foreach ($localMonths as $monthStem=>$monthNum) {
+                        if (strpos($localText,$monthStem)!==false) {
+                            $localMonthOnly=true;
+                            $localMonthNum=$monthNum;
+                            break;
+                        }
+                    }
+""",
+"""                    $localMonths = [
+                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
+                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
+                    ];
+
+                    $localMonthNum=0;
+                    $localMonthStem='';
+                    foreach ($localMonths as $monthStem=>$monthNum) {
+                        if (strpos($localText,$monthStem)!==false) {
+                            $localMonthOnly=true;
+                            $localMonthNum=$monthNum;
+                            $localMonthStem=$monthStem;
+                            break;
+                        }
+                    }
+"""),
+          ("""                        } elseif (preg_match('/после\\s+(\\d{1,2})\\s+[а-яё]+/ui',$userText,$dm)) {
+                            $localDay=min(28,((int)$dm[1])+1);
+                        } elseif (preg_match('/\\b(\\d{1,2})\\s+[а-яё]+/ui',$userText,$dm)) {
+                            $localDay=(int)$dm[1];
+                        }
+""",
+"""                        } elseif (
+                            $localMonthStem!=='' &&
+                            preg_match('/после\\s+(\\d{1,2})\\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
+                        ) {
+                            $localDay=min(28,((int)$dm[1])+1);
+                        } elseif (
+                            $localMonthStem!=='' &&
+                            preg_match('/\\b(\\d{1,2})\\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
+                        ) {
+                            $localDay=(int)$dm[1];
+                        }
+"""),
+          ("""                    $monthsInline = [
+                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
+                        'ма'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
+                    ];
+                    $monthInline = 0;
+                    foreach ($monthsInline as $stem=>$num) {
+                        if (strpos($dateTextAll, $stem) !== false) {
+                            $monthInline = $num;
+                            break;
+                        }
+                    }
+""",
+"""                    $monthsInline = [
+                        'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
+                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
+                    ];
+                    $monthInline = 0;
+                    $monthInlineStem = '';
+                    foreach ($monthsInline as $stem=>$num) {
+                        if (strpos($dateTextAll, $stem) !== false) {
+                            $monthInline = $num;
+                            $monthInlineStem = $stem;
+                            break;
+                        }
+                    }
+"""),
+          ("""                        } elseif (preg_match('/после\\s+(\\d{1,2})\\s+[а-яё]+/ui', $dateTextAll, $dm)) {
+                            $dayInline=min(28,((int)$dm[1])+1);
+                        } elseif (preg_match('/\\b(\\d{1,2})\\s+[а-яё]+/ui', $dateTextAll, $dm)) {
+                            $dayInline=(int)$dm[1];
+                        }
+""",
+"""                        } elseif (
+                            $monthInlineStem !== '' &&
+                            preg_match('/после\\s+(\\d{1,2})\\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
+                        ) {
+                            $dayInline=min(28,((int)$dm[1])+1);
+                        } elseif (
+                            $monthInlineStem !== '' &&
+                            preg_match('/\\b(\\d{1,2})\\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
+                        ) {
+                            $dayInline=(int)$dm[1];
+                        }
+""")]
+
+          for old, new in replacements:
+              if s.count(old) != 1:
+                  raise SystemExit('Expected patch fragment exactly once; aborting')
+              s = s.replace(old, new, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          php -l webhook.php
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name "OpenAI Fix Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add webhook.php
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix ambiguous month/date parsing"
+          git push origin main
