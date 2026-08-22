@@ -12,6 +12,8 @@ class DestinationResolver
         if ($text === '') return [];
 
         $current = MaxSearchApi::getAiSearchContext($chatId);
+        $old = self::getStored($chatId);
+
         $country = null;
         if (!empty($current['country'])) $country = self::findCountryByName($current['country']);
         if (!$country) $country = self::findCountryInText($text);
@@ -55,9 +57,28 @@ class DestinationResolver
             'source_text' => $text,
             'updated_at' => date('c'),
         ];
-        $old = self::getStored($chatId);
-        foreach (['region_id','region','hotel_id','hotel'] as $key) if (empty($data[$key]) && !empty($old[$key])) $data[$key] = $old[$key];
-        if (empty($data['country_id']) && !empty($old['country_id'])) { $data['country_id']=$old['country_id']; $data['country']=$old['country'] ?? ''; }
+
+        // Короткие ответы (дата, питание, количество туристов и т.п.) не должны
+        // сбрасывать уже найденное направление. Но если пользователь явно назвал
+        // новую страну/регион, старый отель от другого направления переносить нельзя.
+        $countryChanged = !empty($data['country_id']) && !empty($old['country_id'])
+            && (int)$data['country_id'] !== (int)$old['country_id'];
+        $regionChanged = !empty($data['region_id']) && !empty($old['region_id'])
+            && (int)$data['region_id'] !== (int)$old['region_id'];
+
+        if (empty($data['country_id']) && !empty($old['country_id'])) {
+            $data['country_id'] = (int)$old['country_id'];
+            $data['country'] = (string)($old['country'] ?? '');
+        }
+        if (empty($data['region_id']) && !empty($old['region_id']) && !$countryChanged) {
+            $data['region_id'] = (int)$old['region_id'];
+            $data['region'] = (string)($old['region'] ?? '');
+        }
+        if (empty($data['hotel_id']) && !empty($old['hotel_id']) && !$countryChanged && !$regionChanged) {
+            $data['hotel_id'] = (int)$old['hotel_id'];
+            $data['hotel'] = (string)($old['hotel'] ?? '');
+        }
+
         if ($data['country_id'] || $data['region_id'] || $data['hotel_id'] || $data['hotel_ambiguous']) {
             self::store($chatId,$data);
             MaxSearchApi::funnelLog($chatId,'destination_resolved',$data);
@@ -105,9 +126,9 @@ class DestinationResolver
         $tokens=self::tokens($text);
         $maxN=min(5,count($tokens));
 
-        // Сначала ищем точное название отеля как непрерывную фразу из сообщения.
-        // Это критично для "Rixos Premium Dubai": общий fuzzy-поиск по словам Rixos/Premium/Dubai
-        // находил десятки Rixos и ошибочно помечал запрос неоднозначным.
+        // Безопасный путь: точное название отеля как непрерывная фраза.
+        // Это позволяет распознать "Rixos Premium Dubai" даже без слова "отель",
+        // но не превращает ответы вроде "завтрак и ужин" в случайные отели.
         for($n=$maxN;$n>=2;$n--){
             for($i=0;$i+$n<=count($tokens);$i++){
                 $term=trim(implode(' ',array_slice($tokens,$i,$n)));
@@ -124,6 +145,13 @@ class DestinationResolver
             }
         }
 
+        // Fuzzy-поиск допустим только когда пользователь явно говорит об отеле.
+        // Раньше он запускался на каждом AI-ответе и находил, например,
+        // "НОМЕРА И ЗАВТРАК" на фразу "Завтрак и ужин".
+        if (!self::hasHotelIntent($text)) {
+            return ['hotel'=>null,'ambiguous'=>false,'matches'=>0];
+        }
+
         $terms=[];
         for($n=$maxN;$n>=1;$n--)for($i=0;$i+$n<=count($tokens);$i++){ $term=trim(implode(' ',array_slice($tokens,$i,$n)));if(mb_strlen($term,'UTF-8')>=4)$terms[$term]=true; }
         $candidates=[];
@@ -135,6 +163,12 @@ class DestinationResolver
         $meaningful=array_values(array_filter($tokens,static function($t){return mb_strlen($t,'UTF-8')>=4;}));
         $ambiguous=count($sameTop)>1||(count($meaningful)<=1&&count($scored)>1&&$regionId<=0);
         return ['hotel'=>$ambiguous?null:$top['row'],'ambiguous'=>$ambiguous,'matches'=>count($scored)];
+    }
+
+    private static function hasHotelIntent($text)
+    {
+        $norm = self::norm($text);
+        return (bool)preg_match('/(?:^|\s)(?:отел(?:ь|я|е|ем|ю)?|гостиниц[а-я]*|hotel|resort)(?:\s|$)/ui', $norm);
     }
 
     private static function nameScore($name,$text){$a=self::tokens($name);$b=self::tokens($text);if(!$a||!$b)return 0;$score=0;foreach($a as $nt){if(mb_strlen($nt,'UTF-8')<3)continue;foreach($b as $tt){if(mb_strlen($tt,'UTF-8')<3)continue;$len=min(mb_strlen($nt,'UTF-8'),mb_strlen($tt,'UTF-8'));$prefix=min(5,max(3,$len-1));if(mb_substr($nt,0,$prefix,'UTF-8')===mb_substr($tt,0,$prefix,'UTF-8')){$score+=$prefix;break;}}}return $score;}
