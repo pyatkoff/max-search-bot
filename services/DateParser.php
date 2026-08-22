@@ -38,6 +38,8 @@ class DateParser
         if (preg_match('/^(?:в\s+)?начал(?:о|е)$/ui', $normalized)) return 5;
         if (preg_match('/^(?:в\s+)?середин(?:а|е|у)$/ui', $normalized)) return 15;
         if (preg_match('/^(?:в\s+)?кон(?:ец|це)$/ui', $normalized)) return 25;
+        if (preg_match('/^(?:в\s+)?10(?:-?х|-?е|ые)?\s+числ(?:ах|а)?$/ui', $normalized)) return 15;
+        if (preg_match('/^(?:в\s+)?20(?:-?х|-?е|ые)?\s+числ(?:ах|а)?$/ui', $normalized)) return 25;
         if (preg_match('/^(\d{1,2})(?:\s*(?:числа|число))?$/ui', $normalized, $m)) {
             $day = (int)$m[1];
             return ($day >= 1 && $day <= 31) ? $day : 0;
@@ -64,6 +66,8 @@ class DateParser
         if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $text)) $day = 5;
         elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui', $text)) $day = 15;
         elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $text)) $day = 25;
+        elseif (preg_match('/(?:в\s+)?10(?:-?х|-?е|ые)?\s+числ(?:ах|а)?\s+[а-яё]+/ui', $text)) $day = 15;
+        elseif (preg_match('/(?:в\s+)?20(?:-?х|-?е|ые)?\s+числ(?:ах|а)?\s+[а-яё]+/ui', $text)) $day = 25;
         elseif (preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($stem,'/').'[а-яё]*/ui', $text, $m)) $day = min(28, ((int)$m[1])+1);
         elseif (preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($stem,'/').'[а-яё]*/ui', $text, $m)) $day = (int)$m[1];
 
