@@ -50,8 +50,9 @@ class DestinationAreaResolver
     public static function infer($text)
     {
         // В конструкции "из Питера в Китай ..." всё до предлога "в" — место
-        // отправления, а не destination. Раньше слово "Питера" могло ошибочно
-        // сработать как area и перезаписать направление на Санкт-Петербург/Россию.
+        // отправления, а не destination. Для фраз только с городом вылета
+        // ("с вылетом из Москвы", "туры из Калининграда") destinationPart()
+        // вернёт пустую строку, чтобы resolver вообще не определял направление.
         $destinationText = self::destinationPart((string)$text);
         $tokens = self::tokens($destinationText);
         if (!$tokens) return null;
@@ -114,16 +115,31 @@ class DestinationAreaResolver
      * Поддерживает естественные конструкции:
      *   "из Питера в Китай в Чунцин" -> "Китай в Чунцин"
      *   "из Москвы в Египет на неделю" -> "Египет на неделю"
-     * Если явной пары "из ... в ..." нет, оставляет исходный текст без изменений.
+     *   "с вылетом из Москвы" -> ""
+     *   "туры из Калининграда" -> ""
+     * Если явного города вылета нет, оставляет исходный текст без изменений.
      */
     private static function destinationPart($text)
     {
         $text = trim((string)$text);
         if ($text === '') return '';
 
+        // Явно разделённые departure и destination: всё после "в" — направление.
         if (preg_match('/(?:^|\s)из\s+.+?\s+в\s+(.+)$/ui', $text, $m)) {
             $part = trim((string)($m[1] ?? ''));
             if ($part !== '') return $part;
+        }
+
+        // Фраза содержит только город вылета, но не направление отдыха.
+        // Не даём resolver'у превратить Москву/Калининград/СПб в destination.
+        if (preg_match('/(?:с\s+)?вылет(?:ом)?\s+из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*/ui', $text)) {
+            return '';
+        }
+        if (preg_match('/(?:^|\s)туры?\s+из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*/ui', $text)) {
+            return '';
+        }
+        if (preg_match('/(?:^|\s)из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*\s*$/ui', $text)) {
+            return '';
         }
 
         return $text;
