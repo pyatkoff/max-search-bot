@@ -552,6 +552,77 @@ function processMessage($message) {
                     }
                 }
 
+                // DATE GUARD:
+                // Если пользователь явно назвал месяц, не позволяем AI/fallback
+                // сохранить дату из другого месяца.
+                $dateGuardText = function_exists('mb_strtolower')
+                    ? mb_strtolower($userText, 'UTF-8')
+                    : strtolower($userText);
+
+                $dateGuardMonths = [
+                    'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
+                    'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7,
+                    'август'=>8, 'сентябр'=>9, 'октябр'=>10,
+                    'ноябр'=>11, 'декабр'=>12
+                ];
+
+                $dateGuardMonth = 0;
+                $dateGuardStem = '';
+                foreach ($dateGuardMonths as $stem=>$num) {
+                    if (strpos($dateGuardText, $stem) !== false) {
+                        $dateGuardMonth = $num;
+                        $dateGuardStem = $stem;
+                        break;
+                    }
+                }
+
+                if ($dateGuardMonth > 0) {
+                    $dateGuardYear = (int)date('Y');
+                    if ($dateGuardMonth < (int)date('n')) {
+                        $dateGuardYear++;
+                    }
+
+                    // Есть ли явно названное число именно рядом с названием месяца.
+                    $dateGuardExplicitDay = 0;
+                    if (
+                        $dateGuardStem !== '' &&
+                        preg_match(
+                            '/\b(\d{1,2})\s+[а-яё]*'.preg_quote($dateGuardStem,'/').'[а-яё]*/ui',
+                            $dateGuardText,
+                            $dateGuardMatch
+                        )
+                    ) {
+                        $dateGuardExplicitDay = (int)$dateGuardMatch[1];
+                    }
+
+                    $dateGuardExpectedDay = 0;
+
+                    if ($dateGuardExplicitDay > 0) {
+                        $dateGuardExpectedDay = $dateGuardExplicitDay;
+                    } elseif (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $dateGuardText)) {
+                        $dateGuardExpectedDay = 5;
+                    } elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui', $dateGuardText)) {
+                        $dateGuardExpectedDay = 15;
+                    } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $dateGuardText)) {
+                        $dateGuardExpectedDay = 25;
+                    }
+
+                    if ($dateGuardExpectedDay > 0 && checkdate($dateGuardMonth, $dateGuardExpectedDay, $dateGuardYear)) {
+                        // Для точной даты / начала / середины / конца жёстко сохраняем
+                        // дату именно в указанном пользователем месяце.
+                        $params['date'] = sprintf(
+                            '%02d.%02d.%04d',
+                            $dateGuardExpectedDay,
+                            $dateGuardMonth,
+                            $dateGuardYear
+                        );
+                    } else {
+                        // Назван только месяц. Никаких случайных дат из другого месяца.
+                        // Оставляем date незаполненной, чтобы бот уточнил период.
+                        $params['date'] = null;
+                    }
+                }
+
                 @file_put_contents(
                     __DIR__.'/ai_debug.log',
                     "ROUTE AFTER AI: APPLY_PARAMETERS\n",
