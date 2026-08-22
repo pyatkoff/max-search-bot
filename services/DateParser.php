@@ -67,8 +67,6 @@ class DateParser
 
     public static function resolveDate(string $text): array
     {
-        $normalized = self::lower($text);
-
         if (preg_match('/\bзавтра\b/ui', $text)) {
             return ['date' => date('d.m.Y', strtotime('+1 day'))];
         }
