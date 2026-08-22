@@ -49,7 +49,11 @@ class DestinationAreaResolver
      */
     public static function infer($text)
     {
-        $tokens = self::tokens($text);
+        // В конструкции "из Питера в Китай ..." всё до предлога "в" — место
+        // отправления, а не destination. Раньше слово "Питера" могло ошибочно
+        // сработать как area и перезаписать направление на Санкт-Петербург/Россию.
+        $destinationText = self::destinationPart((string)$text);
+        $tokens = self::tokens($destinationText);
         if (!$tokens) return null;
 
         foreach ($tokens as $token) {
@@ -103,6 +107,26 @@ class DestinationAreaResolver
             }
         }
         return null;
+    }
+
+    /**
+     * Возвращает часть фразы, описывающую именно destination.
+     * Поддерживает естественные конструкции:
+     *   "из Питера в Китай в Чунцин" -> "Китай в Чунцин"
+     *   "из Москвы в Египет на неделю" -> "Египет на неделю"
+     * Если явной пары "из ... в ..." нет, оставляет исходный текст без изменений.
+     */
+    private static function destinationPart($text)
+    {
+        $text = trim((string)$text);
+        if ($text === '') return '';
+
+        if (preg_match('/(?:^|\s)из\s+.+?\s+в\s+(.+)$/ui', $text, $m)) {
+            $part = trim((string)($m[1] ?? ''));
+            if ($part !== '') return $part;
+        }
+
+        return $text;
     }
 
     private static function getCountry($cid)
