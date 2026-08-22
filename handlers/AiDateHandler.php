@@ -21,6 +21,11 @@ class AiDateHandler
         return $resolved;
     }
 
+    public static function rememberMonth($chatId, int $month, int $year): void
+    {
+        PendingMonthStore::set($chatId, $month, $year);
+    }
+
     public static function resolvePendingShortDate($chatId, string $text): string
     {
         $pending = PendingMonthStore::get($chatId);
@@ -38,5 +43,14 @@ class AiDateHandler
     public static function clear($chatId): void
     {
         PendingMonthStore::clear($chatId);
+    }
+}
+
+// Временная совместимость с одним оставшимся вызовом в webhook.php.
+// Удалим этот wrapper на следующем этапе, когда вынесем весь AI routing.
+if (!function_exists('maxSetPendingMonth')) {
+    function maxSetPendingMonth($chatId, $month, $year)
+    {
+        AiDateHandler::rememberMonth($chatId, (int)$month, (int)$year);
     }
 }
