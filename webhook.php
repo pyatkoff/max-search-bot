@@ -2,6 +2,7 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/ai/AiRouter.php');
+require_once(__DIR__ . '/services/DestinationAreaResolver.php');
 require_once(__DIR__ . '/services/DestinationResolver.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
@@ -118,9 +119,11 @@ function processMessage($message) {
 			$status = MaxSearchApi::getCurentStatus($chat_id);
             if($status==MaxSearchApi::$statusAi || !$status || $status==MaxSearchApi::$statusStart)
             {
-                // До общего AI сверяем текст с живыми справочниками Bitrix:
-                // HL2 страны, HL3 курорты/регионы, HL6 отели.
-                // Если найден курорт/отель, страна заполняется сразу и повторно не спрашивается.
+                // Сначала пробуем туристические зоны, которых нет отдельной строкой в HL3
+                // (например Лара -> Турция / Анталья по устойчивой привязке отелей HL6).
+                DestinationAreaResolver::resolveAndStore($chat_id, $message['text']);
+
+                // Затем обычные справочники: HL2 страны, HL3 регионы, HL6 отели.
                 DestinationResolver::resolveAndStore($chat_id, $message['text']);
 
                 if (!AiShortAnswerHandler::handle($message, $chat_id)) {
