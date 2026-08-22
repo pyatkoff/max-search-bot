@@ -2,7 +2,6 @@
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 from datetime import datetime
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,7 +37,7 @@ def main():
     helper_start = 'function maxPendingMonthFile($chatId) {'
     helper_end = 'function maxUserAsTelegramLike(array $user) {'
     if helper_start in s:
-        s = replace_between(s, helper_start, helper_end, helper_end)
+        s = replace_between(s, helper_start, helper_end, '')
 
     # All remaining clears go through the dedicated handler/store.
     s = s.replace('maxClearPendingMonth($chat_id);', 'AiDateHandler::clear($chat_id);')
@@ -48,14 +47,14 @@ def main():
     short_end = '''                // Если сейчас не хватает только возраста детей, короткий ответ\n'''
     short_replacement = '''                // Короткий ответ на ранее названный месяц: "начало", "середина", "конец", "14".\n                if (in_array('date', $missingNow, true)) {\n                    $shortDateValue = AiDateHandler::resolvePendingShortDate($chat_id, $userText);\n\n                    if ($shortDateValue !== '') {\n                        MaxSearchApi::saveLastValue(\n                            $chat_id,\n                            MaxSearchApi::$statusDate,\n                            $shortDateValue\n                        );\n\n                        $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);\n\n                        if (empty($missingAfterDate)) {\n                            MaxSearchApi::showCheckButtons($chat_id);\n                        } else {\n                            $dateFallback = [\n                                'city'=>'Из какого города планируете вылет?',\n                                'country'=>'Куда хотите поехать?',\n                                'adults'=>'Сколько будет взрослых туристов?',\n                                'children'=>'Будут дети? Если да — сколько?',\n                                'child_ages'=>'Сколько лет детям?',\n                                'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',\n                                'meal'=>'Какое питание предпочитаете?',\n                                'nights'=>'На сколько ночей планируете поездку?',\n                                'date'=>'Какая ориентировочная дата вылета?'\n                            ];\n\n                            MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);\n                            MaxSearchApi::MaxSend(\n                                $dateFallback[$missingAfterDate[0]] ?? 'Уточните, пожалуйста, параметры поездки.',\n                                $chat_id\n                            );\n                        }\n\n                        return;\n                    }\n                }\n\n'''
     if short_start in s:
-        s = replace_between(s, short_start, short_end, short_replacement + short_end)
+        s = replace_between(s, short_start, short_end, short_replacement)
 
     # Replace local month/date parser with DateParser + PendingMonthStore via AiDateHandler.
     local_start = '''                    // Дата для коротких сообщений.\n'''
     local_end = '''                    if (!empty($localParams)) {\n'''
     local_replacement = '''                    // Дата для коротких сообщений вынесена в отдельный обработчик.\n                    $localDateResolved = AiDateHandler::rememberMonthFromText($chat_id, $userText);\n                    $localMonthOnly = !empty($localDateResolved['month']) && empty($localDateResolved['date']);\n                    if (!empty($localDateResolved['date'])) {\n                        $localParams['date'] = $localDateResolved['date'];\n                    }\n\n'''
     if local_start in s:
-        s = replace_between(s, local_start, local_end, local_replacement + local_end)
+        s = replace_between(s, local_start, local_end, local_replacement)
 
     if s == original:
         print('NO_CHANGES')
