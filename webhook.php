@@ -4,6 +4,7 @@ require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/ai/AiRouter.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
+require_once(__DIR__ . '/handlers/AiShortAnswerHandler.php');
 require_once(__DIR__ . '/handlers/CallbackHandler.php');
 require_once(__DIR__ . '/handlers/StateMessageHandler.php');
 require_once(__DIR__ . '/handlers/MaxUpdateHandler.php');
@@ -121,7 +122,11 @@ function processMessage($message) {
 			//MaxSearchApi::showCheckButtons($chat_id);
             if($status==MaxSearchApi::$statusAi || !$status || $status==MaxSearchApi::$statusStart)
             {
-                AiMessageHandler::handle($message, $chat_id);
+                // Короткие ответы вроде "2", "двое", "4 звезды", "FB" сначала
+                // трактуем строго в контексте последнего заданного AI-вопроса.
+                if (!AiShortAnswerHandler::handle($message, $chat_id)) {
+                    AiMessageHandler::handle($message, $chat_id);
+                }
             }
             else
             {
