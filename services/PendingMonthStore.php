@@ -10,31 +10,73 @@ class PendingMonthStore
         return $dir . '/' . $safeChatId . '.json';
     }
 
+    private static function debug($chatId, string $action, array $extra = []): void
+    {
+        $payload = array_merge([
+            'time' => date('d.m.Y H:i:s'),
+            'chat' => (string)$chatId,
+            'action' => $action,
+        ], $extra);
+        @file_put_contents(
+            __DIR__ . '/../ai_debug.log',
+            "PENDING_MONTH: ".json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
+            FILE_APPEND|LOCK_EX
+        );
+    }
+
     public static function set($chatId, int $month, int $year): void
     {
-        if ($month < 1 || $month > 12 || $year < 2020) return;
-        @file_put_contents(
-            self::filePath($chatId),
+        if ($month < 1 || $month > 12 || $year < 2020) {
+            self::debug($chatId, 'set_rejected', ['month'=>$month,'year'=>$year]);
+            return;
+        }
+        $file = self::filePath($chatId);
+        $bytes = @file_put_contents(
+            $file,
             json_encode(['month'=>$month,'year'=>$year], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
             LOCK_EX
         );
+        self::debug($chatId, 'set', [
+            'month'=>$month,
+            'year'=>$year,
+            'file'=>$file,
+            'bytes'=>$bytes === false ? false : (int)$bytes,
+            'exists'=>is_file($file),
+        ]);
     }
 
     public static function get($chatId): array
     {
         $file = self::filePath($chatId);
-        if (!is_file($file)) return [];
-        $data = json_decode((string)@file_get_contents($file), true);
-        if (!is_array($data)) return [];
+        if (!is_file($file)) {
+            self::debug($chatId, 'get_missing', ['file'=>$file]);
+            return [];
+        }
+        $raw = (string)@file_get_contents($file);
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            self::debug($chatId, 'get_invalid', ['file'=>$file,'raw'=>$raw]);
+            return [];
+        }
         $month = (int)($data['month'] ?? 0);
         $year = (int)($data['year'] ?? 0);
-        if ($month < 1 || $month > 12 || $year < 2020) return [];
+        if ($month < 1 || $month > 12 || $year < 2020) {
+            self::debug($chatId, 'get_rejected', ['file'=>$file,'month'=>$month,'year'=>$year]);
+            return [];
+        }
+        self::debug($chatId, 'get', ['file'=>$file,'month'=>$month,'year'=>$year]);
         return ['month'=>$month,'year'=>$year];
     }
 
     public static function clear($chatId): void
     {
         $file = self::filePath($chatId);
-        if (is_file($file)) @unlink($file);
+        $existed = is_file($file);
+        $deleted = $existed ? @unlink($file) : false;
+        self::debug($chatId, 'clear', [
+            'file'=>$file,
+            'existed'=>$existed,
+            'deleted'=>$deleted,
+        ]);
     }
 }
