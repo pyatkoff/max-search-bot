@@ -51,13 +51,60 @@ class MaxSearchApi extends MaxSearchBase
         parent::saveLastValue($chatID, $status, $value);
     }
 
+    private static function metrikaExcludedDestination($chatID)
+    {
+        $countryId = 0;
+
+        try {
+            $saved = static::getSavedData($chatID);
+            if (!empty($saved[static::$statusContryChoose])) {
+                $countryId = (int)$saved[static::$statusContryChoose];
+            }
+        } catch (\Throwable $e) {}
+
+        // На поздних этапах воронки дополнительно смотрим последнюю заявку:
+        // так фильтр не зависит от того, сохранились ли текущие статусы диалога.
+        if ($countryId <= 0) {
+            try {
+                $claim = static::getLastClaimForChat($chatID);
+                if ($claim && !empty($claim['UF_COUNTRY'])) {
+                    $countryId = (int)$claim['UF_COUNTRY'];
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        if ($countryId <= 0) return false;
+
+        $country = '';
+        try { $country = (string)static::getCountryByID($countryId); } catch (\Throwable $e) {}
+        $countryNorm = function_exists('mb_strtolower')
+            ? mb_strtolower(trim($country), 'UTF-8')
+            : strtolower(trim($country));
+        $countryNorm = str_replace('ё', 'е', $countryNorm);
+
+        if (in_array($countryNorm, ['россия', 'абхазия'], true)) {
+            return ['country_id'=>$countryId, 'country'=>$country];
+        }
+        return false;
+    }
+
     // Офлайн-цель должна уходить в Метрику один раз на один рекламный клик.
-    // Повторные открытия результатов, двойные callback-и и повторный follow-up
-    // раньше создавали несколько одинаковых строк Yclid+Target в очереди.
+    // Для туров по России и Абхазии конверсии намеренно не передаём вообще:
+    // подбор и лиды внутри бота продолжают работать, но рекламную оптимизацию не обучаем на них.
     public static function queueMetrikaGoal($chatID, $target)
     {
         $target = trim((string)$target);
         if ($target === '') return false;
+
+        $excluded = static::metrikaExcludedDestination($chatID);
+        if ($excluded) {
+            static::funnelLog($chatID, 'metrika_skipped_destination', [
+                'target'=>$target,
+                'country_id'=>$excluded['country_id'],
+                'country'=>$excluded['country']
+            ]);
+            return false;
+        }
 
         $yclid = static::getLatestYclid($chatID);
         if ($yclid === '') {
