@@ -122,6 +122,63 @@ function processMessage($message) {
 
                 $current = MaxSearchApi::getAiSearchContext($chat_id);
 
+                // Если сейчас не хватает только возраста детей, короткий ответ
+                // разбираем детерминированно без AI: "5", "5 лет", "5, 8", "5 и 8".
+                $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
+                if (in_array('child_ages', $missingNow, true)) {
+                    $childrenCount = (int)($current['children'] ?? 0);
+
+                    $ageText = function_exists('mb_strtolower')
+                        ? mb_strtolower($userText, 'UTF-8')
+                        : strtolower($userText);
+
+                    preg_match_all('/\b(\d{1,2})\b/u', $ageText, $ageMatches);
+                    $ages = array_map('intval', $ageMatches[1] ?? []);
+
+                    $ages = array_values(array_filter(
+                        $ages,
+                        static function($age) {
+                            return $age >= 0 && $age <= 17;
+                        }
+                    ));
+
+                    if ($childrenCount > 0 && count($ages) === $childrenCount) {
+                        $ageValue = implode(', ', $ages);
+
+                        MaxSearchApi::saveLastValue(
+                            $chat_id,
+                            MaxSearchApi::$statusAge,
+                            $ageValue
+                        );
+
+                        $missingAfterAge = MaxSearchApi::getAiMissingFields($chat_id);
+
+                        if (empty($missingAfterAge)) {
+                            MaxSearchApi::showCheckButtons($chat_id);
+                        } else {
+                            $ageFallback = [
+                                'city'=>'Из какого города планируете вылет?',
+                                'country'=>'Куда хотите поехать?',
+                                'adults'=>'Сколько будет взрослых туристов?',
+                                'children'=>'Будут дети? Если да — сколько?',
+                                'child_ages'=>'Сколько лет детям?',
+                                'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
+                                'meal'=>'Какое питание предпочитаете?',
+                                'nights'=>'На сколько ночей планируете поездку?',
+                                'date'=>'Какая ориентировочная дата вылета?'
+                            ];
+
+                            MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
+                            MaxSearchApi::MaxSend(
+                                $ageFallback[$missingAfterAge[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
+                                $chat_id
+                            );
+                        }
+
+                        return;
+                    }
+                }
+
                 // FIX6: СНАЧАЛА классифицируем сообщение.
                 // Большой полноценный запрос вообще не трогаем локальным парсером —
                 // сразу отдаём его AiRouter целиком.
@@ -220,15 +277,17 @@ function processMessage($message) {
                     $localResolvedDate='';
                     $localMonths = [
                         'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
-                        'мае'=>5, 'май'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
                         'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
                     ];
 
                     $localMonthNum=0;
+                    $localMonthStem='';
                     foreach ($localMonths as $monthStem=>$monthNum) {
                         if (strpos($localText,$monthStem)!==false) {
                             $localMonthOnly=true;
                             $localMonthNum=$monthNum;
+                            $localMonthStem=$monthStem;
                             break;
                         }
                     }
@@ -250,9 +309,15 @@ function processMessage($message) {
                             $localDay=15;
                         } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui',$userText)) {
                             $localDay=25;
-                        } elseif (preg_match('/после\s+(\d{1,2})\s+[а-яё]+/ui',$userText,$dm)) {
+                        } elseif (
+                            $localMonthStem!=='' &&
+                            preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
+                        ) {
                             $localDay=min(28,((int)$dm[1])+1);
-                        } elseif (preg_match('/\b(\d{1,2})\s+[а-яё]+/ui',$userText,$dm)) {
+                        } elseif (
+                            $localMonthStem!=='' &&
+                            preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($localMonthStem,'/').'[а-яё]*/ui',$userText,$dm)
+                        ) {
                             $localDay=(int)$dm[1];
                         }
 
@@ -435,13 +500,15 @@ function processMessage($message) {
                     $resolvedInlineDate = '';
                     $monthsInline = [
                         'январ'=>1, 'феврал'=>2, 'март'=>3, 'апрел'=>4,
-                        'ма'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
+                        'май'=>5, 'мая'=>5, 'мае'=>5, 'июн'=>6, 'июл'=>7, 'август'=>8,
                         'сентябр'=>9, 'октябр'=>10, 'ноябр'=>11, 'декабр'=>12
                     ];
                     $monthInline = 0;
+                    $monthInlineStem = '';
                     foreach ($monthsInline as $stem=>$num) {
                         if (strpos($dateTextAll, $stem) !== false) {
                             $monthInline = $num;
+                            $monthInlineStem = $stem;
                             break;
                         }
                     }
@@ -463,9 +530,15 @@ function processMessage($message) {
                             $dayInline=15;
                         } elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $dateTextAll)) {
                             $dayInline=25;
-                        } elseif (preg_match('/после\s+(\d{1,2})\s+[а-яё]+/ui', $dateTextAll, $dm)) {
+                        } elseif (
+                            $monthInlineStem !== '' &&
+                            preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
+                        ) {
                             $dayInline=min(28,((int)$dm[1])+1);
-                        } elseif (preg_match('/\b(\d{1,2})\s+[а-яё]+/ui', $dateTextAll, $dm)) {
+                        } elseif (
+                            $monthInlineStem !== '' &&
+                            preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($monthInlineStem,'/').'[а-яё]*/ui', $dateTextAll, $dm)
+                        ) {
                             $dayInline=(int)$dm[1];
                         }
 
