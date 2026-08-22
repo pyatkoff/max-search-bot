@@ -4,7 +4,7 @@ class PendingMonthStore
 {
     public static function filePath($chatId): string
     {
-        $dir = __DIR__ . '/../runtime/ai_pending_month';
+        $dir = __DIR__ . '/../ai_pending_month';
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
