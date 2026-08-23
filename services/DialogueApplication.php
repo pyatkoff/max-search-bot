@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/DialogueController.php';
 
 class DialogueApplication
 {
@@ -13,29 +14,23 @@ class DialogueApplication
         ?callable $contactHandler = null,
         ?callable $callbackAcknowledger = null
     ) {
-        $this->messageHandler = $messageHandler ?: static function (array $message): void {
-            processMessage($message);
+        $controller = new DialogueController();
+        $this->messageHandler = $messageHandler ?: static function (array $incoming) use ($controller): void {
+            $controller->handleIncomingMessage($incoming);
         };
-        $this->callbackHandler = $callbackHandler ?: static function (array $query): void {
-            processQuery($query);
+        $this->callbackHandler = $callbackHandler ?: static function (array $incoming) use ($controller): void {
+            $controller->handleIncomingCallback($incoming);
         };
-        $this->contactHandler = $contactHandler ?: static function ($chatId, string $phone): void {
-            if ($phone === '' || !class_exists('MaxSearchApi')) return;
-            if (MaxSearchApi::getCurentStatus($chatId) != MaxSearchApi::$statusPhone) return;
-
-            $ok = MaxSearchApi::savePhone($chatId, $phone);
-            if ($ok) {
-                MaxSearchApi::deleteAllStatus($chatId);
-                MaxSearchApi::showChannelOffer($chatId, true);
-                return;
+        $this->contactHandler = $contactHandler ?: static function (array $incoming) use ($controller): void {
+            $controller->handleIncomingContact($incoming);
+        };
+        $this->callbackAcknowledger = $callbackAcknowledger ?: static function (string $callbackId, array $incoming): void {
+            if ($callbackId === '') return;
+            // MAX acknowledgement remains on the proven legacy transport for now.
+            // Telegram acknowledgement will be added to the messenger contract separately.
+            if (($incoming['platform'] ?? '') === 'max' && class_exists('MaxSearchApi')) {
+                MaxSearchApi::answerCallback($callbackId);
             }
-            MaxSearchApi::MaxSend(
-                'Не получилось сохранить номер. Попробуйте отправить контакт ещё раз или введите номер вручную.',
-                $chatId
-            );
-        };
-        $this->callbackAcknowledger = $callbackAcknowledger ?: static function (string $callbackId): void {
-            if ($callbackId !== '' && class_exists('MaxSearchApi')) MaxSearchApi::answerCallback($callbackId);
         };
     }
 
@@ -46,45 +41,33 @@ class DialogueApplication
 
         $type = (string)($incoming['type'] ?? '');
         if ($type === 'contact') {
-            call_user_func($this->contactHandler, $chatId, trim((string)($incoming['contact_phone'] ?? '')), $incoming);
+            call_user_func($this->contactHandler, $incoming);
             return true;
         }
 
         if ($type === 'callback') {
             $callbackId = (string)($incoming['callback_id'] ?? '');
             call_user_func($this->callbackAcknowledger, $callbackId, $incoming);
-            call_user_func($this->callbackHandler, $this->legacyQuery($incoming), $incoming);
+            call_user_func($this->callbackHandler, $incoming);
             return true;
         }
 
         if ($type === 'message') {
-            call_user_func($this->messageHandler, $this->legacyMessage($incoming), $incoming);
+            call_user_func($this->messageHandler, $incoming);
             return true;
         }
 
         return false;
     }
 
+    // Compatibility helpers used by regression tests and migration tooling.
     public function legacyMessage(array $incoming): array
     {
-        return [
-            'message_id' => (string)($incoming['message_id'] ?? ''),
-            'chat' => ['id' => $incoming['user']['chat_id'] ?? 0],
-            'text' => (string)($incoming['text'] ?? ''),
-        ];
+        return DialogueController::messageEnvelope($incoming);
     }
 
     public function legacyQuery(array $incoming): array
     {
-        $user = (array)($incoming['user'] ?? []);
-        return [
-            'from' => [
-                'id' => $user['chat_id'] ?? 0,
-                'first_name' => (string)($user['first_name'] ?? ''),
-                'last_name' => (string)($user['last_name'] ?? ''),
-                'username' => (string)($user['username'] ?? ''),
-            ],
-            'data' => (string)($incoming['callback_data'] ?? ''),
-        ];
+        return DialogueController::queryEnvelope($incoming);
     }
 }
