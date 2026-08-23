@@ -6,6 +6,7 @@ require_once(__DIR__ . '/services/AnalyticsService.php');
 require_once(__DIR__ . '/services/MaxTransport.php');
 require_once(__DIR__ . '/services/FollowupQueueService.php');
 require_once(__DIR__ . '/services/AiSearchContextService.php');
+require_once(__DIR__ . '/services/ConversationStateRepository.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -36,15 +37,65 @@ class MaxSearchApi extends MaxSearchBase
     static $isAnyOnline = true;
     static $uonSourceId = 36;
 
+    // Conversation state is stored in the same existing HL block; only data-access
+    // responsibility moved out of the legacy base class.
+    public static function getCurentStatus($chatID)
+    {
+        return ConversationStateRepository::currentStatus(static::$HL, $chatID);
+    }
+
+    public static function setStatus($chatID, $statusID, $messID = false)
+    {
+        ConversationStateRepository::addStatus(static::$HL, $chatID, $statusID, $messID);
+    }
+
+    public static function deletePrevMessage($chatID, $fullDelete = false)
+    {
+        $row = ConversationStateRepository::latestMessageRow(static::$HL, $chatID);
+        if (!$row) return;
+        static::MaxRequest('deleteMessage', [
+            'chat_id'=>$chatID,
+            'message_id'=>$row['UF_MESSID'] ?? '',
+        ]);
+        if ($fullDelete) ConversationStateRepository::deleteRow(static::$HL, $row['ID']);
+    }
+
+    public static function deleteAllStatus($chatID)
+    {
+        ConversationStateRepository::deleteAll(static::$HL, $chatID);
+    }
+
     public static function saveLastValue($chatID, $status, $value)
     {
+        // Preserve the existing AI behavior: age/date rows can be absent before
+        // the first value is saved, so create the status row first when needed.
         if (
             in_array($status, [static::$statusAge, static::$statusDate], true) &&
             static::getLastValue($chatID, $status) === false
         ) {
             static::setStatus($chatID, $status);
         }
-        parent::saveLastValue($chatID, $status, $value);
+        ConversationStateRepository::saveLastValue(static::$HL, $chatID, $status, $value);
+    }
+
+    public static function getLastValue($chatID, $status)
+    {
+        return ConversationStateRepository::lastValue(static::$HL, $chatID, $status);
+    }
+
+    public static function getSavedData($chatID)
+    {
+        return ConversationStateRepository::savedData(
+            static::$HL,
+            $chatID,
+            static::$statusStart,
+            static::$statusCheck
+        );
+    }
+
+    public static function upsertStatusValue($chatID, $status, $value)
+    {
+        return ConversationStateRepository::upsertValue(static::$HL, $chatID, $status, $value);
     }
 
     private static function aiStatusMap()
