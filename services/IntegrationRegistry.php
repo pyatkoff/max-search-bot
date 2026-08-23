@@ -23,6 +23,16 @@ class IntegrationRegistry
         throw new RuntimeException('Unsupported messenger provider: ' . $provider);
     }
 
+    /**
+     * Request-scoped transport override used by alternate messenger webhooks.
+     * ProjectConfig remains unchanged: only the current PHP request gets another
+     * outbound messenger implementation.
+     */
+    public static function useMessenger(MessengerInterface $messenger): void
+    {
+        self::$messenger = $messenger;
+    }
+
     public static function searchProvider(): SearchProviderInterface
     {
         if (self::$searchProvider instanceof SearchProviderInterface) return self::$searchProvider;
