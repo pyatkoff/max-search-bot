@@ -19,11 +19,11 @@ class IncomingUpdateDispatcher
         $chatId = $incoming['user']['chat_id'] ?? 0;
 
         if ($platform === '' || $type === '' || !$chatId) {
-            DiagnosticLogger::warning('incoming_dispatch', 'invalid_incoming', [
+            DiagnosticLogger::log('incoming_dispatch', 'invalid_incoming', [
                 'platform'=>$platform,
                 'type'=>$type,
                 'has_chat_id'=>(bool)$chatId,
-            ], $chatId ?: null);
+            ], $chatId ?: null, 'warning');
             return false;
         }
 
