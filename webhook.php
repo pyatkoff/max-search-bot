@@ -8,6 +8,7 @@ require_once(__DIR__ . '/services/DestinationResolver.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
 require_once(__DIR__ . '/handlers/AiShortAnswerHandler.php');
+require_once(__DIR__ . '/handlers/AiShadowObserver.php');
 require_once(__DIR__ . '/handlers/DepartureRouteAdviceHandler.php');
 require_once(__DIR__ . '/handlers/CallbackHandler.php');
 require_once(__DIR__ . '/handlers/StateMessageHandler.php');
@@ -121,20 +122,15 @@ function processMessage($message) {
 			$status = MaxSearchApi::getCurentStatus($chat_id);
             if($status==MaxSearchApi::$statusAi || !$status || $status==MaxSearchApi::$statusStart)
             {
-                // Сначала детерминированно сохраняем явно указанный город вылета
-                // (например "из Калининграда"), чтобы он не потерялся и не заменился Москвой.
                 DepartureCityResolver::resolveAndStore($chat_id, $message['text']);
-
-                // Затем пробуем туристические зоны, которых нет отдельной строкой в HL3
-                // (например Лара -> Турция / Анталья по устойчивой привязке отелей HL6).
                 DestinationAreaResolver::resolveAndStore($chat_id, $message['text']);
-
-                // Затем обычные справочники: HL2 страны, HL3 регионы, HL6 отели.
                 DestinationResolver::resolveAndStore($chat_id, $message['text']);
 
-                // Подсказка по фактическим прямым чартерам Tourvisor.
-                // Срабатывает только для явных запросов "куда можно" либо для конкретной
-                // пары город+страна, когда пользователь сам назвал месяц/дату.
+                // V2 shadow mode: independently extract structured TripState changes and
+                // calculate RulesEngine action. It never writes trip parameters and never
+                // changes the user-visible response; results go only to structured_events.log.
+                AiShadowObserver::observe($chat_id, (string)$message['text']);
+
                 if (DepartureRouteAdviceHandler::handle($chat_id, $message['text'])) {
                     return;
                 }
