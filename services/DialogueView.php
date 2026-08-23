@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ButtonFactory.php';
+require_once __DIR__ . '/CalendarViewModel.php';
 
 class DialogueView
 {
@@ -105,6 +106,35 @@ class DialogueView
             ButtonFactory::row(ButtonFactory::back('back_child'))
         );
         return self::sendAndStatus($chatId,"🏨 <b>Какой уровень отеля рассматриваете?</b>\n\nШаг 4 из 7 · Укажите минимальную категорию.",$buttons,MaxSearchApi::$statusStars,false);
+    }
+
+    public static function calendar($chatId, $month, $year): bool
+    {
+        MaxSearchApi::deletePrevMessage($chatId);
+        $model = CalendarViewModel::build($month, $year);
+        $buttons = CalendarViewModel::buttons($model);
+        return self::sendAndStatus(
+            $chatId,
+            "📅 <b>Когда хотите вылететь?</b>\n\nШаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            $buttons,
+            MaxSearchApi::$statusDate,
+            false
+        );
+    }
+
+    public static function check($chatId): bool
+    {
+        MaxSearchApi::funnelLog($chatId,'search_ready');
+        MaxSearchApi::deletePrevMessage($chatId);
+        $savedData = MaxSearchApi::getSavedData($chatId);
+        $summary = MaxSearchApi::formatSavedData($savedData);
+        $buttons = ButtonFactory::rows(
+            ButtonFactory::row(ButtonFactory::callback('🔥 Показать туры','show_tours')),
+            ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать с менеджером','manager_request')),
+            ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры','edit_params'))
+        );
+        $text = "✅ <b>Готово! Проверьте параметры</b>\n\n" . implode("\n", $summary) . "\n\nЧто удобнее дальше?";
+        return self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false);
     }
 
     public static function manualCountry($chatId): bool
