@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/CallbackController.php';
+require_once __DIR__ . '/DialogueView.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
@@ -90,7 +91,7 @@ class DialogueController
         $ok = MaxSearchApi::savePhone($chatId, $phone);
         if ($ok) {
             MaxSearchApi::deleteAllStatus($chatId);
-            MaxSearchApi::showChannelOffer($chatId, true);
+            DialogueView::channelOffer($chatId, true);
             return true;
         }
 
