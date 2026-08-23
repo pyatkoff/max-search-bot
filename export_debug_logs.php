@@ -43,6 +43,8 @@ $outputs = [
     'metrika_queue' => $baseDir . '/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika-queue.json',
 ];
 
+$routeTestsOutput = $baseDir . '/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-route-tests.json';
+
 function tailLines($file, $maxLines)
 {
     if (!is_file($file) || !is_readable($file)) return [];
@@ -98,7 +100,8 @@ $manifest = [
     'ok' => true,
     'generated_at' => date('c'),
     'max_lines_by_type' => $maxLinesByType,
-    'logs' => []
+    'logs' => [],
+    'tests' => [],
 ];
 
 foreach ($logs as $type => $file) {
@@ -138,6 +141,37 @@ foreach ($logs as $type => $file) {
         'max_lines' => $maxLines,
         'file' => basename($outputs[$type])
     ];
+}
+
+// Автоматические smoke-тесты DepartureRouteResolver.
+// Они ничего не пишут в рабочие HL/БД и не вызывают Tourvisor API — только читают
+// локальные tourvisor_routes.json + departure_fallbacks.json.
+$routeTests = [
+    'ok' => false,
+    'generated_at' => date('c'),
+    'passed' => 0,
+    'failed' => 1,
+    'tests' => [],
+];
+
+try {
+    require_once($baseDir . '/services/RouteResolverSelfTest.php');
+    $routeTests = RouteResolverSelfTest::run();
+} catch (\Throwable $e) {
+    $routeTests['error'] = $e->getMessage();
+}
+
+atomicWriteJson($routeTestsOutput, $routeTests);
+
+$manifest['tests']['route_resolver'] = [
+    'ok' => (bool)($routeTests['ok'] ?? false),
+    'passed' => (int)($routeTests['passed'] ?? 0),
+    'failed' => (int)($routeTests['failed'] ?? 0),
+    'file' => basename($routeTestsOutput),
+];
+
+if (!($routeTests['ok'] ?? false)) {
+    $manifest['ok'] = false;
 }
 
 atomicWriteJson($baseDir . '/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-index.json', $manifest);
