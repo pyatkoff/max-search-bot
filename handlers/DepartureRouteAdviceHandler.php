@@ -29,10 +29,7 @@ class DepartureRouteAdviceHandler
             return false;
         }
 
-        $isDiscovery = (bool)preg_match(
-            '/(?:куда\s+(?:можно|поехать|слетать)|не\s+знаю\s+куда|посовет(?:уй|уйте)\s+(?:куда|направлен)|предлож(?:и|ите)\s+(?:куда|направлен))/ui',
-            $text
-        );
+        $isDiscovery = self::isDiscoveryIntent($text);
 
         if ($isDiscovery || $preferenceIntent !== null) {
             $result = $advisor->getDestinations($city, $period);
@@ -110,6 +107,22 @@ class DepartureRouteAdviceHandler
         self::send($chatId, $message);
         self::log($chatId, 'NO_ROUTE', ['city'=>$city,'country'=>$country,'period'=>$period]);
         return true;
+    }
+
+    public static function isDiscoveryIntent(string $text): bool
+    {
+        $normalized = self::lower($text);
+        $normalized = str_replace('ё', 'е', $normalized);
+        // Common real-user typos seen in production. Keep this deliberately narrow:
+        // normalize only the discovery words rather than applying fuzzy matching to
+        // arbitrary destination text.
+        $normalized = preg_replace('/\bкда\b/u', 'куда', $normalized);
+        $normalized = preg_replace('/\b(?:небуть|нибуть|небудь)\b/u', 'нибудь', $normalized);
+
+        return (bool)preg_match(
+            '/(?:куда(?:\s*-\s*|\s+)нибудь|куда\s+(?:можно|поехать|слетать)|не\s+знаю\s+куда|посовет(?:уй|уйте)\s+(?:куда|направлен)|предлож(?:и|ите)\s+(?:куда|направлен))/ui',
+            (string)$normalized
+        );
     }
 
     private static function preferenceLabel(?string $intent): string
