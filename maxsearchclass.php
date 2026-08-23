@@ -9,6 +9,7 @@ require_once(__DIR__ . '/services/AiSearchContextService.php');
 require_once(__DIR__ . '/services/ConversationStateRepository.php');
 require_once(__DIR__ . '/services/ClaimRepository.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
+require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -52,6 +53,38 @@ class MaxSearchApi extends MaxSearchBase
             'nights'=>static::$statusNights,
             'date'=>static::$statusDate,
         ];
+    }
+
+    // City/country/meal lookup keeps the same HL ids and public API, while direct
+    // directory queries are isolated from the legacy base class.
+    public static function getCityByID($city)
+    {
+        return TravelDirectoryRepository::cityById(static::$depHL, $city);
+    }
+
+    public static function getCityFromByID($city)
+    {
+        return TravelDirectoryRepository::cityFromById(static::$depHL, $city);
+    }
+
+    public static function getCityByName($name)
+    {
+        return TravelDirectoryRepository::cityByName(static::$depHL, $name);
+    }
+
+    public static function getCountryByID($country)
+    {
+        return TravelDirectoryRepository::countryById(static::$contryHL, $country);
+    }
+
+    public static function getCountryByName($name)
+    {
+        return TravelDirectoryRepository::countryByName(static::$contryHL, $name);
+    }
+
+    public static function getMealArr()
+    {
+        return TravelDirectoryRepository::mealMap();
     }
 
     public static function getCurentStatus($chatID)
@@ -162,8 +195,6 @@ class MaxSearchApi extends MaxSearchBase
         return $applied;
     }
 
-    // Claims remain in the same HL block. Storage and payload assembly are now
-    // isolated so business flow code no longer owns direct HL queries.
     public static function saveClaim($chatID, $savedData)
     {
         $code = randString(10, ['abcdefghijklnmopqrstuvwxyz','0123456789']);
