@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 header('Content-Type: text/html; charset=utf-8');
 
-require_once __DIR__ . '/DepartureRouteResolver.php';
+require_once __DIR__ . '/DepartureRouteAdvisor.php';
 
-$resolver = new DepartureRouteResolver();
+$resolver = new DepartureRouteAdvisor();
 
 $departure = isset($_GET['departure']) ? trim((string)$_GET['departure']) : 'Калининград';
 $country   = isset($_GET['country']) ? trim((string)$_GET['country']) : '';
@@ -41,6 +41,7 @@ input{padding:8px;margin:4px;min-width:220px}
 button{padding:9px 15px}
 pre{background:#f5f5f5;padding:15px;border-radius:8px;overflow:auto}
 .err{background:#ffe8e8;padding:12px}
+.ok{background:#eef8ee;padding:12px;border-radius:8px;margin:15px 0}
 </style>
 </head>
 <body>
@@ -58,6 +59,7 @@ pre{background:#f5f5f5;padding:15px;border-radius:8px;overflow:auto}
 Примеры:
 <a href="?run=1&departure=Калининград&period=2026-12">Калининград, декабрь</a> |
 <a href="?run=1&departure=Калининград&country=Таиланд&period=2026-12">Калининград → Таиланд, декабрь</a> |
+<a href="?run=1&departure=Ярославль&period=2026-10">Ярославль, октябрь</a> |
 <a href="?run=1&departure=Ярославль&country=Египет&period=2026-12">Ярославль → Египет, декабрь</a>
 </p>
 
@@ -66,6 +68,13 @@ pre{background:#f5f5f5;padding:15px;border-radius:8px;overflow:auto}
 <?php endif; ?>
 
 <?php if ($result !== null): ?>
+    <?php if (($result['status'] ?? '') === 'fallback_destinations'): ?>
+        <div class="ok">
+            Прямых чартерных направлений из <?=h($result['departure'] ?? $departure)?>
+            на <?=h($result['period'] ?? '')?> не найдено.
+            Использован fallback: <b><?=h($result['fallback_departure'] ?? '')?></b>.
+        </div>
+    <?php endif; ?>
 <pre><?=h(json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT))?></pre>
 <?php endif; ?>
 
