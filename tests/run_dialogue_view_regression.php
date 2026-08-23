@@ -1,0 +1,55 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../services/ButtonFactory.php';
+require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../services/ProjectConfig.php';
+require_once __DIR__ . '/../services/IntegrationRegistry.php';
+
+class ViewTestMessenger implements MessengerInterface {
+    public array $sent = [];
+    public function send($chatId, string $text): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>[]]; return true; }
+    public function sendWithButtons($chatId, string $text, array $buttons): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>$buttons]; return true; }
+}
+class MaxSearchApi {
+    public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusNights=72,$statusPhone=75,$statusAi=76;
+    public static array $statuses=[];
+    public static int $deletes=0;
+    public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
+    public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];}
+}
+require_once __DIR__ . '/../services/DialogueView.php';
+
+$passed=0;$failed=0;
+function dvCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
+
+$m=new ViewTestMessenger();
+IntegrationRegistry::resetForTests($m,null,null);
+
+dvCheck('callback button',ButtonFactory::callback('Москва','pick_city_1'),['text'=>'Москва','callback_data'=>'pick_city_1']);
+dvCheck('url button',ButtonFactory::url('Сайт','https://example.test'),['text'=>'Сайт','url'=>'https://example.test']);
+dvCheck('contact button',ButtonFactory::contact('Телефон'),['text'=>'Телефон','request_contact'=>true]);
+
+DialogueView::start(10);
+dvCheck('start sent',count($m->sent),1);
+dvCheck('start first payload',$m->sent[0]['buttons'][0][0]['callback_data'],'ai_start');
+dvCheck('start second payload',$m->sent[0]['buttons'][1][0]['callback_data'],'start_search');
+dvCheck('start status',MaxSearchApi::$statuses[0],[10,64]);
+
+DialogueView::country(11);
+dvCheck('country deletes previous',MaxSearchApi::$deletes,1);
+dvCheck('country turkey payload',$m->sent[1]['buttons'][0][0]['callback_data'],'pick_country_4');
+dvCheck('country status',MaxSearchApi::$statuses[1],[11,66]);
+
+DialogueView::childAges(12,2);
+dvCheck('age copy contains count',strpos($m->sent[2]['text'],'2 возраста')!==false,true);
+dvCheck('age back payload',$m->sent[2]['buttons'][0][0]['callback_data'],'back_child');
+
+DialogueView::manualPhone(13);
+dvCheck('phone back payload',$m->sent[3]['buttons'][0][0]['callback_data'],'tours_checked');
+dvCheck('phone status',MaxSearchApi::$statuses[3],[13,75]);
+
+IntegrationRegistry::resetForTests();
+ProjectConfig::resetForTests(null);
+$total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
