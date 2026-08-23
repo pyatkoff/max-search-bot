@@ -8,6 +8,7 @@ require_once(__DIR__ . '/services/DestinationResolver.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
 require_once(__DIR__ . '/handlers/AiShortAnswerHandler.php');
+require_once(__DIR__ . '/handlers/DepartureRouteAdviceHandler.php');
 require_once(__DIR__ . '/handlers/CallbackHandler.php');
 require_once(__DIR__ . '/handlers/StateMessageHandler.php');
 require_once(__DIR__ . '/handlers/MaxUpdateHandler.php');
@@ -130,6 +131,13 @@ function processMessage($message) {
 
                 // Затем обычные справочники: HL2 страны, HL3 регионы, HL6 отели.
                 DestinationResolver::resolveAndStore($chat_id, $message['text']);
+
+                // Подсказка по фактическим прямым чартерам Tourvisor.
+                // Срабатывает только для явных запросов "куда можно" либо для конкретной
+                // пары город+страна, когда пользователь сам назвал месяц/дату.
+                if (DepartureRouteAdviceHandler::handle($chat_id, $message['text'])) {
+                    return;
+                }
 
                 if (!AiShortAnswerHandler::handle($message, $chat_id)) {
                     AiMessageHandler::handle($message, $chat_id);
