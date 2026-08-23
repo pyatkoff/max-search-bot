@@ -71,6 +71,9 @@ jobs:
       - name: Run post-tour regression suite
         run: php tests/run_post_tour_regression.php
 
+      - name: Run messenger-neutral handler regression suite
+        run: php tests/run_messenger_neutral_handlers_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
