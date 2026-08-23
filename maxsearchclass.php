@@ -4,12 +4,12 @@ require_once(__DIR__ . '/maxsearchbaseclass.php');
 require_once(__DIR__ . '/services/TrafficAttributionService.php');
 require_once(__DIR__ . '/services/AnalyticsService.php');
 require_once(__DIR__ . '/services/MaxTransport.php');
+require_once(__DIR__ . '/services/FollowupQueueService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
     static $TV_API_URL = 'https://platform-api2.max.ru';
 
-    // anytour.online: отдельные HL внутри общей Bitrix-базы.
     static $HL = 32;
     static $claimHL = 33;
     static $yclidHL = 34;
@@ -46,8 +46,6 @@ class MaxSearchApi extends MaxSearchBase
         parent::saveLastValue($chatID, $status, $value);
     }
 
-    // Runtime traffic context now lives in a focused service rather than in the
-    // legacy 60KB base class. Public API stays identical for existing handlers.
     public static function trafficFile($chatID)
     {
         return TrafficAttributionService::file(__DIR__, $chatID);
@@ -72,9 +70,6 @@ class MaxSearchApi extends MaxSearchBase
         );
     }
 
-    // Funnel storage is also delegated. Existing CSV format is preserved so all
-    // current reports continue to work, while structured_events.log receives a
-    // machine-readable copy for diagnostics.
     public static function funnelLog($chatID, $event, $details = [])
     {
         $meta = [];
@@ -86,44 +81,29 @@ class MaxSearchApi extends MaxSearchBase
     private static function metrikaExcludedDestination($chatID)
     {
         $countryId = 0;
-
         try {
             $saved = static::getSavedData($chatID);
-            if (!empty($saved[static::$statusContryChoose])) {
-                $countryId = (int)$saved[static::$statusContryChoose];
-            }
+            if (!empty($saved[static::$statusContryChoose])) $countryId = (int)$saved[static::$statusContryChoose];
         } catch (\Throwable $e) {}
-
         if ($countryId <= 0) {
             try {
                 $claim = static::getLastClaimForChat($chatID);
-                if ($claim && !empty($claim['UF_COUNTRY'])) {
-                    $countryId = (int)$claim['UF_COUNTRY'];
-                }
+                if ($claim && !empty($claim['UF_COUNTRY'])) $countryId = (int)$claim['UF_COUNTRY'];
             } catch (\Throwable $e) {}
         }
-
         if ($countryId <= 0) return false;
-
         $country = '';
         try { $country = (string)static::getCountryByID($countryId); } catch (\Throwable $e) {}
-        $countryNorm = function_exists('mb_strtolower')
-            ? mb_strtolower(trim($country), 'UTF-8')
-            : strtolower(trim($country));
+        $countryNorm = function_exists('mb_strtolower') ? mb_strtolower(trim($country), 'UTF-8') : strtolower(trim($country));
         $countryNorm = str_replace('ё', 'е', $countryNorm);
-
-        if (in_array($countryNorm, ['россия', 'абхазия'], true)) {
-            return ['country_id'=>$countryId, 'country'=>$country];
-        }
+        if (in_array($countryNorm, ['россия', 'абхазия'], true)) return ['country_id'=>$countryId, 'country'=>$country];
         return false;
     }
 
-    // Business rules stay here; low-level CSV/log writing moved to AnalyticsService.
     public static function queueMetrikaGoal($chatID, $target)
     {
         $target = trim((string)$target);
         if ($target === '') return false;
-
         $excluded = static::metrikaExcludedDestination($chatID);
         if ($excluded) {
             static::funnelLog($chatID, 'metrika_skipped_destination', [
@@ -133,7 +113,6 @@ class MaxSearchApi extends MaxSearchBase
             ]);
             return false;
         }
-
         $meta = static::getTrafficMeta($chatID);
         $yclid = static::getLatestYclid($chatID);
         if ($yclid === '') $yclid = trim((string)($meta['yclid'] ?? ''));
@@ -143,11 +122,8 @@ class MaxSearchApi extends MaxSearchBase
         if (!is_dir($dir)) @mkdir($dir, 0755, true);
         $key = hash('sha256', $yclid . '|' . $target);
         $file = $dir . '/' . $key . '.lock';
-
         $fp = @fopen($file, 'c+');
-        if (!$fp) {
-            return AnalyticsService::queueMetrika(__DIR__, $chatID, $yclid, $target, $meta);
-        }
+        if (!$fp) return AnalyticsService::queueMetrika(__DIR__, $chatID, $yclid, $target, $meta);
 
         $result = false;
         if (flock($fp, LOCK_EX)) {
@@ -170,9 +146,6 @@ class MaxSearchApi extends MaxSearchBase
         return $result;
     }
 
-    // MAX transport is delegated from the legacy base class. The public methods
-    // and return values stay compatible. SSL verification behavior is preserved
-    // exactly inside MaxTransport and intentionally not changed in this refactor.
     private static function maxTransportLogFile()
     {
         return __DIR__ . '/tmp_max_search.txt';
@@ -182,12 +155,7 @@ class MaxSearchApi extends MaxSearchBase
     {
         if ($method === 'deleteMessage') {
             $messageId = $parameters['message_id'] ?? '';
-            return MaxTransport::deleteMessage(
-                static::$TV_API_URL,
-                MAX_SEARCH_TOKEN,
-                $messageId,
-                static::maxTransportLogFile()
-            );
+            return MaxTransport::deleteMessage(static::$TV_API_URL, MAX_SEARCH_TOKEN, $messageId, static::maxTransportLogFile());
         }
         return false;
     }
@@ -199,27 +167,14 @@ class MaxSearchApi extends MaxSearchBase
 
     public static function MaxSend($text, $chat_id)
     {
-        $mid = MaxTransport::send(
-            static::$TV_API_URL,
-            MAX_SEARCH_TOKEN,
-            $chat_id,
-            $text,
-            static::maxTransportLogFile()
-        );
+        $mid = MaxTransport::send(static::$TV_API_URL, MAX_SEARCH_TOKEN, $chat_id, $text, static::maxTransportLogFile());
         if ($mid) $_SESSION['last_message_id'] = $mid;
         return $mid;
     }
 
     public static function MaxSendWithButtons($text, $chat_id, $buttons, $unused = false)
     {
-        $mid = MaxTransport::sendWithButtons(
-            static::$TV_API_URL,
-            MAX_SEARCH_TOKEN,
-            $chat_id,
-            $text,
-            $buttons,
-            static::maxTransportLogFile()
-        );
+        $mid = MaxTransport::sendWithButtons(static::$TV_API_URL, MAX_SEARCH_TOKEN, $chat_id, $text, $buttons, static::maxTransportLogFile());
         if ($mid) $_SESSION['last_message_id'] = $mid;
         return $mid;
     }
@@ -237,5 +192,21 @@ class MaxSearchApi extends MaxSearchBase
     public static function maxLog($data)
     {
         MaxTransport::log(static::maxTransportLogFile(), $data);
+    }
+
+    // Follow-up queue storage is delegated. Existing public API stays unchanged.
+    public static function followupDir()
+    {
+        return FollowupQueueService::dir(__DIR__);
+    }
+
+    public static function scheduleToursFollowup($chatID, $delaySeconds = 180)
+    {
+        return FollowupQueueService::schedule(__DIR__, $chatID, (int)$delaySeconds);
+    }
+
+    public static function cancelToursFollowup($chatID)
+    {
+        return FollowupQueueService::cancel(__DIR__, $chatID);
     }
 }
