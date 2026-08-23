@@ -30,6 +30,9 @@ jobs:
       - name: Run deterministic regression suite
         run: php tests/run_regression.php
 
+      - name: Run Telegram webhook regression suite
+        run: php tests/run_telegram_webhook_regression.php
+
       - name: Run conversation regression suite
         run: php tests/run_conversation_regression.php
 
