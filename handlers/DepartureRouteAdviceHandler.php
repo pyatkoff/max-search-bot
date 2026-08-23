@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../DepartureRouteAdvisor.php');
 require_once(__DIR__ . '/../services/DateParser.php');
 require_once(__DIR__ . '/../services/DestinationPreferenceResolver.php');
 require_once(__DIR__ . '/../services/DiagnosticLogger.php');
+require_once(__DIR__ . '/../services/IntegrationRegistry.php');
 
 class DepartureRouteAdviceHandler
 {
@@ -121,7 +122,7 @@ class DepartureRouteAdviceHandler
     private static function send($chatId, string $message): void
     {
         MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
-        MaxSearchApi::MaxSend($message, $chatId);
+        IntegrationRegistry::messenger()->send($chatId, $message);
     }
 
     private static function periodFromDateInfo(array $dateInfo): ?string
