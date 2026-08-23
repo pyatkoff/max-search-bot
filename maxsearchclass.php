@@ -7,6 +7,8 @@ require_once(__DIR__ . '/services/MaxTransport.php');
 require_once(__DIR__ . '/services/FollowupQueueService.php');
 require_once(__DIR__ . '/services/AiSearchContextService.php');
 require_once(__DIR__ . '/services/ConversationStateRepository.php');
+require_once(__DIR__ . '/services/ClaimRepository.php');
+require_once(__DIR__ . '/services/LeadPayloadService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -37,8 +39,21 @@ class MaxSearchApi extends MaxSearchBase
     static $isAnyOnline = true;
     static $uonSourceId = 36;
 
-    // Conversation state is stored in the same existing HL block; only data-access
-    // responsibility moved out of the legacy base class.
+    private static function statusMap()
+    {
+        return [
+            'city'=>static::$statusCityChoose,
+            'country'=>static::$statusContryChoose,
+            'adults'=>static::$statusAdults,
+            'children'=>static::$statusChild,
+            'child_ages'=>static::$statusAge,
+            'stars'=>static::$statusStars,
+            'meal'=>static::$statusMeal,
+            'nights'=>static::$statusNights,
+            'date'=>static::$statusDate,
+        ];
+    }
+
     public static function getCurentStatus($chatID)
     {
         return ConversationStateRepository::currentStatus(static::$HL, $chatID);
@@ -67,8 +82,6 @@ class MaxSearchApi extends MaxSearchBase
 
     public static function saveLastValue($chatID, $status, $value)
     {
-        // Preserve the existing AI behavior: age/date rows can be absent before
-        // the first value is saved, so create the status row first when needed.
         if (
             in_array($status, [static::$statusAge, static::$statusDate], true) &&
             static::getLastValue($chatID, $status) === false
@@ -98,27 +111,12 @@ class MaxSearchApi extends MaxSearchBase
         return ConversationStateRepository::upsertValue(static::$HL, $chatID, $status, $value);
     }
 
-    private static function aiStatusMap()
-    {
-        return [
-            'city'=>static::$statusCityChoose,
-            'country'=>static::$statusContryChoose,
-            'adults'=>static::$statusAdults,
-            'children'=>static::$statusChild,
-            'child_ages'=>static::$statusAge,
-            'stars'=>static::$statusStars,
-            'meal'=>static::$statusMeal,
-            'nights'=>static::$statusNights,
-            'date'=>static::$statusDate,
-        ];
-    }
-
     public static function getAiSearchContext($chatID)
     {
         $saved = static::getSavedData($chatID);
         return AiSearchContextService::contextFromSaved(
             (array)$saved,
-            static::aiStatusMap(),
+            static::statusMap(),
             function ($id) { return static::getCityByID($id); },
             function ($id) { return static::getCountryByID($id); }
         );
@@ -128,7 +126,7 @@ class MaxSearchApi extends MaxSearchBase
     {
         return AiSearchContextService::missingFromSaved(
             (array)static::getSavedData($chatID),
-            static::aiStatusMap()
+            static::statusMap()
         );
     }
 
@@ -154,7 +152,7 @@ class MaxSearchApi extends MaxSearchBase
             }
         );
 
-        $storageMap = AiSearchContextService::storageMap(static::aiStatusMap());
+        $storageMap = AiSearchContextService::storageMap(static::statusMap());
         $applied = [];
         foreach ($normalized as $field => $value) {
             if (!isset($storageMap[$field])) continue;
@@ -162,6 +160,85 @@ class MaxSearchApi extends MaxSearchBase
             $applied[$field] = true;
         }
         return $applied;
+    }
+
+    // Claims remain in the same HL block. Storage and payload assembly are now
+    // isolated so business flow code no longer owns direct HL queries.
+    public static function saveClaim($chatID, $savedData)
+    {
+        $code = randString(10, ['abcdefghijklnmopqrstuvwxyz','0123456789']);
+        ClaimRepository::create(static::$claimHL, $chatID, (array)$savedData, static::statusMap(), $code);
+        $yclid = static::getLatestYclid($chatID);
+        return static::$baseDomain . '/poisk-turov-tg/' . $code . '/?yclid=' . rawurlencode($yclid);
+    }
+
+    public static function getLastClaimForChat($chatID)
+    {
+        return ClaimRepository::latestForChat(static::$claimHL, $chatID);
+    }
+
+    public static function getClaimByCode($code)
+    {
+        return ClaimRepository::byCode(static::$claimHL, $code);
+    }
+
+    public static function savePhone($chatID, $phone)
+    {
+        $claim = ClaimRepository::latestForChat(static::$claimHL, $chatID);
+        if (!$claim) return false;
+
+        ClaimRepository::setPhone(static::$claimHL, $claim['ID'] ?? 0, $phone);
+
+        $name = (string)($claim['UF_NAME'] ?? '');
+        $createdAt = date('d.m.Y H:i:s');
+        $from = static::getCityByID($claim['UF_CITY'] ?? 0);
+        $country = static::getCountryByID($claim['UF_COUNTRY'] ?? 0);
+        $people = LeadPayloadService::peopleString($claim);
+        $meal = LeadPayloadService::mealString($claim, static::getMealArr());
+
+        $dateObjPlus = new \Bitrix\Main\Type\DateTime($claim['UF_DATE_DEPART']);
+        $dateObjPlus->add('3 day');
+        $dateObjMinus = new \Bitrix\Main\Type\DateTime($claim['UF_DATE_DEPART']);
+        $dateObjMinus->add('-3 day');
+        $dateNow = new \Bitrix\Main\Type\Date();
+        if ($dateNow->getTimestamp() > $dateObjMinus->getTimestamp()) $dateObjMinus = $dateNow;
+        $dateStr = $dateObjMinus->format('d.m.Y') . ' - ' . $dateObjPlus->format('d.m.Y');
+
+        $leadData = [
+            'name'=>$name,
+            'phone'=>$phone,
+            'clean_phone'=>static::cleanPhone($phone),
+            'created_at'=>$createdAt,
+            'from'=>$from,
+            'country'=>$country,
+            'people'=>$people,
+            'stars'=>$claim['UF_STARS'] ?? '',
+            'meal'=>$meal,
+            'dates'=>$dateStr,
+            'nights'=>$claim['UF_NIGHTS'] ?? '',
+            'status'=>static::$claimStatusIDQueue,
+        ];
+        if ((int)static::$uonSourceId > 0) $leadData['source'] = (int)static::$uonSourceId;
+        if (static::$isAnyOnline) $leadData['is_anytour_online'] = CSiteParams::$isAnytourOnline;
+
+        $props = LeadPayloadService::properties($leadData);
+        $element = LeadPayloadService::iblockElement([
+            'iblock_id'=>static::$claimIB,
+            'section_id'=>static::$botSearchSection,
+            'properties'=>$props,
+            'created_at'=>$createdAt,
+        ]);
+
+        \Bitrix\Main\Loader::includeModule('iblock');
+        $el = new CIblockElement();
+        $leadId = $el->Add($element);
+
+        static::phoneSentYclid($chatID);
+        if ($leadId) {
+            static::queueMetrikaGoal($chatID, 'max_phone');
+            static::funnelLog($chatID, 'phone_received', ['lead_id'=>(int)$leadId]);
+        }
+        return $leadId ? true : false;
     }
 
     public static function trafficFile($chatID)
