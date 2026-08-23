@@ -9,6 +9,7 @@ require_once(__DIR__ . '/handlers/AiDateHandler.php');
 require_once(__DIR__ . '/handlers/AiMessageHandler.php');
 require_once(__DIR__ . '/handlers/AiShortAnswerHandler.php');
 require_once(__DIR__ . '/handlers/AiShadowObserver.php');
+require_once(__DIR__ . '/handlers/V2EarlyActionHandler.php');
 require_once(__DIR__ . '/handlers/DepartureRouteAdviceHandler.php');
 require_once(__DIR__ . '/handlers/CallbackHandler.php');
 require_once(__DIR__ . '/handlers/StateMessageHandler.php');
@@ -126,10 +127,12 @@ function processMessage($message) {
                 DestinationAreaResolver::resolveAndStore($chat_id, $message['text']);
                 DestinationResolver::resolveAndStore($chat_id, $message['text']);
 
-                // V2 shadow mode: independently extract structured TripState changes and
-                // calculate RulesEngine action. It never writes trip parameters and never
-                // changes the user-visible response; results go only to structured_events.log.
-                AiShadowObserver::observe($chat_id, (string)$message['text']);
+                // V2 always evaluates in shadow first. Selected actions can then be promoted
+                // independently through project_features.php; all other behavior remains legacy.
+                $shadowV2 = AiShadowObserver::observe($chat_id, (string)$message['text']);
+                if (V2EarlyActionHandler::handle($chat_id, $message, $shadowV2)) {
+                    return;
+                }
 
                 if (DepartureRouteAdviceHandler::handle($chat_id, $message['text'])) {
                     return;
