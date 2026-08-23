@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
+require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 
 class MaxUpdateHandler
 {
@@ -67,55 +68,13 @@ class MaxUpdateHandler
         }
         elseif (in_array($type, ['message_created','message_callback'], true) && $userId) {
             $incoming = MaxIncomingAdapter::fromUpdate($update);
-            if ($incoming) self::dispatchIncoming($incoming);
+            if ($incoming) {
+                $dispatcher = new IncomingUpdateDispatcher();
+                $dispatcher->dispatch($incoming);
+            }
         }
 
         http_response_code(200);
         echo 'ok';
-    }
-
-    private static function dispatchIncoming(array $incoming): void
-    {
-        $chatId = $incoming['user']['chat_id'] ?? 0;
-        if (!$chatId) return;
-
-        if (($incoming['type'] ?? '') === 'contact') {
-            $phone = trim((string)($incoming['contact_phone'] ?? ''));
-            if ($phone !== '' && MaxSearchApi::getCurentStatus($chatId)==MaxSearchApi::$statusPhone) {
-                $ok = MaxSearchApi::savePhone($chatId,$phone);
-                if($ok) {
-                    MaxSearchApi::deleteAllStatus($chatId);
-                    MaxSearchApi::showChannelOffer($chatId,true);
-                } else {
-                    MaxSearchApi::MaxSend("Не получилось сохранить номер. Попробуйте отправить контакт ещё раз или введите номер вручную.",$chatId);
-                }
-            }
-            return;
-        }
-
-        if (($incoming['type'] ?? '') === 'callback') {
-            $callbackId = (string)($incoming['callback_id'] ?? '');
-            $user = (array)($incoming['user'] ?? []);
-            $query = [
-                'from' => [
-                    'id' => $chatId,
-                    'first_name' => (string)($user['first_name'] ?? ''),
-                    'last_name' => (string)($user['last_name'] ?? ''),
-                    'username' => (string)($user['username'] ?? ''),
-                ],
-                'data' => (string)($incoming['callback_data'] ?? ''),
-            ];
-            if ($callbackId !== '') MaxSearchApi::answerCallback($callbackId);
-            processQuery($query);
-            return;
-        }
-
-        if (($incoming['type'] ?? '') === 'message') {
-            processMessage([
-                'message_id' => (string)($incoming['message_id'] ?? ''),
-                'chat' => ['id' => $chatId],
-                'text' => (string)($incoming['text'] ?? ''),
-            ]);
-        }
     }
 }
