@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../services/SearchRequestBuilder.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
+require_once __DIR__ . '/../services/DialogueView.php';
 
 class SearchAction
 {
@@ -21,9 +22,6 @@ class SearchAction
     {
         $plan = self::plan($tripState, ['chat_id'=>$chatId, 'name'=>$name]);
         if (!$plan['ready']) return false;
-        // Production execution remains on the proven legacy search flow for now.
-        // Provider abstraction is already used for planning and can be promoted independently.
-        MaxSearchApi::showCheckButtons($chatId);
-        return true;
+        return DialogueView::check($chatId);
     }
 }
