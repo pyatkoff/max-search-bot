@@ -2,6 +2,7 @@
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/CalendarViewModel.php';
+require_once __DIR__ . '/ManagerRequestService.php';
 
 class DialogueView
 {
@@ -145,6 +146,20 @@ class DialogueView
             (string)($model['text'] ?? ''),
             (array)($model['buttons'] ?? [])
         );
+    }
+
+    public static function managerRequest($chatId, string $name = '', bool $fromTours = false): bool
+    {
+        $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
+        MaxSearchApi::deletePrevMessage($chatId);
+        $ok = IntegrationRegistry::messenger()->sendContactRequest(
+            $chatId,
+            (string)$model['text'],
+            (string)$model['manual_callback'],
+            (string)$model['back_callback']
+        );
+        if ($ok) MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusPhone);
+        return (bool)$ok;
     }
 
     public static function manualCountry($chatId): bool
