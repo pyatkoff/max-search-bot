@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 
 class AiShortAnswerHandler
 {
@@ -115,9 +116,9 @@ class AiShortAnswerHandler
         ];
 
         MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-        MaxSearchApi::MaxSend(
-            $questions[$missingAfter[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-            $chat_id
+        IntegrationRegistry::messenger()->send(
+            $chat_id,
+            $questions[$missingAfter[0]] ?? 'Уточните, пожалуйста, параметры поездки.'
         );
         return true;
     }
