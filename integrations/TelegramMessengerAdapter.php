@@ -31,6 +31,36 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $this->request('sendMessage', $payload);
     }
 
+    public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
+    {
+        // Telegram only allows request_contact in a ReplyKeyboard, while our
+        // manual/back controls need callback_data and therefore InlineKeyboard.
+        // Send them as two platform-native messages instead of silently losing callbacks.
+        $contactPayload = [
+            'chat_id'=>$chatId,
+            'text'=>$text,
+            'parse_mode'=>'HTML',
+            'reply_markup'=>json_encode([
+                'keyboard'=>[[['text'=>'📱 Отправить мой номер','request_contact'=>true]]],
+                'resize_keyboard'=>true,
+                'one_time_keyboard'=>true,
+            ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+        ];
+        if (!$this->request('sendMessage', $contactPayload)) return false;
+
+        $fallbackPayload = [
+            'chat_id'=>$chatId,
+            'text'=>'Или выберите другой вариант:',
+            'reply_markup'=>json_encode([
+                'inline_keyboard'=>[
+                    [['text'=>'⌨️ Ввести номер вручную','callback_data'=>$manualCallback]],
+                    [['text'=>'← Назад','callback_data'=>$backCallback]],
+                ],
+            ], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+        ];
+        return $this->request('sendMessage', $fallbackPayload);
+    }
+
     public static function convertButtons(array $buttons): array
     {
         $hasContact = false;
@@ -48,10 +78,6 @@ class TelegramMessengerAdapter implements MessengerInterface
                 if ($hasContact) {
                     if (!empty($button['request_contact'])) {
                         $outRow[] = ['text'=>(string)$button['text'], 'request_contact'=>true];
-                    } elseif (!empty($button['url'])) {
-                        $outRow[] = ['text'=>(string)$button['text']];
-                    } elseif (array_key_exists('callback_data', $button)) {
-                        $outRow[] = ['text'=>(string)$button['text']];
                     }
                 } else {
                     if (array_key_exists('callback_data', $button)) {
