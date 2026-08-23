@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
+require_once __DIR__ . '/CallbackController.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
@@ -9,7 +10,6 @@ require_once __DIR__ . '/../handlers/AiShortAnswerHandler.php';
 require_once __DIR__ . '/../handlers/AiShadowObserver.php';
 require_once __DIR__ . '/../handlers/V2EarlyActionHandler.php';
 require_once __DIR__ . '/../handlers/DepartureRouteAdviceHandler.php';
-require_once __DIR__ . '/../handlers/CallbackHandler.php';
 require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 /**
@@ -76,8 +76,8 @@ class DialogueController
     {
         $query = self::queryEnvelope($incoming);
         if (empty($query['from']['id'])) return false;
-        CallbackHandler::handle($query);
-        return true;
+        $controller = new CallbackController();
+        return $controller->handle($query);
     }
 
     public function handleIncomingContact(array $incoming): bool
