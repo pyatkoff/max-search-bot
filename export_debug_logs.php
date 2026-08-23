@@ -8,6 +8,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $baseDir = __DIR__;
+require_once $baseDir . '/services/ProjectHealth.php';
 
 $maxLinesByType = [
     'funnel' => 2500,
@@ -96,6 +97,10 @@ function phpEnvironment()
         '/opt/php80/bin/php',
         '/opt/php74/bin/php',
     ];
+    foreach (['/opt/php*/bin/php','/opt/php*/usr/bin/php'] as $pattern) {
+        foreach ((array)glob($pattern) as $bin) $candidates[] = $bin;
+    }
+
     $seen = [];
     $found = [];
     foreach ($candidates as $bin) {
@@ -105,12 +110,19 @@ function phpEnvironment()
         $out = [];
         $code = 0;
         exec(escapeshellarg($bin) . ' -r ' . escapeshellarg('echo PHP_VERSION;') . ' 2>&1', $out, $code);
+        $version = trim(implode("\n", $out));
+        if ($version === '') continue;
         $found[] = [
             'binary' => $bin,
-            'version' => trim(implode("\n", $out)),
+            'version' => $version,
             'exit_code' => $code,
         ];
     }
+
+    usort($found, function ($a, $b) {
+        return version_compare($b['version'], $a['version']);
+    });
+
     return [
         'current_binary' => PHP_BINARY,
         'current_version' => PHP_VERSION,
@@ -118,12 +130,28 @@ function phpEnvironment()
     ];
 }
 
-function runConversationRegression($baseDir)
+function selectRegressionPhp($phpEnv)
+{
+    foreach ((array)($phpEnv['available'] ?? []) as $row) {
+        if (!empty($row['binary']) && !empty($row['version']) && version_compare($row['version'], '8.2.0', '>=')) {
+            return $row['binary'];
+        }
+    }
+    foreach ((array)($phpEnv['available'] ?? []) as $row) {
+        if (!empty($row['binary']) && !empty($row['version']) && version_compare($row['version'], '7.4.0', '>=')) {
+            return $row['binary'];
+        }
+    }
+    return PHP_BINARY;
+}
+
+function runConversationRegression($baseDir, $phpBinary)
 {
     $testFile = $baseDir . '/tests/run_conversation_regression.php';
     if (!is_file($testFile) || !is_readable($testFile)) {
         return [
             'ok' => false,
+            'php_binary' => $phpBinary,
             'exit_code' => 127,
             'total' => null,
             'passed' => null,
@@ -133,7 +161,7 @@ function runConversationRegression($baseDir)
         ];
     }
 
-    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($testFile) . ' 2>&1';
+    $cmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($testFile) . ' 2>&1';
     $output = [];
     $exitCode = 0;
     exec($cmd, $output, $exitCode);
@@ -152,6 +180,7 @@ function runConversationRegression($baseDir)
 
     return [
         'ok' => ($exitCode === 0 && $failed === 0),
+        'php_binary' => $phpBinary,
         'exit_code' => $exitCode,
         'total' => $total,
         'passed' => $passed,
@@ -160,10 +189,14 @@ function runConversationRegression($baseDir)
     ];
 }
 
+$phpEnv = phpEnvironment();
+$regressionPhp = selectRegressionPhp($phpEnv);
+
 $manifest = [
     'ok' => true,
     'generated_at' => date('c'),
-    'php' => phpEnvironment(),
+    'php' => $phpEnv,
+    'health' => ProjectHealth::collect($baseDir),
     'max_lines_by_type' => $maxLinesByType,
     'logs' => [],
     'tests' => [],
@@ -203,7 +236,7 @@ foreach ($logs as $type => $file) {
     ];
 }
 
-$regression = runConversationRegression($baseDir);
+$regression = runConversationRegression($baseDir, $regressionPhp);
 $manifest['tests']['conversation_regression'] = $regression;
 if (!$regression['ok']) $manifest['ok'] = false;
 
