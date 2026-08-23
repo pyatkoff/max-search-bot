@@ -133,4 +133,5 @@ jobs:
             php -l telegram_webhook.php
             php -l telegram_webhook_admin.php
             php tools/telegram_smoke_test.php
+            /opt/php81/bin/php tools/telegram_start_smoke.php
             php export_debug_logs.php
