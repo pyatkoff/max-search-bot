@@ -56,6 +56,9 @@ jobs:
       - name: Run callback controller regression suite
         run: php tests/run_callback_controller_regression.php
 
+      - name: Run dialogue view regression suite
+        run: php tests/run_dialogue_view_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
