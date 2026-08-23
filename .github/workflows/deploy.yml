@@ -6,7 +6,34 @@ on:
   workflow_dispatch:
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring
+          coverage: none
+
+      - name: PHP syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -not -path './vendor/*' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Run deterministic regression suite
+        run: php tests/run_regression.php
+
+      - name: Run conversation regression suite
+        run: php tests/run_conversation_regression.php
+
   deploy:
+    needs: verify
     runs-on: ubuntu-latest
 
     steps:
@@ -17,9 +44,9 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
+            set -e
             cd ~/www/anytour.online/max-search
             git fetch origin main
             git pull --ff-only origin main
             php -l webhook.php
-            php tests/run_conversation_regression.php
             php export_debug_logs.php
