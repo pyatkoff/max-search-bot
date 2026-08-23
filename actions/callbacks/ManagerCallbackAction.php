@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__, 2) . '/services/IntegrationRegistry.php';
+require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 
 class ManagerCallbackAction
 {
@@ -19,17 +19,7 @@ class ManagerCallbackAction
             return true;
         }
 
-        if ($q === 'phone_manual') {
-            MaxSearchApi::deletePrevMessage($chatId);
-            $buttons = [[['text'=>'← Назад','callback_data'=>'tours_checked']]];
-            IntegrationRegistry::messenger()->sendWithButtons(
-                $chatId,
-                "📱 <b>Введите номер телефона</b>\n\nНапример: +71234567890",
-                $buttons
-            );
-            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusPhone);
-            return true;
-        }
+        if ($q === 'phone_manual') return DialogueView::manualPhone($chatId);
 
         return false;
     }
