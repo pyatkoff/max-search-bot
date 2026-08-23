@@ -74,6 +74,9 @@ jobs:
       - name: Run messenger-neutral handler regression suite
         run: php tests/run_messenger_neutral_handlers_regression.php
 
+      - name: Run missing-field question regression suite
+        run: php tests/run_missing_field_questions_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
