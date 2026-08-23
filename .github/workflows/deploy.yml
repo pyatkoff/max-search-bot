@@ -38,6 +38,9 @@ jobs:
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
+      - name: Run shadow comparison regression suite
+        run: php tests/run_shadow_comparison_regression.php
+
       - name: Run state repository regression suite
         run: php tests/run_state_repository_regression.php
 
