@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../handlers/AiDateHandler.php';
+require_once __DIR__ . '/../handlers/DepartureRouteAdviceHandler.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationPreferenceResolver.php';
 require_once __DIR__ . '/../DepartureRouteResolver.php';
@@ -58,6 +59,11 @@ convCheck($scenario,'detects warm intent',DestinationPreferenceResolver::detectI
 convCheck($scenario,'detects warm sea intent',DestinationPreferenceResolver::detectIntent('хочу на тёплое море'),'warm');
 convCheck($scenario,'detects sea intent',DestinationPreferenceResolver::detectIntent('хочу на море'),'sea');
 convCheck($scenario,'ordinary discovery has no preference',DestinationPreferenceResolver::detectIntent('куда можно?'),null);
+
+$scenario='Live where-to-go typo';
+convCheck($scenario,'recognizes exact production typo',DepartureRouteAdviceHandler::isDiscoveryIntent('Из Москвы  кда небуть после 17 сентября  на 7 ночей все включено  для молодожоных'),true);
+convCheck($scenario,'recognizes normal hyphenated form',DepartureRouteAdviceHandler::isDiscoveryIntent('Из Москвы куда-нибудь после 17 сентября'),true);
+convCheck($scenario,'does not turn named destination into discovery',DepartureRouteAdviceHandler::isDiscoveryIntent('Из Москвы в Турцию после 17 сентября'),false);
 
 $scenario='Warm filter only uses available charters'; $moscow=$resolver->getDirectDestinations('Москва','2026-10'); $available=array_column($moscow['destinations']??[],'country'); $warm=DestinationPreferenceResolver::filterAndRank($moscow['destinations']??[],'warm','2026-10'); $warmNames=array_column($warm,'country');
 convCheck($scenario,'fixture has Thailand charter in October',in_array('Таиланд',$available,true),true);
