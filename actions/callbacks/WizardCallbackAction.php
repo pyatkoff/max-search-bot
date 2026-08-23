@@ -14,7 +14,7 @@ class WizardCallbackAction
             || strpos($q, 'meal_') === 0
             || strpos($q, 'nights_') === 0
             || strpos($q, 'month_change_') === 0
-            || strpos($q, 'back_') === 0;
+            || (strpos($q, 'back_') === 0 && $q !== 'back_phone');
     }
 
     public static function handle(int $chatId, string $q): bool
