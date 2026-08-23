@@ -35,6 +35,9 @@ jobs:
       - name: Run TripState regression suite
         run: php tests/run_trip_state_regression.php
 
+      - name: Run shadow dialogue regression suite
+        run: php tests/run_shadow_dialogue_regression.php
+
       - name: Run state repository regression suite
         run: php tests/run_state_repository_regression.php
 
