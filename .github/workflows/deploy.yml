@@ -47,6 +47,9 @@ jobs:
       - name: Run messenger adapter regression suite
         run: php tests/run_messenger_adapters_regression.php
 
+      - name: Run dialogue application regression suite
+        run: php tests/run_dialogue_application_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
