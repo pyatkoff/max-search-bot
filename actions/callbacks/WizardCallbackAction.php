@@ -115,7 +115,7 @@ class WizardCallbackAction
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusNights, $nights);
                 if (MaxSearchApi::finishEditIfNeeded($chatId, 'nights')) return true;
             }
-            MaxSearchApi::showCalendarButtons($chatId, date('m'), date('Y'));
+            DialogueView::calendar($chatId, date('m'), date('Y'));
             return true;
         }
 
@@ -125,7 +125,7 @@ class WizardCallbackAction
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
                 if (MaxSearchApi::finishEditIfNeeded($chatId, 'date')) return true;
             }
-            MaxSearchApi::showCheckButtons($chatId);
+            DialogueView::check($chatId);
             return true;
         }
 
@@ -133,7 +133,7 @@ class WizardCallbackAction
             $monthYear = str_replace('month_change_', '', $q);
             if ($monthYear !== '') {
                 $arr = explode('.', $monthYear);
-                if (count($arr) >= 2) MaxSearchApi::showCalendarButtons($chatId, $arr[0], $arr[1]);
+                if (count($arr) >= 2) DialogueView::calendar($chatId, $arr[0], $arr[1]);
             }
             return true;
         }
