@@ -50,6 +50,9 @@ jobs:
       - name: Run dialogue application regression suite
         run: php tests/run_dialogue_application_regression.php
 
+      - name: Run dialogue controller regression suite
+        run: php tests/run_dialogue_controller_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
