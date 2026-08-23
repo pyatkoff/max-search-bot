@@ -12,6 +12,7 @@ require_once(__DIR__ . '/services/ClaimRepository.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 require_once(__DIR__ . '/services/DialogueView.php');
+require_once(__DIR__ . '/services/TourResultsService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -61,6 +62,14 @@ class MaxSearchApi extends MaxSearchBase
     public static function showChildButtons($chatID){ return DialogueView::children($chatID); }
     public static function showAgeButtons($chatID,$child=1){ return DialogueView::childAges($chatID,(int)$child); }
     public static function showStarsButtons($chatID){ return DialogueView::stars($chatID); }
+    public static function showToursChoice($chatID,$name=''){
+        static::funnelLog($chatID,'show_tours');
+        $model = TourResultsService::build($chatID,(string)$name);
+        $sent = DialogueView::tourResults($chatID,$model);
+        if($sent) static::linkSentYclid($chatID);
+        return (string)($model['claim_url'] ?? '');
+    }
+    public static function showFinishButtons($chatID,$name=''){ return static::showToursChoice($chatID,$name); }
 
     public static function getCityByID($city){ return TravelDirectoryRepository::cityById(static::$depHL,$city); }
     public static function getCityFromByID($city){ return TravelDirectoryRepository::cityFromById(static::$depHL,$city); }
