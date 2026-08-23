@@ -3,6 +3,7 @@ require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/CalendarViewModel.php';
 require_once __DIR__ . '/ManagerRequestService.php';
+require_once __DIR__ . '/PostTourService.php';
 
 class DialogueView
 {
@@ -160,6 +161,25 @@ class DialogueView
         );
         if ($ok) MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusPhone);
         return (bool)$ok;
+    }
+
+    public static function toursFollowup($chatId): bool
+    {
+        $model = PostTourService::followupModel();
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
+    }
+
+    public static function afterToursQuestion($chatId): bool
+    {
+        MaxSearchApi::deletePrevMessage($chatId);
+        $model = PostTourService::afterToursModel();
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
+    }
+
+    public static function channelOffer($chatId, bool $afterLead = false): bool
+    {
+        $model = PostTourService::channelOfferModel($chatId, $afterLead);
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
     }
 
     public static function manualCountry($chatId): bool
