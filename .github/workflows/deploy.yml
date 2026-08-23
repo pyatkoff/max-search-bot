@@ -41,6 +41,9 @@ jobs:
       - name: Run shadow comparison regression suite
         run: php tests/run_shadow_comparison_regression.php
 
+      - name: Run V2 early action regression suite
+        run: php tests/run_v2_early_action_regression.php
+
       - name: Run state repository regression suite
         run: php tests/run_state_repository_regression.php
 
