@@ -8,6 +8,7 @@ require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/TrafficAttributionService.php';
 require_once __DIR__ . '/../services/AnalyticsService.php';
 require_once __DIR__ . '/../services/MaxTransport.php';
+require_once __DIR__ . '/../services/FollowupQueueService.php';
 require_once __DIR__ . '/../DepartureRouteResolver.php';
 require_once __DIR__ . '/../DepartureRouteAdvisor.php';
 
@@ -110,7 +111,6 @@ check('specific route fallback city', $r['fallback']['fallback_departure'] ?? nu
 $r = $advisor->getDestinations('Неизвестный город', '2026-10');
 check('unknown departure stays explicit error', $r['status'] ?? null, 'departure_not_found');
 
-// Extracted traffic/analytics services: deterministic and independent of Bitrix.
 $tmp = sys_get_temp_dir() . '/max-search-regression-' . bin2hex(random_bytes(4));
 @mkdir($tmp, 0755, true);
 try {
@@ -130,11 +130,23 @@ try {
     $metricOk = AnalyticsService::queueMetrika($tmp, -123, '999888777', 'test_goal', $meta);
     check('metrika queue write succeeds', $metricOk, true);
     check('metrika queue file created', is_file($tmp . '/metrika_offline_queue.csv'), true);
+
+    check('followup schedule succeeds', FollowupQueueService::schedule($tmp, -123, 180, 1000), true);
+    $followupFile = FollowupQueueService::file($tmp, -123);
+    check('followup file created', is_file($followupFile), true);
+    $entry = FollowupQueueService::readFile($followupFile);
+    check('followup file parses', $entry['ok'] ?? false, true);
+    check('followup send_at preserved', $entry['data']['send_at'] ?? null, 1180);
+    check('followup waiting classification', FollowupQueueService::classify($entry['data'] ?? [], 1100)['status'] ?? null, 'waiting');
+    check('followup waiting seconds', FollowupQueueService::classify($entry['data'] ?? [], 1100)['seconds'] ?? null, 80);
+    check('followup due classification', FollowupQueueService::classify($entry['data'] ?? [], 1200)['status'] ?? null, 'due');
+    check('followup list contains queue file', count(FollowupQueueService::list($tmp)), 1);
+    check('followup cancel succeeds', FollowupQueueService::cancel($tmp, -123), true);
+    check('followup file removed', is_file($followupFile), false);
 } finally {
     rrmdir($tmp);
 }
 
-// Extracted MAX transport: test pure conversion/parsing without network calls.
 check('MAX transport converts internal negative chat id', MaxTransport::externalUserId(-123456), 123456);
 check('MAX transport keeps positive chat id', MaxTransport::externalUserId(123456), 123456);
 $buttons = MaxTransport::convertButtons([
