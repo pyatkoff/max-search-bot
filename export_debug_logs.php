@@ -13,9 +13,6 @@ if (PHP_SAPI !== 'cli') {
 
 $baseDir = __DIR__;
 
-// GitHub Contents API не отдаёт содержимое файлов >1 МБ обычным fetch_file.
-// Поэтому держим отдельные лимиты: tmp_in обычно очень длинный и тяжёлый,
-// а для анализа последних часов нам важнее свежий хвост, чем тысячи старых строк.
 $maxLinesByType = [
     'funnel' => 2500,
     'tmp' => 500,
@@ -46,16 +43,13 @@ $outputs = [
 function tailLines($file, $maxLines)
 {
     if (!is_file($file) || !is_readable($file)) return [];
-
     $fh = fopen($file, 'rb');
     if (!$fh) return [];
-
     fseek($fh, 0, SEEK_END);
     $size = ftell($fh);
     $cursor = $size;
     $buffer = '';
     $chunkSize = 16384;
-
     while ($cursor > 0 && substr_count($buffer, "\n") <= $maxLines) {
         $read = min($chunkSize, $cursor);
         $cursor -= $read;
@@ -65,7 +59,6 @@ function tailLines($file, $maxLines)
         $buffer = $chunk . $buffer;
     }
     fclose($fh);
-
     $lines = preg_split("/\r\n|\n|\r/", $buffer);
     if ($lines && end($lines) === '') array_pop($lines);
     if (count($lines) > $maxLines) $lines = array_slice($lines, -$maxLines);
@@ -74,12 +67,8 @@ function tailLines($file, $maxLines)
 
 function redactLine($line)
 {
-    // Remove personal display names and avatar URLs from webhook JSON.
     $line = preg_replace('/"(first_name|last_name|name|avatar_url|full_avatar_url)"\s*:\s*"[^"]*"/u', '"$1":"[redacted]"', $line);
-
-    // Redact obvious RU-style phone numbers while leaving long yclid values intact.
     $line = preg_replace('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u', '[phone-redacted]', $line);
-
     return $line;
 }
 
@@ -88,22 +77,67 @@ function atomicWriteJson($path, $data)
     $tmp = $path . '.tmp';
     $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($json === false) return false;
-
     if (file_put_contents($tmp, $json, LOCK_EX) === false) return false;
     @chmod($tmp, 0644);
     return rename($tmp, $path);
+}
+
+function runConversationRegression(string $baseDir): array
+{
+    $testFile = $baseDir . '/tests/run_conversation_regression.php';
+    if (!is_file($testFile) || !is_readable($testFile)) {
+        return [
+            'ok' => false,
+            'exit_code' => 127,
+            'total' => null,
+            'passed' => null,
+            'failed' => null,
+            'error' => 'test_file_not_found_or_unreadable',
+            'output' => [],
+        ];
+    }
+
+    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($testFile) . ' 2>&1';
+    $output = [];
+    $exitCode = 0;
+    exec($cmd, $output, $exitCode);
+
+    $total = null;
+    $passed = null;
+    $failed = null;
+    foreach (array_reverse($output) as $line) {
+        if (preg_match('/TOTAL\s+(\d+)\s+\|\s+PASS\s+(\d+)\s+\|\s+FAIL\s+(\d+)/', $line, $m)) {
+            $total = (int)$m[1];
+            $passed = (int)$m[2];
+            $failed = (int)$m[3];
+            break;
+        }
+    }
+
+    // В index храним только небольшой хвост. Этого достаточно, чтобы сразу видеть
+    // упавшие проверки, не раздувая diagnostics.
+    $tail = array_slice($output, -80);
+
+    return [
+        'ok' => ($exitCode === 0 && $failed === 0),
+        'exit_code' => $exitCode,
+        'total' => $total,
+        'passed' => $passed,
+        'failed' => $failed,
+        'output' => $tail,
+    ];
 }
 
 $manifest = [
     'ok' => true,
     'generated_at' => date('c'),
     'max_lines_by_type' => $maxLinesByType,
-    'logs' => []
+    'logs' => [],
+    'tests' => [],
 ];
 
 foreach ($logs as $type => $file) {
     $maxLines = $maxLinesByType[$type] ?? 1000;
-
     $entry = [
         'ok' => false,
         'type' => $type,
@@ -115,11 +149,8 @@ foreach ($logs as $type => $file) {
 
     if (is_file($file) && is_readable($file)) {
         $lines = tailLines($file, $maxLines);
-        foreach ($lines as &$line) {
-            $line = redactLine($line);
-        }
+        foreach ($lines as &$line) $line = redactLine($line);
         unset($line);
-
         $entry['ok'] = true;
         $entry['size_bytes'] = filesize($file);
         $entry['mtime'] = date('c', filemtime($file));
@@ -130,7 +161,6 @@ foreach ($logs as $type => $file) {
     }
 
     atomicWriteJson($outputs[$type], $entry);
-
     $manifest['logs'][$type] = [
         'ok' => $entry['ok'],
         'source' => $entry['source'],
@@ -139,6 +169,10 @@ foreach ($logs as $type => $file) {
         'file' => basename($outputs[$type])
     ];
 }
+
+$regression = runConversationRegression($baseDir);
+$manifest['tests']['conversation_regression'] = $regression;
+if (!$regression['ok']) $manifest['ok'] = false;
 
 atomicWriteJson($baseDir . '/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-index.json', $manifest);
 
