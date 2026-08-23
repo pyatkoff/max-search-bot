@@ -22,6 +22,13 @@ define('TELEGRAM_BOT_TOKEN', '');
 // Optional but recommended. Telegram sends it in X-Telegram-Bot-Api-Secret-Token.
 define('TELEGRAM_WEBHOOK_SECRET', '');
 
+// Dedicated omnichannel conversation store. Keep credentials only in config.php.
+define('CONVERSATION_DB_HOST', '');
+define('CONVERSATION_DB_NAME', '');
+define('CONVERSATION_DB_USER', '');
+define('CONVERSATION_DB_PASS', '');
+define('CONVERSATION_DB_CHARSET', 'utf8mb4');
+
 // IMPORTANT:
 // The production config.php may contain additional legacy/project-specific
 // constants required by Bitrix/U-ON or analytics code.
