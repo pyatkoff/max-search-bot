@@ -19,6 +19,9 @@ metrika_offline_queue.csv
 tmp_*.txt
 tmp*.txt
 
+# Generated Tourvisor route cache
+tourvisor_routes.json
+
 # Local refactor / emergency backups
 *.before_*
 *.before*
