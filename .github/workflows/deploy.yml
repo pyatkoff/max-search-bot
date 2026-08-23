@@ -59,6 +59,9 @@ jobs:
       - name: Run dialogue view regression suite
         run: php tests/run_dialogue_view_regression.php
 
+      - name: Run calendar view model regression suite
+        run: php tests/run_calendar_view_model_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
