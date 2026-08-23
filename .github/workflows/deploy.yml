@@ -32,6 +32,9 @@ jobs:
       - name: Run AI context regression suite
         run: php tests/run_ai_context_regression.php
 
+      - name: Run state repository regression suite
+        run: php tests/run_state_repository_regression.php
+
       - name: Run conversation regression suite
         run: php tests/run_conversation_regression.php
 
