@@ -3,6 +3,7 @@ require_once(__DIR__ . '/config.php');
 require_once(__DIR__ . '/maxsearchbaseclass.php');
 require_once(__DIR__ . '/services/TrafficAttributionService.php');
 require_once(__DIR__ . '/services/AnalyticsService.php');
+require_once(__DIR__ . '/services/MaxTransport.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -167,5 +168,74 @@ class MaxSearchApi extends MaxSearchBase
         }
         fclose($fp);
         return $result;
+    }
+
+    // MAX transport is delegated from the legacy base class. The public methods
+    // and return values stay compatible. SSL verification behavior is preserved
+    // exactly inside MaxTransport and intentionally not changed in this refactor.
+    private static function maxTransportLogFile()
+    {
+        return __DIR__ . '/tmp_max_search.txt';
+    }
+
+    public static function MaxRequest($method, $parameters = [])
+    {
+        if ($method === 'deleteMessage') {
+            $messageId = $parameters['message_id'] ?? '';
+            return MaxTransport::deleteMessage(
+                static::$TV_API_URL,
+                MAX_SEARCH_TOKEN,
+                $messageId,
+                static::maxTransportLogFile()
+            );
+        }
+        return false;
+    }
+
+    public static function MaxRequestJson($method, $parameters = [])
+    {
+        return static::MaxRequest($method, $parameters);
+    }
+
+    public static function MaxSend($text, $chat_id)
+    {
+        $mid = MaxTransport::send(
+            static::$TV_API_URL,
+            MAX_SEARCH_TOKEN,
+            $chat_id,
+            $text,
+            static::maxTransportLogFile()
+        );
+        if ($mid) $_SESSION['last_message_id'] = $mid;
+        return $mid;
+    }
+
+    public static function MaxSendWithButtons($text, $chat_id, $buttons, $unused = false)
+    {
+        $mid = MaxTransport::sendWithButtons(
+            static::$TV_API_URL,
+            MAX_SEARCH_TOKEN,
+            $chat_id,
+            $text,
+            $buttons,
+            static::maxTransportLogFile()
+        );
+        if ($mid) $_SESSION['last_message_id'] = $mid;
+        return $mid;
+    }
+
+    public static function MaxSendWithMenuButtons($text, $chat_id)
+    {
+        return static::MaxSend($text, $chat_id);
+    }
+
+    public static function answerCallback($callbackId)
+    {
+        return !empty($callbackId);
+    }
+
+    public static function maxLog($data)
+    {
+        MaxTransport::log(static::maxTransportLogFile(), $data);
     }
 }
