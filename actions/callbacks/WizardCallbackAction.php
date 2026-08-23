@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__, 2) . '/services/IntegrationRegistry.php';
+require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 
 class WizardCallbackAction
 {
@@ -50,13 +50,7 @@ class WizardCallbackAction
             return true;
         }
 
-        if ($q === 'pick_country_other') {
-            MaxSearchApi::deletePrevMessage($chatId);
-            $buttons = [[['text'=>'← Назад','callback_data'=>'back_pick_country']]];
-            IntegrationRegistry::messenger()->sendWithButtons($chatId, "🌍 <b>Введите страну</b>\n\nНапишите название направления, которое хотите рассмотреть.", $buttons);
-            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusContryChoose);
-            return true;
-        }
+        if ($q === 'pick_country_other') return DialogueView::manualCountry($chatId);
 
         if (strpos($q, 'pick_country_') === 0 || $q === 'back_adults') {
             if ($q === 'back_adults') MaxSearchApi::deletePrevMessage($chatId, true);
@@ -112,13 +106,7 @@ class WizardCallbackAction
             return true;
         }
 
-        if ($q === 'nights_other') {
-            MaxSearchApi::deletePrevMessage($chatId);
-            $buttons = [[['text'=>'← Назад','callback_data'=>'back_nights']]];
-            IntegrationRegistry::messenger()->sendWithButtons($chatId, "🌙 <b>Введите количество ночей</b>\n\nНапример: 7 или диапазон 7-10.", $buttons);
-            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusNights);
-            return true;
-        }
+        if ($q === 'nights_other') return DialogueView::manualNights($chatId);
 
         if (strpos($q, 'nights_') === 0 || $q === 'back_calendar') {
             if ($q === 'back_calendar') MaxSearchApi::deletePrevMessage($chatId, true);
