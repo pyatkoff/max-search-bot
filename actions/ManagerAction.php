@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
+require_once __DIR__ . '/../services/DialogueView.php';
 
 class ManagerAction
 {
@@ -24,9 +25,6 @@ class ManagerAction
             'destination_provider'=>$plan['destination_plan']['provider'] ?? null,
         ], $chatId);
 
-        // Execution intentionally stays on the current proven Bitrix/MAX flow.
-        // The destination contract is now separated, so another CRM can replace it later.
-        MaxSearchApi::showManagerRequest($chatId, $name, $fromTours);
-        return true;
+        return DialogueView::managerRequest($chatId, $name, $fromTours);
     }
 }
