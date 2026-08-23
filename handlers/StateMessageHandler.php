@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
+require_once __DIR__ . '/AiMessageHandler.php';
 
 class StateMessageHandler
 {
@@ -16,6 +17,10 @@ class StateMessageHandler
                     if(!MaxSearchApi::finishEditIfNeeded($chat_id,'city'))
                         MaxSearchApi::showCountryButtons($chat_id);
                 }
+                elseif(self::shouldRouteFreeTextToAi($city))
+                {
+                    self::routeFreeTextToAi($message,$chat_id);
+                }
                 else
                     self::send($chat_id,"Не нашла такой город вылета. Проверьте название или выберите один из предложенных вариантов.");
 
@@ -29,6 +34,10 @@ class StateMessageHandler
                     MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusContryChoose,$countryRes["ID"]);
                     if(!MaxSearchApi::finishEditIfNeeded($chat_id,'country'))
                         MaxSearchApi::showAdultsButtons($chat_id);
+                }
+                elseif(self::shouldRouteFreeTextToAi($country))
+                {
+                    self::routeFreeTextToAi($message,$chat_id);
                 }
                 else
                     self::send($chat_id,"Не нашла это направление в поиске. Проверьте название или выберите одну из популярных стран.");
@@ -144,6 +153,32 @@ class StateMessageHandler
                         self::send($chat_id,"Не получилось сохранить номер. Попробуйте ещё раз.");
                 }
             }
+    }
+
+    /**
+     * A wizard prompt may receive a complete natural-language request instead of
+     * the single value it asked for. Do not reject that as an unknown city/country;
+     * hand the whole message back to the AI collector so already supplied fields
+     * (month, tourists, nights, etc.) are not lost.
+     */
+    public static function shouldRouteFreeTextToAi($text): bool
+    {
+        $text = trim((string)$text);
+        if ($text === '') return false;
+
+        $words = preg_split('/\s+/u', $text, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($words) < 2) return false;
+
+        return (bool)preg_match(
+            '/(?:\bхоч(?:у|ем)\b|\bпоед(?:у|ем|ет)\b|\bвылет\w*\b|\bтур\w*\b|\bноч\w*\b|\bвзросл\w*\b|\bреб[её]н\w*\b|\bдет\w*\b|\bянвар\w*\b|\bфеврал\w*\b|\bмарт\w*\b|\bапрел\w*\b|\bма[йя]\w*\b|\bиюн\w*\b|\bиюл\w*\b|\bавгуст\w*\b|\bсентябр\w*\b|\bоктябр\w*\b|\bноябр\w*\b|\bдекабр\w*\b|\b\d{1,2}[.\/-]\d{1,2}\b)/ui',
+            $text
+        );
+    }
+
+    private static function routeFreeTextToAi($message, $chatId): void
+    {
+        MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
+        AiMessageHandler::handle($message, $chatId);
     }
 
     private static function send($chatId, string $text): bool
