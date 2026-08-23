@@ -57,9 +57,13 @@ icCheck('lead summary contains route', mb_strpos($lead['summary'], 'Москва
 
 ProjectConfig::resetForTests(['messenger'=>['provider'=>'telegram']]);
 IntegrationRegistry::resetForTests();
+icCheck('telegram provider is supported', get_class(IntegrationRegistry::messenger()), 'TelegramMessengerAdapter');
+
+ProjectConfig::resetForTests(['messenger'=>['provider'=>'unsupported_test']]);
+IntegrationRegistry::resetForTests();
 $unsupported = false;
 try { IntegrationRegistry::messenger(); } catch (RuntimeException $e) { $unsupported = true; }
-icCheck('unsupported provider fails explicitly', $unsupported, true);
+icCheck('unknown provider fails explicitly', $unsupported, true);
 
 ProjectConfig::resetForTests(null);
 IntegrationRegistry::resetForTests();
