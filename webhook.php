@@ -2,6 +2,7 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
 require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/ai/AiRouter.php');
+require_once(__DIR__ . '/services/DepartureCityResolver.php');
 require_once(__DIR__ . '/services/DestinationAreaResolver.php');
 require_once(__DIR__ . '/services/DestinationResolver.php');
 require_once(__DIR__ . '/handlers/AiDateHandler.php');
@@ -119,7 +120,11 @@ function processMessage($message) {
 			$status = MaxSearchApi::getCurentStatus($chat_id);
             if($status==MaxSearchApi::$statusAi || !$status || $status==MaxSearchApi::$statusStart)
             {
-                // Сначала пробуем туристические зоны, которых нет отдельной строкой в HL3
+                // Сначала детерминированно сохраняем явно указанный город вылета
+                // (например "из Калининграда"), чтобы он не потерялся и не заменился Москвой.
+                DepartureCityResolver::resolveAndStore($chat_id, $message['text']);
+
+                // Затем пробуем туристические зоны, которых нет отдельной строкой в HL3
                 // (например Лара -> Турция / Анталья по устойчивой привязке отелей HL6).
                 DestinationAreaResolver::resolveAndStore($chat_id, $message['text']);
 
