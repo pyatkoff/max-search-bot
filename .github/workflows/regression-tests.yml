@@ -33,6 +33,9 @@ jobs:
       - name: Run Telegram webhook regression suite
         run: php tests/run_telegram_webhook_regression.php
 
+      - name: Run Telegram smoke test
+        run: php tools/telegram_smoke_test.php
+
       - name: Run wizard free-text regression suite
         run: php tests/run_state_free_text_regression.php
 
