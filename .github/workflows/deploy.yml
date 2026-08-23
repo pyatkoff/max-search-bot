@@ -47,6 +47,9 @@ jobs:
       - name: Run messenger adapter regression suite
         run: php tests/run_messenger_adapters_regression.php
 
+      - name: Run Telegram webhook regression suite
+        run: php tests/run_telegram_webhook_regression.php
+
       - name: Run dialogue application regression suite
         run: php tests/run_dialogue_application_regression.php
 
@@ -121,4 +124,5 @@ jobs:
             git fetch origin main
             git pull --ff-only origin main
             php -l webhook.php
+            php -l telegram_webhook.php
             php export_debug_logs.php
