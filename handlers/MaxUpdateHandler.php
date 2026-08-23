@@ -7,7 +7,7 @@ class MaxUpdateHandler
     public static function handle()
     {
         $content = file_get_contents('php://input');
-        put_log_in($content);
+        if (function_exists('put_log_in')) put_log_in($content);
         $update = json_decode($content, true);
 
         $incomingSecret = $_SERVER['HTTP_X_MAX_BOT_API_SECRET'] ?? '';
@@ -24,8 +24,9 @@ class MaxUpdateHandler
         }
 
         $type = (string)($update['update_type'] ?? '');
-        $userId = maxExtractUserId($update);
-        $internalId = maxInternalUserId($userId);
+        $user = MaxIncomingAdapter::user($update);
+        $userId = (int)($user['user_id'] ?? $user['id'] ?? 0);
+        $internalId = $userId > 0 ? -$userId : $userId;
 
         if ($type === 'bot_started' && $userId) {
             $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
@@ -57,12 +58,13 @@ class MaxUpdateHandler
             }
 
             if ($yclid !== '') MaxSearchApi::addYclid($internalId, $yclid);
-            MaxSearchApi::saveTrafficMeta($internalId,$yclid,$region,$campaign,$payload);
-            MaxSearchApi::funnelLog($internalId,'bot_started',['payload'=>$payload]);
+            MaxSearchApi::saveTrafficMeta($internalId, $yclid, $region, $campaign, $payload);
+            MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload]);
 
             MaxSearchApi::cancelToursFollowup($internalId);
             MaxSearchApi::deleteAllStatus($internalId);
-            MaxSearchApi::setEditMode($internalId,'');
+            MaxSearchApi::setEditMode($internalId, '');
+            if (class_exists('AiShadowObserver')) AiShadowObserver::clear($internalId);
             if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
             MaxSearchApi::showStart($internalId);
         }
