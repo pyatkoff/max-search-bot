@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 
 class MaxUpdateHandler
 {
@@ -24,7 +25,6 @@ class MaxUpdateHandler
         $type = (string)($update['update_type'] ?? '');
         $userId = maxExtractUserId($update);
         $internalId = maxInternalUserId($userId);
-        $user = maxExtractUser($update);
 
         if ($type === 'bot_started' && $userId) {
             $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
@@ -65,37 +65,57 @@ class MaxUpdateHandler
             if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
             MaxSearchApi::showStart($internalId);
         }
-        elseif ($type === 'message_created' && $userId) {
-            $contactPhone = maxExtractContactPhone($update);
-            if ($contactPhone !== '' && MaxSearchApi::getCurentStatus($internalId)==MaxSearchApi::$statusPhone) {
-                $ok = MaxSearchApi::savePhone($internalId,$contactPhone);
-                if($ok) {
-                    MaxSearchApi::deleteAllStatus($internalId);
-                    MaxSearchApi::showChannelOffer($internalId,true);
-                } else {
-                    MaxSearchApi::MaxSend("Не получилось сохранить номер. Попробуйте отправить контакт ещё раз или введите номер вручную.",$internalId);
-                }
-            } else {
-                $message = [
-                    'message_id' => (string)($update['message']['body']['mid'] ?? ''),
-                    'chat' => ['id' => $internalId],
-                    'text' => maxExtractText($update),
-                ];
-                processMessage($message);
-            }
-        }
-        elseif ($type === 'message_callback' && $userId) {
-            $callbackId = (string)($update['callback']['callback_id'] ?? '');
-            $payload = (string)($update['callback']['payload'] ?? '');
-            $query = [
-                'from' => maxUserAsTelegramLike($user),
-                'data' => $payload,
-            ];
-            if ($callbackId !== '') MaxSearchApi::answerCallback($callbackId);
-            processQuery($query);
+        elseif (in_array($type, ['message_created','message_callback'], true) && $userId) {
+            $incoming = MaxIncomingAdapter::fromUpdate($update);
+            if ($incoming) self::dispatchIncoming($incoming);
         }
 
         http_response_code(200);
         echo 'ok';
+    }
+
+    private static function dispatchIncoming(array $incoming): void
+    {
+        $chatId = $incoming['user']['chat_id'] ?? 0;
+        if (!$chatId) return;
+
+        if (($incoming['type'] ?? '') === 'contact') {
+            $phone = trim((string)($incoming['contact_phone'] ?? ''));
+            if ($phone !== '' && MaxSearchApi::getCurentStatus($chatId)==MaxSearchApi::$statusPhone) {
+                $ok = MaxSearchApi::savePhone($chatId,$phone);
+                if($ok) {
+                    MaxSearchApi::deleteAllStatus($chatId);
+                    MaxSearchApi::showChannelOffer($chatId,true);
+                } else {
+                    MaxSearchApi::MaxSend("Не получилось сохранить номер. Попробуйте отправить контакт ещё раз или введите номер вручную.",$chatId);
+                }
+            }
+            return;
+        }
+
+        if (($incoming['type'] ?? '') === 'callback') {
+            $callbackId = (string)($incoming['callback_id'] ?? '');
+            $user = (array)($incoming['user'] ?? []);
+            $query = [
+                'from' => [
+                    'id' => $chatId,
+                    'first_name' => (string)($user['first_name'] ?? ''),
+                    'last_name' => (string)($user['last_name'] ?? ''),
+                    'username' => (string)($user['username'] ?? ''),
+                ],
+                'data' => (string)($incoming['callback_data'] ?? ''),
+            ];
+            if ($callbackId !== '') MaxSearchApi::answerCallback($callbackId);
+            processQuery($query);
+            return;
+        }
+
+        if (($incoming['type'] ?? '') === 'message') {
+            processMessage([
+                'message_id' => (string)($incoming['message_id'] ?? ''),
+                'chat' => ['id' => $chatId],
+                'text' => (string)($incoming['text'] ?? ''),
+            ]);
+        }
     }
 }
