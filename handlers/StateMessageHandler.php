@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__) . '/services/DialogueView.php';
 
 class StateMessageHandler
 {
@@ -137,7 +138,7 @@ class StateMessageHandler
 					MaxSearchApi::deletePrevMessage($chat_id,true);
 					MaxSearchApi::deleteAllStatus($chat_id);
 					if($ok)
-						MaxSearchApi::showChannelOffer($chat_id,true);
+						DialogueView::channelOffer($chat_id,true);
 					else
 						MaxSearchApi::MaxSend("Не получилось сохранить номер. Попробуйте ещё раз.",$chat_id);
 				}	
