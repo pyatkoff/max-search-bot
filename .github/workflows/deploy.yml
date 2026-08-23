@@ -29,6 +29,9 @@ jobs:
       - name: Run deterministic regression suite
         run: php tests/run_regression.php
 
+      - name: Run AI context regression suite
+        run: php tests/run_ai_context_regression.php
+
       - name: Run conversation regression suite
         run: php tests/run_conversation_regression.php
 
