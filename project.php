@@ -13,11 +13,13 @@ return [
         'provider' => 'max',
         'channel_url' => 'https://max.ru/anytour',
         'miniapp_bot_url' => 'https://max.ru/id9704048781_2_bot',
+        'open_channel_path' => '/max-search/open_channel.php',
     ],
     'search' => [
         'provider' => 'tourvisor',
         'base_domain' => 'https://anytour.online',
         'claim_path' => '/poisk-turov-tg/{code}/',
+        'open_tours_path' => '/max-search/open_tours.php',
     ],
     'leads' => [
         'provider' => 'bitrix',
