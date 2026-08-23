@@ -2,10 +2,6 @@
 
 class TripStateService
 {
-    /**
-     * Build the new structured trip state on top of the existing HL-backed saved data.
-     * This is intentionally read-only: no storage migration is required yet.
-     */
     public static function fromSaved(
         array $saved,
         array $status,
@@ -27,57 +23,81 @@ class TripStateService
             if ($resolved !== false && trim((string)$resolved) !== '') $country = (string)$resolved;
         }
 
-        $date = self::stringOrNull($saved[$status['date']] ?? null);
-        $nights = self::parseRange($saved[$status['nights']] ?? null, 1, 28);
-        $ages = self::parseAges($saved[$status['child_ages']] ?? null);
-        $childrenKnown = array_key_exists($status['children'], $saved);
-        $children = $childrenKnown ? (int)$saved[$status['children']] : null;
+        return self::buildState([
+            'city_id'=>$cityId,
+            'city'=>$city,
+            'country_id'=>$countryId,
+            'country'=>$country,
+            'date'=>self::stringOrNull($saved[$status['date']] ?? null),
+            'nights'=>$saved[$status['nights']] ?? null,
+            'adults'=>self::intOrNull($saved[$status['adults']] ?? null),
+            'children'=>array_key_exists($status['children'], $saved) ? (int)$saved[$status['children']] : null,
+            'child_ages'=>$saved[$status['child_ages']] ?? null,
+            'stars'=>self::intOrNull($saved[$status['stars']] ?? null),
+            'meal'=>self::mealFromStorage($saved[$status['meal']] ?? null),
+            'storage'=>'legacy_hl',
+        ]);
+    }
 
+    /** Build TripState from the current flat AiSearchContext without writing anything. */
+    public static function fromLegacyAiContext(array $current, ?callable $resolveCity = null, ?callable $resolveCountry = null): array
+    {
+        $city = self::stringOrNull($current['city'] ?? null);
+        $country = self::stringOrNull($current['country'] ?? null);
+        $cityId = null;
+        $countryId = null;
+
+        if ($city && $resolveCity) {
+            try {
+                $row = $resolveCity($city);
+                if (is_array($row) && !empty($row['ID'])) $cityId = (int)$row['ID'];
+            } catch (Throwable $e) {}
+        }
+        if ($country && $resolveCountry) {
+            try {
+                $row = $resolveCountry($country);
+                if (is_array($row) && !empty($row['ID'])) $countryId = (int)$row['ID'];
+            } catch (Throwable $e) {}
+        }
+
+        return self::buildState([
+            'city_id'=>$cityId,
+            'city'=>$city,
+            'country_id'=>$countryId,
+            'country'=>$country,
+            'date'=>self::stringOrNull($current['date'] ?? null),
+            'nights'=>$current['nights'] ?? null,
+            'adults'=>array_key_exists('adults', $current) ? self::intOrNull($current['adults']) : null,
+            'children'=>array_key_exists('children', $current) ? (int)$current['children'] : null,
+            'child_ages'=>$current['child_ages'] ?? null,
+            'stars'=>array_key_exists('stars', $current) ? self::intOrNull($current['stars']) : null,
+            'meal'=>self::stringOrNull($current['meal'] ?? null),
+            'storage'=>'legacy_ai_context',
+        ]);
+    }
+
+    private static function buildState(array $v): array
+    {
+        $date = $v['date'] ?? null;
+        $nights = self::parseRange($v['nights'] ?? null, 1, 28);
         return [
-            'departure' => [
-                'city_id' => $cityId,
-                'city' => $city,
+            'departure'=>['city_id'=>$v['city_id'] ?? null,'city'=>$v['city'] ?? null],
+            'destination'=>['country_id'=>$v['country_id'] ?? null,'country'=>$v['country'] ?? null,'region'=>null,'resort'=>null],
+            'dates'=>['from'=>$date,'to'=>$date,'month'=>self::monthFromDate($date),'flexible_days'=>$date ? 3 : 0],
+            'nights'=>['min'=>$nights['min'],'max'=>$nights['max']],
+            'tourists'=>[
+                'adults'=>$v['adults'] ?? null,
+                'children'=>array_key_exists('children', $v) ? $v['children'] : null,
+                'children_ages'=>self::parseAges($v['child_ages'] ?? null),
             ],
-            'destination' => [
-                'country_id' => $countryId,
-                'country' => $country,
-                'region' => null,
-                'resort' => null,
-            ],
-            'dates' => [
-                'from' => $date,
-                'to' => $date,
-                'month' => self::monthFromDate($date),
-                'flexible_days' => $date ? 3 : 0,
-            ],
-            'nights' => [
-                'min' => $nights['min'],
-                'max' => $nights['max'],
-            ],
-            'tourists' => [
-                'adults' => self::intOrNull($saved[$status['adults']] ?? null),
-                'children' => $children,
-                'children_ages' => $ages,
-            ],
-            'budget' => [
-                'max' => null,
-                'currency' => 'RUB',
-            ],
-            'hotel' => [
-                'stars_min' => self::intOrNull($saved[$status['stars']] ?? null),
-                'meal' => self::mealFromStorage($saved[$status['meal']] ?? null),
-                'line' => null,
-            ],
-            'preferences' => [],
-            'negative_preferences' => [],
-            'meta' => [
-                'storage' => 'legacy_hl',
-                'version' => 1,
-            ],
+            'budget'=>['max'=>null,'currency'=>'RUB'],
+            'hotel'=>['stars_min'=>$v['stars'] ?? null,'meal'=>$v['meal'] ?? null,'line'=>null],
+            'preferences'=>[],
+            'negative_preferences'=>[],
+            'meta'=>['storage'=>$v['storage'] ?? 'unknown','version'=>1],
         ];
     }
 
-    /** Flat compatibility view for the current AiRouter while migration is gradual. */
     public static function toLegacyAiContext(array $state): array
     {
         $out = [];
@@ -138,7 +158,15 @@ class TripStateService
 
     private static function parseAges($value): array
     {
-        if ($value === null || trim((string)$value) === '') return [];
+        if ($value === null || (is_string($value) && trim($value) === '')) return [];
+        if (is_array($value)) {
+            $ages = [];
+            foreach ($value as $age) {
+                $age = (int)$age;
+                if ($age >= 0 && $age <= 17) $ages[] = $age;
+            }
+            return $ages;
+        }
         preg_match_all('/\b(\d{1,2})\b/u', (string)$value, $m);
         $ages = [];
         foreach ($m[1] ?? [] as $age) {
