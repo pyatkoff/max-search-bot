@@ -1,0 +1,155 @@
+<?php
+require_once dirname(__DIR__, 2) . '/services/IntegrationRegistry.php';
+
+class WizardCallbackAction
+{
+    public static function handles(string $q): bool
+    {
+        return $q === 'ai_start'
+            || $q === 'start_search'
+            || strpos($q, 'pick_') === 0
+            || strpos($q, 'adults_') === 0
+            || strpos($q, 'child_') === 0
+            || strpos($q, 'star_') === 0
+            || strpos($q, 'meal_') === 0
+            || strpos($q, 'nights_') === 0
+            || strpos($q, 'month_change_') === 0
+            || strpos($q, 'back_') === 0;
+    }
+
+    public static function handle(int $chatId, string $q): bool
+    {
+        if ($q === 'ai_start') {
+            MaxSearchApi::funnelLog($chatId, 'ai_start');
+            MaxSearchApi::deletePrevMessage($chatId);
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusStart);
+            MaxSearchApi::showAiStart($chatId);
+            return true;
+        }
+
+        if ($q === 'start_search' || $q === 'back_pick_city') {
+            if ($q === 'start_search') {
+                MaxSearchApi::funnelLog($chatId, 'start_search');
+                MaxSearchApi::deletePrevMessage($chatId);
+                MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusStart);
+            } else {
+                MaxSearchApi::deletePrevMessage($chatId, true);
+            }
+            MaxSearchApi::showCityButtons($chatId);
+            return true;
+        }
+
+        if (strpos($q, 'pick_city_') === 0 || $q === 'back_pick_country') {
+            if ($q === 'pick_city_other') {
+                MaxSearchApi::showCityOtherButtons($chatId);
+                return true;
+            }
+            if ($q === 'back_pick_country') MaxSearchApi::deletePrevMessage($chatId, true);
+            else MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCityChoose, str_replace('pick_city_', '', $q));
+            MaxSearchApi::showCountryButtons($chatId);
+            return true;
+        }
+
+        if ($q === 'pick_country_other') {
+            MaxSearchApi::deletePrevMessage($chatId);
+            $buttons = [[['text'=>'← Назад','callback_data'=>'back_pick_country']]];
+            IntegrationRegistry::messenger()->sendWithButtons($chatId, "🌍 <b>Введите страну</b>\n\nНапишите название направления, которое хотите рассмотреть.", $buttons);
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusContryChoose);
+            return true;
+        }
+
+        if (strpos($q, 'pick_country_') === 0 || $q === 'back_adults') {
+            if ($q === 'back_adults') MaxSearchApi::deletePrevMessage($chatId, true);
+            else {
+                MaxSearchApi::funnelLog($chatId, 'country_selected', ['payload'=>$q]);
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusContryChoose, str_replace('pick_country_', '', $q));
+                if (MaxSearchApi::finishEditIfNeeded($chatId, 'country')) return true;
+            }
+            MaxSearchApi::showAdultsButtons($chatId);
+            return true;
+        }
+
+        if (strpos($q, 'adults_') === 0 || $q === 'back_child') {
+            if (strpos($q, 'adults_') === 0) MaxSearchApi::funnelLog($chatId, 'tourists_selected', ['stage'=>'adults','payload'=>$q]);
+            if ($q === 'back_child') MaxSearchApi::deletePrevMessage($chatId, true);
+            else MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusAdults, str_replace('adults_', '', $q));
+            MaxSearchApi::showChildButtons($chatId);
+            return true;
+        }
+
+        if (strpos($q, 'child_') === 0 || $q === 'back_stars') {
+            if (strpos($q, 'child_') === 0) MaxSearchApi::funnelLog($chatId, 'tourists_selected', ['stage'=>'children','payload'=>$q]);
+            if ($q === 'back_stars') {
+                MaxSearchApi::deletePrevMessage($chatId, true);
+                MaxSearchApi::showStarsButtons($chatId);
+                return true;
+            }
+            $child = str_replace('child_', '', $q);
+            MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusChild, $child);
+            if ((int)$child === 0) {
+                if (!MaxSearchApi::finishEditIfNeeded($chatId, 'tourists')) MaxSearchApi::showStarsButtons($chatId);
+            } else MaxSearchApi::showAgeButtons($chatId, (int)$child);
+            return true;
+        }
+
+        if (strpos($q, 'star_') === 0 || $q === 'back_meal') {
+            if ($q === 'back_meal') MaxSearchApi::deletePrevMessage($chatId, true);
+            else {
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusStars, str_replace('star_', '', $q));
+                if (MaxSearchApi::finishEditIfNeeded($chatId, 'stars')) return true;
+            }
+            MaxSearchApi::showMealButtons($chatId);
+            return true;
+        }
+
+        if (strpos($q, 'meal_') === 0 || $q === 'back_nights') {
+            if ($q === 'back_nights') MaxSearchApi::deletePrevMessage($chatId, true);
+            else {
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusMeal, str_replace('meal_', '', $q));
+                if (MaxSearchApi::finishEditIfNeeded($chatId, 'meal')) return true;
+            }
+            MaxSearchApi::showNightsButtons($chatId);
+            return true;
+        }
+
+        if ($q === 'nights_other') {
+            MaxSearchApi::deletePrevMessage($chatId);
+            $buttons = [[['text'=>'← Назад','callback_data'=>'back_nights']]];
+            IntegrationRegistry::messenger()->sendWithButtons($chatId, "🌙 <b>Введите количество ночей</b>\n\nНапример: 7 или диапазон 7-10.", $buttons);
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusNights);
+            return true;
+        }
+
+        if (strpos($q, 'nights_') === 0 || $q === 'back_calendar') {
+            if ($q === 'back_calendar') MaxSearchApi::deletePrevMessage($chatId, true);
+            else {
+                $nights = str_replace('_', '-', str_replace('nights_', '', $q));
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusNights, $nights);
+                if (MaxSearchApi::finishEditIfNeeded($chatId, 'nights')) return true;
+            }
+            MaxSearchApi::showCalendarButtons($chatId, date('m'), date('Y'));
+            return true;
+        }
+
+        if (strpos($q, 'pick_date_') === 0 || $q === 'back_check') {
+            if ($q === 'back_check') MaxSearchApi::deletePrevMessage($chatId, true);
+            else {
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
+                if (MaxSearchApi::finishEditIfNeeded($chatId, 'date')) return true;
+            }
+            MaxSearchApi::showCheckButtons($chatId);
+            return true;
+        }
+
+        if (strpos($q, 'month_change_') === 0) {
+            $monthYear = str_replace('month_change_', '', $q);
+            if ($monthYear !== '') {
+                $arr = explode('.', $monthYear);
+                if (count($arr) >= 2) MaxSearchApi::showCalendarButtons($chatId, $arr[0], $arr[1]);
+            }
+            return true;
+        }
+
+        return false;
+    }
+}
