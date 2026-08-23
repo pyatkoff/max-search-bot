@@ -1,0 +1,46 @@
+<?php
+require_once dirname(__DIR__, 2) . '/services/IntegrationRegistry.php';
+
+class ManagerCallbackAction
+{
+    public static function handles(string $q): bool
+    {
+        return in_array($q, ['manager_request','manager_after_tours','phone_manual'], true);
+    }
+
+    public static function handle(int $chatId, string $q, array $query): bool
+    {
+        if ($q === 'manager_request' || $q === 'manager_after_tours') {
+            $afterTours = $q === 'manager_after_tours';
+            MaxSearchApi::funnelLog($chatId, 'manager_request', ['source'=>$afterTours ? 'followup' : 'before_site']);
+            if ($afterTours) MaxSearchApi::cancelToursFollowup($chatId);
+            MaxSearchApi::queueMetrikaGoal($chatId, 'max_manager_request');
+            MaxSearchApi::showManagerRequest($chatId, self::userName($query), $afterTours);
+            return true;
+        }
+
+        if ($q === 'phone_manual') {
+            MaxSearchApi::deletePrevMessage($chatId);
+            $buttons = [[['text'=>'← Назад','callback_data'=>'tours_checked']]];
+            IntegrationRegistry::messenger()->sendWithButtons(
+                $chatId,
+                "📱 <b>Введите номер телефона</b>\n\nНапример: +71234567890",
+                $buttons
+            );
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusPhone);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static function userName(array $query): string
+    {
+        $from = (array)($query['from'] ?? []);
+        $name = trim((string)($from['first_name'] ?? ''));
+        $last = trim((string)($from['last_name'] ?? ''));
+        if ($last !== '') $name = trim($name . ' ' . $last);
+        if ($name === '') $name = trim((string)($from['username'] ?? ''));
+        return $name;
+    }
+}
