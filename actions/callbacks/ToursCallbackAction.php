@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 
 class ToursCallbackAction
 {
@@ -16,15 +17,13 @@ class ToursCallbackAction
         }
 
         if ($q === 'tours_checked') {
-            MaxSearchApi::showAfterToursQuestion($chatId);
-            return true;
+            return DialogueView::afterToursQuestion($chatId);
         }
 
         if ($q === 'tours_found') {
             MaxSearchApi::funnelLog($chatId, 'tours_found');
             MaxSearchApi::cancelToursFollowup($chatId);
-            MaxSearchApi::showChannelOffer($chatId, false);
-            return true;
+            return DialogueView::channelOffer($chatId, false);
         }
 
         return false;
