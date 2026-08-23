@@ -61,6 +61,12 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $this->request('sendMessage', $fallbackPayload);
     }
 
+    public function answerCallback(string $callbackId): bool
+    {
+        if ($callbackId === '') return false;
+        return $this->request('answerCallbackQuery', ['callback_query_id'=>$callbackId]);
+    }
+
     public static function convertButtons(array $buttons): array
     {
         $hasContact = false;
