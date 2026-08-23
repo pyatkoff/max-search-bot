@@ -19,6 +19,7 @@ try {
     require_once($documentRoot . '/bitrix/modules/main/include/prolog_before.php');
     require_once(__DIR__ . '/maxsearchclass.php');
     require_once(__DIR__ . '/services/FollowupQueueService.php');
+    require_once(__DIR__ . '/services/DialogueView.php');
 
     $now = time();
     $sent = 0;
@@ -56,7 +57,8 @@ try {
         }
 
         cronLog('SEND_START chat=' . $chatID);
-        $result = MaxSearchApi::sendToursFollowup($chatID);
+        MaxSearchApi::funnelLog($chatID, 'followup_sent');
+        $result = DialogueView::toursFollowup($chatID);
         cronLog('SEND_DONE chat=' . $chatID . ' result=' . var_export($result, true));
 
         $sent++;
