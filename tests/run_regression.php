@@ -7,6 +7,7 @@ require_once __DIR__ . '/../services/DateNoiseGuard.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/TrafficAttributionService.php';
 require_once __DIR__ . '/../services/AnalyticsService.php';
+require_once __DIR__ . '/../services/MaxTransport.php';
 require_once __DIR__ . '/../DepartureRouteResolver.php';
 require_once __DIR__ . '/../DepartureRouteAdvisor.php';
 
@@ -132,6 +133,26 @@ try {
 } finally {
     rrmdir($tmp);
 }
+
+// Extracted MAX transport: test pure conversion/parsing without network calls.
+check('MAX transport converts internal negative chat id', MaxTransport::externalUserId(-123456), 123456);
+check('MAX transport keeps positive chat id', MaxTransport::externalUserId(123456), 123456);
+$buttons = MaxTransport::convertButtons([
+    [
+        ['text'=>'Callback','callback_data'=>'pick_1'],
+        ['text'=>'Link','url'=>'https://example.com'],
+    ],
+    [
+        ['text'=>'Phone','request_contact'=>true],
+    ],
+]);
+check('MAX callback button type', $buttons[0][0]['type'] ?? null, 'callback');
+check('MAX callback payload preserved', $buttons[0][0]['payload'] ?? null, 'pick_1');
+check('MAX link button type', $buttons[0][1]['type'] ?? null, 'link');
+check('MAX request contact type', $buttons[1][0]['type'] ?? null, 'request_contact');
+check('MAX message id from message.body.mid', MaxTransport::extractMessageId(['message'=>['body'=>['mid'=>'m1']]]), 'm1');
+check('MAX message id from body.mid fallback', MaxTransport::extractMessageId(['body'=>['mid'=>'m2']]), 'm2');
+check('MAX message id false for invalid response', MaxTransport::extractMessageId(false), false);
 
 $total = $passed + $failed + $xfail;
 echo "\n---------------------------\n";
