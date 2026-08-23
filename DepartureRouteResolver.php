@@ -22,9 +22,18 @@ final class DepartureRouteResolver
     ) {
         $this->routes = $this->loadJson($routesFile);
 
-        $this->fallbacks = is_file($fallbacksFile)
+        $rawFallbacks = is_file($fallbacksFile)
             ? $this->loadJson($fallbacksFile)
             : [];
+
+        // Храним fallback-правила только по нормализованным ключам,
+        // чтобы одинаково работали "Санкт-Петербург", "СПб" и т.п.
+        $this->fallbacks = [];
+        foreach ($rawFallbacks as $departure => $fallbackList) {
+            $this->fallbacks[$this->normalize((string)$departure)] = is_array($fallbackList)
+                ? array_values($fallbackList)
+                : [$fallbackList];
+        }
     }
 
     private function loadJson(string $file): array
@@ -62,6 +71,14 @@ final class DepartureRouteResolver
         $result = [];
 
         foreach (($dep['countries'] ?? []) as $country) {
+            // Метод возвращает именно прямые чартерные направления.
+            // Наличие записи в справочнике само по себе этого не гарантирует.
+            $direct = !empty($country['direct']);
+            $charter = !empty($country['charter']);
+            if (!$direct || !$charter) {
+                continue;
+            }
+
             $dates = $this->filterDates((array)($country['dates'] ?? []), $period);
 
             if ($period !== null && !$dates) {
@@ -75,8 +92,8 @@ final class DepartureRouteResolver
             $result[] = [
                 'country_id' => (int)($country['country_id'] ?? 0),
                 'country' => (string)($country['country'] ?? ''),
-                'direct' => (bool)($country['direct'] ?? false),
-                'charter' => (bool)($country['charter'] ?? false),
+                'direct' => true,
+                'charter' => true,
                 'dates_count' => $period !== null ? count($dates) : (int)($country['dates_count'] ?? 0),
                 'first_date' => $period !== null ? ($dates[0] ?? null) : ($country['first_date'] ?? null),
                 'last_date' => $period !== null ? ($dates ? $dates[count($dates)-1] : null) : ($country['last_date'] ?? null),
@@ -115,22 +132,31 @@ final class DepartureRouteResolver
                 'ok' => true,
                 'departure' => (string)$dep['name'],
                 'country' => $country,
+                'direct' => false,
+                'charter' => false,
                 'direct_charter' => false,
                 'available_in_period' => false,
+                'dates_count' => 0,
                 'dates' => [],
             ];
         }
 
+        $direct = !empty($route['direct']);
+        $charter = !empty($route['charter']);
+        $directCharter = $direct && $charter;
         $dates = $this->filterDates((array)($route['dates'] ?? []), $period);
+        $hasDates = $period === null
+            ? ((int)($route['dates_count'] ?? 0) > 0)
+            : !empty($dates);
 
         return [
             'ok' => true,
             'departure' => (string)$dep['name'],
             'country' => (string)($route['country'] ?? $country),
-            'direct_charter' => true,
-            'available_in_period' => $period === null
-                ? ((int)($route['dates_count'] ?? 0) > 0)
-                : !empty($dates),
+            'direct' => $direct,
+            'charter' => $charter,
+            'direct_charter' => $directCharter,
+            'available_in_period' => $directCharter && $hasDates,
             'dates_count' => $period === null
                 ? (int)($route['dates_count'] ?? 0)
                 : count($dates),
@@ -140,11 +166,7 @@ final class DepartureRouteResolver
 
     public function getFallback(string $departure, string $country, ?string $period = null): array
     {
-        $fallbackList = $this->fallbacks[$departure] ?? $this->fallbacks[$this->normalize($departure)] ?? [];
-
-        if (!is_array($fallbackList)) {
-            $fallbackList = [$fallbackList];
-        }
+        $fallbackList = $this->fallbacks[$this->normalize($departure)] ?? [];
 
         $checked = [];
 
