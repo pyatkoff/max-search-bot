@@ -1,6 +1,7 @@
 <?php
 require_once(__DIR__ . '/../ai/AiRouter.php');
 require_once(__DIR__ . '/AiDateHandler.php');
+require_once(__DIR__ . '/../services/MissingFieldQuestionService.php');
 
 class AiMessageHandler
 {
@@ -9,7 +10,7 @@ class AiMessageHandler
                 $userText = trim((string)$message['text']);
                 MaxSearchApi::funnelLog($chat_id,'ai_text',['text'=>function_exists('mb_substr')?mb_substr($userText,0,300,'UTF-8'):substr($userText,0,300)]);
                 if($userText === '') {
-                    MaxSearchApi::MaxSend("Напишите, какой тур вы ищете — можно обычными словами.", $chat_id);
+                    MissingFieldQuestionService::sendText($chat_id, "Напишите, какой тур вы ищете — можно обычными словами.");
                     return;
                 }
 
@@ -32,23 +33,7 @@ class AiMessageHandler
                         if (empty($missingAfterDate)) {
                             MaxSearchApi::showCheckButtons($chat_id);
                         } else {
-                            $dateFallback = [
-                                'city'=>'Из какого города планируете вылет?',
-                                'country'=>'Куда хотите поехать?',
-                                'adults'=>'Сколько будет взрослых туристов?',
-                                'children'=>'Будут дети? Если да — сколько?',
-                                'child_ages'=>'Сколько лет детям?',
-                                'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                                'meal'=>'Какое питание предпочитаете?',
-                                'nights'=>'На сколько ночей планируете поездку?',
-                                'date'=>'Какая ориентировочная дата вылета?'
-                            ];
-
-                            MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-                            MaxSearchApi::MaxSend(
-                                $dateFallback[$missingAfterDate[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-                                $chat_id
-                            );
+                            MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterDate);
                         }
 
                         return;
@@ -88,23 +73,7 @@ class AiMessageHandler
                         if (empty($missingAfterAge)) {
                             MaxSearchApi::showCheckButtons($chat_id);
                         } else {
-                            $ageFallback = [
-                                'city'=>'Из какого города планируете вылет?',
-                                'country'=>'Куда хотите поехать?',
-                                'adults'=>'Сколько будет взрослых туристов?',
-                                'children'=>'Будут дети? Если да — сколько?',
-                                'child_ages'=>'Сколько лет детям?',
-                                'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                                'meal'=>'Какое питание предпочитаете?',
-                                'nights'=>'На сколько ночей планируете поездку?',
-                                'date'=>'Какая ориентировочная дата вылета?'
-                            ];
-
-                            MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-                            MaxSearchApi::MaxSend(
-                                $ageFallback[$missingAfterAge[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-                                $chat_id
-                            );
+                            MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterAge);
                         }
 
                         return;
@@ -240,23 +209,10 @@ class AiMessageHandler
                     }
 
                     if ($simpleLocal && !empty($missingLocal)) {
-                        $localFallback=[
-                            'city'=>'Из какого города планируете вылет?',
-                            'country'=>'Куда хотите поехать?',
-                            'adults'=>'Сколько будет взрослых туристов?',
-                            'children'=>'Будут дети? Если да — сколько?',
-                            'child_ages'=>'Сколько лет детям?',
-                            'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                            'meal'=>'Какое питание предпочитаете?',
-                            'nights'=>'На сколько ночей планируете поездку?',
-                            'date'=>$localMonthOnly
-                                ? 'Подскажите ориентировочную дату вылета в этом месяце — например, в начале, середине или конце.'
-                                : 'Какая ориентировочная дата вылета?'
-                        ];
-                        MaxSearchApi::setStatus($chat_id,MaxSearchApi::$statusAi);
-                        MaxSearchApi::MaxSend(
-                            $localFallback[$missingLocal[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-                            $chat_id
+                        MissingFieldQuestionService::sendForMissing(
+                            $chat_id,
+                            $missingLocal,
+                            ['month_only'=>$localMonthOnly]
                         );
                         return;
                     }
@@ -348,23 +304,7 @@ class AiMessageHandler
                     put_log_out('AI ERROR: '.json_encode($ai, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 
                     $missingAfterError=MaxSearchApi::getAiMissingFields($chat_id);
-                    $fallbackAfterError=[
-                        'city'=>'Из какого города планируете вылет?',
-                        'country'=>'Куда хотите поехать?',
-                        'adults'=>'Сколько будет взрослых туристов?',
-                        'children'=>'Будут дети? Если да — сколько?',
-                        'child_ages'=>'Сколько лет детям?',
-                        'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                        'meal'=>'Какое питание предпочитаете?',
-                        'nights'=>'На сколько ночей планируете поездку?',
-                        'date'=>'Какая ориентировочная дата вылета?'
-                    ];
-
-                    MaxSearchApi::setStatus($chat_id,MaxSearchApi::$statusAi);
-                    MaxSearchApi::MaxSend(
-                        $fallbackAfterError[$missingAfterError[0]] ?? 'Уточните, пожалуйста, параметры поездки.',
-                        $chat_id
-                    );
+                    MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterError);
                     return;
                 }
 
@@ -407,25 +347,13 @@ class AiMessageHandler
                     return;
                 }
 
-                // Возвращаем AI-статус последним, чтобы следующее текстовое сообщение снова разбирал AI.
-                MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-
                 // ВАЖНО: после применения бизнес-дефолтов AI-вопрос может быть уже устаревшим.
                 // Поэтому следующий вопрос строим только по ФАКТИЧЕСКИ первому missing-полю.
-                $fallback = [
-                    'city'=>'Из какого города планируете вылет?',
-                    'country'=>'В какую страну хотите поехать?',
-                    'adults'=>'Сколько будет взрослых туристов?',
-                    'children'=>'Будут дети? Если да — сколько?',
-                    'child_ages'=>'Сколько лет детям?',
-                    'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-                    'meal'=>'Какое питание предпочитаете?',
-                    'nights'=>'На сколько ночей планируете поездку?',
-                    'date'=>'Какая ориентировочная дата вылета?'
-                ];
-
-                $question = $fallback[$missing[0]] ?? 'Уточните, пожалуйста, параметры поездки.';
-                MaxSearchApi::MaxSend($question, $chat_id);
+                MissingFieldQuestionService::sendForMissing(
+                    $chat_id,
+                    $missing,
+                    ['country_explicit'=>true]
+                );
 
     }
 }
