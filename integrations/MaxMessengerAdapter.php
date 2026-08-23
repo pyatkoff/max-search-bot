@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../services/ConversationRecorder.php';
 
 class MaxMessengerAdapter implements MessengerInterface
 {
@@ -18,12 +19,16 @@ class MaxMessengerAdapter implements MessengerInterface
 
     public function send($chatId, string $text): bool
     {
-        return (bool)call_user_func($this->send, $chatId, $text);
+        $ok = (bool)call_user_func($this->send, $chatId, $text);
+        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, 'ai');
+        return $ok;
     }
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
-        return (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
+        $ok = (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
+        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, 'ai', ['has_buttons'=>true]);
+        return $ok;
     }
 
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool

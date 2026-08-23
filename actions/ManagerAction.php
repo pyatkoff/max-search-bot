@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DialogueView.php';
+require_once __DIR__ . '/../services/ConversationRecorder.php';
+require_once __DIR__ . '/../services/ProjectConfig.php';
 
 class ManagerAction
 {
@@ -24,6 +26,12 @@ class ManagerAction
             'summary'=>$plan['summary'],
             'destination_provider'=>$plan['destination_plan']['provider'] ?? null,
         ], $chatId);
+
+        $platform = strtolower(trim((string)($userContext['platform'] ?? ProjectConfig::get('messenger.provider', 'max'))));
+        ConversationRecorder::eventByChat($platform, $chatId, 'manager_request', [
+            'summary'=>$plan['summary'],
+            'from_tours'=>$fromTours,
+        ], 'ai');
 
         return DialogueView::managerRequest($chatId, $name, $fromTours);
     }

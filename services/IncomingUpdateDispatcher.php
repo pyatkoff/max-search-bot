@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/DialogueApplication.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
+require_once __DIR__ . '/ConversationRecorder.php';
 
 class IncomingUpdateDispatcher
 {
@@ -26,6 +27,9 @@ class IncomingUpdateDispatcher
             ], $chatId ?: null, 'warning');
             return false;
         }
+
+        // Best-effort mirror only. Conversation DB errors must never block dialogue handling.
+        ConversationRecorder::inbound($incoming);
 
         $handled = $this->application->dispatch($incoming);
         DiagnosticLogger::log('incoming_dispatch', $handled ? 'handled' : 'ignored', [
