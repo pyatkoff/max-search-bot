@@ -7,6 +7,9 @@ class DialogueApplication
     private $callbackHandler;
     private $contactHandler;
     private $callbackAcknowledger;
+    private $customMessageHandler = false;
+    private $customCallbackHandler = false;
+    private $customContactHandler = false;
 
     public function __construct(
         ?callable $messageHandler = null,
@@ -15,6 +18,10 @@ class DialogueApplication
         ?callable $callbackAcknowledger = null
     ) {
         $controller = new DialogueController();
+        $this->customMessageHandler = $messageHandler !== null;
+        $this->customCallbackHandler = $callbackHandler !== null;
+        $this->customContactHandler = $contactHandler !== null;
+
         $this->messageHandler = $messageHandler ?: static function (array $incoming) use ($controller): void {
             $controller->handleIncomingMessage($incoming);
         };
@@ -41,19 +48,31 @@ class DialogueApplication
 
         $type = (string)($incoming['type'] ?? '');
         if ($type === 'contact') {
-            call_user_func($this->contactHandler, $incoming);
+            if ($this->customContactHandler) {
+                call_user_func($this->contactHandler, $chatId, trim((string)($incoming['contact_phone'] ?? '')), $incoming);
+            } else {
+                call_user_func($this->contactHandler, $incoming);
+            }
             return true;
         }
 
         if ($type === 'callback') {
             $callbackId = (string)($incoming['callback_id'] ?? '');
             call_user_func($this->callbackAcknowledger, $callbackId, $incoming);
-            call_user_func($this->callbackHandler, $incoming);
+            if ($this->customCallbackHandler) {
+                call_user_func($this->callbackHandler, $this->legacyQuery($incoming), $incoming);
+            } else {
+                call_user_func($this->callbackHandler, $incoming);
+            }
             return true;
         }
 
         if ($type === 'message') {
-            call_user_func($this->messageHandler, $incoming);
+            if ($this->customMessageHandler) {
+                call_user_func($this->messageHandler, $this->legacyMessage($incoming), $incoming);
+            } else {
+                call_user_func($this->messageHandler, $incoming);
+            }
             return true;
         }
 
