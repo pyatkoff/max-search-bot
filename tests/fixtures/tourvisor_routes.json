@@ -1,0 +1,61 @@
+{
+  "departures": {
+    "1": {
+      "id": 1,
+      "name": "Москва",
+      "countries": [
+        {
+          "country_id": 2,
+          "country": "Таиланд",
+          "direct": true,
+          "charter": true,
+          "dates_count": 2,
+          "first_date": "2026-10-10",
+          "last_date": "2026-10-20",
+          "dates": ["2026-10-10", "2026-10-20"]
+        },
+        {
+          "country_id": 9,
+          "country": "ОАЭ",
+          "direct": true,
+          "charter": true,
+          "dates_count": 1,
+          "first_date": "2026-10-15",
+          "last_date": "2026-10-15",
+          "dates": ["2026-10-15"]
+        }
+      ]
+    },
+    "2": {
+      "id": 2,
+      "name": "Калининград",
+      "countries": [
+        {
+          "country_id": 4,
+          "country": "Турция",
+          "direct": true,
+          "charter": true,
+          "dates_count": 2,
+          "first_date": "2026-08-25",
+          "last_date": "2026-08-30",
+          "dates": ["2026-08-25", "2026-08-30"]
+        },
+        {
+          "country_id": 1,
+          "country": "Египет",
+          "direct": false,
+          "charter": true,
+          "dates_count": 2,
+          "first_date": "2026-08-24",
+          "last_date": "2026-08-31",
+          "dates": ["2026-08-24", "2026-08-31"]
+        }
+      ]
+    },
+    "85": {
+      "id": 85,
+      "name": "Ярославль",
+      "countries": []
+    }
+  }
+}
