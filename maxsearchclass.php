@@ -5,6 +5,7 @@ require_once(__DIR__ . '/services/TrafficAttributionService.php');
 require_once(__DIR__ . '/services/AnalyticsService.php');
 require_once(__DIR__ . '/services/MaxTransport.php');
 require_once(__DIR__ . '/services/FollowupQueueService.php');
+require_once(__DIR__ . '/services/AiSearchContextService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -44,6 +45,72 @@ class MaxSearchApi extends MaxSearchBase
             static::setStatus($chatID, $status);
         }
         parent::saveLastValue($chatID, $status, $value);
+    }
+
+    private static function aiStatusMap()
+    {
+        return [
+            'city'=>static::$statusCityChoose,
+            'country'=>static::$statusContryChoose,
+            'adults'=>static::$statusAdults,
+            'children'=>static::$statusChild,
+            'child_ages'=>static::$statusAge,
+            'stars'=>static::$statusStars,
+            'meal'=>static::$statusMeal,
+            'nights'=>static::$statusNights,
+            'date'=>static::$statusDate,
+        ];
+    }
+
+    public static function getAiSearchContext($chatID)
+    {
+        $saved = static::getSavedData($chatID);
+        return AiSearchContextService::contextFromSaved(
+            (array)$saved,
+            static::aiStatusMap(),
+            function ($id) { return static::getCityByID($id); },
+            function ($id) { return static::getCountryByID($id); }
+        );
+    }
+
+    public static function getAiMissingFields($chatID)
+    {
+        return AiSearchContextService::missingFromSaved(
+            (array)static::getSavedData($chatID),
+            static::aiStatusMap()
+        );
+    }
+
+    public static function applyAiParameters($chatID, array $params)
+    {
+        $normalized = AiSearchContextService::normalizeParameters(
+            $params,
+            function ($name) {
+                $row = static::getCityByName($name);
+                return $row ? ($row['ID'] ?? null) : null;
+            },
+            function ($name) {
+                $row = static::getCountryByName($name);
+                return $row ? ($row['ID'] ?? null) : null;
+            },
+            function ($date) {
+                try {
+                    $obj = new \Bitrix\Main\Type\Date($date, 'd.m.Y');
+                    return $obj->getTimestamp() >= strtotime('today');
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            }
+        );
+
+        $storageMap = AiSearchContextService::storageMap(static::aiStatusMap());
+        $applied = [];
+        foreach ($normalized as $field => $value) {
+            if (!isset($storageMap[$field])) continue;
+            static::upsertStatusValue($chatID, $storageMap[$field], $value);
+            $applied[$field] = true;
+        }
+        return $applied;
     }
 
     public static function trafficFile($chatID)
@@ -194,7 +261,6 @@ class MaxSearchApi extends MaxSearchBase
         MaxTransport::log(static::maxTransportLogFile(), $data);
     }
 
-    // Follow-up queue storage is delegated. Existing public API stays unchanged.
     public static function followupDir()
     {
         return FollowupQueueService::dir(__DIR__);
