@@ -1,6 +1,8 @@
 <?php
 require_once(__DIR__ . '/config.php');
 require_once(__DIR__ . '/maxsearchbaseclass.php');
+require_once(__DIR__ . '/services/TrafficAttributionService.php');
+require_once(__DIR__ . '/services/AnalyticsService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -24,21 +26,14 @@ class MaxSearchApi extends MaxSearchBase
     static $statusDate = 73;
     static $statusCheck = 74;
     static $statusPhone = 75;
-
-    // AI-статус вынесен за существующий диапазон online-проекта.
     static $statusAi = 76;
 
     static $baseDomain = 'https://anytour.online';
     static $chanelUrl = 'https://max.ru/anytour';
     static $channelMiniappBotUrl = 'https://max.ru/id9704048781_2_bot';
     static $isAnyOnline = true;
-
-    // Источник в U-ON: «MAX бот».
     static $uonSourceId = 36;
 
-    // В AI-сценарии строки для возраста ребёнка и даты могут ещё не существовать.
-    // Создаём нужный статус перед сохранением значения, иначе базовый saveLastValue
-    // обновляет только существующую строку и молча ничего не сохраняет.
     public static function saveLastValue($chatID, $status, $value)
     {
         if (
@@ -47,8 +42,44 @@ class MaxSearchApi extends MaxSearchBase
         ) {
             static::setStatus($chatID, $status);
         }
-
         parent::saveLastValue($chatID, $status, $value);
+    }
+
+    // Runtime traffic context now lives in a focused service rather than in the
+    // legacy 60KB base class. Public API stays identical for existing handlers.
+    public static function trafficFile($chatID)
+    {
+        return TrafficAttributionService::file(__DIR__, $chatID);
+    }
+
+    public static function saveTrafficMeta($chatID, $yclid = '', $region = '', $campaign = '', $raw = '')
+    {
+        return TrafficAttributionService::save(__DIR__, $chatID, $yclid, $region, $campaign, $raw);
+    }
+
+    public static function getTrafficMeta($chatID)
+    {
+        return TrafficAttributionService::get(__DIR__, $chatID);
+    }
+
+    public static function buildChannelMiniappUrl($chatID)
+    {
+        return TrafficAttributionService::buildMiniappUrl(
+            static::$channelMiniappBotUrl,
+            static::getTrafficMeta($chatID),
+            static::getLatestYclid($chatID)
+        );
+    }
+
+    // Funnel storage is also delegated. Existing CSV format is preserved so all
+    // current reports continue to work, while structured_events.log receives a
+    // machine-readable copy for diagnostics.
+    public static function funnelLog($chatID, $event, $details = [])
+    {
+        $meta = [];
+        try { $meta = static::getTrafficMeta($chatID); } catch (\Throwable $e) {}
+        if (!is_array($meta)) $meta = [];
+        return AnalyticsService::funnel(__DIR__, $chatID, $event, (array)$details, $meta);
     }
 
     private static function metrikaExcludedDestination($chatID)
@@ -62,8 +93,6 @@ class MaxSearchApi extends MaxSearchBase
             }
         } catch (\Throwable $e) {}
 
-        // На поздних этапах воронки дополнительно смотрим последнюю заявку:
-        // так фильтр не зависит от того, сохранились ли текущие статусы диалога.
         if ($countryId <= 0) {
             try {
                 $claim = static::getLastClaimForChat($chatID);
@@ -88,9 +117,7 @@ class MaxSearchApi extends MaxSearchBase
         return false;
     }
 
-    // Офлайн-цель должна уходить в Метрику один раз на один рекламный клик.
-    // Для туров по России и Абхазии конверсии намеренно не передаём вообще:
-    // подбор и лиды внутри бота продолжают работать, но рекламную оптимизацию не обучаем на них.
+    // Business rules stay here; low-level CSV/log writing moved to AnalyticsService.
     public static function queueMetrikaGoal($chatID, $target)
     {
         $target = trim((string)$target);
@@ -106,11 +133,9 @@ class MaxSearchApi extends MaxSearchBase
             return false;
         }
 
+        $meta = static::getTrafficMeta($chatID);
         $yclid = static::getLatestYclid($chatID);
-        if ($yclid === '') {
-            $meta = static::getTrafficMeta($chatID);
-            $yclid = trim((string)($meta['yclid'] ?? ''));
-        }
+        if ($yclid === '') $yclid = trim((string)($meta['yclid'] ?? ''));
         if ($yclid === '') return false;
 
         $dir = __DIR__ . '/metrika_dedupe';
@@ -119,7 +144,9 @@ class MaxSearchApi extends MaxSearchBase
         $file = $dir . '/' . $key . '.lock';
 
         $fp = @fopen($file, 'c+');
-        if (!$fp) return parent::queueMetrikaGoal($chatID, $target);
+        if (!$fp) {
+            return AnalyticsService::queueMetrika(__DIR__, $chatID, $yclid, $target, $meta);
+        }
 
         $result = false;
         if (flock($fp, LOCK_EX)) {
@@ -128,7 +155,7 @@ class MaxSearchApi extends MaxSearchBase
             if ($done !== '') {
                 $result = true;
             } else {
-                $result = parent::queueMetrikaGoal($chatID, $target);
+                $result = AnalyticsService::queueMetrika(__DIR__, $chatID, $yclid, $target, $meta);
                 if ($result) {
                     ftruncate($fp, 0);
                     rewind($fp);
