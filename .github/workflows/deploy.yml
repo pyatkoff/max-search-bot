@@ -41,6 +41,9 @@ jobs:
       - name: Run V2 action layer regression suite
         run: php tests/run_v2_action_layer_regression.php
 
+      - name: Run integration contracts regression suite
+        run: php tests/run_integration_contracts_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
