@@ -11,6 +11,7 @@ require_once(__DIR__ . '/services/ConversationStateRepository.php');
 require_once(__DIR__ . '/services/ClaimRepository.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
+require_once(__DIR__ . '/services/DialogueView.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -35,7 +36,6 @@ class MaxSearchApi extends MaxSearchBase
     static $statusPhone = 75;
     static $statusAi = 76;
 
-    // Legacy public properties stay during migration. New code should prefer ProjectConfig.
     static $baseDomain = 'https://anytour.online';
     static $chanelUrl = 'https://max.ru/anytour';
     static $channelMiniappBotUrl = 'https://max.ru/id9704048781_2_bot';
@@ -51,6 +51,16 @@ class MaxSearchApi extends MaxSearchBase
             'meal'=>static::$statusMeal,'nights'=>static::$statusNights,'date'=>static::$statusDate,
         ];
     }
+
+    public static function showStart($chatID){ return DialogueView::start($chatID); }
+    public static function showAiStart($chatID){ return DialogueView::aiStart($chatID); }
+    public static function showCityButtons($chatID){ return DialogueView::city($chatID); }
+    public static function showCityOtherButtons($chatID){ return DialogueView::cityOther($chatID); }
+    public static function showCountryButtons($chatID){ return DialogueView::country($chatID); }
+    public static function showAdultsButtons($chatID){ return DialogueView::adults($chatID); }
+    public static function showChildButtons($chatID){ return DialogueView::children($chatID); }
+    public static function showAgeButtons($chatID,$child=1){ return DialogueView::childAges($chatID,(int)$child); }
+    public static function showStarsButtons($chatID){ return DialogueView::stars($chatID); }
 
     public static function getCityByID($city){ return TravelDirectoryRepository::cityById(static::$depHL,$city); }
     public static function getCityFromByID($city){ return TravelDirectoryRepository::cityFromById(static::$depHL,$city); }
