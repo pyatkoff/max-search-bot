@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../services/DiagnosticLogger.php';
 
 class TelegramMessengerAdapter implements MessengerInterface
 {
@@ -33,9 +34,6 @@ class TelegramMessengerAdapter implements MessengerInterface
 
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
     {
-        // Telegram only allows request_contact in a ReplyKeyboard, while our
-        // manual/back controls need callback_data and therefore InlineKeyboard.
-        // Send them as two platform-native messages instead of silently losing callbacks.
         $contactPayload = [
             'chat_id'=>$chatId,
             'text'=>$text,
@@ -104,7 +102,11 @@ class TelegramMessengerAdapter implements MessengerInterface
     private function request(string $method, array $payload): bool
     {
         if ($this->sendCallable) return (bool)call_user_func($this->sendCallable, $method, $payload);
-        if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') return false;
+        $chatId = $payload['chat_id'] ?? null;
+        if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') {
+            DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$chatId);
+            return false;
+        }
 
         $url = 'https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/' . $method;
         $ch = curl_init($url);
@@ -115,10 +117,17 @@ class TelegramMessengerAdapter implements MessengerInterface
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         $response = curl_exec($ch);
         $errno = curl_errno($ch);
+        $error = curl_error($ch);
         $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        if ($response === false || $errno || $http < 200 || $http >= 300) return false;
-        $decoded = json_decode((string)$response, true);
-        return is_array($decoded) && !empty($decoded['ok']);
+
+        $decoded = is_string($response) ? json_decode($response, true) : null;
+        $ok = $response !== false && !$errno && $http >= 200 && $http < 300 && is_array($decoded) && !empty($decoded['ok']);
+        $details = ['method'=>$method,'http'=>$http,'ok'=>$ok];
+        if ($errno) $details['curl_errno']=$errno;
+        if ($error !== '') $details['curl_error']=$error;
+        if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
+        DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
+        return $ok;
     }
 }
