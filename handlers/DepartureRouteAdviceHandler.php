@@ -120,7 +120,7 @@ class DepartureRouteAdviceHandler
     private static function log($chatId, string $type, array $data): void
     {
         @file_put_contents(
-            __DIR__ . '/ai_debug.log',
+            __DIR__ . '/../ai_debug.log',
             'ROUTE_ADVICE ' . $type . ' chat=' . $chatId . ' ' . json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL,
             FILE_APPEND|LOCK_EX
         );
