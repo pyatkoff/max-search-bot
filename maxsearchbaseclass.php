@@ -47,110 +47,12 @@ class MaxSearchBase
 	static $nightsEmojy = "\u{1F319}";
 	static $dateEmojy  = "\u{1F5D3}\u{FE0F}";
 
-	public static function getCurentStatus($chatID)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_STATUS"],"filter"=>["UF_CHAT_ID"=>$chatID]]);
-		if($stat = $dbData->fetch())	
-		{
-			$res = $stat["UF_STATUS"];
-		}	
-		return $res;
-	}
 
-	public static function setStatus($chatID,$statusID,$messID=false)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$eclass::add([
-			"UF_DATE"	=> new  \Bitrix\Main\Type\DateTime(),
-			"UF_CHAT_ID"=> $chatID,
-			"UF_STATUS" => $statusID,
-			"UF_MESSID" => ($messID) ? $messID : ""
-		]);
-	}
 
-	public static function deletePrevMessage($chatID,$fullDelete = false)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_MESSID","ID"],"filter"=>["UF_CHAT_ID"=>$chatID]]);
-		if($stat = $dbData->fetch())	
-		{
-			static::MaxRequest("deleteMessage", array('chat_id' => $chatID, "message_id" => $stat["UF_MESSID"]));
-			if($fullDelete)
-				$eclass::delete($stat["ID"]);
-		}	
-	}
 
-	public static function deleteAllStatus($chatID)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"select"=>["ID"],"filter"=>["UF_CHAT_ID"=>$chatID]]);
-		while($stat = $dbData->fetch())	
-		{
-			$eclass::delete($stat["ID"]);
-		}	
-	}
 
-	public static function saveLastValue($chatID,$status,$value)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["ID"],"filter"=>["UF_CHAT_ID"=>$chatID,"UF_STATUS"=>$status]]);
-		if($mess = $dbData->fetch())	
-		{
-			$eclass::update($mess["ID"],["UF_VALUE"=>$value]);
-		}	
-	}
 
-	public static function getLastValue($chatID,$status)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_VALUE"],"filter"=>["UF_CHAT_ID"=>$chatID,"UF_STATUS"=>$status]]);
-		if($mess = $dbData->fetch())	
-		{
-			$res = $mess["UF_VALUE"];
-		}	
-		return $res;
-	}
-	
-	public static function getSavedData($chatID)
-	{
-		$res = [];
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"filter"=>["UF_CHAT_ID"=>$chatID]]);
-		while($mess = $dbData->fetch())	
-		{
-			if($mess["UF_STATUS"]==static::$statusStart)
-				break;
-			
-			if($mess["UF_STATUS"]!=static::$statusCheck && empty($res[$mess["UF_STATUS"]]))
-				$res[$mess["UF_STATUS"]] = $mess["UF_VALUE"];
-		}	
-		return $res;
-	}
+
 	public static function formatSavedData($savedData)
 	{
 		$outArr = [];
@@ -202,155 +104,7 @@ class MaxSearchBase
 
 
 
-	public static function saveClaim($chatID, $savedData)
-	{
-		$code = randString(10, ["abcdefghijklnmopqrstuvwxyz","0123456789"]);
 
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$claimHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dataArr = [
-			"UF_DATE"		=> new \Bitrix\Main\Type\DateTime(),
-			"UF_CHAT_ID"	=> $chatID,
-			"UF_NAME"		=> $savedData["NAME"],
-			"UF_CITY"		=> ($savedData[static::$statusCityChoose]) ? $savedData[static::$statusCityChoose] : 0,
-			"UF_COUNTRY"	=> ($savedData[static::$statusContryChoose]) ? $savedData[static::$statusContryChoose] : 0,
-			"UF_ADULTS"		=> ($savedData[static::$statusAdults]) ? $savedData[static::$statusAdults] : 0,
-			"UF_CHILD"		=> ($savedData[static::$statusChild]) ? $savedData[static::$statusChild] : 0,
-			"UF_AGE"		=> ($savedData[static::$statusAge]) ? $savedData[static::$statusAge] : "",
-			"UF_STARS"		=> ($savedData[static::$statusStars]) ? $savedData[static::$statusStars] : 0,
-			"UF_MEAL"		=> ($savedData[static::$statusMeal]) ? $savedData[static::$statusMeal] : 0,
-			"UF_NIGHTS"		=> ($savedData[static::$statusNights]) ? $savedData[static::$statusNights] : "",
-			"UF_DATE_DEPART" =>	($savedData[static::$statusDate]) ? $savedData[static::$statusDate] : "",	 
-			"UF_CODE"		=> $code
-		];
-		$eclass::add($dataArr);
-		$yclid = static::getLatestYclid($chatID);
-		$link = static::$baseDomain."/poisk-turov-tg/".$code."/?yclid=".rawurlencode($yclid);
-		return $link;
-	}
-
-
-	public static function getLastClaimForChat($chatID)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$claimHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		return $eclass::getList([
-			"filter"=>["UF_CHAT_ID"=>$chatID],
-			"order"=>["ID"=>"desc"],
-			"limit"=>1
-		])->fetch();
-	}
-
-
-	public static function savePhone($chatID, $phone)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$claimHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["filter"=>["UF_CHAT_ID"	=> $chatID],"order"=>["ID"=>"desc"]]);
-		if($claim = $dbData->fetch())	
-		{
-			$name    = $claim["UF_NAME"];
-			$eclass::update($claim["ID"],["UF_PHONE"=>$phone]);
-			$date 	 = date("d.m.Y H:i:s");
-			$from    = $claim["UF_CITY"];
-			$from    = static::getCityByID($from);
-			$country = $claim["UF_COUNTRY"];
-			$country = static::getCountryByID($country);
-			$peopleStr = "Взрослых: ".$claim["UF_ADULTS"];
-			if ($claim["UF_CHILD"])
-				$peopleStr .= "; Детей: ".$claim["UF_CHILD"]."(".$claim["UF_AGE"].")";
-			$meal	 = $claim["UF_MEAL"];
-			if($meal==999)
-				$meal = "любое";
-			else
-			{
-				$mealArr = static::getMealArr();
-				$meal    = ToLower($mealArr[$meal]);
-			}	
-
-			$dateObjPlus = new  \Bitrix\Main\Type\DateTime($claim["UF_DATE_DEPART"]);
-			$dateObjPlus->add("3 day");
-			$dateObjMinus = new  \Bitrix\Main\Type\DateTime($claim["UF_DATE_DEPART"] );
-			$dateObjMinus->add("-3 day");
-			$dateNow = new \Bitrix\Main\Type\Date();
-			if($dateNow->getTimestamp() > $dateObjMinus->getTimestamp())
-				$dateObjMinus = $dateNow;
-
-			$dateStr =$dateObjMinus->format("d.m.Y")." - ".$dateObjPlus->format("d.m.Y");
-
- 			$comment = array();
-			$comment[]   = "Имя: ".$name;
-			$comment[]   = "Телефон: ".$phone;
-			$comment[]   = "Город вылета: ".$from; 
-			$comment[]   = "Страна: ".$country;
-			$comment[] 	 = "Туристы: ".$peopleStr;
-			$comment[] 	 = "Категория отеля: ".$claim["UF_STARS"]."*";
-			$comment[] 	 = "Питание: ".$meal;
-			$comment[] 	 = "Даты вылета: ". $dateStr;
-			$comment[]   = "Количество ночей: ". $claim["UF_NIGHTS"] ;
-
-			$props = array(
-				"NAME"	   		=> $name,
-				"DATE"	   		=> $date,
-				"PHONE"    		=> static::cleanPhone($phone),
-				"DEPARTURE"		=> $from ,
-				"COUNTRY"		=> $country,
-				"PEOPLE"	    => $peopleStr,
-				"MEAL"			=> $meal,
-				//"FLYDATE"		=> $claim["UF_DATE_DEPART"],
-				"NIGHTS"		=> $claim["UF_NIGHTS"],
-				"COMMENTS" 		=> implode("; ",$comment)
-			);
-			//prf($props);
-			$props["STATUS"] = static::$claimStatusIDQueue;
-			if((int)static::$uonSourceId > 0)
-				$props["SOURCE"] = (int)static::$uonSourceId;
-			if(static::$isAnyOnline)
-				$props["IS_ANYTOUR_ONLINE"] = CSiteParams::$isAnytourOnline;
-
-
-			$arLoadProductArray = Array(
-				"IBLOCK_ID"        => static::$claimIB,
-				"IBLOCK_SECTION_ID"=> static::$botSearchSection,
-				"PROPERTY_VALUES"  => $props,
-				"NAME"             => "Заявка от ".$props["DATE"],
-				"ACTIVE"           => "Y",  
-			);
-			\Bitrix\Main\Loader::includeModule('iblock');	
-			$el = new CIblockElement();
-			
-			$IDH = $el->Add($arLoadProductArray);
-			static::phoneSentYclid($chatID);
-			if($IDH) {
-				static::queueMetrikaGoal($chatID,'max_phone');
-				static::funnelLog($chatID,'phone_received',['lead_id'=>(int)$IDH]);
-			}
-			return $IDH ? true : false;
-		}
-		return false;
-	}
-
-	public static function getClaimByCode($code)
-	{
-		$res = [];
-
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$claimHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["filter"=>["=UF_CODE"=>$code]]);
-		while($claim = $dbData->fetch())	
-		{
-			$res = $claim ;
-		}	
-		return $res;
-	}
 
 	public static function showStart($chatID)
 	{
@@ -379,114 +133,9 @@ class MaxSearchBase
 		static::setStatus($chatID, static::$statusAi, $messID);
 	}
 
-	public static function upsertStatusValue($chatID, $status, $value)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$HL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["ID"],"filter"=>["UF_CHAT_ID"=>$chatID,"UF_STATUS"=>$status]]);
-		if($row = $dbData->fetch()) {
-			$eclass::update($row["ID"],["UF_VALUE"=>$value]);
-		} else {
-			$eclass::add([
-				"UF_DATE"=>new \Bitrix\Main\Type\DateTime(),
-				"UF_CHAT_ID"=>$chatID,
-				"UF_STATUS"=>$status,
-				"UF_VALUE"=>$value,
-				"UF_MESSID"=>""
-			]);
-		}
-	}
 
-	public static function getAiSearchContext($chatID)
-	{
-		$d = static::getSavedData($chatID);
-		$out = [];
-		if (!empty($d[static::$statusCityChoose])) $out['city'] = static::getCityByID($d[static::$statusCityChoose]);
-		if (!empty($d[static::$statusContryChoose])) $out['country'] = static::getCountryByID($d[static::$statusContryChoose]);
-		if ($d[static::$statusAdults] ?? null) $out['adults'] = (int)$d[static::$statusAdults];
-		if (array_key_exists(static::$statusChild, $d)) $out['children'] = (int)$d[static::$statusChild];
-		if (!empty($d[static::$statusAge])) $out['child_ages'] = (string)$d[static::$statusAge];
-		if (!empty($d[static::$statusStars])) $out['stars'] = (int)$d[static::$statusStars];
-		if (!empty($d[static::$statusMeal])) {
-			$mealMap = ['999'=>'any','7'=>'all_inclusive','3'=>'breakfast','4'=>'half_board','5'=>'full_board'];
-			$out['meal'] = $mealMap[(string)$d[static::$statusMeal]] ?? null;
-		}
-		if (!empty($d[static::$statusNights])) $out['nights'] = (string)$d[static::$statusNights];
-		if (!empty($d[static::$statusDate])) $out['date'] = (string)$d[static::$statusDate];
-		return $out;
-	}
 
-	public static function applyAiParameters($chatID, array $p)
-	{
-		$applied = [];
 
-		if (!empty($p['city'])) {
-			$cityName = trim((string)$p['city']);
-			$aliases = [
-				'москва'=>1, 'санкт-петербург'=>5, 'с.петербург'=>5, 'спб'=>5,
-				'казань'=>10, 'красноярск'=>12, 'без перелета'=>99, 'без перелёта'=>99
-			];
-			$key = function_exists('mb_strtolower') ? mb_strtolower($cityName, 'UTF-8') : strtolower($cityName);
-			$cityId = $aliases[$key] ?? null;
-			if (!$cityId) { $r = static::getCityByName($cityName); if($r) $cityId = $r['ID']; }
-			if ($cityId) { static::upsertStatusValue($chatID, static::$statusCityChoose, $cityId); $applied['city']=true; }
-		}
-
-		if (!empty($p['country'])) {
-			$countryName = trim((string)$p['country']);
-			$aliases = ['турция'=>4,'египет'=>1,'таиланд'=>2,'оаэ'=>9,'объединенные арабские эмираты'=>9,'объединённые арабские эмираты'=>9,'мальдивы'=>8,'шри-ланка'=>12];
-			$key = function_exists('mb_strtolower') ? mb_strtolower($countryName, 'UTF-8') : strtolower($countryName);
-			$countryId = $aliases[$key] ?? null;
-			if (!$countryId) { $r = static::getCountryByName($countryName); if($r) $countryId = $r['ID']; }
-			if ($countryId) { static::upsertStatusValue($chatID, static::$statusContryChoose, $countryId); $applied['country']=true; }
-		}
-
-		if (isset($p['adults']) && (int)$p['adults'] >= 1 && (int)$p['adults'] <= 6) { static::upsertStatusValue($chatID, static::$statusAdults, (int)$p['adults']); $applied['adults']=true; }
-		if (isset($p['children']) && (int)$p['children'] >= 0 && (int)$p['children'] <= 3) { static::upsertStatusValue($chatID, static::$statusChild, (int)$p['children']); $applied['children']=true; }
-
-		if (!empty($p['child_ages'])) {
-			$ages = is_array($p['child_ages']) ? $p['child_ages'] : preg_split('/[\s,;]+/', (string)$p['child_ages']);
-			$clean=[]; foreach($ages as $a){ if($a==='' || $a===null) continue; $a=(int)$a; if($a>=0 && $a<=17) $clean[]=$a; }
-			if($clean) { static::upsertStatusValue($chatID, static::$statusAge, implode(', ', $clean)); $applied['child_ages']=true; }
-		}
-
-		if (isset($p['stars']) && (int)$p['stars'] >= 1 && (int)$p['stars'] <= 5) { static::upsertStatusValue($chatID, static::$statusStars, (int)$p['stars']); $applied['stars']=true; }
-		if (!empty($p['meal'])) {
-			$mealMap=['any'=>'999','all_inclusive'=>'7','breakfast'=>'3','half_board'=>'4','full_board'=>'5'];
-			if(isset($mealMap[$p['meal']])) { static::upsertStatusValue($chatID, static::$statusMeal, $mealMap[$p['meal']]); $applied['meal']=true; }
-		}
-
-		if (!empty($p['nights']) && preg_match('/^(\d{1,2})(?:-(\d{1,2}))?$/', trim((string)$p['nights']), $m)) {
-			$a=(int)$m[1]; $b=isset($m[2])&&$m[2]!==''?(int)$m[2]:$a;
-			if($a>=1 && $a<=28 && $b>=1 && $b<=28 && $a<=$b) { static::upsertStatusValue($chatID, static::$statusNights, $a==$b?(string)$a:($a.'-'.$b)); $applied['nights']=true; }
-		}
-
-		if (!empty($p['date'])) {
-			$date = trim((string)$p['date']);
-			if (preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $date)) {
-				try { $obj=new \Bitrix\Main\Type\Date($date, 'd.m.Y'); if($obj->getTimestamp() >= strtotime('today')) { static::upsertStatusValue($chatID, static::$statusDate, $date); $applied['date']=true; } } catch(\Throwable $e) {}
-			}
-		}
-		return $applied;
-	}
-
-	public static function getAiMissingFields($chatID)
-	{
-		$d = static::getSavedData($chatID);
-		$missing=[];
-		if (empty($d[static::$statusCityChoose])) $missing[]='city';
-		if (empty($d[static::$statusContryChoose])) $missing[]='country';
-		if (empty($d[static::$statusAdults])) $missing[]='adults';
-		if (!array_key_exists(static::$statusChild, $d)) $missing[]='children';
-		elseif ((int)$d[static::$statusChild] > 0 && empty($d[static::$statusAge])) $missing[]='child_ages';
-		if (empty($d[static::$statusStars])) $missing[]='stars';
-		if (empty($d[static::$statusMeal])) $missing[]='meal';
-		if (empty($d[static::$statusNights])) $missing[]='nights';
-		if (empty($d[static::$statusDate])) $missing[]='date';
-		return $missing;
-	}
 
 	public static function showCityButtons($chatID)
 	{
@@ -1023,93 +672,11 @@ class MaxSearchBase
 		static::MaxSend("Даты: <b>c ".$dateObjMinus->format("d.m.Y")." по ".$dateObjPlus->format("d.m.Y")."</b>",$chatID);
 	}
 
-	public static function getMealArr()
-	{
-		return 
-		[
-			'all'=>'ЛЮБОЕ',
-			'999'=>'ЛЮБОЕ',
-			'7'=>'ВСЕ ВКЛЮЧЕНО',
-			'3'=>'ЗАВТРАК',
-			'4'=>'ПОЛУПАНСИОН',
-			'5'=>'ПОЛНЫЙ ПАНСИОН'
-		];
-	}
 
-	public static function getCityByID($city)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$depHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_NAME"],"filter"=>["UF_DEPID"=>$city]]);
-		if($cityDB = $dbData->fetch())	
-		{
-			$res = $cityDB["UF_NAME"];
-		}
-		return $res;
-	}	
+
+
+
 	
-	public static function getCityFromByID($city)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$depHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_NAME2"],"filter"=>["UF_DEPID"=>$city]]);
-		if($cityDB = $dbData->fetch())	
-		{
-			$res = $cityDB["UF_NAME2"];
-		}
-		return $res;
-	}
-	
-	public static function getCityByName($name)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$depHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_NAME","UF_DEPID"],"filter"=>["UF_NAME"=>$name,"UF_ACTIVE"=>true]]);
-		if($cityDB = $dbData->fetch())	
-		{
-			$res = ["NAME"=>$cityDB["UF_NAME"],"ID"=>$cityDB["UF_DEPID"]]; 
-		}
-		return $res;
-	}
-
-	public static function getCountryByID($country)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$contryHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_NAME"],"filter"=>["UF_CID"=>$country]]);
-		if($countryDB = $dbData->fetch())	
-		{
-			$res = $countryDB["UF_NAME"];
-		}
-		return $res;
-	}	
-
-	public static function getCountryByName($name)
-	{
-		$res = false;
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$contryHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList(["order"=>["ID"=>"desc"],"limit"=>1,"select"=>["UF_NAME","UF_CID"],"filter"=>["UF_NAME"=>$name,"UF_ACTIVE"=>true]]);
-		if($countryDB = $dbData->fetch())	
-		{
-			$res = ["NAME"=>$countryDB["UF_NAME"],"ID"=>$countryDB["UF_CID"]]; 
-		}
-		return $res;
-	}	
 
 	private static function maxApiRequest($httpMethod, $path, $query = [], $body = null)
 	{
@@ -1154,21 +721,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		return is_array($data) ? $data : true;
 	}
 
-	public static function MaxRequest($method, $parameters = [])
-	{
-		// Совместимый адаптер для мест, где старый класс вызывал удаление сообщения.
-		if ($method === 'deleteMessage') {
-			$messageId = $parameters['message_id'] ?? '';
-			if (!$messageId) return false;
-			return static::maxApiRequest('DELETE', '/messages', ['message_id' => $messageId]);
-		}
-		return false;
-	}
 
-	public static function MaxRequestJson($method, $parameters = [])
-	{
-		return static::MaxRequest($method, $parameters);
-	}
 
 	private static function maxUserId($internalId)
 	{
@@ -1217,48 +770,9 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		return $out;
 	}
 
-	public static function MaxSend($text, $chat_id)
-	{
-		$res = static::maxApiRequest(
-			'POST',
-			'/messages',
-			['user_id' => static::maxUserId($chat_id)],
-			['text' => (string)$text, 'format' => 'html']
-		);
-		$mid = static::extractMessageId($res);
-		if ($mid) $_SESSION['last_message_id'] = $mid;
-		return $mid;
-	}
 
-	public static function MaxSendWithButtons($text, $chat_id, $buttons, $unused = false)
-	{
-		$maxButtons = static::convertButtonsForMax($buttons);
-		$body = ['text' => (string)$text, 'format' => 'html'];
-		if ($maxButtons) {
-			$body['attachments'] = [[
-				'type' => 'inline_keyboard',
-				'payload' => ['buttons' => $maxButtons],
-			]];
-		}
-		$res = static::maxApiRequest('POST', '/messages', ['user_id' => static::maxUserId($chat_id)], $body);
-		$mid = static::extractMessageId($res);
-		if ($mid) $_SESSION['last_message_id'] = $mid;
-		return $mid;
-	}
 
-	public static function MaxSendWithMenuButtons($text, $chat_id)
-	{
-		// У MAX нет Telegram reply_keyboard. Меню остаётся inline-кнопками в следующем сообщении.
-		return static::MaxSend($text, $chat_id);
-	}
 
-	public static function answerCallback($callbackId)
-	{
-		// В этом боте callback обрабатывается отправкой нового сообщения через /messages.
-		// Отдельный POST /answers без message MAX отклоняет как Empty request body.
-		// Поэтому дополнительный ответ на callback здесь не требуется.
-		return !empty($callbackId);
-	}
 
 	public static function cleanPhone($val)
 	{
@@ -1268,40 +782,9 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		return ltrim($val, '+');
 	}
 
-	public static function maxLog($data)
-	{
-		$dir = dirname(__FILE__);
-		@file_put_contents($dir . '/tmp_max_search.txt', date('d.m.Y H:i:s') . '--- ' . (is_string($data) ? $data : json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) . "\r\n", FILE_APPEND);
-	}
 
 
 
-	public static function followupDir()
-	{
-		$dir=__DIR__.'/followup';
-		if(!is_dir($dir)) @mkdir($dir,0755,true);
-		return $dir;
-	}
-
-	public static function scheduleToursFollowup($chatID,$delaySeconds=180)
-	{
-		$data=[
-			'chat_id'=>(string)$chatID,
-			'send_at'=>time()+(int)$delaySeconds,
-			'created_at'=>time()
-		];
-		return @file_put_contents(
-			static::followupDir().'/'.preg_replace('/[^0-9\-]/','',(string)$chatID).'.json',
-			json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
-			LOCK_EX
-		)!==false;
-	}
-
-	public static function cancelToursFollowup($chatID)
-	{
-		$file=static::followupDir().'/'.preg_replace('/[^0-9\-]/','',(string)$chatID).'.json';
-		if(is_file($file)) @unlink($file);
-	}
 
 	public static function sendToursFollowup($chatID)
 	{
@@ -1423,120 +906,9 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 
 
-	public static function trafficFile($chatID)
-	{
-		$dir = __DIR__ . '/traffic';
-		if(!is_dir($dir)) @mkdir($dir, 0755, true);
-		return $dir . '/' . preg_replace('/[^0-9\-]/','',(string)$chatID) . '.json';
-	}
-
-	public static function saveTrafficMeta($chatID,$yclid="",$region="",$campaign="",$raw="")
-	{
-		$data = [
-			'chat_id'=>(string)$chatID,
-			'yclid'=>(string)$yclid,
-			'region_id'=>(string)$region,
-			'campaign_id'=>(string)$campaign,
-			'raw'=>(string)$raw,
-			'updated_at'=>date('c')
-		];
-		@file_put_contents(static::trafficFile($chatID), json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), LOCK_EX);
-		return $data;
-	}
-
-	public static function getTrafficMeta($chatID)
-	{
-		$file = static::trafficFile($chatID);
-		if(!is_file($file)) return [];
-		$data = json_decode((string)@file_get_contents($file),true);
-		return is_array($data) ? $data : [];
-	}
-
-	public static function buildChannelMiniappUrl($chatID)
-	{
-		$meta = static::getTrafficMeta($chatID);
-		$yclid = static::getLatestYclid($chatID);
-		if($yclid==="") $yclid = trim((string)($meta['yclid'] ?? ''));
-		$region = trim((string)($meta['region_id'] ?? ''));
-		$campaign = trim((string)($meta['campaign_id'] ?? ''));
-
-		$start = $yclid;
-		if($region!=="" || $campaign!=="") {
-			$start .= '_region_'.$region.'_campaign_'.$campaign;
-		}
-		if($start==="") $start = "0";
-		return static::$channelMiniappBotUrl.'?startapp='.rawurlencode($start);
-	}
-
-	public static function queueMetrikaGoal($chatID,$target)
-	{
-		$yclid = static::getLatestYclid($chatID);
-		if($yclid==="") {
-			$meta = static::getTrafficMeta($chatID);
-			$yclid = trim((string)($meta['yclid'] ?? ''));
-		}
-		if($yclid==="" || $target==="") return false;
-
-		$file = __DIR__ . '/metrika_offline_queue.csv';
-		$new = !is_file($file) || filesize($file)===0;
-		$fp = @fopen($file,'ab');
-		if(!$fp) return false;
-		if($new) fputcsv($fp,['Yclid','Target','DateTime']);
-		fputcsv($fp,[$yclid,$target,date('Y-m-d H:i:s')]);
-		fclose($fp);
-
-		$meta = static::getTrafficMeta($chatID);
-		@file_put_contents(__DIR__.'/metrika_events.log',
-			date('d.m.Y H:i:s').'--- '.json_encode([
-				'chat_id'=>$chatID,
-				'yclid'=>$yclid,
-				'target'=>$target,
-				'region_id'=>$meta['region_id'] ?? '',
-				'campaign_id'=>$meta['campaign_id'] ?? ''
-			],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).PHP_EOL,
-			FILE_APPEND|LOCK_EX
-		);
-		return true;
-	}
 
 
-	public static function funnelLog($chatID,$event,$details=[])
-	{
-		try {
-			$event = trim((string)$event);
-			if($event==="") return false;
-			$meta=[];
-			try {
-				$meta=static::getTrafficMeta($chatID);
-				if(!is_array($meta)) $meta=[];
-			} catch(\Throwable $e) { $meta=[]; }
 
-			// Важно: funnel не ходит в HL-блок и не может блокировать основной сценарий.
-			$yclid=trim((string)($meta['yclid'] ?? ''));
-			$file=__DIR__.'/funnel.csv';
-			$new=!is_file($file) || @filesize($file)===0;
-			$fp=@fopen($file,'ab');
-			if(!$fp) return false;
-			if(@flock($fp,LOCK_EX)) {
-				if($new) fputcsv($fp,['DateTime','ChatID','YclidText','RegionID','CampaignID','Event','Details']);
-				fputcsv($fp,[
-					date('Y-m-d H:i:s'),(string)$chatID,($yclid!=='' ? "'".$yclid : ''),
-					(string)($meta['region_id'] ?? ''),
-					(string)($meta['campaign_id'] ?? ''),
-					$event,
-					json_encode($details,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)
-				]);
-				fflush($fp); flock($fp,LOCK_UN);
-			}
-			fclose($fp);
-			return true;
-		} catch(\Throwable $e) {
-			@file_put_contents(__DIR__.'/funnel_errors.log',
-				date('d.m.Y H:i:s').'--- '.(string)$event.' --- '.$e->getMessage().PHP_EOL,
-				FILE_APPEND|LOCK_EX);
-			return false;
-		}
-	}
 
 	public static function buildClaimSummary($chatID)
 	{
