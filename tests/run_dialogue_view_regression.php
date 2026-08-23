@@ -11,6 +11,10 @@ class ViewTestMessenger implements MessengerInterface {
     public array $sent = [];
     public function send($chatId, string $text): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>[]]; return true; }
     public function sendWithButtons($chatId, string $text, array $buttons): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>$buttons]; return true; }
+    public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool {
+        $this->sent[]=['chat'=>$chatId,'text'=>$text,'contact'=>true,'manual'=>$manualCallback,'back'=>$backCallback];
+        return true;
+    }
 }
 class MaxSearchApi {
     public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusNights=72,$statusPhone=75,$statusAi=76;
@@ -18,6 +22,9 @@ class MaxSearchApi {
     public static int $deletes=0;
     public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
     public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];}
+    public static function getLastClaimForChat($chatId){return ['ID'=>1];}
+    public static function getSavedData($chatId){return [];}
+    public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}
 }
 require_once __DIR__ . '/../services/DialogueView.php';
 
@@ -49,6 +56,15 @@ dvCheck('age back payload',$m->sent[2]['buttons'][0][0]['callback_data'],'back_c
 DialogueView::manualPhone(13);
 dvCheck('phone back payload',$m->sent[3]['buttons'][0][0]['callback_data'],'tours_checked');
 dvCheck('phone status',MaxSearchApi::$statuses[3],[13,75]);
+
+DialogueView::managerRequest(14,'Pavel',false);
+dvCheck('manager uses contact contract',$m->sent[4]['contact']??false,true);
+dvCheck('manager manual callback',$m->sent[4]['manual']??null,'phone_manual');
+dvCheck('manager back callback',$m->sent[4]['back']??null,'back_check');
+dvCheck('manager status',MaxSearchApi::$statuses[4],[14,75]);
+
+DialogueView::managerRequest(15,'Pavel',true);
+dvCheck('manager after tours back',$m->sent[5]['back']??null,'tours_checked');
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
