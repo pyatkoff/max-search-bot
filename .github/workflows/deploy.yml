@@ -68,6 +68,9 @@ jobs:
       - name: Run manager request regression suite
         run: php tests/run_manager_request_regression.php
 
+      - name: Run post-tour regression suite
+        run: php tests/run_post_tour_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
