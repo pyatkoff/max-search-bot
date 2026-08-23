@@ -151,7 +151,7 @@ class TripStateService
     private static function monthFromDate(?string $date): ?string
     {
         if (!$date || !preg_match('/^\d{2}\.(\d{2})\.(\d{4})$/', $date, $m)) return null;
-        return $m[2] . '.' . $m[1 + 1];
+        return $m[2] . '-' . $m[1];
     }
 
     private static function intOrNull($value): ?int
