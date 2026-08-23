@@ -4,6 +4,7 @@ require_once __DIR__ . '/../contracts/MessengerInterface.php';
 require_once __DIR__ . '/../contracts/SearchProviderInterface.php';
 require_once __DIR__ . '/../contracts/LeadDestinationInterface.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
+require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TourvisorSearchProvider.php';
 require_once __DIR__ . '/../integrations/BitrixLeadDestination.php';
 
@@ -18,6 +19,7 @@ class IntegrationRegistry
         if (self::$messenger instanceof MessengerInterface) return self::$messenger;
         $provider = strtolower((string)ProjectConfig::get('messenger.provider', 'max'));
         if ($provider === 'max') return self::$messenger = new MaxMessengerAdapter();
+        if ($provider === 'telegram') return self::$messenger = new TelegramMessengerAdapter();
         throw new RuntimeException('Unsupported messenger provider: ' . $provider);
     }
 
