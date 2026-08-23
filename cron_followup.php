@@ -18,31 +18,31 @@ cronLog('START php=' . PHP_VERSION . ' sapi=' . PHP_SAPI . ' root=' . $documentR
 try {
     require_once($documentRoot . '/bitrix/modules/main/include/prolog_before.php');
     require_once(__DIR__ . '/maxsearchclass.php');
+    require_once(__DIR__ . '/services/FollowupQueueService.php');
 
-    $dir = MaxSearchApi::followupDir();
     $now = time();
     $sent = 0;
     $waiting = 0;
-    $files = glob($dir . '/*.json') ?: [];
+    $files = FollowupQueueService::list(__DIR__);
+    $dir = FollowupQueueService::dir(__DIR__);
 
     cronLog('QUEUE files=' . count($files) . ' dir=' . $dir);
 
     foreach ($files as $file) {
-        $raw = (string)@file_get_contents($file);
-        $data = json_decode($raw, true);
-
-        if (!is_array($data) || empty($data['chat_id']) || empty($data['send_at'])) {
-            cronLog('BAD_QUEUE_FILE ' . basename($file) . ' raw=' . $raw);
+        $entry = FollowupQueueService::readFile($file);
+        if (empty($entry['ok'])) {
+            cronLog('BAD_QUEUE_FILE ' . basename($file) . ' raw=' . ($entry['raw'] ?? ''));
             @unlink($file);
             continue;
         }
 
+        $data = $entry['data'];
         $chatID = (string)$data['chat_id'];
-        $sendAt = (int)$data['send_at'];
+        $state = FollowupQueueService::classify($data, $now);
 
-        if ($sendAt > $now) {
+        if (($state['status'] ?? '') === 'waiting') {
             $waiting++;
-            cronLog('WAIT chat=' . $chatID . ' seconds=' . ($sendAt - $now));
+            cronLog('WAIT chat=' . $chatID . ' seconds=' . (int)($state['seconds'] ?? 0));
             continue;
         }
 
