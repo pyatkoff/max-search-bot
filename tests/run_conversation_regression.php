@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../handlers/AiDateHandler.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
+require_once __DIR__ . '/../services/DestinationPreferenceResolver.php';
 require_once __DIR__ . '/../DepartureRouteResolver.php';
 require_once __DIR__ . '/../DepartureRouteAdvisor.php';
 
@@ -56,18 +57,8 @@ $advisor = new DepartureRouteAdvisor($resolver, $fallbacksFile);
 // 1. Real regression shape: departure-only request, then "куда можно?".
 $scenario = 'Kaliningrad -> where can I go';
 $first = 'туры из Калининграда на неделю на двоих в августе';
-convCheck(
-    $scenario,
-    'departure-only text creates no destination part',
-    convPrivateStatic(DestinationAreaResolver::class, 'destinationPart', [$first]),
-    ''
-);
-convCheck(
-    $scenario,
-    'where-can-I-go creates no area tokens',
-    convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['куда можно?']),
-    []
-);
+convCheck($scenario, 'departure-only text creates no destination part', convPrivateStatic(DestinationAreaResolver::class, 'destinationPart', [$first]), '');
+convCheck($scenario, 'where-can-I-go creates no area tokens', convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['куда можно?']), []);
 $advice = $advisor->getDestinations('Калининград', '2026-08');
 convCheck($scenario, 'keeps Kaliningrad when direct route exists', $advice['fallback_used'] ?? null, false);
 convCheck($scenario, 'offers direct destinations', $advice['status'] ?? null, 'direct_destinations');
@@ -106,46 +97,21 @@ cleanupPending($chat);
 
 // 5. Existing destination followed by a date phrase must not create a new destination area.
 $scenario = 'Vietnam -> 15 April';
-convCheck(
-    $scenario,
-    'date follow-up has no destination tokens',
-    convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['15 апреля']),
-    []
-);
+convCheck($scenario, 'date follow-up has no destination tokens', convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['15 апреля']), []);
 $date = DateParser::resolveDate('15 апреля');
 convCheck($scenario, 'date itself is parsed', !empty($date['date']), true);
 
 // 6. Meal follow-up must never be treated as hotel/area evidence.
 $scenario = 'Meal follow-up';
-convCheck(
-    $scenario,
-    'breakfast and dinner have no area tokens',
-    convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['завтрак и ужин']),
-    []
-);
-convCheck(
-    $scenario,
-    'all inclusive has no area tokens',
-    convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['все включено']),
-    []
-);
+convCheck($scenario, 'breakfast and dinner have no area tokens', convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['завтрак и ужин']), []);
+convCheck($scenario, 'all inclusive has no area tokens', convPrivateStatic(DestinationAreaResolver::class, 'tokens', ['все включено']), []);
 
 // 7. Explicit country with no direct charter from regional city must use configured fallback.
 $scenario = 'Kaliningrad -> Thailand in October';
 $route = $resolver->resolve('Калининград', 'Таиланд', '2026-10');
 convCheck($scenario, 'status is fallback_available', $route['status'] ?? null, 'fallback_available');
-convCheck(
-    $scenario,
-    'fallback departure is Moscow',
-    $route['fallback']['fallback_departure'] ?? null,
-    'Москва'
-);
-convCheck(
-    $scenario,
-    'requested departure is preserved',
-    $route['fallback']['requested_departure'] ?? null,
-    'Калининград'
-);
+convCheck($scenario, 'fallback departure is Moscow', $route['fallback']['fallback_departure'] ?? null, 'Москва');
+convCheck($scenario, 'requested departure is preserved', $route['fallback']['requested_departure'] ?? null, 'Калининград');
 
 // 8. A route existing in another season must not be treated as available in requested month.
 $scenario = 'Kaliningrad -> Turkey in October';
@@ -158,12 +124,16 @@ convCheck($scenario, 'no invented fallback', $route['status'] ?? null, 'not_foun
 $scenario = 'Yaroslavl -> Thailand in October';
 $route = $resolver->resolve('Ярославль', 'Таиланд', '2026-10');
 convCheck($scenario, 'status is fallback_available', $route['status'] ?? null, 'fallback_available');
-convCheck(
-    $scenario,
-    'fallback departure is Moscow',
-    $route['fallback']['fallback_departure'] ?? null,
-    'Москва'
-);
+convCheck($scenario, 'fallback departure is Moscow', $route['fallback']['fallback_departure'] ?? null, 'Москва');
+
+// 10. Preference phrases are deterministic and only filter already available charters.
+$scenario = 'Warm destination preference';
+convCheck($scenario, 'detects warm intent', DestinationPreferenceResolver::detectIntent('куда потеплее в октябре'), 'warm');
+convCheck($scenario, 'detects sea intent', DestinationPreferenceResolver::detectIntent('хочу на море'), 'sea');
+$moscow = $resolver->getDirectDestinations('Москва', '2026-10');
+$warm = DestinationPreferenceResolver::filterAndRank($moscow['destinations'] ?? [], 'warm', '2026-10');
+convCheck($scenario, 'October warm filter keeps UAE', $warm[0]['country'] ?? null, 'ОАЭ');
+convCheck($scenario, 'October warm filter excludes Thailand fixture', in_array('Таиланд', array_column($warm, 'country'), true), false);
 
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
