@@ -84,6 +84,24 @@ maCheck('Telegram injected sender works', $messenger->send(456, 'Привет'),
 maCheck('Telegram injected method', $calls[0][0] ?? null, 'sendMessage');
 maCheck('Telegram injected chat id', $calls[0][1]['chat_id'] ?? null, 456);
 
+maCheck('Telegram contact request works', $messenger->sendContactRequest(456, 'Телефон?', 'phone_manual', 'back_check'), true);
+maCheck('Telegram contact request uses two messages', count($calls), 3);
+$contactReply = json_decode((string)($calls[1][1]['reply_markup'] ?? ''), true);
+$fallbackReply = json_decode((string)($calls[2][1]['reply_markup'] ?? ''), true);
+maCheck('Telegram contact message requests contact', $contactReply['keyboard'][0][0]['request_contact'] ?? null, true);
+maCheck('Telegram manual fallback keeps callback', $fallbackReply['inline_keyboard'][0][0]['callback_data'] ?? null, 'phone_manual');
+maCheck('Telegram back fallback keeps callback', $fallbackReply['inline_keyboard'][1][0]['callback_data'] ?? null, 'back_check');
+
+$maxCalls = [];
+$maxMessenger = new MaxMessengerAdapter(
+    static function($chatId, string $text) use (&$maxCalls): bool { $maxCalls[]=['plain',$chatId,$text]; return true; },
+    static function($chatId, string $text, array $buttons) use (&$maxCalls): bool { $maxCalls[]=['buttons',$chatId,$text,$buttons]; return true; }
+);
+maCheck('MAX contact request works', $maxMessenger->sendContactRequest(-123, 'Телефон?', 'phone_manual', 'back_check'), true);
+maCheck('MAX contact button kept', $maxCalls[0][3][0][0]['request_contact'] ?? null, true);
+maCheck('MAX manual callback kept', $maxCalls[0][3][1][0]['callback_data'] ?? null, 'phone_manual');
+maCheck('MAX back callback kept', $maxCalls[0][3][2][0]['callback_data'] ?? null, 'back_check');
+
 ProjectConfig::resetForTests([
     'id'=>'tg-test',
     'messenger'=>['provider'=>'telegram'],
