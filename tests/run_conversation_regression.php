@@ -130,6 +130,41 @@ convCheck(
     []
 );
 
+// 7. Explicit country with no direct charter from regional city must use configured fallback.
+$scenario = 'Kaliningrad -> Thailand in October';
+$route = $resolver->resolve('Калининград', 'Таиланд', '2026-10');
+convCheck($scenario, 'status is fallback_available', $route['status'] ?? null, 'fallback_available');
+convCheck(
+    $scenario,
+    'fallback departure is Moscow',
+    $route['fallback']['fallback_departure'] ?? null,
+    'Москва'
+);
+convCheck(
+    $scenario,
+    'requested departure is preserved',
+    $route['fallback']['requested_departure'] ?? null,
+    'Калининград'
+);
+
+// 8. A route existing in another season must not be treated as available in requested month.
+$scenario = 'Kaliningrad -> Turkey in October';
+$route = $resolver->resolve('Калининград', 'Турция', '2026-10');
+convCheck($scenario, 'direct route exists as a programme', $route['route']['direct_charter'] ?? null, true);
+convCheck($scenario, 'but has no dates in October', $route['route']['available_in_period'] ?? null, false);
+convCheck($scenario, 'no invented fallback', $route['status'] ?? null, 'not_found');
+
+// 9. City with no programmes can still resolve a concrete destination through fallback.
+$scenario = 'Yaroslavl -> Thailand in October';
+$route = $resolver->resolve('Ярославль', 'Таиланд', '2026-10');
+convCheck($scenario, 'status is fallback_available', $route['status'] ?? null, 'fallback_available');
+convCheck(
+    $scenario,
+    'fallback departure is Moscow',
+    $route['fallback']['fallback_departure'] ?? null,
+    'Москва'
+);
+
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
