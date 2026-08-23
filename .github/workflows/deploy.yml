@@ -62,6 +62,9 @@ jobs:
       - name: Run calendar view model regression suite
         run: php tests/run_calendar_view_model_regression.php
 
+      - name: Run tour results regression suite
+        run: php tests/run_tour_results_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
