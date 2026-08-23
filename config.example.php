@@ -19,6 +19,8 @@ define('TOURVISOR_JWT', '');
 define('MAX_SEARCH_TOKEN', '');
 define('MAX_SEARCH_WEBHOOK_SECRET', '');
 define('TELEGRAM_BOT_TOKEN', '');
+// Optional but recommended. Telegram sends it in X-Telegram-Bot-Api-Secret-Token.
+define('TELEGRAM_WEBHOOK_SECRET', '');
 
 // IMPORTANT:
 // The production config.php may contain additional legacy/project-specific
