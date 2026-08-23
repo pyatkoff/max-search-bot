@@ -63,7 +63,7 @@ tsCheck('children zero remains known', $state['tourists']['children'], 0);
 tsCheck('children ages empty for zero children', $state['tourists']['children_ages'], []);
 tsCheck('night range min', $state['nights']['min'], 7);
 tsCheck('night range max', $state['nights']['max'], 10);
-tsCheck('date month normalized', $state['dates']['month'], '09-2026');
+tsCheck('date month normalized', $state['dates']['month'], '2026-09');
 tsCheck('meal converted from storage', $state['hotel']['meal'], 'all_inclusive');
 tsCheck('search is ready without stars/meal requirement', TripStateService::isSearchReady($state), true);
 tsCheck('search missing is empty', TripStateService::searchMissing($state), []);
