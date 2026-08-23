@@ -31,6 +31,11 @@ class DiagnosticLogger
         return self::log($component, $event, $data, $chatId, 'error');
     }
 
+    public static function warning($component, $event, array $data = [], $chatId = null)
+    {
+        return self::log($component, $event, $data, $chatId, 'warning');
+    }
+
     public static function setFile($file)
     {
         self::$file = (string)$file;
