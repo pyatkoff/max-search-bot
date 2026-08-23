@@ -125,4 +125,5 @@ jobs:
             git pull --ff-only origin main
             php -l webhook.php
             php -l telegram_webhook.php
+            php -l telegram_webhook_admin.php
             php export_debug_logs.php
