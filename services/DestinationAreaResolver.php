@@ -108,7 +108,11 @@ class DestinationAreaResolver
 
         if (preg_match('/(?:^|\s)из\s+.+?\s+в\s+(.+)$/ui', $text, $m)) {
             $part = trim((string)($m[1] ?? ''));
-            if ($part !== '') return $part;
+            // A trailing month/date phrase is not a destination. This matters for
+            // requests such as "туры из Калининграда ... в августе": the generic
+            // "из ... в ..." pattern must not turn "августе" into an area.
+            if ($part !== '' && self::tokens($part)) return $part;
+            return '';
         }
 
         if (preg_match('/(?:с\s+)?вылет(?:ом)?\s+из\s+[\p{L}\-]+(?:\s+[\p{L}\-]+)*/ui', $text)) {
