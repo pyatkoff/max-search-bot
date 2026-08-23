@@ -77,6 +77,9 @@ jobs:
       - name: Run missing-field question regression suite
         run: php tests/run_missing_field_questions_regression.php
 
+      - name: Run platform boundary regression suite
+        run: php tests/run_platform_boundary_regression.php
+
       - name: Run shadow dialogue regression suite
         run: php tests/run_shadow_dialogue_regression.php
 
