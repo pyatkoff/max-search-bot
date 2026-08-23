@@ -137,6 +137,16 @@ class DialogueView
         return self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false);
     }
 
+    public static function tourResults($chatId, array $model): bool
+    {
+        MaxSearchApi::deletePrevMessage($chatId);
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons(
+            $chatId,
+            (string)($model['text'] ?? ''),
+            (array)($model['buttons'] ?? [])
+        );
+    }
+
     public static function manualCountry($chatId): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);
