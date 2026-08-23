@@ -32,6 +32,9 @@ jobs:
       - name: Run conversation regression suite
         run: php tests/run_conversation_regression.php
 
+      - name: Run conversation catalog suite
+        run: php tests/run_conversation_catalog.php
+
   deploy:
     needs: verify
     runs-on: ubuntu-latest
