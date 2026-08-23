@@ -12,7 +12,18 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $baseDir = __DIR__;
-$maxLines = 5000;
+
+// GitHub Contents API не отдаёт содержимое файлов >1 МБ обычным fetch_file.
+// Поэтому держим отдельные лимиты: tmp_in обычно очень длинный и тяжёлый,
+// а для анализа последних часов нам важнее свежий хвост, чем тысячи старых строк.
+$maxLinesByType = [
+    'funnel' => 2500,
+    'tmp' => 500,
+    'cron' => 2500,
+    'ai' => 1200,
+    'metrika' => 1200,
+    'metrika_queue' => 1200,
+];
 
 $logs = [
     'funnel' => $baseDir . '/funnel.csv',
@@ -86,16 +97,19 @@ function atomicWriteJson($path, $data)
 $manifest = [
     'ok' => true,
     'generated_at' => date('c'),
-    'max_lines_per_log' => $maxLines,
+    'max_lines_by_type' => $maxLinesByType,
     'logs' => []
 ];
 
 foreach ($logs as $type => $file) {
+    $maxLines = $maxLinesByType[$type] ?? 1000;
+
     $entry = [
         'ok' => false,
         'type' => $type,
         'source' => basename($file),
         'generated_at' => date('c'),
+        'max_lines' => $maxLines,
         'lines' => []
     ];
 
@@ -121,6 +135,7 @@ foreach ($logs as $type => $file) {
         'ok' => $entry['ok'],
         'source' => $entry['source'],
         'count' => isset($entry['count']) ? $entry['count'] : 0,
+        'max_lines' => $maxLines,
         'file' => basename($outputs[$type])
     ];
 }
