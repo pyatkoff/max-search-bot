@@ -4,6 +4,7 @@ require_once(__DIR__ . '/../DepartureRouteResolver.php');
 require_once(__DIR__ . '/../DepartureRouteAdvisor.php');
 require_once(__DIR__ . '/../services/DateParser.php');
 require_once(__DIR__ . '/../services/DestinationPreferenceResolver.php');
+require_once(__DIR__ . '/../services/DiagnosticLogger.php');
 
 class DepartureRouteAdviceHandler
 {
@@ -23,7 +24,7 @@ class DepartureRouteAdviceHandler
             $resolver = new DepartureRouteResolver();
             $advisor = new DepartureRouteAdvisor($resolver);
         } catch (\Throwable $e) {
-            self::log($chatId, 'INIT_ERROR', ['error'=>$e->getMessage()]);
+            self::log($chatId, 'INIT_ERROR', ['error'=>$e->getMessage()], 'error');
             return false;
         }
 
@@ -32,23 +33,12 @@ class DepartureRouteAdviceHandler
             $text
         );
 
-        // Фразы вроде «хочу море», «куда потеплее», «на тёплое море» — тоже
-        // рекомендационный сценарий, даже если пользователь не написал «куда можно».
         if ($isDiscovery || $preferenceIntent !== null) {
             $result = $advisor->getDestinations($city, $period);
             $allDestinations = (array)($result['destinations'] ?? []);
-            $destinations = DestinationPreferenceResolver::filterAndRank(
-                $allDestinations,
-                $preferenceIntent,
-                $period
-            );
-
-            // Если предпочтение слишком узкое и среди фактических чартеров ничего
-            // не осталось — не фантазируем, а показываем ближайшие реальные варианты.
+            $destinations = DestinationPreferenceResolver::filterAndRank($allDestinations, $preferenceIntent, $period);
             $preferenceMatched = !empty($destinations);
-            if (!$preferenceMatched && $preferenceIntent !== null) {
-                $destinations = $allDestinations;
-            }
+            if (!$preferenceMatched && $preferenceIntent !== null) $destinations = $allDestinations;
 
             $destinations = array_slice($destinations, 0, 4);
             $names = array_values(array_filter(array_map(
@@ -163,8 +153,9 @@ class DepartureRouteAdviceHandler
         return function_exists('mb_strtolower') ? mb_strtolower(trim($value), 'UTF-8') : strtolower(trim($value));
     }
 
-    private static function log($chatId, string $type, array $data): void
+    private static function log($chatId, string $type, array $data, string $level = 'info'): void
     {
+        DiagnosticLogger::log('route_advice', strtolower($type), $data, $chatId, $level);
         @file_put_contents(
             __DIR__ . '/../ai_debug.log',
             'ROUTE_ADVICE ' . $type . ' chat=' . $chatId . ' ' . json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL,
