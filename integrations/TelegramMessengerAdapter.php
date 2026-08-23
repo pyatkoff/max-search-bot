@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../contracts/MessengerInterface.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
+require_once __DIR__ . '/../services/ConversationRecorder.php';
 
 class TelegramMessengerAdapter implements MessengerInterface
 {
@@ -101,7 +102,13 @@ class TelegramMessengerAdapter implements MessengerInterface
 
     private function request(string $method, array $payload): bool
     {
-        if ($this->sendCallable) return (bool)call_user_func($this->sendCallable, $method, $payload);
+        if ($this->sendCallable) {
+            $ok = (bool)call_user_func($this->sendCallable, $method, $payload);
+            if ($ok && $method === 'sendMessage' && isset($payload['chat_id'])) {
+                ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), 'ai', ['has_buttons'=>isset($payload['reply_markup'])]);
+            }
+            return $ok;
+        }
         $chatId = $payload['chat_id'] ?? null;
         if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') {
             DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$chatId);
@@ -128,6 +135,9 @@ class TelegramMessengerAdapter implements MessengerInterface
         if ($error !== '') $details['curl_error']=$error;
         if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
         DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
+        if ($ok && $method === 'sendMessage' && $chatId !== null) {
+            ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), 'ai', ['has_buttons'=>isset($payload['reply_markup'])]);
+        }
         return $ok;
     }
 }
