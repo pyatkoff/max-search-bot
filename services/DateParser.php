@@ -22,8 +22,14 @@ class DateParser
     public static function detectMonth(string $text): array
     {
         $normalized = self::lower($text);
+
         foreach (self::MONTHS as $stem => $month) {
-            if (strpos($normalized, $stem) !== false) {
+            // Месяц должен начинаться с границы слова. Это защищает от ложных
+            // совпадений в обычных словах/пожеланиях (например, "анимация").
+            // После основы разрешаем русские окончания: сентябрь/сентябре,
+            // октябрь/октября, май/мая/мае и т.п.
+            $pattern = '/(?<![а-яё])' . preg_quote($stem, '/') . '[а-яё]*/ui';
+            if (preg_match($pattern, $normalized)) {
                 $year = (int)date('Y');
                 if ($month < (int)date('n')) $year++;
                 return ['month'=>$month, 'year'=>$year, 'stem'=>$stem];
