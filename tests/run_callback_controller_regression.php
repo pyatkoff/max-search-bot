@@ -43,11 +43,19 @@ $families = [
     'tours_found'=>'tours',
     'finish'=>'tours',
     'restart'=>'restart',
+    'back_phone'=>'phone',
     'something_new'=>'unknown',
 ];
 foreach ($families as $payload=>$expected) {
     ccCheck('family '.$payload, CallbackController::family($payload), $expected);
 }
+
+ccCheck('wizard owns city', WizardCallbackAction::handles('pick_city_1'), true);
+ccCheck('wizard excludes back phone', WizardCallbackAction::handles('back_phone'), false);
+ccCheck('edit owns edit date', EditCallbackAction::handles('edit_date'), true);
+ccCheck('manager owns manual phone', ManagerCallbackAction::handles('phone_manual'), true);
+ccCheck('tours owns finish', ToursCallbackAction::handles('finish_from_ai'), true);
+ccCheck('manager excludes tours', ManagerCallbackAction::handles('show_tours'), false);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
