@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/DiagnosticLogger.php';
+require_once __DIR__ . '/LegacyActionClassifier.php';
 
 class MaxTransport
 {
@@ -70,7 +72,9 @@ class MaxTransport
             ['text'=>(string)$text, 'format'=>'html'],
             $logFile
         );
-        return self::extractMessageId($res);
+        $mid = self::extractMessageId($res);
+        if ($mid) self::logLegacyOutcome($chatId, (string)$text, []);
+        return $mid;
     }
 
     public static function sendWithButtons($baseUrl, $token, $chatId, $text, $buttons, $logFile = null)
@@ -93,7 +97,9 @@ class MaxTransport
             $body,
             $logFile
         );
-        return self::extractMessageId($res);
+        $mid = self::extractMessageId($res);
+        if ($mid) self::logLegacyOutcome($chatId, (string)$text, (array)$buttons);
+        return $mid;
     }
 
     public static function convertButtons($buttons)
@@ -140,6 +146,34 @@ class MaxTransport
         if (!empty($res['body']['mid'])) return $res['body']['mid'];
         if (!empty($res['message']['mid'])) return $res['message']['mid'];
         return false;
+    }
+
+    private static function logLegacyOutcome($chatId, string $text, array $buttons): void
+    {
+        try {
+            $classification = LegacyActionClassifier::classify($text, $buttons);
+            $buttonSummary = [];
+            foreach ($buttons as $row) {
+                foreach ((array)$row as $button) {
+                    if (!is_array($button)) continue;
+                    $buttonSummary[] = [
+                        'text'=>(string)($button['text'] ?? ''),
+                        'url'=>isset($button['url']) ? (string)$button['url'] : null,
+                        'callback_data'=>isset($button['callback_data']) ? (string)$button['callback_data'] : null,
+                        'request_contact'=>!empty($button['request_contact']),
+                    ];
+                }
+            }
+            DiagnosticLogger::log('legacy_dialogue', 'outcome', [
+                'action'=>$classification['action'],
+                'confidence'=>$classification['confidence'],
+                'reason'=>$classification['reason'],
+                'text'=>$text,
+                'buttons'=>$buttonSummary,
+            ], $chatId);
+        } catch (Throwable $e) {
+            // Diagnostics must never interfere with message delivery.
+        }
     }
 
     public static function log($logFile, $data)
