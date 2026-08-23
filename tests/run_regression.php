@@ -101,14 +101,10 @@ check(
     privateStatic(DestinationAreaResolver::class, 'tokens', ['15 апреля']),
     []
 );
-
-// Known issue: meal phrases can still produce hotel-like tokens. Keep visible but non-blocking
-// until the hotel false-match guard is implemented.
 check(
     'meal phrase must not be hotel-area evidence',
     privateStatic(DestinationAreaResolver::class, 'tokens', ['завтрак и ужин']),
-    [],
-    true
+    []
 );
 
 // Route resolver uses isolated fixtures and must only expose direct charters.
