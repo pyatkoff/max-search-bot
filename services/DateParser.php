@@ -55,6 +55,35 @@ class DateParser
             return ['date'=>date('d.m.Y', strtotime('+1 day'))];
         }
 
+        // Явные цифровые даты/диапазоны: 28-31.08, 28–31.08.2026, 28.08.
+        // В текущей модели поиска хранится одна ориентировочная дата, поэтому для
+        // диапазона берём его середину. Главное — не терять месяц и не спрашивать дату повторно.
+        if (preg_match('/(?<!\d)(\d{1,2})\s*[-–—]\s*(\d{1,2})[.\/]\s*(\d{1,2})(?:[.\/]\s*(\d{2,4}))?(?!\d)/u', $text, $m)) {
+            $fromDay = (int)$m[1];
+            $toDay = (int)$m[2];
+            $month = (int)$m[3];
+            $year = self::normalizeYear(isset($m[4]) ? (string)$m[4] : '', $month);
+            if ($fromDay > 0 && $toDay >= $fromDay && checkdate($month, $fromDay, $year) && checkdate($month, $toDay, $year)) {
+                $day = (int)round(($fromDay + $toDay) / 2);
+                return [
+                    'date'=>sprintf('%02d.%02d.%04d',$day,$month,$year),
+                    'month'=>$month,
+                    'year'=>$year,
+                    'range_from'=>sprintf('%02d.%02d.%04d',$fromDay,$month,$year),
+                    'range_to'=>sprintf('%02d.%02d.%04d',$toDay,$month,$year),
+                ];
+            }
+        }
+
+        if (preg_match('/(?<!\d)(\d{1,2})[.\/]\s*(\d{1,2})(?:[.\/]\s*(\d{2,4}))?(?!\d)/u', $text, $m)) {
+            $day = (int)$m[1];
+            $month = (int)$m[2];
+            $year = self::normalizeYear(isset($m[3]) ? (string)$m[3] : '', $month);
+            if (checkdate($month, $day, $year)) {
+                return ['date'=>sprintf('%02d.%02d.%04d',$day,$month,$year), 'month'=>$month, 'year'=>$year];
+            }
+        }
+
         $monthInfo = self::detectMonth($text);
         if (empty($monthInfo)) return [];
 
@@ -64,8 +93,11 @@ class DateParser
         $day = 0;
 
         if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $text)) $day = 5;
-        elseif (preg_match('/(?:в\s+)?середин(?:е|у)\s+[а-яё]+/ui', $text)) $day = 15;
-        elseif (preg_match('/(?:в\s+)?конц(?:е|а)\s+[а-яё]+/ui', $text)) $day = 25;
+        elseif (preg_match('/(?:в\s+)?середин(?:е|у|а)\s+[а-яё]+/ui', $text)) $day = 15;
+        // Поддерживаем естественные формы: "конец августа", "в конце августа", "конца августа".
+        // Так как выдача строится ±3 дня от опорной даты, ставим опору за 3 дня до конца месяца,
+        // чтобы "конец августа" давал действительно последние числа месяца, а не 22–28 августа.
+        elseif (preg_match('/(?:в\s+)?кон(?:ец|це|ца)\s+[а-яё]+/ui', $text)) $day = self::endOfMonthAnchorDay($month, $year);
         elseif (preg_match('/(?:в\s+)?10(?:-?х|-?е|ые)?\s+числ(?:ах|а)?\s+[а-яё]+/ui', $text)) $day = 15;
         elseif (preg_match('/(?:в\s+)?20(?:-?х|-?е|ые)?\s+числ(?:ах|а)?\s+[а-яё]+/ui', $text)) $day = 25;
         elseif (preg_match('/после\s+(\d{1,2})\s+[а-яё]*'.preg_quote($stem,'/').'[а-яё]*/ui', $text, $m)) $day = min(28, ((int)$m[1])+1);
@@ -81,6 +113,23 @@ class DateParser
     public static function buildDate(int $day, int $month, int $year): string
     {
         return checkdate($month, $day, $year) ? sprintf('%02d.%02d.%04d',$day,$month,$year) : '';
+    }
+
+    private static function endOfMonthAnchorDay(int $month, int $year): int
+    {
+        $last = (int)date('t', mktime(0, 0, 0, $month, 1, $year));
+        return max(1, $last - 3);
+    }
+
+    private static function normalizeYear(string $rawYear, int $month): int
+    {
+        $year = (int)$rawYear;
+        if ($year > 0 && $year < 100) $year += 2000;
+        if ($year <= 0) {
+            $year = (int)date('Y');
+            if ($month < (int)date('n')) $year++;
+        }
+        return $year;
     }
 
     private static function lower(string $text): string
