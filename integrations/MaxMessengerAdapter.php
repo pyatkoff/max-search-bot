@@ -25,4 +25,14 @@ class MaxMessengerAdapter implements MessengerInterface
     {
         return (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
     }
+
+    public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
+    {
+        $buttons = [
+            [['text'=>'📱 Отправить мой номер','request_contact'=>true]],
+            [['text'=>'⌨️ Ввести номер вручную','callback_data'=>$manualCallback]],
+            [['text'=>'← Назад','callback_data'=>$backCallback]],
+        ];
+        return $this->sendWithButtons($chatId, $text, $buttons);
+    }
 }
