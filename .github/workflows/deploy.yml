@@ -50,6 +50,9 @@ jobs:
       - name: Run Telegram webhook regression suite
         run: php tests/run_telegram_webhook_regression.php
 
+      - name: Run Telegram smoke test
+        run: php tools/telegram_smoke_test.php
+
       - name: Run dialogue application regression suite
         run: php tests/run_dialogue_application_regression.php
 
@@ -129,4 +132,5 @@ jobs:
             php -l webhook.php
             php -l telegram_webhook.php
             php -l telegram_webhook_admin.php
+            php tools/telegram_smoke_test.php
             php export_debug_logs.php
