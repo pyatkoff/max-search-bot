@@ -16,11 +16,6 @@ final class DepartureRouteResolver
     private array $routes;
     private array $fallbacks;
 
-    /**
-     * Небольшой бизнес-приоритет поверх фактической доступности Tourvisor.
-     * Он НЕ создаёт направления: страна попадёт в выдачу только если в локальном
-     * справочнике есть прямой чартер и даты на выбранный период.
-     */
     private const COUNTRY_PRIORITY = [
         'турция' => 100,
         'египет' => 95,
@@ -100,8 +95,6 @@ final class DepartureRouteResolver
     private function recommendationScore(string $country, int $datesCount): int
     {
         $priority = self::COUNTRY_PRIORITY[$this->normalize($country)] ?? 40;
-        // Количество дат важно как показатель плотности программы, но не должно
-        // полностью перебивать бизнес-приоритет популярного направления.
         return ($priority * 1000) + min(max($datesCount, 0), 999);
     }
 
@@ -130,14 +123,27 @@ final class DepartureRouteResolver
         return ['ok'=>true,'found'=>false,'requested_departure'=>$departure,'country'=>$country,'period'=>$period,'checked'=>$checked];
     }
 
-    public function resolve(string $departure,?string $country=null,?string $period=null): array
+    public function resolve(string $departure, ?string $country = null, ?string $period = null): array
     {
-        if($country===null||trim($country)==='')return $this->getDirectDestinations($departure,$period);
-        $route=$this->checkRoute($departure,$country,$period);
-        if(($route['direct_charter']??false)&&($route['available_in_period']??false)){ $route['status']='direct_available'; $route['fallback_used']=false; return $route; }
-        $fallback=$this->getFallback($departure,$country,$period);
-        if($fallback['found']??false){ $fallback['status']='fallback_available'; $fallback['fallback_used']=true; return $fallback; }
-        return array_merge($route,['status'=>'no_direct_charter','fallback_used'=>false,'fallback'=>$fallback]);
+        if ($country === null || trim($country) === '') {
+            return $this->getDirectDestinations($departure, $period);
+        }
+
+        $route = $this->checkRoute($departure, $country, $period);
+        if (($route['direct_charter'] ?? false) && ($route['available_in_period'] ?? false)) {
+            return [
+                'status' => 'direct_available',
+                'route' => $route,
+                'fallback' => null,
+            ];
+        }
+
+        $fallback = $this->getFallback($departure, $country, $period);
+        return [
+            'status' => ($fallback['found'] ?? false) ? 'fallback_available' : 'not_found',
+            'route' => $route,
+            'fallback' => $fallback,
+        ];
     }
 
     private function findDeparture(string $departure): ?array
