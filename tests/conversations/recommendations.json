@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Kaliningrad discovery in August",
+    "type": "route_discovery",
+    "departure": "Калининград",
+    "period": "2026-08",
+    "expect": {
+      "fallback_used": false,
+      "status": "direct_destinations",
+      "first_country": "Турция"
+    }
+  },
+  {
+    "name": "Yaroslavl discovery uses Moscow fallback",
+    "type": "route_discovery",
+    "departure": "Ярославль",
+    "period": "2026-10",
+    "expect": {
+      "fallback_used": true,
+      "fallback_departure": "Москва"
+    }
+  },
+  {
+    "name": "Kaliningrad Thailand in October",
+    "type": "route_check",
+    "departure": "Калининград",
+    "country": "Таиланд",
+    "period": "2026-10",
+    "expect": {
+      "status": "fallback_available",
+      "fallback_departure": "Москва"
+    }
+  },
+  {
+    "name": "Warm intent",
+    "type": "preference_intent",
+    "text": "куда потеплее в октябре",
+    "expect": {"intent": "warm"}
+  },
+  {
+    "name": "Sea intent",
+    "type": "preference_intent",
+    "text": "хочу на море",
+    "expect": {"intent": "sea"}
+  },
+  {
+    "name": "Ordinary discovery has no preference",
+    "type": "preference_intent",
+    "text": "куда можно?",
+    "expect": {"intent": null}
+  }
+]
