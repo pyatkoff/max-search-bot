@@ -1,10 +1,6 @@
 <?php
 // CLI-only exporter of recent MAX Search logs to static JSON files.
-// Put in /var/www/545v0023442/data/www/anytour.online/max-search/export_debug_logs.php
 // Run from cron once per minute.
-//
-// Public output files are intentionally unguessable and read-only snapshots.
-// Names/avatar URLs and obvious phone numbers are redacted.
 
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
@@ -82,7 +78,47 @@ function atomicWriteJson($path, $data)
     return rename($tmp, $path);
 }
 
-function runConversationRegression(string $baseDir): array
+function phpEnvironment()
+{
+    $candidates = [
+        PHP_BINARY,
+        '/usr/bin/php',
+        '/usr/bin/php8.4',
+        '/usr/bin/php8.3',
+        '/usr/bin/php8.2',
+        '/usr/bin/php8.1',
+        '/usr/bin/php8.0',
+        '/usr/bin/php7.4',
+        '/opt/php84/bin/php',
+        '/opt/php83/bin/php',
+        '/opt/php82/bin/php',
+        '/opt/php81/bin/php',
+        '/opt/php80/bin/php',
+        '/opt/php74/bin/php',
+    ];
+    $seen = [];
+    $found = [];
+    foreach ($candidates as $bin) {
+        if (!$bin || isset($seen[$bin])) continue;
+        $seen[$bin] = true;
+        if (!is_file($bin) || !is_executable($bin)) continue;
+        $out = [];
+        $code = 0;
+        exec(escapeshellarg($bin) . ' -r ' . escapeshellarg('echo PHP_VERSION;') . ' 2>&1', $out, $code);
+        $found[] = [
+            'binary' => $bin,
+            'version' => trim(implode("\n", $out)),
+            'exit_code' => $code,
+        ];
+    }
+    return [
+        'current_binary' => PHP_BINARY,
+        'current_version' => PHP_VERSION,
+        'available' => $found,
+    ];
+}
+
+function runConversationRegression($baseDir)
 {
     $testFile = $baseDir . '/tests/run_conversation_regression.php';
     if (!is_file($testFile) || !is_readable($testFile)) {
@@ -114,30 +150,27 @@ function runConversationRegression(string $baseDir): array
         }
     }
 
-    // В index храним только небольшой хвост. Этого достаточно, чтобы сразу видеть
-    // упавшие проверки, не раздувая diagnostics.
-    $tail = array_slice($output, -80);
-
     return [
         'ok' => ($exitCode === 0 && $failed === 0),
         'exit_code' => $exitCode,
         'total' => $total,
         'passed' => $passed,
         'failed' => $failed,
-        'output' => $tail,
+        'output' => array_slice($output, -80),
     ];
 }
 
 $manifest = [
     'ok' => true,
     'generated_at' => date('c'),
+    'php' => phpEnvironment(),
     'max_lines_by_type' => $maxLinesByType,
     'logs' => [],
     'tests' => [],
 ];
 
 foreach ($logs as $type => $file) {
-    $maxLines = $maxLinesByType[$type] ?? 1000;
+    $maxLines = isset($maxLinesByType[$type]) ? $maxLinesByType[$type] : 1000;
     $entry = [
         'ok' => false,
         'type' => $type,
