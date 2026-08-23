@@ -6,6 +6,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 $baseDir = __DIR__;
 require_once $baseDir . '/services/ProjectHealth.php';
+require_once $baseDir . '/services/ShadowComparisonReport.php';
 
 $maxLinesByType = [
     'funnel'=>2500,'tmp'=>500,'cron'=>2500,'ai'=>1200,
@@ -29,6 +30,7 @@ $outputs = [
     'metrika'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika.json',
     'metrika_queue'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika-queue.json',
 ];
+$shadowComparisonOutput = $baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-shadow-comparison.json';
 
 function tailLines($file,$maxLines){
     if(!is_file($file)||!is_readable($file))return[];$fh=fopen($file,'rb');if(!$fh)return[];
@@ -54,11 +56,22 @@ function runSuite($baseDir,$phpBinary,$relative){
 }
 
 $phpEnv=phpEnvironment();$regressionPhp=selectRegressionPhp($phpEnv);
-$manifest=['ok'=>true,'generated_at'=>date('c'),'php'=>$phpEnv,'health'=>ProjectHealth::collect($baseDir),'max_lines_by_type'=>$maxLinesByType,'logs'=>[],'tests'=>[]];
+$manifest=['ok'=>true,'generated_at'=>date('c'),'php'=>$phpEnv,'health'=>ProjectHealth::collect($baseDir),'max_lines_by_type'=>$maxLinesByType,'logs'=>[],'tests'=>[],'reports'=>[]];
 foreach($logs as$type=>$file){$max=$maxLinesByType[$type]??1000;$entry=['ok'=>false,'type'=>$type,'source'=>basename($file),'generated_at'=>date('c'),'max_lines'=>$max,'lines'=>[]];
     if(is_file($file)&&is_readable($file)){$lines=tailLines($file,$max);foreach($lines as&$line)$line=redactLine($line);unset($line);$entry['ok']=true;$entry['size_bytes']=filesize($file);$entry['mtime']=date('c',filemtime($file));$entry['count']=count($lines);$entry['lines']=$lines;}else{$entry['error']='file_not_found_or_unreadable';}
     atomicWriteJson($outputs[$type],$entry);$manifest['logs'][$type]=['ok'=>$entry['ok'],'source'=>$entry['source'],'count'=>$entry['count']??0,'max_lines'=>$max,'file'=>basename($outputs[$type])];
 }
+
+$comparison = ShadowComparisonReport::build($baseDir.'/structured_events.log');
+atomicWriteJson($shadowComparisonOutput, $comparison);
+$manifest['reports']['shadow_comparison'] = [
+    'ok'=>true,
+    'file'=>basename($shadowComparisonOutput),
+    'paired_messages'=>$comparison['summary']['paired_messages'] ?? 0,
+    'agreement_pct'=>$comparison['summary']['agreement_pct'] ?? null,
+    'different_action'=>$comparison['summary']['different_action'] ?? 0,
+];
+
 $manifest['tests']['conversation_regression']=runSuite($baseDir,$regressionPhp,'tests/run_conversation_regression.php');
 $manifest['tests']['conversation_catalog']=runSuite($baseDir,$regressionPhp,'tests/run_conversation_catalog.php');
 foreach($manifest['tests']as$t)if(!$t['ok'])$manifest['ok']=false;
