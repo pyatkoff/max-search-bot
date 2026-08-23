@@ -15,8 +15,7 @@ class ManagerCallbackAction
             MaxSearchApi::funnelLog($chatId, 'manager_request', ['source'=>$afterTours ? 'followup' : 'before_site']);
             if ($afterTours) MaxSearchApi::cancelToursFollowup($chatId);
             MaxSearchApi::queueMetrikaGoal($chatId, 'max_manager_request');
-            MaxSearchApi::showManagerRequest($chatId, self::userName($query), $afterTours);
-            return true;
+            return DialogueView::managerRequest($chatId, self::userName($query), $afterTours);
         }
 
         if ($q === 'phone_manual') return DialogueView::manualPhone($chatId);
