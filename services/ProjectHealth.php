@@ -9,6 +9,7 @@ class ProjectHealth
             'git' => self::gitInfo($baseDir),
             'php' => self::phpInfo(),
             'config' => self::configInfo($baseDir),
+            'features' => self::featureInfo($baseDir),
             'tourvisor_routes' => self::routesInfo($baseDir),
             'runtime' => self::runtimeInfo($baseDir),
         ];
@@ -83,6 +84,20 @@ class ProjectHealth
         ];
     }
 
+    private static function featureInfo($baseDir)
+    {
+        $file = $baseDir . '/project_features.php';
+        if (!is_file($file) || !is_readable($file)) {
+            return ['exists'=>false, 'readable'=>false, 'ai_v2'=>[]];
+        }
+        $features = require $file;
+        return [
+            'exists'=>true,
+            'readable'=>true,
+            'ai_v2'=>is_array($features) ? (array)($features['ai_v2'] ?? []) : [],
+        ];
+    }
+
     private static function routesInfo($baseDir)
     {
         $file = $baseDir . '/tourvisor_routes.json';
@@ -127,6 +142,7 @@ class ProjectHealth
             'funnel.csv',
             'metrika_events.log',
             'metrika_offline_queue.csv',
+            'structured_events.log',
         ];
         $out = [];
         foreach ($files as $name) {
