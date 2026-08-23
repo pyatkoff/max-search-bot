@@ -1,23 +1,28 @@
 <?php
 require_once __DIR__ . '/../services/SearchRequestBuilder.php';
+require_once __DIR__ . '/../services/IntegrationRegistry.php';
 
 class SearchAction
 {
-    public static function plan(array $tripState): array
+    public static function plan(array $tripState, array $context = []): array
     {
         $request = SearchRequestBuilder::fromTripState($tripState);
+        $providerPlan = IntegrationRegistry::searchProvider()->build($request, $context);
         return [
             'action'=>'OPEN_SEARCH',
             'request'=>$request,
-            'ready'=>SearchRequestBuilder::isReady($request),
-            'missing'=>SearchRequestBuilder::missingRequired($request),
+            'ready'=>(bool)($providerPlan['ready'] ?? false),
+            'missing'=>array_values((array)($providerPlan['missing'] ?? [])),
+            'provider_plan'=>$providerPlan,
         ];
     }
 
     public static function execute($chatId, array $tripState, string $name = ''): bool
     {
-        $plan = self::plan($tripState);
+        $plan = self::plan($tripState, ['chat_id'=>$chatId, 'name'=>$name]);
         if (!$plan['ready']) return false;
+        // Production execution remains on the proven legacy search flow for now.
+        // Provider abstraction is already used for planning and can be promoted independently.
         MaxSearchApi::showCheckButtons($chatId);
         return true;
     }
