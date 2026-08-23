@@ -1,1 +1,1 @@
-{"ok":true,"type":"metrika_queue","source":"metrika_offline_queue.csv","generated_at":"2026-08-23T22:28:01+03:00","max_lines":1200,"lines":["Yclid,Target,DateTime","4815007268312186879,max_show_tours,\"2026-08-23 21:06:52\""],"size_bytes":79,"mtime":"2026-08-23T22:06:52+03:00","count":2}
+{"ok":true,"type":"metrika_queue","source":"metrika_offline_queue.csv","generated_at":"2026-08-23T22:29:01+03:00","max_lines":1200,"lines":["Yclid,Target,DateTime","4815007268312186879,max_show_tours,\"2026-08-23 21:06:52\""],"size_bytes":79,"mtime":"2026-08-23T22:06:52+03:00","count":2}
