@@ -38,6 +38,9 @@ jobs:
       - name: Run claim regression suite
         run: php tests/run_claim_regression.php
 
+      - name: Run travel directory regression suite
+        run: php tests/run_directory_regression.php
+
       - name: Run conversation regression suite
         run: php tests/run_conversation_regression.php
 
