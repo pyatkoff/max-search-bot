@@ -1,6 +1,6 @@
 # MAX Search Bot
 
-Production bot for tour search in MAX with AI-assisted parameter collection, classic button flow, Yandex traffic attribution, lead capture, follow-ups and funnel diagnostics.
+Production bot for tour search in MAX with AI-assisted parameter collection, classic button flow, Yandex traffic attribution, lead capture, follow-ups, Tourvisor route advice and funnel diagnostics.
 
 ## Current architecture
 
@@ -8,87 +8,104 @@ Production bot for tour search in MAX with AI-assisted parameter collection, cla
 
 - `handlers/MaxUpdateHandler.php` — MAX transport/update routing (`bot_started`, messages, callbacks, contacts).
 - `handlers/AiMessageHandler.php` — AI conversational search flow and parameter application.
+- `handlers/AiShortAnswerHandler.php` — deterministic handling of short follow-up answers.
+- `handlers/DepartureRouteAdviceHandler.php` — Tourvisor-backed route/recommendation UX.
 - `handlers/StateMessageHandler.php` — classic text-state handling: city, country, child ages, nights, phone.
 - `handlers/CallbackHandler.php` — callback/button routing.
 - `handlers/AiDateHandler.php` — date-related coordination and pending-month handling.
-- `services/DateParser.php` — parsing human date phrases such as beginning/middle/end of month and decade-style phrases.
+- `services/DateParser.php` — human date parsing.
+- `services/DepartureCityResolver.php` — explicit departure extraction/storage.
+- `services/DestinationAreaResolver.php` / `DestinationResolver.php` — destination resolution.
+- `services/DestinationPreferenceResolver.php` — preference filtering such as sea/warm over already confirmed routes.
 - `services/PendingMonthStore.php` — temporary month context between messages.
+- `services/ProjectHealth.php` — production health snapshot for diagnostics.
+- `DepartureRouteResolver.php` / `DepartureRouteAdvisor.php` — local Tourvisor route cache resolution and fallback airports.
 - `ai/AiRouter.php` / `ai/AiClient.php` — AI routing/client layer.
-- `maxsearchclass.php` / `maxsearchbaseclass.php` — search state, UI, lead and business logic.
+- `maxsearchclass.php` / `maxsearchbaseclass.php` — existing search state, UI, lead and business logic.
 
 ## Main flow
 
 1. MAX sends an update to `webhook.php`.
-2. `MaxUpdateHandler` normalizes the MAX payload and routes it.
-3. Text search goes either to `AiMessageHandler` or `StateMessageHandler` depending on current status.
-4. Button callbacks go to `CallbackHandler`.
-5. Search parameters are stored in the existing status/HL structure and the user is sent to tour results, manager flow or channel offer.
+2. `MaxUpdateHandler` normalizes the payload and routes it.
+3. Deterministic resolvers first preserve explicit departure/destination facts.
+4. `DepartureRouteAdviceHandler` can answer route/discovery requests from the local Tourvisor cache.
+5. Remaining text goes to `AiShortAnswerHandler`, `AiMessageHandler` or classic `StateMessageHandler` depending on state.
+6. Search parameters are stored in the existing status/HL structure and the user is sent to results, manager flow or channel offer.
+
+## Configuration
+
+Real secrets and environment-specific values live in `config.php`, which is ignored by Git. `config.example.php` documents the safe non-secret contract. When source code introduces a new config name, update `config.example.php` in the same change without copying the real value.
+
+## Tourvisor route cache
+
+`tourvisor_routes.json` is generated runtime data and is not committed to `main`. Production recommendation logic reads this local cache only; it does not call Tourvisor in the user request path.
+
+Diagnostics expose cache age, hash, departure/route/date counts and validity through `ProjectHealth`, so stale route data can be detected without opening the server manually.
 
 ## Traffic attribution
 
-The bot supports Yandex payloads containing `yclid`, region and campaign. Current supported formats include the main `{yclid}_region_{region_id}_campaign_{campaign_id}` form and older compatibility formats. Traffic metadata is saved before the search flow starts.
+The bot supports Yandex payloads containing `yclid`, region and campaign. Traffic metadata is saved before the search flow starts. Runtime attribution data is not committed to Git.
 
-## Funnel events
+## Tests
 
-Typical funnel events include:
-
-- `bot_started`
-- `ai_start`
-- `ai_text`
-- `start_search`
-- `country_selected`
-- `tourists_selected`
-- `search_ready`
-- `show_tours`
-- `site_open`
-- `manager_request`
-- `phone_received`
-- `followup_sent`
-- `channel_click`
-
-Runtime funnel/log files are not source code and should not be committed to `main`.
-
-## Phone / manager flow
-
-The bot supports both a MAX contact attachment and manual phone entry. After a successful lead save, the `max_phone` goal is queued/sent through the existing Metrika flow. Manager-request and site-open goals are handled separately.
-
-## Follow-up
-
-`cron_followup.php` handles delayed follow-up after tour results where applicable. The production cron should call it on the configured schedule; runtime follow-up state is excluded from Git.
-
-## Production update
-
-Production path currently used on the server:
+Two deterministic suites live under `tests/`:
 
 ```bash
-cd /var/www/545v0023442/data/www/anytour.online/max-search
-git pull --rebase origin main
+php tests/run_regression.php
+php tests/run_conversation_regression.php
 ```
 
-Before pushing production edits, run PHP syntax checks for every changed PHP file, for example:
+GitHub Actions runs syntax checks and both regression suites with PHP 8.2. Production diagnostics also run the conversation regression using the newest compatible PHP binary discovered on the server.
 
-```bash
-php -l webhook.php
-php -l handlers/AiMessageHandler.php
+Every fixed conversational bug should ideally become a regression case so the same failure cannot silently return.
+
+## Automated production deploy
+
+Production checkout:
+
+```text
+/var/www/545v0023442/data/www/anytour.online/max-search
 ```
 
-Do not commit `config.php`, runtime data, diagnostics exports or local `*.before_*` backups.
+`.github/workflows/deploy.yml` connects to production over a dedicated SSH key after pushes to `main`, updates the checkout, performs a syntax check, runs conversation regression and refreshes diagnostics.
+
+Normal source changes should therefore not require a manual `git pull` on the server.
+
+Important: the target architecture is **test first, deploy second**. Until the deploy workflow is fully gated by successful CI, keep changes small and rely on regression + diagnostics immediately after each push.
 
 ## Diagnostics
 
-Production diagnostics are published separately to the `diagnostics` branch. They are intended for debugging and should not be copied into `main` as a local `diagnostics/` directory.
+Production diagnostics are published separately to the `diagnostics` branch. `main` contains source only; generated diagnostic files remain ignored.
 
-Useful runtime sources include AI debug logs and funnel output. When changing conversational logic, verify the actual user flow in diagnostics before committing.
+The diagnostics manifest includes:
+
+- current production Git commit and branch;
+- server PHP binary/version and discovered PHP binaries;
+- configuration contract names without secret values;
+- Tourvisor cache freshness and counts;
+- runtime log freshness/writability;
+- deterministic conversation regression result;
+- recent funnel, AI, follow-up and Metrika logs.
+
+This is the primary way to verify production after a change without asking a user to send test messages to the live bot.
+
+## Runtime files
+
+Do not commit `config.php`, logs, funnel exports, traffic/followup state, generated Tourvisor cache, diagnostics snapshots or emergency `.before_*` backups. See `.gitignore` for the canonical list.
 
 ## Safe change procedure
 
-For larger refactors:
+For normal changes:
 
-1. make a local backup or rely on Git history;
-2. change one logical block at a time;
-3. run `php -l` on every touched PHP file;
-4. test the live scenario;
-5. inspect diagnostics;
-6. commit and push only the verified source files.
+1. change one logical block at a time;
+2. add/update deterministic regression coverage;
+3. push to `main`;
+4. automated deploy updates production;
+5. inspect `diagnostics` for production commit, regression and runtime errors;
+6. only then continue with the next logical block.
 
-The repository history is the primary rollback mechanism; temporary `.before_*` files are intentionally ignored.
+For larger refactors, split work into smaller commits and preserve behavior before moving business logic out of legacy classes.
+
+## Refactor direction
+
+`maxsearchbaseclass.php` remains the largest legacy component. New work should avoid adding unrelated responsibilities there. Prefer focused services for traffic attribution, Metrika, lead handling, follow-ups, search context and Tourvisor logic. Move existing behavior gradually and keep regression coverage around each extraction.
