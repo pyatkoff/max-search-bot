@@ -37,13 +37,13 @@ class DialogueController
                 MaxSearchApi::addYclid($chatId, trim(str_replace('ya', '', $payload)));
             }
             $this->resetDialogue($chatId, false);
-            MaxSearchApi::showStart($chatId);
+            DialogueView::start($chatId);
             return true;
         }
 
         if ($text === '/start' || $text === 'МЕНЮ') {
             $this->resetDialogue($chatId, true);
-            MaxSearchApi::showStart($chatId);
+            DialogueView::start($chatId);
             return true;
         }
 
