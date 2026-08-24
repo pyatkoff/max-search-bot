@@ -5,6 +5,7 @@ config.php
 followup/
 traffic/
 edit_mode/
+.runtime/
 
 # Logs
 *.log
