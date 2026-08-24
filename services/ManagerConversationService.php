@@ -68,4 +68,17 @@ class ManagerConversationService
         if(class_exists('MaxSearchApi')) { try { MaxSearchApi::deleteAllStatus($chatId); } catch(Throwable $ignored) {} }
         ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId); return true;
     }
+
+    public static function reopen(int $conversationId, int $managerId): bool
+    {
+        $pdo=ConversationDb::connection(); $pdo->beginTransaction();
+        try {
+            $q=$pdo->prepare('SELECT status FROM conversations WHERE id=? AND project_key=? FOR UPDATE');
+            $q->execute([$conversationId,ProjectConfig::projectId()]); $status=$q->fetchColumn();
+            if($status===false || (string)$status!=='closed'){ $pdo->rollBack(); return false; }
+            $pdo->prepare('UPDATE conversations SET status=?,manager_id=?,closed_at=NULL WHERE id=?')->execute(['manager',$managerId,$conversationId]);
+            $pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'reopen']);
+            ConversationControlService::event($conversationId,'conversation_reopened','manager',$managerId); $pdo->commit(); return true;
+        } catch(Throwable $e){ if($pdo->inTransaction())$pdo->rollBack(); throw $e; }
+    }
 }
