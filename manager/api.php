@@ -33,6 +33,7 @@ if($action==='login'){
 }
 
 $m=manager(); if(!$m) out(['ok'=>false,'error'=>'unauthorized'],401);
+$isAdmin=(string)($m['role']??'manager')==='admin';
 if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
 requireCsrf($data);
 
@@ -55,12 +56,12 @@ if($action==='save_source'){
 }
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
-    if(($queue==='waiting'||$queue==='all')&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>$queue==='all'?ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*')):[]]);
+    if(!$isAdmin&&($queue==='waiting'||$queue==='all')&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>$queue==='all'?ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*')):[]]);
     out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'))]);
 }
 if($action==='counts'){
     $counts=ManagerConversationService::queueCounts((int)$m['id'],(string)($data['project_key']??'*'));
-    if(!ManagerAvailabilityService::isWorking((int)$m['id'])) $counts['waiting']=['count'=>0,'unread'=>0];
+    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) $counts['waiting']=['count'=>0,'unread'=>0];
     out(['ok'=>true,'counts'=>$counts]);
 }
 if($action==='detail'){
@@ -68,7 +69,7 @@ if($action==='detail'){
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404); out(['ok'=>true]+$d);
 }
 if($action==='take'){
-    if(!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
+    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
     out(['ok'=>ManagerConversationService::take((int)($data['conversation_id']??0),(int)$m['id'])]);
 }
 if($action==='release') out(['ok'=>ManagerConversationService::release((int)($data['conversation_id']??0),(int)$m['id'])]);
