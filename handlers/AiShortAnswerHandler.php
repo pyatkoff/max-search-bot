@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/DialogueView.php';
+require_once dirname(__DIR__) . '/services/MealParser.php';
 
 class AiShortAnswerHandler
 {
@@ -69,7 +70,7 @@ class AiShortAnswerHandler
             }
         }
         elseif ($field === 'meal') {
-            $meal = self::mealFromShortText($lower);
+            $meal = MealParser::parse($lower);
             if ($meal === null) return false;
             $params['meal'] = $meal;
         }
@@ -145,15 +146,5 @@ class AiShortAnswerHandler
         if (!array_key_exists($text, $words)) return null;
         $n = $words[$text];
         return ($n >= $min && $n <= $max) ? $n : null;
-    }
-
-    private static function mealFromShortText($text)
-    {
-        if (preg_match('/^(?:не важно|неважно|любое|любая|всё|все)$/ui', $text)) return 'any';
-        if (preg_match('/^(?:ai|all\s*inclusive|вс[её]\s*включено|включено всё|включено все)$/ui', $text)) return 'all_inclusive';
-        if (preg_match('/^(?:bb|завтрак|завтраки|только завтрак|только завтраки)$/ui', $text)) return 'breakfast';
-        if (preg_match('/^(?:hb|полупансион|завтрак\s*(?:\+|и)\s*ужин)$/ui', $text)) return 'half_board';
-        if (preg_match('/^(?:fb|полный пансион|завтрак\s*(?:\+|,|и)\s*обед\s*(?:\+|,|и)\s*ужин|завтрак обед ужин)$/ui', $text)) return 'full_board';
-        return null;
     }
 }
