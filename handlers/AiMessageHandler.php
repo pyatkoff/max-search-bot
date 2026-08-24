@@ -2,6 +2,7 @@
 require_once(__DIR__ . '/../ai/AiRouter.php');
 require_once(__DIR__ . '/AiDateHandler.php');
 require_once(__DIR__ . '/../services/MissingFieldQuestionService.php');
+require_once(__DIR__ . '/../services/DialogueView.php');
 
 class AiMessageHandler
 {
@@ -31,7 +32,7 @@ class AiMessageHandler
                         $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);
 
                         if (empty($missingAfterDate)) {
-                            MaxSearchApi::showCheckButtons($chat_id);
+                            DialogueView::check($chat_id);
                         } else {
                             MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterDate);
                         }
@@ -71,7 +72,7 @@ class AiMessageHandler
                         $missingAfterAge = MaxSearchApi::getAiMissingFields($chat_id);
 
                         if (empty($missingAfterAge)) {
-                            MaxSearchApi::showCheckButtons($chat_id);
+                            DialogueView::check($chat_id);
                         } else {
                             MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterAge);
                         }
@@ -204,7 +205,7 @@ class AiMessageHandler
                         !preg_match('/(?:где\s+дешевле|что\s+лучше|сравни|посоветуй|почему)/ui',$userText);
 
                     if ($simpleLocal && empty($missingLocal) && $hadCurrentBeforeLocal && !empty($appliedLocal)) {
-                        MaxSearchApi::showCheckButtons($chat_id);
+                        DialogueView::check($chat_id);
                         return;
                     }
 
@@ -343,7 +344,7 @@ class AiMessageHandler
                 );
 
                 if (empty($missing)) {
-                    MaxSearchApi::showCheckButtons($chat_id);
+                    DialogueView::check($chat_id);
                     return;
                 }
 
