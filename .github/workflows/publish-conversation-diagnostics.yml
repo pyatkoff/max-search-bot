@@ -1,4 +1,4 @@
-name: Publish conversation diagnostics
+name: Publish production diagnostics
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Wait for deployed SHA and capture snapshot
+      - name: Wait for deployed SHA, migrate and capture production
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -50,10 +50,16 @@ jobs:
             sleep 5
           done
           test "$deployed" = "$GITHUB_SHA"
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
-          php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
 
-      - name: Publish snapshot
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/conversation_db.php migrate' > migration.log
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/production_snapshot.php' > production_snapshot.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
+
+          php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
+          php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
+          printf '{"sha":"%s","migration":"success","snapshot":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
+
+      - name: Publish production snapshot
         shell: bash
         run: |
           set -euo pipefail
@@ -61,6 +67,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          git add handoff.json
-          git commit -m "Update production handoff diagnostics" || true
-          git push origin diagnostics
+          git add production_snapshot.json handoff.json migration.log ops_status.json
+          git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
+          for attempt in 1 2 3; do
+            if git push origin diagnostics; then exit 0; fi
+            git pull --rebase origin diagnostics
+          done
+          exit 1
