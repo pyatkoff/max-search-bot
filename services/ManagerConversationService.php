@@ -15,6 +15,7 @@ class ManagerConversationService
 
     public static function list(int $managerId, string $status = '', int $limit = 100, string $projectKey=''): array
     {
+        RoutingAccessService::ensureSchema();
         $projectKey=self::resolveProject($managerId,$projectKey);if($projectKey==='')return[];
         $limit = max(1, min(200, $limit));
         $where = ['c.project_key=?']; $args = [$projectKey];
@@ -31,6 +32,7 @@ class ManagerConversationService
 
     public static function detail(int $conversationId,int $managerId): ?array
     {
+        RoutingAccessService::ensureSchema();
         $q = ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);
         $conversation = $q->fetch(); if (!$conversation || !RoutingAccessService::canSeeConversation($managerId,$conversation)) return null;
@@ -46,6 +48,7 @@ class ManagerConversationService
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
+        RoutingAccessService::ensureSchema();
         $sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
         $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();
         if(!$row||!RoutingAccessService::canSeeConversation($managerId,$row))return null;
