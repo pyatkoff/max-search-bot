@@ -7,7 +7,7 @@ class ManagerAvailabilityService
 {
     public static function ensureSchema(): void
     {
-        ConversationDb::connection()->exec('ALTER TABLE managers ADD COLUMN IF NOT EXISTS is_working TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active');
+        // Schema is managed by versioned migrations.
     }
 
     public static function setWorking(int $managerId, bool $working): bool
