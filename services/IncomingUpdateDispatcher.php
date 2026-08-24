@@ -3,6 +3,7 @@ require_once __DIR__ . '/DialogueApplication.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/ConversationControlService.php';
+require_once __DIR__ . '/ManagerPushService.php';
 
 class IncomingUpdateDispatcher
 {
@@ -46,6 +47,7 @@ class IncomingUpdateDispatcher
             }
 
             if (!$allow) {
+                ManagerPushService::notifyConversation((int)$ownership['id'], $status === 'manager' ? 'Клиент ответил в вашем диалоге' : 'Новое сообщение в заявке');
                 DiagnosticLogger::log('incoming_dispatch','manager_owned',['platform'=>$platform,'type'=>$type,'status'=>$status],$chatId);
                 return true;
             }
