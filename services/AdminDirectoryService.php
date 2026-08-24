@@ -58,6 +58,7 @@ class AdminDirectoryService
         if($id===0 && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
         if($password!=='' && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
         if($id===$actorManagerId && (!$active || $role!=='admin'))return ['ok'=>false,'error'=>'cannot_remove_own_admin_access'];
+        if($active && $role==='manager' && !$projectIds)return ['ok'=>false,'error'=>'manager_requires_project'];
         $pdo=ConversationDb::connection();$pdo->beginTransaction();
         try{
             if($id>0){
