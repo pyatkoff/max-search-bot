@@ -4,6 +4,7 @@ require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerReadService.php';
+require_once __DIR__ . '/ManagerAuthService.php';
 
 class ManagerConversationService
 {
@@ -14,9 +15,10 @@ class ManagerConversationService
         return ProjectAccessService::canAccess($managerId,$projectKey)?$projectKey:'';
     }
 
-    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*'): array
+    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter=''): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
+        $manager=ManagerAuthService::byId($managerId);$isAdmin=$manager && (string)($manager['role']??'manager')==='admin';
         $limit=max(1,min(200,$limit));$where=[];$args=[];
         if($projectKey==='*' || trim($projectKey)===''){
             $projects=ProjectAccessService::projectsForManager($managerId);
@@ -28,7 +30,18 @@ class ManagerConversationService
         if($queue==='waiting'){$where[]='c.status=?';$args[]='waiting_manager';$where[]='c.manager_id IS NULL';}
         elseif($queue==='mine'){$where[]='c.status=?';$args[]='manager';$where[]='c.manager_id=?';$args[]=$managerId;}
         elseif($queue==='closed'){$where[]='c.status=?';$args[]='closed';}
-        else{$where[]='c.status<>?';$args[]='closed';$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+        else{
+            $where[]='c.status<>?';$args[]='closed';
+            if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+        }
+
+        if($isAdmin && $queue!=='mine'){
+            $managerFilter=trim($managerFilter);
+            if($managerFilter==='unassigned'){$where[]='c.manager_id IS NULL';}
+            elseif($managerFilter==='mine'){$where[]='c.manager_id=?';$args[]=$managerId;}
+            elseif(ctype_digit($managerFilter) && (int)$managerFilter>0){$where[]='c.manager_id=?';$args[]=(int)$managerFilter;}
+        }
+
         $mid=(int)$managerId;
         $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
             .'cu.display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
@@ -45,6 +58,16 @@ class ManagerConversationService
     public static function queueCounts(int $managerId,string $projectKey='*'): array
     {
         $out=[];foreach(['waiting','mine'] as $queue){$rows=self::list($managerId,$queue,200,$projectKey);$out[$queue]=['count'=>count($rows),'unread'=>array_sum(array_map(static function($r){return(int)($r['unread_count']??0);},$rows))];}return$out;
+    }
+
+    public static function filterManagers(int $managerId): array
+    {
+        $manager=ManagerAuthService::byId($managerId);if(!$manager || (string)($manager['role']??'manager')!=='admin')return[];
+        $projects=ProjectAccessService::projectsForManager($managerId);$projectIds=array_values(array_filter(array_map(static function($p){return(int)($p['id']??0);},$projects)));
+        $pdo=ConversationDb::connection();
+        if(!$projectIds){$q=$pdo->query('SELECT id,login,display_name FROM managers WHERE is_active=1 ORDER BY COALESCE(display_name,login),id');return$q->fetchAll();}
+        $sql='SELECT DISTINCT m.id,m.login,m.display_name FROM managers m LEFT JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.is_active=1 AND (mp.project_id IN ('.implode(',',array_fill(0,count($projectIds),'?')).') OR m.role=\'admin\') ORDER BY COALESCE(m.display_name,m.login),m.id';
+        $q=$pdo->prepare($sql);$q->execute($projectIds);return$q->fetchAll();
     }
 
     public static function detail(int $conversationId,int $managerId): ?array
