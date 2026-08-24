@@ -63,7 +63,40 @@ try {
         exit(0);
     }
 
-    fwrite(STDERR, "Usage: php tools/conversation_db.php [check|migrate]\n");
+    if ($command === 'stats') {
+        $pdo = ConversationDb::connection();
+        echo "CONVERSATION DB STATS\n";
+        foreach (['customers','customer_channels','conversations','messages','manager_assignments','conversation_events'] as $table) {
+            $count = (int)$pdo->query('SELECT COUNT(*) FROM `' . $table . '`')->fetchColumn();
+            echo strtoupper($table) . ': ' . $count . "\n";
+        }
+        exit(0);
+    }
+
+    if ($command === 'recent') {
+        $pdo = ConversationDb::connection();
+        $limit = isset($argv[2]) ? max(1, min(100, (int)$argv[2])) : 30;
+        $stmt = $pdo->query('SELECT id, conversation_id, direction, sender_type, channel, text, created_at FROM messages ORDER BY id DESC LIMIT ' . $limit);
+        $rows = $stmt->fetchAll();
+        echo "RECENT CONVERSATION MESSAGES\n";
+        echo 'COUNT: ' . count($rows) . "\n\n";
+        if (!$rows) {
+            echo "No messages recorded yet.\n";
+            exit(0);
+        }
+        foreach ($rows as $row) {
+            $text = preg_replace('/\s+/u', ' ', trim((string)$row['text']));
+            if (function_exists('mb_strlen') && mb_strlen($text, 'UTF-8') > 160) {
+                $text = mb_substr($text, 0, 157, 'UTF-8') . '...';
+            } elseif (strlen($text) > 160) {
+                $text = substr($text, 0, 157) . '...';
+            }
+            printf("#%d conv=%d %s %s/%s %s\n  %s\n", $row['id'], $row['conversation_id'], $row['created_at'], $row['channel'], $row['direction'] . ':' . $row['sender_type'], $text === '' ? '[no text]' : $text, str_repeat('-', 60));
+        }
+        exit(0);
+    }
+
+    fwrite(STDERR, "Usage: php tools/conversation_db.php [check|migrate|stats|recent [limit]]\n");
     exit(2);
 } catch (Throwable $e) {
     fwrite(STDERR, "RESULT: ERROR\n");
