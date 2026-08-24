@@ -4,6 +4,7 @@ $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/MigrationRunner.php';
+require_once $baseDir.'/services/ManagerConversationService.php';
 
 function tableExists(PDO $pdo,string $table):bool{
     $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);return(int)$q->fetchColumn()>0;
@@ -25,6 +26,8 @@ try{
         'migrations'=>(new MigrationRunner())->status(),
         'stats'=>[],
         'managers'=>[],
+        'manager_visibility'=>[],
+        'health'=>['manager_visibility_ok'=>true,'manager_visibility_anomalies'=>[]],
         'projects'=>[],
         'sources'=>[],
         'conversation_status'=>[],
@@ -39,6 +42,34 @@ try{
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
+
+    foreach($snapshot['managers'] as $manager){
+        if(!(int)($manager['is_active']??0))continue;
+        $id=(int)$manager['id'];
+        $all=ManagerConversationService::list($id,'all',200,'*');
+        $mine=ManagerConversationService::list($id,'mine',200,'*');
+        $waiting=ManagerConversationService::list($id,'waiting',200,'*');
+        $otherAssigned=0;
+        foreach($all as $conversation){$assigned=(int)($conversation['manager_id']??0);if($assigned>0&&$assigned!==$id)$otherAssigned++;}
+        $entry=[
+            'manager_id'=>$id,
+            'login'=>(string)($manager['login']??''),
+            'role'=>(string)($manager['role']??'manager'),
+            'is_working'=>(bool)($manager['is_working']??false),
+            'all'=>count($all),
+            'mine'=>count($mine),
+            'waiting'=>count($waiting),
+            'assigned_to_others'=>$otherAssigned,
+        ];
+        $snapshot['manager_visibility'][]=$entry;
+        if($entry['is_working'] && $entry['waiting']>0 && $entry['all']<=$entry['mine']){
+            $snapshot['health']['manager_visibility_ok']=false;
+            $snapshot['health']['manager_visibility_anomalies'][]=[
+                'manager_id'=>$id,'login'=>$entry['login'],'reason'=>'working_manager_all_collapsed_to_mine','all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
+            ];
+        }
+    }
+
     if(tableExists($pdo,'messages')){
         $messages=rows($pdo,'SELECT id,conversation_id,direction,sender_type,channel,text,created_at FROM messages ORDER BY id DESC LIMIT 60');
         foreach($messages as&$m)$m['text']=compactText((string)$m['text']);unset($m);$snapshot['recent_messages']=$messages;
