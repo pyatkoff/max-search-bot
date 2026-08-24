@@ -25,7 +25,14 @@ class ManagerConversationService
         $conversation = $q->fetch(); if (!$conversation) return null;
         $q = ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');
         $q->execute([$conversationId]);
-        return ['conversation'=>$conversation,'messages'=>$q->fetchAll()];
+        $messages = $q->fetchAll();
+        foreach ($messages as &$message) {
+            if (($message['sender_type'] ?? '') === 'manager') {
+                $message['text'] = html_entity_decode((string)$message['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+        }
+        unset($message);
+        return ['conversation'=>$conversation,'messages'=>$messages];
     }
 
     public static function take(int $conversationId, int $managerId): bool
@@ -43,18 +50,22 @@ class ManagerConversationService
     public static function release(int $conversationId, int $managerId): bool
     {
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=? AND project_key=? AND manager_id=? AND status=?');
-        $q->execute(['ai',$conversationId,ProjectConfig::projectId(),$managerId,'manager']); if(!$q->rowCount()) return false;
+        $q=$pdo->prepare('SELECT external_chat_id FROM conversations WHERE id=? AND project_key=? AND manager_id=? AND status=? LIMIT 1');
+        $q->execute([$conversationId,ProjectConfig::projectId(),$managerId,'manager']); $chatId=$q->fetchColumn(); if($chatId===false) return false;
+        $q=$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?'); $q->execute(['ai',$conversationId]);
         $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);
+        if(class_exists('MaxSearchApi')) { try { MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi); } catch(Throwable $ignored) {} }
         ConversationControlService::event($conversationId,'manager_released','manager',$managerId); return true;
     }
 
     public static function close(int $conversationId, int $managerId): bool
     {
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=? AND project_key=? AND (manager_id=? OR manager_id IS NULL)');
-        $q->execute(['closed',$conversationId,ProjectConfig::projectId(),$managerId]); if(!$q->rowCount()) return false;
+        $q=$pdo->prepare('SELECT external_chat_id FROM conversations WHERE id=? AND project_key=? AND (manager_id=? OR manager_id IS NULL) AND status<>? LIMIT 1');
+        $q->execute([$conversationId,ProjectConfig::projectId(),$managerId,'closed']); $chatId=$q->fetchColumn(); if($chatId===false) return false;
+        $pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=?')->execute(['closed',$conversationId]);
         $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);
+        if(class_exists('MaxSearchApi')) { try { MaxSearchApi::deleteAllStatus($chatId); } catch(Throwable $ignored) {} }
         ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId); return true;
     }
 }
