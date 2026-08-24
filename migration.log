@@ -2,5 +2,6 @@ CONVERSATION DB MIGRATION
 RESULT: OK
 DATABASE: anytour_conversations
 BASELINED: 0
-EXECUTED: 0
+EXECUTED: 1
+  APPLY 005_runtime_manager_schema.sql 0ms
 PENDING: 0
