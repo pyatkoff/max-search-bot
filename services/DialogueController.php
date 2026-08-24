@@ -2,6 +2,7 @@
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/CallbackController.php';
 require_once __DIR__ . '/DialogueView.php';
+require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
@@ -29,6 +30,7 @@ class DialogueController
         if (!$chatId || !array_key_exists('text', $message)) return false;
 
         $text = (string)$message['text'];
+        $platform = strtolower(trim((string)($incoming['platform'] ?? '')));
         if (function_exists('put_log_in')) put_log_in($chatId . '!!!!!!!!!!!' . $text);
 
         if (strpos($text, '/start') === 0 && $text !== '/start') {
@@ -36,13 +38,13 @@ class DialogueController
             if (strpos($payload, 'ya') === 0) {
                 MaxSearchApi::addYclid($chatId, trim(str_replace('ya', '', $payload)));
             }
-            $this->resetDialogue($chatId, false);
+            $this->resetDialogueSafe($chatId, false, $platform);
             DialogueView::start($chatId);
             return true;
         }
 
         if ($text === '/start' || $text === 'МЕНЮ') {
-            $this->resetDialogue($chatId, true);
+            $this->resetDialogueSafe($chatId, true, $platform);
             DialogueView::start($chatId);
             return true;
         }
@@ -140,6 +142,19 @@ class DialogueController
             return null;
         }
         return "Поняла. Давайте попробуем удешевить подбор.\n\nМожно:\n• немного сдвинуть даты;\n• сократить количество ночей;\n• снизить категорию отеля;\n• посмотреть другое направление.\n\nНапишите, что готовы изменить — я пересоберу поиск.";
+    }
+
+    private function resetDialogueSafe($chatId, bool $clearDate, string $platform): void
+    {
+        try {
+            $this->resetDialogue($chatId, $clearDate);
+        } catch (\Throwable $e) {
+            DiagnosticLogger::error('dialogue', 'reset_failed', [
+                'platform'=>$platform,
+                'error'=>$e->getMessage(),
+            ], $chatId);
+            if ($platform !== 'telegram') throw $e;
+        }
     }
 
     private function resetDialogue($chatId, bool $clearDate): void
