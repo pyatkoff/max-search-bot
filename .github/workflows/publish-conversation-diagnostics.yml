@@ -1,18 +1,20 @@
 name: Publish conversation diagnostics
 
 on:
-  workflow_run:
-    workflows: ["Deploy production"]
-    types: [completed]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for production deploy
+        run: sleep 75
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
