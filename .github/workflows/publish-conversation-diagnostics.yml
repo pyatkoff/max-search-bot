@@ -12,9 +12,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for production deploy
-        run: sleep 75
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -37,28 +34,29 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Capture redacted handoff snapshot
-        id: handoff
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key_path: ${{ runner.temp }}/deploy_key
-          capture_stdout: true
-          script: |
-            set -e
-            cd ~/www/anytour.online/max-search
-            /opt/php81/bin/php tools/export_handoff_snapshot.php | base64 -w0
-
-      - name: Publish snapshot
+      - name: Wait for deployed SHA and capture snapshot
         env:
-          HANDOFF_B64: ${{ steps.handoff.outputs.stdout }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$HANDOFF_B64"
-          printf '%s' "$HANDOFF_B64" | base64 --decode > handoff.json
+          key_file="$RUNNER_TEMP/deploy_key"
+          ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          deployed=""
+          for attempt in $(seq 1 60); do
+            deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"
+            if [ "$deployed" = "$GITHUB_SHA" ]; then break; fi
+            sleep 5
+          done
+          test "$deployed" = "$GITHUB_SHA"
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
           php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
+
+      - name: Publish snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
