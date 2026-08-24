@@ -213,6 +213,9 @@ jobs:
             /opt/php81/bin/php -l telegram_webhook_admin.php
             /opt/php81/bin/php tools/telegram_smoke_test.php
             /opt/php81/bin/php export_debug_logs.php
+            rm -rf diagnostics
+            mkdir -p diagnostics
+            cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/
 
       - name: Publish deploy stage status
         if: always()
