@@ -9,6 +9,7 @@ require_once $baseDir . '/maxsearchclass.php';
 require_once $baseDir . '/services/ManagerAuthService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
+require_once $baseDir . '/services/ProjectAccessService.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -24,17 +25,18 @@ if($action==='login'){
     $m=ManagerAuthService::authenticate((string)($data['login']??''),(string)($data['password']??''));
     if(!$m) out(['ok'=>false,'error'=>'invalid_credentials'],401);
     session_regenerate_id(true); $_SESSION['manager_id']=(int)$m['id'];
-    out(['ok'=>true,'manager'=>$m,'csrf'=>csrf()]);
+    out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
 }
 
 $m=manager(); if(!$m) out(['ok'=>false,'error'=>'unauthorized'],401);
-if($action==='me') out(['ok'=>true,'manager'=>$m,'csrf'=>csrf()]);
+if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
 requireCsrf($data);
 
 if($action==='logout'){ $_SESSION=[]; session_destroy(); out(['ok'=>true]); }
-if($action==='list') out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],(string)($data['status']??''),100)]);
+if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
+if($action==='list') out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],(string)($data['status']??''),100,(string)($data['project_key']??''))]);
 if($action==='detail'){
-    $d=ManagerConversationService::detail((int)($data['conversation_id']??0));
+    $d=ManagerConversationService::detail((int)($data['conversation_id']??0),(int)$m['id']);
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404); out(['ok'=>true]+$d);
 }
 if($action==='take') out(['ok'=>ManagerConversationService::take((int)($data['conversation_id']??0),(int)$m['id'])]);
