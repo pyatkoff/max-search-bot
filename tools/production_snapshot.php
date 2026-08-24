@@ -37,7 +37,7 @@ try{
     }
     if(tableExists($pdo,'managers'))$snapshot['managers']=rows($pdo,'SELECT id,login,display_name,role,is_active,is_working,last_login_at FROM managers ORDER BY id');
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
-    if(tableExists($pdo,'conversation_sources'))$snapshot['sources']=rows($pdo,'SELECT id,project_key,source_key,display_name,channel,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources ORDER BY project_key,id');
+    if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
     if(tableExists($pdo,'messages')){
         $messages=rows($pdo,'SELECT id,conversation_id,direction,sender_type,channel,text,created_at FROM messages ORDER BY id DESC LIMIT 60');
