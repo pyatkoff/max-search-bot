@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ProjectAccessService.php';
+require_once __DIR__ . '/RoutingAccessService.php';
 
 class ManagerConversationService
 {
@@ -18,19 +19,21 @@ class ManagerConversationService
         $limit = max(1, min(200, $limit));
         $where = ['c.project_key=?']; $args = [$projectKey];
         if ($status !== '' && in_array($status, ['ai','waiting_manager','manager','closed'], true)) { $where[]='c.status=?'; $args[]=$status; }
-        $sql = 'SELECT c.id,c.project_key,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,cu.display_name,m.display_name AS manager_name,'
+        $sql = 'SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,cu.display_name,m.display_name AS manager_name,'
             . '(SELECT mm.text FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_text,'
             . '(SELECT mm.direction FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_direction '
             . 'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE '.implode(' AND ',$where)
-            . ' ORDER BY COALESCE(c.last_message_at,c.started_at) DESC LIMIT '.$limit;
-        $q = ConversationDb::connection()->prepare($sql); $q->execute($args); return $q->fetchAll();
+            . ' ORDER BY COALESCE(c.last_message_at,c.started_at) DESC LIMIT 200';
+        $q = ConversationDb::connection()->prepare($sql); $q->execute($args);$rows=$q->fetchAll();
+        $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
+        return array_slice($rows,0,$limit);
     }
 
     public static function detail(int $conversationId,int $managerId): ?array
     {
-        $q = ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=? LIMIT 1');
+        $q = ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);
-        $conversation = $q->fetch(); if (!$conversation || !ProjectAccessService::canAccess($managerId,(string)$conversation['project_key'])) return null;
+        $conversation = $q->fetch(); if (!$conversation || !RoutingAccessService::canSeeConversation($managerId,$conversation)) return null;
         $q = ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');
         $q->execute([$conversationId]);
         $messages = $q->fetchAll();
@@ -43,9 +46,9 @@ class ManagerConversationService
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
-        $sql='SELECT id,project_key,status,manager_id,external_chat_id FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
+        $sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
         $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();
-        if(!$row||!ProjectAccessService::canAccess($managerId,(string)$row['project_key']))return null;
+        if(!$row||!RoutingAccessService::canSeeConversation($managerId,$row))return null;
         return$row;
     }
 
