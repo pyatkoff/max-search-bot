@@ -27,31 +27,54 @@ if ($origin !== '') {
     }
 }
 
-session_name('anytour_consultant');
-session_set_cookie_params([
-    'lifetime'=>60*60*24*30,
-    'path'=>'/',
-    'secure'=>true,
-    'httponly'=>true,
-    'samesite'=>'Lax',
-]);
-session_start();
-
-if (empty($_SESSION['website_consultant_id'])) {
-    $_SESSION['website_consultant_id'] = bin2hex(random_bytes(24));
+$cookieName = 'atc_session';
+$sessionId = strtolower(trim((string)($_COOKIE[$cookieName] ?? '')));
+if (!preg_match('/^[a-f0-9]{48}$/', $sessionId)) {
+    $sessionId = bin2hex(random_bytes(24));
+    setcookie($cookieName, $sessionId, [
+        'expires'=>time() + 60*60*24*30,
+        'path'=>'/',
+        'secure'=>true,
+        'httponly'=>true,
+        'samesite'=>'Lax',
+    ]);
 }
-$sessionId = (string)$_SESSION['website_consultant_id'];
 
-$now = time();
-$window = (array)($_SESSION['website_consultant_rate'] ?? []);
-$window = array_values(array_filter($window, static function ($ts) use ($now) { return (int)$ts > $now - 60; }));
-if (count($window) >= 20) {
+function websiteConsultantRateAllowed(string $sessionId, int $limit = 20, int $windowSeconds = 60): bool
+{
+    $file = sys_get_temp_dir() . '/anytour_consultant_rate_' . hash('sha256', $sessionId) . '.json';
+    $fp = @fopen($file, 'c+');
+    if (!$fp) return true;
+    $allowed = true;
+    if (flock($fp, LOCK_EX)) {
+        $now = time();
+        rewind($fp);
+        $raw = (string)stream_get_contents($fp);
+        $timestamps = json_decode($raw, true);
+        if (!is_array($timestamps)) $timestamps = [];
+        $timestamps = array_values(array_filter($timestamps, static function ($ts) use ($now, $windowSeconds) {
+            return (int)$ts > $now - $windowSeconds;
+        }));
+        if (count($timestamps) >= $limit) {
+            $allowed = false;
+        } else {
+            $timestamps[] = $now;
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode($timestamps));
+            fflush($fp);
+        }
+        flock($fp, LOCK_UN);
+    }
+    fclose($fp);
+    return $allowed;
+}
+
+if (!websiteConsultantRateAllowed($sessionId)) {
     http_response_code(429);
     echo json_encode(['ok'=>false,'error'=>'rate_limited']);
     exit;
 }
-$window[] = $now;
-$_SESSION['website_consultant_rate'] = $window;
 
 $raw = (string)file_get_contents('php://input');
 $payload = json_decode($raw, true);
