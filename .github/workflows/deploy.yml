@@ -186,6 +186,7 @@ jobs:
         if: always()
         env:
           DEPLOY_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
           PROBE_OUTCOME: ${{ steps.ssh_probe.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
@@ -196,8 +197,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          printf '{"sha":"%s","probe":"%s","sync":"%s","smoke":"%s","reported_at":"%s"}\n' \
-            "$DEPLOY_SHA" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          printf '{"sha":"%s","run_id":"%s","probe":"%s","sync":"%s","smoke":"%s","reported_at":"%s"}\n' \
+            "$DEPLOY_SHA" "$RUN_ID" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             > deploy_status.json
           git add deploy_status.json
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
