@@ -128,7 +128,17 @@ jobs:
             set -e
             cd ~/www/anytour.online/max-search
             git fetch origin main
-            git pull --ff-only origin main
+
+            if ! git diff --quiet || ! git diff --cached --quiet; then
+              backup_name="autodeploy-backup-$(date +%Y%m%d-%H%M%S)"
+              echo "Tracked production changes detected; saving them as ${backup_name}"
+              git status --short
+              git stash push -m "${backup_name}"
+            fi
+
+            git reset --hard origin/main
+            echo "Deployed commit: $(git rev-parse HEAD)"
+
             php -l webhook.php
             php -l telegram_webhook.php
             php -l telegram_webhook_admin.php
