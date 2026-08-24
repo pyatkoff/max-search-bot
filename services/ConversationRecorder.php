@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
+require_once __DIR__ . '/RoutingAccessService.php';
 
 /**
  * Best-effort mirror of live dialogues into the dedicated conversation DB.
@@ -17,8 +18,9 @@ class ConversationRecorder
             $externalUserId = trim((string)($user['external_user_id'] ?? ''));
             $chatId = trim((string)($user['chat_id'] ?? ''));
             if ($platform === '' || $externalUserId === '' || $chatId === '') return false;
+            $sourceKey=trim((string)($incoming['source_key']??ProjectConfig::get('routing.source_key',$platform.':default')));
 
-            $conversationId = self::ensureConversation($platform, $externalUserId, $chatId, $user);
+            $conversationId = self::ensureConversation($platform, $externalUserId, $chatId, $user, $sourceKey);
             if (!$conversationId) return false;
 
             $type = (string)($incoming['type'] ?? 'message');
@@ -35,7 +37,7 @@ class ConversationRecorder
                 if ($check->fetchColumn()) return true;
             }
 
-            $meta = self::json(['type'=>$type, 'username'=>(string)($user['username'] ?? '')]);
+            $meta = self::json(['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey]);
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
             self::touch($conversationId);
@@ -83,10 +85,11 @@ class ConversationRecorder
         }
     }
 
-    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user): int
+    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey): int
     {
         $pdo = ConversationDb::connection();
         $project = ProjectConfig::projectId();
+        $sourceId=RoutingAccessService::sourceId($project,$sourceKey,$platform);
 
         $stmt = $pdo->prepare('SELECT cc.id AS channel_id, cc.customer_id FROM customer_channels cc WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? LIMIT 1');
         $stmt->execute([$project,$platform,$externalUserId]);
@@ -118,13 +121,17 @@ class ConversationRecorder
             }
         }
 
-        $q = $pdo->prepare('SELECT id FROM conversations WHERE customer_channel_id=? AND status<>? ORDER BY id DESC LIMIT 1');
+        $q = $pdo->prepare('SELECT id,source_id FROM conversations WHERE customer_channel_id=? AND status<>? ORDER BY id DESC LIMIT 1');
         $q->execute([$channelId,'closed']);
-        $id = (int)$q->fetchColumn();
-        if ($id) return $id;
+        $existing=$q->fetch();
+        if ($existing) {
+            $id=(int)$existing['id'];
+            if(empty($existing['source_id'])&&$sourceId>0)$pdo->prepare('UPDATE conversations SET source_id=? WHERE id=?')->execute([$sourceId,$id]);
+            return $id;
+        }
 
-        $q = $pdo->prepare('INSERT INTO conversations (customer_id,customer_channel_id,project_key,channel,external_chat_id,status,last_message_at) VALUES (?,?,?,?,?,?,NOW())');
-        $q->execute([$customerId,$channelId,$project,$platform,$chatId,'ai']);
+        $q = $pdo->prepare('INSERT INTO conversations (customer_id,customer_channel_id,project_key,source_id,channel,external_chat_id,status,last_message_at) VALUES (?,?,?,?,?,?,?,NOW())');
+        $q->execute([$customerId,$channelId,$project,$sourceId>0?$sourceId:null,$platform,$chatId,'ai']);
         return (int)$pdo->lastInsertId();
     }
 
