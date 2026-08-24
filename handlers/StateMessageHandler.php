@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/services/DialogueView.php';
+require_once dirname(__DIR__) . '/services/WizardStepView.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -120,7 +121,7 @@ class StateMessageHandler
                         $nightsOut = implode("-",$nightsOut);
                         MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusNights,$nightsOut);
                         if(!MaxSearchApi::finishEditIfNeeded($chat_id,'nights'))
-                            MaxSearchApi::showCalendarButtons($chat_id,date("m"),date("Y"));
+                            DialogueView::calendar($chat_id,date("m"),date("Y"));
                     }
                 }
                 if($error)
