@@ -40,6 +40,20 @@ class ProjectAccessService
         }
         $pdo->exec("INSERT IGNORE INTO manager_projects (manager_id,project_id)
             SELECT m.id,p.id FROM managers m CROSS JOIN projects p WHERE m.is_active=1 AND m.role='admin' AND p.is_active=1");
+
+        // A live manager with no project sees an empty panel. While the installation has
+        // exactly one active project, there is no ambiguity: attach that project automatically.
+        $activeProjectCount = (int)$pdo->query("SELECT COUNT(*) FROM projects WHERE is_active=1")->fetchColumn();
+        if ($activeProjectCount === 1) {
+            $projectId = (int)$pdo->query("SELECT id FROM projects WHERE is_active=1 LIMIT 1")->fetchColumn();
+            if ($projectId > 0) {
+                $q = $pdo->prepare("INSERT IGNORE INTO manager_projects (manager_id,project_id)
+                    SELECT m.id,? FROM managers m
+                    LEFT JOIN manager_projects mp ON mp.manager_id=m.id
+                    WHERE m.is_active=1 AND mp.manager_id IS NULL");
+                $q->execute([$projectId]);
+            }
+        }
         self::$schemaReady = true;
     }
 
