@@ -20,14 +20,6 @@ function csrf(): string { if(empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex
 function requireCsrf(array $data): void { if(!hash_equals(csrf(),(string)($data['csrf']??''))) out(['ok'=>false,'error'=>'csrf'],403); }
 
 $data=body(); $action=(string)($data['action']??'');
-if($action==='auth_status') out(['ok'=>true,'bootstrap_needed'=>!ManagerAuthService::hasAccounts()]);
-if($action==='bootstrap'){
-    if(ManagerAuthService::hasAccounts()) out(['ok'=>false,'error'=>'bootstrap_disabled'],409);
-    $m=ManagerAuthService::bootstrap((string)($data['login']??''),(string)($data['password']??''),(string)($data['display_name']??''));
-    if(!$m) out(['ok'=>false,'error'=>'invalid_bootstrap'],400);
-    session_regenerate_id(true); $_SESSION['manager_id']=(int)$m['id'];
-    out(['ok'=>true,'manager'=>$m,'csrf'=>csrf()]);
-}
 if($action==='login'){
     $m=ManagerAuthService::authenticate((string)($data['login']??''),(string)($data['password']??''));
     if(!$m) out(['ok'=>false,'error'=>'invalid_credentials'],401);
