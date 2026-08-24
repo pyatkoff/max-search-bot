@@ -67,10 +67,34 @@ class WebsiteSessionService
     public static function conversation(string $externalUserId): ?array
     {
         $pdo = ConversationDb::connection();
-        $q = $pdo->prepare('SELECT c.id,c.status,c.manager_id,c.project_key,c.channel,c.last_message_at FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? ORDER BY c.id DESC LIMIT 1');
+        $q = $pdo->prepare('SELECT c.id,c.status,c.manager_id,c.project_key,c.channel,c.last_message_at,m.display_name AS manager_name,cu.display_name,cu.phone,cu.email FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? ORDER BY c.id DESC LIMIT 1');
         $q->execute([ProjectConfig::projectId(),'website',$externalUserId]);
         $row = $q->fetch();
         return $row ?: null;
+    }
+
+    public static function updateProfile(string $externalUserId, string $name, string $phone = '', string $email = ''): bool
+    {
+        $name = trim($name);
+        $phone = trim($phone);
+        $email = trim($email);
+        if ($name === '' && $phone === '' && $email === '') return false;
+
+        $pdo = ConversationDb::connection();
+        $q = $pdo->prepare('SELECT cu.id FROM customers cu JOIN customer_channels cc ON cc.customer_id=cu.id WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? ORDER BY cc.id DESC LIMIT 1');
+        $q->execute([ProjectConfig::projectId(),'website',$externalUserId]);
+        $customerId = (int)$q->fetchColumn();
+        if ($customerId <= 0) return false;
+
+        $fields = [];
+        $args = [];
+        if ($name !== '') { $fields[] = 'display_name=?'; $args[] = $name; }
+        if ($phone !== '') { $fields[] = 'phone=?'; $args[] = $phone; }
+        if ($email !== '') { $fields[] = 'email=?'; $args[] = $email; }
+        if (!$fields) return false;
+        $args[] = $customerId;
+        $pdo->prepare('UPDATE customers SET '.implode(',',$fields).' WHERE id=?')->execute($args);
+        return true;
     }
 
     public static function messages(string $externalUserId, int $afterId = 0): array
