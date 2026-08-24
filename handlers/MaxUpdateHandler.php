@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
+require_once __DIR__ . '/../services/IncomingUpdateDeduplicator.php';
 
 class MaxUpdateHandler
 {
@@ -18,6 +19,13 @@ class MaxUpdateHandler
         }
 
         if (!is_array($update)) {
+            http_response_code(200);
+            echo 'ok';
+            exit;
+        }
+
+        if (!IncomingUpdateDeduplicator::claim($update)) {
+            if (function_exists('put_log_in')) put_log_in('DUPLICATE_UPDATE_SKIPPED ' . IncomingUpdateDeduplicator::key($update));
             http_response_code(200);
             echo 'ok';
             exit;
