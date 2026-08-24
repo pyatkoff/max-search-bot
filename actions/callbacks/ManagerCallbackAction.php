@@ -1,5 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
+require_once dirname(__DIR__, 2) . '/services/ConversationControlService.php';
+require_once dirname(__DIR__, 2) . '/services/ProjectConfig.php';
 
 class ManagerCallbackAction
 {
@@ -15,21 +17,19 @@ class ManagerCallbackAction
             MaxSearchApi::funnelLog($chatId, 'manager_request', ['source'=>$afterTours ? 'followup' : 'before_site']);
             if ($afterTours) MaxSearchApi::cancelToursFollowup($chatId);
             MaxSearchApi::queueMetrikaGoal($chatId, 'max_manager_request');
-            return DialogueView::managerRequest($chatId, self::userName($query), $afterTours);
+            $sent = DialogueView::managerRequest($chatId, self::userName($query), $afterTours);
+            if ($sent) {
+                $platform = strtolower(trim((string)($query['_platform'] ?? ProjectConfig::get('messenger.provider','max'))));
+                ConversationControlService::markWaitingByChat($platform,$chatId,['from_tours'=>$afterTours,'source'=>'callback']);
+            }
+            return $sent;
         }
-
         if ($q === 'phone_manual') return DialogueView::manualPhone($chatId);
-
         return false;
     }
 
     private static function userName(array $query): string
     {
-        $from = (array)($query['from'] ?? []);
-        $name = trim((string)($from['first_name'] ?? ''));
-        $last = trim((string)($from['last_name'] ?? ''));
-        if ($last !== '') $name = trim($name . ' ' . $last);
-        if ($name === '') $name = trim((string)($from['username'] ?? ''));
-        return $name;
+        $from=(array)($query['from']??[]);$name=trim((string)($from['first_name']??''));$last=trim((string)($from['last_name']??''));if($last!=='')$name=trim($name.' '.$last);if($name==='')$name=trim((string)($from['username']??''));return $name;
     }
 }

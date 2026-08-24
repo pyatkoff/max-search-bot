@@ -6,8 +6,9 @@ class MaxMessengerAdapter implements MessengerInterface
 {
     private $send;
     private $sendWithButtons;
+    private $senderType;
 
-    public function __construct(?callable $send = null, ?callable $sendWithButtons = null)
+    public function __construct(?callable $send = null, ?callable $sendWithButtons = null, string $senderType = 'ai')
     {
         $this->send = $send ?: static function ($chatId, string $text): bool {
             return class_exists('MaxSearchApi') && (bool)MaxSearchApi::MaxSend($text, $chatId);
@@ -15,19 +16,20 @@ class MaxMessengerAdapter implements MessengerInterface
         $this->sendWithButtons = $sendWithButtons ?: static function ($chatId, string $text, array $buttons): bool {
             return class_exists('MaxSearchApi') && (bool)MaxSearchApi::MaxSendWithButtons($text, $chatId, $buttons);
         };
+        $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
     }
 
     public function send($chatId, string $text): bool
     {
         $ok = (bool)call_user_func($this->send, $chatId, $text);
-        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, 'ai');
+        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType);
         return $ok;
     }
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
         $ok = (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
-        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, 'ai', ['has_buttons'=>true]);
+        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, ['has_buttons'=>true]);
         return $ok;
     }
 
