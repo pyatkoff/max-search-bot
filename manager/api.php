@@ -40,6 +40,7 @@ if($action==='detail'){
 if($action==='take') out(['ok'=>ManagerConversationService::take((int)($data['conversation_id']??0),(int)$m['id'])]);
 if($action==='release') out(['ok'=>ManagerConversationService::release((int)($data['conversation_id']??0),(int)$m['id'])]);
 if($action==='close') out(['ok'=>ManagerConversationService::close((int)($data['conversation_id']??0),(int)$m['id'])]);
+if($action==='reopen') out(['ok'=>ManagerConversationService::reopen((int)($data['conversation_id']??0),(int)$m['id'])]);
 if($action==='send'){
     $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''));
     out(['ok'=>$ok],$ok?200:409);
