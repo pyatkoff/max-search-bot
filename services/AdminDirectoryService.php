@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
+require_once __DIR__ . '/AuditLogService.php';
 
 class AdminDirectoryService
 {
@@ -20,7 +21,7 @@ class AdminDirectoryService
         return ['projects'=>$projects,'managers'=>$managers];
     }
 
-    public static function saveProject(array $data): array
+    public static function saveProject(array $data,int $actorManagerId=0): array
     {
         ProjectAccessService::ensureSchema();
         $id=(int)($data['project_id']??0);
@@ -30,6 +31,7 @@ class AdminDirectoryService
         if(!preg_match('/^[a-z0-9][a-z0-9_-]{1,63}$/',$key))return ['ok'=>false,'error'=>'invalid_project_key'];
         if($name==='')return ['ok'=>false,'error'=>'missing_display_name'];
         $pdo=ConversationDb::connection();
+        $before=$id>0?self::projectRow($id):null;
         if($id>0){
             $q=$pdo->prepare('UPDATE projects SET project_key=?,display_name=?,is_active=? WHERE id=?');
             try{$q->execute([$key,$name,$active,$id]);}catch(Throwable $e){return ['ok'=>false,'error'=>'duplicate_project_key'];}
@@ -39,6 +41,7 @@ class AdminDirectoryService
             try{$q->execute([$key,$name,$active]);}catch(Throwable $e){return ['ok'=>false,'error'=>'duplicate_project_key'];}
             $id=(int)$pdo->lastInsertId();
         }
+        AuditLogService::record($actorManagerId,$before?'project_updated':'project_created','project',(string)$id,$key,$before,self::projectRow($id));
         return ['ok'=>true,'project_id'=>$id];
     }
 
@@ -59,7 +62,7 @@ class AdminDirectoryService
         if($password!=='' && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
         if($id===$actorManagerId && (!$active || $role!=='admin'))return ['ok'=>false,'error'=>'cannot_remove_own_admin_access'];
         if($active && $role==='manager' && !$projectIds)return ['ok'=>false,'error'=>'manager_requires_project'];
-        $pdo=ConversationDb::connection();$pdo->beginTransaction();
+        $pdo=ConversationDb::connection();$before=$id>0?self::managerRow($id):null;$pdo->beginTransaction();
         try{
             if($id>0){
                 if(!self::managerExists($id)){ $pdo->rollBack(); return ['ok'=>false,'error'=>'not_found']; }
@@ -75,14 +78,22 @@ class AdminDirectoryService
             $pdo->prepare('DELETE FROM manager_projects WHERE manager_id=?')->execute([$id]);
             $ins=$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) VALUES (?,?)');
             foreach($projectIds as $projectId){if(self::projectExists($projectId))$ins->execute([$id,$projectId]);}
-            if($role==='admin'){
-                $pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) SELECT ?,id FROM projects WHERE is_active=1')->execute([$id]);
-            }
+            if($role==='admin')$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) SELECT ?,id FROM projects WHERE is_active=1')->execute([$id]);
             $pdo->commit();
+            AuditLogService::record($actorManagerId,$before?'manager_updated':'manager_created','manager',(string)$id,'',$before,self::managerRow($id));
             return ['ok'=>true,'manager_id'=>$id];
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return ['ok'=>false,'error'=>'duplicate_login'];}
     }
 
+    private static function managerRow(int $id): ?array
+    {
+        $q=ConversationDb::connection()->prepare('SELECT id,login,display_name,role,email,is_active,is_working FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();if(!$row)return null;
+        $p=ConversationDb::connection()->prepare('SELECT project_id FROM manager_projects WHERE manager_id=? ORDER BY project_id');$p->execute([$id]);$row['project_ids']=array_map('intval',array_column($p->fetchAll(),'project_id'));return$row;
+    }
+    private static function projectRow(int $id): ?array
+    {
+        $q=ConversationDb::connection()->prepare('SELECT id,project_key,display_name,is_active FROM projects WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();return$row?:null;
+    }
     private static function managerExists(int $id): bool
     {
         $q=ConversationDb::connection()->prepare('SELECT 1 FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);return(bool)$q->fetchColumn();
