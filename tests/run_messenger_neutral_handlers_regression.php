@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__ . '/../services/MealParser.php';
 
 $passed = 0;
 $failed = 0;
@@ -34,6 +35,12 @@ mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMes
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 mnhCheck('AiShortAnswerHandler accepts week as nights', preg_match('/недел/u', $shortSource) === 1, true);
 mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
+mnhCheck('AiShortAnswerHandler uses MealParser', strpos($shortSource, 'MealParser::parse(') !== false, true);
+
+mnhCheck('MealParser live phrase Питание не нужно', MealParser::parse('Питание не нужно'), 'any');
+mnhCheck('MealParser phrase питание не важно', MealParser::parse('питание не важно'), 'any');
+mnhCheck('MealParser breakfast', MealParser::parse('Завтрак'), 'breakfast');
+mnhCheck('MealParser all inclusive', MealParser::parse('Всё включено'), 'all_inclusive');
 
 $controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueController.php');
 mnhCheck('DialogueController start uses DialogueView', strpos($controllerSource, 'DialogueView::start($chatId)') !== false, true);
