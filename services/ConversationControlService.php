@@ -30,6 +30,15 @@ class ConversationControlService
         return true;
     }
 
+    public static function resumeAiByChat(string $platform, $chatId, string $reason = 'customer_cancelled_handoff'): bool
+    {
+        $row = self::statusByChat($platform, $chatId);
+        if (!$row || (string)$row['status'] !== 'waiting_manager') return false;
+        ConversationDb::connection()->prepare('UPDATE conversations SET status=?, manager_id=NULL WHERE id=?')->execute(['ai',(int)$row['id']]);
+        self::event((int)$row['id'], 'ai_resumed', 'customer', null, ['reason'=>$reason]);
+        return true;
+    }
+
     public static function event(int $conversationId, string $type, string $actorType, $actorId = null, array $payload = []): void
     {
         $json = $payload ? json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) : null;
