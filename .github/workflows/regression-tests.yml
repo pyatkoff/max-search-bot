@@ -81,6 +81,9 @@ jobs:
       - name: Run manager visibility regression suite
         run: php tests/run_manager_visibility_regression.php
 
+      - name: Run live session analyzer regression suite
+        run: php tests/run_live_session_analyzer_regression.php
+
       - name: Run post-tour regression suite
         run: php tests/run_post_tour_regression.php
 
