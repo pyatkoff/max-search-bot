@@ -1,72 +1,28 @@
 {
     "ok": true,
-    "generated_at": "2026-08-24T22:47:04+00:00",
+    "generated_at": "2026-08-24T22:48:48+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 21,
-        "started": 21,
-        "needs_collected": 19,
-        "tours_opened": 19,
+        "sessions": 19,
+        "started": 19,
+        "needs_collected": 17,
+        "tours_opened": 17,
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 18,
+        "flagged_sessions": 16,
         "drop_points": {
-            "tours_opened": 19,
+            "tours_opened": 17,
             "collecting_needs": 2
         },
         "flags": {
-            "excessive_turns": 18,
-            "repeated_same_input": 7,
-            "rapid_date_reselection": 5
+            "excessive_turns": 16,
+            "repeated_same_input": 6,
+            "rapid_date_reselection": 4
         }
     },
     "sessions": [
-        {
-            "conversation_id": 133,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "phone_received": false,
-            "inbound_messages": 35,
-            "outbound_messages": 35,
-            "date_picks": 14,
-            "drop_point": "tours_opened",
-            "flags": [
-                "rapid_date_reselection",
-                "repeated_same_input",
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-24 21:44:37",
-            "last_message_at": "2026-08-24 21:47:38"
-        },
-        {
-            "conversation_id": 131,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "phone_received": false,
-            "inbound_messages": 14,
-            "outbound_messages": 14,
-            "date_picks": 1,
-            "drop_point": "tours_opened",
-            "flags": [
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-24 21:33:52",
-            "last_message_at": "2026-08-24 21:48:02"
-        },
         {
             "conversation_id": 132,
             "project_key": "anytour",
@@ -471,5 +427,5 @@
             "last_message_at": "2026-08-25 00:44:22"
         }
     ],
-    "since_utc": "2026-08-24 21:47:04"
+    "since_utc": "2026-08-24 21:48:48"
 }
