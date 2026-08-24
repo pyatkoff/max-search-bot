@@ -35,8 +35,8 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Capture redacted conversation snapshot
-        id: conversations
+      - name: Capture redacted handoff snapshot
+        id: handoff
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -46,22 +46,21 @@ jobs:
           script: |
             set -e
             cd ~/www/anytour.online/max-search
-            /opt/php81/bin/php export_debug_logs.php >/dev/null
-            base64 -w0 diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-conversations.json
+            /opt/php81/bin/php tools/export_handoff_snapshot.php | base64 -w0
 
       - name: Publish snapshot
         env:
-          CONVERSATIONS_B64: ${{ steps.conversations.outputs.stdout }}
+          HANDOFF_B64: ${{ steps.handoff.outputs.stdout }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$CONVERSATIONS_B64"
-          printf '%s' "$CONVERSATIONS_B64" | base64 --decode > conversations.json
-          php -r '$j=json_decode(file_get_contents("conversations.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
+          test -n "$HANDOFF_B64"
+          printf '%s' "$HANDOFF_B64" | base64 --decode > handoff.json
+          php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          git add conversations.json
-          git commit -m "Update production conversation diagnostics" || true
+          git add handoff.json
+          git commit -m "Update production handoff diagnostics" || true
           git push origin diagnostics
