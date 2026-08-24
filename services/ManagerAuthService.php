@@ -11,6 +11,20 @@ class ManagerAuthService
         $pdo->exec('ALTER TABLE managers ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL AFTER is_active');
         self::$schemaReady=true;
     }
+    public static function hasAccounts(): bool
+    {
+        self::ensureSchema();return (int)ConversationDb::connection()->query("SELECT COUNT(*) FROM managers WHERE is_active=1 AND password_hash IS NOT NULL AND password_hash<>''")->fetchColumn()>0;
+    }
+    public static function bootstrap(string $login,string $password,string $displayName=''):?array
+    {
+        self::ensureSchema();$login=trim($login);$displayName=trim($displayName);
+        if(self::hasAccounts()||$login===''||strlen($password)<8)return null;
+        $pdo=ConversationDb::connection();$hash=password_hash($password,PASSWORD_DEFAULT);
+        $q=$pdo->prepare('SELECT id FROM managers WHERE login=? LIMIT 1');$q->execute([$login]);$id=(int)$q->fetchColumn();
+        if($id){$pdo->prepare('UPDATE managers SET password_hash=?,display_name=COALESCE(NULLIF(?,\'\'),display_name),is_active=1 WHERE id=?')->execute([$hash,$displayName,$id]);}
+        else{$q=$pdo->prepare('INSERT INTO managers (login,password_hash,display_name,is_active) VALUES (?,?,?,1)');$q->execute([$login,$hash,$displayName!==''?$displayName:null]);$id=(int)$pdo->lastInsertId();}
+        return self::byId($id);
+    }
     public static function authenticate(string $login,string $password):?array
     {
         self::ensureSchema();$q=ConversationDb::connection()->prepare('SELECT id,login,password_hash,display_name,email,is_active FROM managers WHERE login=? LIMIT 1');$q->execute([trim($login)]);$row=$q->fetch();
