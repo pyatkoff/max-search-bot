@@ -55,6 +55,14 @@ class ProjectAccessService
         return (int)$q->fetchColumn();
     }
 
+    public static function projectIdByKey(string $projectKey): int
+    {
+        self::ensureSchema();
+        $q=ConversationDb::connection()->prepare('SELECT id FROM projects WHERE project_key=? AND is_active=1 LIMIT 1');
+        $q->execute([trim($projectKey)]);
+        return(int)$q->fetchColumn();
+    }
+
     public static function projectsForManager(int $managerId): array
     {
         self::ensureSchema();
