@@ -49,6 +49,7 @@ class RoutingAccessService
             KEY idx_conversation_sources_project (project_id, is_active)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $pdo->exec("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS source_id BIGINT UNSIGNED NULL AFTER project_key");
+        $pdo->exec("ALTER TABLE managers ADD COLUMN IF NOT EXISTS is_working TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active");
         self::$schemaReady=true;
     }
 
@@ -60,6 +61,7 @@ class RoutingAccessService
 
         $manager=ManagerAuthService::byId($managerId);
         if($manager && (string)($manager['role']??'manager')==='admin')return true;
+        if((string)($conversation['status']??'')==='waiting_manager' && !($manager && !empty($manager['is_working'])))return false;
 
         $sourceId=(int)($conversation['source_id']??0);
         if($sourceId<=0)return true;
