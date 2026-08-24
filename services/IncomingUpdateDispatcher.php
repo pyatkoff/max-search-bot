@@ -25,9 +25,30 @@ class IncomingUpdateDispatcher
         }
 
         ConversationRecorder::inbound($incoming);
-        if (!ConversationControlService::shouldRouteToAi($platform, $chatId)) {
-            DiagnosticLogger::log('incoming_dispatch','manager_owned',['platform'=>$platform,'type'=>$type],$chatId);
-            return true;
+        $ownership = ConversationControlService::statusByChat($platform, $chatId);
+        if ($ownership && in_array((string)$ownership['status'], ['waiting_manager','manager'], true)) {
+            $status = (string)$ownership['status'];
+            $allow = false;
+
+            if ($status === 'waiting_manager') {
+                if ($type === 'contact') {
+                    $allow = true;
+                } elseif ($type === 'callback') {
+                    $payload = (string)($incoming['callback_data'] ?? '');
+                    if ($payload === 'phone_manual') $allow = true;
+                    if (in_array($payload, ['back_check','tours_checked'], true)) {
+                        ConversationControlService::resumeAiByChat($platform, $chatId, 'handoff_cancelled');
+                        $allow = true;
+                    }
+                } elseif ($type === 'message' && class_exists('MaxSearchApi')) {
+                    try { $allow = MaxSearchApi::getCurentStatus($chatId) == MaxSearchApi::$statusPhone; } catch (Throwable $ignored) {}
+                }
+            }
+
+            if (!$allow) {
+                DiagnosticLogger::log('incoming_dispatch','manager_owned',['platform'=>$platform,'type'=>$type,'status'=>$status],$chatId);
+                return true;
+            }
         }
 
         $handled = $this->application->dispatch($incoming);
