@@ -37,6 +37,18 @@ try {
         webOut(['ok'=>true,'token'=>$session['token'],'chat'=>$snapshot]);
     }
 
+    if ($action === 'profile') {
+        $name = trim((string)($payload['name'] ?? ''));
+        $phone = trim((string)($payload['phone'] ?? ''));
+        $email = trim((string)($payload['email'] ?? ''));
+        if (mb_strlen($name) > 120 || mb_strlen($phone) > 40 || mb_strlen($email) > 191) webOut(['ok'=>false,'error'=>'invalid_profile'],422);
+        if ($email !== '' && !filter_var($email,FILTER_VALIDATE_EMAIL)) webOut(['ok'=>false,'error'=>'invalid_email'],422);
+        if ($phone !== '' && !preg_match('/^[0-9+()\- .]{5,40}$/u',$phone)) webOut(['ok'=>false,'error'=>'invalid_phone'],422);
+        $ok = WebsiteSessionService::updateProfile($session['external_user_id'],$name,$phone,$email);
+        $snapshot = WebsiteSessionService::messages($session['external_user_id'],$afterId);
+        webOut(['ok'=>$ok,'token'=>$session['token'],'chat'=>$snapshot],$ok?200:409);
+    }
+
     $requestPayload = $payload;
     $requestPayload['action'] = $action;
     if ($action === 'send') $requestPayload['action'] = 'message';
