@@ -39,6 +39,16 @@ $controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueCo
 mnhCheck('DialogueController start uses DialogueView', strpos($controllerSource, 'DialogueView::start($chatId)') !== false, true);
 mnhCheck('DialogueController start has no legacy Max showStart', strpos($controllerSource, 'MaxSearchApi::showStart(') === false, true);
 
+$wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
+mnhCheck('Wizard meal does not call legacy showMealButtons', strpos($wizardSource, 'MaxSearchApi::showMealButtons(') === false, true);
+mnhCheck('Wizard nights does not call legacy showNightsButtons', strpos($wizardSource, 'MaxSearchApi::showNightsButtons(') === false, true);
+mnhCheck('Wizard meal uses messenger-neutral view', strpos($wizardSource, 'WizardStepView::meal(') !== false, true);
+mnhCheck('Wizard nights uses messenger-neutral view', strpos($wizardSource, 'WizardStepView::nights(') !== false, true);
+
+$wizardViewSource = (string)file_get_contents(__DIR__ . '/../services/WizardStepView.php');
+mnhCheck('WizardStepView uses active messenger', strpos($wizardViewSource, 'IntegrationRegistry::messenger()->sendWithButtons(') !== false, true);
+mnhCheck('WizardStepView has no direct Max transport', strpos($wizardViewSource, 'MaxSearchApi::MaxSend') === false, true);
+
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
