@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/AuditLogService.php';
 
 class RoutingAdminService
 {
@@ -25,13 +26,14 @@ class RoutingAdminService
         if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
         RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$groupKey=trim($groupKey);$displayName=trim($displayName);
         if($projectId<=0||$groupKey===''||$displayName==='')return false;
+        $before=$groupId>0?self::groupRow($groupId):null;
         $pdo->beginTransaction();try{
             if($groupId>0){$q=$pdo->prepare('UPDATE manager_groups SET group_key=?,display_name=? WHERE id=? AND project_id=?');$q->execute([$groupKey,$displayName,$groupId,$projectId]);if(!$q->rowCount()){ $check=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=?');$check->execute([$groupId,$projectId]);if(!$check->fetchColumn())throw new RuntimeException('group_not_found');}}
             else{$q=$pdo->prepare('INSERT INTO manager_groups (project_id,group_key,display_name) VALUES (?,?,?)');$q->execute([$projectId,$groupKey,$displayName]);$groupId=(int)$pdo->lastInsertId();}
             $pdo->prepare('DELETE FROM manager_group_members WHERE group_id=?')->execute([$groupId]);
             $ins=$pdo->prepare('INSERT IGNORE INTO manager_group_members (group_id,manager_id) SELECT ?,m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.id=? AND mp.project_id=? AND m.is_active=1');
             foreach(array_unique(array_map('intval',$memberIds)) as $mid)if($mid>0)$ins->execute([$groupId,$mid,$projectId]);
-            $pdo->commit();return true;
+            $pdo->commit();AuditLogService::record($managerId,$before?'routing_group_updated':'routing_group_created','manager_group',(string)$groupId,$projectKey,$before,self::groupRow($groupId));return true;
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return false;}
     }
 
@@ -40,9 +42,21 @@ class RoutingAdminService
         if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
         RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$sourceKey=trim($sourceKey);$displayName=trim($displayName);$fallbackMode=in_array($fallbackMode,['none','delayed','immediate'],true)?$fallbackMode:'none';$fallbackAfter=max(0,$fallbackAfter);
         if($projectId<=0||$sourceKey===''||$displayName==='')return false;
+        $before=$sourceId>0?self::sourceRow($sourceId):null;
         $validGroup=function(int $id)use($pdo,$projectId):?int{if($id<=0)return null;$q=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=? AND is_active=1');$q->execute([$id,$projectId]);return$q->fetchColumn()?(int)$id:null;};
         $primary=$validGroup($primaryGroupId);$fallback=$validGroup($fallbackGroupId);if($fallbackMode==='none'){$fallback=null;$fallbackAfter=0;}if($fallbackMode==='immediate')$fallbackAfter=0;
-        if($sourceId>0){$q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');$q->execute([$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);return true;}
-        $q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?)');return$q->execute([$projectId,$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter]);
+        if($sourceId>0){$q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');$ok=$q->execute([$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);}
+        else{$q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?)');$ok=$q->execute([$projectId,$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter]);$sourceId=(int)$pdo->lastInsertId();}
+        if($ok)AuditLogService::record($managerId,$before?'routing_source_updated':'routing_source_created','conversation_source',(string)$sourceId,$projectKey,$before,self::sourceRow($sourceId));
+        return(bool)$ok;
+    }
+
+    private static function groupRow(int $id): ?array
+    {
+        $pdo=ConversationDb::connection();$q=$pdo->prepare('SELECT id,project_id,group_key,display_name,is_active FROM manager_groups WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();if(!$row)return null;$m=$pdo->prepare('SELECT manager_id FROM manager_group_members WHERE group_id=? ORDER BY manager_id');$m->execute([$id]);$row['member_ids']=array_map('intval',array_column($m->fetchAll(),'manager_id'));return$row;
+    }
+    private static function sourceRow(int $id): ?array
+    {
+        $q=ConversationDb::connection()->prepare('SELECT id,project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes,is_active FROM conversation_sources WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();return$row?:null;
     }
 }

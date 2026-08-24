@@ -46,7 +46,7 @@ if($action==='set_working'){
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
 if($action==='manager_filters'){ requireAdmin($m); out(['ok'=>true,'managers'=>ManagerConversationService::filterManagers((int)$m['id'])]); }
 if($action==='admin_snapshot'){ requireAdmin($m); out(['ok'=>true,'admin'=>AdminDirectoryService::snapshot()]); }
-if($action==='save_project'){ requireAdmin($m); $r=AdminDirectoryService::saveProject($data); out($r,$r['ok']?200:409); }
+if($action==='save_project'){ requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='save_manager'){ requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
 if($action==='save_group'){

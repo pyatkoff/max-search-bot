@@ -30,22 +30,26 @@ try{
         'migrations'=>(new MigrationRunner())->status(),
         'stats'=>[],
         'managers'=>[],
+        'manager_usage'=>[],
         'manager_visibility'=>[],
         'health'=>['manager_visibility_ok'=>true,'manager_visibility_anomalies'=>[]],
         'projects'=>[],
         'sources'=>[],
         'conversation_status'=>[],
+        'recent_admin_audit'=>[],
         'recent_messages'=>[],
         'recent_events'=>[],
     ];
 
-    foreach(['customers','customer_channels','conversations','messages','managers','manager_assignments','conversation_events']as$table){
+    foreach(['customers','customer_channels','conversations','messages','managers','manager_assignments','conversation_events','admin_audit_log']as$table){
         if(tableExists($pdo,$table))$snapshot['stats'][$table]=(int)$pdo->query('SELECT COUNT(*) FROM `'.$table.'`')->fetchColumn();
     }
     if(tableExists($pdo,'managers'))$snapshot['managers']=rows($pdo,'SELECT id,login,display_name,role,is_active,is_working,last_login_at FROM managers ORDER BY id');
+    if(tableExists($pdo,'manager_assignments'))$snapshot['manager_usage']=rows($pdo,"SELECT m.id AS manager_id,m.login,COUNT(a.id) AS assignments_total,SUM(CASE WHEN a.released_at IS NULL THEN 1 ELSE 0 END) AS assignments_open FROM managers m LEFT JOIN manager_assignments a ON a.manager_id=m.id GROUP BY m.id,m.login ORDER BY m.id");
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
+    if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
 
     foreach($snapshot['managers'] as $manager){
         if(!(int)($manager['is_active']??0))continue;

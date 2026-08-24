@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/AuditLogService.php';
 
 class ManagerAvailabilityService
 {
@@ -13,9 +14,15 @@ class ManagerAvailabilityService
     public static function setWorking(int $managerId, bool $working): bool
     {
         self::ensureSchema();
-        $q=ConversationDb::connection()->prepare('UPDATE managers SET is_working=? WHERE id=? AND is_active=1');
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare('SELECT is_working FROM managers WHERE id=? AND is_active=1 LIMIT 1');
+        $q->execute([$managerId]);
+        $before=$q->fetchColumn();
+        if($before===false)return false;
+        $q=$pdo->prepare('UPDATE managers SET is_working=? WHERE id=? AND is_active=1');
         $q->execute([$working?1:0,$managerId]);
-        return $q->rowCount()>=0;
+        if((bool)$before!==$working)AuditLogService::record($managerId,'manager_working_changed','manager',(string)$managerId,'',['is_working'=>(bool)$before],['is_working'=>$working]);
+        return true;
     }
 
     public static function isWorking(int $managerId): bool
