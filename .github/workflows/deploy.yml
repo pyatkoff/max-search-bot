@@ -195,6 +195,8 @@ jobs:
 
             git reset --hard origin/main
             echo "Deployed commit: $(git rev-parse HEAD)"
+            echo "Applying database migrations before smoke checks"
+            /opt/php81/bin/php tools/conversation_db.php migrate
 
       - name: Production smoke checks
         id: smoke
