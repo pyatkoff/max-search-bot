@@ -208,12 +208,12 @@ jobs:
           script: |
             set -e
             cd ~/www/anytour.online/max-search
-            php -l webhook.php
-            php -l telegram_webhook.php
-            php -l telegram_webhook_admin.php
-            php tools/telegram_smoke_test.php
+            /opt/php81/bin/php -l webhook.php
+            /opt/php81/bin/php -l telegram_webhook.php
+            /opt/php81/bin/php -l telegram_webhook_admin.php
+            /opt/php81/bin/php tools/telegram_smoke_test.php
             /opt/php81/bin/php tools/telegram_start_smoke.php
-            php export_debug_logs.php
+            /opt/php81/bin/php export_debug_logs.php
 
       - name: Publish deploy stage status
         if: always()
