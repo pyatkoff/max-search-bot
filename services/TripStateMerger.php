@@ -8,9 +8,26 @@ class TripStateMerger
      */
     public static function merge(array $state, array $changes): array
     {
+        $normalizedChanges = [];
         foreach ($changes as $path => $value) {
             $path = self::normalizePath((string)$path);
             if ($path === null) continue;
+            $normalizedChanges[$path] = $value;
+        }
+
+        // A changed directory name must never keep an id that belonged to the
+        // previous city/country. If the resolver supplied a fresh id in the same
+        // change set, keep that new id; otherwise mark the directory value unresolved.
+        if (array_key_exists('departure.city', $normalizedChanges)
+            && !array_key_exists('departure.city_id', $normalizedChanges)) {
+            $state['departure']['city_id'] = null;
+        }
+        if (array_key_exists('destination.country', $normalizedChanges)
+            && !array_key_exists('destination.country_id', $normalizedChanges)) {
+            $state['destination']['country_id'] = null;
+        }
+
+        foreach ($normalizedChanges as $path => $value) {
             self::set($state, $path, $value);
         }
 

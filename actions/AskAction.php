@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../services/RulesEngine.php';
+require_once __DIR__ . '/../services/IntegrationRegistry.php';
 
 class AskAction
 {
@@ -17,6 +18,6 @@ class AskAction
     {
         $plan = self::plan($decision);
         MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
-        return (bool)MaxSearchApi::MaxSend($plan['text'], $chatId);
+        return IntegrationRegistry::messenger()->send($chatId, $plan['text']);
     }
 }
