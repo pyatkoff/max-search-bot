@@ -10,7 +10,11 @@ function tableExists(PDO $pdo,string $table):bool{
     $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);return(int)$q->fetchColumn()>0;
 }
 function rows(PDO $pdo,string $sql,array $args=[]):array{$q=$pdo->prepare($sql);$q->execute($args);return$q->fetchAll();}
-function compactText(string $text,int $limit=500):string{$text=preg_replace('/\s+/u',' ',trim($text))??trim($text);if(function_exists('mb_strlen')&&mb_strlen($text,'UTF-8')>$limit)return mb_substr($text,0,$limit-3,'UTF-8').'...';return strlen($text)>$limit?substr($text,0,$limit-3).'...':$text;}
+function redactSnapshotText(string $text):string{
+    $text=preg_replace('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u','[phone-redacted]',$text)??$text;
+    return preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu','[email-redacted]',$text)??$text;
+}
+function compactText(string $text,int $limit=500):string{$text=redactSnapshotText($text);$text=preg_replace('/\s+/u',' ',trim($text))??trim($text);if(function_exists('mb_strlen')&&mb_strlen($text,'UTF-8')>$limit)return mb_substr($text,0,$limit-3,'UTF-8').'...';return strlen($text)>$limit?substr($text,0,$limit-3).'...':$text;}
 
 try{
     $pdo=ConversationDb::connection();
