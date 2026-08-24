@@ -8,15 +8,9 @@ class ManagerAuthService
     private static $schemaReady=false;
     public static function ensureSchema(): void
     {
-        if(self::$schemaReady)return;$pdo=ConversationDb::connection();
-        $pdo->exec('ALTER TABLE managers ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NULL AFTER login');
-        $pdo->exec('ALTER TABLE managers ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL AFTER is_active');
+        if(self::$schemaReady)return;
         ManagerAvailabilityService::ensureSchema();
         ProjectAccessService::ensureSchema();
-
-        // Explicit role migration for the two administrative accounts.
-        $pdo->exec("UPDATE managers SET role='admin' WHERE login IN ('manager','Alisha')");
-
         self::$schemaReady=true;
     }
     public static function hasAccounts(): bool
