@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
+require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 
 class WizardCallbackAction
 {
@@ -92,7 +93,7 @@ class WizardCallbackAction
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusStars, str_replace('star_', '', $q));
                 if (MaxSearchApi::finishEditIfNeeded($chatId, 'stars')) return true;
             }
-            MaxSearchApi::showMealButtons($chatId);
+            WizardStepView::meal($chatId);
             return true;
         }
 
@@ -102,7 +103,7 @@ class WizardCallbackAction
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusMeal, str_replace('meal_', '', $q));
                 if (MaxSearchApi::finishEditIfNeeded($chatId, 'meal')) return true;
             }
-            MaxSearchApi::showNightsButtons($chatId);
+            WizardStepView::nights($chatId);
             return true;
         }
 
