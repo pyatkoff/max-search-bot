@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -118,7 +121,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy over SSH
+      - name: Checkout for deploy telemetry
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SSH probe
+        id: ssh_probe
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/www/anytour.online/max-search
+            echo "SSH probe OK: $(pwd)"
+
+      - name: Sync production checkout
+        id: sync
+        if: steps.ssh_probe.outcome == 'success'
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -139,9 +163,61 @@ jobs:
             git reset --hard origin/main
             echo "Deployed commit: $(git rev-parse HEAD)"
 
+      - name: Production smoke checks
+        id: smoke
+        if: steps.sync.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/www/anytour.online/max-search
             php -l webhook.php
             php -l telegram_webhook.php
             php -l telegram_webhook_admin.php
             php tools/telegram_smoke_test.php
             /opt/php81/bin/php tools/telegram_start_smoke.php
             php export_debug_logs.php
+
+      - name: Publish deploy stage status
+        if: always()
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          PROBE_OUTCOME: ${{ steps.ssh_probe.outcome }}
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin diagnostics
+          git checkout -B diagnostics origin/diagnostics
+          printf '{"sha":"%s","probe":"%s","sync":"%s","smoke":"%s","reported_at":"%s"}\n' \
+            "$DEPLOY_SHA" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            > deploy_status.json
+          git add deploy_status.json
+          git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
+          for attempt in 1 2 3; do
+            if git push origin diagnostics; then
+              exit 0
+            fi
+            git pull --rebase origin diagnostics
+          done
+          exit 1
+
+      - name: Fail failed deployment
+        if: always()
+        env:
+          PROBE_OUTCOME: ${{ steps.ssh_probe.outcome }}
+          SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        shell: bash
+        run: |
+          set -e
+          test "$PROBE_OUTCOME" = "success"
+          test "$SYNC_OUTCOME" = "success"
+          test "$SMOKE_OUTCOME" = "success"
