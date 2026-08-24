@@ -12,6 +12,7 @@ class ProjectHealth
             'features' => self::featureInfo($baseDir),
             'tourvisor_routes' => self::routesInfo($baseDir),
             'runtime' => self::runtimeInfo($baseDir),
+            'max_update_dedupe' => self::dedupeInfo($baseDir),
         ];
     }
 
@@ -156,5 +157,42 @@ class ProjectHealth
             ];
         }
         return $out;
+    }
+
+    private static function dedupeInfo($baseDir)
+    {
+        $service = $baseDir . '/services/IncomingUpdateDeduplicator.php';
+        if (!is_file($service) || !is_readable($service)) {
+            return ['ok'=>false, 'error'=>'deduplicator_unavailable'];
+        }
+
+        require_once $service;
+        if (!class_exists('IncomingUpdateDeduplicator')) {
+            return ['ok'=>false, 'error'=>'deduplicator_class_missing'];
+        }
+
+        $storage = sys_get_temp_dir() . '/max-search-bot-dedupe-health-' . getmypid() . '-' . bin2hex(random_bytes(4)) . '.json';
+        $event = [
+            'update_type' => 'message_callback',
+            'callback' => ['callback_id' => 'health-' . bin2hex(random_bytes(8))],
+        ];
+
+        try {
+            $first = IncomingUpdateDeduplicator::claim($event, $storage);
+            $second = IncomingUpdateDeduplicator::claim($event, $storage);
+            return [
+                'ok' => ($first === true && $second === false),
+                'first_accepted' => ($first === true),
+                'duplicate_rejected' => ($second === false),
+                'storage_created' => is_file($storage),
+            ];
+        } catch (Throwable $e) {
+            return [
+                'ok' => false,
+                'error' => get_class($e) . ': ' . $e->getMessage(),
+            ];
+        } finally {
+            @unlink($storage);
+        }
     }
 }
