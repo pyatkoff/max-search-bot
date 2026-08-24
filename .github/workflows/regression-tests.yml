@@ -8,7 +8,6 @@ on:
 jobs:
   regression:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,105 +19,5 @@ jobs:
           extensions: mbstring
           coverage: none
 
-      - name: PHP syntax check
-        shell: bash
-        run: |
-          set -euo pipefail
-          find . -type f -name '*.php' -not -path './vendor/*' -print0 \
-            | xargs -0 -n1 php -l
-
-      - name: Run deterministic regression suite
-        run: php tests/run_regression.php
-
-      - name: Run AI context regression suite
-        run: php tests/run_ai_context_regression.php
-
-      - name: Run TripState regression suite
-        run: php tests/run_trip_state_regression.php
-
-      - name: Run V2 architecture regression suite
-        run: php tests/run_v2_architecture_regression.php
-
-      - name: Run V2 action layer regression suite
-        run: php tests/run_v2_action_layer_regression.php
-
-      - name: Run integration contracts regression suite
-        run: php tests/run_integration_contracts_regression.php
-
-      - name: Run messenger adapter regression suite
-        run: php tests/run_messenger_adapters_regression.php
-
-      - name: Run website transport regression suite
-        run: php tests/run_website_transport_regression.php
-
-      - name: Run Telegram webhook regression suite
-        run: php tests/run_telegram_webhook_regression.php
-
-      - name: Run Telegram smoke test
-        run: php tools/telegram_smoke_test.php
-
-      - name: Run dialogue application regression suite
-        run: php tests/run_dialogue_application_regression.php
-
-      - name: Run dialogue controller regression suite
-        run: php tests/run_dialogue_controller_regression.php
-
-      - name: Run callback controller regression suite
-        run: php tests/run_callback_controller_regression.php
-
-      - name: Run dialogue view regression suite
-        run: php tests/run_dialogue_view_regression.php
-
-      - name: Run calendar view model regression suite
-        run: php tests/run_calendar_view_model_regression.php
-
-      - name: Run tour results regression suite
-        run: php tests/run_tour_results_regression.php
-
-      - name: Run manager request regression suite
-        run: php tests/run_manager_request_regression.php
-
-      - name: Run manager visibility regression suite
-        run: php tests/run_manager_visibility_regression.php
-
-      - name: Run live session analyzer regression suite
-        run: php tests/run_live_session_analyzer_regression.php
-
-      - name: Run post-tour regression suite
-        run: php tests/run_post_tour_regression.php
-
-      - name: Run messenger-neutral handler regression suite
-        run: php tests/run_messenger_neutral_handlers_regression.php
-
-      - name: Run wizard free-text regression suite
-        run: php tests/run_state_free_text_regression.php
-
-      - name: Run missing-field question regression suite
-        run: php tests/run_missing_field_questions_regression.php
-
-      - name: Run platform boundary regression suite
-        run: php tests/run_platform_boundary_regression.php
-
-      - name: Run shadow dialogue regression suite
-        run: php tests/run_shadow_dialogue_regression.php
-
-      - name: Run shadow comparison regression suite
-        run: php tests/run_shadow_comparison_regression.php
-
-      - name: Run V2 early action regression suite
-        run: php tests/run_v2_early_action_regression.php
-
-      - name: Run state repository regression suite
-        run: php tests/run_state_repository_regression.php
-
-      - name: Run claim regression suite
-        run: php tests/run_claim_regression.php
-
-      - name: Run travel directory regression suite
-        run: php tests/run_directory_regression.php
-
-      - name: Run conversation regression suite
-        run: php tests/run_conversation_regression.php
-
-      - name: Run conversation catalog suite
-        run: php tests/run_conversation_catalog.php
+      - name: Run required checks
+        run: bash tests/run_required_checks.sh
