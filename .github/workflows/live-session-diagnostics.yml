@@ -58,6 +58,7 @@ jobs:
           set -euo pipefail
           out="$RUNNER_TEMP/live_sessions.json"
           cp live_sessions.json "$out"
+          rm -f live_sessions.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
