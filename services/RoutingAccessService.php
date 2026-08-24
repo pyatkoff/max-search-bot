@@ -11,45 +11,6 @@ class RoutingAccessService
     {
         if(self::$schemaReady)return;
         ProjectAccessService::ensureSchema();
-        $pdo=ConversationDb::connection();
-        $pdo->exec("CREATE TABLE IF NOT EXISTS manager_groups (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            project_id BIGINT UNSIGNED NOT NULL,
-            group_key VARCHAR(64) NOT NULL,
-            display_name VARCHAR(191) NOT NULL,
-            is_active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_manager_groups_project_key (project_id, group_key),
-            KEY idx_manager_groups_project (project_id, is_active)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS manager_group_members (
-            group_id BIGINT UNSIGNED NOT NULL,
-            manager_id BIGINT UNSIGNED NOT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (group_id, manager_id),
-            KEY idx_manager_group_members_manager (manager_id, group_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS conversation_sources (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            project_id BIGINT UNSIGNED NOT NULL,
-            source_key VARCHAR(96) NOT NULL,
-            display_name VARCHAR(191) NOT NULL,
-            channel VARCHAR(32) NULL,
-            primary_group_id BIGINT UNSIGNED NULL,
-            fallback_mode VARCHAR(16) NOT NULL DEFAULT 'immediate',
-            fallback_group_id BIGINT UNSIGNED NULL,
-            fallback_after_minutes INT UNSIGNED NOT NULL DEFAULT 0,
-            is_active TINYINT(1) NOT NULL DEFAULT 1,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY uq_conversation_sources_project_key (project_id, source_key),
-            KEY idx_conversation_sources_project (project_id, is_active)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        $pdo->exec("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS source_id BIGINT UNSIGNED NULL AFTER project_key");
-        $pdo->exec("ALTER TABLE managers ADD COLUMN IF NOT EXISTS is_working TINYINT(1) NOT NULL DEFAULT 0 AFTER is_active");
         self::$schemaReady=true;
     }
 
