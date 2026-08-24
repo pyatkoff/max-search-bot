@@ -14,10 +14,8 @@ class ManagerAuthService
         ManagerAvailabilityService::ensureSchema();
         ProjectAccessService::ensureSchema();
 
-        // One-time safety migration: ensure the original owner account and Alisha are admins.
-        // Anastasia and Svetlana are deliberately excluded and remain ordinary managers.
-        $pdo->exec("UPDATE managers SET role='admin' WHERE login='Alisha'");
-        $pdo->exec("UPDATE managers SET role='admin' WHERE id=(SELECT id FROM (SELECT id FROM managers WHERE is_active=1 AND login NOT IN ('Alisha','Anastasia','Svetlana') ORDER BY id ASC LIMIT 1) owner_row)");
+        // Explicit role migration for the two administrative accounts.
+        $pdo->exec("UPDATE managers SET role='admin' WHERE login IN ('manager','Alisha')");
 
         self::$schemaReady=true;
     }
