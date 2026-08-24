@@ -48,6 +48,9 @@ jobs:
       - name: Run messenger adapter regression suite
         run: php tests/run_messenger_adapters_regression.php
 
+      - name: Run website transport regression suite
+        run: php tests/run_website_transport_regression.php
+
       - name: Run Telegram webhook regression suite
         run: php tests/run_telegram_webhook_regression.php
 
