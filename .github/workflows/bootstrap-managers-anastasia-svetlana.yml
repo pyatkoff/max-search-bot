@@ -50,8 +50,8 @@ jobs:
               ManagerAuthService::ensureSchema();
               $pdo=ConversationDb::connection();
               $users=[
-                ["Anastasia","Анастасия",base64_decode("JDJ5JDEyJENIcGtmUUs3bVNGRnNKZ2wwaHVMOGV4a21sZnQ5UEFrUlJwQUdXc2xRYlJIYW5IRzVNN3U2")],
-                ["Svetlana","Светлана",base64_decode("JDJ5JDEyJHBiWm9wMW5sQkpGV09yVWRqZXB1Z2V3ZTloZmtnbXE1RWpSQ0VtQ2pLQ2k0MVpwcjR6SzZ1")]
+                ["Anastasia","Анастасия",base64_decode("JDJ5JDEyJFJiU3BYRHhIQ3dUTEJza2h5VlZ4R2V3V0JWTjFMQlByUFhSWVo1cjVrLlEvbmMwa1dRUTlD")],
+                ["Svetlana","Светлана",base64_decode("JDJ5JDEyJG9vTFl4SHV5YXZtRW9xMXA3RmxxaE95L2I1cEEuYkxqU0NmTjlKS0hyS1JIcFJQUUxSbGJL")]
               ];
               $projectId=ProjectAccessService::ensureCurrentProject();
               foreach($users as [$login,$display,$hash]){
