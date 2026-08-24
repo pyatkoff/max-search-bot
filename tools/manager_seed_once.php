@@ -11,17 +11,13 @@ $login = 'manager1';
 $hash = '$2y$12$NvK/nLlXQeSmS6O.Qrrl8OPITlSShWACFBiM7YChqCuEnd/ROBqiK';
 $name = 'Менеджер AnyTour';
 
-$q = $pdo->prepare('SELECT id,password_hash FROM managers WHERE login=? LIMIT 1');
+$q = $pdo->prepare('SELECT id FROM managers WHERE login=? LIMIT 1');
 $q->execute([$login]);
-$row = $q->fetch();
-if ($row) {
-    if (empty($row['password_hash'])) {
-        $pdo->prepare('UPDATE managers SET password_hash=?,display_name=COALESCE(NULLIF(display_name,\'\'),?),is_active=1 WHERE id=?')
-            ->execute([$hash,$name,(int)$row['id']]);
-        echo "MANAGER SEEDED\nLOGIN: {$login}\n";
-    } else {
-        echo "MANAGER EXISTS\nLOGIN: {$login}\n";
-    }
+$id = (int)$q->fetchColumn();
+if ($id) {
+    $pdo->prepare('UPDATE managers SET password_hash=?,display_name=COALESCE(NULLIF(display_name,\'\'),?),is_active=1 WHERE id=?')
+        ->execute([$hash,$name,$id]);
+    echo "MANAGER PASSWORD RESET\nLOGIN: {$login}\n";
     exit(0);
 }
 
