@@ -26,6 +26,19 @@ foreach ($files as $name => $file) {
     mnhCheck($name . ' uses messenger abstraction', strpos($source, 'IntegrationRegistry::messenger()->send(') !== false, true);
 }
 
+$aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
+mnhCheck('AiMessageHandler has no direct MaxSend', strpos($aiMessageSource, 'MaxSearchApi::MaxSend(') === false, true);
+mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($aiMessageSource, 'MaxSearchApi::showCheckButtons(') === false, true);
+mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
+
+$shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+mnhCheck('AiShortAnswerHandler accepts week as nights', preg_match('/недел/u', $shortSource) === 1, true);
+mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
+
+$controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueController.php');
+mnhCheck('DialogueController start uses DialogueView', strpos($controllerSource, 'DialogueView::start($chatId)') !== false, true);
+mnhCheck('DialogueController start has no legacy Max showStart', strpos($controllerSource, 'MaxSearchApi::showStart(') === false, true);
+
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
