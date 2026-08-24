@@ -22,7 +22,7 @@ class WebsiteMessengerAdapter implements MessengerInterface
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
         $this->messages[] = ['type'=>'message','text'=>$text,'buttons'=>$buttons];
-        ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, ['has_buttons'=>true]);
+        ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, ['has_buttons'=>true,'buttons'=>$buttons]);
         return true;
     }
 
