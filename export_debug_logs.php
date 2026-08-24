@@ -31,6 +31,7 @@ $outputs = [
     'metrika_queue'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika-queue.json',
 ];
 $shadowComparisonOutput = $baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-shadow-comparison.json';
+$conversationOutput = $baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-conversations.json';
 
 function tailLines($file,$maxLines){
     if(!is_file($file)||!is_readable($file))return[];$fh=fopen($file,'rb');if(!$fh)return[];
@@ -39,7 +40,41 @@ function tailLines($file,$maxLines){
     $lines=preg_split("/\r\n|\n|\r/",$buffer);if($lines&&end($lines)==='')array_pop($lines);if(count($lines)>$maxLines)$lines=array_slice($lines,-$maxLines);return$lines;
 }
 function redactLine($line){$line=preg_replace('/"(first_name|last_name|name|avatar_url|full_avatar_url)"\s*:\s*"[^"]*"/u','"$1":"[redacted]"',$line);return preg_replace('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u','[phone-redacted]',$line);}
+function redactConversationText($text){
+    $text=(string)$text;
+    $text=preg_replace('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u','[phone-redacted]',$text);
+    $text=preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu','[email-redacted]',$text);
+    return $text;
+}
 function atomicWriteJson($path,$data){$tmp=$path.'.tmp';$json=json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if($json===false)return false;if(file_put_contents($tmp,$json,LOCK_EX)===false)return false;@chmod($tmp,0644);return rename($tmp,$path);}
+
+function collectConversationSnapshot($baseDir,$limit=150){
+    $result=['ok'=>false,'generated_at'=>date('c'),'channel'=>'max','count'=>0,'messages'=>[]];
+    try{
+        $config=$baseDir.'/config.php';$service=$baseDir.'/services/ConversationDb.php';
+        if(!is_file($config)||!is_file($service)){throw new RuntimeException('conversation_db_files_missing');}
+        require_once $config;require_once $service;
+        if(!ConversationDb::isConfigured()){throw new RuntimeException('conversation_db_not_configured');}
+        $pdo=ConversationDb::connection();$limit=max(1,min(500,(int)$limit));
+        $sql='SELECT m.id,m.conversation_id,m.direction,m.sender_type,m.channel,m.text,m.created_at '
+            .'FROM messages m WHERE m.channel = \'max\' ORDER BY m.id DESC LIMIT '.$limit;
+        $rows=$pdo->query($sql)->fetchAll();
+        $rows=array_reverse($rows);
+        foreach($rows as$row){
+            $result['messages'][]=[
+                'id'=>(int)$row['id'],
+                'conversation_id'=>(int)$row['conversation_id'],
+                'direction'=>(string)$row['direction'],
+                'sender_type'=>(string)$row['sender_type'],
+                'channel'=>'max',
+                'text'=>redactConversationText($row['text']),
+                'created_at'=>(string)$row['created_at'],
+            ];
+        }
+        $result['count']=count($result['messages']);$result['ok']=true;
+    }catch(Throwable $e){$result['error']=get_class($e).': '.$e->getMessage();}
+    return $result;
+}
 
 function phpEnvironment(){
     $c=[PHP_BINARY,'/usr/bin/php','/usr/bin/php8.4','/usr/bin/php8.3','/usr/bin/php8.2','/usr/bin/php8.1','/usr/bin/php8.0','/usr/bin/php7.4','/opt/php84/bin/php','/opt/php83/bin/php','/opt/php82/bin/php','/opt/php81/bin/php','/opt/php80/bin/php','/opt/php74/bin/php'];
@@ -61,6 +96,15 @@ foreach($logs as$type=>$file){$max=$maxLinesByType[$type]??1000;$entry=['ok'=>fa
     if(is_file($file)&&is_readable($file)){$lines=tailLines($file,$max);foreach($lines as&$line)$line=redactLine($line);unset($line);$entry['ok']=true;$entry['size_bytes']=filesize($file);$entry['mtime']=date('c',filemtime($file));$entry['count']=count($lines);$entry['lines']=$lines;}else{$entry['error']='file_not_found_or_unreadable';}
     atomicWriteJson($outputs[$type],$entry);$manifest['logs'][$type]=['ok'=>$entry['ok'],'source'=>$entry['source'],'count'=>$entry['count']??0,'max_lines'=>$max,'file'=>basename($outputs[$type])];
 }
+
+$conversationSnapshot=collectConversationSnapshot($baseDir,150);
+atomicWriteJson($conversationOutput,$conversationSnapshot);
+$manifest['reports']['conversations']=[
+    'ok'=>$conversationSnapshot['ok'],
+    'channel'=>'max',
+    'count'=>$conversationSnapshot['count'],
+    'file'=>basename($conversationOutput),
+];
 
 $comparison = ShadowComparisonReport::build($baseDir.'/structured_events.log');
 atomicWriteJson($shadowComparisonOutput, $comparison);
