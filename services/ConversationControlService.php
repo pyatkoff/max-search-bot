@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
+require_once __DIR__ . '/ManagerPushService.php';
 
 class ConversationControlService
 {
@@ -27,6 +28,7 @@ class ConversationControlService
         $pdo = ConversationDb::connection();
         $pdo->prepare('UPDATE conversations SET status=?, manager_id=NULL WHERE id=?')->execute(['waiting_manager',(int)$row['id']]);
         self::event((int)$row['id'], 'waiting_manager', 'customer', null, $payload);
+        ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
         return true;
     }
 
