@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectAccessService.php';
+require_once __DIR__ . '/ManagerAuthService.php';
 
 class RoutingAccessService
 {
