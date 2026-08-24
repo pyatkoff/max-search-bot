@@ -9,7 +9,7 @@ class ManagerOutboundService
     public static function send(int $conversationId, int $managerId, string $text): bool
     {
         $text = trim($text); if ($text === '') return false;
-        $detail = ManagerConversationService::detail($conversationId);
+        $detail = ManagerConversationService::detail($conversationId,$managerId);
         if (!$detail) return false;
         $c = $detail['conversation'];
         if ((string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) return false;
@@ -19,7 +19,7 @@ class ManagerOutboundService
         elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager');
         else return false;
         $ok = $adapter->send($chatId, htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-        if ($ok) ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel]);
+        if ($ok) ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
         return $ok;
     }
 }
