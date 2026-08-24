@@ -12,8 +12,6 @@ class AiShortAnswerHandler
         $missing = MaxSearchApi::getAiMissingFields($chat_id);
         if (empty($missing)) return false;
 
-        // Важно: короткий ответ трактуем только как ответ на ТЕКУЩИЙ вопрос.
-        // Поэтому смотрим только первое missing-поле, а не пытаемся угадать всё сообщение.
         $field = (string)$missing[0];
         if (!in_array($field, ['adults','children','child_ages','stars','meal','nights'], true)) {
             return false;
@@ -76,14 +74,18 @@ class AiShortAnswerHandler
             $params['meal'] = $meal;
         }
         elseif ($field === 'nights') {
-            $normalized = str_replace(['–','—',' '], ['-','-',''], $lower);
-            if (preg_match('/^(\d{1,2})(?:-(\d{1,2}))?(?:ноч(?:ь|и|ей))?$/ui', $normalized, $m)) {
-                $a = (int)$m[1];
-                $b = isset($m[2]) && $m[2] !== '' ? (int)$m[2] : $a;
-                if ($a < 1 || $a > 28 || $b < 1 || $b > 28 || $a > $b) return false;
-                $params['nights'] = $a === $b ? (string)$a : ($a.'-'.$b);
+            if (preg_match('/^(?:на\s+)?недел(?:я|ю|ьку)$/ui', $lower)) {
+                $params['nights'] = '7';
             } else {
-                return false;
+                $normalized = str_replace(['–','—',' '], ['-','-',''], $lower);
+                if (preg_match('/^(\d{1,2})(?:-(\d{1,2}))?(?:ноч(?:ь|и|ей))?$/ui', $normalized, $m)) {
+                    $a = (int)$m[1];
+                    $b = isset($m[2]) && $m[2] !== '' ? (int)$m[2] : $a;
+                    if ($a < 1 || $a > 28 || $b < 1 || $b > 28 || $a > $b) return false;
+                    $params['nights'] = $a === $b ? (string)$a : ($a.'-'.$b);
+                } else {
+                    return false;
+                }
             }
         }
 
