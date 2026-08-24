@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -187,20 +191,31 @@ jobs:
             git fetch origin main
 
             if ! git diff --quiet || ! git diff --cached --quiet; then
-              backup_name="autodeploy-backup-$(date +%Y%m%d-%H%M%S)"
-              echo "Tracked production changes detected; saving them as ${backup_name}"
+              echo "ERROR: tracked production drift detected; refusing to overwrite local changes"
               git status --short
-              git stash push -m "${backup_name}"
+              exit 1
             fi
 
             git reset --hard origin/main
             echo "Deployed commit: $(git rev-parse HEAD)"
-            echo "Applying database migrations before smoke checks"
+
+      - name: Apply database migrations
+        id: migration
+        if: steps.sync.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ runner.temp }}/deploy_key
+          script: |
+            set -e
+            cd ~/www/anytour.online/max-search
             /opt/php81/bin/php tools/conversation_db.php migrate
 
       - name: Production smoke checks
         id: smoke
-        if: steps.sync.outcome == 'success'
+        if: steps.migration.outcome == 'success'
         continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -240,6 +255,7 @@ jobs:
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
           PROBE_OUTCOME: ${{ steps.ssh_probe.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
         shell: bash
         run: |
@@ -251,8 +267,8 @@ jobs:
           if [ -d ../production-diagnostics ]; then
             find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp {} . \;
           fi
-          printf '{"sha":"%s","run_id":"%s","key":"%s","probe":"%s","sync":"%s","smoke":"%s","reported_at":"%s"}\n' \
-            "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          printf '{"sha":"%s","run_id":"%s","key":"%s","probe":"%s","sync":"%s","migration":"%s","smoke":"%s","reported_at":"%s"}\n' \
+            "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             > deploy_status.json
           git add deploy_status.json *.json
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
@@ -270,6 +286,7 @@ jobs:
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
           PROBE_OUTCOME: ${{ steps.ssh_probe.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
         shell: bash
         run: |
@@ -277,4 +294,5 @@ jobs:
           test "$KEY_OUTCOME" = "success"
           test "$PROBE_OUTCOME" = "success"
           test "$SYNC_OUTCOME" = "success"
+          test "$MIGRATION_OUTCOME" = "success"
           test "$SMOKE_OUTCOME" = "success"
