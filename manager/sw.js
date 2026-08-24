@@ -1,19 +1,29 @@
 self.addEventListener('install',event=>{self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(self.clients.claim());});
 
-self.addEventListener('message',event=>{
-  const data=event.data||{};
-  if(data.type!=='SHOW_NOTIFICATION')return;
+function show(data){
   const title=data.title||'AnyTour — новое сообщение';
   const options={
     body:data.body||'Клиент написал в диалог',
-    tag:data.tag||'anytour-manager',
+    tag:data.tag||('anytour-manager-'+Number(data.conversationId||0)),
     renotify:true,
     data:{conversationId:Number(data.conversationId||0),url:data.url||'./'},
     icon:data.icon||undefined,
     badge:data.badge||undefined
   };
-  event.waitUntil(self.registration.showNotification(title,options));
+  return self.registration.showNotification(title,options);
+}
+
+self.addEventListener('message',event=>{
+  const data=event.data||{};
+  if(data.type!=='SHOW_NOTIFICATION')return;
+  event.waitUntil(show(data));
+});
+
+self.addEventListener('push',event=>{
+  let data={};
+  try{data=event.data?event.data.json():{};}catch(e){data={body:event.data?event.data.text():'Новое сообщение'};}
+  event.waitUntil(show(data));
 });
 
 self.addEventListener('notificationclick',event=>{
