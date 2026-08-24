@@ -9,6 +9,9 @@ return [
     'brand' => [
         'name' => 'AnyTour',
     ],
+    'routing' => [
+        'source_key' => 'max:anytour-main',
+    ],
     'messenger' => [
         'provider' => 'max',
         'channel_url' => 'https://max.ru/anytour',
