@@ -1,0 +1,48 @@
+<?php
+require_once __DIR__ . '/RoutingAccessService.php';
+
+class RoutingAdminService
+{
+    private static function requireAdmin(int $managerId): bool
+    {
+        $m=ManagerAuthService::byId($managerId);
+        return $m && (string)($m['role']??'manager')==='admin';
+    }
+
+    public static function snapshot(int $managerId,string $projectKey): array
+    {
+        if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return[];
+        RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);
+        $q=$pdo->prepare('SELECT id,group_key,display_name,is_active FROM manager_groups WHERE project_id=? ORDER BY display_name');$q->execute([$projectId]);$groups=$q->fetchAll();
+        foreach($groups as &$g){$m=$pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_group_members gm ON gm.manager_id=m.id WHERE gm.group_id=? AND m.is_active=1 ORDER BY COALESCE(m.display_name,m.login)');$m->execute([(int)$g['id']]);$g['members']=$m->fetchAll();}unset($g);
+        $q=$pdo->prepare('SELECT s.id,s.source_key,s.display_name,s.channel,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes,s.is_active FROM conversation_sources s WHERE s.project_id=? ORDER BY s.display_name');$q->execute([$projectId]);
+        $managers=$pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE mp.project_id=? AND m.is_active=1 ORDER BY COALESCE(m.display_name,m.login)');$managers->execute([$projectId]);
+        return['groups'=>$groups,'sources'=>$q->fetchAll(),'managers'=>$managers->fetchAll()];
+    }
+
+    public static function saveGroup(int $managerId,string $projectKey,int $groupId,string $groupKey,string $displayName,array $memberIds): bool
+    {
+        if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
+        RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$groupKey=trim($groupKey);$displayName=trim($displayName);
+        if($projectId<=0||$groupKey===''||$displayName==='')return false;
+        $pdo->beginTransaction();try{
+            if($groupId>0){$q=$pdo->prepare('UPDATE manager_groups SET group_key=?,display_name=? WHERE id=? AND project_id=?');$q->execute([$groupKey,$displayName,$groupId,$projectId]);if(!$q->rowCount()){ $check=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=?');$check->execute([$groupId,$projectId]);if(!$check->fetchColumn())throw new RuntimeException('group_not_found');}}
+            else{$q=$pdo->prepare('INSERT INTO manager_groups (project_id,group_key,display_name) VALUES (?,?,?)');$q->execute([$projectId,$groupKey,$displayName]);$groupId=(int)$pdo->lastInsertId();}
+            $pdo->prepare('DELETE FROM manager_group_members WHERE group_id=?')->execute([$groupId]);
+            $ins=$pdo->prepare('INSERT IGNORE INTO manager_group_members (group_id,manager_id) SELECT ?,m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.id=? AND mp.project_id=? AND m.is_active=1');
+            foreach(array_unique(array_map('intval',$memberIds)) as $mid)if($mid>0)$ins->execute([$groupId,$mid,$projectId]);
+            $pdo->commit();return true;
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return false;}
+    }
+
+    public static function saveSource(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter): bool
+    {
+        if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
+        RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$sourceKey=trim($sourceKey);$displayName=trim($displayName);$fallbackMode=in_array($fallbackMode,['none','delayed','immediate'],true)?$fallbackMode:'none';$fallbackAfter=max(0,$fallbackAfter);
+        if($projectId<=0||$sourceKey===''||$displayName==='')return false;
+        $validGroup=function(int $id)use($pdo,$projectId):?int{if($id<=0)return null;$q=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=? AND is_active=1');$q->execute([$id,$projectId]);return$q->fetchColumn()?(int)$id:null;};
+        $primary=$validGroup($primaryGroupId);$fallback=$validGroup($fallbackGroupId);if($fallbackMode==='none'){$fallback=null;$fallbackAfter=0;}if($fallbackMode==='immediate')$fallbackAfter=0;
+        if($sourceId>0){$q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');$q->execute([$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);return true;}
+        $q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?)');return$q->execute([$projectId,$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter]);
+    }
+}
