@@ -11,6 +11,7 @@ require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
 require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
+require_once $baseDir . '/services/AdminDirectoryService.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -20,6 +21,7 @@ function body(): array { $raw=(string)file_get_contents('php://input'); $v=json_
 function manager(): ?array { $id=(int)($_SESSION['manager_id']??0); return $id?ManagerAuthService::byId($id):null; }
 function csrf(): string { if(empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex(random_bytes(24)); return (string)$_SESSION['csrf']; }
 function requireCsrf(array $data): void { if(!hash_equals(csrf(),(string)($data['csrf']??''))) out(['ok'=>false,'error'=>'csrf'],403); }
+function requireAdmin(array $m): void { if((string)($m['role']??'manager')!=='admin') out(['ok'=>false,'error'=>'forbidden'],403); }
 
 $data=body(); $action=(string)($data['action']??'');
 if($action==='login'){
@@ -35,6 +37,9 @@ requireCsrf($data);
 
 if($action==='logout'){ $_SESSION=[]; session_destroy(); out(['ok'=>true]); }
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
+if($action==='admin_snapshot'){ requireAdmin($m); out(['ok'=>true,'admin'=>AdminDirectoryService::snapshot()]); }
+if($action==='save_project'){ requireAdmin($m); $r=AdminDirectoryService::saveProject($data); out($r,$r['ok']?200:409); }
+if($action==='save_manager'){ requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
 if($action==='save_group'){
     $ok=RoutingAdminService::saveGroup((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));out(['ok'=>$ok],$ok?200:403);
