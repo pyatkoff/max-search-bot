@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
+require_once __DIR__ . '/ManagerAvailabilityService.php';
 
 class WebsiteSessionService
 {
@@ -67,10 +68,12 @@ class WebsiteSessionService
     public static function conversation(string $externalUserId): ?array
     {
         $pdo = ConversationDb::connection();
-        $q = $pdo->prepare('SELECT c.id,c.status,c.manager_id,c.project_key,c.channel,c.last_message_at,m.display_name AS manager_name,cu.display_name,cu.phone,cu.email FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? ORDER BY c.id DESC LIMIT 1');
+        $q = $pdo->prepare('SELECT c.id,c.status,c.manager_id,c.project_key,c.source_id,c.channel,c.started_at,c.last_message_at,m.display_name AS manager_name,cu.display_name,cu.phone,cu.email FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? ORDER BY c.id DESC LIMIT 1');
         $q->execute([ProjectConfig::projectId(),'website',$externalUserId]);
         $row = $q->fetch();
-        return $row ?: null;
+        if(!$row)return null;
+        $row['manager_available']=ManagerAvailabilityService::anyWorkingForConversation($row);
+        return $row;
     }
 
     public static function updateProfile(string $externalUserId, string $name, string $phone = '', string $email = ''): bool
