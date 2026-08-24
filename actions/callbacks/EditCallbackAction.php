@@ -1,4 +1,7 @@
 <?php
+require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
+require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
+require_once dirname(__DIR__, 2) . '/services/EditParamsView.php';
 
 class EditCallbackAction
 {
@@ -11,7 +14,7 @@ class EditCallbackAction
     {
         if ($q === 'edit_params') {
             MaxSearchApi::cancelToursFollowup($chatId);
-            MaxSearchApi::showEditParamsButtons($chatId);
+            EditParamsView::menu($chatId);
             return true;
         }
 
@@ -20,8 +23,6 @@ class EditCallbackAction
             'edit_country'=>['country','showCountryButtons'],
             'edit_tourists'=>['tourists','showAdultsButtons'],
             'edit_stars'=>['stars','showStarsButtons'],
-            'edit_meal'=>['meal','showMealButtons'],
-            'edit_nights'=>['nights','showNightsButtons'],
         ];
         if (isset($map[$q])) {
             [$mode, $method] = $map[$q];
@@ -30,9 +31,21 @@ class EditCallbackAction
             return true;
         }
 
+        if ($q === 'edit_meal') {
+            MaxSearchApi::setEditMode($chatId, 'meal');
+            WizardStepView::meal($chatId);
+            return true;
+        }
+
+        if ($q === 'edit_nights') {
+            MaxSearchApi::setEditMode($chatId, 'nights');
+            WizardStepView::nights($chatId);
+            return true;
+        }
+
         if ($q === 'edit_date') {
             MaxSearchApi::setEditMode($chatId, 'date');
-            MaxSearchApi::showCalendarButtons($chatId, date('m'), date('Y'));
+            DialogueView::calendar($chatId, date('m'), date('Y'));
             return true;
         }
 
