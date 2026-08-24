@@ -57,7 +57,7 @@ jobs:
 
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/conversation_db.php migrate' > migration.log
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/production_snapshot.php' > production_snapshot.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_report.php 60' > live_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php 1' > live_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
 
           php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);}'
