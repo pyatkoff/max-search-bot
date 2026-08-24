@@ -21,7 +21,8 @@ final class LiveSessionAnalyzer
             }
         }
         $eventTypes=array_map(static fn($e)=>(string)($e['event_type']??''),$events);
-        $managerRequested=(($conversation['status']??'')==='manager');
+        $status=(string)($conversation['status']??'');
+        $managerRequested=in_array($status,['waiting_manager','manager'],true);
         foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false)$managerRequested=true;}
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
@@ -41,7 +42,7 @@ final class LiveSessionAnalyzer
             'conversation_id'=>(int)($conversation['id']??0),
             'project_key'=>(string)($conversation['project_key']??''),
             'channel'=>(string)($conversation['channel']??''),
-            'status'=>(string)($conversation['status']??''),
+            'status'=>$status,
             'started'=>$started,
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
