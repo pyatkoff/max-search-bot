@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/WizardStepView.php';
+require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -15,7 +16,7 @@ class StateMessageHandler
                 if($cityRes)
                 {
                     MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusCityChoose,$cityRes["ID"]);
-                    if(!MaxSearchApi::finishEditIfNeeded($chat_id,'city'))
+                    if(!EditFlowService::finishIfNeeded($chat_id,'city'))
                         MaxSearchApi::showCountryButtons($chat_id);
                 }
                 elseif(self::shouldRouteFreeTextToAi($city))
@@ -33,7 +34,7 @@ class StateMessageHandler
                 if($countryRes)
                 {
                     MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusContryChoose,$countryRes["ID"]);
-                    if(!MaxSearchApi::finishEditIfNeeded($chat_id,'country'))
+                    if(!EditFlowService::finishIfNeeded($chat_id,'country'))
                         MaxSearchApi::showAdultsButtons($chat_id);
                 }
                 elseif(self::shouldRouteFreeTextToAi($country))
@@ -76,7 +77,7 @@ class StateMessageHandler
                     {
                         $ageOut = implode(", ",$ageOut);
                         MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge,$ageOut);
-                        if(!MaxSearchApi::finishEditIfNeeded($chat_id,'tourists'))
+                        if(!EditFlowService::finishIfNeeded($chat_id,'tourists'))
                             MaxSearchApi::showStarsButtons($chat_id);
                     }
                 }
@@ -120,7 +121,7 @@ class StateMessageHandler
                     {
                         $nightsOut = implode("-",$nightsOut);
                         MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusNights,$nightsOut);
-                        if(!MaxSearchApi::finishEditIfNeeded($chat_id,'nights'))
+                        if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
                             DialogueView::calendar($chat_id,date("m"),date("Y"));
                     }
                 }
