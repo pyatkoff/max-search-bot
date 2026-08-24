@@ -17,7 +17,7 @@ class NightsParser
         $normalized = str_replace(['–', '—'], '-', $normalized);
         $normalized = trim(preg_replace('/[.!?,]+$/u', '', $normalized));
 
-        if (preg_match('/^(?:на\s+)?недел(?:ю|ьку)$/ui', $normalized)) {
+        if (preg_match('/^(?:на\s+)?недел(?:я|ю|ьку)$/ui', $normalized)) {
             return '7';
         }
 
