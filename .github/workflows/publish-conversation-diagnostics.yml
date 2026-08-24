@@ -67,10 +67,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          cp ../max-search-bot/production_snapshot.json . 2>/dev/null || cp production_snapshot.json .
-          cp ../max-search-bot/handoff.json . 2>/dev/null || cp handoff.json .
-          cp ../max-search-bot/migration.log . 2>/dev/null || cp migration.log .
-          cp ../max-search-bot/ops_status.json . 2>/dev/null || cp ops_status.json .
           git add production_snapshot.json handoff.json migration.log ops_status.json
           git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
           for attempt in 1 2 3; do
