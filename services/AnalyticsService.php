@@ -41,7 +41,7 @@ class AnalyticsService
             date('d.m.Y H:i:s') . '--- ' . json_encode($event, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL,
             FILE_APPEND | LOCK_EX
         );
-        DiagnosticLogger::info('metrika', 'goal_queued', $chatID, $event);
+        DiagnosticLogger::log('metrika', 'goal_queued', $event, $chatID, 'info');
         return true;
     }
 
@@ -74,7 +74,7 @@ class AnalyticsService
             }
             fclose($fp);
 
-            if ($ok) DiagnosticLogger::info('funnel', $event, $chatID, $details + ['traffic'=>$meta]);
+            if ($ok) DiagnosticLogger::log('funnel', $event, $details + ['traffic'=>$meta], $chatID, 'info');
             return $ok;
         } catch (\Throwable $e) {
             @file_put_contents(
@@ -82,7 +82,7 @@ class AnalyticsService
                 date('d.m.Y H:i:s') . '--- ' . (string)$event . ' --- ' . $e->getMessage() . PHP_EOL,
                 FILE_APPEND | LOCK_EX
             );
-            DiagnosticLogger::error('funnel', 'write_failed', $chatID, ['event'=>$event,'error'=>$e->getMessage()]);
+            DiagnosticLogger::error('funnel', 'write_failed', ['event'=>$event,'error'=>$e->getMessage()], $chatID);
             return false;
         }
     }
