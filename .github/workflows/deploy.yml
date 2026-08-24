@@ -213,6 +213,22 @@ jobs:
             /opt/php81/bin/php -l telegram_webhook_admin.php
             /opt/php81/bin/php tools/telegram_smoke_test.php
             /opt/php81/bin/php export_debug_logs.php
+            rm -rf diagnostics
+            mkdir -p diagnostics
+            cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/
+
+      - name: Download production diagnostics
+        id: download_diagnostics
+        if: steps.smoke.outcome == 'success'
+        continue-on-error: true
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key_path: ${{ runner.temp }}/deploy_key
+          source: "~/www/anytour.online/max-search/diagnostics/*.json"
+          target: "production-diagnostics"
+          strip_components: 6
 
       - name: Publish deploy stage status
         if: always()
@@ -230,10 +246,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
+          if [ -d ../production-diagnostics ]; then
+            find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp {} . \;
+          fi
           printf '{"sha":"%s","run_id":"%s","key":"%s","probe":"%s","sync":"%s","smoke":"%s","reported_at":"%s"}\n' \
             "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             > deploy_status.json
-          git add deploy_status.json
+          git add deploy_status.json *.json
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then
