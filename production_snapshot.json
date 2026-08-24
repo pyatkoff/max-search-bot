@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-24T17:49:16+00:00",
+    "generated_at": "2026-08-24T17:49:49+00:00",
     "production": {
-        "sha": "e3e6d4c2a199a4f4a9640424afcc122f1c61410e",
+        "sha": "8b8d22b615f3c1848219ed91238503659ab41013",
         "branch": "main"
     },
     "database": {
@@ -38,13 +38,6 @@
             "baseline": true,
             "checksum_ok": true,
             "applied_at": "2026-08-24 19:34:04"
-        },
-        {
-            "version": "005_runtime_manager_schema.sql",
-            "applied": true,
-            "baseline": false,
-            "checksum_ok": true,
-            "applied_at": "2026-08-24 19:49:14"
         }
     ],
     "stats": {
