@@ -46,4 +46,3 @@ CREATE TABLE IF NOT EXISTS conversation_sources (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS source_id BIGINT UNSIGNED NULL AFTER project_key;
-ALTER TABLE conversations ADD KEY IF NOT EXISTS idx_conversations_source (source_id, status, last_message_at);
