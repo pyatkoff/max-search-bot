@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
+require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 
 class WizardCallbackAction
 {
@@ -58,7 +59,7 @@ class WizardCallbackAction
             else {
                 MaxSearchApi::funnelLog($chatId, 'country_selected', ['payload'=>$q]);
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusContryChoose, str_replace('pick_country_', '', $q));
-                if (MaxSearchApi::finishEditIfNeeded($chatId, 'country')) return true;
+                if (EditFlowService::finishIfNeeded($chatId, 'country')) return true;
             }
             MaxSearchApi::showAdultsButtons($chatId);
             return true;
@@ -82,7 +83,7 @@ class WizardCallbackAction
             $child = str_replace('child_', '', $q);
             MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusChild, $child);
             if ((int)$child === 0) {
-                if (!MaxSearchApi::finishEditIfNeeded($chatId, 'tourists')) MaxSearchApi::showStarsButtons($chatId);
+                if (!EditFlowService::finishIfNeeded($chatId, 'tourists')) MaxSearchApi::showStarsButtons($chatId);
             } else MaxSearchApi::showAgeButtons($chatId, (int)$child);
             return true;
         }
@@ -91,7 +92,7 @@ class WizardCallbackAction
             if ($q === 'back_meal') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusStars, str_replace('star_', '', $q));
-                if (MaxSearchApi::finishEditIfNeeded($chatId, 'stars')) return true;
+                if (EditFlowService::finishIfNeeded($chatId, 'stars')) return true;
             }
             WizardStepView::meal($chatId);
             return true;
@@ -101,7 +102,7 @@ class WizardCallbackAction
             if ($q === 'back_nights') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusMeal, str_replace('meal_', '', $q));
-                if (MaxSearchApi::finishEditIfNeeded($chatId, 'meal')) return true;
+                if (EditFlowService::finishIfNeeded($chatId, 'meal')) return true;
             }
             WizardStepView::nights($chatId);
             return true;
@@ -114,7 +115,7 @@ class WizardCallbackAction
             else {
                 $nights = str_replace('_', '-', str_replace('nights_', '', $q));
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusNights, $nights);
-                if (MaxSearchApi::finishEditIfNeeded($chatId, 'nights')) return true;
+                if (EditFlowService::finishIfNeeded($chatId, 'nights')) return true;
             }
             DialogueView::calendar($chatId, date('m'), date('Y'));
             return true;
@@ -124,7 +125,7 @@ class WizardCallbackAction
             if ($q === 'back_check') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
                 MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
-                if (MaxSearchApi::finishEditIfNeeded($chatId, 'date')) return true;
+                if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
             }
             DialogueView::check($chatId);
             return true;
