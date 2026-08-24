@@ -45,7 +45,7 @@ try{
         if(tableExists($pdo,$table))$snapshot['stats'][$table]=(int)$pdo->query('SELECT COUNT(*) FROM `'.$table.'`')->fetchColumn();
     }
     if(tableExists($pdo,'managers'))$snapshot['managers']=rows($pdo,'SELECT id,login,display_name,role,is_active,is_working,last_login_at FROM managers ORDER BY id');
-    if(tableExists($pdo,'manager_assignments'))$snapshot['manager_usage']=rows($pdo,"SELECT m.id AS manager_id,m.login,COUNT(a.id) AS assignments_total,SUM(CASE WHEN a.released_at IS NULL THEN 1 ELSE 0 END) AS assignments_open FROM managers m LEFT JOIN manager_assignments a ON a.manager_id=m.id GROUP BY m.id,m.login ORDER BY m.id");
+    if(tableExists($pdo,'manager_assignments'))$snapshot['manager_usage']=rows($pdo,"SELECT m.id AS manager_id,m.login,COUNT(a.id) AS assignments_total,SUM(CASE WHEN a.id IS NOT NULL AND a.released_at IS NULL THEN 1 ELSE 0 END) AS assignments_open FROM managers m LEFT JOIN manager_assignments a ON a.manager_id=m.id GROUP BY m.id,m.login ORDER BY m.id");
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
