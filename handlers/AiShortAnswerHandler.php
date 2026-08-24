@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
+require_once dirname(__DIR__) . '/services/DialogueView.php';
 
 class AiShortAnswerHandler
 {
@@ -99,7 +100,7 @@ class AiShortAnswerHandler
 
         $missingAfter = MaxSearchApi::getAiMissingFields($chat_id);
         if (empty($missingAfter)) {
-            MaxSearchApi::showCheckButtons($chat_id);
+            DialogueView::check($chat_id);
             return true;
         }
 
