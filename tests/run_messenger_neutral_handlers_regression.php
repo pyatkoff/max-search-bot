@@ -70,7 +70,7 @@ mnhCheck('EditParamsView has no direct Max transport', strpos($editViewSource, '
 
 $editFlowSource = (string)file_get_contents(__DIR__ . '/../services/EditFlowService.php');
 mnhCheck('EditFlowService returns through DialogueView check', strpos($editFlowSource, 'DialogueView::check(') !== false, true);
-mnhCheck('EditFlowService clears edit mode', strpos($editFlowSource, "MaxSearchApi::setEditMode($chatId, '')") !== false, true);
+mnhCheck('EditFlowService clears edit mode', strpos($editFlowSource, "MaxSearchApi::setEditMode(\$chatId, '')") !== false, true);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
