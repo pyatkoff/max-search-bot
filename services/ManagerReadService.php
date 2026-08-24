@@ -8,14 +8,7 @@ class ManagerReadService
     public static function ensureSchema(): void
     {
         if(self::$ready)return;
-        ConversationDb::connection()->exec("CREATE TABLE IF NOT EXISTS manager_conversation_reads (
-            manager_id BIGINT UNSIGNED NOT NULL,
-            conversation_id BIGINT UNSIGNED NOT NULL,
-            last_read_message_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (manager_id,conversation_id),
-            KEY idx_manager_reads_conversation (conversation_id,manager_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        // Schema is managed by versioned migrations.
         self::$ready=true;
     }
 
