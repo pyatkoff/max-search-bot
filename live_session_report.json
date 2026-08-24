@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-24T22:50:49+00:00",
+    "generated_at": "2026-08-24T22:53:57+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -8,18 +8,20 @@
         "started": 19,
         "needs_collected": 17,
         "tours_opened": 17,
-        "manager_requested": 0,
+        "manager_requested": 2,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 16,
+        "flagged_sessions": 17,
         "drop_points": {
-            "tours_opened": 17,
+            "tours_opened": 15,
+            "manager_requested": 2,
             "collecting_needs": 2
         },
         "flags": {
             "excessive_turns": 16,
             "repeated_same_input": 6,
-            "rapid_date_reselection": 4
+            "rapid_date_reselection": 4,
+            "manager_requested_no_reply": 2
         }
     },
     "sessions": [
@@ -31,14 +33,16 @@
             "started": true,
             "needs_collected": true,
             "tours_opened": true,
-            "manager_requested": false,
+            "manager_requested": true,
             "manager_replied": false,
             "phone_received": false,
             "inbound_messages": 7,
             "outbound_messages": 8,
             "date_picks": 0,
-            "drop_point": "tours_opened",
-            "flags": [],
+            "drop_point": "manager_requested",
+            "flags": [
+                "manager_requested_no_reply"
+            ],
             "started_at": "2026-08-24 21:40:14",
             "last_message_at": "2026-08-24 22:02:44"
         },
@@ -350,15 +354,16 @@
             "started": true,
             "needs_collected": true,
             "tours_opened": true,
-            "manager_requested": false,
+            "manager_requested": true,
             "manager_replied": false,
             "phone_received": false,
             "inbound_messages": 14,
             "outbound_messages": 17,
             "date_picks": 2,
-            "drop_point": "tours_opened",
+            "drop_point": "manager_requested",
             "flags": [
-                "excessive_turns"
+                "excessive_turns",
+                "manager_requested_no_reply"
             ],
             "started_at": "2026-08-24 22:51:23",
             "last_message_at": "2026-08-25 00:11:25"
@@ -427,5 +432,5 @@
             "last_message_at": "2026-08-25 00:44:22"
         }
     ],
-    "since_utc": "2026-08-24 21:50:49"
+    "since_utc": "2026-08-24 21:53:57"
 }
