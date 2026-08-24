@@ -13,6 +13,12 @@ class ManagerAuthService
         $pdo->exec('ALTER TABLE managers ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL AFTER is_active');
         ManagerAvailabilityService::ensureSchema();
         ProjectAccessService::ensureSchema();
+
+        // One-time safety migration: ensure the original owner account and Alisha are admins.
+        // Anastasia and Svetlana are deliberately excluded and remain ordinary managers.
+        $pdo->exec("UPDATE managers SET role='admin' WHERE login='Alisha'");
+        $pdo->exec("UPDATE managers SET role='admin' WHERE id=(SELECT id FROM (SELECT id FROM managers WHERE is_active=1 AND login NOT IN ('Alisha','Anastasia','Svetlana') ORDER BY id ASC LIMIT 1) owner_row)");
+
         self::$schemaReady=true;
     }
     public static function hasAccounts(): bool
