@@ -67,18 +67,6 @@ foreach ($checks as $label => $ok) {
 }
 
 if ($failed === 0) {
-    if (getenv('GITHUB_ACTIONS') !== 'true') {
-        $seed = __DIR__ . '/manager_seed_once.php';
-        $config = dirname(__DIR__) . '/config.php';
-        if (is_file($seed) && is_file($config)) {
-            $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($seed);
-            passthru($cmd, $seedCode);
-            if ($seedCode !== 0) {
-                echo PHP_EOL . "MANAGER SEED: FAILED ({$seedCode})" . PHP_EOL;
-                exit(1);
-            }
-        }
-    }
     echo PHP_EOL . "TELEGRAM SMOKE: OK" . PHP_EOL;
     exit(0);
 }
