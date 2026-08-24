@@ -1,2 +1,2 @@
-ALTER TABLE managers ADD COLUMN password_hash VARCHAR(255) NULL AFTER login;
-ALTER TABLE managers ADD COLUMN last_login_at DATETIME NULL AFTER is_active;
+ALTER TABLE managers ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255) NULL AFTER login;
+ALTER TABLE managers ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL AFTER is_active;
