@@ -9,32 +9,9 @@ class ProjectAccessService
     public static function ensureSchema(): void
     {
         if (self::$schemaReady) return;
-        $pdo = ConversationDb::connection();
-
-        // Schema is managed by versioned migrations. Runtime initialization below
-        // only keeps project/access data in sync and does not alter table structure.
+        // Schema is managed by versioned migrations. Runtime requests must not
+        // silently change manager roles or project access.
         self::ensureCurrentProject();
-        $admins = (int)$pdo->query("SELECT COUNT(*) FROM managers WHERE is_active=1 AND role='admin'")->fetchColumn();
-        if ($admins === 0) {
-            $first = (int)$pdo->query("SELECT id FROM managers WHERE is_active=1 ORDER BY id ASC LIMIT 1")->fetchColumn();
-            if ($first > 0) $pdo->prepare("UPDATE managers SET role='admin' WHERE id=?")->execute([$first]);
-        }
-        $pdo->exec("INSERT IGNORE INTO manager_projects (manager_id,project_id)
-            SELECT m.id,p.id FROM managers m CROSS JOIN projects p WHERE m.is_active=1 AND m.role='admin' AND p.is_active=1");
-
-        // A live manager with no project sees an empty panel. While the installation has
-        // exactly one active project, there is no ambiguity: attach that project automatically.
-        $activeProjectCount = (int)$pdo->query("SELECT COUNT(*) FROM projects WHERE is_active=1")->fetchColumn();
-        if ($activeProjectCount === 1) {
-            $projectId = (int)$pdo->query("SELECT id FROM projects WHERE is_active=1 LIMIT 1")->fetchColumn();
-            if ($projectId > 0) {
-                $q = $pdo->prepare("INSERT IGNORE INTO manager_projects (manager_id,project_id)
-                    SELECT m.id,? FROM managers m
-                    LEFT JOIN manager_projects mp ON mp.manager_id=m.id
-                    WHERE m.is_active=1 AND mp.manager_id IS NULL");
-                $q->execute([$projectId]);
-            }
-        }
         self::$schemaReady = true;
     }
 
