@@ -10,6 +10,7 @@ require_once $baseDir . '/services/ManagerAuthService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
 require_once $baseDir . '/services/ProjectAccessService.php';
+require_once $baseDir . '/services/RoutingAdminService.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -34,6 +35,13 @@ requireCsrf($data);
 
 if($action==='logout'){ $_SESSION=[]; session_destroy(); out(['ok'=>true]); }
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
+if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
+if($action==='save_group'){
+    $ok=RoutingAdminService::saveGroup((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));out(['ok'=>$ok],$ok?200:403);
+}
+if($action==='save_source'){
+    $ok=RoutingAdminService::saveSource((int)$m['id'],(string)($data['project_key']??''),(int)($data['source_id']??0),(string)($data['source_key']??''),(string)($data['display_name']??''),(string)($data['channel']??''),(int)($data['primary_group_id']??0),(string)($data['fallback_mode']??'none'),(int)($data['fallback_group_id']??0),(int)($data['fallback_after_minutes']??0));out(['ok'=>$ok],$ok?200:403);
+}
 if($action==='list') out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],(string)($data['status']??''),100,(string)($data['project_key']??''))]);
 if($action==='detail'){
     $d=ManagerConversationService::detail((int)($data['conversation_id']??0),(int)$m['id']);
