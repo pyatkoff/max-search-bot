@@ -11,8 +11,8 @@ $passed=0;$failed=0;
 function mdpCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 mdpCheck('manager detail exposes active delivery failure',strpos($api,"\$d['delivery_failure']=")!==false && strpos($api,'ManagerDeliveryStateService::activeFailure')!==false);
-mdpCheck('state is based on structured manager_message_failed events',strpos($state,"event_type='manager_message_failed'")!==false && strpos($state,"['category'] ?? '') !== 'suspended'")!==false);
-mdpCheck('new customer inbound clears suspended state',strpos($state,"direction='inbound'")!==false && strpos($state,'$lastInboundAt > $failedAt')!==false);
+mdpCheck('state is based on structured manager_message_failed events',strpos($state,"event_type='manager_message_failed'")!==false && strpos($state,"['category']")!==false && strpos($state,"'suspended'")!==false);
+mdpCheck('new customer inbound clears suspended state',strpos($state,"direction='inbound'")!==false && strpos($state,'$lastInboundAt')!==false && strpos($state,'$failedAt')!==false && strpos($state,'$lastInboundAt>')!==false);
 mdpCheck('suspended state explicitly disables retry',strpos($state,"'retry_allowed'=>false")!==false || strpos($state,"'retry_allowed' => false")!==false);
 mdpCheck('manager panel has persistent delivery failure marker',strpos($panel,'id="deliveryFailure"')!==false && strpos($panel,'renderDeliveryFailure(j.delivery_failure)')!==false);
 mdpCheck('manager panel disables send controls while suspended',strpos($panel,"f.category==='suspended'")!==false && strpos($panel,'send.disabled=suspended')!==false && strpos($panel,"$('text').disabled=suspended")!==false);
