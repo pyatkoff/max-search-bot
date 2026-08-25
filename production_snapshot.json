@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T22:47:05+00:00",
+    "generated_at": "2026-08-25T23:45:21+00:00",
     "production": {
-        "sha": "1afe1c10e5aa4483e31db85d3935b9201bc4f40d",
+        "sha": "dad094091bdc9ef0f1603799845368a1b4231bfa",
         "branch": "main"
     },
     "database": {
@@ -213,7 +213,7 @@
         "pending_count": 5,
         "overdue_count": 5,
         "stuck_count": 5,
-        "oldest_wait_seconds": 16383,
+        "oldest_wait_seconds": 19878,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -223,7 +223,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:14:03",
-                "wait_seconds": 16383,
+                "wait_seconds": 19878,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -238,7 +238,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:38:19",
-                "wait_seconds": 14927,
+                "wait_seconds": 18422,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -253,7 +253,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 23:06:18",
-                "wait_seconds": 6048,
+                "wait_seconds": 9543,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -268,7 +268,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:00:24",
-                "wait_seconds": 2802,
+                "wait_seconds": 6297,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -283,7 +283,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:12:25",
-                "wait_seconds": 2081,
+                "wait_seconds": 5576,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -320,11 +320,60 @@
         ],
         "working_manager_notification_path_ok": false
     },
+    "handoff_integrity_health": {
+        "ok": false,
+        "anomaly_count": 6,
+        "anomalies": [
+            {
+                "conversation_id": 93,
+                "status": "manager",
+                "manager_id": 4,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 5
+            },
+            {
+                "conversation_id": 88,
+                "status": "manager",
+                "manager_id": 4,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 3
+            },
+            {
+                "conversation_id": 87,
+                "status": "manager",
+                "manager_id": 4,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 3
+            },
+            {
+                "conversation_id": 76,
+                "status": "manager",
+                "manager_id": 2,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 2
+            },
+            {
+                "conversation_id": 17,
+                "status": "manager",
+                "manager_id": 4,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 2
+            },
+            {
+                "conversation_id": 2,
+                "status": "manager",
+                "manager_id": 2,
+                "reason": "duplicate_active_assignments",
+                "active_assignment_count": 3
+            }
+        ]
+    },
     "health": {
         "manager_visibility_ok": true,
         "manager_visibility_anomalies": [],
         "manager_response_ok": false,
         "manager_push_ok": false,
+        "handoff_integrity_ok": false,
         "website_attribution_ok": true,
         "website_attribution_anomalies": []
     },
