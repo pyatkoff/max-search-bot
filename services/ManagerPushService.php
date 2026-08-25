@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/ManagerPriorityService.php';
 
 class ManagerPushService
 {
@@ -68,13 +69,18 @@ class ManagerPushService
         try{
             self::ensureSchema();
             $pdo=ConversationDb::connection();
-            $q=$pdo->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,cu.display_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
+            $q=$pdo->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,cu.display_name,p.display_name AS project_name,s.display_name AS source_name,s.source_key FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
             $q->execute([$conversationId]); $c=$q->fetch(); if(!$c) return;
             $managers=[];
             if((string)$c['status']==='manager' && !empty($c['manager_id'])) $managers=[(int)$c['manager_id']];
             elseif((string)$c['status']==='waiting_manager'){
-                $r=$pdo->query('SELECT id FROM managers WHERE is_active=1');
+                $r=$pdo->query('SELECT id FROM managers WHERE is_active=1 AND is_working=1');
                 foreach($r->fetchAll() as $m){$id=(int)$m['id']; if(RoutingAccessService::canSeeConversation($id,$c))$managers[]=$id;}
+                if($managers){
+                    $eligible=$managers;$scores=ManagerPriorityService::scores($eligible,$c);$preferred=ManagerPriorityService::preferred($eligible,$c);
+                    if($preferred)$managers=$preferred;
+                    if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_priority','push_selected',['conversation_id'=>$conversationId,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$managers,'scores'=>$scores,'entry_channel'=>$c['entry_channel']??null],null,'info');}catch(Throwable $ignored){}}
+                }
             } else return;
             if(!$managers)return;
             $title=trim((string)($c['display_name']??'')); if($title==='')$title='Новый диалог AnyTour';

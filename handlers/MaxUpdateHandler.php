@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/IncomingUpdateDeduplicator.php';
+require_once __DIR__ . '/../services/TrafficAttributionService.php';
 
 class MaxUpdateHandler
 {
@@ -38,36 +39,15 @@ class MaxUpdateHandler
 
         if ($type === 'bot_started' && $userId) {
             $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
-            $yclid = '';
-            $region = '';
-            $campaign = '';
-
-            if ($payload !== '') {
-                $clean = preg_replace('/^ya/i', '', $payload);
-
-                if (preg_match('/^(\d{6,})_region_([^_]*)_campaign_([^_]*)/i', $clean, $m)) {
-                    $yclid = $m[1] ?? '';
-                    $region = $m[2] ?? '';
-                    $campaign = $m[3] ?? '';
-                }
-                elseif (preg_match('/^(\d{6,})_key_(.*?)_(\d+)_campaign_([^_]+)/i', $clean, $m)) {
-                    $yclid = $m[1] ?? '';
-                    $region = $m[3] ?? '';
-                    $campaign = $m[4] ?? '';
-                }
-                elseif (preg_match('/^_?(\d{6,})_r_([^_]+)(?:_c_([^_]+))?/i', $clean, $m)) {
-                    $yclid = $m[1] ?? '';
-                    $region = $m[2] ?? '';
-                    $campaign = $m[3] ?? '';
-                }
-                elseif (preg_match('/^(\d{6,})/', $clean, $m)) {
-                    $yclid = $m[1];
-                }
-            }
+            $meta=TrafficAttributionService::parseStartPayload($payload);
+            $yclid=(string)($meta['yclid']??'');
+            $region=(string)($meta['region_id']??'');
+            $campaign=(string)($meta['campaign_id']??'');
+            $entry=(string)($meta['entry_channel']??'');
 
             if ($yclid !== '') MaxSearchApi::addYclid($internalId, $yclid);
-            MaxSearchApi::saveTrafficMeta($internalId, $yclid, $region, $campaign, $payload);
-            MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload]);
+            TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry);
+            MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload,'entry_channel'=>$entry]);
 
             MaxSearchApi::cancelToursFollowup($internalId);
             MaxSearchApi::deleteAllStatus($internalId);

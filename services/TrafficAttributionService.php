@@ -3,7 +3,7 @@
 /**
  * Runtime traffic metadata for one chat.
  *
- * Keeps yclid/region/campaign file persistence out of the legacy base class.
+ * Keeps yclid/region/campaign/entry-channel file persistence out of the legacy base class.
  * The service does not know about Bitrix and never reads secrets.
  */
 class TrafficAttributionService
@@ -15,13 +15,45 @@ class TrafficAttributionService
         return $dir . '/' . preg_replace('/[^0-9\-]/', '', (string)$chatID) . '.json';
     }
 
-    public static function save($baseDir, $chatID, $yclid = '', $region = '', $campaign = '', $raw = '')
+    public static function parseStartPayload($payload)
+    {
+        $raw=trim((string)$payload);$clean=preg_replace('/^ya/i','',$raw);
+        $out=['yclid'=>'','region_id'=>'','campaign_id'=>'','entry_channel'=>'','raw'=>$raw];
+        if($clean==='')return$out;
+
+        if(preg_match('/^(\d{6,})_region_([^_]*)_campaign_([^_]*)/i',$clean,$m)){
+            $out['yclid']=$m[1]??'';$out['region_id']=$m[2]??'';$out['campaign_id']=$m[3]??'';
+        }elseif(preg_match('/^(\d{6,})_key_(.*?)_(\d+)_campaign_([^_]+)/i',$clean,$m)){
+            $out['yclid']=$m[1]??'';$out['region_id']=$m[3]??'';$out['campaign_id']=$m[4]??'';
+        }elseif(preg_match('/^_?(\d{6,})_r_([^_]+)(?:_c_([^_]+))?/i',$clean,$m)){
+            $out['yclid']=$m[1]??'';$out['region_id']=$m[2]??'';$out['campaign_id']=$m[3]??'';
+        }elseif(preg_match('/^(\d{6,})/',$clean,$m)){
+            $out['yclid']=$m[1]??'';
+        }
+
+        if($out['region_id']==='' && preg_match('/(?:^|_)region_([^_]*)_campaign_([^_]*)/i',$clean,$m)){
+            $out['region_id']=$m[1]??'';$out['campaign_id']=$m[2]??'';
+        }
+        if($out['region_id']==='' && preg_match('/(?:^|_)r_([^_]+)(?:_c_([^_]+))?/i',$clean,$m)){
+            $out['region_id']=$m[1]??'';$out['campaign_id']=$m[2]??'';
+        }
+        if($out['campaign_id']==='' && preg_match('/(?:^|_)campaign_([^_]+)/i',$clean,$m))$out['campaign_id']=$m[1]??'';
+
+        if(preg_match('/(?:^|_)entry_(.+?)(?=_region_|_campaign_|_r_|_c_|$)/i',$clean,$m)){
+            $entry=strtolower(trim((string)($m[1]??'')));
+            if(preg_match('/^[a-z0-9][a-z0-9_-]{0,63}$/',$entry))$out['entry_channel']=$entry;
+        }
+        return$out;
+    }
+
+    public static function save($baseDir, $chatID, $yclid = '', $region = '', $campaign = '', $raw = '', $entryChannel = '')
     {
         $data = [
             'chat_id' => (string)$chatID,
             'yclid' => (string)$yclid,
             'region_id' => (string)$region,
             'campaign_id' => (string)$campaign,
+            'entry_channel' => (string)$entryChannel,
             'raw' => (string)$raw,
             'updated_at' => date('c'),
         ];
@@ -53,10 +85,12 @@ class TrafficAttributionService
         if ($yclid === '') $yclid = trim((string)($meta['yclid'] ?? ''));
         $region = trim((string)($meta['region_id'] ?? ''));
         $campaign = trim((string)($meta['campaign_id'] ?? ''));
+        $entry = trim((string)($meta['entry_channel'] ?? ''));
 
         $start = $yclid;
+        if($entry!=='')$start.=($start!==''?'_':'').'entry_'.$entry;
         if ($region !== '' || $campaign !== '') {
-            $start .= '_region_' . $region . '_campaign_' . $campaign;
+            $start .= ($start!==''?'_':'') . 'region_' . $region . '_campaign_' . $campaign;
         }
         if ($start === '') $start = '0';
 
