@@ -47,7 +47,7 @@ class ManagerPushService
         if(strlen($x)!==32||strlen($y)!==32) throw new RuntimeException('invalid_vapid_key');
         $cfg=['private_pem'=>$pem,'public_key'=>self::b64u("\x04".$x.$y),'subject'=>'mailto:admin@anytour.online'];
         $tmp=$path.'.tmp.'.bin2hex(random_bytes(4));
-        file_put_contents($tmp,"<?php\nreturn ".var_export($cfg,true).";\n",LOCK_EX); @chmod($tmp,0600,true); rename($tmp,$path);
+        file_put_contents($tmp,"<?php\nreturn ".var_export($cfg,true).";\n",LOCK_EX); @chmod($tmp,0600); rename($tmp,$path);
         return $cfg;
     }
 
