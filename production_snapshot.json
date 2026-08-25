@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T08:43:38+00:00",
+    "generated_at": "2026-08-25T08:47:45+00:00",
     "production": {
-        "sha": "cf56ab581b7b39ca57284a388276cc4d0260688b",
+        "sha": "9d718a2b9a3d863233f829b6881912088b808090",
         "branch": "main"
     },
     "database": {
@@ -72,7 +72,7 @@
         "customers": 171,
         "customer_channels": 171,
         "conversations": 172,
-        "messages": 4650,
+        "messages": 4652,
         "managers": 5,
         "manager_assignments": 48,
         "conversation_events": 126,
@@ -165,7 +165,7 @@
             "is_working": false,
             "all": 170,
             "mine": 2,
-            "waiting": 0,
+            "waiting": 5,
             "assigned_to_others": 19
         },
         {
@@ -175,7 +175,7 @@
             "is_working": false,
             "all": 170,
             "mine": 0,
-            "waiting": 0,
+            "waiting": 5,
             "assigned_to_others": 21
         },
         {
@@ -185,7 +185,7 @@
             "is_working": true,
             "all": 166,
             "mine": 17,
-            "waiting": 0,
+            "waiting": 5,
             "assigned_to_others": 0
         },
         {
@@ -351,6 +351,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 4652,
+            "conversation_id": 115,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-25 10:46:08"
+        },
+        {
+            "id": 4651,
+            "conversation_id": 115,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-25 10:46:08"
+        },
         {
             "id": 4650,
             "conversation_id": 155,
@@ -871,24 +889,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-25 09:13:26"
-        },
-        {
-            "id": 4592,
-            "conversation_id": 170,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-25 09:13:26"
-        },
-        {
-            "id": 4591,
-            "conversation_id": 170,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
             "created_at": "2026-08-25 09:13:26"
         }
     ],
