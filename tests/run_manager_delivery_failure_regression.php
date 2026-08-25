@@ -7,6 +7,8 @@ require_once dirname(__DIR__).'/services/MaxTransport.php';
 $base=dirname(__DIR__);
 $outbound=(string)file_get_contents($base.'/services/ManagerOutboundService.php');
 $api=(string)file_get_contents($base.'/manager/api.php');
+$panel=(string)file_get_contents($base.'/manager/index.php');
+$state=(string)file_get_contents($base.'/services/ManagerDeliveryStateService.php');
 $passed=0;$failed=0;
 function mdCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -26,7 +28,11 @@ mdCheck('failure does not create manager_message success event in failure branch
 mdCheck('suspended failure explains user must restart or unblock bot',strpos($outbound,'остановил или заблокировал бота MAX')!==false);
 mdCheck('transport failure is exposed without parsing text logs',strpos($outbound,'MaxTransport::lastError()')!==false);
 mdCheck('manager API returns structured delivery failure',strpos($api,"'error'=>'delivery_failed'")!==false && strpos($api,"'failure'=>\$failure")!==false);
-mdCheck('manager API returns human delivery failure message',strpos($api,"'error_message'=>")!==false);
+mdCheck('manager detail exposes persistent delivery failure',strpos($api,"'delivery_failure'=")!==false && strpos($api,'ManagerDeliveryStateService::activeFailure')!==false);
+mdCheck('known suspended recipient is rejected before MAX retry',strpos($outbound,'ManagerDeliveryStateService::activeFailure')!==false && strpos($outbound,'self::$lastFailure = $activeFailure')!==false);
+mdCheck('new inbound activity clears suspended state',strpos($state,"direction='inbound'")!==false && strpos($state,'$lastInboundAt > $failedAt')!==false);
+mdCheck('manager panel has persistent failure marker',strpos($panel,'id="deliveryFailure"')!==false && strpos($panel,'renderDeliveryFailure(j.delivery_failure)')!==false);
+mdCheck('manager panel disables suspended retries',strpos($panel,"f.category==='suspended'")!==false && strpos($panel,"send.disabled=suspended")!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
