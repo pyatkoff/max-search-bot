@@ -4,9 +4,26 @@ class ManagerPushHealth
 {
     public static function collect(PDO $pdo): array
     {
+        try {
+            return self::collectUnsafe($pdo);
+        } catch (Throwable $e) {
+            return [
+                'ok' => false,
+                'error' => get_class($e).': '.$e->getMessage(),
+                'subscription_table_exists' => null,
+                'working_managers' => [],
+                'missing_subscription_manager_ids' => [],
+                'recent_error_manager_ids' => [],
+            ];
+        }
+    }
+
+    private static function collectUnsafe(PDO $pdo): array
+    {
         $table = self::tableExists($pdo, 'manager_push_subscriptions');
         $result = [
             'ok' => true,
+            'error' => null,
             'subscription_table_exists' => $table,
             'working_managers' => [],
             'missing_subscription_manager_ids' => [],
@@ -15,6 +32,7 @@ class ManagerPushHealth
 
         if (!self::tableExists($pdo, 'managers')) {
             $result['ok'] = false;
+            $result['error'] = 'managers_table_missing';
             return $result;
         }
 
@@ -34,7 +52,7 @@ class ManagerPushHealth
 
             if ($table) {
                 $q = $pdo->prepare("SELECT COUNT(*) AS subscription_count,
-                    SUM(CASE WHEN last_error_at IS NULL OR last_success_at IS NOT NULL AND last_success_at>=last_error_at THEN 1 ELSE 0 END) AS healthy_subscription_count,
+                    SUM(CASE WHEN last_error_at IS NULL OR (last_success_at IS NOT NULL AND last_success_at>=last_error_at) THEN 1 ELSE 0 END) AS healthy_subscription_count,
                     MAX(last_success_at) AS last_success_at,
                     MAX(last_error_at) AS last_error_at
                     FROM manager_push_subscriptions WHERE manager_id=?");
