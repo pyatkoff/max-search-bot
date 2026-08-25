@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T04:50:37+00:00",
+    "generated_at": "2026-08-25T05:45:49+00:00",
     "production": {
-        "sha": "71f314970bd98bd5f5a26ce9e53cd7fa91cb7975",
+        "sha": "159165e19750c2c0245f91e540c58906ed0cedad",
         "branch": "main"
     },
     "database": {
@@ -69,10 +69,10 @@
         }
     ],
     "stats": {
-        "customers": 152,
-        "customer_channels": 152,
-        "conversations": 152,
-        "messages": 4099,
+        "customers": 157,
+        "customer_channels": 157,
+        "conversations": 157,
+        "messages": 4276,
         "managers": 5,
         "manager_assignments": 39,
         "conversation_events": 102,
@@ -163,7 +163,7 @@
             "login": "manager",
             "role": "admin",
             "is_working": false,
-            "all": 152,
+            "all": 157,
             "mine": 2,
             "waiting": 3,
             "assigned_to_others": 13
@@ -173,7 +173,7 @@
             "login": "Alisha",
             "role": "admin",
             "is_working": false,
-            "all": 152,
+            "all": 157,
             "mine": 0,
             "waiting": 3,
             "assigned_to_others": 15
@@ -183,7 +183,7 @@
             "login": "Anastasia",
             "role": "manager",
             "is_working": true,
-            "all": 150,
+            "all": 155,
             "mine": 13,
             "waiting": 3,
             "assigned_to_others": 0
@@ -193,7 +193,7 @@
             "login": "Svetlana",
             "role": "manager",
             "is_working": false,
-            "all": 134,
+            "all": 139,
             "mine": 0,
             "waiting": 0,
             "assigned_to_others": 0
@@ -258,7 +258,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 133
+            "count": 138
         },
         {
             "project_key": "anytour",
@@ -307,544 +307,544 @@
     ],
     "recent_messages": [
         {
-            "id": 4099,
-            "conversation_id": 152,
+            "id": 4276,
+            "conversation_id": 157,
             "direction": "outbound",
             "sender_type": "ai",
             "channel": "max",
             "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
-            "created_at": "2026-08-25 06:49:01"
+            "created_at": "2026-08-25 07:40:02"
         },
         {
-            "id": 4098,
-            "conversation_id": 152,
+            "id": 4275,
+            "conversation_id": 157,
             "direction": "outbound",
             "sender_type": "ai",
             "channel": "max",
             "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-25 06:38:38"
+            "created_at": "2026-08-25 07:29:26"
         },
         {
-            "id": 4097,
-            "conversation_id": 152,
+            "id": 4274,
+            "conversation_id": 157,
             "direction": "inbound",
             "sender_type": "customer",
             "channel": "max",
             "text": "show_tours",
-            "created_at": "2026-08-25 06:38:38"
+            "created_at": "2026-08-25 07:29:25"
         },
         {
-            "id": 4096,
-            "conversation_id": 152,
+            "id": 4273,
+            "conversation_id": 157,
             "direction": "outbound",
             "sender_type": "ai",
             "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 12-14 ночей 📅 05.09.2026 — 11.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-25 06:38:32"
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9-11 ночей 📅 30.10.2026 — 05.11.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:29:19"
         },
         {
-            "id": 4095,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_08.09.2026",
-            "created_at": "2026-08-25 06:38:31"
-        },
-        {
-            "id": 4094,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:38:30"
-        },
-        {
-            "id": 4093,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-25 06:38:30"
-        },
-        {
-            "id": 4092,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:38:27"
-        },
-        {
-            "id": 4091,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-25 06:38:27"
-        },
-        {
-            "id": 4090,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-25 06:38:25"
-        },
-        {
-            "id": 4089,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-25 06:38:25"
-        },
-        {
-            "id": 4088,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 12-14 ночей 📅 04.09.2026 — 10.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-25 06:38:21"
-        },
-        {
-            "id": 4087,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_07.09.2026",
-            "created_at": "2026-08-25 06:38:21"
-        },
-        {
-            "id": 4086,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:38:14"
-        },
-        {
-            "id": 4085,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-25 06:38:14"
-        },
-        {
-            "id": 4084,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:38:11"
-        },
-        {
-            "id": 4083,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-25 06:38:11"
-        },
-        {
-            "id": 4082,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-25 06:38:09"
-        },
-        {
-            "id": 4081,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-25 06:38:09"
-        },
-        {
-            "id": 4080,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 12-14 ночей 📅 06.09.2026 — 12.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-25 06:37:56"
-        },
-        {
-            "id": 4079,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_09.09.2026",
-            "created_at": "2026-08-25 06:37:56"
-        },
-        {
-            "id": 4078,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:37:54"
-        },
-        {
-            "id": 4077,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-25 06:37:54"
-        },
-        {
-            "id": 4076,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:37:44"
-        },
-        {
-            "id": 4075,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-25 06:37:44"
-        },
-        {
-            "id": 4074,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-25 06:37:40"
-        },
-        {
-            "id": 4073,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-25 06:37:40"
-        },
-        {
-            "id": 4072,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 12-14 ночей 📅 04.09.2026 — 10.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-25 06:37:32"
-        },
-        {
-            "id": 4071,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_07.09.2026",
-            "created_at": "2026-08-25 06:37:31"
-        },
-        {
-            "id": 4070,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:37:23"
-        },
-        {
-            "id": 4069,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-25 06:37:23"
-        },
-        {
-            "id": 4068,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:37:20"
-        },
-        {
-            "id": 4067,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-25 06:37:20"
-        },
-        {
-            "id": 4066,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-25 06:37:15"
-        },
-        {
-            "id": 4065,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-25 06:37:14"
-        },
-        {
-            "id": 4064,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 12-14 ночей 📅 04.09.2026 — 10.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-25 06:36:46"
-        },
-        {
-            "id": 4063,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_07.09.2026",
-            "created_at": "2026-08-25 06:36:46"
-        },
-        {
-            "id": 4062,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:36:41"
-        },
-        {
-            "id": 4061,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-25 06:36:41"
-        },
-        {
-            "id": 4060,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:36:37"
-        },
-        {
-            "id": 4059,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_12_14",
-            "created_at": "2026-08-25 06:36:37"
-        },
-        {
-            "id": 4058,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-25 06:36:34"
-        },
-        {
-            "id": 4057,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "back_nights",
-            "created_at": "2026-08-25 06:36:34"
-        },
-        {
-            "id": 4056,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 06:36:31"
-        },
-        {
-            "id": 4055,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_9_11",
-            "created_at": "2026-08-25 06:36:30"
-        },
-        {
-            "id": 4054,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
-            "created_at": "2026-08-25 06:36:27"
-        },
-        {
-            "id": 4053,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_other",
-            "created_at": "2026-08-25 06:36:26"
-        },
-        {
-            "id": 4052,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-25 06:36:16"
-        },
-        {
-            "id": 4051,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_7",
-            "created_at": "2026-08-25 06:36:16"
-        },
-        {
-            "id": 4050,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-08-25 06:36:04"
-        },
-        {
-            "id": 4049,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_1",
-            "created_at": "2026-08-25 06:36:04"
-        },
-        {
-            "id": 4048,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-25 06:35:56"
-        },
-        {
-            "id": 4047,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_0",
-            "created_at": "2026-08-25 06:35:56"
-        },
-        {
-            "id": 4046,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-08-25 06:35:54"
-        },
-        {
-            "id": 4045,
-            "conversation_id": 152,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_1",
-            "created_at": "2026-08-25 06:35:54"
-        },
-        {
-            "id": 4044,
-            "conversation_id": 152,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-08-25 06:35:52"
-        },
-        {
-            "id": 4043,
-            "conversation_id": 152,
+            "id": 4272,
+            "conversation_id": 157,
             "direction": "inbound",
             "sender_type": "customer",
             "channel": "max",
             "text": "pick_country_4",
-            "created_at": "2026-08-25 06:35:51"
+            "created_at": "2026-08-25 07:29:19"
         },
         {
-            "id": 4042,
-            "conversation_id": 152,
+            "id": 4271,
+            "conversation_id": 157,
             "direction": "outbound",
             "sender_type": "ai",
             "channel": "max",
             "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-25 06:35:49"
+            "created_at": "2026-08-25 07:29:17"
         },
         {
-            "id": 4041,
-            "conversation_id": 152,
+            "id": 4270,
+            "conversation_id": 157,
             "direction": "inbound",
             "sender_type": "customer",
             "channel": "max",
-            "text": "pick_city_5",
-            "created_at": "2026-08-25 06:35:49"
+            "text": "edit_country",
+            "created_at": "2026-08-25 07:29:17"
         },
         {
-            "id": 4040,
-            "conversation_id": 152,
+            "id": 4269,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-08-25 07:29:16"
+        },
+        {
+            "id": 4268,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-25 07:29:15"
+        },
+        {
+            "id": 4267,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-25 07:28:44"
+        },
+        {
+            "id": 4266,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-25 07:28:44"
+        },
+        {
+            "id": 4265,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Таиланд 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9-11 ночей 📅 30.10.2026 — 05.11.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:28:37"
+        },
+        {
+            "id": 4264,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_2",
+            "created_at": "2026-08-25 07:28:37"
+        },
+        {
+            "id": 4263,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-08-25 07:28:26"
+        },
+        {
+            "id": 4262,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_country",
+            "created_at": "2026-08-25 07:28:25"
+        },
+        {
+            "id": 4261,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-08-25 07:28:17"
+        },
+        {
+            "id": 4260,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-25 07:28:16"
+        },
+        {
+            "id": 4259,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-25 07:19:54"
+        },
+        {
+            "id": 4258,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-25 07:19:54"
+        },
+        {
+            "id": 4257,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Шри-Ланка 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9-11 ночей 📅 30.10.2026 — 05.11.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:19:45"
+        },
+        {
+            "id": 4256,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_02.11.2026",
+            "created_at": "2026-08-25 07:19:45"
+        },
+        {
+            "id": 4255,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:19:40"
+        },
+        {
+            "id": 4254,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_11.2026",
+            "created_at": "2026-08-25 07:19:40"
+        },
+        {
+            "id": 4253,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:19:38"
+        },
+        {
+            "id": 4252,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_10.2026",
+            "created_at": "2026-08-25 07:19:38"
+        },
+        {
+            "id": 4251,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:19:35"
+        },
+        {
+            "id": 4250,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_09.2026",
+            "created_at": "2026-08-25 07:19:35"
+        },
+        {
+            "id": 4249,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:19:32"
+        },
+        {
+            "id": 4248,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "nights_9_11",
+            "created_at": "2026-08-25 07:19:32"
+        },
+        {
+            "id": 4247,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+            "created_at": "2026-08-25 07:19:28"
+        },
+        {
+            "id": 4246,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "meal_7",
+            "created_at": "2026-08-25 07:19:28"
+        },
+        {
+            "id": 4245,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
+            "created_at": "2026-08-25 07:19:26"
+        },
+        {
+            "id": 4244,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "star_4",
+            "created_at": "2026-08-25 07:19:26"
+        },
+        {
+            "id": 4243,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
+            "created_at": "2026-08-25 07:19:21"
+        },
+        {
+            "id": 4242,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "child_0",
+            "created_at": "2026-08-25 07:19:21"
+        },
+        {
+            "id": 4241,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
+            "created_at": "2026-08-25 07:19:18"
+        },
+        {
+            "id": 4240,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "adults_2",
+            "created_at": "2026-08-25 07:19:18"
+        },
+        {
+            "id": 4239,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
+            "created_at": "2026-08-25 07:19:16"
+        },
+        {
+            "id": 4238,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_12",
+            "created_at": "2026-08-25 07:19:16"
+        },
+        {
+            "id": 4237,
+            "conversation_id": 157,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-08-25 07:19:10"
+        },
+        {
+            "id": 4236,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_1",
+            "created_at": "2026-08-25 07:19:10"
+        },
+        {
+            "id": 4235,
+            "conversation_id": 157,
             "direction": "outbound",
             "sender_type": "ai",
             "channel": "max",
             "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-25 06:35:44"
+            "created_at": "2026-08-25 07:19:05"
+        },
+        {
+            "id": 4234,
+            "conversation_id": 157,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-25 07:19:05"
+        },
+        {
+            "id": 4233,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-25 07:18:03"
+        },
+        {
+            "id": 4232,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-25 07:12:53"
+        },
+        {
+            "id": 4231,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-25 07:12:52"
+        },
+        {
+            "id": 4230,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 2 взр. + 1 реб. (2 лет) 🏨 от 4★ 🍽 Все Включено 🌙 5-10 ночей 📅 11.09.2026 — 17.09.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:12:16"
+        },
+        {
+            "id": 4229,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_14.09.2026",
+            "created_at": "2026-08-25 07:12:16"
+        },
+        {
+            "id": 4228,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 2 взр. + 1 реб. (2 лет) 🏨 от 4★ 🍽 Все Включено 🌙 5-10 ночей 📅 11.09.2026 — 17.09.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:12:16"
+        },
+        {
+            "id": 4227,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_14.09.2026",
+            "created_at": "2026-08-25 07:12:15"
+        },
+        {
+            "id": 4226,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 2 взр. + 1 реб. (2 лет) 🏨 от 4★ 🍽 Все Включено 🌙 5-10 ночей 📅 11.09.2026 — 17.09.2026 Что удобнее дальше?",
+            "created_at": "2026-08-25 07:12:14"
+        },
+        {
+            "id": 4225,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_14.09.2026",
+            "created_at": "2026-08-25 07:12:14"
+        },
+        {
+            "id": 4224,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:11:56"
+        },
+        {
+            "id": 4223,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_09.2026",
+            "created_at": "2026-08-25 07:11:56"
+        },
+        {
+            "id": 4222,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:11:55"
+        },
+        {
+            "id": 4221,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_09.2026",
+            "created_at": "2026-08-25 07:11:55"
+        },
+        {
+            "id": 4220,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-25 07:11:52"
+        },
+        {
+            "id": 4219,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "5-10",
+            "created_at": "2026-08-25 07:11:52"
+        },
+        {
+            "id": 4218,
+            "conversation_id": 156,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
+            "created_at": "2026-08-25 07:11:38"
+        },
+        {
+            "id": 4217,
+            "conversation_id": 156,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "nights_other",
+            "created_at": "2026-08-25 07:11:38"
         }
     ],
     "recent_events": [
