@@ -209,7 +209,13 @@ class AiMessageHandler
                         return;
                     }
 
-                    if ($simpleLocal && !empty($missingLocal)) {
+                    // Live conversations showed short resort/region answers such as "Алания"
+                    // being rejected locally and followed by the same country question again.
+                    // If country was missing before and is still missing after the deterministic
+                    // parser, let AI interpret the destination once instead of repeating the prompt.
+                    $unresolvedDestination = in_array('country',$missingNow,true)
+                        && in_array('country',$missingLocal,true);
+                    if ($simpleLocal && !empty($missingLocal) && !$unresolvedDestination) {
                         MissingFieldQuestionService::sendForMissing(
                             $chat_id,
                             $missingLocal,
