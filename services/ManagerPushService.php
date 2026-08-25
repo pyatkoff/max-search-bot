@@ -88,11 +88,19 @@ class ManagerPushService
             $payload=json_encode(['title'=>$title,'body'=>($ctx?implode(' · ',$ctx).' — ':'').$body,'conversationId'=>$conversationId,'url'=>'./'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             $in=implode(',',array_fill(0,count($managers),'?'));
             $q=$pdo->prepare("SELECT * FROM manager_push_subscriptions WHERE manager_id IN ($in)"); $q->execute($managers);
-            foreach($q->fetchAll() as $sub) self::send($sub,(string)$payload);
+            $subs=$q->fetchAll();$subscribed=[];
+            foreach($subs as $sub)$subscribed[(int)$sub['manager_id']]=true;
+            if(class_exists('DiagnosticLogger')){
+                foreach($managers as $managerId){if(isset($subscribed[(int)$managerId]))continue;try{DiagnosticLogger::log('manager_push','no_subscription',['conversation_id'=>$conversationId,'manager_id'=>(int)$managerId],null,'warning');}catch(Throwable $ignored){}}
+            }
+            foreach($subs as $sub){
+                try{self::send($sub,(string)$payload,$conversationId);}
+                catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['conversation_id'=>$conversationId,'manager_id'=>(int)($sub['manager_id']??0),'subscription_id'=>(int)($sub['id']??0),'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
+            }
         }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }
     }
 
-    private static function send(array $sub,string $payload): void
+    private static function send(array $sub,string $payload,int $conversationId): void
     {
         $cfg=self::vapid(); $endpoint=(string)$sub['endpoint'];
         $clientPub=self::b64ud((string)$sub['p256dh']); $auth=self::b64ud((string)$sub['auth_secret']);
@@ -112,10 +120,18 @@ class ManagerPushService
         $jwt=self::vapidJwt($aud,(string)$cfg['subject'],(string)$cfg['private_pem']);
         $headers=['TTL: 60','Content-Encoding: aes128gcm','Content-Type: application/octet-stream','Authorization: vapid t='.$jwt.', k='.(string)$cfg['public_key'],'Content-Length: '.strlen($body)];
         $ch=curl_init($endpoint); curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_HTTPHEADER=>$headers,CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>10,CURLOPT_HEADER=>false]); curl_exec($ch); $code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE); $err=curl_error($ch); curl_close($ch);
-        $pdo=ConversationDb::connection();
-        if($code>=200&&$code<300){$pdo->prepare('UPDATE manager_push_subscriptions SET last_success_at=NOW(),last_error=NULL WHERE id=?')->execute([(int)$sub['id']]);return;}
-        if(in_array($code,[404,410],true)){$pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([(int)$sub['id']]);return;}
-        $pdo->prepare('UPDATE manager_push_subscriptions SET last_error_at=NOW(),last_error=? WHERE id=?')->execute([mb_substr('HTTP '.$code.' '.$err,0,500),(int)$sub['id']]);
+        $pdo=ConversationDb::connection();$managerId=(int)($sub['manager_id']??0);$subscriptionId=(int)($sub['id']??0);
+        if($code>=200&&$code<300){
+            $pdo->prepare('UPDATE manager_push_subscriptions SET last_success_at=NOW(),last_error=NULL WHERE id=?')->execute([$subscriptionId]);
+            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_success',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'info');}catch(Throwable $ignored){}}
+            return;
+        }
+        if(in_array($code,[404,410],true)){
+            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','subscription_expired',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'warning');}catch(Throwable $ignored){}}
+            $pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([$subscriptionId]);return;
+        }
+        $pdo->prepare('UPDATE manager_push_subscriptions SET last_error_at=NOW(),last_error=? WHERE id=?')->execute([mb_substr('HTTP '.$code.' '.$err,0,500),$subscriptionId]);
+        if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_failed',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code,'error'=>mb_substr($err,0,300)],null,'warning');}catch(Throwable $ignored){}}
     }
 
     private static function hkdfExpand(string $prk,string $info,int $len): string { $out='';$t='';$i=1;while(strlen($out)<$len){$t=hash_hmac('sha256',$t.$info.chr($i++),$prk,true);$out.=$t;}return substr($out,0,$len); }
