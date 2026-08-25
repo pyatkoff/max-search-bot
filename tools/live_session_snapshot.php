@@ -9,6 +9,21 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/LiveSessionAnalyzer.php';
 
+function liveDiagnosticMessageTail(array $messages,int $limit=24):array
+{
+    $tail=array_slice($messages,-max(1,$limit));
+    return array_map(static function(array $message):array{
+        $text=preg_replace('/\s+/u',' ',trim((string)($message['text']??'')))??'';
+        if(mb_strlen($text)>280)$text=mb_substr($text,0,277).'...';
+        return [
+            'direction'=>(string)($message['direction']??''),
+            'sender_type'=>(string)($message['sender_type']??''),
+            'text'=>$text,
+            'created_at'=>$message['created_at']??null,
+        ];
+    },$tail);
+}
+
 $hours=isset($argv[1])?max(1,min(24,(int)$argv[1])):1;
 $result=[
     'ok'=>false,
@@ -37,7 +52,9 @@ try{
         $eq=$pdo->prepare('SELECT event_type,actor_type,actor_id,created_at FROM conversation_events WHERE conversation_id=? ORDER BY id ASC');
         $eq->execute([$id]);
         $events=$eq->fetchAll(PDO::FETCH_ASSOC);
-        $sessions[]=LiveSessionAnalyzer::analyze($conversation,$messages,$events);
+        $session=LiveSessionAnalyzer::analyze($conversation,$messages,$events);
+        if(!empty($session['flags']))$session['message_tail']=liveDiagnosticMessageTail($messages);
+        $sessions[]=$session;
     }
 
     $summary=[
