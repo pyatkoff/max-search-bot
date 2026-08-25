@@ -62,15 +62,9 @@ class AiShortAnswerHandler
             $params['child_ages'] = $ages;
         }
         elseif ($field === 'stars') {
-            if (preg_match('/^(?:не важно|неважно|любая|любые|все|всё)$/ui', $lower)) {
-                $params['stars'] = 1;
-            } elseif (preg_match('/^(?:от\s*)?([1-5])\s*(?:\*|★|зв[её]зд(?:а|ы)?)?$/ui', $lower, $m)) {
-                $params['stars'] = (int)$m[1];
-            } else {
-                $n = self::numberFromShortText($lower, 1, 5);
-                if ($n === null) return false;
-                $params['stars'] = $n;
-            }
+            $stars = self::starMinimumFromShortText($lower);
+            if ($stars === null) return false;
+            $params['stars'] = $stars;
         }
         elseif ($field === 'meal') {
             $meal = MealParser::parse($lower);
@@ -145,6 +139,30 @@ class AiShortAnswerHandler
             'adults'=>(int)$m[1],
             'children'=>0,
         ];
+    }
+
+    public static function starMinimumFromShortText(string $text): ?int
+    {
+        $lower = function_exists('mb_strtolower')
+            ? mb_strtolower(trim($text), 'UTF-8')
+            : strtolower(trim($text));
+        $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
+
+        if (preg_match('/^(?:не важно|неважно|любая|любые|все|всё)$/ui', $lower)) {
+            return 1;
+        }
+        if (preg_match('/^(?:от\s*)?([1-5])\s*(?:\*|★|зв[её]зд(?:а|ы)?)?$/ui', $lower, $m)) {
+            return (int)$m[1];
+        }
+
+        $compact = preg_replace('/\s+/u', '', $lower) ?? $lower;
+        if (preg_match('/^[1-5](?:[,;\/\-][1-5])+$/u', $compact)) {
+            preg_match_all('/[1-5]/u', $compact, $m);
+            $values = array_map('intval', $m[0] ?? []);
+            if ($values) return min($values);
+        }
+
+        return self::numberFromShortText($lower, 1, 5);
     }
 
     private static function numberFromShortText($text, $min, $max)
