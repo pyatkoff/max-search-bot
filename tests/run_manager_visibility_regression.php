@@ -11,6 +11,7 @@ $admin=(string)file_get_contents($base.'/services/AdminDirectoryService.php');
 $routing=(string)file_get_contents($base.'/services/RoutingAdminService.php');
 $managerUi=(string)file_get_contents($base.'/manager/index.php');
 $diagnostics=(string)file_get_contents($base.'/.github/workflows/publish-conversation-diagnostics.yml');
+$liveDiagnostics=(string)file_get_contents($base.'/.github/workflows/live-session-diagnostics.yml');
 $auditMigration=(string)file_get_contents($base.'/migrations/006_admin_audit_log.sql');
 
 $passed=0;$failed=0;
@@ -37,6 +38,8 @@ mvCheck('audit table is versioned migration',strpos($auditMigration,'CREATE TABL
 mvCheck('production gate checks deployed sha',strpos($diagnostics,'production_sha_mismatch')!==false);
 mvCheck('production gate checks migration health',strpos($diagnostics,'migration_health_failed')!==false);
 mvCheck('production gate checks manager visibility',strpos($diagnostics,'manager_visibility_health_failed')!==false);
+mvCheck('live diagnostics waits for current deployed sha',strpos($liveDiagnostics,'Wait for production SHA')!==false && strpos($liveDiagnostics,'EXPECTED_SHA: ${{ github.sha }}')!==false);
+mvCheck('live diagnostics fails stale production sha',strpos($liveDiagnostics,'production_sha_mismatch')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

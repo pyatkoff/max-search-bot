@@ -40,6 +40,28 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
+      - name: Wait for production SHA
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/deploy_key"
+          ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          for attempt in $(seq 1 36); do
+            production_sha="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"
+            if [[ "$production_sha" == "$EXPECTED_SHA" ]]; then
+              echo "production_sha=$production_sha"
+              exit 0
+            fi
+            echo "waiting_for_production_sha expected=$EXPECTED_SHA actual=${production_sha:-unavailable} attempt=$attempt/36"
+            sleep 5
+          done
+          echo "production_sha_mismatch expected=$EXPECTED_SHA actual=${production_sha:-unavailable}" >&2
+          exit 1
+
       - name: Capture production live sessions
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
