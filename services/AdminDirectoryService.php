@@ -12,13 +12,14 @@ class AdminDirectoryService
         ManagerAuthService::ensureSchema();
         $pdo=ConversationDb::connection();
         $projects=$pdo->query("SELECT id,project_key,display_name,is_active FROM projects ORDER BY display_name,id")->fetchAll();
-        $managers=$pdo->query("SELECT id,login,display_name,role,email,is_active,last_login_at FROM managers ORDER BY is_active DESC,display_name,login,id")->fetchAll();
+        $managers=$pdo->query("SELECT id,login,display_name,role,email,is_active,last_login_at,priority FROM managers ORDER BY is_active DESC,display_name,login,id")->fetchAll();
+        $sources=$pdo->query("SELECT id,project_key,source_key,display_name,channel,is_active FROM conversation_sources ORDER BY project_key,display_name,id")->fetchAll();
         $access=[];
         $q=$pdo->query("SELECT manager_id,project_id FROM manager_projects ORDER BY manager_id,project_id");
         foreach($q->fetchAll() as $row)$access[(int)$row['manager_id']][]=(int)$row['project_id'];
         foreach($managers as &$manager)$manager['project_ids']=$access[(int)$manager['id']]??[];
         unset($manager);
-        return ['projects'=>$projects,'managers'=>$managers];
+        return ['projects'=>$projects,'managers'=>$managers,'sources'=>$sources];
     }
 
     public static function saveProject(array $data,int $actorManagerId=0): array
@@ -55,6 +56,7 @@ class AdminDirectoryService
         $email=trim((string)($data['email']??''));
         $role=in_array((string)($data['role']??'manager'),['admin','manager'],true)?(string)$data['role']:'manager';
         $active=!empty($data['is_active'])?1:0;
+        $priority=max(-100000,min(100000,(int)($data['priority']??0)));
         $password=(string)($data['password']??'');
         $projectIds=array_values(array_unique(array_filter(array_map('intval',(array)($data['project_ids']??[])),static function($v){return $v>0;})));
         if($login===''||!preg_match('/^[A-Za-z0-9._@+-]{3,191}$/',$login))return ['ok'=>false,'error'=>'invalid_login'];
@@ -66,13 +68,13 @@ class AdminDirectoryService
         try{
             if($id>0){
                 if(!self::managerExists($id)){ $pdo->rollBack(); return ['ok'=>false,'error'=>'not_found']; }
-                $sql='UPDATE managers SET login=?,display_name=?,email=?,role=?,is_active=?';$args=[$login,$name!==''?$name:null,$email!==''?$email:null,$role,$active];
+                $sql='UPDATE managers SET login=?,display_name=?,email=?,role=?,is_active=?,priority=?';$args=[$login,$name!==''?$name:null,$email!==''?$email:null,$role,$active,$priority];
                 if($password!==''){$sql.=',password_hash=?';$args[]=password_hash($password,PASSWORD_DEFAULT);}
                 $sql.=' WHERE id=?';$args[]=$id;
                 $pdo->prepare($sql)->execute($args);
             }else{
-                $q=$pdo->prepare('INSERT INTO managers (login,password_hash,display_name,email,role,is_active) VALUES (?,?,?,?,?,?)');
-                $q->execute([$login,password_hash($password,PASSWORD_DEFAULT),$name!==''?$name:null,$email!==''?$email:null,$role,$active]);
+                $q=$pdo->prepare('INSERT INTO managers (login,password_hash,display_name,email,role,is_active,priority) VALUES (?,?,?,?,?,?,?)');
+                $q->execute([$login,password_hash($password,PASSWORD_DEFAULT),$name!==''?$name:null,$email!==''?$email:null,$role,$active,$priority]);
                 $id=(int)$pdo->lastInsertId();
             }
             $pdo->prepare('DELETE FROM manager_projects WHERE manager_id=?')->execute([$id]);
@@ -87,7 +89,7 @@ class AdminDirectoryService
 
     private static function managerRow(int $id): ?array
     {
-        $q=ConversationDb::connection()->prepare('SELECT id,login,display_name,role,email,is_active,is_working FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();if(!$row)return null;
+        $q=ConversationDb::connection()->prepare('SELECT id,login,display_name,role,email,is_active,is_working,priority FROM managers WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();if(!$row)return null;
         $p=ConversationDb::connection()->prepare('SELECT project_id FROM manager_projects WHERE manager_id=? ORDER BY project_id');$p->execute([$id]);$row['project_ids']=array_map('intval',array_column($p->fetchAll(),'project_id'));return$row;
     }
     private static function projectRow(int $id): ?array
