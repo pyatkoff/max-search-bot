@@ -19,6 +19,20 @@ function redactSnapshotText(string $text):string{
     return preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu','[email-redacted]',$text)??$text;
 }
 function compactText(string $text,int $limit=500):string{$text=redactSnapshotText($text);$text=preg_replace('/\s+/u',' ',trim($text))??trim($text);if(function_exists('mb_strlen')&&mb_strlen($text,'UTF-8')>$limit)return mb_substr($text,0,$limit-3,'UTF-8').'...';return strlen($text)>$limit?substr($text,0,$limit-3).'...':$text;}
+function recentStructuredEvents(string $path,string $component,string $event,int $limit=30):array{
+    if(!is_file($path)||!is_readable($path))return[];
+    $raw=(string)@shell_exec('tail -n 500 '.escapeshellarg($path).' 2>/dev/null');
+    if($raw==='')return[];
+    $matched=[];
+    foreach(array_reverse(preg_split('/\R/u',trim($raw))?:[]) as $line){
+        $row=json_decode($line,true);
+        if(!is_array($row))continue;
+        if((string)($row['component']??'')!==$component||(string)($row['event']??'')!==$event)continue;
+        $matched[]=$row;
+        if(count($matched)>=$limit)break;
+    }
+    return $matched;
+}
 
 try{
     $pdo=ConversationDb::connection();
@@ -49,6 +63,8 @@ try{
         'projects'=>[],
         'sources'=>[],
         'website_attribution'=>[],
+        'recent_entry_attribution'=>[],
+        'recent_manager_priority_events'=>[],
         'conversation_status'=>[],
         'recent_admin_audit'=>[],
         'recent_messages'=>[],
@@ -63,8 +79,13 @@ try{
     if(tableExists($pdo,'manager_assignments'))$snapshot['manager_usage']=rows($pdo,"SELECT m.id AS manager_id,m.login,COUNT(a.id) AS assignments_total,SUM(CASE WHEN a.id IS NOT NULL AND a.released_at IS NULL THEN 1 ELSE 0 END) AS assignments_open FROM managers m LEFT JOIN manager_assignments a ON a.manager_id=m.id GROUP BY m.id,m.login ORDER BY m.id");
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
-    if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
+    if(tableExists($pdo,'conversations')){
+        $snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
+        $snapshot['recent_entry_attribution']=rows($pdo,"SELECT id AS conversation_id,project_key,channel,source_id,entry_channel,attribution_region,attribution_campaign,status,manager_id,started_at,last_message_at FROM conversations WHERE entry_channel IS NOT NULL AND entry_channel<>'' ORDER BY id DESC LIMIT 50");
+    }
     if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
+
+    $snapshot['recent_manager_priority_events']=recentStructuredEvents($baseDir.'/structured_events.log','manager_priority','push_selected',30);
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects')){
         $websiteRows=rows($pdo,"SELECT c.id AS conversation_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,s.source_key,p.project_key AS source_project_key,s.channel AS source_channel FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id LEFT JOIN projects p ON p.id=s.project_id WHERE c.channel='website' ORDER BY c.id DESC LIMIT 50");
