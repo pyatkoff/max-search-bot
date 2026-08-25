@@ -30,7 +30,10 @@ mdCheck('manager API returns human delivery failure message',strpos($api,"'error
 mdCheck('known suspended dialog is checked before MAX adapter send',strpos($outbound,'unresolvedSuspendedFailure($conversationId')!==false && strpos($outbound,'suppressed_retry')!==false);
 mdCheck('suspended guard reads structured failure events',strpos($outbound,"event_type='manager_message_failed'")!==false && strpos($outbound,"['category']??'')==='suspended'")!==false);
 mdCheck('new customer inbound clears suspended guard',strpos($outbound,"direction='inbound' AND sender_type='customer' AND created_at>?")!==false);
-mdCheck('suppressed retry does not write another failure event',strpos($outbound,'self::$lastFailure=$suspended;\n                return false;')!==false);
+$guardStart=strpos($outbound,'if ($suspended) {');
+$adapterStart=strpos($outbound,"$adapter = new MaxMessengerAdapter",$guardStart===false?0:$guardStart);
+$guardSegment=($guardStart!==false && $adapterStart!==false)?substr($outbound,$guardStart,$adapterStart-$guardStart):'';
+mdCheck('suppressed retry returns before transport and does not write another failure event',strpos($guardSegment,'return false;')!==false && strpos($guardSegment,'manager_message_failed')===false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
