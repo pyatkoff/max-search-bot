@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 final class LiveSessionAnalyzer
 {
+    private static function ts($value): ?int
+    {
+        $value=trim((string)$value);
+        if($value==='')return null;
+        $ts=strtotime($value);
+        return $ts===false?null:$ts;
+    }
+
     public static function analyze(array $conversation,array $messages,array $events=[]):array
     {
-        $inbound=[];$outbound=[];$managerReplies=0;$datePicks=0;$showTours=false;$phone=false;$repeated=[];$flags=[];
+        $inbound=[];$outbound=[];$datePicks=0;$showTours=false;$phone=false;$repeated=[];$flags=[];
+        $managerMessageTimes=[];
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
             if(($m['direction']??'')==='inbound'){
@@ -17,21 +26,54 @@ final class LiveSessionAnalyzer
                 if($text!=='')$repeated[$text]=($repeated[$text]??0)+1;
             } else {
                 $outbound[]=$text;
-                if(($m['sender_type']??'')==='manager')$managerReplies++;
+                if(($m['sender_type']??'')==='manager'){
+                    $ts=self::ts($m['created_at']??null);
+                    if($ts!==null)$managerMessageTimes[]=$ts;
+                }
             }
         }
-        $eventTypes=array_map(static fn($e)=>(string)($e['event_type']??''),$events);
+
+        $eventTypes=[];$requestTimes=[];$managerTaken=false;
+        foreach($events as $e){
+            $type=(string)($e['event_type']??'');
+            $eventTypes[]=$type;
+            $typeNorm=strtolower($type);
+            if($typeNorm==='waiting_manager' || (strpos($typeNorm,'manager')!==false&&strpos($typeNorm,'request')!==false)){
+                $ts=self::ts($e['created_at']??null);
+                if($ts!==null)$requestTimes[]=$ts;
+            }
+            if($typeNorm==='manager_taken')$managerTaken=true;
+        }
+
         $status=(string)($conversation['status']??'');
-        $managerRequested=in_array($status,['waiting_manager','manager'],true);
-        foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false)$managerRequested=true;}
+        $managerRequested=in_array($status,['waiting_manager','manager'],true) || count($requestTimes)>0;
+        if(!$managerRequested){
+            foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false){$managerRequested=true;break;}}
+        }
+
+        $managerRequestAt=$requestTimes?max($requestTimes):null;
+        $managerFirstReplyAt=null;
+        if($managerRequestAt!==null){
+            foreach($managerMessageTimes as $ts){if($ts >= $managerRequestAt){$managerFirstReplyAt=$ts;break;}}
+        } elseif($managerMessageTimes){
+            $managerFirstReplyAt=$managerMessageTimes[0];
+        }
+        $managerReplied=$managerRequested && $managerFirstReplyAt!==null;
+        $managerResponseSeconds=($managerRequestAt!==null&&$managerFirstReplyAt!==null)?max(0,$managerFirstReplyAt-$managerRequestAt):null;
+        $managerResponseBucket=null;
+        if($managerResponseSeconds!==null)$managerResponseBucket=$managerResponseSeconds<=90?'answered_in_90s':'answered_after_90s';
+        elseif($managerRequested)$managerResponseBucket='still_unanswered';
+
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
         $started=count($inbound)>0;
-        $managerReplied=$managerReplies>0;
         if($datePicks>=3)$flags[]='rapid_date_reselection';
         foreach($repeated as $text=>$count){if($count>=3&&$text!==''){$flags[]='repeated_same_input';break;}}
         if(count($messages)>=24)$flags[]='excessive_turns';
         if($managerRequested&&!$managerReplied)$flags[]='manager_requested_no_reply';
+        if($managerRequested&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';
+        if($managerTaken&&!$managerReplied)$flags[]='manager_taken_no_reply';
+
         $drop='started_only';
         if($started)$drop='collecting_needs';
         if($needsCollected)$drop='needs_collected';
@@ -48,6 +90,10 @@ final class LiveSessionAnalyzer
             'tours_opened'=>$showTours,
             'manager_requested'=>$managerRequested,
             'manager_replied'=>$managerReplied,
+            'manager_request_at'=>$managerRequestAt!==null?gmdate('Y-m-d H:i:s',$managerRequestAt):null,
+            'manager_first_reply_at'=>$managerFirstReplyAt!==null?gmdate('Y-m-d H:i:s',$managerFirstReplyAt):null,
+            'manager_response_seconds'=>$managerResponseSeconds,
+            'manager_response_bucket'=>$managerResponseBucket,
             'phone_received'=>$phone,
             'inbound_messages'=>count($inbound),
             'outbound_messages'=>count($outbound),
