@@ -24,6 +24,12 @@ function manager(): ?array { $id=(int)($_SESSION['manager_id']??0); return $id?M
 function csrf(): string { if(empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex(random_bytes(24)); return (string)$_SESSION['csrf']; }
 function requireCsrf(array $data): void { if(!hash_equals(csrf(),(string)($data['csrf']??''))) out(['ok'=>false,'error'=>'csrf'],403); }
 function requireAdmin(array $m): void { if((string)($m['role']??'manager')!=='admin') out(['ok'=>false,'error'=>'forbidden'],403); }
+function withoutSuspendedWaiting(array $rows): array {
+    if(!$rows)return[];
+    $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
+    if(!$failures)return$rows;
+    return array_values(array_filter($rows,static function($row)use($failures){return !isset($failures[(int)($row['id']??0)]);}));
+}
 
 $data=body(); $action=(string)($data['action']??'');
 if($action==='login'){
@@ -59,10 +65,16 @@ if($action==='save_source'){
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'))]);
-    out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'')]);
+    $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
+    if($queue==='waiting'||$queue==='attention')$rows=withoutSuspendedWaiting($rows);
+    out(['ok'=>true,'conversations'=>$rows]);
 }
 if($action==='counts'){
-    $counts=ManagerConversationService::queueCounts((int)$m['id'],(string)($data['project_key']??'*'));
+    $projectKey=(string)($data['project_key']??'*');
+    $counts=ManagerConversationService::queueCounts((int)$m['id'],$projectKey);
+    $waiting=withoutSuspendedWaiting(ManagerConversationService::list((int)$m['id'],'waiting',200,$projectKey));
+    $waitingUnread=array_filter($waiting,static function($row){return empty($row['manager_id']);});
+    $counts['waiting']=['count'=>count($waiting),'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$waitingUnread))];
     out(['ok'=>true,'counts'=>$counts]);
 }
 if($action==='detail'){
