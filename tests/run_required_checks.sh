@@ -34,6 +34,7 @@ checks=(
   'php tests/run_manager_delivery_snapshot_regression.php'
   'php tests/run_manager_delivery_panel_regression.php'
   'php tests/run_manager_response_health_regression.php'
+  'php tests/run_manager_push_health_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
   'php tests/run_live_destination_context_regression.php'
   'php tests/run_post_tour_regression.php'
