@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T04:47:12+00:00",
+    "generated_at": "2026-08-25T04:49:54+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -102,7 +102,7 @@
             "manager_replied": false,
             "phone_received": false,
             "inbound_messages": 31,
-            "outbound_messages": 31,
+            "outbound_messages": 32,
             "date_picks": 5,
             "drop_point": "tours_opened",
             "flags": [
@@ -111,8 +111,8 @@
                 "excessive_turns"
             ],
             "started_at": "2026-08-25 06:35:38",
-            "last_message_at": "2026-08-25 06:38:38"
+            "last_message_at": "2026-08-25 06:49:01"
         }
     ],
-    "since_utc": "2026-08-25 03:47:12"
+    "since_utc": "2026-08-25 03:49:54"
 }
