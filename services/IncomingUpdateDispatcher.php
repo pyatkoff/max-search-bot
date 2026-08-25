@@ -2,6 +2,7 @@
 require_once __DIR__ . '/DialogueApplication.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/ConversationRecorder.php';
+require_once __DIR__ . '/ConversationAttributionService.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 
@@ -26,6 +27,7 @@ class IncomingUpdateDispatcher
         }
 
         ConversationRecorder::inbound($incoming);
+        ConversationAttributionService::syncByChat($platform,$chatId);
         $ownership = ConversationControlService::statusByChat($platform, $chatId);
         if ($ownership && in_array((string)$ownership['status'], ['waiting_manager','manager'], true)) {
             $status = (string)$ownership['status'];
