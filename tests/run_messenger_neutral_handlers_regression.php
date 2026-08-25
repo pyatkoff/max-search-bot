@@ -46,6 +46,11 @@ mnhCheck('MealParser live phrase Питание не нужно', MealParser::pa
 mnhCheck('MealParser phrase питание не важно', MealParser::parse('питание не важно'), 'any');
 mnhCheck('MealParser breakfast', MealParser::parse('Завтрак'), 'breakfast');
 mnhCheck('MealParser all inclusive', MealParser::parse('Всё включено'), 'all_inclusive');
+mnhCheck('MealParser live phrase Двух разовое', MealParser::parse('Двух разовое'), 'half_board');
+mnhCheck('MealParser compact two-meals phrase', MealParser::parse('двухразовое'), 'half_board');
+mnhCheck('MealParser numeric two-meals phrase', MealParser::parse('2 разовое'), 'half_board');
+mnhCheck('MealParser does not invent plan from quality preference', MealParser::parse('Вкусное'), null);
+mnhCheck('MealParser does not invent plan from delicacies preference', MealParser::parse('Деликатэсы'), null);
 
 $controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueController.php');
 mnhCheck('DialogueController start uses DialogueView', strpos($controllerSource, 'DialogueView::start($chatId)') !== false, true);
