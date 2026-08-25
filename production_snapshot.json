@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T08:47:45+00:00",
+    "generated_at": "2026-08-25T09:02:41+00:00",
     "production": {
-        "sha": "9d718a2b9a3d863233f829b6881912088b808090",
+        "sha": "cb6e86207667a185cad80aa78d93488510b334b3",
         "branch": "main"
     },
     "database": {
@@ -74,8 +74,8 @@
         "conversations": 172,
         "messages": 4652,
         "managers": 5,
-        "manager_assignments": 48,
-        "conversation_events": 126,
+        "manager_assignments": 49,
+        "conversation_events": 129,
         "admin_audit_log": 7
     },
     "managers": [
@@ -113,7 +113,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-25 09:53:31"
+            "last_login_at": "2026-08-25 11:01:30"
         },
         {
             "id": 5,
@@ -147,8 +147,8 @@
         {
             "manager_id": 4,
             "login": "Anastasia",
-            "assignments_total": 37,
-            "assignments_open": "31"
+            "assignments_total": 38,
+            "assignments_open": "28"
         },
         {
             "manager_id": 5,
@@ -163,29 +163,29 @@
             "login": "manager",
             "role": "admin",
             "is_working": false,
-            "all": 170,
+            "all": 169,
             "mine": 2,
-            "waiting": 5,
-            "assigned_to_others": 19
+            "waiting": 4,
+            "assigned_to_others": 18
         },
         {
             "manager_id": 3,
             "login": "Alisha",
             "role": "admin",
             "is_working": false,
-            "all": 170,
+            "all": 169,
             "mine": 0,
-            "waiting": 5,
-            "assigned_to_others": 21
+            "waiting": 4,
+            "assigned_to_others": 20
         },
         {
             "manager_id": 4,
             "login": "Anastasia",
             "role": "manager",
             "is_working": true,
-            "all": 166,
-            "mine": 17,
-            "waiting": 5,
+            "all": 165,
+            "mine": 16,
+            "waiting": 4,
             "assigned_to_others": 0
         },
         {
@@ -264,13 +264,13 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "closed",
-            "count": 2
+            "count": 3
         },
         {
             "project_key": "anytour",
             "channel": "max",
             "status": "manager",
-            "count": 20
+            "count": 19
         },
         {
             "project_key": "anytour",
@@ -894,6 +894,30 @@
     ],
     "recent_events": [
         {
+            "id": 129,
+            "conversation_id": 16,
+            "event_type": "conversation_closed",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 11:02:15"
+        },
+        {
+            "id": 128,
+            "conversation_id": 18,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 10:52:29"
+        },
+        {
+            "id": 127,
+            "conversation_id": 18,
+            "event_type": "manager_released",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 10:52:24"
+        },
+        {
             "id": 126,
             "conversation_id": 155,
             "event_type": "ai_resumed",
@@ -1348,30 +1372,6 @@
             "actor_type": "manager",
             "actor_id": "4",
             "created_at": "2026-08-24 17:46:06"
-        },
-        {
-            "id": 69,
-            "conversation_id": 18,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:45:41"
-        },
-        {
-            "id": 68,
-            "conversation_id": 18,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:45:39"
-        },
-        {
-            "id": 67,
-            "conversation_id": 17,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:45:33"
         }
     ]
 }
