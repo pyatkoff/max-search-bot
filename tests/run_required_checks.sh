@@ -30,6 +30,7 @@ checks=(
   'php tests/run_tour_results_regression.php'
   'php tests/run_manager_request_regression.php'
   'php tests/run_manager_visibility_regression.php'
+  'php tests/run_manager_delivery_failure_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
   'php tests/run_post_tour_regression.php'
   'php tests/run_messenger_neutral_handlers_regression.php'

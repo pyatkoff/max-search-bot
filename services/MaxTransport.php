@@ -4,6 +4,8 @@ require_once __DIR__ . '/LegacyActionClassifier.php';
 
 class MaxTransport
 {
+    private static $lastError = null;
+
     /**
      * Low-level MAX API request.
      *
@@ -13,6 +15,7 @@ class MaxTransport
      */
     public static function request($baseUrl, $token, $httpMethod, $path, array $query = [], $body = null, $logFile = null)
     {
+        self::$lastError = null;
         $url = rtrim((string)$baseUrl, '/') . '/' . ltrim((string)$path, '/');
         if (!empty($query)) {
             $url .= '?' . http_build_query($query);
@@ -42,16 +45,67 @@ class MaxTransport
         curl_close($ch);
 
         if ($response === false || $errno) {
+            self::$lastError = [
+                'category'=>'temporary',
+                'http_code'=>0,
+                'message'=>mb_substr(trim('cURL '.$errno.': '.$error),0,500),
+            ];
             self::log($logFile, 'API CURL ERROR ' . $errno . ': ' . $error);
             return false;
         }
 
         $data = json_decode($response, true);
         if ($httpCode < 200 || $httpCode >= 300) {
+            self::$lastError = self::classifyFailure($httpCode, (string)$response);
             self::log($logFile, 'API HTTP ' . $httpCode . ': ' . $response);
             return false;
         }
         return is_array($data) ? $data : true;
+    }
+
+    public static function lastError(): ?array
+    {
+        return is_array(self::$lastError) ? self::$lastError : null;
+    }
+
+    public static function classifyFailure(int $httpCode, string $response): array
+    {
+        $message = self::failureMessage($response);
+        $haystack = function_exists('mb_strtolower') ? mb_strtolower($response.' '.$message, 'UTF-8') : strtolower($response.' '.$message);
+        $category = 'unknown';
+
+        foreach (['blocked','bot was blocked','bot blocked','user blocked','заблок'] as $needle) {
+            if (strpos($haystack,$needle)!==false) { $category='blocked'; break; }
+        }
+        if ($category==='unknown') {
+            foreach (['not found','user not found','chat not found','conversation not found','deactivated','unavailable','not a chat member','recipient'] as $needle) {
+                if (strpos($haystack,$needle)!==false) { $category='unavailable'; break; }
+            }
+        }
+        if ($category==='unknown' && in_array($httpCode,[403,404,410],true)) $category='unavailable';
+        if ($category==='unknown' && ($httpCode===408 || $httpCode===425 || $httpCode===429 || $httpCode>=500)) $category='temporary';
+
+        return [
+            'category'=>$category,
+            'http_code'=>$httpCode,
+            'message'=>mb_substr($message!==''?$message:('MAX API HTTP '.$httpCode),0,500),
+        ];
+    }
+
+    private static function failureMessage(string $response): string
+    {
+        $data=json_decode($response,true);
+        if(is_array($data)){
+            foreach (['message','error_description','description','error','code'] as $key) {
+                if(isset($data[$key]) && is_scalar($data[$key])) return trim((string)$data[$key]);
+            }
+            if(isset($data['error']) && is_array($data['error'])){
+                foreach (['message','description','code'] as $key) {
+                    if(isset($data['error'][$key]) && is_scalar($data['error'][$key])) return trim((string)$data['error'][$key]);
+                }
+            }
+        }
+        return trim(preg_replace('/\s+/u',' ',strip_tags($response))??'');
     }
 
     public static function deleteMessage($baseUrl, $token, $messageId, $logFile = null)
