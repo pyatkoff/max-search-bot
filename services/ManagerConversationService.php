@@ -27,6 +27,16 @@ class ManagerConversationService
         return "({$conversationAlias}.status='manager' AND {$request} IS NOT NULL AND NOT EXISTS (SELECT 1 FROM messages mr WHERE mr.conversation_id={$conversationAlias}.id AND mr.direction='outbound' AND mr.sender_type='manager' AND mr.created_at>={$request}))";
     }
 
+    private static function formatWaitAge(int $seconds): string
+    {
+        $seconds=max(0,$seconds);
+        if($seconds<60)return '⏱ Без ответа <1 мин';
+        $minutes=(int)floor($seconds/60);
+        if($minutes<60)return '⏱ Без ответа '.$minutes.' мин';
+        $hours=(int)floor($minutes/60);$rest=$minutes%60;
+        return '⏱ Без ответа '.$hours.' ч'.($rest>0?' '.$rest.' мин':'');
+    }
+
     public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter=''): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
@@ -63,6 +73,7 @@ class ManagerConversationService
         $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
             .'cu.display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
+            .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
             .'(SELECT mm.text FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_text,'
             .'(SELECT mm.direction FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_direction,'
             .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
@@ -71,7 +82,11 @@ class ManagerConversationService
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
-        foreach($rows as &$row){$id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;if($failure){$preview=trim((string)($row['last_text']??''));$row['last_text']='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}}unset($row);
+        foreach($rows as &$row){
+            $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
+            if($failure){$preview=trim((string)($row['last_text']??''));$row['last_text']='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');continue;}
+            if(!empty($row['awaiting_first_reply'])){$preview=trim((string)($row['last_text']??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row['last_text']=$marker.($preview!==''?' · '.$preview:'');}
+        }unset($row);
         return array_slice($rows,0,$limit);
     }
 
@@ -98,7 +113,7 @@ class ManagerConversationService
         $projects=ProjectAccessService::projectsForManager($managerId);$projectIds=array_values(array_filter(array_map(static function($p){return(int)($p['id']??0);},$projects)));
         $pdo=ConversationDb::connection();
         if(!$projectIds){$q=$pdo->query('SELECT id,login,display_name FROM managers WHERE is_active=1 ORDER BY COALESCE(display_name,login),id');return$q->fetchAll();}
-        $sql='SELECT DISTINCT m.id,m.login,m.display_name FROM managers m LEFT JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.is_active=1 AND (mp.project_id IN ('.implode(',',array_fill(0,count($projectIds),'?')).') OR m.role=\'admin\') ORDER BY COALESCE(m.display_name,m.login),m.id';
+        $sql='SELECT DISTINCT m.id,m.login,m.display_name FROM managers m LEFT JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.is_active=1 AND (mp.project_id IN ('.implode(',',array_fill(0,count($projectIds),'?')).') OR m.role=\'admin\') ORDER BY COALESCE(m.display_name,login),m.id';
         $q=$pdo->prepare($sql);$q->execute($projectIds);return$q->fetchAll();
     }
 
