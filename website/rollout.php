@@ -13,7 +13,7 @@ $widgetUrl = defined('WEBSITE_WIDGET_URL') && trim((string) WEBSITE_WIDGET_URL) 
 $encodedUrl = json_encode($widgetUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 $encodedPercent = json_encode($percent);
 
-echo <<<'JS'
+$loader = <<<'JS'
 (function(){
   var percent=__PERCENT__;
   if(percent<=0)return;
@@ -59,4 +59,5 @@ echo <<<'JS'
 }());
 JS;
 
-echo "\n";
+$loader = str_replace(['__PERCENT__', '__WIDGET_URL__'], [$encodedPercent, $encodedUrl], $loader);
+echo $loader . "\n";
