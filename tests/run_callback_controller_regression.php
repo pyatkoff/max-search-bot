@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+if (!class_exists('MaxSearchApi')) {
+    class MaxSearchApi {
+        public static $statusCityChoose = 11;
+        public static $statusContryChoose = 12;
+        public static $statusAdults = 13;
+        public static $statusChild = 14;
+        public static $statusStars = 15;
+        public static $statusMeal = 16;
+        public static $statusNights = 17;
+    }
+}
+
 require_once __DIR__ . '/../services/CallbackController.php';
 
 $passed = 0;
@@ -69,6 +81,17 @@ ccCheck('duplicate month change is explicitly suppressed', strpos($wizardSource,
 ccCheck('same month callback inside debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 101.0), true);
 ccCheck('same month callback after debounce window is allowed', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 102.1), false);
 ccCheck('different month callback remains allowed immediately', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1), false);
+
+ccCheck('city choice is valid only on city step', WizardCallbackAction::expectedStatusForForwardCallback('pick_city_1'), (int)MaxSearchApi::$statusCityChoose);
+ccCheck('country choice is valid only on country step', WizardCallbackAction::expectedStatusForForwardCallback('pick_country_4'), (int)MaxSearchApi::$statusContryChoose);
+ccCheck('adult choice is valid only on adults step', WizardCallbackAction::expectedStatusForForwardCallback('adults_2'), (int)MaxSearchApi::$statusAdults);
+ccCheck('children choice is valid only on children step', WizardCallbackAction::expectedStatusForForwardCallback('child_0'), (int)MaxSearchApi::$statusChild);
+ccCheck('stars choice is valid only on stars step', WizardCallbackAction::expectedStatusForForwardCallback('star_4'), (int)MaxSearchApi::$statusStars);
+ccCheck('meal choice is valid only on meal step', WizardCallbackAction::expectedStatusForForwardCallback('meal_7'), (int)MaxSearchApi::$statusMeal);
+ccCheck('nights choice is valid only on nights step', WizardCallbackAction::expectedStatusForForwardCallback('nights_9_11'), (int)MaxSearchApi::$statusNights);
+ccCheck('date choice remains under dedicated guarded handler', WizardCallbackAction::expectedStatusForForwardCallback('pick_date_17.10.2026'), null);
+ccCheck('back navigation is not blocked by forward-step guard', WizardCallbackAction::expectedStatusForForwardCallback('back_nights'), null);
+ccCheck('forward wizard callbacks have stale-step guard', strpos($wizardSource, 'STALE_WIZARD_CALLBACK_SKIPPED') !== false && strpos($wizardSource, 'self::staleForwardCallback($chatId, $q)') !== false, true);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);

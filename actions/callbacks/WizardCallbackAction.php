@@ -57,6 +57,32 @@ class WizardCallbackAction
         return $previousPayload === $payload && $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
     }
 
+    public static function expectedStatusForForwardCallback(string $q): ?int
+    {
+        if (strpos($q, 'pick_city_') === 0) return (int)MaxSearchApi::$statusCityChoose;
+        if (strpos($q, 'pick_country_') === 0) return (int)MaxSearchApi::$statusContryChoose;
+        if (strpos($q, 'adults_') === 0) return (int)MaxSearchApi::$statusAdults;
+        if (strpos($q, 'child_') === 0) return (int)MaxSearchApi::$statusChild;
+        if (strpos($q, 'star_') === 0) return (int)MaxSearchApi::$statusStars;
+        if (strpos($q, 'meal_') === 0) return (int)MaxSearchApi::$statusMeal;
+        if (strpos($q, 'nights_') === 0) return (int)MaxSearchApi::$statusNights;
+        return null;
+    }
+
+    private static function staleForwardCallback(int $chatId, string $q): bool
+    {
+        $expectedStatus = self::expectedStatusForForwardCallback($q);
+        if ($expectedStatus === null) return false;
+
+        $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
+        if ($currentStatus === $expectedStatus) return false;
+
+        if (function_exists('put_log_in')) {
+            put_log_in('STALE_WIZARD_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus . ' expected=' . $expectedStatus);
+        }
+        return true;
+    }
+
     private static function handleMonthChange(int $chatId, string $q): bool
     {
         $fp = @fopen(self::callbackLockPath($chatId, '.month'), 'c+');
@@ -100,6 +126,8 @@ class WizardCallbackAction
 
     public static function handle(int $chatId, string $q): bool
     {
+        if (self::staleForwardCallback($chatId, $q)) return true;
+
         if ($q === 'ai_start') {
             MaxSearchApi::funnelLog($chatId, 'ai_start');
             MaxSearchApi::deletePrevMessage($chatId);
