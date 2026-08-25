@@ -27,6 +27,7 @@ $families = [
     'start_search'=>'wizard',
     'pick_city_1'=>'wizard',
     'pick_country_4'=>'wizard',
+    'pick_date_17.10.2026'=>'wizard',
     'adults_2'=>'wizard',
     'child_0'=>'wizard',
     'star_5'=>'wizard',
@@ -51,11 +52,17 @@ foreach ($families as $payload=>$expected) {
 }
 
 ccCheck('wizard owns city', WizardCallbackAction::handles('pick_city_1'), true);
+ccCheck('wizard owns date', WizardCallbackAction::handles('pick_date_17.10.2026'), true);
 ccCheck('wizard excludes back phone', WizardCallbackAction::handles('back_phone'), false);
 ccCheck('edit owns edit date', EditCallbackAction::handles('edit_date'), true);
 ccCheck('manager owns manual phone', ManagerCallbackAction::handles('phone_manual'), true);
 ccCheck('tours owns finish', ToursCallbackAction::handles('finish_from_ai'), true);
 ccCheck('manager excludes tours', ManagerCallbackAction::handles('show_tours'), false);
+
+$wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
+ccCheck('date callback has per-chat serialization lock', strpos($wizardSource, 'max-search-date-callback-locks') !== false && strpos($wizardSource, 'flock($fp, LOCK_EX)') !== false, true);
+ccCheck('stale date callback requires active date step', strpos($wizardSource, 'getCurentStatus($chatId)') !== false && strpos($wizardSource, '$statusDate') !== false && strpos($wizardSource, 'STALE_DATE_CALLBACK_SKIPPED') !== false, true);
+ccCheck('date callback routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'pick_date_') === 0) return self::handleDateSelection") !== false, true);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
