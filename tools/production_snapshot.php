@@ -5,6 +5,8 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
+require_once $baseDir.'/services/ManagerDeliveryStateService.php';
+require_once $baseDir.'/services/ManagerResponseHealth.php';
 require_once $baseDir.'/services/WebsiteAttributionHealth.php';
 
 function tableExists(PDO $pdo,string $table):bool{
@@ -33,9 +35,11 @@ try{
         'managers'=>[],
         'manager_usage'=>[],
         'manager_visibility'=>[],
+        'manager_response_health'=>[],
         'health'=>[
             'manager_visibility_ok'=>true,
             'manager_visibility_anomalies'=>[],
+            'manager_response_ok'=>true,
             'website_attribution_ok'=>true,
             'website_attribution_anomalies'=>[],
         ],
@@ -92,6 +96,12 @@ try{
                 'manager_id'=>$id,'login'=>$entry['login'],'reason'=>'working_manager_all_collapsed_to_mine','all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
             ];
         }
+    }
+
+    if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_events')&&tableExists($pdo,'messages')){
+        $managerResponseHealth=ManagerResponseHealth::collect($pdo);
+        $snapshot['manager_response_health']=$managerResponseHealth;
+        $snapshot['health']['manager_response_ok']=$managerResponseHealth['ok'];
     }
 
     if(tableExists($pdo,'messages')){
