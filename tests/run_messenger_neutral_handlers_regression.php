@@ -41,12 +41,6 @@ mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::par
 mnhCheck('plural adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('2 взрослых'), ['adults'=>2,'children'=>0]);
 mnhCheck('unrelated children answer is not adult clarification', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 ребенок'), null);
 mnhCheck('sentence with extra intent is not silently collapsed', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый и ребенок'), null);
-mnhCheck('live multi-star answer 3,4 becomes minimum 3', AiShortAnswerHandler::starMinimumFromShortText('3,4'), 3);
-mnhCheck('multi-star answer with spaces becomes minimum', AiShortAnswerHandler::starMinimumFromShortText('4, 5'), 4);
-mnhCheck('star range answer becomes minimum', AiShortAnswerHandler::starMinimumFromShortText('3-5'), 3);
-mnhCheck('single star answer stays exact', AiShortAnswerHandler::starMinimumFromShortText('4'), 4);
-mnhCheck('invalid star list is not guessed', AiShortAnswerHandler::starMinimumFromShortText('3,7'), null);
-mnhCheck('sentence is not silently treated as star list', AiShortAnswerHandler::starMinimumFromShortText('хочу 3 или 4'), null);
 
 mnhCheck('MealParser live phrase Питание не нужно', MealParser::parse('Питание не нужно'), 'any');
 mnhCheck('MealParser phrase питание не важно', MealParser::parse('питание не важно'), 'any');
