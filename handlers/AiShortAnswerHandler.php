@@ -34,7 +34,10 @@ class AiShortAnswerHandler
             $params['adults'] = $n;
         }
         elseif ($field === 'children') {
-            if (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
+            $partyClarification = self::partyClarificationWhileAskingChildren($lower);
+            if ($partyClarification !== null) {
+                $params = $partyClarification;
+            } elseif (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
                 $params['children'] = 0;
             } else {
                 $n = self::numberFromShortText($lower, 0, 3);
@@ -125,6 +128,23 @@ class AiShortAnswerHandler
             $questions[$missingAfter[0]] ?? 'Уточните, пожалуйста, параметры поездки.'
         );
         return true;
+    }
+
+    public static function partyClarificationWhileAskingChildren(string $text): ?array
+    {
+        $lower = function_exists('mb_strtolower')
+            ? mb_strtolower(trim($text), 'UTF-8')
+            : strtolower(trim($text));
+        $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
+
+        if (!preg_match('/^([1-6])\s*(?:взросл(?:ый|ая|ые|ых|ого))$/ui', $lower, $m)) {
+            return null;
+        }
+
+        return [
+            'adults'=>(int)$m[1],
+            'children'=>0,
+        ];
     }
 
     private static function numberFromShortText($text, $min, $max)
