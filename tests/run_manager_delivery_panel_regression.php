@@ -21,6 +21,7 @@ mdpCheck('delivery state supports batched list lookup',strpos($state,'function a
 mdpCheck('manager list visibly marks suspended MAX recipient',strpos($conversations,'🔴 Клиент недоступен в MAX')!==false && strpos($conversations,"'delivery_failure_category'")!==false);
 mdpCheck('urgent waiting list excludes active suspended recipients',strpos($api,'function withoutSuspendedWaiting(array $rows)')!==false && strpos($api,"if(\$queue==='waiting'||\$queue==='attention')\$rows=withoutSuspendedWaiting(\$rows)")!==false);
 mdpCheck('waiting counter excludes active suspended recipients',strpos($api,"\$waiting=withoutSuspendedWaiting(ManagerConversationService::list")!==false && strpos($api,"\$counts['waiting']=['count'=>count(\$waiting)")!==false);
+mdpCheck('taken unanswered rows expose server-calculated wait age',strpos($conversations,'wait_age_seconds')!==false && strpos($conversations,'TIMESTAMPDIFF(SECOND')!==false && strpos($conversations,'⏱ Без ответа')!==false && strpos($conversations,"if(!empty(\$row['awaiting_first_reply']))")!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
