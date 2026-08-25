@@ -14,6 +14,8 @@ class ManagerPushHealth
                 'working_managers' => [],
                 'missing_subscription_manager_ids' => [],
                 'recent_error_manager_ids' => [],
+                'unusable_notification_path_manager_ids' => [],
+                'working_manager_notification_path_ok' => false,
             ];
         }
     }
@@ -28,10 +30,13 @@ class ManagerPushHealth
             'working_managers' => [],
             'missing_subscription_manager_ids' => [],
             'recent_error_manager_ids' => [],
+            'unusable_notification_path_manager_ids' => [],
+            'working_manager_notification_path_ok' => true,
         ];
 
         if (!self::tableExists($pdo, 'managers')) {
             $result['ok'] = false;
+            $result['working_manager_notification_path_ok'] = false;
             $result['error'] = 'managers_table_missing';
             return $result;
         }
@@ -45,6 +50,8 @@ class ManagerPushHealth
                 'display_name' => (string)($manager['display_name'] ?? ''),
                 'subscription_count' => 0,
                 'healthy_subscription_count' => 0,
+                'notification_path_usable' => false,
+                'notification_path_reason' => $table ? 'no_subscription' : 'subscription_table_missing',
                 'last_success_at' => null,
                 'last_error_at' => null,
                 'last_error' => null,
@@ -67,6 +74,13 @@ class ManagerPushHealth
                 $q->execute([$id]);
                 $lastError = $q->fetchColumn();
                 $entry['last_error'] = $lastError === false ? null : (string)$lastError;
+
+                if ($entry['healthy_subscription_count'] > 0) {
+                    $entry['notification_path_usable'] = true;
+                    $entry['notification_path_reason'] = 'healthy_subscription';
+                } elseif ($entry['subscription_count'] > 0) {
+                    $entry['notification_path_reason'] = 'subscription_unhealthy';
+                }
             }
 
             if ($entry['subscription_count'] === 0) {
@@ -75,12 +89,15 @@ class ManagerPushHealth
             if ($entry['last_error_at'] !== null && ($entry['last_success_at'] === null || $entry['last_error_at'] > $entry['last_success_at'])) {
                 $result['recent_error_manager_ids'][] = $id;
             }
+            if (!$entry['notification_path_usable']) {
+                $result['unusable_notification_path_manager_ids'][] = $id;
+            }
             $result['working_managers'][] = $entry;
         }
 
-        $result['ok'] = $table
-            && count($result['missing_subscription_manager_ids']) === 0
-            && count($result['recent_error_manager_ids']) === 0;
+        $result['working_manager_notification_path_ok'] = $table
+            && count($result['unusable_notification_path_manager_ids']) === 0;
+        $result['ok'] = $result['working_manager_notification_path_ok'];
         return $result;
     }
 

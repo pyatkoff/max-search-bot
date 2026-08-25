@@ -15,6 +15,9 @@ mphCheck('push health scopes to active working managers',strpos($service,'is_act
 mphCheck('push health exposes missing subscriptions',strpos($service,"'missing_subscription_manager_ids'")!==false && strpos($service,"'subscription_count'")!==false);
 mphCheck('push health exposes latest send errors',strpos($service,"'recent_error_manager_ids'")!==false && strpos($service,'last_error_at')!==false && strpos($service,"'last_error'")!==false);
 mphCheck('push health fails soft and exposes diagnostic error',strpos($service,'catch (Throwable $e)')!==false && strpos($service,"'error' => get_class(\$e)")!==false);
+mphCheck('push health explicitly exposes unusable working-manager notification paths',strpos($service,"'unusable_notification_path_manager_ids'")!==false && strpos($service,"'working_manager_notification_path_ok'")!==false);
+mphCheck('push health gives per-manager notification path usability',strpos($service,"'notification_path_usable'")!==false && strpos($service,"'notification_path_reason'")!==false);
+mphCheck('push path distinguishes missing, unhealthy and healthy subscription',strpos($service,"'no_subscription'")!==false && strpos($service,"'subscription_unhealthy'")!==false && strpos($service,"'healthy_subscription'")!==false);
 mphCheck('production snapshot includes manager push health',strpos($snapshot,"ManagerPushHealth.php")!==false && strpos($snapshot,"'manager_push_health'")!==false && strpos($snapshot,"'manager_push_ok'")!==false);
 mphCheck('push delivery logs missing selected manager subscription',strpos($push,"'no_subscription'")!==false && strpos($push,"'conversation_id'=>\$conversationId")!==false && strpos($push,"'manager_id'=>(int)\$managerId")!==false);
 mphCheck('push delivery logs successful subscription send',strpos($push,"'delivery_success'")!==false && strpos($push,"'subscription_id'=>\$subscriptionId")!==false && strpos($push,"'http_code'=>\$code")!==false);
