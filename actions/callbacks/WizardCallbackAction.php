@@ -19,12 +19,16 @@ class WizardCallbackAction
             || (strpos($q, 'back_') === 0 && $q !== 'back_phone');
     }
 
-    private static function handleDateSelection(int $chatId, string $q): bool
+    private static function callbackLockPath(int $chatId, string $suffix = ''): string
     {
         $dir = sys_get_temp_dir() . '/max-search-date-callback-locks';
         if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        $file = $dir . '/' . hash('sha256', (string)$chatId) . '.lock';
-        $fp = @fopen($file, 'c+');
+        return $dir . '/' . hash('sha256', (string)$chatId) . $suffix . '.lock';
+    }
+
+    private static function handleDateSelection(int $chatId, string $q): bool
+    {
+        $fp = @fopen(self::callbackLockPath($chatId), 'c+');
 
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
@@ -41,6 +45,52 @@ class WizardCallbackAction
             MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
             if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
             DialogueView::check($chatId);
+            return true;
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    }
+
+    public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 2.0): bool
+    {
+        return $previousPayload === $payload && $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
+    }
+
+    private static function handleMonthChange(int $chatId, string $q): bool
+    {
+        $fp = @fopen(self::callbackLockPath($chatId, '.month'), 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            return true;
+        }
+
+        try {
+            $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
+            if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
+                if (function_exists('put_log_in')) put_log_in('STALE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
+                return true;
+            }
+
+            rewind($fp);
+            $state = json_decode((string)stream_get_contents($fp), true);
+            $previousPayload = is_array($state) ? (string)($state['payload'] ?? '') : '';
+            $previousAt = is_array($state) ? (float)($state['at'] ?? 0) : 0.0;
+            $now = microtime(true);
+            if (self::isDuplicateMonthChange($previousPayload, $previousAt, $q, $now)) {
+                if (function_exists('put_log_in')) put_log_in('DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q);
+                return true;
+            }
+
+            $monthYear = str_replace('month_change_', '', $q);
+            $arr = explode('.', $monthYear);
+            if (count($arr) >= 2 && $arr[0] !== '' && $arr[1] !== '') {
+                ftruncate($fp, 0);
+                rewind($fp);
+                fwrite($fp, json_encode(['payload'=>$q, 'at'=>$now], JSON_UNESCAPED_SLASHES));
+                fflush($fp);
+                DialogueView::calendar($chatId, $arr[0], $arr[1]);
+            }
             return true;
         } finally {
             flock($fp, LOCK_UN);
@@ -158,14 +208,7 @@ class WizardCallbackAction
             return true;
         }
 
-        if (strpos($q, 'month_change_') === 0) {
-            $monthYear = str_replace('month_change_', '', $q);
-            if ($monthYear !== '') {
-                $arr = explode('.', $monthYear);
-                if (count($arr) >= 2) DialogueView::calendar($chatId, $arr[0], $arr[1]);
-            }
-            return true;
-        }
+        if (strpos($q, 'month_change_') === 0) return self::handleMonthChange($chatId, $q);
 
         return false;
     }
