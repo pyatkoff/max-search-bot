@@ -2,6 +2,18 @@
 
 declare(strict_types=1);
 
+if (!class_exists('MaxSearchApi')) {
+    class MaxSearchApi {
+        public static $statusCityChoose = 11;
+        public static $statusContryChoose = 12;
+        public static $statusAdults = 13;
+        public static $statusChild = 14;
+        public static $statusStars = 15;
+        public static $statusMeal = 16;
+        public static $statusNights = 17;
+    }
+}
+
 require_once __DIR__ . '/../services/CallbackController.php';
 
 $passed = 0;
