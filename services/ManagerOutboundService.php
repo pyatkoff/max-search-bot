@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ManagerConversationService.php';
 require_once __DIR__ . '/ManagerPushService.php';
+require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
@@ -23,7 +24,15 @@ class ManagerOutboundService
         $c = $detail['conversation'];
         if ((string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) return false;
         $chatId = $c['external_chat_id']; $channel = strtolower((string)$c['channel']);
-        if ($channel === 'max') $adapter = new MaxMessengerAdapter(null, null, 'manager');
+
+        if ($channel === 'max') {
+            $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
+            if ($suspended) {
+                self::$lastFailure=$suspended;
+                return false;
+            }
+            $adapter = new MaxMessengerAdapter(null, null, 'manager');
+        }
         elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager');
         elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager');
         else return false;
@@ -44,6 +53,39 @@ class ManagerOutboundService
         ConversationControlService::event($conversationId,'manager_message_failed','manager',$managerId,$failure);
         ManagerPushService::notifyConversation($conversationId,self::failureNotice($failure));
         return false;
+    }
+
+    private static function unresolvedSuspendedFailure(int $conversationId,string $projectKey): ?array
+    {
+        try {
+            $pdo=ConversationDb::connection();
+            $q=$pdo->prepare("SELECT created_at,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='manager_message_failed' ORDER BY id DESC LIMIT 20");
+            $q->execute([$conversationId]);
+            $suspendedAt=null;
+            foreach($q->fetchAll() as $row){
+                $payload=json_decode((string)($row['payload_json']??''),true);
+                if(is_array($payload) && (string)($payload['category']??'')==='suspended'){
+                    $suspendedAt=(string)($row['created_at']??'');
+                    break;
+                }
+            }
+            if(!$suspendedAt)return null;
+
+            $q=$pdo->prepare("SELECT created_at FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND created_at>? ORDER BY id DESC LIMIT 1");
+            $q->execute([$conversationId,$suspendedAt]);
+            if($q->fetchColumn())return null;
+
+            return [
+                'category'=>'suspended',
+                'http_code'=>403,
+                'message'=>'Диалог MAX приостановлен: пользователь остановил или заблокировал бота. Повторная отправка доступна после нового сообщения или запуска бота пользователем.',
+                'channel'=>'max',
+                'project_key'=>$projectKey,
+                'suppressed_retry'=>true,
+            ];
+        } catch(Throwable $e) {
+            return null;
+        }
     }
 
     public static function failureNotice(array $failure): string
