@@ -5,6 +5,7 @@ require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
+require_once __DIR__ . '/ManagerDeliveryStateService.php';
 
 class ManagerConversationService
 {
@@ -69,6 +70,8 @@ class ManagerConversationService
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':'COALESCE(c.last_message_at,c.started_at) DESC').' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
+        $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
+        foreach($rows as &$row){$id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;if($failure){$preview=trim((string)($row['last_text']??''));$row['last_text']='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}}unset($row);
         return array_slice($rows,0,$limit);
     }
 
@@ -95,8 +98,8 @@ class ManagerConversationService
         $projects=ProjectAccessService::projectsForManager($managerId);$projectIds=array_values(array_filter(array_map(static function($p){return(int)($p['id']??0);},$projects)));
         $pdo=ConversationDb::connection();
         if(!$projectIds){$q=$pdo->query('SELECT id,login,display_name FROM managers WHERE is_active=1 ORDER BY COALESCE(display_name,login),id');return$q->fetchAll();}
-        $sql='SELECT DISTINCT m.id,m.login,m.display_name FROM managers m LEFT JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.is_active=1 AND (mp.project_id IN ('.implode(',',array_fill(0,count($projectIds),'?')).') OR m.role=\'admin\') ORDER BY COALESCE(m.display_name,m.login),m.id';
-        $q=$pdo->prepare($sql);$q->execute($projectIds);return$q->fetchAll();
+        $sql='SELECT DISTINCT m.id,m.login,m.display_name FROM managers m LEFT JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.is_active=1 AND (mp.project_id IN ('.implode(',',array_fill(0,count($projectIds),'?')).') OR m.role=\'admin\') ORDER BY COALESCE(m.display_name,login),m.id';
+        $q=ConversationDb::connection()->prepare($sql);$q->execute($projectIds);return$q->fetchAll();
     }
 
     public static function detail(int $conversationId,int $managerId): ?array
