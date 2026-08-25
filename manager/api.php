@@ -77,6 +77,8 @@ if($action==='close') out(['ok'=>ManagerConversationService::close((int)($data['
 if($action==='reopen') out(['ok'=>ManagerConversationService::reopen((int)($data['conversation_id']??0),(int)$m['id'])]);
 if($action==='send'){
     $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''));
-    out(['ok'=>$ok],$ok?200:409);
+    if($ok) out(['ok'=>true]);
+    $failure=ManagerOutboundService::lastFailure();
+    out(['ok'=>false,'error'=>'delivery_failed','failure'=>$failure,'error_message'=>$failure?ManagerOutboundService::failureNotice($failure):'Сообщение не доставлено'],409);
 }
 out(['ok'=>false,'error'=>'unknown_action'],400);

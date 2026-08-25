@@ -74,8 +74,13 @@ class MaxTransport
         $haystack = function_exists('mb_strtolower') ? mb_strtolower($response.' '.$message, 'UTF-8') : strtolower($response.' '.$message);
         $category = 'unknown';
 
-        foreach (['blocked','bot was blocked','bot blocked','user blocked','заблок'] as $needle) {
-            if (strpos($haystack,$needle)!==false) { $category='blocked'; break; }
+        if (strpos($haystack,'error.dialog.suspended')!==false || strpos($haystack,'dialog.suspended')!==false) {
+            $category='suspended';
+        }
+        if ($category==='unknown') {
+            foreach (['blocked','bot was blocked','bot blocked','user blocked','заблок'] as $needle) {
+                if (strpos($haystack,$needle)!==false) { $category='blocked'; break; }
+            }
         }
         if ($category==='unknown') {
             foreach (['not found','user not found','chat not found','conversation not found','deactivated','unavailable','not a chat member','recipient'] as $needle) {
