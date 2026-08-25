@@ -57,12 +57,11 @@ if($action==='save_source'){
 }
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
-    if(!$isAdmin&&($queue==='waiting'||$queue==='all')&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>$queue==='all'?ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*')):[]]);
+    if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'))]);
     out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'')]);
 }
 if($action==='counts'){
     $counts=ManagerConversationService::queueCounts((int)$m['id'],(string)($data['project_key']??'*'));
-    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) $counts['waiting']=['count'=>0,'unread'=>0];
     out(['ok'=>true,'counts'=>$counts]);
 }
 if($action==='detail'){
