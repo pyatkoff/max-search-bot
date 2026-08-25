@@ -36,12 +36,12 @@ mpCheck('migration adds manager base priority',str_contains($migration,'ADD COLU
 mpCheck('migration adds conversation entry channel',str_contains($migration,'ADD COLUMN entry_channel VARCHAR(64)'),true);
 mpCheck('migration adds priority rules table',str_contains($migration,'CREATE TABLE IF NOT EXISTS manager_priority_rules'),true);
 mpCheck('priority rules support entry channel',str_contains($priority,"'entry_channel'"),true);
-mpCheck('priority scoring combines base and bonuses',str_contains($priority,"$scores[$mid]+=(int)$rule['bonus']"),true);
+mpCheck('priority scoring combines base and bonuses',str_contains($priority,"\$scores[\$mid]+=(int)\$rule['bonus']"),true);
 mpCheck('waiting push is restricted to working managers',str_contains($push,'is_active=1 AND is_working=1'),true);
 mpCheck('waiting push selects highest priority ties',str_contains($push,'ManagerPriorityService::preferred($eligible,$c)'),true);
 mpCheck('admin exposes base priority control',str_contains($admin,'Базовый приоритет'),true);
 mpCheck('admin exposes MAX entry channel rule',str_contains($admin,'MAX-канал входа'),true);
-mpCheck('admin API saves priority rules',str_contains($api,"$action==='save_priority_rule'"),true);
+mpCheck('admin API saves priority rules',str_contains($api,"\$action==='save_priority_rule'"),true);
 mpCheck('incoming dispatcher syncs traffic attribution',str_contains($dispatcher,'ConversationAttributionService::syncByChat($platform,$chatId)'),true);
 
 $total=$passed+$failed;
