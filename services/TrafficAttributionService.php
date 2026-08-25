@@ -31,6 +31,14 @@ class TrafficAttributionService
             $out['yclid']=$m[1]??'';
         }
 
+        if($out['region_id']==='' && preg_match('/(?:^|_)region_([^_]*)_campaign_([^_]*)/i',$clean,$m)){
+            $out['region_id']=$m[1]??'';$out['campaign_id']=$m[2]??'';
+        }
+        if($out['region_id']==='' && preg_match('/(?:^|_)r_([^_]+)(?:_c_([^_]+))?/i',$clean,$m)){
+            $out['region_id']=$m[1]??'';$out['campaign_id']=$m[2]??'';
+        }
+        if($out['campaign_id']==='' && preg_match('/(?:^|_)campaign_([^_]+)/i',$clean,$m))$out['campaign_id']=$m[1]??'';
+
         if(preg_match('/(?:^|_)entry_(.+?)(?=_region_|_campaign_|_r_|_c_|$)/i',$clean,$m)){
             $entry=strtolower(trim((string)($m[1]??'')));
             if(preg_match('/^[a-z0-9][a-z0-9_-]{0,63}$/',$entry))$out['entry_channel']=$entry;
