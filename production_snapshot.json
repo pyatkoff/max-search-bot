@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T07:46:15+00:00",
+    "generated_at": "2026-08-25T08:27:14+00:00",
     "production": {
-        "sha": "da23c4a86348c49a1a0df1c1811da9b3d6381b13",
+        "sha": "6079bf5134a8afa65fb2f3e8b3a6f4d3cd3b4f48",
         "branch": "main"
     },
     "database": {
@@ -72,11 +72,11 @@
         "customers": 171,
         "customer_channels": 171,
         "conversations": 172,
-        "messages": 4642,
+        "messages": 4650,
         "managers": 5,
-        "manager_assignments": 43,
-        "conversation_events": 116,
-        "admin_audit_log": 4
+        "manager_assignments": 48,
+        "conversation_events": 126,
+        "admin_audit_log": 7
     },
     "managers": [
         {
@@ -113,7 +113,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-24 20:14:36"
+            "last_login_at": "2026-08-25 09:53:31"
         },
         {
             "id": 5,
@@ -121,8 +121,8 @@
             "display_name": "Светлана",
             "role": "manager",
             "is_active": 1,
-            "is_working": 0,
-            "last_login_at": "2026-08-24 17:11:03"
+            "is_working": 1,
+            "last_login_at": "2026-08-25 09:51:58"
         }
     ],
     "manager_usage": [
@@ -147,14 +147,14 @@
         {
             "manager_id": 4,
             "login": "Anastasia",
-            "assignments_total": 34,
-            "assignments_open": "28"
+            "assignments_total": 37,
+            "assignments_open": "31"
         },
         {
             "manager_id": 5,
             "login": "Svetlana",
-            "assignments_total": 0,
-            "assignments_open": "0"
+            "assignments_total": 2,
+            "assignments_open": "2"
         }
     ],
     "manager_visibility": [
@@ -165,8 +165,8 @@
             "is_working": false,
             "all": 170,
             "mine": 2,
-            "waiting": 4,
-            "assigned_to_others": 14
+            "waiting": 0,
+            "assigned_to_others": 19
         },
         {
             "manager_id": 3,
@@ -175,26 +175,26 @@
             "is_working": false,
             "all": 170,
             "mine": 0,
-            "waiting": 4,
-            "assigned_to_others": 16
+            "waiting": 0,
+            "assigned_to_others": 21
         },
         {
             "manager_id": 4,
             "login": "Anastasia",
             "role": "manager",
             "is_working": true,
-            "all": 168,
-            "mine": 14,
-            "waiting": 4,
+            "all": 166,
+            "mine": 17,
+            "waiting": 0,
             "assigned_to_others": 0
         },
         {
             "manager_id": 5,
             "login": "Svetlana",
             "role": "manager",
-            "is_working": false,
-            "all": 150,
-            "mine": 0,
+            "is_working": true,
+            "all": 151,
+            "mine": 2,
             "waiting": 0,
             "assigned_to_others": 0
         }
@@ -258,7 +258,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 149
+            "count": 148
         },
         {
             "project_key": "anytour",
@@ -270,13 +270,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "manager",
-            "count": 15
-        },
-        {
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "waiting_manager",
-            "count": 4
+            "count": 20
         },
         {
             "project_key": "anytour",
@@ -292,6 +286,33 @@
         }
     ],
     "recent_admin_audit": [
+        {
+            "id": 7,
+            "actor_manager_id": 5,
+            "action": "manager_working_changed",
+            "entity_type": "manager",
+            "entity_id": "5",
+            "project_key": null,
+            "created_at": "2026-08-25 10:02:22"
+        },
+        {
+            "id": 6,
+            "actor_manager_id": 5,
+            "action": "manager_working_changed",
+            "entity_type": "manager",
+            "entity_id": "5",
+            "project_key": null,
+            "created_at": "2026-08-25 10:02:22"
+        },
+        {
+            "id": 5,
+            "actor_manager_id": 5,
+            "action": "manager_working_changed",
+            "entity_type": "manager",
+            "entity_id": "5",
+            "project_key": null,
+            "created_at": "2026-08-25 09:49:40"
+        },
         {
             "id": 4,
             "actor_manager_id": 4,
@@ -330,6 +351,78 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 4650,
+            "conversation_id": 155,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Удалось найти подходящий тур?</b> Если вариантов слишком много или сложно определиться — менеджер может посмотреть ваш запрос и помочь с выбором.",
+            "created_at": "2026-08-25 10:14:03"
+        },
+        {
+            "id": 4649,
+            "conversation_id": 155,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "tours_checked",
+            "created_at": "2026-08-25 10:14:03"
+        },
+        {
+            "id": 4648,
+            "conversation_id": 155,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "👩‍💼 <b>Передам запрос менеджеру</b> Параметры поездки уже сохранены — повторно заполнять ничего не нужно. Осталось поделиться номером телефона, чтобы менеджер мог связаться с вами.",
+            "created_at": "2026-08-25 10:13:56"
+        },
+        {
+            "id": 4647,
+            "conversation_id": 155,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-08-25 10:13:56"
+        },
+        {
+            "id": 4646,
+            "conversation_id": 155,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-25 10:10:02"
+        },
+        {
+            "id": 4645,
+            "conversation_id": 166,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Добрый день, Павел! Направляю Вам подборку вариантов, соответствующих Вашим пожеланиям. В турпакет включен: перелет, проживание, страховка медицинская, трансфер и топливный сбор. *Описание отелей и полетная программа доступны по ссылке* 28.08, 6н, Begonya Hotel 3*, AI - Все Включено, 57 761 RUB 28.08, 6н, Hotel Kleopatra 3*, BB - Только завтрак, 58 699 RUB 28.08, 6н, Yamanlife Hotel 3*, BB - Только завтрак, 60 576 RUB По ссылке вы сможете ознакомиться с более подробной информацией: https://qu...",
+            "created_at": "2026-08-25 10:02:02"
+        },
+        {
+            "id": 4644,
+            "conversation_id": 152,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Добрый день! Меня зовут Анастасия🌺 Это канал турагентства по адресу г. Москва ул Бутырская 86б. Бронируем как в данном офисе, так и дистанционно 💌 Вы оставили заявку на бронирование тура Подскажите пожалуйста,есть ли пожелания к курорту, бюджету поездки?",
+            "created_at": "2026-08-25 09:54:59"
+        },
+        {
+            "id": 4643,
+            "conversation_id": 170,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Добрый день! Меня зовут Анастасия🌺 Это канал турагентства по адресу г. Москва ул Бутырская 86б. Бронируем как в данном офисе, так и дистанционно 💌 Вы оставили заявку на бронирование тура Подскажите пожалуйста,есть ли пожелания к курорту, бюджету поездки?",
+            "created_at": "2026-08-25 09:54:39"
+        },
         {
             "id": 4642,
             "conversation_id": 166,
@@ -797,81 +890,89 @@
             "channel": "max",
             "text": "show_tours",
             "created_at": "2026-08-25 09:13:26"
-        },
-        {
-            "id": 4590,
-            "conversation_id": 170,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-25 09:13:24"
-        },
-        {
-            "id": 4589,
-            "conversation_id": 170,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-25 09:13:23"
-        },
-        {
-            "id": 4588,
-            "conversation_id": 170,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-25 09:13:21"
-        },
-        {
-            "id": 4587,
-            "conversation_id": 170,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-25 09:13:21"
-        },
-        {
-            "id": 4586,
-            "conversation_id": 115,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-25 09:11:27"
-        },
-        {
-            "id": 4585,
-            "conversation_id": 171,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-25 09:10:36"
-        },
-        {
-            "id": 4584,
-            "conversation_id": 171,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-08-25 09:10:36"
-        },
-        {
-            "id": 4583,
-            "conversation_id": 170,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-25 09:10:14"
         }
     ],
     "recent_events": [
+        {
+            "id": 126,
+            "conversation_id": 155,
+            "event_type": "ai_resumed",
+            "actor_type": "customer",
+            "actor_id": null,
+            "created_at": "2026-08-25 10:14:03"
+        },
+        {
+            "id": 125,
+            "conversation_id": 155,
+            "event_type": "waiting_manager",
+            "actor_type": "customer",
+            "actor_id": null,
+            "created_at": "2026-08-25 10:13:56"
+        },
+        {
+            "id": 124,
+            "conversation_id": 172,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-25 10:12:56"
+        },
+        {
+            "id": 123,
+            "conversation_id": 166,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-25 10:02:02"
+        },
+        {
+            "id": 122,
+            "conversation_id": 160,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 09:55:09"
+        },
+        {
+            "id": 121,
+            "conversation_id": 152,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 09:54:59"
+        },
+        {
+            "id": 120,
+            "conversation_id": 152,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 09:54:52"
+        },
+        {
+            "id": 119,
+            "conversation_id": 170,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 09:54:39"
+        },
+        {
+            "id": 118,
+            "conversation_id": 170,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "4",
+            "created_at": "2026-08-25 09:53:58"
+        },
+        {
+            "id": 117,
+            "conversation_id": 166,
+            "event_type": "manager_taken",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-25 09:52:16"
+        },
         {
             "id": 116,
             "conversation_id": 170,
@@ -1271,86 +1372,6 @@
             "actor_type": "manager",
             "actor_id": "4",
             "created_at": "2026-08-24 17:45:33"
-        },
-        {
-            "id": 66,
-            "conversation_id": 17,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:45:28"
-        },
-        {
-            "id": 65,
-            "conversation_id": 17,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:44:59"
-        },
-        {
-            "id": 64,
-            "conversation_id": 17,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:44:58"
-        },
-        {
-            "id": 63,
-            "conversation_id": 16,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:43:51"
-        },
-        {
-            "id": 62,
-            "conversation_id": 16,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:43:50"
-        },
-        {
-            "id": 61,
-            "conversation_id": 41,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:43:38"
-        },
-        {
-            "id": 60,
-            "conversation_id": 41,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:43:04"
-        },
-        {
-            "id": 59,
-            "conversation_id": 41,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:42:47"
-        },
-        {
-            "id": 58,
-            "conversation_id": 50,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:42:42"
-        },
-        {
-            "id": 57,
-            "conversation_id": 50,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "4",
-            "created_at": "2026-08-24 17:41:46"
         }
     ]
 }
