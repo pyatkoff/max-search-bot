@@ -19,6 +19,35 @@ class WizardCallbackAction
             || (strpos($q, 'back_') === 0 && $q !== 'back_phone');
     }
 
+    private static function handleDateSelection(int $chatId, string $q): bool
+    {
+        $dir = sys_get_temp_dir() . '/max-search-date-callback-locks';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        $file = $dir . '/' . hash('sha256', (string)$chatId) . '.lock';
+        $fp = @fopen($file, 'c+');
+
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            return true;
+        }
+
+        try {
+            $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
+            if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
+                if (function_exists('put_log_in')) put_log_in('STALE_DATE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
+                return true;
+            }
+
+            MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
+            if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
+            DialogueView::check($chatId);
+            return true;
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    }
+
     public static function handle(int $chatId, string $q): bool
     {
         if ($q === 'ai_start') {
@@ -121,12 +150,10 @@ class WizardCallbackAction
             return true;
         }
 
-        if (strpos($q, 'pick_date_') === 0 || $q === 'back_check') {
-            if ($q === 'back_check') MaxSearchApi::deletePrevMessage($chatId, true);
-            else {
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
-                if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
-            }
+        if (strpos($q, 'pick_date_') === 0) return self::handleDateSelection($chatId, $q);
+
+        if ($q === 'back_check') {
+            MaxSearchApi::deletePrevMessage($chatId, true);
             DialogueView::check($chatId);
             return true;
         }
