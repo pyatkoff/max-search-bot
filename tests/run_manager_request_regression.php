@@ -38,7 +38,10 @@ $model = ManagerRequestService::prepare(10,'Pavel',false);
 mrCheck('existing claim is reused',MaxSearchApi::$saveCalls,0);
 mrCheck('default back callback',$model['back_callback'],'back_check');
 mrCheck('manual callback',$model['manual_callback'],'phone_manual');
-mrCheck('text mentions manager',strpos($model['text'],'менеджеру')!==false,true);
+mrCheck('offline text mentions manager',strpos($model['text'],'менеджеру')!==false,true);
+mrCheck('offline text asks for phone',strpos($model['text'],'номером телефона')!==false,true);
+mrCheck('online text says manager is online',strpos($model['online_text'],'сейчас онлайн')!==false,true);
+mrCheck('online text does not require phone',strpos($model['online_text'],'оставлять не нужно')!==false,true);
 
 MaxSearchApi::$claim = null;
 MaxSearchApi::$saveCalls = 0;
@@ -48,5 +51,10 @@ mrCheck('name passed into claim',MaxSearchApi::$lastSaved['NAME']??null,'Anna');
 mrCheck('after tours back callback',$model2['back_callback'],'tours_checked');
 mrCheck('created marker',$model2['claim_created'],true);
 mrCheck('created claim returned',$model2['claim']['ID']??null,99);
+
+$managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
+mrCheck('manager action checks live availability',strpos($managerActionSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
+mrCheck('online handoff uses chat response',strpos($managerActionSource,"sendWithButtons(\$chatId, (string)\$model['online_text']")!==false,true);
+mrCheck('offline handoff keeps contact request path',strpos($managerActionSource,'DialogueView::managerRequest($chatId, $name, $fromTours)')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
