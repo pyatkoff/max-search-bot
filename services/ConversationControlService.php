@@ -8,7 +8,7 @@ class ConversationControlService
     public static function statusByChat(string $platform, $chatId): ?array
     {
         if (!ConversationDb::isConfigured()) return null;
-        $q = ConversationDb::connection()->prepare('SELECT id,status,manager_id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1');
+        $q = ConversationDb::connection()->prepare('SELECT id,status,manager_id,project_key,source_id,channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1');
         $q->execute([ProjectConfig::projectId(), strtolower(trim($platform)), (string)$chatId, 'closed']);
         $row = $q->fetch();
         return $row ?: null;
