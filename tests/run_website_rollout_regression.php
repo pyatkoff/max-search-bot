@@ -35,4 +35,14 @@ for ($i = 0; $i < 1000; $i++) {
 }
 assertTrue($selected >= 60 && $selected <= 140, '10 percent rollout should select an approximately bounded share');
 
-echo "WEBSITE ROLLOUT REGRESSION PASS selected={$selected}/1000\n";
+$loaderSource = file_get_contents(__DIR__ . '/../website/rollout.php');
+assertTrue(is_string($loaderSource) && $loaderSource !== '', 'rollout loader source must be readable');
+assertTrue(strpos($loaderSource, 'window.localStorage.getItem') !== false, 'browser rollout must read a first-party localStorage bucket');
+assertTrue(strpos($loaderSource, 'window.localStorage.setItem') !== false, 'browser rollout must persist a first-party localStorage bucket');
+assertTrue(strpos($loaderSource, 'document.cookie=key') !== false, 'browser rollout must have a first-party cookie fallback');
+assertTrue(strpos($loaderSource, "setcookie('anytour_webchat_rollout'") === false, 'cross-origin loader must not rely on a third-party response cookie');
+assertTrue(strpos($loaderSource, "\$_COOKIE['anytour_webchat_rollout']") === false, 'cross-origin loader must not read server-side third-party assignment cookies');
+assertTrue(strpos($loaderSource, "if(percent<=0)return") !== false, '0 percent rollout must short-circuit before loading widget');
+assertTrue(strpos($loaderSource, "if(percent<100&&bucket>=percent)return") !== false, 'browser bucket must gate widget by configured percent');
+
+echo "WEBSITE ROLLOUT REGRESSION PASS selected={$selected}/1000 first_party_sticky=1\n";
