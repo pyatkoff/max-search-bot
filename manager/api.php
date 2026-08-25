@@ -10,6 +10,7 @@ require_once $baseDir . '/services/ManagerAuthService.php';
 require_once $baseDir . '/services/ManagerAvailabilityService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
+require_once $baseDir . '/services/ManagerDeliveryStateService.php';
 require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
@@ -65,8 +66,11 @@ if($action==='counts'){
     out(['ok'=>true,'counts'=>$counts]);
 }
 if($action==='detail'){
-    $d=ManagerConversationService::detail((int)($data['conversation_id']??0),(int)$m['id']);
-    if(!$d) out(['ok'=>false,'error'=>'not_found'],404); out(['ok'=>true]+$d);
+    $conversationId=(int)($data['conversation_id']??0);
+    $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
+    if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
+    $d['delivery_failure']=ManagerDeliveryStateService::activeFailure($conversationId);
+    out(['ok'=>true]+$d);
 }
 if($action==='take'){
     if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
