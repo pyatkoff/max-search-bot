@@ -63,6 +63,12 @@ $wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/Wizar
 ccCheck('date callback has per-chat serialization lock', strpos($wizardSource, 'max-search-date-callback-locks') !== false && strpos($wizardSource, 'flock($fp, LOCK_EX)') !== false, true);
 ccCheck('stale date callback requires active date step', strpos($wizardSource, 'getCurentStatus($chatId)') !== false && strpos($wizardSource, '$statusDate') !== false && strpos($wizardSource, 'STALE_DATE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('date callback routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'pick_date_') === 0) return self::handleDateSelection") !== false, true);
+ccCheck('month change routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'month_change_') === 0) return self::handleMonthChange") !== false, true);
+ccCheck('stale month change requires active date step', strpos($wizardSource, 'STALE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
+ccCheck('duplicate month change is explicitly suppressed', strpos($wizardSource, 'DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
+ccCheck('same month callback inside debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 101.0), true);
+ccCheck('same month callback after debounce window is allowed', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 102.1), false);
+ccCheck('different month callback remains allowed immediately', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1), false);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
