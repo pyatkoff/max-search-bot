@@ -29,6 +29,13 @@ define('CONVERSATION_DB_USER', '');
 define('CONVERSATION_DB_PASS', '');
 define('CONVERSATION_DB_CHARSET', 'utf8mb4');
 
+// WEBSITE controlled rollout. Keep WEBSITE_ROLLOUT_PERCENT at 0 until the
+// main AnyTour site intentionally embeds website/rollout.php. Increase it in
+// small steps (for example 5 -> 10 -> 25) after production evidence is healthy.
+define('WEBSITE_ROLLOUT_PERCENT', 0);
+define('WEBSITE_ROLLOUT_SALT', '');
+define('WEBSITE_WIDGET_URL', '');
+
 // IMPORTANT:
 // The production config.php may contain additional legacy/project-specific
 // constants required by Bitrix/U-ON or analytics code.
