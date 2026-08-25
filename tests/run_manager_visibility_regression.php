@@ -13,6 +13,7 @@ $managerUi=(string)file_get_contents($base.'/manager/index.php');
 $diagnostics=(string)file_get_contents($base.'/.github/workflows/publish-conversation-diagnostics.yml');
 $liveDiagnostics=(string)file_get_contents($base.'/.github/workflows/live-session-diagnostics.yml');
 $auditMigration=(string)file_get_contents($base.'/migrations/006_admin_audit_log.sql');
+$productionSnapshot=(string)file_get_contents($base.'/tools/production_snapshot.php');
 
 $passed=0;$failed=0;
 function mvCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -41,6 +42,9 @@ mvCheck('manager notification includes project source and channel context',strpo
 mvCheck('manager notification includes customer preview',strpos($managerUi,"c.last_text||'Новое сообщение клиента'")!==false);
 mvCheck('manager notification targets exact conversation',strpos($managerUi,"Number(c.id),`anytour-conversation-")!==false);
 mvCheck('audit table is versioned migration',strpos($auditMigration,'CREATE TABLE IF NOT EXISTS admin_audit_log')!==false);
+mvCheck('production snapshot exposes entry-channel attribution',strpos($productionSnapshot,"'recent_entry_attribution'=>[]")!==false && strpos($productionSnapshot,"entry_channel IS NOT NULL AND entry_channel<>''")!==false);
+mvCheck('production snapshot exposes manager priority push evidence',strpos($productionSnapshot,"'recent_manager_priority_events'=>[]")!==false && strpos($productionSnapshot,"'manager_priority','push_selected'")!==false);
+mvCheck('priority diagnostics only tail bounded structured log',strpos($productionSnapshot,"tail -n 500")!==false && strpos($productionSnapshot,"if(count(\$matched)>=\$limit)break")!==false);
 mvCheck('production gate checks deployed sha',strpos($diagnostics,'production_sha_mismatch')!==false);
 mvCheck('production gate checks migration health',strpos($diagnostics,'migration_health_failed')!==false);
 mvCheck('production gate checks manager visibility',strpos($diagnostics,'manager_visibility_health_failed')!==false);
