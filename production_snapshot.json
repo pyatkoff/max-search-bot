@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T09:48:12+00:00",
+    "generated_at": "2026-08-25T09:54:13+00:00",
     "production": {
-        "sha": "969da1396fae222aff165e5d56f5ca384538e42a",
+        "sha": "bdb87f0f797eb8819f64f2bb2b0f900c0a6c199c",
         "branch": "main"
     },
     "database": {
@@ -72,7 +72,7 @@
         "customers": 177,
         "customer_channels": 177,
         "conversations": 178,
-        "messages": 4766,
+        "messages": 4767,
         "managers": 5,
         "manager_assignments": 50,
         "conversation_events": 176,
@@ -351,6 +351,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 4767,
+            "conversation_id": 178,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-25 11:54:02"
+        },
         {
             "id": 4766,
             "conversation_id": 175,
@@ -880,15 +889,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-25 11:29:12"
-        },
-        {
-            "id": 4707,
-            "conversation_id": 175,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
             "created_at": "2026-08-25 11:29:12"
         }
     ],
