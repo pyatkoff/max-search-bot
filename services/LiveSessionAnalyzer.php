@@ -12,18 +12,32 @@ final class LiveSessionAnalyzer
         return $ts===false?null:$ts;
     }
 
+    private static function isCallbackInput(string $text): bool
+    {
+        if($text==='')return false;
+        if(in_array($text,['start_search','show_tours','restart'],true))return true;
+        return (bool)preg_match('/^(?:pick_|month_change_|adult_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
+    }
+
     public static function analyze(array $conversation,array $messages,array $events=[]):array
     {
-        $inbound=[];$outbound=[];$datePicks=0;$showTours=false;$phone=false;$repeated=[];$flags=[];
+        $inbound=[];$outbound=[];$datePicks=0;$datePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
         $managerMessageTimes=[];
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
             if(($m['direction']??'')==='inbound'){
                 $inbound[]=$text;
-                if(strpos($text,'pick_date_')===0)$datePicks++;
+                if(strpos($text,'pick_date_')===0){
+                    $datePicks++;
+                    $ts=self::ts($m['created_at']??null);
+                    if($ts!==null)$datePickTimes[]=$ts;
+                }
                 if($text==='show_tours')$showTours=true;
                 if(preg_match('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u',$text))$phone=true;
-                if($text!=='')$repeated[$text]=($repeated[$text]??0)+1;
+                if($text!==''){
+                    if(self::isCallbackInput($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
+                    else $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
+                }
             } else {
                 $outbound[]=$text;
                 if(($m['sender_type']??'')==='manager'){
@@ -67,8 +81,14 @@ final class LiveSessionAnalyzer
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
         $started=count($inbound)>0;
-        if($datePicks>=3)$flags[]='rapid_date_reselection';
-        foreach($repeated as $text=>$count){if($count>=3&&$text!==''){$flags[]='repeated_same_input';break;}}
+        if(count($datePickTimes)>=3){
+            sort($datePickTimes);
+            for($i=2,$n=count($datePickTimes);$i<$n;$i++){
+                if(($datePickTimes[$i]-$datePickTimes[$i-2])<=10){$flags[]='rapid_date_reselection';break;}
+            }
+        }
+        foreach($repeatedCallbacks as $text=>$count){if($count>=3){$flags[]='repeated_callback_input';break;}}
+        foreach($repeatedFreeText as $text=>$count){if($count>=3){$flags[]='repeated_same_input';break;}}
         if(count($messages)>=24)$flags[]='excessive_turns';
         if($managerRequested&&!$managerReplied)$flags[]='manager_requested_no_reply';
         if($managerRequested&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';

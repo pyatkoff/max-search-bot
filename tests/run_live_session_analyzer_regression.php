@@ -7,18 +7,44 @@ function lsCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo
 $c=['id'=>10,'project_key'=>'anytour','channel'=>'max','status'=>'ai','started_at'=>'2026-08-24 20:00:00','last_message_at'=>'2026-08-24 20:10:00'];
 $m=[
  ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_15.02.2027','created_at'=>'2026-08-24 20:00:10'],
- ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:00:20'],
- ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_28.02.2027','created_at'=>'2026-08-24 20:01:00'],
- ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:01:10'],
- ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_08.02.2027','created_at'=>'2026-08-24 20:02:00'],
- ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:02:10'],
+ ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:00:11'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_28.02.2027','created_at'=>'2026-08-24 20:00:14'],
+ ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:00:15'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_08.02.2027','created_at'=>'2026-08-24 20:00:18'],
+ ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:00:19'],
  ['direction'=>'inbound','sender_type'=>'customer','text'=>'show_tours','created_at'=>'2026-08-24 20:03:00'],
 ];
 $r=LiveSessionAnalyzer::analyze($c,$m,[]);
 lsCheck('detects completed needs',!empty($r['needs_collected']));
 lsCheck('detects tours opened',!empty($r['tours_opened']));
-lsCheck('detects rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
+lsCheck('detects truly rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
 lsCheck('drop point is tours opened',$r['drop_point']==='tours_opened');
+
+$slow=$m;
+$slow[0]['created_at']='2026-08-24 20:00:10';
+$slow[2]['created_at']='2026-08-24 20:01:00';
+$slow[4]['created_at']='2026-08-24 20:02:00';
+$slowResult=LiveSessionAnalyzer::analyze($c,$slow,[]);
+lsCheck('spaced date edits are not called rapid',!in_array('rapid_date_reselection',$slowResult['flags'],true));
+
+$callbackMessages=[
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:02'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:03'],
+];
+$callbackResult=LiveSessionAnalyzer::analyze($c,$callbackMessages,[]);
+lsCheck('repeated callback input has dedicated flag',in_array('repeated_callback_input',$callbackResult['flags'],true));
+lsCheck('repeated callback input is not mislabeled as user text',!in_array('repeated_same_input',$callbackResult['flags'],true));
+
+$textMessages=[
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 20:00:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 20:00:20'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 20:00:40'],
+];
+$textResult=LiveSessionAnalyzer::analyze($c,$textMessages,[]);
+lsCheck('repeated free text keeps context-loss triage flag',in_array('repeated_same_input',$textResult['flags'],true));
+lsCheck('repeated free text is not callback noise',!in_array('repeated_callback_input',$textResult['flags'],true));
+
 $c['status']='waiting_manager';
 $events=[['event_type'=>'waiting_manager','actor_type'=>'customer','created_at'=>'2026-08-24 20:04:00']];
 $r=LiveSessionAnalyzer::analyze($c,$m,$events);
