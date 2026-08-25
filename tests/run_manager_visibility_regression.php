@@ -23,7 +23,13 @@ mvCheck('admin manager filter is optional',strpos($service,"if(\$isAdmin && \$qu
 mvCheck('admin unassigned filter exists',strpos($service,"\$managerFilter==='unassigned'")!==false);
 mvCheck('admin mine filter exists',strpos($service,"\$managerFilter==='mine'")!==false);
 mvCheck('api forwards manager filter only for admin',strpos($api,"\$isAdmin?(string)(\$data['manager_filter']??''):''")!==false);
-mvCheck('not-working fallback is explicitly guarded',strpos($api,"!\$isAdmin&&(\$queue==='waiting'||\$queue==='all')&&!ManagerAvailabilityService::isWorking")!==false);
+mvCheck('off-shift all queue falls back to mine only',strpos($api,"!\$isAdmin&&\$queue==='all'&&!ManagerAvailabilityService::isWorking")!==false);
+mvCheck('off-shift waiting queue is not forcibly emptied',strpos($api,"\$counts['waiting']=['count'=>0,'unread'=>0]")===false);
+mvCheck('waiting queue includes taken conversations awaiting first reply',strpos($service,"\$queue==='attention' || \$queue==='waiting'")!==false && strpos($service,"awaitingFirstReplySql('c')")!==false);
+mvCheck('awaiting first reply requires manager outbound after latest request',strpos($service,"mr.sender_type='manager'")!==false && strpos($service,"mr.created_at>=")!==false);
+mvCheck('urgent queue keeps ordinary manager scoped to own assignment',strpos($service,"if(!\$isAdmin){\$where[]='(c.manager_id IS NULL OR c.manager_id=?)';\$args[]=\$managerId;}")!==false);
+mvCheck('urgent queue exposes latest request and awaiting marker',strpos($service,' AS manager_request_at,CASE WHEN ')!==false && strpos($service,' AS awaiting_first_reply')!==false);
+mvCheck('urgent queue sorts oldest manager request first',strpos($service,"COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC")!==false);
 
 mvCheck('runtime does not auto-promote first manager',strpos($access,"UPDATE managers SET role='admin'")===false);
 mvCheck('runtime does not auto-attach managers without project',strpos($access,'mp.manager_id IS NULL')===false);
