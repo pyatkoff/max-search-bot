@@ -49,15 +49,32 @@ try{
         'manager_replied'=>0,
         'phone_received'=>0,
         'flagged_sessions'=>0,
+        'manager_response'=>[
+            'answered_in_90s'=>0,
+            'answered_after_90s'=>0,
+            'still_unanswered'=>0,
+            'measured_responses'=>0,
+            'avg_seconds'=>null,
+            'max_seconds'=>null,
+        ],
         'drop_points'=>[],
         'flags'=>[],
     ];
+    $responseSeconds=[];
     foreach($sessions as $session){
         foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
         if(!empty($session['flags']))$summary['flagged_sessions']++;
+        $bucket=(string)($session['manager_response_bucket']??'');
+        if($bucket!==''&&array_key_exists($bucket,$summary['manager_response']))$summary['manager_response'][$bucket]++;
+        if(isset($session['manager_response_seconds'])&&$session['manager_response_seconds']!==null)$responseSeconds[]=(int)$session['manager_response_seconds'];
         $drop=(string)($session['drop_point']??'unknown');
         $summary['drop_points'][$drop]=($summary['drop_points'][$drop]??0)+1;
         foreach((array)($session['flags']??[]) as $flag)$summary['flags'][$flag]=($summary['flags'][$flag]??0)+1;
+    }
+    if($responseSeconds){
+        $summary['manager_response']['measured_responses']=count($responseSeconds);
+        $summary['manager_response']['avg_seconds']=(int)round(array_sum($responseSeconds)/count($responseSeconds));
+        $summary['manager_response']['max_seconds']=max($responseSeconds);
     }
     arsort($summary['drop_points']);
     arsort($summary['flags']);
