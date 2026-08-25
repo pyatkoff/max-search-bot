@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../services/MealParser.php';
+require_once __DIR__ . '/../handlers/AiShortAnswerHandler.php';
 
 $passed = 0;
 $failed = 0;
@@ -36,6 +37,10 @@ $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHa
 mnhCheck('AiShortAnswerHandler accepts week as nights', preg_match('/недел/u', $shortSource) === 1, true);
 mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
 mnhCheck('AiShortAnswerHandler uses MealParser', strpos($shortSource, 'MealParser::parse(') !== false, true);
+mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый'), ['adults'=>1,'children'=>0]);
+mnhCheck('plural adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('2 взрослых'), ['adults'=>2,'children'=>0]);
+mnhCheck('unrelated children answer is not adult clarification', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 ребенок'), null);
+mnhCheck('sentence with extra intent is not silently collapsed', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый и ребенок'), null);
 
 mnhCheck('MealParser live phrase Питание не нужно', MealParser::parse('Питание не нужно'), 'any');
 mnhCheck('MealParser phrase питание не важно', MealParser::parse('питание не важно'), 'any');
