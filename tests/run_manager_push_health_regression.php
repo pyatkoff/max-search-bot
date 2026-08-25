@@ -13,6 +13,7 @@ mphCheck('push health exposes missing subscriptions',strpos($service,"'missing_s
 mphCheck('push health exposes latest send errors',strpos($service,"'recent_error_manager_ids'")!==false && strpos($service,'last_error_at')!==false && strpos($service,"'last_error'")!==false);
 mphCheck('push health fails soft and exposes diagnostic error',strpos($service,'catch (Throwable $e)')!==false && strpos($service,"'error' => get_class(\$e)")!==false);
 mphCheck('production snapshot includes manager push health',strpos($snapshot,"ManagerPushHealth.php")!==false && strpos($snapshot,"'manager_push_health'")!==false && strpos($snapshot,"'manager_push_ok'")!==false);
+mphCheck('production snapshot substitutes invalid UTF-8 instead of emitting empty JSON',strpos($snapshot,'JSON_INVALID_UTF8_SUBSTITUTE')!==false && strpos($snapshot,'json_last_error_msg()')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
