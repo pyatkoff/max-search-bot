@@ -4,6 +4,24 @@ header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
 
 $root = dirname(__DIR__);
+if (is_file($root . '/config.php')) require_once $root . '/config.php';
+require_once $root . '/services/WebsiteOriginPolicy.php';
+
+function webOut(array $data, int $status = 200): void
+{
+    http_response_code($status);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? trim((string) $_SERVER['HTTP_ORIGIN']) : '';
+$originPolicy = new WebsiteOriginPolicy();
+if (!$originPolicy->apply($origin)) webOut(['ok'=>false,'error'=>'origin_not_allowed'],403);
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 $documentRoot = (string)($_SERVER['DOCUMENT_ROOT'] ?? '');
 $prolog = $documentRoot !== '' ? $documentRoot . '/bitrix/modules/main/include/prolog_before.php' : '';
 if ($prolog !== '' && is_file($prolog)) require_once $prolog;
@@ -14,13 +32,6 @@ require_once $root . '/services/IncomingUpdateDispatcher.php';
 require_once $root . '/services/IntegrationRegistry.php';
 require_once $root . '/integrations/WebsiteIncomingAdapter.php';
 require_once $root . '/integrations/WebsiteMessengerAdapter.php';
-
-function webOut(array $data, int $status = 200): void
-{
-    http_response_code($status);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
 
 try {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') webOut(['ok'=>false,'error'=>'method_not_allowed'],405);
