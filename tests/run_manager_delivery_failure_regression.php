@@ -27,6 +27,10 @@ mdCheck('suspended failure explains user must restart or unblock bot',strpos($ou
 mdCheck('transport failure is exposed without parsing text logs',strpos($outbound,'MaxTransport::lastError()')!==false);
 mdCheck('manager API returns structured delivery failure',strpos($api,"'error'=>'delivery_failed'")!==false && strpos($api,"'failure'=>\$failure")!==false);
 mdCheck('manager API returns human delivery failure message',strpos($api,"'error_message'=>")!==false);
+mdCheck('known suspended dialog is checked before MAX adapter send',strpos($outbound,'unresolvedSuspendedFailure($conversationId')!==false && strpos($outbound,'suppressed_retry')!==false);
+mdCheck('suspended guard reads structured failure events',strpos($outbound,"event_type='manager_message_failed'")!==false && strpos($outbound,"['category']??'')==='suspended'")!==false);
+mdCheck('new customer inbound clears suspended guard',strpos($outbound,"direction='inbound' AND sender_type='customer' AND created_at>?")!==false);
+mdCheck('suppressed retry does not write another failure event',strpos($outbound,'self::$lastFailure=$suspended;\n                return false;')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
