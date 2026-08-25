@@ -5,9 +5,9 @@ $passed=0;$failed=0;
 function mrhCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
 
 $rows=[
-    ['conversation_id'=>1,'project_key'=>'anytour','channel'=>'max','status'=>'waiting_manager','manager_id'=>null,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>45,'first_reply_at'=>null],
-    ['conversation_id'=>2,'project_key'=>'anytour','channel'=>'max','status'=>'manager','manager_id'=>4,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>120,'first_reply_at'=>null],
-    ['conversation_id'=>3,'project_key'=>'anytour','channel'=>'max','status'=>'manager','manager_id'=>5,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>900,'first_reply_at'=>null],
+    ['conversation_id'=>1,'project_key'=>'anytour','channel'=>'max','status'=>'waiting_manager','manager_id'=>null,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>45,'first_reply_at'=>null,'eligible_working_manager_ids'=>[5,4,4]],
+    ['conversation_id'=>2,'project_key'=>'anytour','channel'=>'max','status'=>'manager','manager_id'=>4,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>120,'first_reply_at'=>null,'eligible_working_manager_ids'=>[4]],
+    ['conversation_id'=>3,'project_key'=>'anytour','channel'=>'max','status'=>'waiting_manager','manager_id'=>null,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>900,'first_reply_at'=>null,'eligible_working_manager_ids'=>[]],
     ['conversation_id'=>4,'project_key'=>'anytour','channel'=>'max','status'=>'manager','manager_id'=>4,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>1200,'first_reply_at'=>'2026-08-25 10:01:00'],
     ['conversation_id'=>5,'project_key'=>'anytour','channel'=>'max','status'=>'manager','manager_id'=>4,'manager_request_at'=>'2026-08-25 10:00:00','wait_seconds'=>1800,'first_reply_at'=>null,'delivery_suspended'=>true],
 ];
@@ -19,9 +19,12 @@ mrhCheck('answered request excluded',!in_array(4,array_column($health['requests'
 mrhCheck('suspended recipient excluded',!in_array(5,array_column($health['requests'],'conversation_id'),true));
 mrhCheck('oldest active wait retained',($health['oldest_wait_seconds']??null)===900);
 mrhCheck('requests sorted by urgency',($health['requests'][0]['conversation_id']??0)===3 && ($health['requests'][0]['severity']??'')==='stuck');
+mrhCheck('routing-blocked unanswered request surfaced',($health['routing_blocked_count']??null)===1 && !empty($health['requests'][0]['routing_blocked']));
+$first=null;foreach($health['requests'] as $request){if(($request['conversation_id']??0)===1){$first=$request;break;}}
+mrhCheck('eligible working managers normalized',is_array($first) && ($first['eligible_working_manager_ids']??[])===[4,5] && ($first['eligible_working_manager_count']??0)===2 && empty($first['routing_blocked']));
 
 $healthy=ManagerResponseHealth::evaluate([
-    ['conversation_id'=>9,'wait_seconds'=>89,'first_reply_at'=>null],
+    ['conversation_id'=>9,'status'=>'waiting_manager','wait_seconds'=>89,'first_reply_at'=>null,'eligible_working_manager_ids'=>[4]],
 ],90,600);
 mrhCheck('sub-warning wait remains healthy',($healthy['ok']??false)===true && ($healthy['overdue_count']??-1)===0);
 
