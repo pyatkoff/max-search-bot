@@ -46,9 +46,10 @@ class ManagerOutboundService
         return false;
     }
 
-    private static function failureNotice(array $failure): string
+    public static function failureNotice(array $failure): string
     {
         switch((string)($failure['category']??'unknown')){
+            case 'suspended': return '🔴 Сообщение не доставлено: пользователь остановил или заблокировал бота MAX. Написать снова можно только после запуска/разблокировки бота пользователем.';
             case 'blocked': return '🔴 Сообщение не доставлено: пользователь заблокировал бота';
             case 'unavailable': return '🔴 Сообщение не доставлено: пользователь недоступен в MAX';
             case 'temporary': return '⚠️ Сообщение не доставлено: временная ошибка MAX, попробуйте ещё раз';
