@@ -5,6 +5,7 @@ require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
+require_once __DIR__ . '/ManagerDeliveryStateService.php';
 
 class ManagerConversationService
 {
@@ -69,6 +70,8 @@ class ManagerConversationService
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':'COALESCE(c.last_message_at,c.started_at) DESC').' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
+        $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
+        foreach($rows as &$row){$id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;if($failure){$preview=trim((string)($row['last_text']??''));$row['last_text']='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}}unset($row);
         return array_slice($rows,0,$limit);
     }
 
