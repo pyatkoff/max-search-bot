@@ -1,23 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T05:45:07+00:00",
+    "generated_at": "2026-08-25T05:52:34+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 10,
-        "started": 10,
-        "needs_collected": 10,
-        "tours_opened": 10,
+        "sessions": 12,
+        "started": 12,
+        "needs_collected": 11,
+        "tours_opened": 11,
         "manager_requested": 1,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 9,
+        "flagged_sessions": 10,
         "drop_points": {
-            "tours_opened": 9,
-            "manager_requested": 1
+            "tours_opened": 10,
+            "manager_requested": 1,
+            "collecting_needs": 1
         },
         "flags": {
-            "excessive_turns": 8,
+            "excessive_turns": 9,
             "repeated_same_input": 6,
             "rapid_date_reselection": 4,
             "manager_requested_no_reply": 1
@@ -241,7 +242,47 @@
             ],
             "started_at": "2026-08-25 07:19:05",
             "last_message_at": "2026-08-25 07:40:02"
+        },
+        {
+            "conversation_id": 159,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_replied": false,
+            "phone_received": false,
+            "inbound_messages": 1,
+            "outbound_messages": 1,
+            "date_picks": 0,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-08-25 07:49:22",
+            "last_message_at": "2026-08-25 07:49:22"
+        },
+        {
+            "conversation_id": 158,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_replied": false,
+            "phone_received": false,
+            "inbound_messages": 16,
+            "outbound_messages": 16,
+            "date_picks": 2,
+            "drop_point": "tours_opened",
+            "flags": [
+                "excessive_turns"
+            ],
+            "started_at": "2026-08-25 07:49:22",
+            "last_message_at": "2026-08-25 07:51:17"
         }
     ],
-    "since_utc": "2026-08-25 04:45:07"
+    "since_utc": "2026-08-25 04:52:34"
 }
