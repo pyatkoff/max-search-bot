@@ -46,6 +46,7 @@ try{
         'recent_admin_audit'=>[],
         'recent_messages'=>[],
         'recent_events'=>[],
+        'recent_manager_delivery_failures'=>[],
     ];
 
     foreach(['customers','customer_channels','conversations','messages','managers','manager_assignments','conversation_events','admin_audit_log']as$table){
@@ -97,7 +98,17 @@ try{
         $messages=rows($pdo,'SELECT id,conversation_id,direction,sender_type,channel,text,created_at FROM messages ORDER BY id DESC LIMIT 60');
         foreach($messages as&$m)$m['text']=compactText((string)$m['text']);unset($m);$snapshot['recent_messages']=$messages;
     }
-    if(tableExists($pdo,'conversation_events'))$snapshot['recent_events']=rows($pdo,'SELECT id,conversation_id,event_type,actor_type,actor_id,created_at FROM conversation_events ORDER BY id DESC LIMIT 60');
+    if(tableExists($pdo,'conversation_events')){
+        $snapshot['recent_events']=rows($pdo,'SELECT id,conversation_id,event_type,actor_type,actor_id,created_at FROM conversation_events ORDER BY id DESC LIMIT 60');
+        $failures=rows($pdo,"SELECT id,conversation_id,actor_id,payload_json,created_at FROM conversation_events WHERE event_type='manager_message_failed' ORDER BY id DESC LIMIT 30");
+        foreach($failures as &$failure){
+            $payload=json_decode((string)($failure['payload_json']??''),true);
+            $failure['payload']=is_array($payload)?$payload:[];
+            unset($failure['payload_json']);
+        }
+        unset($failure);
+        $snapshot['recent_manager_delivery_failures']=$failures;
+    }
 
     echo json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
 }catch(Throwable $e){
