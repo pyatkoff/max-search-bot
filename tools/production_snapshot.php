@@ -5,6 +5,7 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
+require_once $baseDir.'/services/WebsiteAttributionHealth.php';
 
 function tableExists(PDO $pdo,string $table):bool{
     $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);return(int)$q->fetchColumn()>0;
@@ -32,9 +33,15 @@ try{
         'managers'=>[],
         'manager_usage'=>[],
         'manager_visibility'=>[],
-        'health'=>['manager_visibility_ok'=>true,'manager_visibility_anomalies'=>[]],
+        'health'=>[
+            'manager_visibility_ok'=>true,
+            'manager_visibility_anomalies'=>[],
+            'website_attribution_ok'=>true,
+            'website_attribution_anomalies'=>[],
+        ],
         'projects'=>[],
         'sources'=>[],
+        'website_attribution'=>[],
         'conversation_status'=>[],
         'recent_admin_audit'=>[],
         'recent_messages'=>[],
@@ -50,6 +57,14 @@ try{
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations'))$snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
     if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
+
+    if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects')){
+        $websiteRows=rows($pdo,"SELECT c.id AS conversation_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,s.source_key,p.project_key AS source_project_key,s.channel AS source_channel FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id LEFT JOIN projects p ON p.id=s.project_id WHERE c.channel='website' ORDER BY c.id DESC LIMIT 50");
+        $snapshot['website_attribution']=$websiteRows;
+        $websiteHealth=WebsiteAttributionHealth::evaluate($websiteRows);
+        $snapshot['health']['website_attribution_ok']=$websiteHealth['ok'];
+        $snapshot['health']['website_attribution_anomalies']=$websiteHealth['anomalies'];
+    }
 
     foreach($snapshot['managers'] as $manager){
         if(!(int)($manager['is_active']??0))continue;
