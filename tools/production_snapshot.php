@@ -33,6 +33,19 @@ function recentStructuredEvents(string $path,string $component,string $event,int
     }
     return $matched;
 }
+function recentStructuredComponentEvents(string $path,string $component,int $limit=50):array{
+    if(!is_file($path)||!is_readable($path))return[];
+    $raw=(string)@shell_exec('tail -n 800 '.escapeshellarg($path).' 2>/dev/null');
+    if($raw==='')return[];
+    $matched=[];
+    foreach(array_reverse(preg_split('/\R/u',trim($raw))?:[]) as $line){
+        $row=json_decode($line,true);
+        if(!is_array($row)||(string)($row['component']??'')!==$component)continue;
+        $matched[]=$row;
+        if(count($matched)>=$limit)break;
+    }
+    return $matched;
+}
 
 try{
     $pdo=ConversationDb::connection();
@@ -65,6 +78,7 @@ try{
         'website_attribution'=>[],
         'recent_entry_attribution'=>[],
         'recent_manager_priority_events'=>[],
+        'recent_manager_push_events'=>[],
         'conversation_status'=>[],
         'recent_admin_audit'=>[],
         'recent_messages'=>[],
@@ -86,6 +100,7 @@ try{
     if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
 
     $snapshot['recent_manager_priority_events']=recentStructuredEvents($baseDir.'/structured_events.log','manager_priority','push_selected',30);
+    $snapshot['recent_manager_push_events']=recentStructuredComponentEvents($baseDir.'/structured_events.log','manager_push',50);
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects')){
         $websiteRows=rows($pdo,"SELECT c.id AS conversation_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,s.source_key,p.project_key AS source_project_key,s.channel AS source_channel FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id LEFT JOIN projects p ON p.id=s.project_id WHERE c.channel='website' ORDER BY c.id DESC LIMIT 50");
