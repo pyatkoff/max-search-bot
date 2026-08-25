@@ -9,6 +9,7 @@ $access=(string)file_get_contents($base.'/services/ProjectAccessService.php');
 $availability=(string)file_get_contents($base.'/services/ManagerAvailabilityService.php');
 $admin=(string)file_get_contents($base.'/services/AdminDirectoryService.php');
 $routing=(string)file_get_contents($base.'/services/RoutingAdminService.php');
+$managerUi=(string)file_get_contents($base.'/manager/index.php');
 $diagnostics=(string)file_get_contents($base.'/.github/workflows/publish-conversation-diagnostics.yml');
 $auditMigration=(string)file_get_contents($base.'/migrations/006_admin_audit_log.sql');
 
@@ -28,6 +29,10 @@ mvCheck('runtime does not auto-attach managers without project',strpos($access,'
 mvCheck('working status writes audit',strpos($availability,'AuditLogService::record')!==false);
 mvCheck('manager and project admin writes audit',substr_count($admin,'AuditLogService::record')>=2);
 mvCheck('routing writes audit',substr_count($routing,'AuditLogService::record')>=2);
+mvCheck('manager notification resolves newest unread conversation',strpos($managerUi,'newestUnreadConversation')!==false);
+mvCheck('manager notification includes project source and channel context',strpos($managerUi,"c.project_name||c.project_key,c.source_name,(c.channel||'').toUpperCase()")!==false);
+mvCheck('manager notification includes customer preview',strpos($managerUi,"c.last_text||'Новое сообщение клиента'")!==false);
+mvCheck('manager notification targets exact conversation',strpos($managerUi,"Number(c.id),`anytour-conversation-")!==false);
 mvCheck('audit table is versioned migration',strpos($auditMigration,'CREATE TABLE IF NOT EXISTS admin_audit_log')!==false);
 mvCheck('production gate checks deployed sha',strpos($diagnostics,'production_sha_mismatch')!==false);
 mvCheck('production gate checks migration health',strpos($diagnostics,'migration_health_failed')!==false);
