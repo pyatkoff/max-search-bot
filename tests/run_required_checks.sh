@@ -16,6 +16,7 @@ checks=(
   'php tests/run_integration_contracts_regression.php'
   'php tests/run_messenger_adapters_regression.php'
   'php tests/run_website_transport_regression.php'
+  'php tests/run_website_attribution_health_regression.php'
   'php tests/run_telegram_webhook_regression.php'
   'php tools/telegram_smoke_test.php'
   'php tests/run_dialogue_application_regression.php'
