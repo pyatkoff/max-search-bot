@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-25T21:48:59+00:00",
+    "generated_at": "2026-08-25T21:51:38+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
         "sessions": 21,
         "started": 21,
-        "needs_collected": 11,
+        "needs_collected": 12,
         "tours_opened": 11,
         "manager_requested": 1,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 8,
+        "flagged_sessions": 9,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -22,11 +22,12 @@
         },
         "drop_points": {
             "tours_opened": 10,
-            "collecting_needs": 10,
-            "manager_requested": 1
+            "collecting_needs": 9,
+            "manager_requested": 1,
+            "needs_collected": 1
         },
         "flags": {
-            "excessive_turns": 8,
+            "excessive_turns": 9,
             "repeated_callback_input": 4,
             "rapid_date_reselection": 3,
             "repeated_same_input": 1,
@@ -1693,7 +1694,7 @@
             "channel": "max",
             "status": "ai",
             "started": true,
-            "needs_collected": false,
+            "needs_collected": true,
             "tours_opened": false,
             "manager_requested": false,
             "manager_replied": false,
@@ -1702,14 +1703,162 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 4,
-            "outbound_messages": 4,
+            "inbound_messages": 14,
+            "outbound_messages": 14,
             "date_picks": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
+            "drop_point": "needs_collected",
+            "flags": [
+                "excessive_turns"
+            ],
             "started_at": "2026-08-25 23:47:18",
-            "last_message_at": "2026-08-25 23:48:35"
+            "last_message_at": "2026-08-25 23:51:29",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Двое и один ребёнок 14 лет",
+                    "created_at": "2026-08-25 23:48:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько будет взрослых туристов?",
+                    "created_at": "2026-08-25 23:48:25"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Двое",
+                    "created_at": "2026-08-25 23:48:31"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-08-25 23:48:35"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "14 лет один",
+                    "created_at": "2026-08-25 23:49:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-08-25 23:49:06"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Один",
+                    "created_at": "2026-08-25 23:49:12"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько лет детям?",
+                    "created_at": "2026-08-25 23:49:17"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "14",
+                    "created_at": "2026-08-25 23:49:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+                    "created_at": "2026-08-25 23:49:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "4",
+                    "created_at": "2026-08-25 23:49:37"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-08-25 23:49:42"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Трёхразовое",
+                    "created_at": "2026-08-25 23:49:59"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-08-25 23:50:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "А какое предлагаете?",
+                    "created_at": "2026-08-25 23:50:27"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-08-25 23:50:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Не знаю",
+                    "created_at": "2026-08-25 23:50:38"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-08-25 23:50:42"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Завтрак",
+                    "created_at": "2026-08-25 23:50:57"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-25 23:50:59"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "10 ночей",
+                    "created_at": "2026-08-25 23:51:13"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая ориентировочная дата вылета?",
+                    "created_at": "2026-08-25 23:51:16"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "1 января",
+                    "created_at": "2026-08-25 23:51:26"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Вьетнам 👥 2 взр. + 1 реб. (14 лет) 🏨 от 4★ 🍽 Завтрак 🌙 10 ночей 📅 29.12.2026 — 04.01.2027 Что удобнее дальше?",
+                    "created_at": "2026-08-25 23:51:29"
+                }
+            ]
         }
     ],
-    "since_utc": "2026-08-25 20:48:59"
+    "since_utc": "2026-08-25 20:51:38"
 }
