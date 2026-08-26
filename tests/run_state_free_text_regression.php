@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 require_once __DIR__ . '/../services/NightsParser.php';
+require_once __DIR__ . '/../services/DateParser.php';
 
 $tests = [
     ['Хочу в Турцию в сентябре', true, 'natural country + month'],
@@ -53,6 +54,19 @@ foreach ($nightsTests as [$text, $expected, $label]) {
     }
 }
 
+$novemberYear = 11 < (int)date('n') ? ((int)date('Y') + 1) : (int)date('Y');
+$dateResolved = DateParser::resolveDate('8 Ноября');
+$expectedDate = sprintf('08.11.%04d', $novemberYear);
+if (($dateResolved['date'] ?? '') === $expectedDate) {
+    echo "PASS  live date phrase 8 Ноября\n";
+    $passed++;
+} else {
+    echo "FAIL  live date phrase 8 Ноября\n";
+    echo '      expected: ' . $expectedDate . "\n";
+    echo '      actual:   ' . var_export($dateResolved, true) . "\n";
+    $failed++;
+}
+
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $guards = [
     'country fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($country))') !== false,
@@ -60,6 +74,10 @@ $guards = [
     'free text switches to AI status' => strpos($source, 'MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);') !== false,
     'free text reaches AiMessageHandler' => strpos($source, 'AiMessageHandler::handle($message, $chatId);') !== false,
     'wizard nights uses NightsParser' => strpos($source, 'NightsParser::parse(') !== false,
+    'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
+    'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
+    'date state resolves natural month text' => strpos($source, 'AiDateHandler::rememberMonthFromText(') !== false,
+    'resolved date reaches check screen' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($source, 'DialogueView::check($chat_id);') !== false,
 ];
 foreach ($guards as $label => $ok) {
     if ($ok) { echo "PASS  {$label}\n"; $passed++; }
