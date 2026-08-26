@@ -136,7 +136,24 @@ class ManagerConversationService
 
     public static function take(int $conversationId,int $managerId): bool
     {
-        $pdo=ConversationDb::connection();$pdo->beginTransaction();try{$row=self::accessibleConversation($conversationId,$managerId,true);if(!$row||(string)$row['status']==='closed'||(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId)){$pdo->rollBack();return false;}$pdo->prepare('UPDATE conversations SET status=?,manager_id=? WHERE id=?')->execute(['manager',$managerId,$conversationId]);$pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'manual']);ConversationControlService::event($conversationId,'manager_taken','manager',$managerId);$pdo->commit();return true;}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
+        $pdo=ConversationDb::connection();
+        $pdo->beginTransaction();
+        try{
+            $row=self::accessibleConversation($conversationId,$managerId,true);
+            if(!$row||(string)$row['status']==='closed'||(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId)){
+                $pdo->rollBack();
+                return false;
+            }
+            if((string)$row['status']==='manager' && (int)($row['manager_id']??0)===$managerId){
+                $pdo->commit();
+                return true;
+            }
+            $pdo->prepare('UPDATE conversations SET status=?,manager_id=? WHERE id=?')->execute(['manager',$managerId,$conversationId]);
+            $pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'manual']);
+            ConversationControlService::event($conversationId,'manager_taken','manager',$managerId);
+            $pdo->commit();
+            return true;
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
     }
     public static function release(int $conversationId,int $managerId): bool
     {
