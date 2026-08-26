@@ -34,7 +34,8 @@ class EditFlowService
         $current = (array)MaxSearchApi::getSavedData($chatId);
         $editedStatuses = self::editedStatuses($field);
         foreach (self::missingSnapshotValues($current, $snapshot, $editedStatuses) as $status => $value) {
-            MaxSearchApi::appendStatusValue($chatId, $status, $value);
+            MaxSearchApi::setStatus($chatId, $status);
+            MaxSearchApi::saveLastValue($chatId, $status, $value);
         }
 
         MaxSearchApi::setEditMode($chatId, '');
@@ -46,8 +47,9 @@ class EditFlowService
     public static function missingSnapshotValues(array $current, array $snapshot, array $editedStatuses): array
     {
         $out = [];
+        $edited = array_map('strval', $editedStatuses);
         foreach ($snapshot as $status => $value) {
-            if (in_array((string)$status, array_map('strval', $editedStatuses), true)) continue;
+            if (in_array((string)$status, $edited, true)) continue;
             if ($value === null || $value === '') continue;
             if (!array_key_exists($status, $current) || $current[$status] === null || $current[$status] === '') {
                 $out[$status] = $value;
