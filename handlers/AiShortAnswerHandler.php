@@ -2,6 +2,7 @@
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/MealParser.php';
+require_once dirname(__DIR__) . '/services/NightsParser.php';
 
 class AiShortAnswerHandler
 {
@@ -75,19 +76,9 @@ class AiShortAnswerHandler
             $params['meal'] = $meal;
         }
         elseif ($field === 'nights') {
-            if (preg_match('/^(?:на\s+)?недел(?:я|ю|ьку)$/ui', $lower)) {
-                $params['nights'] = '7';
-            } else {
-                $normalized = str_replace(['–','—',' '], ['-','-',''], $lower);
-                if (preg_match('/^(\d{1,2})(?:-(\d{1,2}))?(?:ноч(?:ь|и|ей))?$/ui', $normalized, $m)) {
-                    $a = (int)$m[1];
-                    $b = isset($m[2]) && $m[2] !== '' ? (int)$m[2] : $a;
-                    if ($a < 1 || $a > 28 || $b < 1 || $b > 28 || $a > $b) return false;
-                    $params['nights'] = $a === $b ? (string)$a : ($a.'-'.$b);
-                } else {
-                    return false;
-                }
-            }
+            $nights = NightsParser::parse($lower);
+            if ($nights === '') return false;
+            $params['nights'] = $nights;
         }
 
         if (empty($params)) return false;

@@ -30,6 +30,8 @@ foreach ($tests as [$text, $expected, $label]) {
     }
 }
 
+// Conversation 308: the short answer "От 7-9" must be accepted instead of
+// repeating the nights question. Keep the exact live phrase in required CI.
 $nightsTests = [
     ['6', '6', 'plain nights'],
     ['На 6', '6', 'live MAX phrase На 6'],
@@ -37,6 +39,9 @@ $nightsTests = [
     ['на 6 ночей', '6', 'natural nights phrase'],
     ['7-10', '7-10', 'plain nights range'],
     ['на 7–10 ночей', '7-10', 'natural range with en dash'],
+    ['От 7-9', '7-9', 'live AI phrase prefixed range'],
+    ['от 7–9 ночей', '7-9', 'prefixed range with noun and en dash'],
+    ['от 7', '', 'do not invent upper bound from minimum-only phrase'],
     ['неделя', '7', 'week synonym'],
     ['на неделю', '7', 'natural week synonym'],
     ['29', '', 'reject too many nights'],
@@ -106,12 +111,14 @@ if ($todayDay > 1) {
 }
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$aiShortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 $guards = [
     'country fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($country))') !== false,
     'city fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($city))') !== false,
     'free text switches to AI status' => strpos($source, 'MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);') !== false,
     'free text reaches AiMessageHandler' => strpos($source, 'AiMessageHandler::handle($message, $chatId);') !== false,
     'wizard nights uses NightsParser' => strpos($source, 'NightsParser::parse(') !== false,
+    'AI short nights uses shared NightsParser' => strpos($aiShortSource, 'NightsParser::parse($lower)') !== false,
     'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
     'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
     'date state resolves natural month text' => strpos($source, 'AiDateHandler::rememberMonthFromText(') !== false,
