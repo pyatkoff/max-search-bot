@@ -36,8 +36,22 @@ class DialogueStateMachine
 
     public static function statusForState(string $state): ?int
     {
-        $map = self::statusMap();
-        return array_key_exists($state, $map) ? (int)$map[$state] : null;
+        switch ($state) {
+            case 'start': return (int)MaxSearchApi::$statusStart;
+            case 'ai': return (int)MaxSearchApi::$statusAi;
+            case 'city': return (int)MaxSearchApi::$statusCityChoose;
+            case 'country': return (int)MaxSearchApi::$statusContryChoose;
+            case 'adults': return (int)MaxSearchApi::$statusAdults;
+            case 'children': return (int)MaxSearchApi::$statusChild;
+            case 'child_ages': return (int)MaxSearchApi::$statusAge;
+            case 'stars': return (int)MaxSearchApi::$statusStars;
+            case 'meal': return (int)MaxSearchApi::$statusMeal;
+            case 'nights': return (int)MaxSearchApi::$statusNights;
+            case 'date': return (int)MaxSearchApi::$statusDate;
+            case 'check': return (int)MaxSearchApi::$statusCheck;
+            case 'phone': return (int)MaxSearchApi::$statusPhone;
+            default: return null;
+        }
     }
 
     /**
