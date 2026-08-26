@@ -1,212 +1,40 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T06:00:37+00:00",
+    "generated_at": "2026-08-26T06:10:36+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
         "sessions": 13,
         "started": 13,
-        "needs_collected": 10,
-        "tours_opened": 10,
-        "manager_requested": 2,
-        "manager_replied": 1,
+        "needs_collected": 9,
+        "tours_opened": 9,
+        "manager_requested": 3,
+        "manager_replied": 2,
         "phone_received": 0,
-        "flagged_sessions": 7,
+        "flagged_sessions": 6,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 0,
+            "answered_after_90s": 1,
             "still_unanswered": 2,
-            "measured_responses": 0,
-            "avg_seconds": null,
-            "max_seconds": null
+            "measured_responses": 1,
+            "avg_seconds": 483,
+            "max_seconds": 483
         },
         "drop_points": {
-            "tours_opened": 8,
+            "tours_opened": 7,
             "collecting_needs": 3,
-            "manager_replied": 1,
+            "manager_replied": 2,
             "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 5,
-            "repeated_callback_input": 4,
+            "excessive_turns": 4,
+            "repeated_callback_input": 3,
             "rapid_date_reselection": 1,
             "manager_requested_no_reply": 1,
             "repeated_same_input": 1
         }
     },
     "sessions": [
-        {
-            "conversation_id": 274,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 22,
-            "outbound_messages": 18,
-            "date_picks": 0,
-            "drop_point": "tours_opened",
-            "flags": [
-                "repeated_callback_input",
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-26 05:05:04",
-            "last_message_at": "2026-08-26 05:07:43",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-                    "created_at": "2026-08-26 05:05:55"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_5",
-                    "created_at": "2026-08-26 05:06:02"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-                    "created_at": "2026-08-26 05:06:02"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-08-26 05:06:05"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-08-26 05:06:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "nights_6_8",
-                    "created_at": "2026-08-26 05:06:17"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-26 05:06:18"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_click",
-                    "created_at": "2026-08-26 05:06:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "5 августа",
-                    "created_at": "2026-08-26 05:06:39"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Египет 👥 2 взр. + 1 реб. (10 лет) 🏨 5★ 🍽 Полный Пансион 🌙 6-8 ночей 📅 26.08.2026 — 08.08.2026 Что удобнее дальше?",
-                    "created_at": "2026-08-26 05:06:39"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-26 05:06:46"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-26 05:06:46"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-26 05:07:09"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-26 05:07:09"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-26 05:07:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-26 05:07:12"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-26 05:07:12"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-26 05:07:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_meal",
-                    "created_at": "2026-08-26 05:07:36"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-                    "created_at": "2026-08-26 05:07:36"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-08-26 05:07:39"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Египет 👥 2 взр. + 1 реб. (10 лет) 🏨 5★ 🍽 Все Включено 🌙 6-8 ночей 📅 26.08.2026 — 08.08.2026 Что удобнее дальше?",
-                    "created_at": "2026-08-26 05:07:39"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-26 05:07:43"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-26 05:07:43"
-                }
-            ]
-        },
         {
             "conversation_id": 250,
             "project_key": "anytour",
@@ -1308,7 +1136,30 @@
                     "created_at": "2026-08-26 07:57:31"
                 }
             ]
+        },
+        {
+            "conversation_id": 224,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "manager",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": true,
+            "manager_replied": true,
+            "manager_request_at": "2026-08-25 16:30:16",
+            "manager_first_reply_at": "2026-08-25 16:38:19",
+            "manager_response_seconds": 483,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": false,
+            "inbound_messages": 3,
+            "outbound_messages": 2,
+            "date_picks": 0,
+            "drop_point": "manager_replied",
+            "flags": [],
+            "started_at": "2026-08-25 18:30:16",
+            "last_message_at": "2026-08-26 08:06:11"
         }
     ],
-    "since_utc": "2026-08-26 05:00:37"
+    "since_utc": "2026-08-26 05:10:36"
 }
