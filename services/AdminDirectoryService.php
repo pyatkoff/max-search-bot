@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/AuditLogService.php';
+require_once __DIR__ . '/ManagerPushHealth.php';
 
 class AdminDirectoryService
 {
@@ -12,14 +13,29 @@ class AdminDirectoryService
         ManagerAuthService::ensureSchema();
         $pdo=ConversationDb::connection();
         $projects=$pdo->query("SELECT id,project_key,display_name,is_active FROM projects ORDER BY display_name,id")->fetchAll();
-        $managers=$pdo->query("SELECT id,login,display_name,role,email,is_active,last_login_at,priority FROM managers ORDER BY is_active DESC,display_name,login,id")->fetchAll();
+        $managers=$pdo->query("SELECT id,login,display_name,role,email,is_active,is_working,last_login_at,priority FROM managers ORDER BY is_active DESC,display_name,login,id")->fetchAll();
         $sources=$pdo->query("SELECT id,project_key,source_key,display_name,channel,is_active FROM conversation_sources ORDER BY project_key,display_name,id")->fetchAll();
         $access=[];
         $q=$pdo->query("SELECT manager_id,project_id FROM manager_projects ORDER BY manager_id,project_id");
         foreach($q->fetchAll() as $row)$access[(int)$row['manager_id']][]=(int)$row['project_id'];
-        foreach($managers as &$manager)$manager['project_ids']=$access[(int)$manager['id']]??[];
+        foreach($managers as &$manager){
+            $manager['project_ids']=$access[(int)$manager['id']]??[];
+            $manager=self::withOperationalSignals($manager,ManagerPushHealth::statusForManager($pdo,(int)$manager['id']));
+        }
         unset($manager);
         return ['projects'=>$projects,'managers'=>$managers,'sources'=>$sources];
+    }
+
+    public static function withOperationalSignals(array $manager,array $pushStatus): array
+    {
+        $manager['is_working']=(bool)($manager['is_working']??false);
+        $manager['is_reachable']=(bool)($pushStatus['notification_path_usable']??false);
+        $manager['reachability_reason']=(string)($pushStatus['notification_path_reason']??'unknown');
+        $manager['push_subscription_count']=(int)($pushStatus['subscription_count']??0);
+        $manager['healthy_push_subscription_count']=(int)($pushStatus['healthy_subscription_count']??0);
+        $manager['last_push_success_at']=$pushStatus['last_success_at']??null;
+        $manager['last_push_error_at']=$pushStatus['last_error_at']??null;
+        return $manager;
     }
 
     public static function saveProject(array $data,int $actorManagerId=0): array

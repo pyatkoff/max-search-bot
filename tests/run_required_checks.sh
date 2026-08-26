@@ -39,6 +39,7 @@ checks=(
   'php tests/run_manager_response_health_regression.php'
   'php tests/run_manager_push_health_regression.php'
   'php tests/run_manager_push_multisub_regression.php'
+  'php tests/run_manager_operational_signals_regression.php'
   'php tests/run_manager_priority_regression.php'
   'php tests/run_handoff_timeline_regression.php'
   'php tests/run_handoff_integrity_health_regression.php'
