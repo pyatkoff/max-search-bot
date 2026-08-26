@@ -7,6 +7,11 @@ class ManagerPushService
 {
     private static function b64u(string $v): string { return rtrim(strtr(base64_encode($v), '+/', '-_'), '='); }
     private static function b64ud(string $v): string { $v=strtr($v,'-_','+/'); $v.=str_repeat('=',(4-strlen($v)%4)%4); return (string)base64_decode($v,true); }
+    private static function dispatchId(): string
+    {
+        try { return bin2hex(random_bytes(8)); }
+        catch (Throwable $e) { return str_replace('.', '', uniqid('', true)); }
+    }
 
     public static function ensureSchema(): void
     {
@@ -66,6 +71,7 @@ class ManagerPushService
 
     public static function notifyConversation(int $conversationId,string $body='Клиент написал в диалог'): void
     {
+        $dispatchId=self::dispatchId();
         try{
             self::ensureSchema();
             $pdo=ConversationDb::connection();
@@ -79,7 +85,7 @@ class ManagerPushService
                 if($managers){
                     $eligible=$managers;$scores=ManagerPriorityService::scores($eligible,$c);$preferred=ManagerPriorityService::preferred($eligible,$c);
                     if($preferred)$managers=$preferred;
-                    if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_priority','push_selected',['conversation_id'=>$conversationId,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$managers,'scores'=>$scores,'entry_channel'=>$c['entry_channel']??null],null,'info');}catch(Throwable $ignored){}}
+                    if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_priority','push_selected',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$managers,'scores'=>$scores,'entry_channel'=>$c['entry_channel']??null],null,'info');}catch(Throwable $ignored){}}
                 }
             } else return;
             if(!$managers)return;
@@ -91,16 +97,16 @@ class ManagerPushService
             $subs=$q->fetchAll();$subscribed=[];
             foreach($subs as $sub)$subscribed[(int)$sub['manager_id']]=true;
             if(class_exists('DiagnosticLogger')){
-                foreach($managers as $managerId){if(isset($subscribed[(int)$managerId]))continue;try{DiagnosticLogger::log('manager_push','no_subscription',['conversation_id'=>$conversationId,'manager_id'=>(int)$managerId],null,'warning');}catch(Throwable $ignored){}}
+                foreach($managers as $managerId){if(isset($subscribed[(int)$managerId]))continue;try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)$managerId],null,'warning');}catch(Throwable $ignored){}}
             }
             foreach($subs as $sub){
-                try{self::send($sub,(string)$payload,$conversationId);}
-                catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['conversation_id'=>$conversationId,'manager_id'=>(int)($sub['manager_id']??0),'subscription_id'=>(int)($sub['id']??0),'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
+                try{self::send($sub,(string)$payload,$conversationId,$dispatchId);}
+                catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)($sub['manager_id']??0),'subscription_id'=>(int)($sub['id']??0),'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
             }
-        }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }
+        }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }
     }
 
-    private static function send(array $sub,string $payload,int $conversationId): void
+    private static function send(array $sub,string $payload,int $conversationId,string $dispatchId): void
     {
         $cfg=self::vapid(); $endpoint=(string)$sub['endpoint'];
         $clientPub=self::b64ud((string)$sub['p256dh']); $auth=self::b64ud((string)$sub['auth_secret']);
@@ -123,15 +129,15 @@ class ManagerPushService
         $pdo=ConversationDb::connection();$managerId=(int)($sub['manager_id']??0);$subscriptionId=(int)($sub['id']??0);
         if($code>=200&&$code<300){
             $pdo->prepare('UPDATE manager_push_subscriptions SET last_success_at=NOW(),last_error=NULL WHERE id=?')->execute([$subscriptionId]);
-            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_success',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'info');}catch(Throwable $ignored){}}
+            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_success',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'info');}catch(Throwable $ignored){}}
             return;
         }
         if(in_array($code,[404,410],true)){
-            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','subscription_expired',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'warning');}catch(Throwable $ignored){}}
+            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','subscription_expired',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'warning');}catch(Throwable $ignored){}}
             $pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([$subscriptionId]);return;
         }
         $pdo->prepare('UPDATE manager_push_subscriptions SET last_error_at=NOW(),last_error=? WHERE id=?')->execute([mb_substr('HTTP '.$code.' '.$err,0,500),$subscriptionId]);
-        if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_failed',['conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code,'error'=>mb_substr($err,0,300)],null,'warning');}catch(Throwable $ignored){}}
+        if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code,'error'=>mb_substr($err,0,300)],null,'warning');}catch(Throwable $ignored){}}
     }
 
     private static function hkdfExpand(string $prk,string $info,int $len): string { $out='';$t='';$i=1;while(strlen($out)<$len){$t=hash_hmac('sha256',$t.$info.chr($i++),$prk,true);$out.=$t;}return substr($out,0,$len); }
