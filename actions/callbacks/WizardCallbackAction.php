@@ -2,6 +2,7 @@
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
+require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 
 class WizardCallbackAction
 {
@@ -21,9 +22,7 @@ class WizardCallbackAction
 
     private static function callbackLockPath(int $chatId, string $suffix = ''): string
     {
-        $dir = sys_get_temp_dir() . '/max-search-date-callback-locks';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        return $dir . '/' . hash('sha256', (string)$chatId) . $suffix . '.lock';
+        return InteractionGuard::lockPath($chatId, 'date' . ($suffix === '' ? '' : $suffix));
     }
 
     private static function handleDateSelection(int $chatId, string $q): bool
@@ -54,33 +53,17 @@ class WizardCallbackAction
 
     public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 10.0): bool
     {
-        return $previousPayload === $payload && $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
+        return InteractionGuard::isDuplicate($previousPayload, $previousAt, $payload, $now, $windowSeconds);
     }
 
     public static function expectedStatusForForwardCallback(string $q): ?int
     {
-        if (strpos($q, 'pick_city_') === 0) return (int)MaxSearchApi::$statusCityChoose;
-        if (strpos($q, 'pick_country_') === 0) return (int)MaxSearchApi::$statusContryChoose;
-        if (strpos($q, 'adults_') === 0) return (int)MaxSearchApi::$statusAdults;
-        if (strpos($q, 'child_') === 0) return (int)MaxSearchApi::$statusChild;
-        if (strpos($q, 'star_') === 0) return (int)MaxSearchApi::$statusStars;
-        if (strpos($q, 'meal_') === 0) return (int)MaxSearchApi::$statusMeal;
-        if (strpos($q, 'nights_') === 0) return (int)MaxSearchApi::$statusNights;
-        return null;
+        return InteractionGuard::expectedWizardStatus($q);
     }
 
     private static function staleForwardCallback(int $chatId, string $q): bool
     {
-        $expectedStatus = self::expectedStatusForForwardCallback($q);
-        if ($expectedStatus === null) return false;
-
-        $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
-        if ($currentStatus === $expectedStatus) return false;
-
-        if (function_exists('put_log_in')) {
-            put_log_in('STALE_WIZARD_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus . ' expected=' . $expectedStatus);
-        }
-        return true;
+        return InteractionGuard::isStaleWizardForward($chatId, $q);
     }
 
     private static function handleMonthChange(int $chatId, string $q): bool
