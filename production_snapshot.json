@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T01:46:16+00:00",
+    "generated_at": "2026-08-26T02:46:22+00:00",
     "production": {
-        "sha": "60bd01f10f7af04271742f20a2629f97e835595b",
+        "sha": "507b161e30f95963b4ef234ebd56354043626351",
         "branch": "main"
     },
     "database": {
@@ -220,7 +220,7 @@
         "pending_count": 5,
         "overdue_count": 5,
         "stuck_count": 5,
-        "oldest_wait_seconds": 27134,
+        "oldest_wait_seconds": 30741,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:14:03",
-                "wait_seconds": 27134,
+                "wait_seconds": 30741,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:38:19",
-                "wait_seconds": 25678,
+                "wait_seconds": 29285,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -260,7 +260,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 23:06:18",
-                "wait_seconds": 16799,
+                "wait_seconds": 20406,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -275,7 +275,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:00:24",
-                "wait_seconds": 13553,
+                "wait_seconds": 17160,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -290,7 +290,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:12:25",
-                "wait_seconds": 12832,
+                "wait_seconds": 16439,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
