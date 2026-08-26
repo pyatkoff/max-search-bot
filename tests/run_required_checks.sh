@@ -37,6 +37,7 @@ checks=(
   'php tests/run_manager_push_health_regression.php'
   'php tests/run_manager_priority_regression.php'
   'php tests/run_handoff_integrity_health_regression.php'
+  'php tests/run_manager_assignment_integrity_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
   'php tests/run_live_session_snapshot_regression.php'
   'php tests/run_live_destination_context_regression.php'
