@@ -142,7 +142,10 @@ class WizardCallbackAction
                 return true;
             }
             if ($q === 'back_pick_country') MaxSearchApi::deletePrevMessage($chatId, true);
-            else MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCityChoose, str_replace('pick_city_', '', $q));
+            else {
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCityChoose, str_replace('pick_city_', '', $q));
+                if (EditFlowService::finishIfNeeded($chatId, 'city')) return true;
+            }
             MaxSearchApi::showCountryButtons($chatId);
             return true;
         }

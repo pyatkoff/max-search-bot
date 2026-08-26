@@ -67,6 +67,7 @@ mnhCheck('Wizard meal uses messenger-neutral view', strpos($wizardSource, 'Wizar
 mnhCheck('Wizard nights uses messenger-neutral view', strpos($wizardSource, 'WizardStepView::nights(') !== false, true);
 mnhCheck('Wizard edit completion avoids legacy finishEditIfNeeded', strpos($wizardSource, 'MaxSearchApi::finishEditIfNeeded(') === false, true);
 mnhCheck('Wizard edit completion uses EditFlowService', strpos($wizardSource, 'EditFlowService::finishIfNeeded(') !== false, true);
+mnhCheck('Wizard city selection completes city edit before country step', strpos($wizardSource, "EditFlowService::finishIfNeeded(\$chatId, 'city')") !== false, true);
 
 $stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 mnhCheck('State handler edit completion avoids legacy finishEditIfNeeded', strpos($stateSource, 'MaxSearchApi::finishEditIfNeeded(') === false, true);
