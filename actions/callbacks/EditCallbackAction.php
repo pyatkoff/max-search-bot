@@ -2,6 +2,7 @@
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditParamsView.php';
+require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 
 class EditCallbackAction
@@ -67,25 +68,25 @@ class EditCallbackAction
         ];
         if (isset($map[$q])) {
             [$mode, $method] = $map[$q];
-            MaxSearchApi::setEditMode($chatId, $mode);
+            EditFlowService::begin($chatId, $mode);
             call_user_func(['MaxSearchApi', $method], $chatId);
             return true;
         }
 
         if ($q === 'edit_meal') {
-            MaxSearchApi::setEditMode($chatId, 'meal');
+            EditFlowService::begin($chatId, 'meal');
             WizardStepView::meal($chatId);
             return true;
         }
 
         if ($q === 'edit_nights') {
-            MaxSearchApi::setEditMode($chatId, 'nights');
+            EditFlowService::begin($chatId, 'nights');
             WizardStepView::nights($chatId);
             return true;
         }
 
         if ($q === 'edit_date') {
-            MaxSearchApi::setEditMode($chatId, 'date');
+            EditFlowService::begin($chatId, 'date');
             DialogueView::calendar($chatId, date('m'), date('Y'));
             return true;
         }
