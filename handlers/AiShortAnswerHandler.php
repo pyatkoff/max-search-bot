@@ -35,8 +35,11 @@ class AiShortAnswerHandler
         }
         elseif ($field === 'children') {
             $partyClarification = self::partyClarificationWhileAskingChildren($lower);
+            $ageCountClarification = self::childAgeCountClarificationWhileAskingChildren($lower);
             if ($partyClarification !== null) {
                 $params = $partyClarification;
+            } elseif ($ageCountClarification !== null) {
+                $params = $ageCountClarification;
             } elseif (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
                 $params['children'] = 0;
             } else {
@@ -138,6 +141,26 @@ class AiShortAnswerHandler
         return [
             'adults'=>(int)$m[1],
             'children'=>0,
+        ];
+    }
+
+    public static function childAgeCountClarificationWhileAskingChildren(string $text): ?array
+    {
+        $lower = function_exists('mb_strtolower')
+            ? mb_strtolower(trim($text), 'UTF-8')
+            : strtolower(trim($text));
+        $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
+
+        if (!preg_match('/^(\d{1,2})\s*(?:лет|года|год)\s*,?\s*(?:один|1)(?:\s*(?:реб[её]нок|реб[её]нка))?$/ui', $lower, $m)) {
+            return null;
+        }
+
+        $age = (int)$m[1];
+        if ($age < 0 || $age > 17) return null;
+
+        return [
+            'children'=>1,
+            'child_ages'=>[$age],
         ];
     }
 
