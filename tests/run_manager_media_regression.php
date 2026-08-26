@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
+require_once __DIR__ . '/../services/ManagerOutboundService.php';
 
 $failed = 0;
 function mediaCheck(string $name, $actual, $expected): void {
@@ -14,23 +15,13 @@ function mediaCheck(string $name, $actual, $expected): void {
     }
 }
 
-$update = [
-    'update_type'=>'message_created',
-    'message'=>[
-        'sender'=>['user_id'=>123,'first_name'=>'Тест'],
-        'body'=>[
-            'mid'=>'mid.media.1',
-            'text'=>'Посмотрите варианты',
-            'attachments'=>[
-                ['type'=>'image','payload'=>['url'=>'https://cdn.example/photo.jpg','token'=>'img.1']],
-                ['type'=>'video','payload'=>['url'=>'https://cdn.example/video.mp4','token'=>'vid.1']],
-                ['type'=>'audio','payload'=>['url'=>'https://cdn.example/audio.mp3','token'=>'aud.1'],'transcription'=>'голос'],
-                ['type'=>'file','payload'=>['url'=>'https://cdn.example/offer.pdf','token'=>'file.1','name'=>'offer.pdf']],
-                ['type'=>'inline_keyboard','payload'=>['buttons'=>[]]],
-            ],
-        ],
-    ],
-];
+$update = ['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123,'first_name'=>'Тест'],'body'=>['mid'=>'mid.media.1','text'=>'Посмотрите варианты','attachments'=>[
+    ['type'=>'image','payload'=>['url'=>'https://cdn.example/photo.jpg','token'=>'img.1']],
+    ['type'=>'video','payload'=>['url'=>'https://cdn.example/video.mp4','token'=>'vid.1']],
+    ['type'=>'audio','payload'=>['url'=>'https://cdn.example/audio.mp3','token'=>'aud.1'],'transcription'=>'голос'],
+    ['type'=>'file','payload'=>['url'=>'https://cdn.example/offer.pdf','token'=>'file.1','name'=>'offer.pdf']],
+    ['type'=>'inline_keyboard','payload'=>['buttons'=>[]]],
+]]]];
 $incoming = MaxIncomingAdapter::fromUpdate($update);
 mediaCheck('media update remains a message', $incoming['type'] ?? null, 'message');
 mediaCheck('media update keeps caption text', $incoming['text'] ?? null, 'Посмотрите варианты');
@@ -40,11 +31,18 @@ mediaCheck('video token retained', $incoming['attachments'][1]['token'] ?? null,
 mediaCheck('audio transcription retained', $incoming['attachments'][2]['transcription'] ?? null, 'голос');
 mediaCheck('file name retained', $incoming['attachments'][3]['name'] ?? null, 'offer.pdf');
 mediaCheck('media-only preview is useful', ConversationRecorder::attachmentPreview([['type'=>'image'],['type'=>'audio']]), '📎 Фото, Аудио');
+mediaCheck('image mime maps to image', ManagerOutboundService::attachmentTypeForMime('image/jpeg'), 'image');
+mediaCheck('video mime maps to video', ManagerOutboundService::attachmentTypeForMime('video/mp4'), 'video');
+mediaCheck('audio mime maps to audio', ManagerOutboundService::attachmentTypeForMime('audio/mpeg'), 'audio');
+mediaCheck('document mime maps to file', ManagerOutboundService::attachmentTypeForMime('application/pdf'), 'file');
 
 $adapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxIncomingAdapter.php');
 $recorderSource = (string)file_get_contents(__DIR__ . '/../services/ConversationRecorder.php');
 $apiSource = (string)file_get_contents(__DIR__ . '/../manager/api.php');
 $panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
+$transportSource = (string)file_get_contents(__DIR__ . '/../services/MaxTransport.php');
+$outboundSource = (string)file_get_contents(__DIR__ . '/../services/ManagerOutboundService.php');
+$uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
 mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
@@ -52,6 +50,13 @@ mediaCheck('manager panel renders image media', strpos($panelSource, "type==='im
 mediaCheck('manager panel renders video media', strpos($panelSource, "type==='video'") !== false && strpos($panelSource, "document.createElement('video')") !== false, true);
 mediaCheck('manager panel renders audio media', strpos($panelSource, "type==='audio'") !== false && strpos($panelSource, "document.createElement('audio')") !== false, true);
 mediaCheck('manager panel renders files as safe links', strpos($panelSource, "rel='noopener noreferrer'") !== false, true);
+mediaCheck('MAX media flow starts with uploads endpoint', strpos($transportSource, "'/uploads'") !== false && strpos($transportSource, "['type'=>$type]") !== false, true);
+mediaCheck('MAX media upload is multipart data', strpos($transportSource, "new CURLFile(") !== false && strpos($transportSource, "['data'=>") !== false, true);
+mediaCheck('MAX media send uses attachments payload', strpos($transportSource, "'attachments'=>[$attachment]") !== false, true);
+mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSource, "in_array($type,['video','audio'],true) ? $prefetchedToken") !== false, true);
+mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, "$channel!=='max'") !== false && strpos($outboundSource, "(int)$c['manager_id']!==$managerId") !== false, true);
+mediaCheck('upload endpoint requires logged manager and csrf', strpos($uploadSource, "ManagerAuthService::byId") !== false && strpos($uploadSource, 'hash_equals') !== false, true);
+mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
 
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
 exit($failed > 0 ? 1 : 0);
