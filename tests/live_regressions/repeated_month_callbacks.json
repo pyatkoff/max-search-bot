@@ -1,0 +1,50 @@
+{
+  "id": "live-275-repeated-month-callbacks",
+  "source": "anonymized production conversation 275",
+  "description": "Repeated clicks on the same calendar month must be treated as duplicates while a later different month remains allowed.",
+  "initial_state": "date",
+  "steps": [
+    {
+      "type": "duplicate",
+      "payload": "month_change_09.2026",
+      "at": 100.0,
+      "window_seconds": 10.0,
+      "expect_duplicate": false
+    },
+    {
+      "type": "duplicate",
+      "payload": "month_change_09.2026",
+      "at": 102.0,
+      "window_seconds": 10.0,
+      "expect_duplicate": true
+    },
+    {
+      "type": "duplicate",
+      "payload": "month_change_09.2026",
+      "at": 103.0,
+      "window_seconds": 10.0,
+      "expect_duplicate": true
+    },
+    {
+      "type": "duplicate",
+      "payload": "month_change_10.2026",
+      "at": 114.0,
+      "window_seconds": 10.0,
+      "expect_duplicate": false
+    },
+    {
+      "type": "transition",
+      "from": "date",
+      "to": "check",
+      "mode": "forward",
+      "expect_allowed": true
+    },
+    {
+      "type": "transition",
+      "from": "check",
+      "to": "date",
+      "mode": "forward",
+      "expect_allowed": false
+    }
+  ]
+}
