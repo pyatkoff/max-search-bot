@@ -152,7 +152,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key_path: ${{ runner.temp }}/deploy_key
-          source: "www/anytour.online/max-search/diagnostics/*.json"
+          source: "www/anytour.online/max-search/diagnostics"
           target: "production-diagnostics"
           strip_components: 4
 
@@ -166,6 +166,7 @@ jobs:
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
         run: |
           set -euo pipefail
@@ -176,8 +177,8 @@ jobs:
           if [ -d ../production-diagnostics ]; then
             find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp {} . \;
           fi
-          printf '{"sha":"%s","run_id":"%s","key":"%s","probe":"%s","sync":"%s","migration":"%s","smoke":"%s","reported_at":"%s"}\n' \
-            "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$SMOKE_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          printf '{"sha":"%s","run_id":"%s","key":"%s","probe":"%s","sync":"%s","migration":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' \
+            "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$PROBE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             > deploy_status.json
           git add deploy_status.json *.json
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
@@ -197,6 +198,7 @@ jobs:
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
         run: |
           set -e
@@ -205,3 +207,4 @@ jobs:
           test "$SYNC_OUTCOME" = "success"
           test "$MIGRATION_OUTCOME" = "success"
           test "$SMOKE_OUTCOME" = "success"
+          test "$DOWNLOAD_OUTCOME" = "success"
