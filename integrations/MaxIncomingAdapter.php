@@ -19,7 +19,16 @@ class MaxIncomingAdapter
                 return IncomingMessage::contact('max', $externalUserId, $internalId, $messageId, $phone, $normalizedUser, $update);
             }
             $text = (string)($update['message']['body']['text'] ?? $update['message']['text'] ?? '');
-            return IncomingMessage::text('max', $externalUserId, $internalId, $messageId, $text, $normalizedUser, $update);
+            return IncomingMessage::text(
+                'max',
+                $externalUserId,
+                $internalId,
+                $messageId,
+                $text,
+                $normalizedUser,
+                $update,
+                self::mediaAttachments($update)
+            );
         }
 
         if ($type === 'message_callback') {
@@ -43,6 +52,46 @@ class MaxIncomingAdapter
         if (!empty($update['message']['sender'])) return (array)$update['message']['sender'];
         if (!empty($update['user'])) return (array)$update['user'];
         return [];
+    }
+
+    public static function mediaAttachments(array $update): array
+    {
+        $attachments = $update['message']['body']['attachments'] ?? $update['message']['attachments'] ?? [];
+        $out = [];
+        foreach ((array)$attachments as $attachment) {
+            if (!is_array($attachment)) continue;
+            $type = strtolower(trim((string)($attachment['type'] ?? '')));
+            if (!in_array($type, ['image','video','audio','file'], true)) continue;
+            $payload = is_array($attachment['payload'] ?? null) ? $attachment['payload'] : [];
+            $item = ['type'=>$type];
+            foreach (['url','token'] as $key) {
+                $value = trim((string)($payload[$key] ?? ''));
+                if ($value !== '') $item[$key] = $value;
+            }
+            foreach (['name','filename'] as $key) {
+                $value = trim((string)($attachment[$key] ?? $payload[$key] ?? ''));
+                if ($value !== '') { $item['name'] = $value; break; }
+            }
+            foreach (['mime_type','content_type'] as $key) {
+                $value = trim((string)($attachment[$key] ?? $payload[$key] ?? ''));
+                if ($value !== '') { $item['mime_type'] = $value; break; }
+            }
+            $size = (int)($attachment['size'] ?? $payload['size'] ?? 0);
+            if ($size > 0) $item['size'] = $size;
+            $transcription = trim((string)($attachment['transcription'] ?? $payload['transcription'] ?? ''));
+            if ($transcription !== '') $item['transcription'] = $transcription;
+            if ($type === 'image' && empty($item['token']) && !empty($payload['photos']) && is_array($payload['photos'])) {
+                foreach ($payload['photos'] as $photo) {
+                    if (!is_array($photo)) continue;
+                    $token = trim((string)($photo['token'] ?? ''));
+                    if ($token !== '') { $item['token'] = $token; break; }
+                }
+            }
+            // Keep only usable media. A type-only placeholder cannot be opened or
+            // forwarded, so surfacing it as successful media would be misleading.
+            if (!empty($item['url']) || !empty($item['token'])) $out[] = $item;
+        }
+        return $out;
     }
 
     private static function normalizedUser(array $user): array
