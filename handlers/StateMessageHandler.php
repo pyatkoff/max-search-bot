@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/services/WizardStepView.php';
 require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NightsParser.php';
+require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
 class StateMessageHandler
@@ -102,6 +103,31 @@ class StateMessageHandler
                 }
                 else
                     self::send($chat_id,"К сожалению диапазон ночей указан неверно. Пожалуйста, укажите число или диапазон от 1 до 28 — например: 6, на 6 ночей или 7-10 ночей.");
+
+            }
+            elseif($status==MaxSearchApi::$statusDate)
+            {
+                $text = trim((string)($message['text'] ?? ''));
+                $date = AiDateHandler::resolvePendingShortDate($chat_id, $text);
+                if($date === '')
+                {
+                    $resolved = AiDateHandler::rememberMonthFromText($chat_id, $text);
+                    $date = (string)($resolved['date'] ?? '');
+                    if($date === '' && !empty($resolved['month']) && !empty($resolved['year']))
+                    {
+                        DialogueView::calendar($chat_id, (int)$resolved['month'], (int)$resolved['year']);
+                        return;
+                    }
+                }
+
+                if($date !== '')
+                {
+                    MaxSearchApi::saveLastValue($chat_id, MaxSearchApi::$statusDate, $date);
+                    if(!EditFlowService::finishIfNeeded($chat_id,'date'))
+                        DialogueView::check($chat_id);
+                }
+                else
+                    self::send($chat_id,"Не получилось распознать дату. Напишите, например: 8 ноября, 08.11 или выберите дату в календаре.");
 
             }
             elseif($status==MaxSearchApi::$statusPhone)
