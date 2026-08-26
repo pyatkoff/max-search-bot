@@ -16,7 +16,7 @@ class MealParser
         if (preg_match('/^(?:ai|all\s*inclusive|вс[её]\s*включено|включено\s+вс[её])$/ui', $text)) return 'all_inclusive';
         if (preg_match('/^(?:bb|завтрак|завтраки|только\s+завтрак|только\s+завтраки)$/ui', $text)) return 'breakfast';
         if (preg_match('/^(?:hb|полупансион|двух\s*разов(?:ое|ый|ое\s+питание)|2[\s-]*разов(?:ое|ый|ое\s+питание)|завтрак\s*(?:\+|и)\s*ужин)$/ui', $text)) return 'half_board';
-        if (preg_match('/^(?:fb|полный\s+пансион|завтрак\s*(?:\+|,|и)\s*обед\s*(?:\+|,|и)\s*ужин|завтрак\s+обед\s+ужин)$/ui', $text)) return 'full_board';
+        if (preg_match('/^(?:fb|полный\s+пансион|тр[её]х\s*разов(?:ое|ый|ое\s+питание)|3[\s-]*разов(?:ое|ый|ое\s+питание)|завтрак\s*(?:\+|,|и)\s*обед\s*(?:\+|,|и)\s*ужин|завтрак\s+обед\s+ужин)$/ui', $text)) return 'full_board';
         return null;
     }
 }
