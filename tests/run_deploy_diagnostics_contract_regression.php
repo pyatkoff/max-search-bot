@@ -2,11 +2,14 @@
 $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/deploy.yml');
 
 $checks = [
-    'diagnostics transfer uses directory source instead of wildcard' =>
-        strpos($workflow, 'source: "www/anytour.online/max-search/diagnostics"') !== false
-        && strpos($workflow, 'diagnostics/*.json') === false,
+    'diagnostics download uses remote scp rather than upload action' =>
+        strpos($workflow, 'appleboy/scp-action@') === false
+        && strpos($workflow, 'scp \\') !== false
+        && strpos($workflow, '"${DEPLOY_USER}@${DEPLOY_HOST}:www/anytour.online/max-search/diagnostics/*.json"') !== false,
     'diagnostics directory is populated during smoke' =>
         strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') !== false,
+    'download requires at least one json file' =>
+        strpos($workflow, "find production-diagnostics -maxdepth 1 -type f -name '*.json' -print -quit") !== false,
     'diagnostics download outcome is captured' =>
         strpos($workflow, 'DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}') !== false,
     'deploy telemetry exposes diagnostics outcome' =>
