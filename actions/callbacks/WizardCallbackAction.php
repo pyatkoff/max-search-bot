@@ -52,7 +52,7 @@ class WizardCallbackAction
         }
     }
 
-    public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 2.0): bool
+    public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 10.0): bool
     {
         return $previousPayload === $payload && $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
     }
