@@ -30,6 +30,8 @@ foreach ($tests as [$text, $expected, $label]) {
     }
 }
 
+// Conversation 308: the short answer "От 7-9" must be accepted instead of
+// repeating the nights question. Keep the exact live phrase in required CI.
 $nightsTests = [
     ['6', '6', 'plain nights'],
     ['На 6', '6', 'live MAX phrase На 6'],
