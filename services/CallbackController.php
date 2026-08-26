@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/actions/callbacks/WizardCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/EditCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ManagerCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ToursCallbackAction.php';
+require_once __DIR__ . '/InteractionGuard.php';
 
 /**
  * Shared callback controller for MAX/Telegram normalized callbacks.
@@ -43,6 +44,7 @@ class CallbackController
             return true;
         }
 
+        InteractionGuard::reportSuppressed($chatId, $q, 'unknown_action', null, null, 'callback_controller');
         return false;
     }
 
