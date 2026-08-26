@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T23:10:01+00:00",
+    "generated_at": "2026-08-26T23:17:08+00:00",
     "production": {
-        "sha": "eff074dbce76da1d4c0a8d7c5586294cde1e628d",
+        "sha": "068ff6562415031746311a0626d25e52ba4bd09b",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.29999999999999999
+        "latency_ms": 0.20000000000000001
     },
     "migrations": [
         {
@@ -220,7 +220,7 @@
         "pending_count": 2,
         "overdue_count": 2,
         "stuck_count": 2,
-        "oldest_wait_seconds": 10771,
+        "oldest_wait_seconds": 11198,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 22:10:31",
-                "wait_seconds": 10771,
+                "wait_seconds": 11198,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 23:17:25",
-                "wait_seconds": 6757,
+                "wait_seconds": 7184,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
