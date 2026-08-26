@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T23:34:37+00:00",
+    "generated_at": "2026-08-26T23:45:53+00:00",
     "production": {
-        "sha": "eda2004edea7a2bf017f72fe710a7f10e34878c5",
+        "sha": "75d738ab688efa6b3e7a9419920bf5d63e3c5121",
         "branch": "main"
     },
     "database": {
@@ -220,7 +220,7 @@
         "pending_count": 2,
         "overdue_count": 2,
         "stuck_count": 2,
-        "oldest_wait_seconds": 12247,
+        "oldest_wait_seconds": 12923,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 22:10:31",
-                "wait_seconds": 12247,
+                "wait_seconds": 12923,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 23:17:25",
-                "wait_seconds": 8233,
+                "wait_seconds": 8909,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
