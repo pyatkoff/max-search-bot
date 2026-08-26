@@ -1,4 +1,7 @@
 <?php
+// #132: production diagnostics must be pulled from the remote host; using an
+// upload-oriented SCP action makes the runner archive a path that exists only
+// on production and can therefore produce a false/empty transfer.
 $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/deploy.yml');
 
 $checks = [
