@@ -96,6 +96,14 @@ class DateParser
         $month = (int)$monthInfo['month'];
         $year = (int)$monthInfo['year'];
         $stem = (string)$monthInfo['stem'];
+        $explicitYear = 0;
+        if (preg_match('/(?<!\d)(20\d{2})(?!\d)/u', $text, $yearMatch)) {
+            $candidateYear = (int)$yearMatch[1];
+            if ($candidateYear >= 2000 && $candidateYear <= 2100) {
+                $explicitYear = $candidateYear;
+                $year = $candidateYear;
+            }
+        }
         $day = 0;
 
         if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $text)) $day = 5;
@@ -110,6 +118,15 @@ class DateParser
         elseif (preg_match('/\b(\d{1,2})\s+[а-яё]*'.preg_quote($stem,'/').'[а-яё]*/ui', $text, $m)) $day = (int)$m[1];
 
         if ($day > 0 && checkdate($month, $day, $year)) {
+            // Для естественной даты без года (например, "5 августа") пользователь
+            // обычно имеет в виду ближайшее будущее. Если день текущего месяца уже
+            // прошёл, переносим его на следующий год. Явно указанный год не меняем.
+            if ($explicitYear === 0
+                && $year === (int)date('Y')
+                && $month === (int)date('n')
+                && $day < (int)date('j')) {
+                $year++;
+            }
             return ['date'=>sprintf('%02d.%02d.%04d',$day,$month,$year), 'month'=>$month, 'year'=>$year];
         }
 
