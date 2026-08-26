@@ -52,8 +52,8 @@ mediaCheck('manager panel renders audio media', strpos($panelSource, "type==='au
 mediaCheck('manager panel renders files as safe links', strpos($panelSource, "rel='noopener noreferrer'") !== false, true);
 mediaCheck('MAX media flow starts with uploads endpoint', strpos($transportSource, "'/uploads'") !== false && strpos($transportSource, '[\'type\'=>$type]') !== false, true);
 mediaCheck('MAX media upload is multipart data', strpos($transportSource, 'new CURLFile(') !== false && strpos($transportSource, '[\'data\'=>new CURLFile') !== false, true);
-mediaCheck('MAX media send uses attachments payload', strpos($transportSource, "'attachments'=>[$attachment]") !== false, true);
-mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSource, "in_array($type,['video','audio'],true) ? $prefetchedToken") !== false, true);
+mediaCheck('MAX media send uses attachments payload', strpos($transportSource, '$body=[\'attachments\'=>[$attachment]]') !== false, true);
+mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSource, 'in_array($type,[\'video\',\'audio\'],true) ? $prefetchedToken') !== false, true);
 mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, '$channel!==\'max\'') !== false && strpos($outboundSource, '(int)$c[\'manager_id\']!==$managerId') !== false, true);
 mediaCheck('upload endpoint requires logged manager and csrf', strpos($uploadSource, 'ManagerAuthService::byId') !== false && strpos($uploadSource, 'hash_equals') !== false, true);
 mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
