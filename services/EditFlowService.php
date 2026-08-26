@@ -10,13 +10,28 @@ class EditFlowService
         return $dir . '/' . hash('sha256', (string)$chatId) . '.json';
     }
 
-    public static function begin($chatId, string $field): void
+    /**
+     * Capture the complete trip before the edit menu appends a new check-status
+     * row. getSavedData() is bounded by check/status history, so capturing only
+     * after the user selects an edit field can already be too late.
+     */
+    public static function captureSnapshot($chatId, bool $overwrite = false): array
     {
         $file = self::snapshotFile($chatId);
-        if (!is_file($file)) {
-            $snapshot = (array)MaxSearchApi::getSavedData($chatId);
-            @file_put_contents($file, json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), LOCK_EX);
-        }
+        if (!$overwrite && is_file($file)) return self::readSnapshot($chatId);
+
+        $snapshot = (array)MaxSearchApi::getSavedData($chatId);
+        @file_put_contents(
+            $file,
+            json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            LOCK_EX
+        );
+        return $snapshot;
+    }
+
+    public static function begin($chatId, string $field): void
+    {
+        self::captureSnapshot($chatId, false);
         MaxSearchApi::setEditMode($chatId, $field);
     }
 
