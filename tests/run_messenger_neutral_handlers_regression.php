@@ -34,10 +34,11 @@ mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($a
 mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
 
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
-mnhCheck('AiShortAnswerHandler delegates nights parsing to shared NightsParser', strpos($shortSource, 'NightsParser::parse($lower)') !== false, true);
+mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedValueResolver', strpos($shortSource, 'NeedValueResolver::resolve($field, $lower)') !== false, true);
+mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
+mnhCheck('AiShortAnswerHandler has no direct MealParser call', strpos($shortSource, 'MealParser::parse(') === false, true);
 mnhCheck('shared NightsParser still accepts week as nights', NightsParser::parse('неделя'), '7');
 mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
-mnhCheck('AiShortAnswerHandler uses MealParser', strpos($shortSource, 'MealParser::parse(') !== false, true);
 mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый'), ['adults'=>1,'children'=>0]);
 mnhCheck('plural adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('2 взрослых'), ['adults'=>2,'children'=>0]);
 mnhCheck('unrelated children answer is not adult clarification', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 ребенок'), null);

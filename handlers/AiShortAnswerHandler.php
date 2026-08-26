@@ -1,8 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/DialogueView.php';
-require_once dirname(__DIR__) . '/services/MealParser.php';
-require_once dirname(__DIR__) . '/services/NightsParser.php';
+require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
 
 class AiShortAnswerHandler
 {
@@ -70,15 +69,10 @@ class AiShortAnswerHandler
             if ($stars === null) return false;
             $params['stars'] = $stars;
         }
-        elseif ($field === 'meal') {
-            $meal = MealParser::parse($lower);
-            if ($meal === null) return false;
-            $params['meal'] = $meal;
-        }
-        elseif ($field === 'nights') {
-            $nights = NightsParser::parse($lower);
-            if ($nights === '') return false;
-            $params['nights'] = $nights;
+        elseif ($field === 'meal' || $field === 'nights') {
+            $resolved = NeedValueResolver::resolve($field, $lower);
+            if (empty($resolved['recognized'])) return false;
+            $params[$field] = $resolved['value'];
         }
 
         if (empty($params)) return false;
