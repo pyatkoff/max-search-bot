@@ -10,12 +10,54 @@ class EditCallbackAction
         return $q === 'edit_params' || strpos($q, 'edit_') === 0;
     }
 
-    public static function handle(int $chatId, string $q): bool
+    private static function editMenuLockPath(int $chatId): string
     {
-        if ($q === 'edit_params') {
+        $dir = sys_get_temp_dir() . '/max-search-edit-callback-locks';
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        return $dir . '/' . hash('sha256', (string)$chatId) . '.lock';
+    }
+
+    public static function isDuplicateEditMenu(float $previousAt, float $now, float $windowSeconds = 2.0): bool
+    {
+        return $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
+    }
+
+    private static function handleEditMenu(int $chatId): bool
+    {
+        $fp = @fopen(self::editMenuLockPath($chatId), 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            return true;
+        }
+
+        try {
+            rewind($fp);
+            $state = json_decode((string)stream_get_contents($fp), true);
+            $previousAt = is_array($state) ? (float)($state['at'] ?? 0) : 0.0;
+            $now = microtime(true);
+            if (self::isDuplicateEditMenu($previousAt, $now)) {
+                if (function_exists('put_log_in')) put_log_in('DUPLICATE_EDIT_MENU_CALLBACK_SKIPPED chat=' . $chatId);
+                return true;
+            }
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode(['at'=>$now], JSON_UNESCAPED_SLASHES));
+            fflush($fp);
+
             MaxSearchApi::cancelToursFollowup($chatId);
             EditParamsView::menu($chatId);
             return true;
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    }
+
+    public static function handle(int $chatId, string $q): bool
+    {
+        if ($q === 'edit_params') {
+            return self::handleEditMenu($chatId);
         }
 
         $map = [
