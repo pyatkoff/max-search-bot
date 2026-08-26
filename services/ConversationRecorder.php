@@ -24,9 +24,11 @@ class ConversationRecorder
             if (!$conversationId) return false;
 
             $type = (string)($incoming['type'] ?? 'message');
+            $attachments = array_values(array_filter((array)($incoming['attachments'] ?? []), 'is_array'));
             $text = $type === 'contact'
                 ? (string)($incoming['contact_phone'] ?? '')
                 : ($type === 'callback' ? (string)($incoming['callback_data'] ?? '') : (string)($incoming['text'] ?? ''));
+            if ($type === 'message' && trim($text) === '' && $attachments) $text = self::attachmentPreview($attachments);
             $messageId = trim((string)($incoming['message_id'] ?? ''));
             if ($messageId === '' && $type === 'callback') $messageId = trim((string)($incoming['callback_id'] ?? ''));
 
@@ -37,7 +39,9 @@ class ConversationRecorder
                 if ($check->fetchColumn()) return true;
             }
 
-            $meta = self::json(['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey]);
+            $metadata = ['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey];
+            if ($attachments) $metadata['attachments'] = $attachments;
+            $meta = self::json($metadata);
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
             self::touch($conversationId);
@@ -83,6 +87,19 @@ class ConversationRecorder
             self::logFailure('event', $e);
             return false;
         }
+    }
+
+    public static function attachmentPreview(array $attachments): string
+    {
+        $labels = ['image'=>'Фото','video'=>'Видео','audio'=>'Аудио','file'=>'Файл'];
+        $names = [];
+        foreach ($attachments as $attachment) {
+            if (!is_array($attachment)) continue;
+            $type = strtolower((string)($attachment['type'] ?? 'file'));
+            $names[] = $labels[$type] ?? 'Вложение';
+        }
+        $names = array_values(array_unique($names));
+        return $names ? '📎 ' . implode(', ', $names) : '📎 Вложение';
     }
 
     private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey): int
