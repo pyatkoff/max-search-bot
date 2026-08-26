@@ -26,7 +26,7 @@ class NightsParser
             return ($value >= 1 && $value <= 28) ? (string)$value : '';
         }
 
-        if (preg_match('/^(?:на\s+)?(\d{1,2})\s*-\s*(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
+        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})\s*-\s*(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
             $from = (int)$m[1];
             $to = (int)$m[2];
             if ($from >= 1 && $to >= $from && $to <= 28) {
