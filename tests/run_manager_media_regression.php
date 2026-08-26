@@ -46,7 +46,7 @@ $recorderSource = (string)file_get_contents(__DIR__ . '/../services/Conversation
 $apiSource = (string)file_get_contents(__DIR__ . '/../manager/api.php');
 $panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
-mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, "$metadata['attachments'] = $attachments") !== false, true);
+mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
 mediaCheck('manager panel renders image media', strpos($panelSource, "type==='image'") !== false && strpos($panelSource, "document.createElement('img')") !== false, true);
 mediaCheck('manager panel renders video media', strpos($panelSource, "type==='video'") !== false && strpos($panelSource, "document.createElement('video')") !== false, true);
