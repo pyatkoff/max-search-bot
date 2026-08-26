@@ -31,12 +31,14 @@ class WizardCallbackAction
 
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
+            InteractionGuard::reportSuppressed($chatId, $q, 'concurrent', null, (int)MaxSearchApi::$statusDate, 'date_selection');
             return true;
         }
 
         try {
             $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
             if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
+                InteractionGuard::reportSuppressed($chatId, $q, 'stale_state', $currentStatus, (int)MaxSearchApi::$statusDate, 'date_selection');
                 if (function_exists('put_log_in')) put_log_in('STALE_DATE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
                 return true;
             }
@@ -71,12 +73,14 @@ class WizardCallbackAction
         $fp = @fopen(self::callbackLockPath($chatId, '.month'), 'c+');
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
+            InteractionGuard::reportSuppressed($chatId, $q, 'concurrent', null, (int)MaxSearchApi::$statusDate, 'month_change');
             return true;
         }
 
         try {
             $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
             if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
+                InteractionGuard::reportSuppressed($chatId, $q, 'stale_state', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
                 if (function_exists('put_log_in')) put_log_in('STALE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
                 return true;
             }
@@ -87,6 +91,7 @@ class WizardCallbackAction
             $previousAt = is_array($state) ? (float)($state['at'] ?? 0) : 0.0;
             $now = microtime(true);
             if (self::isDuplicateMonthChange($previousPayload, $previousAt, $q, $now)) {
+                InteractionGuard::reportSuppressed($chatId, $q, 'duplicate', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
                 if (function_exists('put_log_in')) put_log_in('DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q);
                 return true;
             }
