@@ -1,0 +1,57 @@
+<?php
+require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
+require_once __DIR__ . '/../services/ConversationRecorder.php';
+
+$failed = 0;
+function mediaCheck(string $name, $actual, $expected): void {
+    global $failed;
+    $ok = $actual === $expected;
+    echo ($ok ? 'PASS  ' : 'FAIL  ') . $name . PHP_EOL;
+    if (!$ok) {
+        echo '      expected: ' . json_encode($expected, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        echo '      actual:   ' . json_encode($actual, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL;
+        $failed++;
+    }
+}
+
+$update = [
+    'update_type'=>'message_created',
+    'message'=>[
+        'sender'=>['user_id'=>123,'first_name'=>'Тест'],
+        'body'=>[
+            'mid'=>'mid.media.1',
+            'text'=>'Посмотрите варианты',
+            'attachments'=>[
+                ['type'=>'image','payload'=>['url'=>'https://cdn.example/photo.jpg','token'=>'img.1']],
+                ['type'=>'video','payload'=>['url'=>'https://cdn.example/video.mp4','token'=>'vid.1']],
+                ['type'=>'audio','payload'=>['url'=>'https://cdn.example/audio.mp3','token'=>'aud.1'],'transcription'=>'голос'],
+                ['type'=>'file','payload'=>['url'=>'https://cdn.example/offer.pdf','token'=>'file.1','name'=>'offer.pdf']],
+                ['type'=>'inline_keyboard','payload'=>['buttons'=>[]]],
+            ],
+        ],
+    ],
+];
+$incoming = MaxIncomingAdapter::fromUpdate($update);
+mediaCheck('media update remains a message', $incoming['type'] ?? null, 'message');
+mediaCheck('media update keeps caption text', $incoming['text'] ?? null, 'Посмотрите варианты');
+mediaCheck('four supported attachments normalized', count($incoming['attachments'] ?? []), 4);
+mediaCheck('image url retained', $incoming['attachments'][0]['url'] ?? null, 'https://cdn.example/photo.jpg');
+mediaCheck('video token retained', $incoming['attachments'][1]['token'] ?? null, 'vid.1');
+mediaCheck('audio transcription retained', $incoming['attachments'][2]['transcription'] ?? null, 'голос');
+mediaCheck('file name retained', $incoming['attachments'][3]['name'] ?? null, 'offer.pdf');
+mediaCheck('media-only preview is useful', ConversationRecorder::attachmentPreview([['type'=>'image'],['type'=>'audio']]), '📎 Фото, Аудио');
+
+$adapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxIncomingAdapter.php');
+$recorderSource = (string)file_get_contents(__DIR__ . '/../services/ConversationRecorder.php');
+$apiSource = (string)file_get_contents(__DIR__ . '/../manager/api.php');
+$panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
+mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
+mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, "$metadata['attachments'] = $attachments") !== false, true);
+mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
+mediaCheck('manager panel renders image media', strpos($panelSource, "type==='image'") !== false && strpos($panelSource, "document.createElement('img')") !== false, true);
+mediaCheck('manager panel renders video media', strpos($panelSource, "type==='video'") !== false && strpos($panelSource, "document.createElement('video')") !== false, true);
+mediaCheck('manager panel renders audio media', strpos($panelSource, "type==='audio'") !== false && strpos($panelSource, "document.createElement('audio')") !== false, true);
+mediaCheck('manager panel renders files as safe links', strpos($panelSource, "rel='noopener noreferrer'") !== false, true);
+
+echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
+exit($failed > 0 ? 1 : 0);
