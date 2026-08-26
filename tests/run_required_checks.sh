@@ -55,6 +55,7 @@ checks=(
   'php tests/run_post_tour_regression.php'
   'php tests/run_messenger_neutral_handlers_regression.php'
   'php tests/run_state_free_text_regression.php'
+  'php tests/run_need_value_resolver_regression.php'
   'php tests/run_missing_field_questions_regression.php'
   'php tests/run_platform_boundary_regression.php'
   'php tests/run_shadow_dialogue_regression.php'
