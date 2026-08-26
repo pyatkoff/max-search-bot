@@ -30,9 +30,29 @@ mpCheck(
     strpos($pushSource, 'SELECT * FROM manager_push_subscriptions WHERE manager_id IN ($in)') !== false
 );
 mpCheck(
-    'push fanout sends once for every selected subscription row',
+    'one dispatch id is created for one notify call',
+    strpos($pushSource, '$dispatchId=self::dispatchId();') !== false
+);
+mpCheck(
+    'priority selection is correlated to push dispatch',
+    strpos($pushSource, "'push_selected',['dispatch_id'=>$dispatchId") !== false
+);
+mpCheck(
+    'push fanout sends once for every selected subscription row with same dispatch id',
     strpos($pushSource, 'foreach($subs as $sub)') !== false
-        && strpos($pushSource, 'self::send($sub,(string)$payload,$conversationId)') !== false
+        && strpos($pushSource, 'self::send($sub,(string)$payload,$conversationId,$dispatchId)') !== false
+);
+mpCheck(
+    'push success and missing subscription logs carry dispatch id',
+    strpos($pushSource, "'delivery_success',['dispatch_id'=>$dispatchId") !== false
+        && strpos($pushSource, "'no_subscription',['dispatch_id'=>$dispatchId") !== false
+);
+mpCheck(
+    'push failure paths carry dispatch id',
+    strpos($pushSource, "'delivery_exception',['dispatch_id'=>$dispatchId") !== false
+        && strpos($pushSource, "'delivery_failed',['dispatch_id'=>$dispatchId") !== false
+        && strpos($pushSource, "'subscription_expired',['dispatch_id'=>$dispatchId") !== false
+        && strpos($pushSource, "'notify_failed',['dispatch_id'=>$dispatchId") !== false
 );
 mpCheck(
     'push payload carries exact conversation id',
