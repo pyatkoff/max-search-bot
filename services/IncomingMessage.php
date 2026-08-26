@@ -3,7 +3,7 @@ require_once __DIR__ . '/UserContext.php';
 
 class IncomingMessage
 {
-    public static function text(string $platform, $externalUserId, $internalChatId, string $messageId, string $text, array $user = [], array $raw = []): array
+    public static function text(string $platform, $externalUserId, $internalChatId, string $messageId, string $text, array $user = [], array $raw = [], array $attachments = []): array
     {
         return [
             'type' => 'message',
@@ -13,6 +13,7 @@ class IncomingMessage
             'callback_data' => null,
             'callback_id' => null,
             'contact_phone' => null,
+            'attachments' => array_values($attachments),
             'user' => UserContext::make($platform, $externalUserId, $internalChatId, $user),
             'raw' => $raw,
         ];
@@ -28,6 +29,7 @@ class IncomingMessage
             'callback_data' => $payload,
             'callback_id' => $callbackId,
             'contact_phone' => null,
+            'attachments' => [],
             'user' => UserContext::make($platform, $externalUserId, $internalChatId, $user),
             'raw' => $raw,
         ];
