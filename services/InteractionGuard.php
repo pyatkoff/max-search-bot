@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/DialogueStateMachine.php';
+require_once __DIR__ . '/DiagnosticLogger.php';
 
 /**
  * Shared callback interaction guard helpers.
@@ -27,6 +28,7 @@ class InteractionGuard
         $fp = @fopen(self::lockPath($chatId, $scope), 'c+');
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
+            self::reportSuppressed($chatId, '', 'concurrent', null, null, $scope);
             return true;
         }
 
@@ -63,6 +65,31 @@ class InteractionGuard
         return DialogueStateMachine::expectedStatusForForwardCallback($payload);
     }
 
+    public static function reportSuppressed(
+        int $chatId,
+        string $payload,
+        string $reason,
+        ?int $currentStatus = null,
+        ?int $expectedStatus = null,
+        string $scope = 'wizard'
+    ): bool {
+        $data = [
+            'reason' => $reason,
+            'scope' => $scope,
+        ];
+        if ($payload !== '') $data['payload'] = $payload;
+        if ($currentStatus !== null) {
+            $data['current_status'] = $currentStatus;
+            $data['current_state'] = DialogueStateMachine::stateForStatus($currentStatus);
+        }
+        if ($expectedStatus !== null) {
+            $data['expected_status'] = $expectedStatus;
+            $data['expected_state'] = DialogueStateMachine::stateForStatus($expectedStatus);
+        }
+
+        return DiagnosticLogger::warning('interaction_guard', 'callback_suppressed', $data, $chatId);
+    }
+
     public static function isStaleWizardForward(int $chatId, string $payload): bool
     {
         $expected = self::expectedWizardStatus($payload);
@@ -71,6 +98,7 @@ class InteractionGuard
         $current = (int)MaxSearchApi::getCurentStatus($chatId);
         if ($current === $expected) return false;
 
+        self::reportSuppressed($chatId, $payload, 'stale_state', $current, $expected, 'wizard_forward');
         if (function_exists('put_log_in')) {
             put_log_in('STALE_WIZARD_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $payload . ' status=' . $current . ' expected=' . $expected);
         }
