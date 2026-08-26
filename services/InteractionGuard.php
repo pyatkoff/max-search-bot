@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/DialogueStateMachine.php';
 
 /**
  * Shared callback interaction guard helpers.
@@ -59,14 +60,7 @@ class InteractionGuard
 
     public static function expectedWizardStatus(string $payload): ?int
     {
-        if (strpos($payload, 'pick_city_') === 0) return (int)MaxSearchApi::$statusCityChoose;
-        if (strpos($payload, 'pick_country_') === 0) return (int)MaxSearchApi::$statusContryChoose;
-        if (strpos($payload, 'adults_') === 0) return (int)MaxSearchApi::$statusAdults;
-        if (strpos($payload, 'child_') === 0) return (int)MaxSearchApi::$statusChild;
-        if (strpos($payload, 'star_') === 0) return (int)MaxSearchApi::$statusStars;
-        if (strpos($payload, 'meal_') === 0) return (int)MaxSearchApi::$statusMeal;
-        if (strpos($payload, 'nights_') === 0) return (int)MaxSearchApi::$statusNights;
-        return null;
+        return DialogueStateMachine::expectedStatusForForwardCallback($payload);
     }
 
     public static function isStaleWizardForward(int $chatId, string $payload): bool
