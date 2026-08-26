@@ -34,7 +34,8 @@ mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($a
 mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
 
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
-mnhCheck('AiShortAnswerHandler accepts week as nights', preg_match('/недел/u', $shortSource) === 1, true);
+mnhCheck('AiShortAnswerHandler delegates nights parsing to shared NightsParser', strpos($shortSource, 'NightsParser::parse($lower)') !== false, true);
+mnhCheck('shared NightsParser still accepts week as nights', NightsParser::parse('неделя'), '7');
 mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
 mnhCheck('AiShortAnswerHandler uses MealParser', strpos($shortSource, 'MealParser::parse(') !== false, true);
 mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый'), ['adults'=>1,'children'=>0]);
