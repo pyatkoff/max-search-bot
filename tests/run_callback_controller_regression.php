@@ -75,6 +75,7 @@ ccCheck('manager excludes tours', ManagerCallbackAction::handles('show_tours'), 
 $wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 $editSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/EditCallbackAction.php');
 $guardSource = (string)file_get_contents(__DIR__ . '/../services/InteractionGuard.php');
+$controllerSource = (string)file_get_contents(__DIR__ . '/../services/CallbackController.php');
 ccCheck('wizard loads shared interaction guard', strpos($wizardSource, 'InteractionGuard.php') !== false, true);
 ccCheck('edit loads shared interaction guard', strpos($editSource, 'InteractionGuard.php') !== false, true);
 ccCheck('shared guard owns interaction lock directory', strpos($guardSource, 'max-search-interaction-locks') !== false, true);
@@ -105,11 +106,28 @@ ccCheck('generic duplicate helper allows different payload', InteractionGuard::i
 ccCheck('generic recent helper suppresses burst', InteractionGuard::isRecent(100.0, 101.5, 2.0), true);
 ccCheck('generic recent helper allows later action', InteractionGuard::isRecent(100.0, 102.1, 2.0), false);
 ccCheck('lock scope is sanitized', strpos(InteractionGuard::lockPath(123, 'edit menu/test'), 'edit_menu_test.lock') !== false, true);
+ccCheck('callback controller reports unknown actions through shared guard', strpos($controllerSource, "InteractionGuard::reportSuppressed(\$chatId, \$q, 'unknown_action'") !== false, true);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
 ccCheck('missing chat rejected', $controller->handle(['from'=>[],'data'=>'ai_start']), false);
-ccCheck('unknown callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'something_new']), false);
+
+$diagnosticFile = sys_get_temp_dir() . '/max-search-callback-regression-' . bin2hex(random_bytes(4)) . '.log';
+DiagnosticLogger::setFile($diagnosticFile);
+try {
+    ccCheck('unknown callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'something_new']), false);
+    $line = is_file($diagnosticFile) ? trim((string)file_get_contents($diagnosticFile)) : '';
+    $record = $line !== '' ? json_decode($line, true) : null;
+    ccCheck('unknown callback diagnostic component', $record['component'] ?? null, 'interaction_guard');
+    ccCheck('unknown callback diagnostic event', $record['event'] ?? null, 'callback_suppressed');
+    ccCheck('unknown callback diagnostic reason', $record['data']['reason'] ?? null, 'unknown_action');
+    ccCheck('unknown callback diagnostic scope', $record['data']['scope'] ?? null, 'callback_controller');
+    ccCheck('unknown callback diagnostic payload', $record['data']['payload'] ?? null, 'something_new');
+    ccCheck('unknown callback diagnostic chat id', $record['chat_id'] ?? null, 1);
+} finally {
+    @unlink($diagnosticFile);
+    DiagnosticLogger::setFile('');
+}
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
