@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T06:10:41+00:00",
+    "generated_at": "2026-08-26T06:47:28+00:00",
     "production": {
-        "sha": "1dc3e7a9addd4f7856bce7ccc02761d85326a3fe",
+        "sha": "7c76929ad851ebc6a0e13e8075394ab99af926f9",
         "branch": "main"
     },
     "database": {
@@ -86,7 +86,7 @@
         "customers": 282,
         "customer_channels": 282,
         "conversations": 283,
-        "messages": 7469,
+        "messages": 7470,
         "managers": 5,
         "manager_assignments": 65,
         "conversation_events": 232,
@@ -220,7 +220,7 @@
         "pending_count": 6,
         "overdue_count": 6,
         "stuck_count": 6,
-        "oldest_wait_seconds": 42998,
+        "oldest_wait_seconds": 45206,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:14:03",
-                "wait_seconds": 42998,
+                "wait_seconds": 45206,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:38:19",
-                "wait_seconds": 41542,
+                "wait_seconds": 43750,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -260,7 +260,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 23:06:18",
-                "wait_seconds": 32663,
+                "wait_seconds": 34871,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -275,7 +275,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:00:24",
-                "wait_seconds": 29417,
+                "wait_seconds": 31625,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -290,7 +290,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:12:25",
-                "wait_seconds": 28696,
+                "wait_seconds": 30904,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -305,7 +305,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 04:49:24",
-                "wait_seconds": 12077,
+                "wait_seconds": 14285,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -415,25 +415,6 @@
             "event": "push_selected",
             "data": {
                 "conversation_id": 238,
-                "eligible_manager_ids": [
-                    4
-                ],
-                "selected_manager_ids": [
-                    4
-                ],
-                "scores": {
-                    "4": 0
-                },
-                "entry_channel": null
-            }
-        },
-        {
-            "ts": "2026-08-26T00:12:25+02:00",
-            "level": "info",
-            "component": "manager_priority",
-            "event": "push_selected",
-            "data": {
-                "conversation_id": 270,
                 "eligible_manager_ids": [
                     4
                 ],
@@ -644,6 +625,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 7470,
+            "conversation_id": 283,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-26 08:38:15"
+        },
         {
             "id": 7469,
             "conversation_id": 224,
@@ -1174,15 +1164,6 @@
             "channel": "max",
             "text": "meal_4",
             "created_at": "2026-08-26 07:44:08"
-        },
-        {
-            "id": 7410,
-            "conversation_id": 282,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-08-26 07:44:02"
         }
     ],
     "recent_events": [
