@@ -30,15 +30,20 @@ class ManagerPriorityService
         return['ok'=>true,'rule_id'=>$id];
     }
 
-    public static function scores(array $managerIds,array $conversation): array
+    public static function scoreBreakdown(array $managerIds,array $conversation): array
     {
         $managerIds=array_values(array_unique(array_filter(array_map('intval',$managerIds),static fn($v)=>$v>0)));if(!$managerIds)return[];
         $pdo=ConversationDb::connection();$in=implode(',',array_fill(0,count($managerIds),'?'));
-        $q=$pdo->prepare("SELECT id,priority FROM managers WHERE id IN ($in)");$q->execute($managerIds);$scores=[];
-        foreach($q->fetchAll() as $row)$scores[(int)$row['id']]=(int)($row['priority']??0);
-        $q=$pdo->prepare("SELECT manager_id,rule_type,rule_value,bonus FROM manager_priority_rules WHERE is_active=1 AND manager_id IN ($in)");$q->execute($managerIds);
-        foreach($q->fetchAll() as $rule){$mid=(int)$rule['manager_id'];if(!array_key_exists($mid,$scores))continue;if(self::matches($rule,$conversation))$scores[$mid]+=(int)$rule['bonus'];}
-        return$scores;
+        $q=$pdo->prepare("SELECT id,priority FROM managers WHERE id IN ($in)");$q->execute($managerIds);$details=[];
+        foreach($q->fetchAll() as $row){$mid=(int)$row['id'];$base=(int)($row['priority']??0);$details[$mid]=['base'=>$base,'matched_rules'=>[],'final'=>$base];}
+        $q=$pdo->prepare("SELECT id,manager_id,rule_type,rule_value,bonus,comment FROM manager_priority_rules WHERE is_active=1 AND manager_id IN ($in) ORDER BY id");$q->execute($managerIds);
+        foreach($q->fetchAll() as $rule){$mid=(int)$rule['manager_id'];if(!isset($details[$mid])||!self::matches($rule,$conversation))continue;$bonus=(int)$rule['bonus'];$details[$mid]['matched_rules'][]=['rule_id'=>(int)$rule['id'],'type'=>(string)$rule['rule_type'],'value'=>(string)$rule['rule_value'],'bonus'=>$bonus,'comment'=>$rule['comment']??null];$details[$mid]['final']+=$bonus;}
+        return$details;
+    }
+
+    public static function scores(array $managerIds,array $conversation): array
+    {
+        $scores=[];foreach(self::scoreBreakdown($managerIds,$conversation) as $mid=>$detail)$scores[(int)$mid]=(int)$detail['final'];return$scores;
     }
 
     public static function preferred(array $managerIds,array $conversation): array
@@ -51,16 +56,16 @@ class ManagerPriorityService
         $eligible=[];$pdo=ConversationDb::connection();
         $q=$pdo->query('SELECT id FROM managers WHERE is_active=1 AND is_working=1');
         foreach($q->fetchAll() as $row){$id=(int)$row['id'];if(RoutingAccessService::canSeeConversation($id,$conversation))$eligible[]=$id;}
-        $scores=self::scores($eligible,$conversation);$selected=self::preferredFromScores($scores);
-        return['eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$selected,'scores'=>$scores];
+        $scoreBreakdown=self::scoreBreakdown($eligible,$conversation);$scores=[];foreach($scoreBreakdown as $mid=>$detail)$scores[(int)$mid]=(int)$detail['final'];$selected=self::preferredFromScores($scores);
+        return['eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$selected,'scores'=>$scores,'score_breakdown'=>$scoreBreakdown];
     }
 
     public static function notificationSelectionForConversation(int $conversationId): array
     {
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,s.source_key FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
-        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation)return['conversation'=>null,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[]];
-        if((string)$conversation['status']==='manager'&&!empty($conversation['manager_id']))return['conversation'=>$conversation,'eligible_manager_ids'=>[(int)$conversation['manager_id']],'selected_manager_ids'=>[(int)$conversation['manager_id']],'scores'=>[]];
-        if((string)$conversation['status']!=='waiting_manager')return['conversation'=>$conversation,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[]];
+        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation)return['conversation'=>null,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[],'score_breakdown'=>[]];
+        if((string)$conversation['status']==='manager'&&!empty($conversation['manager_id']))return['conversation'=>$conversation,'eligible_manager_ids'=>[(int)$conversation['manager_id']],'selected_manager_ids'=>[(int)$conversation['manager_id']],'scores'=>[],'score_breakdown'=>[]];
+        if((string)$conversation['status']!=='waiting_manager')return['conversation'=>$conversation,'eligible_manager_ids'=>[],'selected_manager_ids'=>[],'scores'=>[],'score_breakdown'=>[]];
         return['conversation'=>$conversation]+self::notificationSelection($conversation);
     }
 
