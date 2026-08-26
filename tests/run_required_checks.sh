@@ -43,6 +43,7 @@ checks=(
   'php tests/run_live_destination_context_regression.php'
   'php tests/run_live_star_answer_regression.php'
   'php tests/run_live_child_age_count_regression.php'
+  'php tests/run_edit_menu_duplicate_regression.php'
   'php tests/run_post_tour_regression.php'
   'php tests/run_messenger_neutral_handlers_regression.php'
   'php tests/run_state_free_text_regression.php'
