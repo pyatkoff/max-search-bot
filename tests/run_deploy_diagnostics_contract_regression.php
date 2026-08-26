@@ -5,6 +5,8 @@ $checks = [
     'diagnostics transfer uses directory source instead of wildcard' =>
         strpos($workflow, 'source: "www/anytour.online/max-search/diagnostics"') !== false
         && strpos($workflow, 'diagnostics/*.json') === false,
+    'diagnostics directory is populated during smoke' =>
+        strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') !== false,
     'diagnostics download outcome is captured' =>
         strpos($workflow, 'DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}') !== false,
     'deploy telemetry exposes diagnostics outcome' =>
