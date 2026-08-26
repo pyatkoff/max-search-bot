@@ -2,6 +2,7 @@
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditParamsView.php';
+require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 
 class EditCallbackAction
 {
@@ -12,14 +13,12 @@ class EditCallbackAction
 
     private static function editMenuLockPath(int $chatId): string
     {
-        $dir = sys_get_temp_dir() . '/max-search-edit-callback-locks';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-        return $dir . '/' . hash('sha256', (string)$chatId) . '.lock';
+        return InteractionGuard::lockPath($chatId, 'edit-menu');
     }
 
     public static function isDuplicateEditMenu(float $previousAt, float $now, float $windowSeconds = 2.0): bool
     {
-        return $previousAt > 0 && $now >= $previousAt && ($now - $previousAt) < $windowSeconds;
+        return InteractionGuard::isRecent($previousAt, $now, $windowSeconds);
     }
 
     private static function handleEditMenu(int $chatId): bool
