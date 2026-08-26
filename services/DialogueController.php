@@ -3,6 +3,7 @@ require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/CallbackController.php';
 require_once __DIR__ . '/DialogueView.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
+require_once __DIR__ . '/EditFlowService.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
@@ -162,6 +163,7 @@ class DialogueController
         MaxSearchApi::cancelToursFollowup($chatId);
         MaxSearchApi::deleteAllStatus($chatId);
         MaxSearchApi::setEditMode($chatId, '');
+        EditFlowService::clearSnapshot($chatId);
         if ($clearDate) AiDateHandler::clear($chatId);
         AiShadowObserver::clear($chatId);
         DestinationResolver::clear($chatId);
