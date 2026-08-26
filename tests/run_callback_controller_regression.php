@@ -15,6 +15,7 @@ if (!class_exists('MaxSearchApi')) {
 }
 
 require_once __DIR__ . '/../services/CallbackController.php';
+require_once __DIR__ . '/../services/InteractionGuard.php';
 
 $passed = 0;
 $failed = 0;
@@ -72,7 +73,12 @@ ccCheck('tours owns finish', ToursCallbackAction::handles('finish_from_ai'), tru
 ccCheck('manager excludes tours', ManagerCallbackAction::handles('show_tours'), false);
 
 $wizardSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
-ccCheck('date callback has per-chat serialization lock', strpos($wizardSource, 'max-search-date-callback-locks') !== false && strpos($wizardSource, 'flock($fp, LOCK_EX)') !== false, true);
+$editSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/EditCallbackAction.php');
+$guardSource = (string)file_get_contents(__DIR__ . '/../services/InteractionGuard.php');
+ccCheck('wizard loads shared interaction guard', strpos($wizardSource, 'InteractionGuard.php') !== false, true);
+ccCheck('edit loads shared interaction guard', strpos($editSource, 'InteractionGuard.php') !== false, true);
+ccCheck('shared guard owns interaction lock directory', strpos($guardSource, 'max-search-interaction-locks') !== false, true);
+ccCheck('date callback still has per-chat serialization lock', strpos($wizardSource, 'InteractionGuard::lockPath') !== false && strpos($wizardSource, 'flock($fp, LOCK_EX)') !== false, true);
 ccCheck('stale date callback requires active date step', strpos($wizardSource, 'getCurentStatus($chatId)') !== false && strpos($wizardSource, '$statusDate') !== false && strpos($wizardSource, 'STALE_DATE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('date callback routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'pick_date_') === 0) return self::handleDateSelection") !== false, true);
 ccCheck('month change routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'month_change_') === 0) return self::handleMonthChange") !== false, true);
@@ -92,7 +98,13 @@ ccCheck('meal choice is valid only on meal step', WizardCallbackAction::expected
 ccCheck('nights choice is valid only on nights step', WizardCallbackAction::expectedStatusForForwardCallback('nights_9_11'), (int)MaxSearchApi::$statusNights);
 ccCheck('date choice remains under dedicated guarded handler', WizardCallbackAction::expectedStatusForForwardCallback('pick_date_17.10.2026'), null);
 ccCheck('back navigation is not blocked by forward-step guard', WizardCallbackAction::expectedStatusForForwardCallback('back_nights'), null);
-ccCheck('forward wizard callbacks have stale-step guard', strpos($wizardSource, 'STALE_WIZARD_CALLBACK_SKIPPED') !== false && strpos($wizardSource, 'self::staleForwardCallback($chatId, $q)') !== false, true);
+ccCheck('forward wizard callbacks delegate stale-step guard', strpos($wizardSource, 'InteractionGuard::isStaleWizardForward($chatId, $q)') !== false, true);
+
+ccCheck('generic duplicate helper matches same payload', InteractionGuard::isDuplicate('meal_7', 100.0, 'meal_7', 101.0, 2.0), true);
+ccCheck('generic duplicate helper allows different payload', InteractionGuard::isDuplicate('meal_7', 100.0, 'meal_5', 101.0, 2.0), false);
+ccCheck('generic recent helper suppresses burst', InteractionGuard::isRecent(100.0, 101.5, 2.0), true);
+ccCheck('generic recent helper allows later action', InteractionGuard::isRecent(100.0, 102.1, 2.0), false);
+ccCheck('lock scope is sanitized', strpos(InteractionGuard::lockPath(123, 'edit menu/test'), 'edit_menu_test.lock') !== false, true);
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
