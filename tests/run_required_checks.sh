@@ -44,6 +44,7 @@ checks=(
   'php tests/run_handoff_timeline_regression.php'
   'php tests/run_handoff_integrity_health_regression.php'
   'php tests/run_manager_assignment_integrity_regression.php'
+  'php tests/run_deploy_diagnostics_contract_regression.php'
   'php tests/run_production_snapshot_encoding_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
   'php tests/run_live_session_snapshot_regression.php'
