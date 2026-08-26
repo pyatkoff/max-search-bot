@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T06:00:38+00:00",
+    "generated_at": "2026-08-26T06:10:41+00:00",
     "production": {
-        "sha": "bc530e9b5eab20570f191c4702257cec9fa72039",
+        "sha": "1dc3e7a9addd4f7856bce7ccc02761d85326a3fe",
         "branch": "main"
     },
     "database": {
@@ -86,7 +86,7 @@
         "customers": 282,
         "customer_channels": 282,
         "conversations": 283,
-        "messages": 7467,
+        "messages": 7469,
         "managers": 5,
         "manager_assignments": 65,
         "conversation_events": 232,
@@ -220,7 +220,7 @@
         "pending_count": 6,
         "overdue_count": 6,
         "stuck_count": 6,
-        "oldest_wait_seconds": 42396,
+        "oldest_wait_seconds": 42998,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:14:03",
-                "wait_seconds": 42396,
+                "wait_seconds": 42998,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 20:38:19",
-                "wait_seconds": 40940,
+                "wait_seconds": 41542,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -260,7 +260,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-25 23:06:18",
-                "wait_seconds": 32061,
+                "wait_seconds": 32663,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -275,7 +275,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:00:24",
-                "wait_seconds": 28815,
+                "wait_seconds": 29417,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -290,7 +290,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 00:12:25",
-                "wait_seconds": 28094,
+                "wait_seconds": 28696,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -305,7 +305,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 04:49:24",
-                "wait_seconds": 11475,
+                "wait_seconds": 12077,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -448,6 +448,30 @@
         }
     ],
     "recent_manager_push_events": [
+        {
+            "ts": "2026-08-26T08:06:11+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "conversation_id": 224,
+                "manager_id": 5,
+                "subscription_id": 2,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-26T08:06:03+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "conversation_id": 224,
+                "manager_id": 5,
+                "subscription_id": 2,
+                "http_code": 201
+            }
+        },
         {
             "ts": "2026-08-26T04:49:24+02:00",
             "level": "warning",
@@ -620,6 +644,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 7469,
+            "conversation_id": 224,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Сентябрь",
+            "created_at": "2026-08-26 08:06:11"
+        },
+        {
+            "id": 7468,
+            "conversation_id": 224,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Здравствуйте Калининград на 10-13-14",
+            "created_at": "2026-08-26 08:06:03"
+        },
         {
             "id": 7467,
             "conversation_id": 283,
@@ -1141,24 +1183,6 @@
             "channel": "max",
             "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
             "created_at": "2026-08-26 07:44:02"
-        },
-        {
-            "id": 7409,
-            "conversation_id": 282,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_3",
-            "created_at": "2026-08-26 07:44:02"
-        },
-        {
-            "id": 7408,
-            "conversation_id": 282,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-26 07:43:56"
         }
     ],
     "recent_events": [
