@@ -49,6 +49,9 @@ mnhCheck('MealParser all inclusive', MealParser::parse('Всё включено'
 mnhCheck('MealParser live phrase Двух разовое', MealParser::parse('Двух разовое'), 'half_board');
 mnhCheck('MealParser compact two-meals phrase', MealParser::parse('двухразовое'), 'half_board');
 mnhCheck('MealParser numeric two-meals phrase', MealParser::parse('2 разовое'), 'half_board');
+mnhCheck('MealParser live phrase Трёхразовое', MealParser::parse('Трёхразовое'), 'full_board');
+mnhCheck('MealParser spaced three-meals phrase', MealParser::parse('трех разовое'), 'full_board');
+mnhCheck('MealParser numeric three-meals phrase', MealParser::parse('3 разовое'), 'full_board');
 mnhCheck('MealParser does not invent plan from quality preference', MealParser::parse('Вкусное'), null);
 mnhCheck('MealParser does not invent plan from delicacies preference', MealParser::parse('Деликатэсы'), null);
 
