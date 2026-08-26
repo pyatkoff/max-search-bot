@@ -51,7 +51,6 @@ igdCheck('structured reason', $record['data']['reason'] ?? null, 'duplicate');
 igdCheck('structured current state', $record['data']['current_state'] ?? null, 'meal');
 igdCheck('structured expected state', $record['data']['expected_state'] ?? null, 'meal');
 
-MaxSearchApi::$currentStatus = MaxSearchApi::$statusCountryChoose ?? 13;
 MaxSearchApi::$currentStatus = 13;
 igdCheck('stale forward callback is consumed', InteractionGuard::isStaleWizardForward(456, 'adults_2'), true);
 $lines = file($tmp, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
