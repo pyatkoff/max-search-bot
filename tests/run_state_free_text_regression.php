@@ -67,6 +67,44 @@ if (($dateResolved['date'] ?? '') === $expectedDate) {
     $failed++;
 }
 
+// Production conversation 274 exposed a same-month rollover defect: on 26 August,
+// "5 августа" was parsed as 05.08 of the already-past current year, producing a
+// reversed search window. Keep this regression calendar-independent by testing a
+// previous day of the current month whenever such a day exists.
+$todayDay = (int)date('j');
+if ($todayDay > 1) {
+    $monthNames = [1=>'января',2=>'февраля',3=>'марта',4=>'апреля',5=>'мая',6=>'июня',7=>'июля',8=>'августа',9=>'сентября',10=>'октября',11=>'ноября',12=>'декабря'];
+    $pastDay = $todayDay - 1;
+    $month = (int)date('n');
+    $year = (int)date('Y');
+    $phrase = $pastDay . ' ' . $monthNames[$month];
+    $resolved = DateParser::resolveDate($phrase);
+    $expected = sprintf('%02d.%02d.%04d', $pastDay, $month, $year + 1);
+    if (($resolved['date'] ?? '') === $expected) {
+        echo "PASS  implicit past natural date rolls to next year\n";
+        $passed++;
+    } else {
+        echo "FAIL  implicit past natural date rolls to next year\n";
+        echo '      phrase: ' . $phrase . "\n";
+        echo '      expected: ' . $expected . "\n";
+        echo '      actual:   ' . var_export($resolved, true) . "\n";
+        $failed++;
+    }
+
+    $explicitPhrase = $pastDay . ' ' . $monthNames[$month] . ' ' . $year;
+    $explicitResolved = DateParser::resolveDate($explicitPhrase);
+    $explicitExpected = sprintf('%02d.%02d.%04d', $pastDay, $month, $year);
+    if (($explicitResolved['date'] ?? '') === $explicitExpected) {
+        echo "PASS  explicit past natural year is preserved\n";
+        $passed++;
+    } else {
+        echo "FAIL  explicit past natural year is preserved\n";
+        echo '      expected: ' . $explicitExpected . "\n";
+        echo '      actual:   ' . var_export($explicitResolved, true) . "\n";
+        $failed++;
+    }
+}
+
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $guards = [
     'country fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($country))') !== false,
