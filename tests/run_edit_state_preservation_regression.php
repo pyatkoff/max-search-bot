@@ -13,10 +13,10 @@ function espCheck(string $name, $actual, $expected): void {
     $failed++;
 }
 
-// Production scenario from conversation 311: a complete selection existed, the
-// country was edited through the manual-country path, and the resulting check
-// screen lost all unchanged parameters. Simulate the post-edit state reader only
-// seeing the newly edited country while the pre-edit snapshot still has the trip.
+// Production shape first seen in conversation 311 and reproduced naturally again
+// after #122: once the edit menu had appended a new check-status row, capturing
+// the snapshot on edit_country was already too late and getSavedData() could be
+// empty. The snapshot must therefore exist before the edit menu is rendered.
 $snapshot = [
     65 => '1',
     66 => '12',
@@ -42,7 +42,11 @@ espCheck('date restored', $restore[73] ?? null, '28.08.2026');
 $editSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/EditCallbackAction.php');
 $controllerSource = (string)file_get_contents(__DIR__ . '/../services/DialogueController.php');
 $flowSource = (string)file_get_contents(__DIR__ . '/../services/EditFlowService.php');
-espCheck('all edit field entries capture snapshot', substr_count($editSource, 'EditFlowService::begin(') >= 4, true);
+$menuCapturePos = strpos($editSource, 'EditFlowService::captureSnapshot($chatId, true)');
+$menuRenderPos = strpos($editSource, 'EditParamsView::menu($chatId)');
+espCheck('edit menu captures snapshot before adding check boundary', $menuCapturePos !== false && $menuRenderPos !== false && $menuCapturePos < $menuRenderPos, true);
+espCheck('field selection reuses existing pre-menu snapshot', strpos($flowSource, 'self::captureSnapshot($chatId, false)') !== false, true);
+espCheck('all edit field entries begin preserved edit flow', substr_count($editSource, 'EditFlowService::begin(') >= 4, true);
 espCheck('dialogue reset clears snapshot', strpos($controllerSource, 'EditFlowService::clearSnapshot($chatId)') !== false, true);
 espCheck('missing snapshot values are re-appended before check', strpos($flowSource, 'MaxSearchApi::setStatus($chatId, $status)') !== false && strpos($flowSource, 'MaxSearchApi::saveLastValue($chatId, $status, $value)') !== false, true);
 

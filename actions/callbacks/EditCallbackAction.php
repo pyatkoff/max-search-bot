@@ -46,6 +46,10 @@ class EditCallbackAction
             fflush($fp);
 
             MaxSearchApi::cancelToursFollowup($chatId);
+            // Capture before EditParamsView::menu() appends another check-status
+            // boundary. Capturing at edit_country/edit_city time can already see
+            // an empty saved-data window.
+            EditFlowService::captureSnapshot($chatId, true);
             EditParamsView::menu($chatId);
             return true;
         } finally {
