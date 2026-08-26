@@ -36,7 +36,11 @@ mpCheck('migration adds manager base priority',str_contains($migration,'ADD COLU
 mpCheck('migration adds conversation entry channel',str_contains($migration,'ADD COLUMN entry_channel VARCHAR(64)'),true);
 mpCheck('migration adds priority rules table',str_contains($migration,'CREATE TABLE IF NOT EXISTS manager_priority_rules'),true);
 mpCheck('priority rules support entry channel',str_contains($priority,"'entry_channel'"),true);
-mpCheck('priority scoring combines base and bonuses',str_contains($priority,"\$scores[\$mid]+=(int)\$rule['bonus']"),true);
+mpCheck('priority scoring exposes base score',str_contains($priority,"'base'=>\$base"),true);
+mpCheck('priority scoring records matched rule identity',str_contains($priority,"'rule_id'=>(int)\$rule['id']"),true);
+mpCheck('priority scoring records matched bonus',str_contains($priority,"'bonus'=>\$bonus"),true);
+mpCheck('priority scoring exposes final score',str_contains($priority,"\$details[\$mid]['final']+=\$bonus"),true);
+mpCheck('push diagnostics include score breakdown',str_contains($push,"'score_breakdown'=>\$scoreBreakdown"),true);
 mpCheck('waiting push is restricted to working managers',str_contains($push,'is_active=1 AND is_working=1'),true);
 mpCheck('waiting push selects highest priority ties',str_contains($push,'ManagerPriorityService::preferred($eligible,$c)'),true);
 mpCheck('admin exposes base priority control',str_contains($admin,'Базовый приоритет'),true);

@@ -83,9 +83,9 @@ class ManagerPushService
                 $r=$pdo->query('SELECT id FROM managers WHERE is_active=1 AND is_working=1');
                 foreach($r->fetchAll() as $m){$id=(int)$m['id']; if(RoutingAccessService::canSeeConversation($id,$c))$managers[]=$id;}
                 if($managers){
-                    $eligible=$managers;$scores=ManagerPriorityService::scores($eligible,$c);$preferred=ManagerPriorityService::preferred($eligible,$c);
+                    $eligible=$managers;$scoreBreakdown=ManagerPriorityService::scoreBreakdown($eligible,$c);$scores=[];foreach($scoreBreakdown as $mid=>$detail)$scores[(int)$mid]=(int)$detail['final'];$preferred=ManagerPriorityService::preferred($eligible,$c);
                     if($preferred)$managers=$preferred;
-                    if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_priority','push_selected',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$managers,'scores'=>$scores,'entry_channel'=>$c['entry_channel']??null],null,'info');}catch(Throwable $ignored){}}
+                    if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_priority','push_selected',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'eligible_manager_ids'=>$eligible,'selected_manager_ids'=>$managers,'scores'=>$scores,'score_breakdown'=>$scoreBreakdown,'entry_channel'=>$c['entry_channel']??null],null,'info');}catch(Throwable $ignored){}}
                 }
             } else return;
             if(!$managers)return;
