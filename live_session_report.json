@@ -1,13 +1,13 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T15:15:54+00:00",
+    "generated_at": "2026-08-27T15:21:19+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 20,
-        "started": 20,
-        "needs_collected": 17,
-        "tours_opened": 17,
+        "sessions": 21,
+        "started": 21,
+        "needs_collected": 18,
+        "tours_opened": 18,
         "manager_requested": 5,
         "manager_replied": 3,
         "phone_received": 0,
@@ -21,7 +21,7 @@
             "max_seconds": 3024
         },
         "drop_points": {
-            "tours_opened": 12,
+            "tours_opened": 13,
             "collecting_needs": 3,
             "manager_replied": 3,
             "manager_requested": 2
@@ -1815,6 +1815,29 @@
             "last_message_at": "2026-08-27 16:56:53"
         },
         {
+            "conversation_id": 448,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 11,
+            "outbound_messages": 11,
+            "date_picks": 1,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-27 17:16:29",
+            "last_message_at": "2026-08-27 17:17:17"
+        },
+        {
             "conversation_id": 447,
             "project_key": "anytour",
             "channel": "max",
@@ -1830,13 +1853,13 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 6,
-            "outbound_messages": 6,
+            "outbound_messages": 7,
             "date_picks": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 17:11:59",
-            "last_message_at": "2026-08-27 17:14:26"
+            "last_message_at": "2026-08-27 17:20:32"
         }
     ],
-    "since_utc": "2026-08-27 14:15:54"
+    "since_utc": "2026-08-27 14:21:19"
 }
