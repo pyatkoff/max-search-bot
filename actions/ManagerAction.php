@@ -25,8 +25,9 @@ class ManagerAction
 
         $platform = strtolower(trim((string)($userContext['platform'] ?? ProjectConfig::get('messenger.provider', 'max'))));
         $conversation = ConversationControlService::statusByChat($platform, $chatId);
+        $withinWorkingHours = ManagerAvailabilityService::withinWorkingHours();
         $managerAvailable = false;
-        if ($conversation) {
+        if ($withinWorkingHours && $conversation) {
             try { $managerAvailable = ManagerAvailabilityService::anyWorkingForConversation($conversation); } catch (Throwable $ignored) {}
         }
 
@@ -34,6 +35,7 @@ class ManagerAction
             'summary'=>$plan['summary'],
             'from_tours'=>$fromTours,
             'manager_available'=>$managerAvailable,
+            'within_working_hours'=>$withinWorkingHours,
         ],'ai');
 
         if ($managerAvailable) {
@@ -42,13 +44,14 @@ class ManagerAction
             $buttons = [[['text'=>'↩️ Вернуться','callback_data'=>(string)$model['back_callback']]]];
             $sent = IntegrationRegistry::messenger()->sendWithButtons($chatId, (string)$model['online_text'], $buttons);
         } else {
-            $sent = DialogueView::managerRequest($chatId, $name, $fromTours);
+            $sent = DialogueView::managerRequest($chatId, $name, $fromTours, !$withinWorkingHours);
         }
 
         if ($sent) ConversationControlService::markWaitingByChat($platform,$chatId,[
             'summary'=>$plan['summary'],
             'from_tours'=>$fromTours,
             'manager_available'=>$managerAvailable,
+            'within_working_hours'=>$withinWorkingHours,
         ]);
         return (bool)$sent;
     }

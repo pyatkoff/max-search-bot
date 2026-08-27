@@ -42,6 +42,8 @@ mrCheck('offline text mentions manager',strpos($model['text'],'менеджер�
 mrCheck('offline text asks for phone',strpos($model['text'],'номером телефона')!==false,true);
 mrCheck('online text says manager is online',strpos($model['online_text'],'сейчас онлайн')!==false,true);
 mrCheck('online text does not require phone',strpos($model['online_text'],'оставлять не нужно')!==false,true);
+mrCheck('fallback text available',strpos($model['fallback_text'],'не успел ответить')!==false,true);
+mrCheck('outside-hours text available',strpos($model['outside_hours_text'],'следующий рабочий период')!==false,true);
 
 MaxSearchApi::$claim = null;
 MaxSearchApi::$saveCalls = 0;
@@ -55,6 +57,6 @@ mrCheck('created claim returned',$model2['claim']['ID']??null,99);
 $managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
 mrCheck('manager action checks live availability',strpos($managerActionSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
 mrCheck('online handoff uses chat response',strpos($managerActionSource,"sendWithButtons(\$chatId, (string)\$model['online_text']")!==false,true);
-mrCheck('offline handoff keeps contact request path',strpos($managerActionSource,'DialogueView::managerRequest($chatId, $name, $fromTours)')!==false,true);
+mrCheck('offline handoff keeps contact request path',strpos($managerActionSource,'DialogueView::managerRequest($chatId, $name, $fromTours, !$withinWorkingHours)')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

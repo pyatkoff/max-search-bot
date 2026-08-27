@@ -6,9 +6,22 @@ require_once __DIR__ . '/AuditLogService.php';
 
 class ManagerAvailabilityService
 {
+    public const WORKDAY_START_HOUR = 10;
+    public const WORKDAY_END_HOUR = 20;
+    public const BUSINESS_TIMEZONE = 'Europe/Kaliningrad';
+
     public static function ensureSchema(): void
     {
         // Schema is managed by versioned migrations.
+    }
+
+    public static function withinWorkingHours(?int $now = null): bool
+    {
+        $now = $now ?? time();
+        $dt = new DateTimeImmutable('@' . $now);
+        $dt = $dt->setTimezone(new DateTimeZone(self::BUSINESS_TIMEZONE));
+        $hour = (int)$dt->format('G');
+        return $hour >= self::WORKDAY_START_HOUR && $hour < self::WORKDAY_END_HOUR;
     }
 
     public static function setWorking(int $managerId, bool $working): bool
