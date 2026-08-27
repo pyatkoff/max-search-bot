@@ -2,12 +2,24 @@
 
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
-$workspace=(string)file_get_contents(dirname(__DIR__).'/manager/workspace-v2.php');$workspaceCss=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2.css');$workspaceJs=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2.js');$mediaJs=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2-media.js');$mediaCss=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2-media.css');$ui=$workspace."\n".$workspaceCss."\n".$workspaceJs."\n".$mediaJs."\n".$mediaCss;$api=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-api.php');$mediaApi=(string)file_get_contents(dirname(__DIR__).'/manager/media-upload.php');$conversations=(string)file_get_contents(dirname(__DIR__).'/services/ManagerConversationService.php');$pipeline=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineService.php');$inbox=(string)file_get_contents(dirname(__DIR__).'/services/ManagerLeadInboxService.php');$context=(string)file_get_contents(dirname(__DIR__).'/services/ManagerRequestContext.php');$passed=0;$failed=0;
+$root=dirname(__DIR__);
+$workspace=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$workspaceCss=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
+$coreJs=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
+$inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$conversationJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
+$mediaJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.js');
+$mediaCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.css');
+$workspaceJs=$coreJs."\n".$inboxJs."\n".$pipelineJs."\n".$leadCardJs."\n".$conversationJs;
+$ui=$workspace."\n".$workspaceCss."\n".$workspaceJs."\n".$mediaJs."\n".$mediaCss;
+$api=(string)file_get_contents($root.'/manager/pipeline-api.php');$mediaApi=(string)file_get_contents($root.'/manager/media-upload.php');$conversations=(string)file_get_contents($root.'/services/ManagerConversationService.php');$pipeline=(string)file_get_contents($root.'/services/SalesPipelineService.php');$inbox=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');$context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');$passed=0;$failed=0;
 function mw2Check(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 mw2Check('workspace loads extracted assets',strpos($workspace,'assets/workspace-v2.css')!==false&&strpos($workspace,'assets/workspace-v2.js')!==false&&strpos($workspace,'<style>')===false&&strpos($workspace,'<script>')===false);
 mw2Check('workspace has three-zone desktop structure',strpos($ui,'inboxZone')!==false&&strpos($ui,'conversationZone')!==false&&strpos($ui,'leadZone')!==false&&strpos($ui,'grid-template-columns:340px minmax(420px,1fr) 340px')!==false);
 mw2Check('workspace has mobile adaptation',strpos($ui,'@media(max-width:900px)')!==false&&strpos($ui,'.conversationZone.open')!==false&&strpos($ui,'.leadZone.open')!==false);
-mw2Check('transcript visually separates customer AI and manager',strpos($ui,"'customer':m.sender_type==='manager'?'manager':'ai'")!==false&&strpos($ui,'.msg.customer')!==false&&strpos($ui,'.msg.ai')!==false&&strpos($ui,'.msg.manager')!==false);
+mw2Check('transcript visually separates customer AI and manager',strpos($ui,"m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai'")!==false&&strpos($ui,'.msg.customer')!==false&&strpos($ui,'.msg.ai')!==false&&strpos($ui,'.msg.manager')!==false);
 mw2Check('original transcript is rendered from manager detail messages',strpos($ui,"api('detail',{conversation_id:S.current})")!==false&&strpos($ui,'(d.messages||[]).forEach')!==false);
 mw2Check('lead card keeps trip outside transcript',strpos($ui,'<div class="sectionTitle">Поездка</div>')!==false&&strpos($ui,"tripField('Вылет',trip.city)")!==false&&strpos($ui,"tripField('Куда',trip.country)")!==false);
 mw2Check('lead card keeps contact source and handoff outside transcript',strpos($ui,'<div class="sectionTitle">Контакт</div>')!==false&&strpos($ui,'<div class="sectionTitle">Источник и handoff</div>')!==false);
@@ -30,7 +42,7 @@ mw2Check('workspace preserves existing manager lifecycle actions',strpos($ui,"ch
 mw2Check('workspace preserves text reply path',strpos($ui,"api('send',{conversation_id:S.current,text})")!==false);
 mw2Check('workspace loads dedicated outbound media module',strpos($workspace,'assets/workspace-v2-media.js')!==false&&strpos($workspace,'assets/workspace-v2-media.css')!==false&&strpos($workspace,'id="replyFile"')!==false);
 mw2Check('media module sends multipart upload through existing endpoint',strpos($mediaJs,'new FormData()')!==false&&strpos($mediaJs,"fetch('media-upload.php'")!==false&&strpos($mediaJs,"data.append('csrf'")!==false&&strpos($mediaJs,"data.append('conversation_id'")!==false&&strpos($mediaJs,"data.append('file'")!==false&&strpos($mediaJs,"data.append('caption'")!==false);
-mw2Check('composer keeps text-only path and delegates file send to media module',strpos($workspaceJs,'WorkspaceV2Media?.hasFile()')!==false&&strpos($workspaceJs,'WorkspaceV2Media.send(text)')!==false&&strpos($workspaceJs,"api('send',{conversation_id:S.current,text})")!==false);
+mw2Check('composer keeps text-only path and delegates file send to media module',strpos($conversationJs,'WorkspaceV2Media?.hasFile()')!==false&&strpos($conversationJs,'WorkspaceV2Media.send(text)')!==false&&strpos($conversationJs,"api('send',{conversation_id:S.current,text})")!==false);
 $mediaAuthShared=strpos($mediaApi,'ManagerRequestContext::manager()')!==false&&strpos($mediaApi,'ManagerRequestContext::validCsrf')!==false;$mediaAuthLegacy=strpos($mediaApi,'ManagerAuthService::byId')!==false&&strpos($mediaApi,'hash_equals')!==false;mw2Check('V2 media reuses protected outbound backend',strpos($mediaApi,'ManagerOutboundService::sendMedia')!==false&&strpos($mediaApi,"error'=>'csrf")!==false&&($mediaAuthShared||$mediaAuthLegacy));
 mw2Check('media selection has mobile-aware styling',strpos($mediaCss,'.mediaSelection')!==false&&strpos($mediaCss,'@media(max-width:520px)')!==false&&strpos($mediaCss,'.attachBtn')!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
