@@ -3,6 +3,7 @@ require_once dirname(__DIR__) . '/actions/callbacks/WizardCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/EditCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ManagerCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ToursCallbackAction.php';
+require_once dirname(__DIR__) . '/handlers/AiDateHandler.php';
 require_once __DIR__ . '/InteractionGuard.php';
 
 /**
@@ -34,12 +35,14 @@ class CallbackController
 
         if ($q === 'restart') {
             MaxSearchApi::deletePrevMessage($chatId, true);
+            AiDateHandler::clear($chatId);
             MaxSearchApi::deleteAllStatus($chatId);
             MaxSearchApi::showStart($chatId);
             return true;
         }
         if ($q === 'back_phone') {
             MaxSearchApi::deletePrevMessage($chatId, true);
+            AiDateHandler::clear($chatId);
             MaxSearchApi::deleteAllStatus($chatId);
             return true;
         }

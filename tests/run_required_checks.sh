@@ -25,6 +25,7 @@ checks=(
   'php tests/run_dialogue_application_regression.php'
   'php tests/run_dialogue_controller_regression.php'
   'php tests/run_callback_controller_regression.php'
+  'php tests/run_date_session_boundary_regression.php'
   'php tests/run_dialogue_state_machine_regression.php'
   'php tests/run_interaction_guard_diagnostics_regression.php'
   'php tests/run_live_regressions.php'
