@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-27T18:01:33+00:00",
+    "generated_at": "2026-08-27T18:05:57+00:00",
     "production": {
-        "sha": "39b66d6e4c90adc9214061f5d234608ecc62b2cf",
+        "sha": "6c2da94cd01ecdf0a411203764d251bed5dcff21",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 1,
             "overdue_count": 1,
             "stuck_count": 1,
-            "oldest_wait_seconds": 1541,
+            "oldest_wait_seconds": 1808,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 1541,
+                    "wait_seconds": 1808,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -132,7 +132,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-27 17:01:27",
+        "since_utc": "2026-08-27 17:05:53",
         "summary": {
             "sessions": 28,
             "started": 28,
@@ -339,13 +339,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "39b66d6e4c90adc9214061f5d234608ecc62b2cf",
+        "sha": "6c2da94cd01ecdf0a411203764d251bed5dcff21",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-27T18:01:33Z"
+        "reported_at": "2026-08-27T18:05:57Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
