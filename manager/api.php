@@ -17,6 +17,7 @@ require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
 require_once $baseDir . '/services/ManagerPriorityService.php';
+require_once $baseDir . '/services/SalesPipelineService.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -27,6 +28,10 @@ function manager(): ?array { $id=(int)($_SESSION['manager_id']??0); return $id?M
 function csrf(): string { if(empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex(random_bytes(24)); return (string)$_SESSION['csrf']; }
 function requireCsrf(array $data): void { if(!hash_equals(csrf(),(string)($data['csrf']??''))) out(['ok'=>false,'error'=>'csrf'],403); }
 function requireAdmin(array $m): void { if((string)($m['role']??'manager')!=='admin') out(['ok'=>false,'error'=>'forbidden'],403); }
+function canEditLead(array $detail,array $manager,bool $isAdmin): bool {
+    if($isAdmin)return true;
+    return (int)($detail['conversation']['manager_id']??0)===(int)($manager['id']??0);
+}
 function withoutSuspendedWaiting(array $rows): array {
     if(!$rows)return[];
     $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
@@ -54,6 +59,7 @@ if($action==='set_working'){
     out(['ok'=>$ok,'manager'=>$fresh]);
 }
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
+if($action==='pipeline_catalog') out(['ok'=>true,'stages'=>SalesPipelineService::stages(),'tags'=>SalesPipelineService::tags()]);
 if($action==='manager_filters'){ requireAdmin($m); out(['ok'=>true,'managers'=>ManagerConversationService::filterManagers((int)$m['id'])]); }
 if($action==='admin_snapshot'){
     requireAdmin($m);$admin=AdminDirectoryService::snapshot();$admin['priority']=ManagerPriorityService::snapshot();out(['ok'=>true,'admin'=>$admin]);
@@ -66,12 +72,15 @@ if($action==='save_group'){
     $ok=RoutingAdminService::saveGroup((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));out(['ok'=>$ok],$ok?200:403);
 }
 if($action==='save_source'){
-    $ok=RoutingAdminService::saveSource((int)$m['id'],(string)($data['project_key']??''),(int)($data['source_id']??0),(string)($data['source_key']??''),(string)($data['display_name']??''),(string)($data['channel']??''),(int)($data['primary_group_id']??0),(string)($data['fallback_mode']??'none'),(int)($data['fallback_group_id']??0),(int)($data['fallback_after_minutes']??0));out(['ok'=>$ok],$ok?200:403);
+    $ok=RoutingAdminService::saveSource((int)$m['id'],(string)($data['project_key']??''),(int)($data['source_id']??0),(string)($data['display_name']??''),(string)($data['channel']??''),(int)($data['primary_group_id']??0),(string)($data['fallback_mode']??'none'),(int)($data['fallback_group_id']??0),(int)($data['fallback_after_minutes']??0));out(['ok'=>$ok],$ok?200:403);
 }
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
-    if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'))]);
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
+    $projectKey=(string)($data['project_key']??'*');
+    $stageKey=(string)($data['lead_stage_key']??'');
+    $tagId=(int)($data['lead_tag_id']??0);
+    if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>true,'conversations'=>ManagerConversationService::list((int)$m['id'],'mine',100,$projectKey,'',$stageKey,$tagId)]);
+    $rows=ManagerConversationService::list((int)$m['id'],$queue,100,$projectKey,$isAdmin?(string)($data['manager_filter']??''):'',$stageKey,$tagId);
     if($queue==='waiting'||$queue==='attention')$rows=withoutSuspendedWaiting($rows);
     out(['ok'=>true,'conversations'=>$rows]);
 }
@@ -88,6 +97,7 @@ if($action==='detail'){
     $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
     $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
+    $d['pipeline']=SalesPipelineService::conversationSnapshot($conversationId);
 
     // Before the first human reply, put a panel-only summary and explicit reply
     // guidance at the bottom of the transcript. This is never sent to the tourist.
@@ -115,6 +125,22 @@ if($action==='detail'){
 
     $d['delivery_failure']=ManagerDeliveryStateService::activeFailure($conversationId);
     out(['ok'=>true]+$d);
+}
+if($action==='set_lead_stage'){
+    $conversationId=(int)($data['conversation_id']??0);
+    $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
+    if(!$d)out(['ok'=>false,'error'=>'not_found'],404);
+    if(!canEditLead($d,$m,$isAdmin))out(['ok'=>false,'error'=>'forbidden'],403);
+    $ok=SalesPipelineService::setStage($conversationId,(string)($data['stage_key']??''));
+    out(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
+}
+if($action==='set_lead_tags'){
+    $conversationId=(int)($data['conversation_id']??0);
+    $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
+    if(!$d)out(['ok'=>false,'error'=>'not_found'],404);
+    if(!canEditLead($d,$m,$isAdmin))out(['ok'=>false,'error'=>'forbidden'],403);
+    $ok=SalesPipelineService::setTags($conversationId,(array)($data['tag_ids']??[]),(int)$m['id']);
+    out(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
 }
 if($action==='take'){
     if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
