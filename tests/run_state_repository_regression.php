@@ -72,6 +72,27 @@ stateCheck(
     false
 );
 
+$source = (string)file_get_contents(__DIR__ . '/../services/ConversationStateRepository.php');
+$saveMethod = '';
+$lastMethod = '';
+if (preg_match('/public static function saveLastValue\(.*?\n    \}/s', $source, $m)) $saveMethod = $m[0];
+if (preg_match('/public static function lastValue\(.*?\n    \}/s', $source, $m)) $lastMethod = $m[0];
+stateCheck(
+    'saveLastValue enforces current-session boundary',
+    strpos($saveMethod, 'shouldReuseValueRow') !== false,
+    true
+);
+stateCheck(
+    'lastValue enforces current-session boundary',
+    strpos($lastMethod, 'shouldReuseValueRow') !== false,
+    true
+);
+stateCheck(
+    'lastValue selects row ID for boundary validation',
+    strpos($lastMethod, "'ID','UF_VALUE'") !== false,
+    true
+);
+
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

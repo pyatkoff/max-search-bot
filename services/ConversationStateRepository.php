@@ -74,7 +74,7 @@ class ConversationStateRepository
         return true;
     }
 
-    public static function saveLastValue($hlId, $chatId, $statusId, $value)
+    public static function saveLastValue($hlId, $chatId, $statusId, $value, $startStatusId = 64)
     {
         $class = self::dataClass($hlId);
         $row = $class::getList([
@@ -84,20 +84,39 @@ class ConversationStateRepository
             'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$statusId],
         ])->fetch();
         if (!$row) return false;
+
+        $startRow = $class::getList([
+            'order'=>['ID'=>'desc'],
+            'limit'=>1,
+            'select'=>['ID'],
+            'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$startStatusId],
+        ])->fetch();
+        if (!self::shouldReuseValueRow($row['ID'] ?? 0, $startRow['ID'] ?? 0)) return false;
+
         $class::update($row['ID'], ['UF_VALUE'=>$value]);
         return true;
     }
 
-    public static function lastValue($hlId, $chatId, $statusId)
+    public static function lastValue($hlId, $chatId, $statusId, $startStatusId = 64)
     {
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
             'limit'=>1,
-            'select'=>['UF_VALUE'],
+            'select'=>['ID','UF_VALUE'],
             'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$statusId],
         ])->fetch();
-        return $row ? $row['UF_VALUE'] : false;
+        if (!$row) return false;
+
+        $startRow = $class::getList([
+            'order'=>['ID'=>'desc'],
+            'limit'=>1,
+            'select'=>['ID'],
+            'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$startStatusId],
+        ])->fetch();
+        if (!self::shouldReuseValueRow($row['ID'] ?? 0, $startRow['ID'] ?? 0)) return false;
+
+        return $row['UF_VALUE'];
     }
 
     public static function upsertValue($hlId, $chatId, $statusId, $value, $startStatusId = 64)
