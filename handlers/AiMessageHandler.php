@@ -7,6 +7,7 @@ require_once(__DIR__ . '/../services/NeedProgressionService.php');
 require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
 require_once(__DIR__ . '/../services/AiInvocationService.php');
+require_once(__DIR__ . '/../services/AiDateContextService.php');
 
 class AiMessageHandler
 {
@@ -72,12 +73,11 @@ class AiMessageHandler
                 } else {
                     $localParams = LocalAiFallbackService::parameters($userText, $current);
 
-                    // Дата остаётся отдельным stateful обработчиком: month_only и pending month
-                    // не смешиваем с чистой классификацией local fallback.
-                    $localDateResolved = AiDateHandler::rememberMonthFromText($chat_id, $userText);
-                    $localMonthOnly = !empty($localDateResolved['month']) && empty($localDateResolved['date']);
-                    if (!empty($localDateResolved['date'])) {
-                        $localParams['date'] = $localDateResolved['date'];
+                    // Stateful month-only/date clarification policy lives behind one boundary.
+                    $localDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    $localMonthOnly = !empty($localDate['month_only']);
+                    if (!empty($localDate['date'])) {
+                        $localParams['date'] = $localDate['date'];
                     }
 
                     $localParams = LocalAiFallbackService::applyDestinationDefaults($localParams, $current);
@@ -129,21 +129,7 @@ class AiMessageHandler
                 }
 
                 $params = is_array($ai['parameters'] ?? null) ? $ai['parameters'] : [];
-
-                // Даты из текста пользователя разбираются единым DateParser через AiDateHandler.
-                // Это одновременно служит DATE GUARD: если пользователь явно назвал месяц,
-                // не принимаем случайную AI-дату из другого месяца.
-                $resolvedUserDate = AiDateHandler::rememberMonthFromText($chat_id, $userText);
-
-                if (!empty($resolvedUserDate['date'])) {
-                    $params['date'] = $resolvedUserDate['date'];
-                } elseif (!empty($resolvedUserDate['month'])) {
-                    // Назван месяц, но точный день/период не определён — спрашиваем уточнение.
-                    $params['date'] = null;
-                } elseif (!empty($params['date'])) {
-                    // AI-дата допустима, если пользователь не назвал противоречащий ей месяц.
-                    AiDateHandler::clear($chat_id);
-                }
+                $params = AiDateContextService::applyAiGuard($chat_id, $userText, $params);
 
                 @file_put_contents(
                     __DIR__.'/ai_debug.log',
