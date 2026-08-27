@@ -18,7 +18,7 @@ kbCheck('board groups only by business pipeline stage',strpos($kanban,'S.pipelin
 kbCheck('list exposes centralized pipeline edit permission',strpos($api,"\$row['can_edit_pipeline']=ManagerRequestContext::canEditAssignedConversation")!==false);
 kbCheck('editable cards expose explicit stage selector',strpos($kanban,'c.can_edit_pipeline')!==false&&strpos($kanban,'kanbanStageSelect')!==false&&strpos($kanban,"pipe('set_stage'")!==false);
 kbCheck('stage selector uses configured business stages only',strpos($kanban,'S.pipeline.stages||[]')!==false&&strpos($kanban,'stage_key')!==false&&strpos($kanban,"'manager'")===false&&strpos($kanban,"'waiting_manager'")===false);
-kbCheck('stage mutation keeps backend authorization gate',substr_count($api,"if(!$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403)")>=4&&strpos($api,"if($action==='set_stage'")!==false);
+kbCheck('stage mutation keeps backend authorization gate',substr_count($api,"if(!\$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403)")>=4&&strpos($api,"if(\$action==='set_stage'")!==false);
 kbCheck('board cards preserve lead context',strpos($kanban,'origin_label')!==false&&strpos($kanban,'trip_summary')!==false&&strpos($kanban,'lead_tags')!==false&&strpos($kanban,'next_task_title')!==false&&strpos($kanban,'awaiting_first_reply')!==false);
 kbCheck('card open remains separate from stage control',strpos($kanban,'kanbanOpen')!==false&&strpos($kanban,"setMode('list')")!==false&&strpos($kanban,'WorkspaceV2Conversation?.open')!==false);
 kbCheck('kanban stage control remains responsive and keyboard-visible',strpos($css,'.kanbanStageControl')!==false&&strpos($css,'.kanbanStageSelect:focus')!==false&&strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'82vw')!==false);
