@@ -44,15 +44,14 @@ class AiMessageHandler
                 // Если сейчас не хватает возраста детей, короткий ответ проходит через
                 // общий deterministic resolver/application/progression pipeline.
                 if (in_array('child_ages', $missingNow, true)) {
-                    $ageResult = NeedApplicationService::resolveAndApply(
+                    $ageResult = AiNeedCompletionService::resolveApplyAndAdvance(
                         $chat_id,
                         'child_ages',
                         $userText,
                         ['children'=>(int)($current['children'] ?? 0)]
                     );
 
-                    if (!empty($ageResult['recognized']) && !empty($ageResult['applied'])) {
-                        NeedProgressionService::advance($chat_id);
+                    if (!empty($ageResult['advanced'])) {
                         return;
                     }
                 }
