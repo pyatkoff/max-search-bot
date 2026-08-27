@@ -23,9 +23,31 @@ INSERT IGNORE INTO lead_stages (stage_key,display_name,color,sort_order,is_termi
 ('won','Продано','#16a34a',90,1,1),
 ('lost','Закрыто без продажи','#dc2626',100,1,0);
 
-ALTER TABLE conversations
-    ADD COLUMN lead_stage_key VARCHAR(32) NOT NULL DEFAULT 'new' AFTER status,
-    ADD KEY idx_conversations_lead_stage (lead_stage_key,last_message_at);
+SET @lead_stage_column_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='conversations' AND COLUMN_NAME='lead_stage_key'
+);
+SET @lead_stage_column_sql = IF(
+    @lead_stage_column_exists=0,
+    'ALTER TABLE conversations ADD COLUMN lead_stage_key VARCHAR(32) NOT NULL DEFAULT ''new'' AFTER status',
+    'SELECT 1'
+);
+PREPARE lead_stage_column_stmt FROM @lead_stage_column_sql;
+EXECUTE lead_stage_column_stmt;
+DEALLOCATE PREPARE lead_stage_column_stmt;
+
+SET @lead_stage_index_exists = (
+    SELECT COUNT(*) FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='conversations' AND INDEX_NAME='idx_conversations_lead_stage'
+);
+SET @lead_stage_index_sql = IF(
+    @lead_stage_index_exists=0,
+    'ALTER TABLE conversations ADD KEY idx_conversations_lead_stage (lead_stage_key,last_message_at)',
+    'SELECT 1'
+);
+PREPARE lead_stage_index_stmt FROM @lead_stage_index_sql;
+EXECUTE lead_stage_index_stmt;
+DEALLOCATE PREPARE lead_stage_index_stmt;
 
 CREATE TABLE IF NOT EXISTS lead_tags (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
