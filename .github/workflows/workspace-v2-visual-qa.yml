@@ -1,0 +1,65 @@
+name: Workspace V2 visual QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'manager/**'
+      - 'tests/visual/**'
+      - '.github/workflows/workspace-v2-visual-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Chromium for Playwright
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Start static server
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/visual-server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/visual-server.pid"
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/visual-server.log"
+          exit 1
+
+      - name: Capture responsive screenshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p visual-artifacts
+          url='http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html'
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390-inbox.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-390-conversation.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url" visual-artifacts/workspace-v2-430-inbox.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url?view=lead" visual-artifacts/workspace-v2-430-lead.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='768,1024' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-768-conversation.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url" visual-artifacts/workspace-v2-1440-desktop.png
+          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 6
+          find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
+
+      - name: Upload visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-v2-visual-${{ github.sha }}
+          path: visual-artifacts/*.png
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Workspace V2 visual fixture</title>
+<link rel="stylesheet" href="../../manager/assets/workspace-v2.css">
+<link rel="stylesheet" href="../../manager/assets/workspace-v2-tasks.css">
+<link rel="stylesheet" href="../../manager/assets/workspace-v2-media.css">
+<link rel="stylesheet" href="../../manager/assets/workspace-v2-notifications.css">
+</head>
+<body>
+<div class="workspace">
+  <aside class="zone inboxZone">
+    <div class="zoneHead">
+      <div class="brand">Лиды</div>
+      <div class="muted">Светлана · визуальная проверка</div>
+      <div class="notificationHealth healthy"><span class="notificationDot"></span><span class="notificationText"><strong>Уведомления работают · 2 устройства</strong></span></div>
+      <div class="queueTabs"><button class="active">Новые</button><button>Мои</button><button>Все</button><button>Закрытые</button></div>
+      <div class="filterRow">
+        <select class="filterSelect"><option>Все этапы</option></select>
+        <select class="filterSelect"><option>Все теги</option></select>
+        <select class="filterSelect"><option>Все исходы</option></select>
+        <input class="filterInput" type="search" placeholder="Имя, телефон, поездка…">
+      </div>
+    </div>
+    <div class="inboxList">
+      <div class="leadItem waitUrgent active">
+        <div class="leadName"><span>Анна</span><span class="leadTopBadges"><span class="unreadBadge">2</span><span class="waitSignal urgent">Срочно · 5+ мин</span><span class="outcomeBadge open">В работе</span></span></div>
+        <div class="leadContext"><span>MAX · реклама</span><span>+7•••45</span></div>
+        <div class="leadBadges"><span class="leadStageTag">Новый лид</span><span class="leadTag">Горячий</span></div>
+        <div class="tripSummary">Москва → Египет · 2 взрослых · 7 ночей · всё включено</div>
+        <div class="nextTask overdue"><span>⏰ Перезвонить туристу</span><strong>Просрочено · 18:20</strong></div>
+        <div class="leadFooter"><span class="preview">Подскажите, пожалуйста, есть ли хороший отель у моря?</span><span class="leadOwner waiting urgent">Без ответа 6 мин</span></div>
+      </div>
+      <div class="leadItem waitWarn">
+        <div class="leadName"><span>Михаил</span><span class="leadTopBadges"><span class="waitSignal warn">Скоро 5 мин</span><span class="outcomeBadge open">В работе</span></span></div>
+        <div class="leadContext"><span>MAX · органика</span></div>
+        <div class="leadBadges"><span class="leadStageTag">Подбор</span></div>
+        <div class="tripSummary">Казань → Турция · семья с ребёнком · сентябрь</div>
+        <div class="nextTask"><span>📌 Отправить варианты</span><strong>Сегодня · 19:00</strong></div>
+        <div class="leadFooter"><span class="preview">Спасибо, жду варианты</span><span class="leadOwner waiting warn">Без ответа 4 мин</span></div>
+      </div>
+      <div class="leadItem">
+        <div class="leadName"><span>Елена</span><span class="leadTopBadges"><span class="outcomeBadge won">Продажа</span></span></div>
+        <div class="leadContext"><span>MAX · повторный клиент</span><span>email</span></div>
+        <div class="leadBadges"><span class="leadStageTag">Бронь</span><span class="leadTag">VIP</span></div>
+        <div class="tripSummary">Санкт-Петербург → ОАЭ · 2 взрослых · 10 ночей</div>
+        <div class="leadFooter"><span class="preview">Документы получила, спасибо!</span><span class="leadOwner">Светлана</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="zone conversationZone">
+    <div class="zoneHead conversationHead">
+      <div><button class="mobileBack actionBtn">‹</button><span class="brand">Анна</span><div class="muted">MAX · Новый лид · ожидает ответа</div></div>
+      <div class="actions"><button class="mobileLeadBtn actionBtn">Карточка</button><button class="actionBtn primary">Взять</button></div>
+    </div>
+    <div class="messages">
+      <div class="msg customer">Здравствуйте! Хотим в Египет в сентябре, вдвоём.<div class="msgMeta">Турист · 18:14</div></div>
+      <div class="msg ai">Из какого города планируете вылет?<div class="msgMeta">AI · 18:14</div></div>
+      <div class="msg customer">Из Москвы, на 7 ночей, всё включено.<div class="msgMeta">Турист · 18:15</div></div>
+      <div class="msg ai">Подобрала параметры. Можно открыть варианты или подключить менеджера.<div class="msgMeta">AI · 18:15</div></div>
+      <div class="msg customer">Лучше менеджера, подскажите хороший отель у моря.<div class="msgMeta">Турист · 18:16</div></div>
+    </div>
+    <form class="composer">
+      <div class="composerMain"><textarea placeholder="Ответ менеджера">Анна, здравствуйте! Сейчас подберу несколько вариантов.</textarea><div class="mediaSelection hidden"></div></div>
+      <div class="composerActions"><label class="attachBtn">📎<span>Файл</span></label><button type="button" class="sendBtn">Отправить</button></div>
+    </form>
+  </main>
+
+  <aside class="zone leadZone">
+    <div class="zoneHead"><div class="brand">Карточка лида</div><div class="muted">Продажи отдельно от технического статуса</div></div>
+    <div class="leadCard">
+      <div class="section"><div class="sectionTitle">Поездка</div><div class="tripGrid"><div class="field"><span class="label">Вылет</span><span class="value">Москва</span></div><div class="field"><span class="label">Куда</span><span class="value">Египет</span></div><div class="field"><span class="label">Даты</span><span class="value">10 сентября</span></div><div class="field"><span class="label">Ночей</span><span class="value">7</span></div><div class="field"><span class="label">Туристы</span><span class="value">2 взрослых</span></div><div class="field"><span class="label">Питание</span><span class="value">Всё включено</span></div></div></div>
+      <div class="section"><div class="sectionTitle">Контакт</div><div class="field"><span class="label">Телефон</span><span class="value">Не указан</span></div></div>
+      <div class="section"><div class="sectionTitle">Продажи</div><div class="field"><span class="label">Этап</span><select class="stageSelect"><option>Новый лид</option></select></div><div class="tagList"><label class="tagChoice"><input type="checkbox" checked> Горячий</label><label class="tagChoice"><input type="checkbox"> Повторный</label></div></div>
+      <div class="section"><div class="sectionTitle">Следующая задача</div><div class="taskItem overdue"><strong>Перезвонить туристу</strong><div class="muted">Просрочено · сегодня 18:20</div></div></div>
+      <div class="section"><div class="sectionTitle">Источник и handoff</div><div class="field"><span class="label">Источник</span><span class="value">MAX · реклама</span></div><div class="field"><span class="label">Технический статус</span><span class="value">manager</span></div></div>
+    </div>
+  </aside>
+</div>
+<script>
+const view=new URLSearchParams(location.search).get('view');
+if(view==='conversation')document.querySelector('.conversationZone')?.classList.add('open');
+if(view==='lead'){document.querySelector('.conversationZone')?.classList.add('open');document.querySelector('.leadZone')?.classList.add('open');}
+</script>
+</body>
+</html>
