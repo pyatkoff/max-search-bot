@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ManagerConversationService.php';
 require_once __DIR__ . '/ManagerPushService.php';
+require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
@@ -37,17 +38,29 @@ class ManagerOutboundService
         if ($channel === 'max') {
             $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
             if ($suspended) { self::$lastFailure=$suspended; return false; }
-            $adapter = new MaxMessengerAdapter(null, null, 'manager');
         }
-        elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager');
-        elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager');
-        else return false;
-        $ok = $adapter->send($chatId, htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-        if ($ok) {
-            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
-            return true;
+
+        $locked=ManagerSendGuardService::acquire($conversationId,$managerId);
+        try {
+            if($locked && ManagerSendGuardService::isImmediateDuplicate($conversationId,$text)){
+                ConversationControlService::event($conversationId,'manager_message_suppressed_duplicate','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
+                return true;
+            }
+
+            if ($channel === 'max') $adapter = new MaxMessengerAdapter(null, null, 'manager');
+            elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager');
+            elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager');
+            else return false;
+
+            $ok = $adapter->send($chatId, htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+            if ($ok) {
+                ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
+                return true;
+            }
+            return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
+        } finally {
+            if($locked) ManagerSendGuardService::release($conversationId,$managerId);
         }
-        return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
     }
 
     public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl=''): bool
