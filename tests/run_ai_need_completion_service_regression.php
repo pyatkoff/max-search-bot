@@ -21,6 +21,11 @@ aiCompletionCheck('completion service owns application', strpos($service, 'NeedA
 aiCompletionCheck('completion service owns progression', strpos($service, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false);
 aiCompletionCheck('completion service returns applied and missing diagnostics', strpos($service, "'applied' => \$applied") !== false && strpos($service, "'missing' =>") !== false);
 aiCompletionCheck('handler preserves country explicit progression policy', strpos($handler, "['country_explicit'=>true]") !== false);
+aiCompletionCheck('handler routes child ages through resolved completion boundary', strpos($handler, "AiNeedCompletionService::resolveApplyAndAdvance(\n                        \$chat_id,\n                        'child_ages'") !== false);
+aiCompletionCheck('handler no longer resolves child ages directly', strpos($handler, "NeedApplicationService::resolveAndApply(\n                        \$chat_id,\n                        'child_ages'") === false);
+aiCompletionCheck('handler no longer directly advances child age branch', strpos($handler, "if (!empty(\$ageResult['recognized']) && !empty(\$ageResult['applied'])) {\n                        NeedProgressionService::advance(\$chat_id);") === false);
+aiCompletionCheck('completion service resolves field through application boundary', strpos($service, 'NeedApplicationService::resolveAndApply($chatId, $field, $text, $context)') !== false);
+aiCompletionCheck('resolved completion advances only after recognized applied value', strpos($service, "if (empty(\$resolution['recognized']) || empty(\$resolution['applied']))") !== false && strpos($service, "'advanced' => false") !== false && strpos($service, "['advanced' => true]") !== false);
 
 echo "\n--------------------------\nTOTAL " . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);
