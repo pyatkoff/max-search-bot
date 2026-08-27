@@ -37,15 +37,10 @@ class AiShortAnswerHandler
                 $params = $partyClarification;
             } elseif ($ageCountClarification !== null) {
                 $params = $ageCountClarification;
-            } elseif (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
-                $params['children'] = 0;
             } else {
-                $n = self::numberFromShortText($lower, 0, 3);
-                if ($n === null && preg_match('/^(\d)\s*(?:реб[её]нок|реб[её]нка|реб[её]нков|дет(?:ей|и))$/ui', $lower, $m)) {
-                    $n = (int)$m[1];
-                }
-                if ($n === null || $n < 0 || $n > 3) return false;
-                $params['children'] = $n;
+                $resolved = NeedValueResolver::resolve('children', $lower);
+                if (empty($resolved['recognized'])) return false;
+                $params['children'] = $resolved['value'];
             }
         }
         elseif ($field === 'child_ages') {
@@ -134,26 +129,5 @@ class AiShortAnswerHandler
     public static function starMinimumFromShortText(string $text): ?int
     {
         return StarsParser::parse($text);
-    }
-
-    private static function numberFromShortText($text, $min, $max)
-    {
-        if (preg_match('/^\d+$/', $text)) {
-            $n = (int)$text;
-            return ($n >= $min && $n <= $max) ? $n : null;
-        }
-
-        $words = [
-            'ноль'=>0,
-            'один'=>1, 'одна'=>1, 'одного'=>1,
-            'два'=>2, 'двое'=>2, 'двух'=>2,
-            'три'=>3, 'трое'=>3, 'трех'=>3, 'трёх'=>3,
-            'четыре'=>4, 'четверо'=>4,
-            'пять'=>5, 'пятеро'=>5,
-            'шесть'=>6, 'шестеро'=>6,
-        ];
-        if (!array_key_exists($text, $words)) return null;
-        $n = $words[$text];
-        return ($n >= $min && $n <= $max) ? $n : null;
     }
 }

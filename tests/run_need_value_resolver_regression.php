@@ -32,6 +32,20 @@ nvrCheck('adults suffix form retained', $adultsSuffix['value'], 3);
 $adultsUnknown = NeedValueResolver::resolve('adults', 'семеро');
 nvrCheck('out of range adults stays unresolved', $adultsUnknown['recognized'], false);
 
+$childrenNone = NeedValueResolver::resolve('children', 'без детей');
+nvrCheck('children none phrase recognized', $childrenNone['recognized'], true);
+nvrCheck('children none canonical value', $childrenNone['value'], 0);
+nvrCheck('children source is deterministic', $childrenNone['source'], 'deterministic:children_parser');
+nvrCheck('children deterministic confidence', $childrenNone['confidence'], 1.0);
+$childrenWord = NeedValueResolver::resolve('children', 'двое');
+nvrCheck('children word value retained', $childrenWord['value'], 2);
+$childrenSuffix = NeedValueResolver::resolve('children', '3 детей');
+nvrCheck('children suffix value retained', $childrenSuffix['value'], 3);
+$childrenTooMany = NeedValueResolver::resolve('children', '4');
+nvrCheck('children above current maximum stays unresolved', $childrenTooMany['recognized'], false);
+$childrenAmbiguous = NeedValueResolver::resolve('children', '6 лет, один ребенок');
+nvrCheck('multi-field child age clarification is not consumed as simple children value', $childrenAmbiguous['recognized'], false);
+
 $childAges = NeedValueResolver::resolve('child_ages', '5 и 12', ['children'=>2]);
 nvrCheck('child ages recognized with expected count', $childAges['recognized'], true);
 nvrCheck('child ages canonical value', $childAges['value'], [5,12]);
@@ -75,8 +89,8 @@ $nightsUnknown = NeedValueResolver::resolve('nights', 'от 7');
 nvrCheck('minimum-only nights stays unresolved', $nightsUnknown['recognized'], false);
 nvrCheck('minimum-only nights has no invented value', $nightsUnknown['value'], null);
 
-$unsupported = NeedValueResolver::resolve('children', '2');
-nvrCheck('unmigrated children field remains explicitly unsupported', $unsupported, [
+$unsupported = NeedValueResolver::resolve('date', '12 октября');
+nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
     'recognized' => false,
     'value' => null,
     'source' => 'unsupported',
@@ -84,6 +98,9 @@ nvrCheck('unmigrated children field remains explicitly unsupported', $unsupporte
 ]);
 
 $handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+nvrCheck('AI children delegates simple values to resolver', strpos($handlerSource, "NeedValueResolver::resolve('children'") !== false, true);
+nvrCheck('AI children keeps multi-field party clarification before simple resolver', strpos($handlerSource, 'if ($partyClarification !== null)') !== false && strpos($handlerSource, 'elseif ($ageCountClarification !== null)') !== false, true);
+nvrCheck('AI children no longer owns generic short number parsing', strpos($handlerSource, 'numberFromShortText') === false, true);
 nvrCheck('AI child ages delegates to resolver', strpos($handlerSource, "NeedValueResolver::resolve('child_ages'") !== false, true);
 nvrCheck('AI child ages no longer owns numeric extraction', strpos($handlerSource, "preg_match_all('/\\b(\\d{1,2})\\b/u', $lower") === false, true);
 

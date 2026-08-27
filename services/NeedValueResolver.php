@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/AdultsParser.php';
+require_once __DIR__ . '/ChildrenParser.php';
 require_once __DIR__ . '/ChildAgesParser.php';
 require_once __DIR__ . '/StarsParser.php';
 require_once __DIR__ . '/MealParser.php';
@@ -26,6 +27,11 @@ class NeedValueResolver
         if ($field === 'adults') {
             $value = AdultsParser::parse($text);
             return self::result($value !== null, $value, 'deterministic:adults_parser');
+        }
+
+        if ($field === 'children') {
+            $value = ChildrenParser::parse($text);
+            return self::result($value !== null, $value, 'deterministic:children_parser');
         }
 
         if ($field === 'child_ages') {
