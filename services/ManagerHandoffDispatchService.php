@@ -29,7 +29,7 @@ class ManagerHandoffDispatchService
         if ($withinWorkingHours) {
             // During the workday the manager request itself is the primary conversion.
             // Availability is an operational hint, not a reason to block the handoff on phone.
-            // If nobody replies, ManagerPhoneFallbackService offers phone after 5 minutes.
+            // If nobody replies, the existing delayed fallback offers phone after 5 minutes.
             $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
             MaxSearchApi::deletePrevMessage($chatId);
             $buttons = [[['text'=>'↩️ Вернуться','callback_data'=>(string)$model['back_callback']]]];
