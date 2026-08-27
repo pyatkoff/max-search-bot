@@ -28,8 +28,11 @@ foreach ($files as $name => $file) {
 }
 
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+$progressionSource = (string)file_get_contents(__DIR__ . '/../services/NeedProgressionService.php');
 mnhCheck('AiShortAnswerHandler has no direct MaxSend', strpos($shortSource, 'MaxSearchApi::MaxSend(') === false, true);
-mnhCheck('AiShortAnswerHandler routes next-question delivery through messenger-neutral service', strpos($shortSource, 'MissingFieldQuestionService::sendForMissing(') !== false, true);
+mnhCheck('AiShortAnswerHandler delegates progression to NeedProgressionService', strpos($shortSource, 'NeedProgressionService::advance(') !== false, true);
+mnhCheck('NeedProgressionService routes next-question delivery through messenger-neutral service', strpos($progressionSource, 'MissingFieldQuestionService::sendForMissing(') !== false, true);
+mnhCheck('NeedProgressionService completes through DialogueView::check', strpos($progressionSource, 'DialogueView::check(') !== false, true);
 
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
 mnhCheck('AiMessageHandler has no direct MaxSend', strpos($aiMessageSource, 'MaxSearchApi::MaxSend(') === false, true);
@@ -40,7 +43,6 @@ mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedAppl
 mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
 mnhCheck('AiShortAnswerHandler has no direct MealParser call', strpos($shortSource, 'MealParser::parse(') === false, true);
 mnhCheck('shared NightsParser still accepts week as nights', NightsParser::parse('неделя'), '7');
-mnhCheck('AiShortAnswerHandler completes through DialogueView::check', strpos($shortSource, 'DialogueView::check(') !== false, true);
 mnhCheck('adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 взрослый'), ['adults'=>1,'children'=>0]);
 mnhCheck('plural adult-only clarification means no children', AiShortAnswerHandler::partyClarificationWhileAskingChildren('2 взрослых'), ['adults'=>2,'children'=>0]);
 mnhCheck('unrelated children answer is not adult clarification', AiShortAnswerHandler::partyClarificationWhileAskingChildren('1 ребенок'), null);

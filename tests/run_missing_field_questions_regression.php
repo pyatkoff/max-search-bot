@@ -40,9 +40,16 @@ mfqCheck('AiMessageHandler has no direct MaxSend', strpos($source,'MaxSearchApi:
 mfqCheck('AiMessageHandler uses shared service', strpos($source,'MissingFieldQuestionService::sendForMissing') !== false, true);
 
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
-mfqCheck('AiShortAnswerHandler uses shared missing-field progression', strpos($shortSource,'MissingFieldQuestionService::sendForMissing($chat_id, $missingAfter)') !== false, true);
+mfqCheck('AiShortAnswerHandler uses shared need progression', strpos($shortSource,'NeedProgressionService::advance($chat_id)') !== false, true);
 mfqCheck('AiShortAnswerHandler no longer owns duplicate question copy', strpos($shortSource,"'city'=>'Из какого города планируете вылет?'") === false, true);
-mfqCheck('AiShortAnswerHandler no longer sends next question directly', strpos($shortSource,'IntegrationRegistry::messenger()->send(') === false, true);
+mfqCheck('AiShortAnswerHandler no longer chooses or sends next question directly', strpos($shortSource,'MissingFieldQuestionService::sendForMissing(') === false, true);
+mfqCheck('AiShortAnswerHandler no longer completes progression directly', strpos($shortSource,'DialogueView::check(') === false, true);
+
+$progressionSource = (string)file_get_contents(__DIR__ . '/../services/NeedProgressionService.php');
+mfqCheck('NeedProgressionService reads canonical missing-field order', strpos($progressionSource,'MaxSearchApi::getAiMissingFields($chatId)') !== false, true);
+mfqCheck('NeedProgressionService completes through DialogueView', strpos($progressionSource,'DialogueView::check($chatId)') !== false, true);
+mfqCheck('NeedProgressionService asks through shared question service', strpos($progressionSource,'MissingFieldQuestionService::sendForMissing($chatId, $missing, $questionOptions)') !== false, true);
+mfqCheck('NeedProgressionService exposes selected next field', strpos($progressionSource,"'next_field' => (string)\$missing[0]") !== false, true);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
