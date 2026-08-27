@@ -51,6 +51,27 @@ $duplicates = [
 $latest = ConversationStateRepository::savedDataFromRows($duplicates, 64, 74);
 stateCheck('newest non-empty status wins', $latest[67] ?? null, '2');
 
+stateCheck(
+    'pre-start row is not reused by a new dialogue',
+    ConversationStateRepository::shouldReuseValueRow(10, 20),
+    false
+);
+stateCheck(
+    'current-session row can still be updated',
+    ConversationStateRepository::shouldReuseValueRow(30, 20),
+    true
+);
+stateCheck(
+    'legacy state without a start marker remains reusable',
+    ConversationStateRepository::shouldReuseValueRow(10, 0),
+    true
+);
+stateCheck(
+    'missing value row is never reusable',
+    ConversationStateRepository::shouldReuseValueRow(0, 20),
+    false
+);
+
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
