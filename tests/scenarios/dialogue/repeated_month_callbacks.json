@@ -1,5 +1,6 @@
 {
   "id": "live-275-repeated-month-callbacks",
+  "suite": "dialogue",
   "source": "anonymized production conversation 275",
   "description": "Repeated clicks on the same calendar month must be treated as duplicates while a later different month remains allowed.",
   "initial_state": "date",
