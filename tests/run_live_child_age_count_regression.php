@@ -26,11 +26,13 @@ foreach ($cases as [$name, $input, $expected]) {
 }
 
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
+$completionSource = (string)file_get_contents(__DIR__ . '/../services/AiNeedCompletionService.php');
 $sourceChecks = [
-    'AiMessageHandler loads NeedApplicationService' => strpos($aiMessageSource, 'NeedApplicationService.php') !== false,
-    'AiMessageHandler loads NeedProgressionService' => strpos($aiMessageSource, 'NeedProgressionService.php') !== false,
-    'AiMessageHandler resolves child ages through application boundary' => strpos($aiMessageSource, "NeedApplicationService::resolveAndApply(\n                        \$chat_id,\n                        'child_ages'") !== false,
-    'AiMessageHandler advances after deterministic child ages' => strpos($aiMessageSource, 'NeedProgressionService::advance($chat_id)') !== false,
+    'AiMessageHandler loads canonical completion service' => strpos($aiMessageSource, 'AiNeedCompletionService.php') !== false,
+    'AiMessageHandler resolves child ages through completion boundary' => strpos($aiMessageSource, "AiNeedCompletionService::resolveApplyAndAdvance(\n                        \$chat_id,\n                        'child_ages'") !== false,
+    'completion boundary resolves child ages through application service' => strpos($completionSource, 'NeedApplicationService::resolveAndApply($chatId, $field, $text, $context)') !== false,
+    'completion boundary advances recognized child ages' => strpos($completionSource, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false,
+    'AiMessageHandler no longer resolves child ages directly' => strpos($aiMessageSource, "NeedApplicationService::resolveAndApply(\n                        \$chat_id,\n                        'child_ages'") === false,
     'AiMessageHandler no longer owns numeric child-age extraction' => strpos($aiMessageSource, "preg_match_all('/\\b(\\d{1,2})\\b/u', \$ageText") === false,
     'AiMessageHandler no longer writes child age directly' => strpos($aiMessageSource, 'MaxSearchApi::$statusAge') === false,
 ];

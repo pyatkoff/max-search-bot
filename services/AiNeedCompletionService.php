@@ -13,6 +13,37 @@ class AiNeedCompletionService
         $applied = NeedApplicationService::applyParameters($chatId, $params);
         $progress = NeedProgressionService::advance($chatId, $questionOptions);
 
+        return self::result($applied, $progress);
+    }
+
+    public static function resolveApplyAndAdvance(
+        $chatId,
+        string $field,
+        string $text,
+        array $context = [],
+        array $questionOptions = []
+    ): array {
+        $resolution = NeedApplicationService::resolveAndApply($chatId, $field, $text, $context);
+
+        if (empty($resolution['recognized']) || empty($resolution['applied'])) {
+            return array_merge($resolution, [
+                'advanced' => false,
+                'missing' => [],
+                'complete' => false,
+                'next_field' => null,
+            ]);
+        }
+
+        $progress = NeedProgressionService::advance($chatId, $questionOptions);
+
+        return array_merge($resolution, self::result(
+            is_array($resolution['applied']) ? $resolution['applied'] : [],
+            $progress
+        ), ['advanced' => true]);
+    }
+
+    private static function result(array $applied, array $progress): array
+    {
         return [
             'applied' => $applied,
             'missing' => is_array($progress['missing'] ?? null) ? $progress['missing'] : [],
