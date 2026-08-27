@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T15:13:28+00:00",
+    "generated_at": "2026-08-27T15:15:51+00:00",
     "production": {
-        "sha": "5e7d58356ae9911022eed74efc0cd81d05ab6d12",
+        "sha": "c1e73025a8c1dcf99c09ce8a22ef314f086f19ac",
         "branch": "main"
     },
     "database": {
@@ -107,7 +107,7 @@
         "customers": 446,
         "customer_channels": 446,
         "conversations": 447,
-        "messages": 12066,
+        "messages": 12072,
         "managers": 5,
         "manager_assignments": 100,
         "conversation_events": 869,
@@ -980,6 +980,60 @@
     ],
     "recent_messages": [
         {
+            "id": 12072,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-27 17:14:26"
+        },
+        {
+            "id": 12071,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-27 17:14:26"
+        },
+        {
+            "id": 12070,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 5 ночей 📅 17.10.2026 — 23.10.2026 Что удобнее дальше?",
+            "created_at": "2026-08-27 17:14:10"
+        },
+        {
+            "id": 12069,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "20 октября",
+            "created_at": "2026-08-27 17:14:07"
+        },
+        {
+            "id": 12068,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая ориентировочная дата вылета?",
+            "created_at": "2026-08-27 17:13:51"
+        },
+        {
+            "id": 12067,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "На 5 ночей",
+            "created_at": "2026-08-27 17:13:48"
+        },
+        {
             "id": 12066,
             "conversation_id": 447,
             "direction": "outbound",
@@ -1464,60 +1518,6 @@
             "channel": "max",
             "text": "star_4",
             "created_at": "2026-08-27 16:39:09"
-        },
-        {
-            "id": 12012,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-27 16:39:05"
-        },
-        {
-            "id": 12011,
-            "conversation_id": 444,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_0",
-            "created_at": "2026-08-27 16:39:05"
-        },
-        {
-            "id": 12010,
-            "conversation_id": 207,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Нет, можно моневрировать. Желательно все равно ноябрь или первая половина декабря. 🙂",
-            "created_at": "2026-08-27 16:39:01"
-        },
-        {
-            "id": 12009,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-08-27 16:38:59"
-        },
-        {
-            "id": 12008,
-            "conversation_id": 444,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-08-27 16:38:59"
-        },
-        {
-            "id": 12007,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-08-27 16:38:57"
         }
     ],
     "recent_events": [
