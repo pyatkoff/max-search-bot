@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../services/MissingFieldQuestionService.php');
 require_once(__DIR__ . '/../services/DialogueView.php');
 require_once(__DIR__ . '/../services/NeedApplicationService.php');
 require_once(__DIR__ . '/../services/NeedProgressionService.php');
+require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 
 class AiMessageHandler
 {
@@ -59,27 +60,13 @@ class AiMessageHandler
                     }
                 }
 
-                // FIX6: СНАЧАЛА классифицируем сообщение.
-                // Большой полноценный запрос вообще не трогаем локальным парсером —
-                // сразу отдаём его AiRouter целиком.
-                $routeText = function_exists('mb_strtolower')
-                    ? mb_strtolower($userText, 'UTF-8')
-                    : strtolower($userText);
-                $routeLen = function_exists('mb_strlen')
-                    ? mb_strlen($userText, 'UTF-8')
-                    : strlen($userText);
-
-                $richTourRequest =
-                    $routeLen > 55 ||
-                    substr_count($userText, ',') >= 2 ||
-                    preg_match('/\b\d+\s*(?:взросл|реб[её]н|дет)/ui',$userText) ||
-                    preg_match('/\b\d+\s*(?:-|–|—)\s*\d+\s*ноч/ui',$userText) ||
-                    preg_match('/(?:отел|зв[её]зд|пляж|понтон|бухт|курорт|район|шарм|хургада)/ui',$userText);
-
+                // Сначала классифицируем сообщение. Полноценный запрос сразу отдаём AI;
+                // только короткие сообщения и простые коррекции идут в local fallback.
+                $route = LocalAiFallbackService::classify($userText);
+                $richTourRequest = !empty($route['rich']);
                 $ai = null;
 
                 if ($richTourRequest) {
-                    // Полный запрос -> сразу AI, без local apply и без раннего return.
                     @file_put_contents(
                         __DIR__.'/ai_debug.log',
                         "\n".date('d.m.Y H:i:s')."--- chat=".$chat_id." ---\n".
@@ -105,94 +92,37 @@ class AiMessageHandler
                         $ai=['_error'=>true];
                     }
                 } else {
-                    // Только короткие сообщения и простые коррекции идут в local fallback.
-                    $localParams = [];
-                    $localText = $routeText;
+                    $localParams = LocalAiFallbackService::parameters($userText, $current);
 
-                    if (empty($current['city'])) {
-                        $localParams['city'] = 'Москва';
-                    }
-
-                    $localCountries = [
-                        'турц'=>'Турция',
-                        'егип'=>'Египет',
-                        'таиланд'=>'Таиланд',
-                        'тайланд'=>'Таиланд',
-                        'оаэ'=>'ОАЭ',
-                        'эмират'=>'ОАЭ',
-                        'мальдив'=>'Мальдивы',
-                        'шри-ланк'=>'Шри-Ланка',
-                        'китай'=>'Китай',
-                        'хайнан'=>'Китай'
-                    ];
-                    foreach ($localCountries as $stem=>$name) {
-                        if (strpos($localText,$stem)!==false) {
-                            $localParams['country']=$name;
-                            break;
-                        }
-                    }
-
-                    if (
-                        strpos($localText,'на двоих')!==false ||
-                        strpos($localText,'вдвоем')!==false ||
-                        strpos($localText,'вдвоём')!==false
-                    ) {
-                        $localParams['adults']=2;
-                        $localParams['children']=0;
-                    }
-
-                    if (
-                        strpos($localText,'без детей')!==false ||
-                        strpos($localText,'детей нет')!==false
-                    ) {
-                        $localParams['children']=0;
-                    }
-
-                    if (preg_match('/(?:на\s+)?недел(?:ю|ьку)/ui',$userText)) {
-                        $localParams['nights']='7';
-                    }
-
-                    // Дата для коротких сообщений вынесена в отдельный обработчик.
+                    // Дата остаётся отдельным stateful обработчиком: month_only и pending month
+                    // не смешиваем с чистой классификацией local fallback.
                     $localDateResolved = AiDateHandler::rememberMonthFromText($chat_id, $userText);
                     $localMonthOnly = !empty($localDateResolved['month']) && empty($localDateResolved['date']);
                     if (!empty($localDateResolved['date'])) {
                         $localParams['date'] = $localDateResolved['date'];
                     }
 
-                    if (!empty($localParams)) {
-                        $tmpCountry=$localParams['country'] ?? ($current['country'] ?? '');
-                        $tmpCountryKey=function_exists('mb_strtolower')
-                            ? mb_strtolower((string)$tmpCountry,'UTF-8')
-                            : strtolower((string)$tmpCountry);
-                        if (in_array($tmpCountryKey,['турция','египет'],true)) {
-                            if (empty($current['meal'])) $localParams['meal']='all_inclusive';
-                            if (empty($current['stars'])) $localParams['stars']=4;
-                        }
+                    $localParams = LocalAiFallbackService::applyDestinationDefaults($localParams, $current);
+                    $hadCurrentBeforeLocal = !empty($current);
 
-                        $hadCurrentBeforeLocal = !empty($current);
+                    if (!empty($localParams)) {
                         $appliedLocal = MaxSearchApi::applyAiParameters($chat_id,$localParams);
                         $current=MaxSearchApi::getAiSearchContext($chat_id);
                     } else {
-                        $hadCurrentBeforeLocal = !empty($current);
                         $appliedLocal = [];
                     }
 
                     $missingLocal=MaxSearchApi::getAiMissingFields($chat_id);
-                    $simpleLocal =
-                        $routeLen <= 55 &&
-                        !preg_match('/(?:где\s+дешевле|что\s+лучше|сравни|посоветуй|почему)/ui',$userText);
+                    $simpleLocal = !empty($route['simple']);
 
                     if ($simpleLocal && empty($missingLocal) && $hadCurrentBeforeLocal && !empty($appliedLocal)) {
                         DialogueView::check($chat_id);
                         return;
                     }
 
-                    // Live conversations showed short resort/region answers such as "Алания"
-                    // being rejected locally and followed by the same country question again.
-                    // If country was missing before and is still missing after the deterministic
-                    // parser, let AI interpret the destination once instead of repeating the prompt.
-                    $unresolvedDestination = in_array('country',$missingNow,true)
-                        && in_array('country',$missingLocal,true);
+                    // Короткие ответы с курортом/регионом (например, "Алания") должны один раз
+                    // пройти через AI, если local parser не смог определить страну.
+                    $unresolvedDestination = LocalAiFallbackService::unresolvedDestination($missingNow, $missingLocal);
                     if ($simpleLocal && !empty($missingLocal) && !$unresolvedDestination) {
                         MissingFieldQuestionService::sendForMissing(
                             $chat_id,
@@ -202,7 +132,6 @@ class AiMessageHandler
                         return;
                     }
 
-                    // Сложный, но короткий текст — всё равно отдаём AI.
                     @file_put_contents(
                         __DIR__.'/ai_debug.log',
                         "\n".date('d.m.Y H:i:s')."--- chat=".$chat_id." ---\n".
@@ -229,8 +158,7 @@ class AiMessageHandler
                     }
                 }
 
-                // FIX7: старый второй routing-проход удалён.
-                // $ai уже получен выше либо через RICH_AI, либо через SHORT_AI.
+                // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
                 // STEP 3: бизнес-дефолты. Стартовую ветку не трогаем.
