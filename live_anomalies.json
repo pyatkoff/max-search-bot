@@ -1,16 +1,29 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-27T18:13:21+00:00",
-    "source_generated_at": "2026-08-27T18:13:20+00:00",
+    "generated_at": "2026-08-27T19:08:27+00:00",
+    "source_generated_at": "2026-08-27T19:08:26+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 29,
+        "sessions": 24,
         "ranked": 10,
         "high": 2,
         "medium": 8
     },
     "anomalies": [
+        {
+            "conversation_id": 472,
+            "severity": "high",
+            "score": 90,
+            "signals": [
+                "customer_repeated_answer",
+                "repeated_same_input",
+                "bot_repeated_question_departure"
+            ],
+            "status": "ai",
+            "drop_point": "collecting_needs",
+            "last_message_at": "2026-08-27 20:58:51"
+        },
         {
             "conversation_id": 455,
             "severity": "high",
@@ -25,30 +38,16 @@
             "last_message_at": "2026-08-27 18:15:02"
         },
         {
-            "conversation_id": 367,
-            "severity": "high",
-            "score": 90,
-            "signals": [
-                "customer_repeated_answer",
-                "repeated_callback_input",
-                "repeated_same_input"
-            ],
-            "status": "manager",
-            "drop_point": "manager_replied",
-            "last_message_at": "2026-08-27 17:36:14"
-        },
-        {
-            "conversation_id": 450,
+            "conversation_id": 469,
             "severity": "medium",
-            "score": 80,
+            "score": 75,
             "signals": [
-                "needs_collected_without_tours",
-                "bot_repeated_question_nights",
-                "bot_repeated_question_date"
+                "rapid_date_reselection",
+                "bot_repeated_question_nights"
             ],
             "status": "ai",
-            "drop_point": "needs_collected",
-            "last_message_at": "2026-08-27 17:31:49"
+            "drop_point": "tours_opened",
+            "last_message_at": "2026-08-27 20:35:19"
         },
         {
             "conversation_id": 460,
@@ -79,6 +78,32 @@
             "last_message_at": "2026-08-27 19:01:10"
         },
         {
+            "conversation_id": 471,
+            "severity": "medium",
+            "score": 70,
+            "signals": [
+                "repeated_callback_input",
+                "bot_repeated_question_nights",
+                "bot_repeated_question_date"
+            ],
+            "status": "ai",
+            "drop_point": "tours_opened",
+            "last_message_at": "2026-08-27 21:07:02"
+        },
+        {
+            "conversation_id": 464,
+            "severity": "medium",
+            "score": 70,
+            "signals": [
+                "repeated_callback_input",
+                "bot_repeated_question_nights",
+                "bot_repeated_question_date"
+            ],
+            "status": "ai",
+            "drop_point": "tours_opened",
+            "last_message_at": "2026-08-27 20:31:30"
+        },
+        {
             "conversation_id": 334,
             "severity": "medium",
             "score": 70,
@@ -88,7 +113,7 @@
             ],
             "status": "manager",
             "drop_point": "manager_replied",
-            "last_message_at": "2026-08-27 20:10:44"
+            "last_message_at": "2026-08-27 20:26:57"
         },
         {
             "conversation_id": 466,
@@ -104,19 +129,6 @@
             "last_message_at": "2026-08-27 19:48:07"
         },
         {
-            "conversation_id": 464,
-            "severity": "medium",
-            "score": 70,
-            "signals": [
-                "repeated_callback_input",
-                "bot_repeated_question_nights",
-                "bot_repeated_question_date"
-            ],
-            "status": "ai",
-            "drop_point": "tours_opened",
-            "last_message_at": "2026-08-27 19:46:01"
-        },
-        {
             "conversation_id": 128,
             "severity": "medium",
             "score": 70,
@@ -128,19 +140,6 @@
             "status": "waiting_manager",
             "drop_point": "manager_requested",
             "last_message_at": "2026-08-27 19:35:44"
-        },
-        {
-            "conversation_id": 451,
-            "severity": "medium",
-            "score": 70,
-            "signals": [
-                "repeated_callback_input",
-                "bot_repeated_question_nights",
-                "bot_repeated_question_date"
-            ],
-            "status": "ai",
-            "drop_point": "tours_opened",
-            "last_message_at": "2026-08-27 17:43:03"
         }
     ]
 }
