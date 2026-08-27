@@ -21,6 +21,27 @@ function nvrCheck(string $label, $actual, $expected): void
     $failed++;
 }
 
+$adults = NeedValueResolver::resolve('adults', 'Двое');
+nvrCheck('adults word recognized', $adults['recognized'], true);
+nvrCheck('adults canonical value', $adults['value'], 2);
+nvrCheck('adults source is deterministic', $adults['source'], 'deterministic:adults_parser');
+nvrCheck('adults deterministic confidence', $adults['confidence'], 1.0);
+
+$adultsSuffix = NeedValueResolver::resolve('adults', '3 взрослых');
+nvrCheck('adults suffix form retained', $adultsSuffix['value'], 3);
+$adultsUnknown = NeedValueResolver::resolve('adults', 'семеро');
+nvrCheck('out of range adults stays unresolved', $adultsUnknown['recognized'], false);
+
+$stars = NeedValueResolver::resolve('stars', '4,5');
+nvrCheck('star set recognized', $stars['recognized'], true);
+nvrCheck('star set keeps minimum semantics', $stars['value'], 4);
+nvrCheck('stars source is deterministic', $stars['source'], 'deterministic:stars_parser');
+nvrCheck('stars deterministic confidence', $stars['confidence'], 1.0);
+$starsAny = NeedValueResolver::resolve('stars', 'не важно');
+nvrCheck('any stars retains existing minimum-one semantics', $starsAny['value'], 1);
+$starsUnknown = NeedValueResolver::resolve('stars', 'шесть');
+nvrCheck('out of range stars stays unresolved', $starsUnknown['recognized'], false);
+
 $meal = NeedValueResolver::resolve('meal', 'Всё включено');
 nvrCheck('meal recognized', $meal['recognized'], true);
 nvrCheck('meal canonical value', $meal['value'], 'all_inclusive');
@@ -42,7 +63,7 @@ $nightsUnknown = NeedValueResolver::resolve('nights', 'от 7');
 nvrCheck('minimum-only nights stays unresolved', $nightsUnknown['recognized'], false);
 nvrCheck('minimum-only nights has no invented value', $nightsUnknown['value'], null);
 
-$unsupported = NeedValueResolver::resolve('adults', '2');
+$unsupported = NeedValueResolver::resolve('children', '2');
 nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
     'recognized' => false,
     'value' => null,

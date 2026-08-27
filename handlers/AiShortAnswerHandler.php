@@ -25,13 +25,10 @@ class AiShortAnswerHandler
 
         $params = [];
 
-        if ($field === 'adults') {
-            $n = self::numberFromShortText($lower, 1, 6);
-            if ($n === null && preg_match('/^(\d)\s*(?:взросл(?:ый|ых|ого)?|человек(?:а)?)$/ui', $lower, $m)) {
-                $n = (int)$m[1];
-            }
-            if ($n === null || $n < 1 || $n > 6) return false;
-            $params['adults'] = $n;
+        if ($field === 'adults' || $field === 'stars' || $field === 'meal' || $field === 'nights') {
+            $resolved = NeedValueResolver::resolve($field, $lower);
+            if (empty($resolved['recognized'])) return false;
+            $params[$field] = $resolved['value'];
         }
         elseif ($field === 'children') {
             $partyClarification = self::partyClarificationWhileAskingChildren($lower);
@@ -63,16 +60,6 @@ class AiShortAnswerHandler
             }
             if (count($ages) !== $childrenCount) return false;
             $params['child_ages'] = $ages;
-        }
-        elseif ($field === 'stars') {
-            $stars = self::starMinimumFromShortText($lower);
-            if ($stars === null) return false;
-            $params['stars'] = $stars;
-        }
-        elseif ($field === 'meal' || $field === 'nights') {
-            $resolved = NeedValueResolver::resolve($field, $lower);
-            if (empty($resolved['recognized'])) return false;
-            $params[$field] = $resolved['value'];
         }
 
         if (empty($params)) return false;
@@ -151,26 +138,7 @@ class AiShortAnswerHandler
 
     public static function starMinimumFromShortText(string $text): ?int
     {
-        $lower = function_exists('mb_strtolower')
-            ? mb_strtolower(trim($text), 'UTF-8')
-            : strtolower(trim($text));
-        $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
-
-        if (preg_match('/^(?:не важно|неважно|любая|любые|все|всё)$/ui', $lower)) {
-            return 1;
-        }
-        if (preg_match('/^(?:от\s*)?([1-5])\s*(?:\*|★|зв[её]зд(?:а|ы)?)?$/ui', $lower, $m)) {
-            return (int)$m[1];
-        }
-
-        $compact = preg_replace('/\s+/u', '', $lower) ?? $lower;
-        if (preg_match('/^[1-5](?:[,;\/\-][1-5])+$/u', $compact)) {
-            preg_match_all('/[1-5]/u', $compact, $m);
-            $values = array_map('intval', $m[0] ?? []);
-            if ($values) return min($values);
-        }
-
-        return self::numberFromShortText($lower, 1, 5);
+        return StarsParser::parse($text);
     }
 
     private static function numberFromShortText($text, $min, $max)
