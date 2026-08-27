@@ -56,6 +56,7 @@ checks=(
   'php tests/run_manager_send_guard_regression.php'
   'php tests/run_sales_pipeline_foundation_regression.php'
   'php tests/run_manager_workspace_v2_regression.php'
+  'php tests/run_manager_workspace_v2_kanban_regression.php'
   'php tests/run_manager_workspace_v2_origin_regression.php'
   'php tests/run_manager_workspace_v2_wait_urgency_regression.php'
   'php tests/run_manager_workspace_v2_module_split_regression.php'
