@@ -94,11 +94,11 @@ mrCheck('callback manager action delegates presentation to shared dispatch',strp
 mrCheck('callback no longer bypasses availability with direct manager request view',strpos($callbackActionSource,'DialogueView::managerRequest($chatId, self::userName($query), $afterTours)')===false,true);
 mrCheck('shared dispatch checks live manager availability',strpos($dispatchSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
 mrCheck('shared dispatch gates availability lookup by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
-mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"$model['working_wait_text']")!==false,true);
-mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"$managerAvailable ? $model['online_text'] : $model['working_wait_text']")!==false,true);
-mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"$fromTours,\n                true")!==false,true);
+mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"\$model['working_wait_text']")!==false,true);
+mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"\$managerAvailable ? \$model['online_text'] : \$model['working_wait_text']")!==false,true);
+mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false,true);
 mrCheck('five-minute fallback remains separate from initial handoff',strpos($dispatchSource,'ManagerPhoneFallbackService')===false,true);
-mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>$handoff['manager_available']")!==false,true);
+mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>\$handoff['manager_available']")!==false,true);
 
 $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
