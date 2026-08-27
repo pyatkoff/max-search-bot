@@ -18,6 +18,11 @@ if(!is_array($data)||empty($data['ok'])){
 function anomalyText(array $m):string{return mb_strtolower(trim((string)($m['text']??'')));}
 function anomalyCustomer(array $m):bool{return ($m['direction']??'')==='inbound'&&($m['sender_type']??'customer')!=='manager';}
 function anomalyBot(array $m):bool{return ($m['direction']??'')==='outbound'&&($m['sender_type']??'')!=='manager';}
+function anomalyCallbackInput(string $text):bool{
+    if($text==='')return false;
+    if(in_array($text,['start_search','show_tours','restart'],true))return true;
+    return (bool)preg_match('/^(?:pick_|month_change_|adult_|adults_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
+}
 function anomalyNormalize(string $text):string{
     $text=mb_strtolower($text);
     $text=preg_replace('/[^\p{L}\p{N}]+/u',' ',trim($text))??'';
@@ -39,7 +44,7 @@ function anomalyPromptKey(string $text):?string{
 
 $out=[
     'ok'=>true,
-    'schema_version'=>1,
+    'schema_version'=>2,
     'generated_at'=>gmdate('c'),
     'source_generated_at'=>$data['generated_at']??null,
     'window_hours'=>$data['window_hours']??null,
@@ -54,8 +59,10 @@ foreach((array)($data['sessions']??[]) as $session){
     foreach($messages as $m){
         $text=anomalyText($m); if($text==='')continue;
         if(anomalyCustomer($m)){
-            $norm=anomalyNormalize($text);
-            if(mb_strlen($norm)>=2)$customerCounts[$norm]=($customerCounts[$norm]??0)+1;
+            if(!anomalyCallbackInput($text)){
+                $norm=anomalyNormalize($text);
+                if(mb_strlen($norm)>=2)$customerCounts[$norm]=($customerCounts[$norm]??0)+1;
+            }
             if(preg_match('/(?:завис|заклини|не работает|сломал|по кругу|опять спраш|уже (?:писал|ответил|сказал)|повторя)/u',$text)){
                 $signals['customer_reports_stuck']=true;$score=max($score,100);
             }
@@ -66,9 +73,6 @@ foreach((array)($data['sessions']??[]) as $session){
     }
     foreach($customerCounts as $text=>$count){
         if($count>=2){$signals['customer_repeated_answer']=true;$score=max($score,90);break;}
-    }
-    foreach($promptCounts as $key=>$count){
-        if($count>=2){$signals['bot_repeated_question_'.$key]=true;$score=max($score,85);}
     }
     if(!empty($session['needs_collected'])&&empty($session['tours_opened'])){
         $signals['needs_collected_without_tours']=true;$score=max($score,80);
@@ -81,8 +85,9 @@ foreach((array)($data['sessions']??[]) as $session){
         // excessive_turns and ordinary manager wait are intentionally not sufficient by themselves.
     }
     if(!$signals)continue;
+    // Repeated bot prompts are useful context only after an independent signal makes the session actionable.
+    foreach($promptCounts as $key=>$count)if($count>=2)$signals['bot_repeated_question_'.$key]=true;
     $severity=$score>=90?'high':'medium';
-    $out['summary']['ranked']++;$out['summary'][$severity]++;
     $out['anomalies'][]=[
         'conversation_id'=>(int)($session['conversation_id']??0),
         'severity'=>$severity,
@@ -96,5 +101,6 @@ foreach((array)($data['sessions']??[]) as $session){
 usort($out['anomalies'],static fn(array $a,array $b):int=>($b['score']<=>$a['score'])?:strcmp((string)$b['last_message_at'],(string)$a['last_message_at']));
 $out['anomalies']=array_slice($out['anomalies'],0,12);
 $out['summary']['ranked']=count($out['anomalies']);
+foreach($out['anomalies'] as $anomaly)$out['summary'][$anomaly['severity']]++;
 
 echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT)."\n";
