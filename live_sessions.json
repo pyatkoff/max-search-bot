@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T05:51:57+00:00",
+    "generated_at": "2026-08-27T05:58:40+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
         "sessions": 17,
         "started": 17,
-        "needs_collected": 10,
-        "tours_opened": 8,
+        "needs_collected": 11,
+        "tours_opened": 9,
         "manager_requested": 2,
         "manager_replied": 1,
         "phone_received": 0,
-        "flagged_sessions": 9,
+        "flagged_sessions": 11,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
@@ -21,44 +21,21 @@
             "max_seconds": 704
         },
         "drop_points": {
-            "collecting_needs": 7,
-            "tours_opened": 7,
+            "tours_opened": 8,
+            "collecting_needs": 6,
             "needs_collected": 1,
             "manager_replied": 1,
             "manager_requested": 1
         },
         "flags": {
-            "repeated_callback_input": 7,
-            "excessive_turns": 7,
-            "rapid_date_reselection": 1,
+            "repeated_callback_input": 9,
+            "excessive_turns": 9,
+            "rapid_date_reselection": 3,
             "repeated_same_input": 1,
             "manager_requested_no_reply": 1
         }
     },
     "sessions": [
-        {
-            "conversation_id": 373,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 7,
-            "outbound_messages": 7,
-            "date_picks": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-08-27 04:52:20",
-            "last_message_at": "2026-08-27 04:55:25"
-        },
         {
             "conversation_id": 374,
             "project_key": "anytour",
@@ -1602,6 +1579,179 @@
             ]
         },
         {
+            "conversation_id": 386,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 20,
+            "outbound_messages": 16,
+            "date_picks": 4,
+            "drop_point": "tours_opened",
+            "flags": [
+                "rapid_date_reselection",
+                "repeated_callback_input",
+                "excessive_turns"
+            ],
+            "started_at": "2026-08-27 07:50:36",
+            "last_message_at": "2026-08-27 07:55:54",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2",
+                    "created_at": "2026-08-27 07:52:59"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-08-27 07:53:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Нет",
+                    "created_at": "2026-08-27 07:53:07"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+                    "created_at": "2026-08-27 07:53:10"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3",
+                    "created_at": "2026-08-27 07:53:17"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-08-27 07:53:20"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Завтрак обед ужин",
+                    "created_at": "2026-08-27 07:53:51"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-27 07:53:53"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2-5",
+                    "created_at": "2026-08-27 07:54:07"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр., без детей 🏨 от 3★ 🍽 Полный Пансион 🌙 2-5 ночей 📅 18.09.2026 — 24.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:54:11"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-27 07:54:49"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-27 07:54:49"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_date",
+                    "created_at": "2026-08-27 07:54:54"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-27 07:54:54"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "month_change_09.2026",
+                    "created_at": "2026-08-27 07:55:01"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-27 07:55:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_21.09.2026",
+                    "created_at": "2026-08-27 07:55:05"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр., без детей 🏨 от 3★ 🍽 Полный Пансион 🌙 2-5 ночей 📅 18.09.2026 — 24.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:55:06"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_21.09.2026",
+                    "created_at": "2026-08-27 07:55:07"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_21.09.2026",
+                    "created_at": "2026-08-27 07:55:08"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_21.09.2026",
+                    "created_at": "2026-08-27 07:55:09"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "21 сентября",
+                    "created_at": "2026-08-27 07:55:18"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 07:55:54"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+                    "created_at": "2026-08-27 07:55:54"
+                }
+            ]
+        },
+        {
             "conversation_id": 385,
             "project_key": "anytour",
             "channel": "max",
@@ -1616,16 +1766,166 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 5,
-            "outbound_messages": 5,
-            "date_picks": 0,
+            "inbound_messages": 23,
+            "outbound_messages": 18,
+            "date_picks": 7,
             "drop_point": "tours_opened",
-            "flags": [],
+            "flags": [
+                "rapid_date_reselection",
+                "repeated_callback_input",
+                "excessive_turns"
+            ],
             "started_at": "2026-08-27 07:43:28",
-            "last_message_at": "2026-08-27 07:45:35"
+            "last_message_at": "2026-08-27 07:58:36",
+            "message_tail": [
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 5★ 🍽 Все Включено 🌙 7 ночей 📅 28.08.2026 — 03.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:57:45"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-27 07:57:53"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-27 07:57:53"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_date",
+                    "created_at": "2026-08-27 07:57:58"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-27 07:57:58"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:02"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 5★ 🍽 Все Включено 🌙 7 ночей 📅 28.08.2026 — 03.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:58:02"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:02"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:03"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:03"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-27 07:58:08"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-27 07:58:08"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_date",
+                    "created_at": "2026-08-27 07:58:12"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-27 07:58:12"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:15"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_31.08.2026",
+                    "created_at": "2026-08-27 07:58:15"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 5★ 🍽 Все Включено 🌙 7 ночей 📅 28.08.2026 — 03.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:58:15"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "empty",
+                    "created_at": "2026-08-27 07:58:18"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-27 07:58:23"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-27 07:58:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_date",
+                    "created_at": "2026-08-27 07:58:29"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-27 07:58:29"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_30.08.2026",
+                    "created_at": "2026-08-27 07:58:36"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 5★ 🍽 Все Включено 🌙 7 ночей 📅 27.08.2026 — 02.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-27 07:58:36"
+                }
+            ]
         },
         {
-            "conversation_id": 386,
+            "conversation_id": 387,
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
@@ -1639,14 +1939,14 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 4,
+            "inbound_messages": 3,
             "outbound_messages": 3,
             "date_picks": 0,
             "drop_point": "collecting_needs",
             "flags": [],
-            "started_at": "2026-08-27 07:50:36",
-            "last_message_at": "2026-08-27 07:51:53"
+            "started_at": "2026-08-27 07:58:27",
+            "last_message_at": "2026-08-27 07:58:37"
         }
     ],
-    "since_utc": "2026-08-27 04:51:57"
+    "since_utc": "2026-08-27 04:58:40"
 }
