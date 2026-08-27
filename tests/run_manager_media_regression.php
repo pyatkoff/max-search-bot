@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
 require_once __DIR__ . '/../services/ManagerOutboundService.php';
+require_once __DIR__ . '/../services/ManagerMessageMediaService.php';
 
 $failed = 0;
 function mediaCheck(string $name, $actual, $expected): void {
@@ -31,6 +32,9 @@ mediaCheck('video token retained', $incoming['attachments'][1]['token'] ?? null,
 mediaCheck('audio transcription retained', $incoming['attachments'][2]['transcription'] ?? null, 'голос');
 mediaCheck('file name retained', $incoming['attachments'][3]['name'] ?? null, 'offer.pdf');
 mediaCheck('media-only preview is useful', ConversationRecorder::attachmentPreview([['type'=>'image'],['type'=>'audio']]), '📎 Фото, Аудио');
+mediaCheck('manager synthetic image label is recognized', ManagerMessageMediaService::isSyntheticAttachmentPreview(['direction'=>'outbound','sender_type'=>'manager','text'=>'📎 Фото'], [['type'=>'image','url'=>'media-file.php?id=x']]), true);
+mediaCheck('manager real caption is preserved', ManagerMessageMediaService::isSyntheticAttachmentPreview(['direction'=>'outbound','sender_type'=>'manager','text'=>'Посмотрите этот отель'], [['type'=>'image','url'=>'media-file.php?id=x']]), false);
+mediaCheck('customer attachment preview is not suppressed', ManagerMessageMediaService::isSyntheticAttachmentPreview(['direction'=>'inbound','sender_type'=>'customer','text'=>'📎 Фото'], [['type'=>'image']]), false);
 mediaCheck('image mime maps to image', ManagerOutboundService::attachmentTypeForMime('image/jpeg'), 'image');
 mediaCheck('video mime maps to video', ManagerOutboundService::attachmentTypeForMime('video/mp4'), 'video');
 mediaCheck('audio mime maps to audio', ManagerOutboundService::attachmentTypeForMime('audio/mpeg'), 'audio');
@@ -46,6 +50,7 @@ $outboundSource = (string)file_get_contents(__DIR__ . '/../services/ManagerOutbo
 $uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.php');
 $cacheSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMediaCache.php');
 $fileEndpointSource = (string)file_get_contents(__DIR__ . '/../manager/media-file.php');
+$mediaHydratorSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMessageMediaService.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
 mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
@@ -66,6 +71,7 @@ mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$me
 mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
 mediaCheck('preview endpoint requires authenticated manager', strpos($fileEndpointSource, 'ManagerAuthService::byId') !== false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
+mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false && strpos($mediaHydratorSource, "$message['text'] = ''") !== false, true);
 
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
 exit($failed > 0 ? 1 : 0);
