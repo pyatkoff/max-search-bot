@@ -20,6 +20,7 @@ try {
     require_once(__DIR__ . '/maxsearchclass.php');
     require_once(__DIR__ . '/services/FollowupQueueService.php');
     require_once(__DIR__ . '/services/DialogueView.php');
+    require_once(__DIR__ . '/services/ManagerPhoneFallbackService.php');
 
     $now = time();
     $sent = 0;
@@ -65,7 +66,13 @@ try {
         @unlink($file);
     }
 
-    $summary = 'OK sent=' . $sent . ' waiting=' . $waiting . ' queue=' . count($files);
+    $managerFallback = ManagerPhoneFallbackService::runDue($now);
+    cronLog('MANAGER_PHONE_FALLBACK ' . json_encode($managerFallback, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+
+    $summary = 'OK sent=' . $sent . ' waiting=' . $waiting . ' queue=' . count($files)
+        . ' manager_phone_sent=' . (int)($managerFallback['sent'] ?? 0)
+        . ' manager_phone_failed=' . (int)($managerFallback['failed'] ?? 0)
+        . ' manager_phone_outside_hours=' . (!empty($managerFallback['outside_hours']) ? '1' : '0');
     cronLog($summary);
 
     if (PHP_SAPI !== 'cli') {
