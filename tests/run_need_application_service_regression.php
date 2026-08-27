@@ -55,9 +55,11 @@ nasCheck('specialized multi-field children path uses application service', strpo
 nasCheck('short-answer handler no longer mutates through MaxSearchApi directly', strpos($handlerSource, 'MaxSearchApi::applyAiParameters') === false, true);
 
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
-nasCheck('AI message final parameter application uses application service', strpos($aiMessageSource, '$appliedResult = NeedApplicationService::applyParameters($chat_id, $params);') !== false, true);
+$completionSource = (string)file_get_contents(__DIR__ . '/../services/AiNeedCompletionService.php');
+nasCheck('AI message final parameter application uses completion boundary', strpos($aiMessageSource, 'AiNeedCompletionService::applyAndAdvance') !== false, true);
+nasCheck('AI completion boundary applies through application service', strpos($completionSource, 'NeedApplicationService::applyParameters($chatId, $params)') !== false, true);
 nasCheck('AI message local parameter application uses application service', strpos($aiMessageSource, '$appliedLocal = NeedApplicationService::applyParameters($chat_id, $localParams);') !== false, true);
-nasCheck('AI message final progression uses progression service', strpos($aiMessageSource, "NeedProgressionService::advance(\n                    \$chat_id,\n                    ['country_explicit'=>true]") !== false, true);
+nasCheck('AI completion boundary advances through progression service', strpos($completionSource, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false, true);
 nasCheck('AI message no longer applies parameters through MaxSearchApi directly', strpos($aiMessageSource, 'MaxSearchApi::applyAiParameters') === false, true);
 
 echo "\n--------------------------\n";

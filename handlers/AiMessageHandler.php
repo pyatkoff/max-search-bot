@@ -8,6 +8,7 @@ require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
 require_once(__DIR__ . '/../services/AiInvocationService.php');
 require_once(__DIR__ . '/../services/AiDateContextService.php');
+require_once(__DIR__ . '/../services/AiNeedCompletionService.php');
 
 class AiMessageHandler
 {
@@ -130,8 +131,13 @@ class AiMessageHandler
                     "ROUTE AFTER AI: APPLY_PARAMETERS\n",
                     FILE_APPEND|LOCK_EX
                 );
-                $appliedResult = NeedApplicationService::applyParameters($chat_id, $params);
-                $missing = MaxSearchApi::getAiMissingFields($chat_id);
+                $completion = AiNeedCompletionService::applyAndAdvance(
+                    $chat_id,
+                    $params,
+                    ['country_explicit'=>true]
+                );
+                $appliedResult = $completion['applied'];
+                $missing = $completion['missing'];
 
                 @file_put_contents(
                     __DIR__.'/ai_debug.log',
@@ -140,13 +146,6 @@ class AiMessageHandler
                     "AI CONTEXT AFTER: ".json_encode(MaxSearchApi::getAiSearchContext($chat_id),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n".
                     "AI MISSING: ".json_encode($missing,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
                     FILE_APPEND|LOCK_EX
-                );
-
-                // ВАЖНО: после применения бизнес-дефолтов AI-вопрос может быть уже устаревшим.
-                // Поэтому progression заново читает ФАКТИЧЕСКИ missing-поля после применения.
-                NeedProgressionService::advance(
-                    $chat_id,
-                    ['country_explicit'=>true]
                 );
 
     }
