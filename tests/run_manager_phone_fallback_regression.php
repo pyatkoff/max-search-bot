@@ -29,7 +29,8 @@ mpfCheck('service considers waiting and already-taken conversations',strpos($ser
 mpfCheck('service serializes concurrent fallback attempts',strpos($serviceSource,'GET_LOCK(?,0)')!==false && strpos($serviceSource,'RELEASE_LOCK(?)')!==false,true);
 mpfCheck('manager reply suppresses fallback',substr_count($serviceSource,'self::hasManagerReply(')>=2,true);
 mpfCheck('successful fallback is idempotently marked',strpos($serviceSource,"'manager_phone_fallback_sent'")!==false,true);
-mpfCheck('existing sent fallback suppresses repeat',strpos($serviceSource,"event_type='manager_phone_fallback_sent'")!==false,true);
+mpfCheck('sent or failed fallback suppresses repeat',strpos($serviceSource,"event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed')")!==false,true);
+mpfCheck('failed delivery is recorded once as terminal attempt',strpos($serviceSource,"'manager_phone_fallback_failed'")!==false && strpos($serviceSource,'One external fallback attempt per manager request')!==false,true);
 mpfCheck('existing phone suppresses fallback',strpos($serviceSource,"['UF_PHONE']")!==false,true);
 mpfCheck('manager request online claim is gated by working hours',strpos($actionSource,'if ($withinWorkingHours && $conversation)')!==false,true);
 mpfCheck('outside hours select truthful handoff copy',strpos($actionSource,'!$withinWorkingHours')!==false && strpos($viewSource,"outside_hours_text")!==false,true);
