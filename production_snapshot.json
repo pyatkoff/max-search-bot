@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T14:43:28+00:00",
+    "generated_at": "2026-08-27T14:54:46+00:00",
     "production": {
-        "sha": "2d9fb012c2096b5be483829cd5c71865a9272000",
+        "sha": "97486575a2fec87520ce0a4d2e223d190e8d390f",
         "branch": "main"
     },
     "database": {
@@ -104,10 +104,10 @@
         }
     ],
     "stats": {
-        "customers": 443,
-        "customer_channels": 443,
-        "conversations": 444,
-        "messages": 12026,
+        "customers": 445,
+        "customer_channels": 445,
+        "conversations": 446,
+        "messages": 12038,
         "managers": 5,
         "manager_assignments": 100,
         "conversation_events": 869,
@@ -201,7 +201,7 @@
             "all": 200,
             "mine": 2,
             "waiting": 7,
-            "assigned_to_others": 38
+            "assigned_to_others": 37
         },
         {
             "manager_id": 3,
@@ -211,7 +211,7 @@
             "all": 200,
             "mine": 0,
             "waiting": 7,
-            "assigned_to_others": 39
+            "assigned_to_others": 38
         },
         {
             "manager_id": 4,
@@ -465,41 +465,6 @@
             "data": {
                 "dispatch_id": "b6f8801680fd5d58",
                 "conversation_id": 334,
-                "eligible_manager_ids": [
-                    4,
-                    5
-                ],
-                "selected_manager_ids": [
-                    4,
-                    5
-                ],
-                "scores": {
-                    "4": 0,
-                    "5": 0
-                },
-                "score_breakdown": {
-                    "4": {
-                        "base": 0,
-                        "matched_rules": [],
-                        "final": 0
-                    },
-                    "5": {
-                        "base": 0,
-                        "matched_rules": [],
-                        "final": 0
-                    }
-                },
-                "entry_channel": null
-            }
-        },
-        {
-            "ts": "2026-08-27T14:33:24+02:00",
-            "level": "info",
-            "component": "manager_priority",
-            "event": "push_selected",
-            "data": {
-                "dispatch_id": "b2c4d3950538ac4d",
-                "conversation_id": 414,
                 "eligible_manager_ids": [
                     4,
                     5
@@ -954,7 +919,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 372
+            "count": 374
         },
         {
             "project_key": "anytour",
@@ -1119,6 +1084,114 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 12038,
+            "conversation_id": 445,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "В какую страну хотите поехать?",
+            "created_at": "2026-08-27 16:54:34"
+        },
+        {
+            "id": 12037,
+            "conversation_id": 445,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Без разница",
+            "created_at": "2026-08-27 16:54:25"
+        },
+        {
+            "id": 12036,
+            "conversation_id": 446,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-27 16:54:18"
+        },
+        {
+            "id": 12035,
+            "conversation_id": 446,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-27 16:54:18"
+        },
+        {
+            "id": 12034,
+            "conversation_id": 445,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "В какую страну хотите поехать?",
+            "created_at": "2026-08-27 16:53:47"
+        },
+        {
+            "id": 12033,
+            "conversation_id": 445,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Взрослые два, декабре без визы дешево",
+            "created_at": "2026-08-27 16:53:36"
+        },
+        {
+            "id": 12032,
+            "conversation_id": 445,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-27 16:52:51"
+        },
+        {
+            "id": 12031,
+            "conversation_id": 445,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-27 16:52:51"
+        },
+        {
+            "id": 12030,
+            "conversation_id": 443,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-27 16:48:01"
+        },
+        {
+            "id": 12029,
+            "conversation_id": 444,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-27 16:43:54"
+        },
+        {
+            "id": 12028,
+            "conversation_id": 397,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-27 16:43:46"
+        },
+        {
+            "id": 12027,
+            "conversation_id": 397,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-27 16:43:46"
+        },
         {
             "id": 12026,
             "conversation_id": 442,
@@ -1550,114 +1623,6 @@
             "channel": "max",
             "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
             "created_at": "2026-08-27 16:32:26"
-        },
-        {
-            "id": 11978,
-            "conversation_id": 417,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-27 16:32:26"
-        },
-        {
-            "id": 11977,
-            "conversation_id": 417,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-27 16:32:06"
-        },
-        {
-            "id": 11976,
-            "conversation_id": 417,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-27 16:32:06"
-        },
-        {
-            "id": 11975,
-            "conversation_id": 207,
-            "direction": "outbound",
-            "sender_type": "manager",
-            "channel": "max",
-            "text": "Да с ценами действительно сегодня взлетели, поэтому предлагаю посмотреть завтра. Возможно спадут опять.",
-            "created_at": "2026-08-27 16:30:45"
-        },
-        {
-            "id": 11974,
-            "conversation_id": 442,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-27 16:30:20"
-        },
-        {
-            "id": 11973,
-            "conversation_id": 442,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-27 16:30:20"
-        },
-        {
-            "id": 11972,
-            "conversation_id": 207,
-            "direction": "outbound",
-            "sender_type": "manager",
-            "channel": "max",
-            "text": "Виктория, это разные туроператоры указывают разную звёздность у одного и того же отеля. Так система внутренняя устроена у них.",
-            "created_at": "2026-08-27 16:30:11"
-        },
-        {
-            "id": 11971,
-            "conversation_id": 207,
-            "direction": "outbound",
-            "sender_type": "manager",
-            "channel": "max",
-            "text": "Виктория, это разные туроператоры указывают разную звёздность у одного и того же отеля. Так система внутренняя устроена у них.",
-            "created_at": "2026-08-27 16:30:11"
-        },
-        {
-            "id": 11970,
-            "conversation_id": 442,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_16.10.2026",
-            "created_at": "2026-08-27 16:30:01"
-        },
-        {
-            "id": 11969,
-            "conversation_id": 442,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 3 взр. + 1 реб. (10 лет) 🏨 от 4★ 🍽 Все Включено 🌙 6-8 ночей 📅 06.10.2026 — 12.10.2026 Что удобнее дальше?",
-            "created_at": "2026-08-27 16:30:00"
-        },
-        {
-            "id": 11968,
-            "conversation_id": 442,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_09.10.2026",
-            "created_at": "2026-08-27 16:29:59"
-        },
-        {
-            "id": 11967,
-            "conversation_id": 442,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_10.2026",
-            "created_at": "2026-08-27 16:29:50"
         }
     ],
     "recent_events": [
