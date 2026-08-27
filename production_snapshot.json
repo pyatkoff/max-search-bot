@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T22:14:18+00:00",
+    "generated_at": "2026-08-27T22:45:10+00:00",
     "production": {
-        "sha": "c6353800c20f5accd88671dd153584ba5b8044b7",
+        "sha": "a0d596a333b6cd63b0e207cb48c6ea92afcbec23",
         "branch": "main"
     },
     "database": {
@@ -116,9 +116,9 @@
         "conversations": 489,
         "messages": 13400,
         "managers": 5,
-        "manager_assignments": 101,
-        "conversation_events": 879,
-        "admin_audit_log": 16
+        "manager_assignments": 102,
+        "conversation_events": 881,
+        "admin_audit_log": 17
     },
     "managers": [
         {
@@ -177,7 +177,7 @@
         {
             "manager_id": 2,
             "login": "manager",
-            "assignments_total": 11,
+            "assignments_total": 12,
             "assignments_open": "2"
         },
         {
@@ -248,7 +248,7 @@
         "pending_count": 3,
         "overdue_count": 3,
         "stuck_count": 3,
-        "oldest_wait_seconds": 16715,
+        "oldest_wait_seconds": 18567,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -258,7 +258,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 19:35:44",
-                "wait_seconds": 16715,
+                "wait_seconds": 18567,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -273,7 +273,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 20:43:24",
-                "wait_seconds": 12655,
+                "wait_seconds": 14507,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -288,7 +288,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 22:48:34",
-                "wait_seconds": 5145,
+                "wait_seconds": 6997,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -346,6 +346,12 @@
             "id": 1,
             "project_key": "anytour",
             "display_name": "AnyTour",
+            "is_active": 1
+        },
+        {
+            "id": 67514,
+            "project_key": "max-any-spb",
+            "display_name": "Макс Any Спб",
             "is_active": 1
         }
     ],
@@ -553,13 +559,13 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 413
+            "count": 414
         },
         {
             "project_key": "anytour",
             "channel": "max",
             "status": "closed",
-            "count": 5
+            "count": 4
         },
         {
             "project_key": "anytour",
@@ -587,6 +593,15 @@
         }
     ],
     "recent_admin_audit": [
+        {
+            "id": 17,
+            "actor_manager_id": 2,
+            "action": "project_created",
+            "entity_type": "project",
+            "entity_id": "67514",
+            "project_key": "max-any-spb",
+            "created_at": "2026-08-28 00:14:24"
+        },
         {
             "id": 16,
             "actor_manager_id": 5,
@@ -1276,6 +1291,22 @@
     ],
     "recent_events": [
         {
+            "id": 881,
+            "conversation_id": 132,
+            "event_type": "manager_released",
+            "actor_type": "manager",
+            "actor_id": "2",
+            "created_at": "2026-08-28 00:20:58"
+        },
+        {
+            "id": 880,
+            "conversation_id": 132,
+            "event_type": "conversation_reopened",
+            "actor_type": "manager",
+            "actor_id": "2",
+            "created_at": "2026-08-28 00:20:51"
+        },
+        {
             "id": 879,
             "conversation_id": 480,
             "event_type": "waiting_manager",
@@ -1738,22 +1769,6 @@
             "actor_type": "system",
             "actor_id": null,
             "created_at": "2026-08-27 11:19:02"
-        },
-        {
-            "id": 821,
-            "conversation_id": 302,
-            "event_type": "manager_phone_fallback_failed",
-            "actor_type": "system",
-            "actor_id": null,
-            "created_at": "2026-08-27 11:18:02"
-        },
-        {
-            "id": 820,
-            "conversation_id": 263,
-            "event_type": "manager_phone_fallback_failed",
-            "actor_type": "system",
-            "actor_id": null,
-            "created_at": "2026-08-27 11:18:02"
         }
     ],
     "recent_manager_delivery_failures": [
