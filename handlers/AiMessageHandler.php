@@ -1,5 +1,4 @@
 <?php
-require_once(__DIR__ . '/../ai/AiRouter.php');
 require_once(__DIR__ . '/AiDateHandler.php');
 require_once(__DIR__ . '/../services/MissingFieldQuestionService.php');
 require_once(__DIR__ . '/../services/DialogueView.php');
@@ -7,6 +6,7 @@ require_once(__DIR__ . '/../services/NeedApplicationService.php');
 require_once(__DIR__ . '/../services/NeedProgressionService.php');
 require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
+require_once(__DIR__ . '/../services/AiInvocationService.php');
 
 class AiMessageHandler
 {
@@ -68,30 +68,7 @@ class AiMessageHandler
                 $ai = null;
 
                 if ($richTourRequest) {
-                    @file_put_contents(
-                        __DIR__.'/ai_debug.log',
-                        "\n".date('d.m.Y H:i:s')."--- chat=".$chat_id." ---\n".
-                        "ROUTE: RICH_AI\n".
-                        "AI INPUT: ".$userText."\n".
-                        "AI CONTEXT BEFORE: ".json_encode($current,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-                        FILE_APPEND|LOCK_EX
-                    );
-
-                    try {
-                        $ai = AiRouter::parseTourRequest($userText, $current);
-                        @file_put_contents(
-                            __DIR__.'/ai_debug.log',
-                            "AI RAW: ".json_encode($ai,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-                            FILE_APPEND|LOCK_EX
-                        );
-                    } catch (\Throwable $e) {
-                        @file_put_contents(
-                            __DIR__.'/ai_errors.log',
-                            date('d.m.Y H:i:s').'--- chat='.$chat_id.' --- '.$e->getMessage().PHP_EOL,
-                            FILE_APPEND|LOCK_EX
-                        );
-                        $ai=['_error'=>true];
-                    }
+                    $ai = AiInvocationService::invoke('RICH_AI', $chat_id, $userText, $current);
                 } else {
                     $localParams = LocalAiFallbackService::parameters($userText, $current);
 
@@ -133,30 +110,7 @@ class AiMessageHandler
                         return;
                     }
 
-                    @file_put_contents(
-                        __DIR__.'/ai_debug.log',
-                        "\n".date('d.m.Y H:i:s')."--- chat=".$chat_id." ---\n".
-                        "ROUTE: SHORT_AI\n".
-                        "AI INPUT: ".$userText."\n".
-                        "AI CONTEXT BEFORE: ".json_encode($current,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-                        FILE_APPEND|LOCK_EX
-                    );
-
-                    try {
-                        $ai = AiRouter::parseTourRequest($userText, $current);
-                        @file_put_contents(
-                            __DIR__.'/ai_debug.log',
-                            "AI RAW: ".json_encode($ai,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-                            FILE_APPEND|LOCK_EX
-                        );
-                    } catch (\Throwable $e) {
-                        @file_put_contents(
-                            __DIR__.'/ai_errors.log',
-                            date('d.m.Y H:i:s').'--- chat='.$chat_id.' --- '.$e->getMessage().PHP_EOL,
-                            FILE_APPEND|LOCK_EX
-                        );
-                        $ai=['_error'=>true];
-                    }
+                    $ai = AiInvocationService::invoke('SHORT_AI', $chat_id, $userText, $current);
                 }
 
                 // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
