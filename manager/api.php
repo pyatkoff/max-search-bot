@@ -12,6 +12,7 @@ require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
 require_once $baseDir . '/services/ManagerDeliveryStateService.php';
 require_once $baseDir . '/services/ManagerMessageMediaService.php';
+require_once $baseDir . '/services/ManagerHandoffContextService.php';
 require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
@@ -87,6 +88,32 @@ if($action==='detail'){
     $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
     $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
+
+    // Before the first human reply, put a panel-only summary at the bottom of the
+    // transcript so the manager sees the needs already collected by the bot.
+    // This is not persisted and is never sent to the tourist.
+    if (!ManagerHandoffContextService::hasManagerReply($d['messages'])) {
+        $chatId=$d['conversation']['external_chat_id']??null;
+        if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
+            try{
+                $summary=ManagerHandoffContextService::build(
+                    (array)MaxSearchApi::getAiSearchContext($chatId),
+                    $d['messages']
+                );
+                if($summary!==''){
+                    $d['messages'][]=[
+                        'id'=>0,
+                        'direction'=>'outbound',
+                        'sender_type'=>'ai',
+                        'text'=>"📋 Запрос туриста для менеджера\n".$summary,
+                        'created_at'=>(string)($d['conversation']['last_message_at']??''),
+                        'attachments'=>[],
+                    ];
+                }
+            }catch(Throwable $ignored){}
+        }
+    }
+
     $d['delivery_failure']=ManagerDeliveryStateService::activeFailure($conversationId);
     out(['ok'=>true]+$d);
 }
