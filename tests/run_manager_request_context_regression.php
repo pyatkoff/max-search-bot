@@ -17,6 +17,8 @@ ctxCheck('matching csrf is valid',ManagerRequestContext::validCsrf('token-123')=
 ctxCheck('different csrf is invalid',ManagerRequestContext::validCsrf('token-456')===false);
 ctxCheck('existing csrf is preserved',ManagerRequestContext::csrf(true)==='token-123');
 $source=(string)file_get_contents(dirname(__DIR__).'/services/ManagerRequestContext.php');
+$workspace=(string)file_get_contents(dirname(__DIR__).'/manager/workspace-v2.php');
 ctxCheck('session cookie policy stays centralized',strpos($source,"'path' => '/max-search/manager/'")!==false&&strpos($source,"'secure' => true")!==false&&strpos($source,"'httponly' => true")!==false&&strpos($source,"'samesite' => 'Lax'")!==false);
+ctxCheck('Workspace V2 shell uses shared session boundary',strpos($workspace,'ManagerRequestContext::startSession()')!==false&&strpos($workspace,'session_set_cookie_params')===false&&strpos($workspace,'session_start()')===false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
