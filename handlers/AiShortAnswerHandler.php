@@ -2,6 +2,7 @@
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/NeedApplicationService.php';
+require_once dirname(__DIR__) . '/services/MissingFieldQuestionService.php';
 
 class AiShortAnswerHandler
 {
@@ -74,23 +75,7 @@ class AiShortAnswerHandler
             return true;
         }
 
-        $questions = [
-            'city'=>'Из какого города планируете вылет?',
-            'country'=>'Куда хотите поехать?',
-            'adults'=>'Сколько будет взрослых туристов?',
-            'children'=>'Будут дети? Если да — сколько?',
-            'child_ages'=>'Сколько лет детям?',
-            'stars'=>'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
-            'meal'=>'Какое питание предпочитаете?',
-            'nights'=>'На сколько ночей планируете поездку?',
-            'date'=>'Какая ориентировочная дата вылета?'
-        ];
-
-        MaxSearchApi::setStatus($chat_id, MaxSearchApi::$statusAi);
-        IntegrationRegistry::messenger()->send(
-            $chat_id,
-            $questions[$missingAfter[0]] ?? 'Уточните, пожалуйста, параметры поездки.'
-        );
+        MissingFieldQuestionService::sendForMissing($chat_id, $missingAfter);
         return true;
     }
 
