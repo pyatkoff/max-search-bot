@@ -9,6 +9,14 @@ class ChildrenParser
             : strtolower(trim($text));
         $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
 
+        // Live users often answer the yes/no wording together with the count
+        // (for example, "Да, 3" or "Да, трое"). Strip only an affirmative
+        // prefix that has a separator and a non-empty remainder; bare "да"
+        // remains unresolved so we never invent a child count.
+        if (preg_match('/^да(?:\s*[,;:\-]\s*|\s+)(.+)$/ui', $lower, $m)) {
+            $lower = trim((string)$m[1]);
+        }
+
         if (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
             return 0;
         }
