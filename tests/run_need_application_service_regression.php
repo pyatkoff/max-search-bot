@@ -54,6 +54,11 @@ nasCheck('short-answer handler uses application service', strpos($handlerSource,
 nasCheck('specialized multi-field children path uses application service', strpos($handlerSource, 'NeedApplicationService::applyParameters') !== false, true);
 nasCheck('short-answer handler no longer mutates through MaxSearchApi directly', strpos($handlerSource, 'MaxSearchApi::applyAiParameters') === false, true);
 
+$aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
+nasCheck('AI message final parameter application uses application service', strpos($aiMessageSource, '$appliedResult = NeedApplicationService::applyParameters($chat_id, $params);') !== false, true);
+nasCheck('AI message final progression uses progression service', strpos($aiMessageSource, "NeedProgressionService::advance(\n                    \$chat_id,\n                    ['country_explicit'=>true]") !== false, true);
+nasCheck('AI message final AI result no longer applies params directly', strpos($aiMessageSource, '$appliedResult = MaxSearchApi::applyAiParameters($chat_id, $params);') === false, true);
+
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);
