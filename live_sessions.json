@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T14:54:44+00:00",
+    "generated_at": "2026-08-27T14:59:09+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 23,
-        "started": 23,
+        "sessions": 22,
+        "started": 22,
         "needs_collected": 19,
         "tours_opened": 19,
         "manager_requested": 5,
         "manager_replied": 3,
         "phone_received": 0,
-        "flagged_sessions": 13,
+        "flagged_sessions": 12,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 3,
@@ -22,12 +22,12 @@
         },
         "drop_points": {
             "tours_opened": 14,
-            "collecting_needs": 4,
+            "collecting_needs": 3,
             "manager_replied": 3,
             "manager_requested": 2
         },
         "flags": {
-            "excessive_turns": 12,
+            "excessive_turns": 11,
             "repeated_callback_input": 5,
             "rapid_date_reselection": 3,
             "manager_requested_no_reply": 2,
@@ -36,177 +36,6 @@
         }
     },
     "sessions": [
-        {
-            "conversation_id": 431,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 17,
-            "outbound_messages": 17,
-            "date_picks": 1,
-            "drop_point": "tours_opened",
-            "flags": [
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-27 13:51:33",
-            "last_message_at": "2026-08-27 13:54:57",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "11.12",
-                    "created_at": "2026-08-27 13:52:06"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "К сожалению возраст детей указан неверно. Пожалуйста, введите 2 числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.",
-                    "created_at": "2026-08-27 13:52:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "11-12",
-                    "created_at": "2026-08-27 13:52:17"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "К сожалению возраст детей указан неверно. Пожалуйста, введите 2 числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.",
-                    "created_at": "2026-08-27 13:52:17"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "1-1-2-2",
-                    "created_at": "2026-08-27 13:52:42"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "К сожалению возраст детей указан неверно. Пожалуйста, введите 2 числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.",
-                    "created_at": "2026-08-27 13:52:42"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "8-9",
-                    "created_at": "2026-08-27 13:52:50"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "К сожалению возраст детей указан неверно. Пожалуйста, введите 2 числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.",
-                    "created_at": "2026-08-27 13:52:51"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "back_child",
-                    "created_at": "2026-08-27 13:54:12"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-                    "created_at": "2026-08-27 13:54:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "back_child",
-                    "created_at": "2026-08-27 13:54:14"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-                    "created_at": "2026-08-27 13:54:14"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "child_0",
-                    "created_at": "2026-08-27 13:54:24"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-                    "created_at": "2026-08-27 13:54:24"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "star_3",
-                    "created_at": "2026-08-27 13:54:28"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-                    "created_at": "2026-08-27 13:54:29"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-08-27 13:54:31"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-                    "created_at": "2026-08-27 13:54:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "nights_9_11",
-                    "created_at": "2026-08-27 13:54:37"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-27 13:54:37"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-27 13:54:42"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Шри-Ланка 👥 2 взр. + 2 реб. 🏨 от 3★ 🍽 Все Включено 🌙 9-11 ночей 📅 28.08.2026 — 03.09.2026 Что удобнее дальше?",
-                    "created_at": "2026-08-27 13:54:42"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-27 13:54:57"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-27 13:54:57"
-                }
-            ]
-        },
         {
             "conversation_id": 433,
             "project_key": "anytour",
@@ -2464,13 +2293,13 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 1,
-            "outbound_messages": 1,
+            "inbound_messages": 5,
+            "outbound_messages": 5,
             "date_picks": 0,
             "drop_point": "collecting_needs",
             "flags": [],
             "started_at": "2026-08-27 16:54:18",
-            "last_message_at": "2026-08-27 16:54:18"
+            "last_message_at": "2026-08-27 16:56:14"
         },
         {
             "conversation_id": 445,
@@ -2478,8 +2307,8 @@
             "channel": "max",
             "status": "ai",
             "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
+            "needs_collected": true,
+            "tours_opened": true,
             "manager_requested": false,
             "manager_replied": false,
             "manager_request_at": null,
@@ -2487,14 +2316,14 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 3,
-            "outbound_messages": 3,
+            "inbound_messages": 10,
+            "outbound_messages": 10,
             "date_picks": 0,
-            "drop_point": "collecting_needs",
+            "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 16:52:51",
-            "last_message_at": "2026-08-27 16:54:34"
+            "last_message_at": "2026-08-27 16:56:53"
         }
     ],
-    "since_utc": "2026-08-27 13:54:44"
+    "since_utc": "2026-08-27 13:59:09"
 }
