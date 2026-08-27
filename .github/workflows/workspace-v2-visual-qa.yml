@@ -47,14 +47,14 @@ jobs:
           set -euo pipefail
           mkdir -p visual-artifacts
           url='http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html'
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url" visual-artifacts/workspace-v2-430.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='768,1024' --full-page "$url" visual-artifacts/workspace-v2-768.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url" visual-artifacts/workspace-v2-1440.png
-          test -s visual-artifacts/workspace-v2-390.png
-          test -s visual-artifacts/workspace-v2-430.png
-          test -s visual-artifacts/workspace-v2-768.png
-          test -s visual-artifacts/workspace-v2-1440.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390-inbox.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-390-conversation.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url" visual-artifacts/workspace-v2-430-inbox.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url?view=lead" visual-artifacts/workspace-v2-430-lead.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='768,1024' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-768-conversation.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url" visual-artifacts/workspace-v2-1440-desktop.png
+          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 6
+          find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
 
       - name: Upload visual evidence
         uses: actions/upload-artifact@v4
