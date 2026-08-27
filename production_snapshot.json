@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T04:51:17+00:00",
+    "generated_at": "2026-08-27T05:00:21+00:00",
     "production": {
-        "sha": "16997a9fe50e4acab47301d66efcd1951815ce54",
+        "sha": "e9286cf0cad67bfe0633b3097fc163b0f2c9493a",
         "branch": "main"
     },
     "database": {
@@ -86,7 +86,7 @@
         "customers": 379,
         "customer_channels": 379,
         "conversations": 380,
-        "messages": 9991,
+        "messages": 9993,
         "managers": 5,
         "manager_assignments": 88,
         "conversation_events": 326,
@@ -220,7 +220,7 @@
         "pending_count": 2,
         "overdue_count": 2,
         "stuck_count": 2,
-        "oldest_wait_seconds": 31247,
+        "oldest_wait_seconds": 31791,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 22:10:31",
-                "wait_seconds": 31247,
+                "wait_seconds": 31791,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 23:17:25",
-                "wait_seconds": 27233,
+                "wait_seconds": 27777,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -573,6 +573,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 9993,
+            "conversation_id": 380,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-27 06:57:02"
+        },
+        {
+            "id": 9992,
+            "conversation_id": 379,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-27 06:52:03"
+        },
         {
             "id": 9991,
             "conversation_id": 380,
@@ -1094,24 +1112,6 @@
             "channel": "max",
             "text": "start_search",
             "created_at": "2026-08-27 06:39:25"
-        },
-        {
-            "id": 9933,
-            "conversation_id": 377,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "В какую страну хотите поехать?",
-            "created_at": "2026-08-27 06:39:15"
-        },
-        {
-            "id": 9932,
-            "conversation_id": 378,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-08-27 06:39:09"
         }
     ],
     "recent_events": [

@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T04:51:20+00:00",
+    "generated_at": "2026-08-27T05:00:24+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -942,12 +942,12 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 9,
-            "outbound_messages": 9,
+            "outbound_messages": 10,
             "date_picks": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 06:39:36",
-            "last_message_at": "2026-08-27 06:41:22"
+            "last_message_at": "2026-08-27 06:52:03"
         },
         {
             "conversation_id": 380,
@@ -965,21 +965,15 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 14,
-            "outbound_messages": 12,
+            "outbound_messages": 13,
             "date_picks": 2,
             "drop_point": "tours_opened",
             "flags": [
                 "excessive_turns"
             ],
             "started_at": "2026-08-27 06:45:25",
-            "last_message_at": "2026-08-27 06:46:26",
+            "last_message_at": "2026-08-27 06:57:02",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_city_other",
-                    "created_at": "2026-08-27 06:45:28"
-                },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
@@ -1117,9 +1111,15 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-08-27 06:46:26"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-08-27 06:57:02"
                 }
             ]
         }
     ],
-    "since_utc": "2026-08-27 03:51:20"
+    "since_utc": "2026-08-27 04:00:24"
 }
