@@ -70,6 +70,9 @@ mrCheck('handoff summary includes tourists',strpos($summary,'Туристы: 1 �
 mrCheck('handoff summary includes hotel and meal',strpos($summary,'Отель: от 4★')!==false&&strpos($summary,'Питание: all_inclusive')!==false,true);
 mrCheck('handoff summary preserves meaningful free-text note',strpos($summary,'Дополнение туриста: Хочу спокойный отель 18+ со средней территорией')!==false,true);
 mrCheck('handoff context ignores phone as free-text note',strpos($summary,'79158966837')===false,true);
+$guidance=ManagerHandoffContextService::firstReplyGuidance();
+mrCheck('first reply guidance forbids asking tourist to repeat needs',strpos($guidance,'Не просите туриста повторять пожелания')!==false,true);
+mrCheck('first reply guidance points manager to missing budget or details',strpos($guidance,'бюджет')!==false,true);
 mrCheck('no manager reply is detected before handoff response',ManagerHandoffContextService::hasManagerReply($messages),false);
 $messages[]=['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте'];
 mrCheck('manager reply suppresses first-response context injection',ManagerHandoffContextService::hasManagerReply($messages),true);
@@ -89,6 +92,7 @@ mrCheck('callback waiting event carries actual availability decision',strpos($ca
 $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
 mrCheck('manager detail labels saved tourist request',strpos($managerApiSource,'📋 Запрос туриста для менеджера')!==false,true);
+mrCheck('manager detail appends explicit first reply guidance',strpos($managerApiSource,'ManagerHandoffContextService::firstReplyGuidance()')!==false,true);
 mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'!ManagerHandoffContextService::hasManagerReply')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
