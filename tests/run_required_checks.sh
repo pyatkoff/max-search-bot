@@ -50,6 +50,7 @@ checks=(
   'php tests/run_manager_assignment_integrity_regression.php'
   'php tests/run_manager_media_regression.php'
   'php tests/run_sales_pipeline_foundation_regression.php'
+  'php tests/run_manager_pipeline_ui_regression.php'
   'php tests/run_deploy_diagnostics_contract_regression.php'
   'php tests/run_production_snapshot_encoding_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
