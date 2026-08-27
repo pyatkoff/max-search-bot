@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T13:41:33+00:00",
+    "generated_at": "2026-08-27T13:46:25+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -2904,21 +2904,15 @@
             "manager_response_bucket": "answered_after_90s",
             "phone_received": false,
             "inbound_messages": 36,
-            "outbound_messages": 40,
+            "outbound_messages": 41,
             "date_picks": 1,
             "drop_point": "manager_replied",
             "flags": [
                 "excessive_turns"
             ],
             "started_at": "2026-08-25 15:48:42",
-            "last_message_at": "2026-08-27 15:39:23",
+            "last_message_at": "2026-08-27 15:45:40",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Хотим его",
-                    "created_at": "2026-08-26 13:23:30"
-                },
                 {
                     "direction": "outbound",
                     "sender_type": "manager",
@@ -3056,9 +3050,15 @@
                     "sender_type": "manager",
                     "text": "📎 Фото",
                     "created_at": "2026-08-27 15:39:23"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Перелет АК Россия ( Аэрофлот), багаж 20 кг на каждого.",
+                    "created_at": "2026-08-27 15:45:40"
                 }
             ]
         }
     ],
-    "since_utc": "2026-08-27 12:41:33"
+    "since_utc": "2026-08-27 12:46:25"
 }
