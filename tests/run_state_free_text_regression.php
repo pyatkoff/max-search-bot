@@ -118,7 +118,7 @@ $guards = [
     'free text switches to AI status' => strpos($source, 'MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);') !== false,
     'free text reaches AiMessageHandler' => strpos($source, 'AiMessageHandler::handle($message, $chatId);') !== false,
     'wizard nights uses NightsParser' => strpos($source, 'NightsParser::parse(') !== false,
-    'AI short nights uses NeedValueResolver boundary' => strpos($aiShortSource, 'NeedValueResolver::resolve($field, $lower)') !== false,
+    'AI short nights uses NeedApplicationService boundary' => strpos($aiShortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false,
     'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
     'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
     'date state resolves natural month text' => strpos($source, 'AiDateHandler::rememberMonthFromText(') !== false,
