@@ -1,24 +1,20 @@
 <?php
-session_name('anytour_manager_panel');
-session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-session_start();
-
 $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/maxsearchclass.php';
-require_once $baseDir.'/services/ManagerAuthService.php';
+require_once $baseDir.'/services/ManagerRequestContext.php';
 require_once $baseDir.'/services/ManagerOutboundService.php';
 require_once $baseDir.'/services/ManagerMediaCache.php';
+ManagerRequestContext::startSession();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 function mediaOut(array $data,int $status=200):void{http_response_code($status);echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);exit;}
 
-$managerId=(int)($_SESSION['manager_id']??0);
-$manager=$managerId?ManagerAuthService::byId($managerId):null;
+$managerId=ManagerRequestContext::managerId();
+$manager=ManagerRequestContext::manager();
 if(!$manager)mediaOut(['ok'=>false,'error'=>'unauthorized'],401);
-$csrf=(string)($_SESSION['csrf']??'');
-if($csrf===''||!hash_equals($csrf,(string)($_POST['csrf']??'')))mediaOut(['ok'=>false,'error'=>'csrf'],403);
+if(!ManagerRequestContext::validCsrf(isset($_POST['csrf'])?(string)$_POST['csrf']:null))mediaOut(['ok'=>false,'error'=>'csrf'],403);
 $conversationId=(int)($_POST['conversation_id']??0);
 if($conversationId<=0)mediaOut(['ok'=>false,'error'=>'invalid_conversation'],400);
 if(empty($_FILES['file'])||!is_array($_FILES['file']))mediaOut(['ok'=>false,'error'=>'file_required'],400);
