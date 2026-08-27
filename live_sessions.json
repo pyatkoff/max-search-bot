@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T10:42:41+00:00",
+    "generated_at": "2026-08-27T10:48:59+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -3493,13 +3493,13 @@
             "manager_response_bucket": "answered_after_90s",
             "phone_received": false,
             "inbound_messages": 10,
-            "outbound_messages": 11,
+            "outbound_messages": 12,
             "date_picks": 0,
             "drop_point": "manager_replied",
             "flags": [],
             "started_at": "2026-08-27 10:19:46",
-            "last_message_at": "2026-08-27 12:40:20"
+            "last_message_at": "2026-08-27 12:45:36"
         }
     ],
-    "since_utc": "2026-08-27 09:42:41"
+    "since_utc": "2026-08-27 09:48:59"
 }
