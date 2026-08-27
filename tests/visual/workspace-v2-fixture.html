@@ -51,7 +51,7 @@
     </div>
   </aside>
 
-  <main class="zone conversationZone open">
+  <main class="zone conversationZone">
     <div class="zoneHead conversationHead">
       <div><button class="mobileBack actionBtn">‹</button><span class="brand">Анна</span><div class="muted">MAX · Новый лид · ожидает ответа</div></div>
       <div class="actions"><button class="mobileLeadBtn actionBtn">Карточка</button><button class="actionBtn primary">Взять</button></div>
@@ -80,5 +80,10 @@
     </div>
   </aside>
 </div>
+<script>
+const view=new URLSearchParams(location.search).get('view');
+if(view==='conversation')document.querySelector('.conversationZone')?.classList.add('open');
+if(view==='lead'){document.querySelector('.conversationZone')?.classList.add('open');document.querySelector('.leadZone')?.classList.add('open');}
+</script>
 </body>
 </html>
