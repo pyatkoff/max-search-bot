@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T05:40:16+00:00",
+    "generated_at": "2026-08-27T05:44:15+00:00",
     "production": {
-        "sha": "5d251da77a622c3fdde172202980454681be9820",
+        "sha": "320273d75e545bdb66386b30c24bd16378794021",
         "branch": "main"
     },
     "database": {
@@ -83,10 +83,10 @@
         }
     ],
     "stats": {
-        "customers": 383,
-        "customer_channels": 383,
-        "conversations": 384,
-        "messages": 10105,
+        "customers": 384,
+        "customer_channels": 384,
+        "conversations": 385,
+        "messages": 10108,
         "managers": 5,
         "manager_assignments": 88,
         "conversation_events": 327,
@@ -218,9 +218,9 @@
         "warning_after_seconds": 90,
         "stuck_after_seconds": 600,
         "pending_count": 3,
-        "overdue_count": 2,
+        "overdue_count": 3,
         "stuck_count": 2,
-        "oldest_wait_seconds": 34186,
+        "oldest_wait_seconds": 34424,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 22:10:31",
-                "wait_seconds": 34186,
+                "wait_seconds": 34424,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 23:17:25",
-                "wait_seconds": 30172,
+                "wait_seconds": 30410,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -260,8 +260,8 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 07:39:29",
-                "wait_seconds": 48,
-                "severity": "pending",
+                "wait_seconds": 286,
+                "severity": "overdue",
                 "eligible_working_manager_ids": [
                     4
                 ],
@@ -574,7 +574,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 321
+            "count": 322
         },
         {
             "project_key": "anytour",
@@ -736,6 +736,33 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 10108,
+            "conversation_id": 385,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-27 07:43:28"
+        },
+        {
+            "id": 10107,
+            "conversation_id": 385,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-27 07:43:28"
+        },
+        {
+            "id": 10106,
+            "conversation_id": 380,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-27 07:42:33"
+        },
         {
             "id": 10105,
             "conversation_id": 384,
@@ -1248,33 +1275,6 @@
             "channel": "max",
             "text": "Без разницы",
             "created_at": "2026-08-27 07:29:37"
-        },
-        {
-            "id": 10048,
-            "conversation_id": 216,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_9",
-            "created_at": "2026-08-27 07:29:20"
-        },
-        {
-            "id": 10047,
-            "conversation_id": 216,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_9",
-            "created_at": "2026-08-27 07:28:57"
-        },
-        {
-            "id": 10046,
-            "conversation_id": 383,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "В какую страну хотите поехать?",
-            "created_at": "2026-08-27 07:28:57"
         }
     ],
     "recent_events": [
