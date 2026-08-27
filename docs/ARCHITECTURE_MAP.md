@@ -12,7 +12,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Sales-pipeline services/repositories — business lead state, independent from technical conversation status.
 - `manager/workspace-v2.php` plus `manager/assets/workspace-v2-*` modules — forward manager UI, kept thin and progressively modular.
 - `migrations/` — only owner of production schema evolution; applied files immutable.
-- `tests/live_regressions/` — production-derived reusable dialogue scenarios.
+- `tests/scenarios/<suite>/` + `tests/support/ScenarioEngine.php` — reusable production-derived behavior scenarios; add new step handlers only when a real case needs them.
 - `tools/production_snapshot.php`, `tools/live_session_snapshot.php`, `tools/architecture_inventory.php` — bounded operational evidence for autopilot.
 
 ## MERGE — duplicate responsibilities to converge behind one owner
@@ -22,6 +22,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Manager endpoint authorization / CSRF / validation plumbing → shared manager request/application boundary.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.
 - Repeated sales-stage mutation paths → one sales-pipeline application service.
+- Production-derived bespoke regression runners → shared scenario suites where the scenario engine can represent the behavior without weakening coverage.
 
 ## MOVE — responsibilities that should leave their current layer when touched
 
