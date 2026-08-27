@@ -28,6 +28,7 @@ class MaxSearchApi
 }
 
 require_once __DIR__ . '/../services/ManagerRequestService.php';
+require_once __DIR__ . '/../services/ManagerHandoffContextService.php';
 
 $passed=0;$failed=0;
 function mrCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
@@ -54,9 +55,33 @@ mrCheck('after tours back callback',$model2['back_callback'],'tours_checked');
 mrCheck('created marker',$model2['claim_created'],true);
 mrCheck('created claim returned',$model2['claim']['ID']??null,99);
 
+$aiContext=[
+    'city'=>'Москва','country'=>'Египет','adults'=>1,'children'=>0,
+    'stars'=>4,'meal'=>'all_inclusive','nights'=>'6-8','date'=>'30.08.2026',
+];
+$messages=[
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_30.08.2026'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Хочу спокойный отель 18+ со средней территорией'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837'],
+];
+$summary=ManagerHandoffContextService::build($aiContext,$messages);
+mrCheck('handoff summary includes route',strpos($summary,'Маршрут: Москва → Египет')!==false,true);
+mrCheck('handoff summary includes tourists',strpos($summary,'Туристы: 1 взр. + 0 реб.')!==false,true);
+mrCheck('handoff summary includes hotel and meal',strpos($summary,'Отель: от 4★')!==false&&strpos($summary,'Питание: all_inclusive')!==false,true);
+mrCheck('handoff summary preserves meaningful free-text note',strpos($summary,'Дополнение туриста: Хочу спокойный отель 18+ со средней территорией')!==false,true);
+mrCheck('handoff context ignores phone as free-text note',strpos($summary,'79158966837')===false,true);
+mrCheck('no manager reply is detected before handoff response',ManagerHandoffContextService::hasManagerReply($messages),false);
+$messages[]=['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте'];
+mrCheck('manager reply suppresses first-response context injection',ManagerHandoffContextService::hasManagerReply($messages),true);
+
 $managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
 mrCheck('manager action checks live availability',strpos($managerActionSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
 mrCheck('online handoff uses chat response',strpos($managerActionSource,"sendWithButtons(\$chatId, (string)\$model['online_text']")!==false,true);
 mrCheck('offline handoff keeps contact request path',strpos($managerActionSource,'DialogueView::managerRequest($chatId, $name, $fromTours, !$withinWorkingHours)')!==false,true);
+
+$managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
+mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
+mrCheck('manager detail labels saved tourist request',strpos($managerApiSource,'📋 Запрос туриста для менеджера')!==false,true);
+mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'!ManagerHandoffContextService::hasManagerReply')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
