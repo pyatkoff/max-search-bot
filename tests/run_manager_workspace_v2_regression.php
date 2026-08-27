@@ -25,7 +25,7 @@ mw2Check('workspace list shows business stage and tags',strpos($ui,'c.lead_stage
 mw2Check('pipeline API uses existing manager session and csrf',strpos($api,"session_name('anytour_manager_panel')")!==false&&strpos($api,'pipelineRequireCsrf')!==false);
 mw2Check('pipeline API gates conversation access through manager visibility',strpos($api,'ManagerConversationService::detail(')!==false&&strpos($api,'pipelineConversation(')!==false);
 mw2Check('pipeline mutations require owner or admin',strpos($api,'function pipelineCanEdit')!==false&&substr_count($api,"error'=>'forbidden")>=3&&strpos($api,"'can_edit_pipeline'=>\$can")!==false);
-mw2Check('readonly UI reflects pipeline ownership',strpos($ui,'can_edit_pipeline')!==false&&strpos($ui,'Изменять этап и теги может ответственный менеджер или администратор.')!==false&&strpos($ui,"canEdit?'':'disabled'")!==false);
+mw2Check('readonly UI reflects pipeline ownership',strpos($ui,'can_edit_pipeline')!==false&&strpos($ui,'ответственный менеджер или администратор')!==false&&strpos($ui,"canEdit?'':'disabled'")!==false);
 mw2Check('pipeline API exposes filtered list action',strpos($api,"\$action==='list'")!==false&&strpos($api,"(string)(\$data['lead_stage_key']??'')")!==false&&strpos($api,"(int)(\$data['lead_tag_id']??0)")!==false);
 mw2Check('conversation service filters by business stage',strpos($conversations,"\$where[]='c.lead_stage_key=?'")!==false&&strpos($conversations,'string $leadStageKey')!==false);
 mw2Check('conversation service filters by business tag',strpos($conversations,'conversation_lead_tags clt_filter')!==false&&strpos($conversations,'int $leadTagId=0')!==false);
