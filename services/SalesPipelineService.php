@@ -1,129 +1,18 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
-
-/**
- * Business sales pipeline for manager workspace.
- * This layer is deliberately independent from technical dialogue states
- * (ai / waiting_manager / manager / closed).
- */
 class SalesPipelineService
 {
-    public static function stages(bool $activeOnly=true): array
-    {
-        $sql='SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages';
-        if($activeOnly)$sql.=' WHERE is_active=1';
-        $sql.=' ORDER BY sort_order,display_name,stage_key';
-        return ConversationDb::connection()->query($sql)->fetchAll();
-    }
-
-    public static function tags(bool $activeOnly=true): array
-    {
-        $sql='SELECT id,tag_key,display_name,color,sort_order,is_active FROM lead_tags';
-        if($activeOnly)$sql.=' WHERE is_active=1';
-        $sql.=' ORDER BY sort_order,display_name,id';
-        return ConversationDb::connection()->query($sql)->fetchAll();
-    }
-
-    public static function stageForConversation(int $conversationId): ?array
-    {
-        $q=ConversationDb::connection()->prepare(
-            'SELECT s.stage_key,s.display_name,s.color,s.sort_order,s.is_terminal,s.is_won '
-            .'FROM conversations c LEFT JOIN lead_stages s ON s.stage_key=c.lead_stage_key WHERE c.id=? LIMIT 1'
-        );
-        $q->execute([$conversationId]);
-        $row=$q->fetch();
-        return $row?:null;
-    }
-
-    public static function tagsForConversation(int $conversationId): array
-    {
-        $q=ConversationDb::connection()->prepare(
-            'SELECT t.id,t.tag_key,t.display_name,t.color,t.sort_order '
-            .'FROM conversation_lead_tags ct JOIN lead_tags t ON t.id=ct.tag_id '
-            .'WHERE ct.conversation_id=? AND t.is_active=1 ORDER BY t.sort_order,t.display_name,t.id'
-        );
-        $q->execute([$conversationId]);
-        return $q->fetchAll();
-    }
-
-    public static function decorateConversationRows(array $rows): array
-    {
-        if(!$rows)return[];
-        $stageMap=[];
-        foreach(self::stages(false) as $stage)$stageMap[(string)$stage['stage_key']]=$stage;
-        $ids=array_values(array_unique(array_filter(array_map(static function($row){return(int)($row['id']??0);},$rows))));
-        $tagMap=[];
-        if($ids){
-            $in=implode(',',array_fill(0,count($ids),'?'));
-            $q=ConversationDb::connection()->prepare(
-                "SELECT ct.conversation_id,t.id,t.tag_key,t.display_name,t.color,t.sort_order "
-                ."FROM conversation_lead_tags ct JOIN lead_tags t ON t.id=ct.tag_id "
-                ."WHERE ct.conversation_id IN ({$in}) AND t.is_active=1 "
-                ."ORDER BY t.sort_order,t.display_name,t.id"
-            );
-            $q->execute($ids);
-            foreach($q->fetchAll() as $tag)$tagMap[(int)$tag['conversation_id']][]=$tag;
-        }
-        foreach($rows as &$row){
-            $id=(int)($row['id']??0);$key=(string)($row['lead_stage_key']??'new');
-            $row['lead_stage']=$stageMap[$key]??null;
-            $row['lead_tags']=$tagMap[$id]??[];
-        }
-        unset($row);
-        return$rows;
-    }
-
-    public static function setStage(int $conversationId,string $stageKey): bool
-    {
-        $stageKey=trim($stageKey);
-        if($conversationId<=0||$stageKey==='')return false;
-        $q=ConversationDb::connection()->prepare('SELECT 1 FROM lead_stages WHERE stage_key=? AND is_active=1 LIMIT 1');
-        $q->execute([$stageKey]);
-        if(!$q->fetchColumn())return false;
-        $q=ConversationDb::connection()->prepare('UPDATE conversations SET lead_stage_key=? WHERE id=?');
-        $q->execute([$stageKey,$conversationId]);
-        return $q->rowCount()>0 || self::currentStageKey($conversationId)===$stageKey;
-    }
-
-    public static function setTags(int $conversationId,array $tagIds,int $actorManagerId=0): bool
-    {
-        if($conversationId<=0)return false;
-        $tagIds=array_values(array_unique(array_filter(array_map('intval',$tagIds),static function($id){return$id>0;})));
-        $pdo=ConversationDb::connection();
-        $pdo->beginTransaction();
-        try{
-            $valid=[];
-            if($tagIds){
-                $in=implode(',',array_fill(0,count($tagIds),'?'));
-                $q=$pdo->prepare("SELECT id FROM lead_tags WHERE is_active=1 AND id IN ({$in})");
-                $q->execute($tagIds);
-                $valid=array_map('intval',array_column($q->fetchAll(),'id'));
-            }
-            $pdo->prepare('DELETE FROM conversation_lead_tags WHERE conversation_id=?')->execute([$conversationId]);
-            if($valid){
-                $ins=$pdo->prepare('INSERT INTO conversation_lead_tags (conversation_id,tag_id,added_by_manager_id) VALUES (?,?,?)');
-                foreach($valid as $tagId)$ins->execute([$conversationId,$tagId,$actorManagerId>0?$actorManagerId:null]);
-            }
-            $pdo->commit();
-            return count($valid)===count($tagIds);
-        }catch(Throwable $e){
-            if($pdo->inTransaction())$pdo->rollBack();
-            throw$e;
-        }
-    }
-
-    public static function conversationSnapshot(int $conversationId): array
-    {
-        return [
-            'stage'=>self::stageForConversation($conversationId),
-            'tags'=>self::tagsForConversation($conversationId),
-        ];
-    }
-
-    private static function currentStageKey(int $conversationId): string
-    {
-        $q=ConversationDb::connection()->prepare('SELECT lead_stage_key FROM conversations WHERE id=? LIMIT 1');
-        $q->execute([$conversationId]);
-        return (string)($q->fetchColumn()?:'');
-    }
+    public static function stages(bool $activeOnly=true): array{$sql='SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages'.($activeOnly?' WHERE is_active=1':'').' ORDER BY sort_order,display_name,stage_key';return ConversationDb::connection()->query($sql)->fetchAll();}
+    public static function tags(bool $activeOnly=true): array{$sql='SELECT id,tag_key,display_name,color,sort_order,is_active FROM lead_tags'.($activeOnly?' WHERE is_active=1':'').' ORDER BY sort_order,display_name,id';return ConversationDb::connection()->query($sql)->fetchAll();}
+    public static function outcomeOptions(): array{return ['open'=>'В работе','won'=>'Продажа','lost'=>'Отказ'];}
+    public static function closeReasonOptions(): array{return ['price'=>'Цена','no_contact'=>'Не удалось связаться','changed_plans'=>'Изменились планы','bought_elsewhere'=>'Купил в другом месте','dates'=>'Не подошли даты','destination'=>'Не подошло направление','documents'=>'Документы/ограничения','other'=>'Другое'];}
+    public static function stageForConversation(int $id): ?array{$q=ConversationDb::connection()->prepare('SELECT s.stage_key,s.display_name,s.color,s.sort_order,s.is_terminal,s.is_won FROM conversations c LEFT JOIN lead_stages s ON s.stage_key=c.lead_stage_key WHERE c.id=? LIMIT 1');$q->execute([$id]);return$q->fetch()?:null;}
+    public static function tagsForConversation(int $id): array{$q=ConversationDb::connection()->prepare('SELECT t.id,t.tag_key,t.display_name,t.color,t.sort_order FROM conversation_lead_tags ct JOIN lead_tags t ON t.id=ct.tag_id WHERE ct.conversation_id=? AND t.is_active=1 ORDER BY t.sort_order,t.display_name,t.id');$q->execute([$id]);return$q->fetchAll();}
+    public static function outcomeForConversation(int $id): array{$q=ConversationDb::connection()->prepare('SELECT lead_outcome,lead_close_reason,lead_outcome_note,lead_outcome_updated_at,lead_outcome_manager_id FROM conversations WHERE id=? LIMIT 1');$q->execute([$id]);$r=$q->fetch()?:[];return ['outcome'=>(string)($r['lead_outcome']?:'open'),'close_reason'=>$r['lead_close_reason']?:null,'note'=>$r['lead_outcome_note']?:null,'updated_at'=>$r['lead_outcome_updated_at']?:null,'manager_id'=>$r['lead_outcome_manager_id']?:(null)];}
+    public static function decorateConversationRows(array $rows): array{if(!$rows)return[];$sm=[];foreach(self::stages(false) as $s)$sm[(string)$s['stage_key']]=$s;$ids=array_values(array_unique(array_filter(array_map(fn($r)=>(int)($r['id']??0),$rows))));$tm=[];if($ids){$in=implode(',',array_fill(0,count($ids),'?'));$q=ConversationDb::connection()->prepare("SELECT ct.conversation_id,t.id,t.tag_key,t.display_name,t.color,t.sort_order FROM conversation_lead_tags ct JOIN lead_tags t ON t.id=ct.tag_id WHERE ct.conversation_id IN ({$in}) AND t.is_active=1 ORDER BY t.sort_order,t.display_name,t.id");$q->execute($ids);foreach($q->fetchAll() as $t)$tm[(int)$t['conversation_id']][]=$t;}foreach($rows as &$r){$id=(int)($r['id']??0);$r['lead_stage']=$sm[(string)($r['lead_stage_key']??'new')]??null;$r['lead_tags']=$tm[$id]??[];}unset($r);return$rows;}
+    public static function setStage(int $id,string $key): bool{$key=trim($key);if($id<=0||$key==='')return false;$q=ConversationDb::connection()->prepare('SELECT 1 FROM lead_stages WHERE stage_key=? AND is_active=1 LIMIT 1');$q->execute([$key]);if(!$q->fetchColumn())return false;$q=ConversationDb::connection()->prepare('UPDATE conversations SET lead_stage_key=? WHERE id=?');$q->execute([$key,$id]);return$q->rowCount()>0||self::currentStageKey($id)===$key;}
+    public static function setTags(int $id,array $tagIds,int $actor=0): bool{if($id<=0)return false;$tagIds=array_values(array_unique(array_filter(array_map('intval',$tagIds),fn($v)=>$v>0)));$pdo=ConversationDb::connection();$pdo->beginTransaction();try{$valid=[];if($tagIds){$in=implode(',',array_fill(0,count($tagIds),'?'));$q=$pdo->prepare("SELECT id FROM lead_tags WHERE is_active=1 AND id IN ({$in})");$q->execute($tagIds);$valid=array_map('intval',array_column($q->fetchAll(),'id'));}$pdo->prepare('DELETE FROM conversation_lead_tags WHERE conversation_id=?')->execute([$id]);if($valid){$ins=$pdo->prepare('INSERT INTO conversation_lead_tags (conversation_id,tag_id,added_by_manager_id) VALUES (?,?,?)');foreach($valid as $tid)$ins->execute([$id,$tid,$actor>0?$actor:null]);}$pdo->commit();return count($valid)===count($tagIds);}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}}
+    public static function setOutcome(int $id,string $outcome,?string $reason,?string $note,int $actor): bool{$outcome=trim($outcome);if(!array_key_exists($outcome,self::outcomeOptions()))return false;$reason=trim((string)$reason);$note=trim((string)$note);if($outcome==='lost'&&!array_key_exists($reason,self::closeReasonOptions()))return false;if($outcome!=='lost')$reason='';if(mb_strlen($note)>500)$note=mb_substr($note,0,500);$q=ConversationDb::connection()->prepare('UPDATE conversations SET lead_outcome=?,lead_close_reason=?,lead_outcome_note=?,lead_outcome_updated_at=NOW(),lead_outcome_manager_id=? WHERE id=?');$q->execute([$outcome,$reason!==''?$reason:null,$note!==''?$note:null,$actor>0?$actor:null,$id]);return$q->rowCount()>0;}
+    public static function conversationSnapshot(int $id): array{return ['stage'=>self::stageForConversation($id),'tags'=>self::tagsForConversation($id),'outcome'=>self::outcomeForConversation($id)];}
+    private static function currentStageKey(int $id): string{$q=ConversationDb::connection()->prepare('SELECT lead_stage_key FROM conversations WHERE id=? LIMIT 1');$q->execute([$id]);return(string)($q->fetchColumn()?:'');}
 }
