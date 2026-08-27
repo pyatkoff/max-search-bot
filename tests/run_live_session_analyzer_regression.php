@@ -20,6 +20,16 @@ lsCheck('detects tours opened',!empty($r['tours_opened']));
 lsCheck('detects truly rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
 lsCheck('drop point is tours opened',$r['drop_point']==='tours_opened');
 
+$phoneMessages=[['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837','created_at'=>'2026-08-24 20:03:10']];
+$phoneResult=LiveSessionAnalyzer::analyze($c,$phoneMessages,[]);
+lsCheck('bare 7-prefixed Russian phone is detected',!empty($phoneResult['phone_received']));
+$phoneMessages[0]['text']='+7 (915) 896-68-37';
+$phoneResult=LiveSessionAnalyzer::analyze($c,$phoneMessages,[]);
+lsCheck('formatted +7 Russian phone stays detected',!empty($phoneResult['phone_received']));
+$phoneMessages[0]['text']='89158966837';
+$phoneResult=LiveSessionAnalyzer::analyze($c,$phoneMessages,[]);
+lsCheck('8-prefixed Russian phone stays detected',!empty($phoneResult['phone_received']));
+
 $slow=$m;
 $slow[0]['created_at']='2026-08-24 20:00:10';
 $slow[2]['created_at']='2026-08-24 20:01:00';
