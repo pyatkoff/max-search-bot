@@ -110,7 +110,10 @@ class ManagerPhoneFallbackService
 
         if (self::hasManagerReply($conversationId, $requestAt)) return ['eligible'=>false];
 
-        $q = $pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type='manager_phone_fallback_sent' AND created_at>=? ORDER BY id DESC LIMIT 1");
+        // One external fallback attempt per manager request. A failed delivery is terminal for
+        // that request too: retrying the same unreachable/suspended chat every cron minute only
+        // creates push/API noise and duplicate failure events without improving conversion.
+        $q = $pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed') AND created_at>=? ORDER BY id DESC LIMIT 1");
         $q->execute([$conversationId,$requestAt]);
         if ($q->fetchColumn()) return ['eligible'=>false];
 
