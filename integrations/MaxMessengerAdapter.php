@@ -39,12 +39,13 @@ class MaxMessengerAdapter implements MessengerInterface
         return $ok;
     }
 
-    public function sendMedia($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text = ''): bool
+    public function sendMedia($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text = '', string $previewUrl = ''): bool
     {
         $result = call_user_func($this->sendMedia, $chatId, $type, $filePath, $fileName, $mimeType, $text);
         if (!$result) return false;
         $preview = trim($text) !== '' ? $text : ConversationRecorder::attachmentPreview([['type'=>$type]]);
         $metadataAttachment = ['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
+        if(trim($previewUrl)!=='')$metadataAttachment['url']=trim($previewUrl);
         if (is_array($result) && !empty($result['attachment']['payload']['token'])) $metadataAttachment['token']=(string)$result['attachment']['payload']['token'];
         ConversationRecorder::outbound('max', $chatId, $preview, $this->senderType, ['attachments'=>[$metadataAttachment]]);
         return true;
