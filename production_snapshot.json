@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T23:02:57+00:00",
+    "generated_at": "2026-08-27T23:05:18+00:00",
     "production": {
-        "sha": "79c8fe42a902576dd68fe4bbe3a2482cac0620ef",
+        "sha": "a2ba8fe9476bc630dc8e13d4fa147912c7733dd3",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -248,7 +248,7 @@
         "pending_count": 3,
         "overdue_count": 3,
         "stuck_count": 3,
-        "oldest_wait_seconds": 19634,
+        "oldest_wait_seconds": 19775,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -258,7 +258,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 19:35:44",
-                "wait_seconds": 19634,
+                "wait_seconds": 19775,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -273,7 +273,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 20:43:24",
-                "wait_seconds": 15574,
+                "wait_seconds": 15715,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -288,7 +288,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 22:48:34",
-                "wait_seconds": 8064,
+                "wait_seconds": 8205,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -405,33 +405,6 @@
             "data": {
                 "dispatch_id": "acdd16fd63a30d1d",
                 "conversation_id": 480,
-                "eligible_manager_ids": [
-                    4
-                ],
-                "selected_manager_ids": [
-                    4
-                ],
-                "scores": {
-                    "4": 0
-                },
-                "score_breakdown": {
-                    "4": {
-                        "base": 0,
-                        "matched_rules": [],
-                        "final": 0
-                    }
-                },
-                "entry_channel": null
-            }
-        },
-        {
-            "ts": "2026-08-27T22:03:50+02:00",
-            "level": "info",
-            "component": "manager_priority",
-            "event": "push_selected",
-            "data": {
-                "dispatch_id": "402bba000cfefe59",
-                "conversation_id": 476,
                 "eligible_manager_ids": [
                     4
                 ],
