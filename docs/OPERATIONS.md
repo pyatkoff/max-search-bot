@@ -31,9 +31,25 @@ A successful deploy must include all of:
 
 Do not treat a diagnostics-download failure as a successful deployment.
 
+## Autopilot first read
+
+The diagnostics branch publishes `autopilot_snapshot.json` as the compact first-read artifact for autonomous work. It combines, without transcript text:
+- production SHA/branch;
+- migration count/pending/checksum state;
+- health flags;
+- manager response/push/visibility state;
+- handoff health;
+- current live-session funnel summary and flagged conversation IDs/reasons;
+- website smoke summary and ops status;
+- pointers to the detailed diagnostic files.
+
+Use this file to decide what detailed artifact to inspect next. It is an index/triage surface, not a replacement for message-level evidence.
+
+`tools/compose_autopilot_snapshot.php` composes it from the detailed production artifacts and deliberately excludes `recent_messages` and live `message_tail` content.
+
 ## Production snapshot
 
-`tools/production_snapshot.php` is the canonical machine-readable production snapshot generator. It already contains production SHA/branch, database/migration state, manager visibility/response/push health, handoff integrity, website attribution, recent messages/events and manager delivery failures.
+`tools/production_snapshot.php` is the canonical detailed machine-readable production snapshot generator. It contains production SHA/branch, database/migration state, manager visibility/response/push health, handoff integrity, website attribution, recent messages/events and manager delivery failures.
 
 Generated production diagnostics belong on the diagnostics artifact/branch, not in `main`.
 
