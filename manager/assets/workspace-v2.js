@@ -1,5 +1,5 @@
 (function(){
-const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null};
+const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 async function request(url,action,data={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,csrf:S.csrf,...data})});const j=await r.json().catch(()=>({ok:false}));if(r.status===401){location.href='index.php';throw new Error('unauthorized')}return j}
