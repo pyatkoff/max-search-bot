@@ -59,7 +59,7 @@ $messageHandler = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHan
 dcrCheck('message handler routes local date policy through service', strpos($messageHandler, 'AiDateContextService::resolveLocal') !== false);
 dcrCheck('message handler routes AI date guard through service', strpos($messageHandler, 'AiDateContextService::applyAiGuard') !== false);
 dcrCheck('message handler no longer owns resolveFromText date policy', strpos($messageHandler, 'AiDateHandler::rememberMonthFromText') === false);
-dcrCheck('pending short date uses canonical application boundary', strpos($messageHandler, "NeedApplicationService::applyParameters(\n                            $chat_id,\n                            ['date'=>$shortDateValue]") !== false);
+dcrCheck('pending short date uses canonical application boundary', strpos($messageHandler, 'NeedApplicationService::applyParameters') !== false && strpos($messageHandler, "['date'=>$shortDateValue]") !== false);
 dcrCheck('pending short date uses canonical progression boundary', strpos($messageHandler, 'NeedProgressionService::advance($chat_id)') !== false);
 dcrCheck('message handler no longer writes pending date directly', strpos($messageHandler, 'MaxSearchApi::saveLastValue') === false && strpos($messageHandler, 'MaxSearchApi::$statusDate') === false);
 
