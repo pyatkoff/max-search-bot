@@ -15,7 +15,7 @@ ldcCheck(
 );
 ldcCheck('simple unresolved destination does not return through repeated prompt branch',strpos($source,'if ($simpleLocal && !empty($missingLocal) && !$unresolvedDestination)')!==false);
 $guardPos=strpos($source,'$unresolvedDestination =');
-$shortAiPos=strpos($source,'ROUTE: SHORT_AI',$guardPos===false?0:$guardPos);
+$shortAiPos=strpos($source,"AiInvocationService::invoke('SHORT_AI'",$guardPos===false?0:$guardPos);
 ldcCheck('unresolved destination falls through to SHORT_AI',$guardPos!==false && $shortAiPos!==false && $shortAiPos>$guardPos);
 ldcCheck('ordinary resolved missing fields keep deterministic prompt path',strpos($source,'$missingLocal,')!==false && strpos($source,"['month_only'=>\$localMonthOnly]")!==false);
 
