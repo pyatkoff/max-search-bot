@@ -1,35 +1,35 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T18:05:53+00:00",
+    "generated_at": "2026-08-27T18:13:22+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 28,
-        "started": 28,
-        "needs_collected": 26,
-        "tours_opened": 25,
-        "manager_requested": 3,
-        "manager_replied": 2,
+        "sessions": 29,
+        "started": 29,
+        "needs_collected": 27,
+        "tours_opened": 26,
+        "manager_requested": 4,
+        "manager_replied": 3,
         "phone_received": 1,
-        "flagged_sessions": 17,
+        "flagged_sessions": 18,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 2,
+            "answered_after_90s": 3,
             "still_unanswered": 1,
-            "measured_responses": 2,
-            "avg_seconds": 21624,
+            "measured_responses": 3,
+            "avg_seconds": 14764,
             "max_seconds": 42727
         },
         "drop_points": {
             "tours_opened": 22,
+            "manager_replied": 3,
             "collecting_needs": 2,
-            "manager_replied": 2,
             "needs_collected": 1,
             "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 17,
-            "repeated_callback_input": 8,
+            "excessive_turns": 18,
+            "repeated_callback_input": 9,
             "repeated_same_input": 2,
             "rapid_date_reselection": 2,
             "manager_requested_no_reply": 1
@@ -3054,21 +3054,15 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 13,
-            "outbound_messages": 12,
+            "outbound_messages": 13,
             "date_picks": 1,
             "drop_point": "tours_opened",
             "flags": [
                 "excessive_turns"
             ],
             "started_at": "2026-08-27 19:56:04",
-            "last_message_at": "2026-08-27 19:57:31",
+            "last_message_at": "2026-08-27 20:09:02",
             "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-                    "created_at": "2026-08-27 19:56:04"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -3206,9 +3200,187 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-08-27 19:57:31"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-08-27 20:09:02"
+                }
+            ]
+        },
+        {
+            "conversation_id": 334,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "manager",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": true,
+            "manager_replied": true,
+            "manager_request_at": "2026-08-27 13:02:09",
+            "manager_first_reply_at": "2026-08-27 13:19:35",
+            "manager_response_seconds": 1046,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": false,
+            "inbound_messages": 14,
+            "outbound_messages": 10,
+            "date_picks": 0,
+            "drop_point": "manager_replied",
+            "flags": [
+                "repeated_callback_input",
+                "excessive_turns"
+            ],
+            "started_at": "2026-08-26 17:05:22",
+            "last_message_at": "2026-08-27 20:10:44",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Отдых в Турции октябрь. Все включено, с хорошим рейтингом",
+                    "created_at": "2026-08-26 17:05:22"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько будет взрослых туристов?",
+                    "created_at": "2026-08-26 17:05:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2 взрослых, ребенок 12 лет",
+                    "created_at": "2026-08-26 17:05:43"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-26 17:05:52"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Кемер",
+                    "created_at": "2026-08-26 17:07:14"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-26 17:07:17"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Анталия",
+                    "created_at": "2026-08-26 17:07:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-26 17:07:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "9",
+                    "created_at": "2026-08-26 17:07:30"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая ориентировочная дата вылета?",
+                    "created_at": "2026-08-26 17:07:35"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "5 октября",
+                    "created_at": "2026-08-26 17:07:48"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр. + 1 реб. (12 лет) 🏨 от 4★ 🍽 Все Включено 🌙 9 ночей 📅 02.10.2026 — 08.10.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-26 17:07:51"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-26 17:08:45"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+                    "created_at": "2026-08-26 17:08:45"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-08-26 17:19:03"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "manager_after_tours",
+                    "created_at": "2026-08-27 15:02:09"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "👩‍💼 <b>Передаю запрос менеджеру</b> Параметры поездки уже сохранены — повторно заполнять ничего не нужно. Менеджер сейчас онлайн и ответит прямо в этом чате. Номер телефона оставлять не нужно.",
+                    "created_at": "2026-08-27 15:02:09"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 15:02:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Ирина, здравствуйте! Меня зовут Светлана, я менеджер туристического агентства AnyTour. Вы интересовались турами на нашем сайте. Подскажите, какие пожелания к отдыху и бюджету? Я подберу подходящие варианты, сориентирую по всем деталям и помогу с организацией Вашего отдыха.",
+                    "created_at": "2026-08-27 15:19:35"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 20:10:32"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 20:10:35"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 20:10:39"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 20:10:43"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-27 20:10:44"
                 }
             ]
         }
     ],
-    "since_utc": "2026-08-27 17:05:53"
+    "since_utc": "2026-08-27 17:13:22"
 }
