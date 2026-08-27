@@ -22,6 +22,13 @@ class ManagerHandoffContextService
         return trim($summary);
     }
 
+    public static function firstReplyGuidance(): string
+    {
+        return "💬 Первый ответ менеджера\n"
+            . "Параметры выше уже собраны ботом. Не просите туриста повторять пожелания. "
+            . "Подтвердите, что видите запрос, и уточните только то, чего действительно не хватает — обычно бюджет или особые пожелания.";
+    }
+
     public static function hasManagerReply(array $messages): bool
     {
         foreach ($messages as $message) {
