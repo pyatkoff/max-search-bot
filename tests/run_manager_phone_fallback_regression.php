@@ -22,7 +22,8 @@ mpfCheck('outside-hours copy promises next working period',strpos(ManagerRequest
 mpfCheck('outside-hours copy preserves self-service route',strpos(ManagerRequestService::outsideHoursMessageText(),'вернуться к вариантам туров')!==false,true);
 
 $serviceSource=(string)file_get_contents(__DIR__ . '/../services/ManagerPhoneFallbackService.php');
-$actionSource=(string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
+$dispatchSource=(string)file_get_contents(__DIR__ . '/../services/ManagerHandoffDispatchService.php');
+$callbackSource=(string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');
 $viewSource=(string)file_get_contents(__DIR__ . '/../services/DialogueView.php');
 $cronSource=(string)file_get_contents(__DIR__ . '/../cron_followup.php');
 mpfCheck('service considers waiting and already-taken conversations',strpos($serviceSource,"c.status IN ('waiting_manager','manager')")!==false,true);
@@ -32,8 +33,9 @@ mpfCheck('successful fallback is idempotently marked',strpos($serviceSource,"'ma
 mpfCheck('sent or failed fallback suppresses repeat',strpos($serviceSource,"event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed')")!==false,true);
 mpfCheck('failed delivery is recorded once as terminal attempt',strpos($serviceSource,"'manager_phone_fallback_failed'")!==false && strpos($serviceSource,'One external fallback attempt per manager request')!==false,true);
 mpfCheck('existing phone suppresses fallback',strpos($serviceSource,"['UF_PHONE']")!==false,true);
-mpfCheck('manager request online claim is gated by working hours',strpos($actionSource,'if ($withinWorkingHours && $conversation)')!==false,true);
-mpfCheck('outside hours select truthful handoff copy',strpos($actionSource,'!$withinWorkingHours')!==false && strpos($viewSource,"outside_hours_text")!==false,true);
+mpfCheck('manager handoff online claim is gated by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
+mpfCheck('callback handoff uses same availability dispatch as AI path',strpos($callbackSource,'ManagerHandoffDispatchService::dispatch')!==false,true);
+mpfCheck('outside hours select truthful handoff copy',strpos($dispatchSource,'!$withinWorkingHours')!==false && strpos($viewSource,"outside_hours_text")!==false,true);
 mpfCheck('cron executes manager phone fallback',strpos($cronSource,'ManagerPhoneFallbackService::runDue($now)')!==false,true);
 mpfCheck('cron reports fallback outcome',strpos($cronSource,'manager_phone_sent=')!==false,true);
 
