@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T15:40:57+00:00",
+    "generated_at": "2026-08-27T15:43:32+00:00",
     "production": {
-        "sha": "2a68c7a63f9ed4672fe2fced58db7d3219b30ef5",
+        "sha": "f665bb37bf43b8a91d62c3af18675922b6c06169",
         "branch": "main"
     },
     "database": {
@@ -114,7 +114,7 @@
         "customers": 451,
         "customer_channels": 451,
         "conversations": 452,
-        "messages": 12194,
+        "messages": 12199,
         "managers": 5,
         "manager_assignments": 100,
         "conversation_events": 869,
@@ -1018,6 +1018,51 @@
     ],
     "recent_messages": [
         {
+            "id": 12199,
+            "conversation_id": 451,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-27 17:43:03"
+        },
+        {
+            "id": 12198,
+            "conversation_id": 452,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-27 17:41:13"
+        },
+        {
+            "id": 12197,
+            "conversation_id": 452,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-27 17:41:13"
+        },
+        {
+            "id": 12196,
+            "conversation_id": 452,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Россия 👥 2 взр., без детей 🏨 Категория не важна 🍽 Полупансион 🌙 6-8 ночей 📅 04.09.2026 — 10.09.2026 Что удобнее дальше?",
+            "created_at": "2026-08-27 17:41:02"
+        },
+        {
+            "id": 12195,
+            "conversation_id": 452,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_07.09.2026",
+            "created_at": "2026-08-27 17:41:02"
+        },
+        {
             "id": 12194,
             "conversation_id": 452,
             "direction": "outbound",
@@ -1511,51 +1556,6 @@
             "channel": "max",
             "text": "pick_date_07.09.2026",
             "created_at": "2026-08-27 17:31:49"
-        },
-        {
-            "id": 12139,
-            "conversation_id": 451,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-08-27 17:31:49"
-        },
-        {
-            "id": 12138,
-            "conversation_id": 451,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-27 17:31:45"
-        },
-        {
-            "id": 12137,
-            "conversation_id": 451,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "14",
-            "created_at": "2026-08-27 17:31:45"
-        },
-        {
-            "id": 12136,
-            "conversation_id": 450,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-27 17:31:37"
-        },
-        {
-            "id": 12135,
-            "conversation_id": 450,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Сентябрь",
-            "created_at": "2026-08-27 17:31:37"
         }
     ],
     "recent_events": [
