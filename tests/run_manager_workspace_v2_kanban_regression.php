@@ -15,7 +15,7 @@ kbCheck('workspace exposes list and board toggle',strpos($workspace,'id="listVie
 kbCheck('kanban mode is explicit UI state',strpos($core,"viewMode:'list'")!==false&&strpos($kanban,"S.viewMode=mode")!==false&&strpos($kanban,"mode==='kanban'")!==false);
 kbCheck('board reuses existing filtered lead list',strpos($inbox,'async function fetchRows()')!==false&&strpos($kanban,'WorkspaceV2Inbox')!==false&&strpos($inbox,"if(S.viewMode==='kanban')")!==false);
 kbCheck('board groups only by business pipeline stage',strpos($kanban,'S.pipeline.stages')!==false&&strpos($kanban,'lead_stage?.stage_key')!==false&&strpos($kanban,'technical_status')===false&&strpos($kanban,'statusText(')===false);
-kbCheck('list exposes centralized pipeline edit permission',strpos($api,"['can_edit_pipeline']=ManagerRequestContext::canEditAssignedConversation")!==false);
+kbCheck('list exposes centralized pipeline edit permission',strpos($api,"\$row['can_edit_pipeline']=ManagerRequestContext::canEditAssignedConversation")!==false);
 kbCheck('editable cards expose explicit stage selector',strpos($kanban,'c.can_edit_pipeline')!==false&&strpos($kanban,'kanbanStageSelect')!==false&&strpos($kanban,"pipe('set_stage'")!==false);
 kbCheck('stage selector uses configured business stages only',strpos($kanban,'S.pipeline.stages||[]')!==false&&strpos($kanban,'stage_key')!==false&&strpos($kanban,"'manager'")===false&&strpos($kanban,"'waiting_manager'")===false);
 kbCheck('stage mutation keeps backend authorization gate',substr_count($api,"if(!$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403)")>=4&&strpos($api,"if($action==='set_stage'")!==false);
