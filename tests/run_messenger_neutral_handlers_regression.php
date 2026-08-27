@@ -34,7 +34,7 @@ mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($a
 mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
 
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
-mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedValueResolver', strpos($shortSource, 'NeedValueResolver::resolve($field, $lower)') !== false, true);
+mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedApplicationService', strpos($shortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false, true);
 mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
 mnhCheck('AiShortAnswerHandler has no direct MealParser call', strpos($shortSource, 'MealParser::parse(') === false, true);
 mnhCheck('shared NightsParser still accepts week as nights', NightsParser::parse('неделя'), '7');

@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/DialogueView.php';
-require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
+require_once dirname(__DIR__) . '/services/NeedApplicationService.php';
 
 class AiShortAnswerHandler
 {
@@ -24,38 +24,43 @@ class AiShortAnswerHandler
         $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
 
         $params = [];
+        $appliedField = false;
 
         if ($field === 'adults' || $field === 'stars' || $field === 'meal' || $field === 'nights') {
-            $resolved = NeedValueResolver::resolve($field, $lower);
-            if (empty($resolved['recognized'])) return false;
-            $params[$field] = $resolved['value'];
+            $result = NeedApplicationService::resolveAndApply($chat_id, $field, $lower);
+            if (empty($result['recognized']) || empty($result['applied'])) return false;
+            $params[$field] = $result['value'];
+            $appliedField = true;
         }
         elseif ($field === 'children') {
             $partyClarification = self::partyClarificationWhileAskingChildren($lower);
             $ageCountClarification = self::childAgeCountClarificationWhileAskingChildren($lower);
             if ($partyClarification !== null) {
                 $params = $partyClarification;
+                $applied = NeedApplicationService::applyParameters($chat_id, $params);
+                $appliedField = !empty($applied[$field]);
             } elseif ($ageCountClarification !== null) {
                 $params = $ageCountClarification;
+                $applied = NeedApplicationService::applyParameters($chat_id, $params);
+                $appliedField = !empty($applied[$field]);
             } else {
-                $resolved = NeedValueResolver::resolve('children', $lower);
-                if (empty($resolved['recognized'])) return false;
-                $params['children'] = $resolved['value'];
+                $result = NeedApplicationService::resolveAndApply($chat_id, 'children', $lower);
+                if (empty($result['recognized']) || empty($result['applied'])) return false;
+                $params['children'] = $result['value'];
+                $appliedField = true;
             }
         }
         elseif ($field === 'child_ages') {
             $current = MaxSearchApi::getAiSearchContext($chat_id);
-            $resolved = NeedValueResolver::resolve('child_ages', $lower, [
+            $result = NeedApplicationService::resolveAndApply($chat_id, 'child_ages', $lower, [
                 'children'=>(int)($current['children'] ?? 0),
             ]);
-            if (empty($resolved['recognized'])) return false;
-            $params['child_ages'] = $resolved['value'];
+            if (empty($result['recognized']) || empty($result['applied'])) return false;
+            $params['child_ages'] = $result['value'];
+            $appliedField = true;
         }
 
-        if (empty($params)) return false;
-
-        $applied = MaxSearchApi::applyAiParameters($chat_id, $params);
-        if (empty($applied[$field])) return false;
+        if (empty($params) || !$appliedField) return false;
 
         MaxSearchApi::funnelLog($chat_id, 'ai_short_answer', [
             'field' => $field,
