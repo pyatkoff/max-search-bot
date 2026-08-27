@@ -52,6 +52,7 @@ checks=(
   'php tests/run_manager_media_regression.php'
   'php tests/run_sales_pipeline_foundation_regression.php'
   'php tests/run_manager_workspace_v2_regression.php'
+  'php tests/run_manager_workspace_v2_notifications_regression.php'
   'php tests/run_manager_workspace_v2_outcome_regression.php'
   'php tests/run_lead_task_regression.php'
   'php tests/run_deploy_diagnostics_contract_regression.php'
