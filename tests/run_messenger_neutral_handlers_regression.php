@@ -79,22 +79,23 @@ $wizardViewSource = (string)file_get_contents(__DIR__ . '/../services/WizardStep
 mnhCheck('WizardStepView uses active messenger', strpos($wizardViewSource, 'IntegrationRegistry::messenger()->sendWithButtons(') !== false, true);
 mnhCheck('WizardStepView has no direct Max transport', strpos($wizardViewSource, 'MaxSearchApi::MaxSend') === false, true);
 
-$editSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/EditCallbackAction.php');
-mnhCheck('Edit menu avoids legacy showEditParamsButtons', strpos($editSource, 'MaxSearchApi::showEditParamsButtons(') === false, true);
-mnhCheck('Edit meal avoids legacy showMealButtons', strpos($editSource, 'MaxSearchApi::showMealButtons(') === false, true);
-mnhCheck('Edit nights avoids legacy showNightsButtons', strpos($editSource, 'MaxSearchApi::showNightsButtons(') === false, true);
-mnhCheck('Edit date avoids legacy showCalendarButtons', strpos($editSource, 'MaxSearchApi::showCalendarButtons(') === false, true);
-mnhCheck('Edit menu uses EditParamsView', strpos($editSource, 'EditParamsView::show(') !== false, true);
-mnhCheck('Edit date uses DialogueView calendar', strpos($editSource, 'DialogueView::calendar(') !== false, true);
+$editActionSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/EditCallbackAction.php');
+mnhCheck('Edit menu avoids legacy showEditParamsButtons', strpos($editActionSource, 'MaxSearchApi::showEditParamsButtons(') === false, true);
+mnhCheck('Edit meal avoids legacy showMealButtons', strpos($editActionSource, 'MaxSearchApi::showMealButtons(') === false, true);
+mnhCheck('Edit nights avoids legacy showNightsButtons', strpos($editActionSource, 'MaxSearchApi::showNightsButtons(') === false, true);
+mnhCheck('Edit date avoids legacy showCalendarButtons', strpos($editActionSource, 'MaxSearchApi::showCalendarButtons(') === false, true);
+mnhCheck('Edit menu uses EditParamsView', strpos($editActionSource, 'EditParamsView::menu(') !== false, true);
+mnhCheck('Edit date uses DialogueView calendar', strpos($editActionSource, 'DialogueView::calendar(') !== false, true);
 
-$editParamsSource = (string)file_get_contents(__DIR__ . '/../services/EditParamsView.php');
-mnhCheck('EditParamsView uses active messenger', strpos($editParamsSource, 'IntegrationRegistry::messenger()->sendWithButtons(') !== false, true);
-mnhCheck('EditParamsView has no direct Max transport', strpos($editParamsSource, 'MaxSearchApi::MaxSend') === false, true);
+$editViewSource = (string)file_get_contents(__DIR__ . '/../services/EditParamsView.php');
+mnhCheck('EditParamsView uses active messenger', strpos($editViewSource, 'IntegrationRegistry::messenger()->sendWithButtons(') !== false, true);
+mnhCheck('EditParamsView has no direct Max transport', strpos($editViewSource, 'MaxSearchApi::MaxSend') === false, true);
 
 $editFlowSource = (string)file_get_contents(__DIR__ . '/../services/EditFlowService.php');
 mnhCheck('EditFlowService returns through DialogueView check', strpos($editFlowSource, 'DialogueView::check(') !== false, true);
-mnhCheck('EditFlowService clears edit mode', strpos($editFlowSource, 'MaxSearchApi::clearEditMode(') !== false, true);
+mnhCheck('EditFlowService clears edit mode', strpos($editFlowSource, "MaxSearchApi::setEditMode(\$chatId, '')") !== false, true);
 
+$total = $passed + $failed;
 echo "\n--------------------------\n";
-echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
+echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);
