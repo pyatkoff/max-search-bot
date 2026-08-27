@@ -47,7 +47,7 @@ $params = LocalAiFallbackService::parameters('еГиПеТ', ['city'=>'Моск�
 localCheck('mixed-case Cyrillic country is recognized', $params['country'] ?? null, 'Египет');
 
 $source = (string)file_get_contents(__DIR__ . '/../services/LocalAiFallbackService.php');
-localCheck('country matching uses Unicode case-insensitive PCRE', strpos($source, "preg_quote($stem, '/')") !== false && strpos($source, "'/ui'") !== false, true);
+localCheck('country matching uses Unicode case-insensitive PCRE', strpos($source, 'preg_quote($stem, \'/\')') !== false && strpos($source, "'/ui'") !== false, true);
 
 $params = LocalAiFallbackService::parameters('На двоих без детей на неделю', ['city'=>'Казань']);
 localCheck('existing departure is not replaced', array_key_exists('city', $params), false);
