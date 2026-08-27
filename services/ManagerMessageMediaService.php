@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecorder.php';
 
 class ManagerMessageMediaService
 {
@@ -23,9 +24,22 @@ class ManagerMessageMediaService
             }));
         }
         foreach ($messages as &$message) {
-            $message['attachments'] = $mediaById[(int)($message['id'] ?? 0)] ?? [];
+            $attachments = $mediaById[(int)($message['id'] ?? 0)] ?? [];
+            $message['attachments'] = $attachments;
+            if ($attachments && self::isSyntheticAttachmentPreview($message, $attachments)) {
+                $message['text'] = '';
+            }
         }
         unset($message);
         return $messages;
+    }
+
+    public static function isSyntheticAttachmentPreview(array $message, array $attachments): bool
+    {
+        if ((string)($message['direction'] ?? '') !== 'outbound') return false;
+        if ((string)($message['sender_type'] ?? '') !== 'manager') return false;
+        $text = trim((string)($message['text'] ?? ''));
+        if ($text === '') return false;
+        return hash_equals(ConversationRecorder::attachmentPreview($attachments), $text);
     }
 }
