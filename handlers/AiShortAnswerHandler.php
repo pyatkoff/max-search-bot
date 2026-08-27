@@ -50,16 +50,11 @@ class AiShortAnswerHandler
         }
         elseif ($field === 'child_ages') {
             $current = MaxSearchApi::getAiSearchContext($chat_id);
-            $childrenCount = (int)($current['children'] ?? 0);
-            if ($childrenCount <= 0) return false;
-
-            preg_match_all('/\b(\d{1,2})\b/u', $lower, $m);
-            $ages = array_map('intval', $m[1] ?? []);
-            foreach ($ages as $age) {
-                if ($age < 0 || $age > 17) return false;
-            }
-            if (count($ages) !== $childrenCount) return false;
-            $params['child_ages'] = $ages;
+            $resolved = NeedValueResolver::resolve('child_ages', $lower, [
+                'children'=>(int)($current['children'] ?? 0),
+            ]);
+            if (empty($resolved['recognized'])) return false;
+            $params['child_ages'] = $resolved['value'];
         }
 
         if (empty($params)) return false;

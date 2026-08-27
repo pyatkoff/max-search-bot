@@ -32,6 +32,18 @@ nvrCheck('adults suffix form retained', $adultsSuffix['value'], 3);
 $adultsUnknown = NeedValueResolver::resolve('adults', 'семеро');
 nvrCheck('out of range adults stays unresolved', $adultsUnknown['recognized'], false);
 
+$childAges = NeedValueResolver::resolve('child_ages', '5 и 12', ['children'=>2]);
+nvrCheck('child ages recognized with expected count', $childAges['recognized'], true);
+nvrCheck('child ages canonical value', $childAges['value'], [5,12]);
+nvrCheck('child ages source is deterministic', $childAges['source'], 'deterministic:child_ages_parser');
+nvrCheck('child ages deterministic confidence', $childAges['confidence'], 1.0);
+$childAgesWrongCount = NeedValueResolver::resolve('child_ages', '5', ['children'=>2]);
+nvrCheck('child ages wrong count stays unresolved', $childAgesWrongCount['recognized'], false);
+$childAgesOutOfRange = NeedValueResolver::resolve('child_ages', '5 и 18', ['children'=>2]);
+nvrCheck('child ages out of range stays unresolved', $childAgesOutOfRange['recognized'], false);
+$childAgesNoContext = NeedValueResolver::resolve('child_ages', '5');
+nvrCheck('child ages without child count stays unresolved', $childAgesNoContext['recognized'], false);
+
 $stars = NeedValueResolver::resolve('stars', '4,5');
 nvrCheck('star set recognized', $stars['recognized'], true);
 nvrCheck('star set keeps minimum semantics', $stars['value'], 4);
@@ -64,12 +76,16 @@ nvrCheck('minimum-only nights stays unresolved', $nightsUnknown['recognized'], f
 nvrCheck('minimum-only nights has no invented value', $nightsUnknown['value'], null);
 
 $unsupported = NeedValueResolver::resolve('children', '2');
-nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
+nvrCheck('unmigrated children field remains explicitly unsupported', $unsupported, [
     'recognized' => false,
     'value' => null,
     'source' => 'unsupported',
     'confidence' => 0.0,
 ]);
+
+$handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+nvrCheck('AI child ages delegates to resolver', strpos($handlerSource, "NeedValueResolver::resolve('child_ages'") !== false, true);
+nvrCheck('AI child ages no longer owns numeric extraction', strpos($handlerSource, "preg_match_all('/\\b(\\d{1,2})\\b/u', $lower") === false, true);
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
