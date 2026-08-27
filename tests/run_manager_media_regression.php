@@ -51,6 +51,7 @@ $uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.ph
 $cacheSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMediaCache.php');
 $fileEndpointSource = (string)file_get_contents(__DIR__ . '/../manager/media-file.php');
 $mediaHydratorSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMessageMediaService.php');
+$contextSource = (string)file_get_contents(__DIR__ . '/../services/ManagerRequestContext.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
 mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
@@ -63,13 +64,14 @@ mediaCheck('MAX media upload is multipart data', strpos($transportSource, 'new C
 mediaCheck('MAX media send uses attachments payload', strpos($transportSource, '$body=[\'attachments\'=>[$attachment]]') !== false, true);
 mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSource, 'in_array($type,[\'video\',\'audio\'],true) ? $prefetchedToken') !== false, true);
 mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, '$channel!==\'max\'') !== false && strpos($outboundSource, '(int)$c[\'manager_id\']!==$managerId') !== false, true);
-mediaCheck('upload endpoint requires logged manager and csrf', strpos($uploadSource, 'ManagerAuthService::byId') !== false && strpos($uploadSource, 'hash_equals') !== false, true);
+mediaCheck('upload endpoint uses shared manager session and csrf context', strpos($uploadSource, 'ManagerRequestContext::startSession()') !== false && strpos($uploadSource, 'ManagerRequestContext::manager()') !== false && strpos($uploadSource, 'ManagerRequestContext::validCsrf') !== false, true);
+mediaCheck('media endpoints no longer duplicate session cookie policy', strpos($uploadSource, 'session_set_cookie_params') === false && strpos($fileEndpointSource, 'session_set_cookie_params') === false && strpos($contextSource, "session_name('anytour_manager_panel')") !== false, true);
 mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
 mediaCheck('successful manager upload creates private preview cache', strpos($uploadSource, 'ManagerMediaCache::store') !== false, true);
 mediaCheck('failed MAX send removes unused cached preview', strpos($uploadSource, 'ManagerMediaCache::remove') !== false, true);
 mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$metadataAttachment[\'url\']=trim($previewUrl)') !== false, true);
 mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
-mediaCheck('preview endpoint requires authenticated manager', strpos($fileEndpointSource, 'ManagerAuthService::byId') !== false, true);
+mediaCheck('preview endpoint uses shared authenticated manager context', strpos($fileEndpointSource, 'ManagerRequestContext::manager()') !== false && strpos($fileEndpointSource, 'ManagerRequestContext::managerId()') !== false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
 mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
