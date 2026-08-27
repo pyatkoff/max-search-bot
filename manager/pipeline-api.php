@@ -1,89 +1,13 @@
 <?php
-session_name('anytour_manager_panel');
-session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-session_start();
-
-$baseDir=dirname(__DIR__);
-require_once $baseDir.'/config.php';
-require_once $baseDir.'/maxsearchclass.php';
-require_once $baseDir.'/services/ManagerAuthService.php';
-require_once $baseDir.'/services/ManagerConversationService.php';
-require_once $baseDir.'/services/SalesPipelineService.php';
-
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
-
-function pipelineOut(array $data,int $status=200):void{http_response_code($status);echo json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);exit;}
-function pipelineBody():array{$raw=(string)file_get_contents('php://input');$v=json_decode($raw,true);return is_array($v)?$v:[];}
-function pipelineManager():?array{$id=(int)($_SESSION['manager_id']??0);return $id?ManagerAuthService::byId($id):null;}
-function pipelineCsrf():string{return(string)($_SESSION['csrf']??'');}
-function pipelineRequireCsrf(array $data):void{$expected=pipelineCsrf();if($expected===''||!hash_equals($expected,(string)($data['csrf']??'')))pipelineOut(['ok'=>false,'error'=>'csrf'],403);}
-function pipelineConversation(int $conversationId,int $managerId):?array{$detail=ManagerConversationService::detail($conversationId,$managerId);return $detail?(array)($detail['conversation']??[]):null;}
-function pipelineCanEdit(array $conversation,array $manager):bool{
-    if((string)($manager['role']??'manager')==='admin')return true;
-    return (int)($conversation['manager_id']??0)>0 && (int)($conversation['manager_id']??0)===(int)($manager['id']??0);
-}
-function pipelineTrip(array $conversation):array{
-    $chatId=$conversation['external_chat_id']??null;
-    if($chatId===null||$chatId==='')return[];
-    try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chatId):[];}catch(Throwable $ignored){return[];}
-}
-
-$data=pipelineBody();$action=(string)($data['action']??'');
-$m=pipelineManager();if(!$m)pipelineOut(['ok'=>false,'error'=>'unauthorized'],401);
-pipelineRequireCsrf($data);
-
-if($action==='catalog'){
-    pipelineOut(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true)]);
-}
-if($action==='list'){
-    $rows=ManagerConversationService::list(
-        (int)$m['id'],
-        (string)($data['queue']??'waiting'),
-        100,
-        (string)($data['project_key']??'*'),
-        '',
-        (string)($data['lead_stage_key']??''),
-        (int)($data['lead_tag_id']??0)
-    );
-    if(in_array((string)($data['queue']??'waiting'),['waiting','attention'],true)){
-        $rows=array_values(array_filter($rows,static function($row){return empty($row['delivery_failure_category']);}));
-    }
-    pipelineOut(['ok'=>true,'conversations'=>$rows]);
-}
-
-$conversationId=(int)($data['conversation_id']??0);
-$conversation=pipelineConversation($conversationId,(int)$m['id']);
-if(!$conversation)pipelineOut(['ok'=>false,'error'=>'not_found'],404);
-$canEdit=pipelineCanEdit($conversation,$m);
-
-if($action==='detail'){
-    pipelineOut([
-        'ok'=>true,
-        'can_edit_pipeline'=>$canEdit,
-        'pipeline'=>SalesPipelineService::conversationSnapshot($conversationId),
-        'trip'=>pipelineTrip($conversation),
-        'contact'=>['phone'=>$conversation['phone']??null,'email'=>$conversation['email']??null],
-        'source'=>[
-            'project'=>$conversation['project_name']??$conversation['project_key']??null,
-            'source'=>$conversation['source_name']??null,
-            'channel'=>$conversation['channel']??null,
-        ],
-        'handoff'=>[
-            'technical_status'=>$conversation['status']??null,
-            'manager_name'=>$conversation['manager_name']??null,
-        ],
-    ]);
-}
-if($action==='set_stage'){
-    if(!$canEdit)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);
-    $ok=SalesPipelineService::setStage($conversationId,(string)($data['stage_key']??''));
-    pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
-}
-if($action==='set_tags'){
-    if(!$canEdit)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);
-    $ok=SalesPipelineService::setTags($conversationId,(array)($data['tag_ids']??[]),(int)$m['id']);
-    pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
-}
-
+session_name('anytour_manager_panel');session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);session_start();
+$baseDir=dirname(__DIR__);require_once $baseDir.'/config.php';require_once $baseDir.'/maxsearchclass.php';require_once $baseDir.'/services/ManagerAuthService.php';require_once $baseDir.'/services/ManagerConversationService.php';require_once $baseDir.'/services/SalesPipelineService.php';header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');
+function pipelineOut(array $d,int $s=200):void{http_response_code($s);echo json_encode($d,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);exit;}function pipelineBody():array{$v=json_decode((string)file_get_contents('php://input'),true);return is_array($v)?$v:[];}function pipelineManager():?array{$id=(int)($_SESSION['manager_id']??0);return$id?ManagerAuthService::byId($id):null;}function pipelineCsrf():string{return(string)($_SESSION['csrf']??'');}function pipelineRequireCsrf(array $d):void{$e=pipelineCsrf();if($e===''||!hash_equals($e,(string)($d['csrf']??'')))pipelineOut(['ok'=>false,'error'=>'csrf'],403);}function pipelineConversation(int $id,int $mid):?array{$d=ManagerConversationService::detail($id,$mid);return$d?(array)($d['conversation']??[]):null;}function pipelineCanEdit(array $c,array $m):bool{if((string)($m['role']??'manager')==='admin')return true;return(int)($c['manager_id']??0)>0&&(int)($c['manager_id']??0)===(int)($m['id']??0);}function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat==='')return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
+$data=pipelineBody();$action=(string)($data['action']??'');$m=pipelineManager();if(!$m)pipelineOut(['ok'=>false,'error'=>'unauthorized'],401);pipelineRequireCsrf($data);
+if($action==='catalog')pipelineOut(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions()]);
+if($action==='list'){$rows=ManagerConversationService::list((int)$m['id'],(string)($data['queue']??'waiting'),100,(string)($data['project_key']??'*'),'',(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));if(in_array((string)($data['queue']??'waiting'),['waiting','attention'],true))$rows=array_values(array_filter($rows,fn($r)=>empty($r['delivery_failure_category'])));pipelineOut(['ok'=>true,'conversations'=>$rows]);}
+$id=(int)($data['conversation_id']??0);$c=pipelineConversation($id,(int)$m['id']);if(!$c)pipelineOut(['ok'=>false,'error'=>'not_found'],404);$can=pipelineCanEdit($c,$m);
+if($action==='detail')pipelineOut(['ok'=>true,'can_edit_pipeline'=>$can,'pipeline'=>SalesPipelineService::conversationSnapshot($id),'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null]]);
+if($action==='set_stage'){if(!$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);$ok=SalesPipelineService::setStage($id,(string)($data['stage_key']??''));pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:409);}
+if($action==='set_tags'){if(!$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);$ok=SalesPipelineService::setTags($id,(array)($data['tag_ids']??[]),(int)$m['id']);pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:409);}
+if($action==='set_outcome'){if(!$can)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);$ok=SalesPipelineService::setOutcome($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id']);pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:422);}
 pipelineOut(['ok'=>false,'error'=>'unknown_action'],400);
