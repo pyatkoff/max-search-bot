@@ -23,8 +23,27 @@ dsbCheck('date transient state can be cleared at session reset', PendingMonthSto
 
 $controller = (string)file_get_contents(__DIR__ . '/../services/CallbackController.php');
 dsbCheck('callback controller loads date transient-state boundary', strpos($controller, "handlers/AiDateHandler.php") !== false);
-dsbCheck('restart clears pending month before starting fresh session', preg_match("/if \(\$q === 'restart'\).*?AiDateHandler::clear\(\$chatId\);.*?deleteAllStatus\(\$chatId\).*?showStart\(\$chatId\)/s", $controller) === 1);
-dsbCheck('back phone full reset also clears pending month', preg_match("/if \(\$q === 'back_phone'\).*?AiDateHandler::clear\(\$chatId\);.*?deleteAllStatus\(\$chatId\)/s", $controller) === 1);
+
+$restartStart = strpos($controller, "if ($q === 'restart')");
+$restartEnd = $restartStart === false ? false : strpos($controller, "if ($q === 'back_phone')", $restartStart);
+$restartBlock = ($restartStart !== false && $restartEnd !== false) ? substr($controller, $restartStart, $restartEnd - $restartStart) : '';
+dsbCheck(
+    'restart clears pending month before starting fresh session',
+    strpos($restartBlock, 'AiDateHandler::clear($chatId);') !== false
+    && strpos($restartBlock, 'MaxSearchApi::deleteAllStatus($chatId);') !== false
+    && strpos($restartBlock, 'MaxSearchApi::showStart($chatId);') !== false
+    && strpos($restartBlock, 'AiDateHandler::clear($chatId);') < strpos($restartBlock, 'MaxSearchApi::deleteAllStatus($chatId);')
+);
+
+$backStart = strpos($controller, "if ($q === 'back_phone')");
+$backEnd = $backStart === false ? false : strpos($controller, 'InteractionGuard::reportSuppressed', $backStart);
+$backBlock = ($backStart !== false && $backEnd !== false) ? substr($controller, $backStart, $backEnd - $backStart) : '';
+dsbCheck(
+    'back phone full reset also clears pending month',
+    strpos($backBlock, 'AiDateHandler::clear($chatId);') !== false
+    && strpos($backBlock, 'MaxSearchApi::deleteAllStatus($chatId);') !== false
+    && strpos($backBlock, 'AiDateHandler::clear($chatId);') < strpos($backBlock, 'MaxSearchApi::deleteAllStatus($chatId);')
+);
 
 AiDateHandler::clear($chatId);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
