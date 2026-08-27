@@ -35,6 +35,7 @@ checks=(
   'php tests/run_calendar_view_model_regression.php'
   'php tests/run_tour_results_regression.php'
   'php tests/run_manager_request_regression.php'
+  'php tests/run_manager_request_context_regression.php'
   'php tests/run_manager_phone_fallback_regression.php'
   'php tests/run_manager_visibility_regression.php'
   'php tests/run_manager_delivery_failure_regression.php'
