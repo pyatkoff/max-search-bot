@@ -24,8 +24,8 @@ dsbCheck('date transient state can be cleared at session reset', PendingMonthSto
 $controller = (string)file_get_contents(__DIR__ . '/../services/CallbackController.php');
 dsbCheck('callback controller loads date transient-state boundary', strpos($controller, "handlers/AiDateHandler.php") !== false);
 
-$restartStart = strpos($controller, "if ($q === 'restart')");
-$restartEnd = $restartStart === false ? false : strpos($controller, "if ($q === 'back_phone')", $restartStart);
+$restartStart = strpos($controller, "if (\$q === 'restart')");
+$restartEnd = $restartStart === false ? false : strpos($controller, "if (\$q === 'back_phone')", $restartStart);
 $restartBlock = ($restartStart !== false && $restartEnd !== false) ? substr($controller, $restartStart, $restartEnd - $restartStart) : '';
 dsbCheck(
     'restart clears pending month before starting fresh session',
@@ -35,7 +35,7 @@ dsbCheck(
     && strpos($restartBlock, 'AiDateHandler::clear($chatId);') < strpos($restartBlock, 'MaxSearchApi::deleteAllStatus($chatId);')
 );
 
-$backStart = strpos($controller, "if ($q === 'back_phone')");
+$backStart = strpos($controller, "if (\$q === 'back_phone')");
 $backEnd = $backStart === false ? false : strpos($controller, 'InteractionGuard::reportSuppressed', $backStart);
 $backBlock = ($backStart !== false && $backEnd !== false) ? substr($controller, $backStart, $backEnd - $backStart) : '';
 dsbCheck(
