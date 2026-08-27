@@ -33,7 +33,8 @@ class ManagerLeadInboxService
         $text=html_entity_decode(strip_tags($text),ENT_QUOTES|ENT_HTML5,'UTF-8');$text=preg_replace('/^\s*✅\s*Готово!\s*Проверьте параметры\s*/ui','',$text)??$text;$text=preg_replace('/\s*Что удобнее дальше\?\s*$/ui','',$text)??$text;$text=preg_replace('/\s+/u',' ',$text)??$text;return trim($text);
     }
 
-    private static function originLabel(array $row): string
+    /** Canonical human-readable origin used across Manager Workspace V2 surfaces. */
+    public static function originLabel(array $row): string
     {
         $channel=strtoupper(trim((string)($row['channel']??'')));$source=trim((string)($row['source_name']??''));if($source!==''&&strpos($source,':')!==false){[, $short]=explode(':',$source,2);if(trim($short)!=='')$source=trim($short);}if($source==='')$source=trim((string)($row['project_name']??$row['project_key']??''));return trim($channel.($channel!==''&&$source!==''?' · ':'').$source);
     }
