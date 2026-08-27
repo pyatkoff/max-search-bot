@@ -38,6 +38,24 @@ $r = AiBusinessDefaultsService::apply(['parameters'=>['country'=>'Турция',
 abdCheck('explicit meal preserved', $r['parameters']['meal'] ?? null, 'breakfast');
 abdCheck('explicit stars preserved', $r['parameters']['stars'] ?? null, 5);
 
+$r = AiBusinessDefaultsService::apply(
+    ['parameters'=>[]],
+    'Из Москвы Хургада, Эль каусер, 2 чел предпочтительно пикальбатрос с 28 сентября +-',
+    []
+);
+abdCheck('live rich Hurghada request deterministically seeds Egypt', $r['parameters']['country'] ?? null, 'Египет');
+abdCheck('seeded Egypt receives existing meal default', $r['parameters']['meal'] ?? null, 'all_inclusive');
+abdCheck('seeded Egypt receives existing star default', $r['parameters']['stars'] ?? null, 4);
+
+$r = AiBusinessDefaultsService::apply(['parameters'=>[]], 'Хотим в Эль-Кусейр', ['city'=>'Москва']);
+abdCheck('El Quseir transliteration seeds Egypt', $r['parameters']['country'] ?? null, 'Египет');
+
+$r = AiBusinessDefaultsService::apply(['parameters'=>['country'=>'Турция']], 'Хургада или что-то похожее', ['city'=>'Москва']);
+abdCheck('explicit AI country is never overridden by resort hint', $r['parameters']['country'] ?? null, 'Турция');
+
+$r = AiBusinessDefaultsService::apply(['parameters'=>[]], 'Хургада', ['city'=>'Москва','country'=>'ОАЭ']);
+abdCheck('current country is never overridden by resort hint', array_key_exists('country', $r['parameters']), false);
+
 $r = AiBusinessDefaultsService::apply(['_error'=>true], 'Египет', []);
 abdCheck('error payload preserved', $r, ['_error'=>true]);
 
