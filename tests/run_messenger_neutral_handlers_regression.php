@@ -30,7 +30,7 @@ foreach ($files as $name => $file) {
 $shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 $progressionSource = (string)file_get_contents(__DIR__ . '/../services/NeedProgressionService.php');
 mnhCheck('AiShortAnswerHandler has no direct MaxSend', strpos($shortSource, 'MaxSearchApi::MaxSend(') === false, true);
-mnhCheck('AiShortAnswerHandler delegates progression to NeedProgressionService', strpos($shortSource, 'NeedProgressionService::continueAfterApplication(') !== false, true);
+mnhCheck('AiShortAnswerHandler delegates progression to NeedProgressionService', strpos($shortSource, 'NeedProgressionService::advance(') !== false, true);
 mnhCheck('NeedProgressionService routes next-question delivery through messenger-neutral service', strpos($progressionSource, 'MissingFieldQuestionService::sendForMissing(') !== false, true);
 mnhCheck('NeedProgressionService completes through DialogueView::check', strpos($progressionSource, 'DialogueView::check(') !== false, true);
 
