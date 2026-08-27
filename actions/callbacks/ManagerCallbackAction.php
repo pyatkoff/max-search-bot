@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/ConversationControlService.php';
+require_once dirname(__DIR__, 2) . '/services/ManagerHandoffDispatchService.php';
 require_once dirname(__DIR__, 2) . '/services/ProjectConfig.php';
 
 class ManagerCallbackAction
@@ -17,12 +18,23 @@ class ManagerCallbackAction
             MaxSearchApi::funnelLog($chatId, 'manager_request', ['source'=>$afterTours ? 'followup' : 'before_site']);
             if ($afterTours) MaxSearchApi::cancelToursFollowup($chatId);
             MaxSearchApi::queueMetrikaGoal($chatId, 'max_manager_request');
-            $sent = DialogueView::managerRequest($chatId, self::userName($query), $afterTours);
-            if ($sent) {
-                $platform = strtolower(trim((string)($query['_platform'] ?? ProjectConfig::get('messenger.provider','max'))));
-                ConversationControlService::markWaitingByChat($platform,$chatId,['from_tours'=>$afterTours,'source'=>'callback']);
+
+            $platform = strtolower(trim((string)($query['_platform'] ?? ProjectConfig::get('messenger.provider','max'))));
+            $handoff = ManagerHandoffDispatchService::dispatch(
+                $chatId,
+                $platform,
+                self::userName($query),
+                $afterTours
+            );
+            if ($handoff['sent']) {
+                ConversationControlService::markWaitingByChat($platform,$chatId,[
+                    'from_tours'=>$afterTours,
+                    'source'=>'callback',
+                    'manager_available'=>$handoff['manager_available'],
+                    'within_working_hours'=>$handoff['within_working_hours'],
+                ]);
             }
-            return $sent;
+            return (bool)$handoff['sent'];
         }
         if ($q === 'phone_manual') return DialogueView::manualPhone($chatId);
         return false;
