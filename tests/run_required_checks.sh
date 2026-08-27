@@ -63,6 +63,7 @@ checks=(
   'php tests/run_missing_field_questions_regression.php'
   'php tests/run_local_ai_fallback_regression.php'
   'php tests/run_ai_business_defaults_regression.php'
+  'php tests/run_ai_invocation_service_regression.php'
   'php tests/run_platform_boundary_regression.php'
   'php tests/run_shadow_dialogue_regression.php'
   'php tests/run_shadow_comparison_regression.php'
