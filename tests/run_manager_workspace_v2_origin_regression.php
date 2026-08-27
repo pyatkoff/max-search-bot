@@ -13,7 +13,7 @@ function originCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){e
 originCheck('origin label combines channel and source suffix',ManagerLeadInboxService::originLabel(['channel'=>'max','source_name'=>'project:max_2','project_name'=>'Duplicate project'])==='MAX · max_2');
 originCheck('origin label falls back to project when source missing',ManagerLeadInboxService::originLabel(['channel'=>'telegram','source_name'=>'','project_name'=>'tg_1'])==='TELEGRAM · tg_1');
 originCheck('detail API exposes canonical origin owner',strpos($api,"'origin_label'=>ManagerLeadInboxService::originLabel(\$c)")!==false);
-originCheck('lead card renders one human-readable source field',strpos($leadCard,"tripField('Источник',source.origin_label)")!==false&&strpos($leadCard,"tripField('Проект',source.project)")===false&&strpos($leadCard,"tripField('Канал',source.channel)")===false);
+originCheck('lead card renders one human-readable source field',substr_count($leadCard,'source.origin_label')>=1&&strpos($leadCard,'leadHeroSource')!==false&&strpos($leadCard,"tripField('Проект',source.project)")===false&&strpos($leadCard,"tripField('Канал',source.channel)")===false&&strpos($leadCard,'source.project')===false&&strpos($leadCard,'source.channel')===false);
 originCheck('raw detail metadata remains available without UI duplication',strpos($api,"'project'=>\$c['project_name']")!==false&&strpos($api,"'source'=>\$c['source_name']")!==false&&strpos($api,"'channel'=>\$c['channel']")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
