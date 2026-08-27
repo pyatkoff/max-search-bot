@@ -8,6 +8,7 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/maxsearchclass.php';
 require_once $baseDir.'/services/ManagerAuthService.php';
 require_once $baseDir.'/services/ManagerOutboundService.php';
+require_once $baseDir.'/services/ManagerMediaCache.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
@@ -30,7 +31,10 @@ $tmp=(string)($file['tmp_name']??'');if($tmp===''||!is_uploaded_file($tmp))media
 $name=trim(basename((string)($file['name']??'attachment')));$name=preg_replace('/[\x00-\x1F\x7F]+/u','',$name)?:'attachment';
 $mime='application/octet-stream';if(class_exists('finfo')){$finfo=new finfo(FILEINFO_MIME_TYPE);$detected=$finfo->file($tmp);if(is_string($detected)&&$detected!=='')$mime=$detected;}
 $caption=trim((string)($_POST['caption']??''));
-$ok=ManagerOutboundService::sendMedia($conversationId,$managerId,$tmp,$name,$mime,$caption);
+$preview=ManagerMediaCache::store($conversationId,$managerId,$tmp,$name,$mime);
+$previewUrl=is_array($preview)?(string)($preview['url']??''):'';
+$ok=ManagerOutboundService::sendMedia($conversationId,$managerId,$tmp,$name,$mime,$caption,$previewUrl);
 if($ok)mediaOut(['ok'=>true,'media_type'=>ManagerOutboundService::attachmentTypeForMime($mime)]);
+if(is_array($preview)&&!empty($preview['id']))ManagerMediaCache::remove((string)$preview['id']);
 $failure=ManagerOutboundService::lastFailure();
 mediaOut(['ok'=>false,'error'=>'delivery_failed','failure'=>$failure,'error_message'=>$failure?ManagerOutboundService::failureNotice($failure):'Медиа не доставлено'],409);

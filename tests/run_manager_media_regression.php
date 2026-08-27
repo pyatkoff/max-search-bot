@@ -37,12 +37,15 @@ mediaCheck('audio mime maps to audio', ManagerOutboundService::attachmentTypeFor
 mediaCheck('document mime maps to file', ManagerOutboundService::attachmentTypeForMime('application/pdf'), 'file');
 
 $adapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxIncomingAdapter.php');
+$maxAdapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxMessengerAdapter.php');
 $recorderSource = (string)file_get_contents(__DIR__ . '/../services/ConversationRecorder.php');
 $apiSource = (string)file_get_contents(__DIR__ . '/../manager/api.php');
 $panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
 $transportSource = (string)file_get_contents(__DIR__ . '/../services/MaxTransport.php');
 $outboundSource = (string)file_get_contents(__DIR__ . '/../services/ManagerOutboundService.php');
 $uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.php');
+$cacheSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMediaCache.php');
+$fileEndpointSource = (string)file_get_contents(__DIR__ . '/../manager/media-file.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
 mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
@@ -57,6 +60,12 @@ mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSo
 mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, '$channel!==\'max\'') !== false && strpos($outboundSource, '(int)$c[\'manager_id\']!==$managerId') !== false, true);
 mediaCheck('upload endpoint requires logged manager and csrf', strpos($uploadSource, 'ManagerAuthService::byId') !== false && strpos($uploadSource, 'hash_equals') !== false, true);
 mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
+mediaCheck('successful manager upload creates private preview cache', strpos($uploadSource, 'ManagerMediaCache::store') !== false, true);
+mediaCheck('failed MAX send removes unused cached preview', strpos($uploadSource, 'ManagerMediaCache::remove') !== false, true);
+mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$metadataAttachment[\'url\']=trim($previewUrl)') !== false, true);
+mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
+mediaCheck('preview endpoint requires authenticated manager', strpos($fileEndpointSource, 'ManagerAuthService::byId') !== false, true);
+mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
 
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
 exit($failed > 0 ? 1 : 0);

@@ -50,7 +50,7 @@ class ManagerOutboundService
         return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
     }
 
-    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption=''): bool
+    public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl=''): bool
     {
         self::$lastFailure=null;
         if(!is_file($filePath))return false;
@@ -67,7 +67,7 @@ class ManagerOutboundService
         $type=self::attachmentTypeForMime($mimeType);
         $adapter=new MaxMessengerAdapter(null,null,'manager');
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
-        $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption);
+        $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>'max','project_key'=>(string)$c['project_key'],'media_type'=>$type]);
             return true;
