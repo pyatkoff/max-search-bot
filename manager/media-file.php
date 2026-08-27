@@ -1,15 +1,12 @@
 <?php
-session_name('anytour_manager_panel');
-session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-session_start();
-
 $baseDir=dirname(__DIR__);
-require_once $baseDir.'/services/ManagerAuthService.php';
+require_once $baseDir.'/services/ManagerRequestContext.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerMediaCache.php';
+ManagerRequestContext::startSession();
 
-$managerId=(int)($_SESSION['manager_id']??0);
-$manager=$managerId?ManagerAuthService::byId($managerId):null;
+$managerId=ManagerRequestContext::managerId();
+$manager=ManagerRequestContext::manager();
 if(!$manager){http_response_code(401);exit;}
 $id=(string)($_GET['id']??'');$media=ManagerMediaCache::get($id);
 if(!$media){http_response_code(404);exit;}
