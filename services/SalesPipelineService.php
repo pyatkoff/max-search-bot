@@ -46,6 +46,33 @@ class SalesPipelineService
         return $q->fetchAll();
     }
 
+    public static function decorateConversationRows(array $rows): array
+    {
+        if(!$rows)return[];
+        $stageMap=[];
+        foreach(self::stages(false) as $stage)$stageMap[(string)$stage['stage_key']]=$stage;
+        $ids=array_values(array_unique(array_filter(array_map(static function($row){return(int)($row['id']??0);},$rows))));
+        $tagMap=[];
+        if($ids){
+            $in=implode(',',array_fill(0,count($ids),'?'));
+            $q=ConversationDb::connection()->prepare(
+                "SELECT ct.conversation_id,t.id,t.tag_key,t.display_name,t.color,t.sort_order "
+                ."FROM conversation_lead_tags ct JOIN lead_tags t ON t.id=ct.tag_id "
+                ."WHERE ct.conversation_id IN ({$in}) AND t.is_active=1 "
+                ."ORDER BY t.sort_order,t.display_name,t.id"
+            );
+            $q->execute($ids);
+            foreach($q->fetchAll() as $tag)$tagMap[(int)$tag['conversation_id']][]=$tag;
+        }
+        foreach($rows as &$row){
+            $id=(int)($row['id']??0);$key=(string)($row['lead_stage_key']??'new');
+            $row['lead_stage']=$stageMap[$key]??null;
+            $row['lead_tags']=$tagMap[$id]??[];
+        }
+        unset($row);
+        return$rows;
+    }
+
     public static function setStage(int $conversationId,string $stageKey): bool
     {
         $stageKey=trim($stageKey);
