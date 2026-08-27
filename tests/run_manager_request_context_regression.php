@@ -19,6 +19,8 @@ ctxCheck('existing csrf is preserved',ManagerRequestContext::csrf(true)==='token
 $source=(string)file_get_contents(dirname(__DIR__).'/services/ManagerRequestContext.php');
 $api=(string)file_get_contents(dirname(__DIR__).'/manager/api.php');
 $workspace=(string)file_get_contents(dirname(__DIR__).'/manager/workspace-v2.php');
+$admin=(string)file_get_contents(dirname(__DIR__).'/manager/admin.php');
+$routing=(string)file_get_contents(dirname(__DIR__).'/manager/routing.php');
 ctxCheck('session cookie policy stays centralized',strpos($source,"'path' => '/max-search/manager/'")!==false&&strpos($source,"'secure' => true")!==false&&strpos($source,"'httponly' => true")!==false&&strpos($source,"'samesite' => 'Lax'")!==false);
 ctxCheck('main manager API delegates session to shared context',strpos($api,'ManagerRequestContext::startSession()')!==false&&strpos($api,'session_set_cookie_params')===false);
 ctxCheck('main manager API delegates manager and csrf lookup',strpos($api,'ManagerRequestContext::manager()')!==false&&strpos($api,'ManagerRequestContext::csrf(true)')!==false&&strpos($api,'ManagerRequestContext::validCsrf')!==false);
@@ -26,5 +28,8 @@ ctxCheck('main manager API delegates admin role decision',strpos($api,'ManagerRe
 ctxCheck('login and me still return csrf tokens',strpos($api,"'csrf'=>csrf()")!==false&&substr_count($api,"'csrf'=>csrf()")>=2);
 ctxCheck('manager lifecycle actions remain intact',strpos($api,"\$action==='take'")!==false&&strpos($api,"\$action==='release'")!==false&&strpos($api,"\$action==='close'")!==false&&strpos($api,"\$action==='reopen'")!==false&&strpos($api,"\$action==='send'")!==false);
 ctxCheck('Workspace V2 shell delegates session to shared context',strpos($workspace,'ManagerRequestContext::startSession()')!==false&&strpos($workspace,'session_set_cookie_params')===false&&strpos($workspace,'session_start()')===false);
+ctxCheck('admin shell delegates session to shared context',strpos($admin,'ManagerRequestContext::startSession()')!==false&&strpos($admin,'session_set_cookie_params')===false&&strpos($admin,'session_start()')===false);
+ctxCheck('routing shell delegates session to shared context',strpos($routing,'ManagerRequestContext::startSession()')!==false&&strpos($routing,'session_set_cookie_params')===false&&strpos($routing,'session_start()')===false);
+ctxCheck('admin and routing still gate product actions through me/admin API contract',strpos($admin,"j.manager.role!=='admin'")!==false&&strpos($routing,"j.manager.role!=='admin'")!==false&&strpos($admin,"api('admin_snapshot')")!==false&&strpos($routing,"api('routing_snapshot'")!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
