@@ -1,8 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
-require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/NeedApplicationService.php';
-require_once dirname(__DIR__) . '/services/MissingFieldQuestionService.php';
+require_once dirname(__DIR__) . '/services/NeedProgressionService.php';
 
 class AiShortAnswerHandler
 {
@@ -69,13 +68,7 @@ class AiShortAnswerHandler
             'value' => $params[$field]
         ]);
 
-        $missingAfter = MaxSearchApi::getAiMissingFields($chat_id);
-        if (empty($missingAfter)) {
-            DialogueView::check($chat_id);
-            return true;
-        }
-
-        MissingFieldQuestionService::sendForMissing($chat_id, $missingAfter);
+        NeedProgressionService::advance($chat_id);
         return true;
     }
 
