@@ -1,13 +1,13 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T05:44:17+00:00",
+    "generated_at": "2026-08-27T05:51:57+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 16,
-        "started": 16,
-        "needs_collected": 9,
-        "tours_opened": 7,
+        "sessions": 17,
+        "started": 17,
+        "needs_collected": 10,
+        "tours_opened": 8,
         "manager_requested": 2,
         "manager_replied": 1,
         "phone_received": 0,
@@ -22,7 +22,7 @@
         },
         "drop_points": {
             "collecting_needs": 7,
-            "tours_opened": 6,
+            "tours_opened": 7,
             "needs_collected": 1,
             "manager_replied": 1,
             "manager_requested": 1
@@ -1607,6 +1607,29 @@
             "channel": "max",
             "status": "ai",
             "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 5,
+            "outbound_messages": 5,
+            "date_picks": 0,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-27 07:43:28",
+            "last_message_at": "2026-08-27 07:45:35"
+        },
+        {
+            "conversation_id": 386,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
             "needs_collected": false,
             "tours_opened": false,
             "manager_requested": false,
@@ -1616,14 +1639,14 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 1,
-            "outbound_messages": 1,
+            "inbound_messages": 4,
+            "outbound_messages": 4,
             "date_picks": 0,
             "drop_point": "collecting_needs",
             "flags": [],
-            "started_at": "2026-08-27 07:43:28",
-            "last_message_at": "2026-08-27 07:43:28"
+            "started_at": "2026-08-27 07:50:36",
+            "last_message_at": "2026-08-27 07:51:57"
         }
     ],
-    "since_utc": "2026-08-27 04:44:17"
+    "since_utc": "2026-08-27 04:51:57"
 }
