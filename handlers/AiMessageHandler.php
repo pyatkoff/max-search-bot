@@ -3,6 +3,8 @@ require_once(__DIR__ . '/../ai/AiRouter.php');
 require_once(__DIR__ . '/AiDateHandler.php');
 require_once(__DIR__ . '/../services/MissingFieldQuestionService.php');
 require_once(__DIR__ . '/../services/DialogueView.php');
+require_once(__DIR__ . '/../services/NeedApplicationService.php');
+require_once(__DIR__ . '/../services/NeedProgressionService.php');
 
 class AiMessageHandler
 {
@@ -41,42 +43,18 @@ class AiMessageHandler
                     }
                 }
 
-                // Если сейчас не хватает только возраста детей, короткий ответ
-                // разбираем детерминированно без AI: "5", "5 лет", "5, 8", "5 и 8".
+                // Если сейчас не хватает возраста детей, короткий ответ проходит через
+                // общий deterministic resolver/application/progression pipeline.
                 if (in_array('child_ages', $missingNow, true)) {
-                    $childrenCount = (int)($current['children'] ?? 0);
+                    $ageResult = NeedApplicationService::resolveAndApply(
+                        $chat_id,
+                        'child_ages',
+                        $userText,
+                        ['children'=>(int)($current['children'] ?? 0)]
+                    );
 
-                    $ageText = function_exists('mb_strtolower')
-                        ? mb_strtolower($userText, 'UTF-8')
-                        : strtolower($userText);
-
-                    preg_match_all('/\b(\d{1,2})\b/u', $ageText, $ageMatches);
-                    $ages = array_map('intval', $ageMatches[1] ?? []);
-
-                    $ages = array_values(array_filter(
-                        $ages,
-                        static function($age) {
-                            return $age >= 0 && $age <= 17;
-                        }
-                    ));
-
-                    if ($childrenCount > 0 && count($ages) === $childrenCount) {
-                        $ageValue = implode(', ', $ages);
-
-                        MaxSearchApi::saveLastValue(
-                            $chat_id,
-                            MaxSearchApi::$statusAge,
-                            $ageValue
-                        );
-
-                        $missingAfterAge = MaxSearchApi::getAiMissingFields($chat_id);
-
-                        if (empty($missingAfterAge)) {
-                            DialogueView::check($chat_id);
-                        } else {
-                            MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterAge);
-                        }
-
+                    if (!empty($ageResult['recognized']) && !empty($ageResult['applied'])) {
+                        NeedProgressionService::advance($chat_id);
                         return;
                     }
                 }
