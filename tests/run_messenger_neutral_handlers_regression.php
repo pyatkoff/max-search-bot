@@ -17,7 +17,6 @@ function mnhCheck(string $name, $actual, $expected): void {
 
 $files = [
     'StateMessageHandler' => __DIR__ . '/../handlers/StateMessageHandler.php',
-    'AiShortAnswerHandler' => __DIR__ . '/../handlers/AiShortAnswerHandler.php',
     'DepartureRouteAdviceHandler' => __DIR__ . '/../handlers/DepartureRouteAdviceHandler.php',
 ];
 
@@ -28,12 +27,15 @@ foreach ($files as $name => $file) {
     mnhCheck($name . ' uses messenger abstraction', strpos($source, 'IntegrationRegistry::messenger()->send(') !== false, true);
 }
 
+$shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+mnhCheck('AiShortAnswerHandler has no direct MaxSend', strpos($shortSource, 'MaxSearchApi::MaxSend(') === false, true);
+mnhCheck('AiShortAnswerHandler routes next-question delivery through messenger-neutral service', strpos($shortSource, 'MissingFieldQuestionService::sendForMissing(') !== false, true);
+
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
 mnhCheck('AiMessageHandler has no direct MaxSend', strpos($aiMessageSource, 'MaxSearchApi::MaxSend(') === false, true);
 mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($aiMessageSource, 'MaxSearchApi::showCheckButtons(') === false, true);
 mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
 
-$shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedApplicationService', strpos($shortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false, true);
 mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
 mnhCheck('AiShortAnswerHandler has no direct MealParser call', strpos($shortSource, 'MealParser::parse(') === false, true);
