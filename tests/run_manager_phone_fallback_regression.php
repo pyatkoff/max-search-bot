@@ -27,6 +27,10 @@ $callbackSource=(string)file_get_contents(__DIR__ . '/../actions/callbacks/Manag
 $viewSource=(string)file_get_contents(__DIR__ . '/../services/DialogueView.php');
 $cronSource=(string)file_get_contents(__DIR__ . '/../cron_followup.php');
 mpfCheck('service considers waiting and already-taken conversations',strpos($serviceSource,"c.status IN ('waiting_manager','manager')")!==false,true);
+mpfCheck('candidate query applies five-minute cutoff before limit',strpos($serviceSource,'e.created_at<=FROM_UNIXTIME(?)')!==false,true);
+mpfCheck('terminal fallback attempts are excluded before candidate limit',strpos($serviceSource,"terminal.event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed')")!==false && strpos($serviceSource,"JSON_EXTRACT(terminal.payload_json,'$.request_event_id')")!==false,true);
+mpfCheck('already-replied requests are excluded before candidate limit',strpos($serviceSource,"mr.sender_type='manager'")!==false && strpos($serviceSource,'mr.created_at>=e.created_at')!==false,true);
+mpfCheck('candidate query uses prepared cutoff timestamp',strpos($serviceSource,'$q->execute([$now - self::DELAY_SECONDS])')!==false,true);
 mpfCheck('service serializes concurrent fallback attempts',strpos($serviceSource,'GET_LOCK(?,0)')!==false && strpos($serviceSource,'RELEASE_LOCK(?)')!==false,true);
 mpfCheck('manager reply suppresses fallback',substr_count($serviceSource,'self::hasManagerReply(')>=2,true);
 mpfCheck('successful fallback is idempotently marked',strpos($serviceSource,"'manager_phone_fallback_sent'")!==false,true);
