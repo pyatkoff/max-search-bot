@@ -39,11 +39,12 @@ $model = ManagerRequestService::prepare(10,'Pavel',false);
 mrCheck('existing claim is reused',MaxSearchApi::$saveCalls,0);
 mrCheck('default back callback',$model['back_callback'],'back_check');
 mrCheck('manual callback',$model['manual_callback'],'phone_manual');
-mrCheck('offline text mentions manager',strpos($model['text'],'менеджеру')!==false,true);
-mrCheck('offline text asks for phone',strpos($model['text'],'номером телефона')!==false,true);
+mrCheck('legacy phone text remains available for explicit phone flows',strpos($model['text'],'номером телефона')!==false,true);
 mrCheck('online text says manager is online',strpos($model['online_text'],'сейчас онлайн')!==false,true);
 mrCheck('online text does not require phone',strpos($model['online_text'],'оставлять не нужно')!==false,true);
-mrCheck('fallback text available',strpos($model['fallback_text'],'не успел ответить')!==false,true);
+mrCheck('working wait text confirms queue handoff',strpos($model['working_wait_text'],'рабочую очередь')!==false,true);
+mrCheck('working wait text does not require phone',strpos($model['working_wait_text'],'номер телефона сейчас не нужен')!==false,true);
+mrCheck('fallback text available after no reply',strpos($model['fallback_text'],'не успел ответить')!==false,true);
 mrCheck('outside-hours text available',strpos($model['outside_hours_text'],'следующий рабочий период')!==false,true);
 
 MaxSearchApi::$claim = null;
@@ -92,9 +93,11 @@ mrCheck('AI manager action delegates presentation to shared dispatch',strpos($ma
 mrCheck('callback manager action delegates presentation to shared dispatch',strpos($callbackActionSource,'ManagerHandoffDispatchService::dispatch')!==false,true);
 mrCheck('callback no longer bypasses availability with direct manager request view',strpos($callbackActionSource,'DialogueView::managerRequest($chatId, self::userName($query), $afterTours)')===false,true);
 mrCheck('shared dispatch checks live manager availability',strpos($dispatchSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
-mrCheck('shared dispatch gates availability by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
-mrCheck('shared dispatch online handoff stays in chat without phone request',strpos($dispatchSource,"(string)\$model['online_text']")!==false && strpos($dispatchSource,'sendWithButtons')!==false,true);
-mrCheck('shared dispatch offline path keeps truthful contact request view',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,'!$withinWorkingHours')!==false,true);
+mrCheck('shared dispatch gates availability lookup by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
+mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"\$model['working_wait_text']")!==false,true);
+mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"\$managerAvailable ? \$model['online_text'] : \$model['working_wait_text']")!==false,true);
+mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false,true);
+mrCheck('five-minute fallback remains separate from initial handoff',strpos($dispatchSource,'ManagerPhoneFallbackService')===false,true);
 mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>\$handoff['manager_available']")!==false,true);
 
 $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');

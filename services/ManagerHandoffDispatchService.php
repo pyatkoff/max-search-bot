@@ -26,21 +26,26 @@ class ManagerHandoffDispatchService
             }
         }
 
-        if ($managerAvailable) {
+        if ($withinWorkingHours) {
+            // During the workday the manager request itself is the primary conversion.
+            // Availability is an operational hint, not a reason to block the handoff on phone.
+            // If nobody replies, the existing delayed fallback offers phone after 5 minutes.
             $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
             MaxSearchApi::deletePrevMessage($chatId);
             $buttons = [[['text'=>'↩️ Вернуться','callback_data'=>(string)$model['back_callback']]]];
             $sent = IntegrationRegistry::messenger()->sendWithButtons(
                 $chatId,
-                (string)$model['online_text'],
+                (string)($managerAvailable ? $model['online_text'] : $model['working_wait_text']),
                 $buttons
             );
         } else {
+            // Outside working hours phone remains optional and the copy is explicit about
+            // the next working period; self-service/tours remain available via Back.
             $sent = DialogueView::managerRequest(
                 $chatId,
                 $name,
                 $fromTours,
-                !$withinWorkingHours
+                true
             );
         }
 

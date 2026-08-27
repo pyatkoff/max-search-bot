@@ -25,6 +25,7 @@ class ManagerRequestService
             'back_callback'=>$fromTours ? 'tours_checked' : 'back_check',
             'text'=>self::messageText(),
             'online_text'=>self::onlineMessageText(),
+            'working_wait_text'=>self::workingWaitMessageText(),
             'fallback_text'=>self::fallbackMessageText(),
             'outside_hours_text'=>self::outsideHoursMessageText(),
         ];
@@ -42,6 +43,13 @@ class ManagerRequestService
         return "👩‍💼 <b>Передаю запрос менеджеру</b>\n\n"
             . "Параметры поездки уже сохранены — повторно заполнять ничего не нужно.\n"
             . "Менеджер сейчас онлайн и ответит прямо в этом чате. Номер телефона оставлять не нужно.";
+    }
+
+    public static function workingWaitMessageText(): string
+    {
+        return "👩‍💼 <b>Передаю запрос менеджеру</b>\n\n"
+            . "Параметры поездки уже сохранены — повторно заполнять ничего не нужно.\n"
+            . "Запрос уже передан в рабочую очередь. Ответ придёт прямо в этот чат — номер телефона сейчас не нужен.";
     }
 
     public static function fallbackMessageText(): string
