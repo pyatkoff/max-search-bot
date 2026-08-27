@@ -62,7 +62,7 @@ mediaCheck('upload endpoint requires logged manager and csrf', strpos($uploadSou
 mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
 mediaCheck('successful manager upload creates private preview cache', strpos($uploadSource, 'ManagerMediaCache::store') !== false, true);
 mediaCheck('failed MAX send removes unused cached preview', strpos($uploadSource, 'ManagerMediaCache::remove') !== false, true);
-mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, "$metadataAttachment['url']=trim($previewUrl)") !== false, true);
+mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$metadataAttachment[\'url\']=trim($previewUrl)') !== false, true);
 mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
 mediaCheck('preview endpoint requires authenticated manager', strpos($fileEndpointSource, 'ManagerAuthService::byId') !== false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
