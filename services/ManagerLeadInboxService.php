@@ -18,11 +18,14 @@ class ManagerLeadInboxService
         foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_overdue']=!empty($task['overdue']);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
     }
 
-    public static function filter(array $rows,string $outcome='',string $search=''): array
+    public static function filter(array $rows,string $outcome='',string $search='',string $taskFilter=''): array
     {
-        $outcome=trim($outcome);if(!in_array($outcome,['','open','won','lost'],true))$outcome='';$search=trim($search);
-        return array_values(array_filter($rows,static function(array $row)use($outcome,$search):bool{
-            if($outcome!==''&&(string)($row['lead_outcome']??'open')!==$outcome)return false;if($search==='')return true;
+        $outcome=trim($outcome);if(!in_array($outcome,['','open','won','lost'],true))$outcome='';$search=trim($search);$taskFilter=trim($taskFilter);if(!in_array($taskFilter,['','overdue','planned','none'],true))$taskFilter='';
+        return array_values(array_filter($rows,static function(array $row)use($outcome,$search,$taskFilter):bool{
+            if($outcome!==''&&(string)($row['lead_outcome']??'open')!==$outcome)return false;
+            $hasTask=trim((string)($row['next_task_title']??''))!=='';$overdue=!empty($row['next_task_overdue']);
+            if($taskFilter==='overdue'&&(!$hasTask||!$overdue))return false;if($taskFilter==='planned'&&(!$hasTask||$overdue))return false;if($taskFilter==='none'&&$hasTask)return false;
+            if($search==='')return true;
             $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??'',$row['next_task_title']??''],static fn($v)=>$v!==null&&$v!==''));
             return function_exists('mb_stripos')?mb_stripos($haystack,$search,0,'UTF-8')!==false:stripos($haystack,$search)!==false;
         }));
