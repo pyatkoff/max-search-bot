@@ -19,6 +19,11 @@ final class LiveSessionAnalyzer
         return (bool)preg_match('/^(?:pick_|month_change_|adult_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
     }
 
+    private static function containsPhone(string $text): bool
+    {
+        return (bool)preg_match('/(?<!\d)(?:\+7|7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u',$text);
+    }
+
     public static function analyze(array $conversation,array $messages,array $events=[]):array
     {
         $inbound=[];$outbound=[];$datePicks=0;$datePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
@@ -33,7 +38,7 @@ final class LiveSessionAnalyzer
                     if($ts!==null)$datePickTimes[]=$ts;
                 }
                 if($text==='show_tours')$showTours=true;
-                if(preg_match('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u',$text))$phone=true;
+                if(self::containsPhone($text))$phone=true;
                 if($text!==''){
                     if(self::isCallbackInput($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
                     else $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
