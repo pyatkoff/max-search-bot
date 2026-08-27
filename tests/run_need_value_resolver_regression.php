@@ -98,11 +98,11 @@ nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
 ]);
 
 $handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
-nvrCheck('AI children delegates simple values to resolver', strpos($handlerSource, "NeedValueResolver::resolve('children'") !== false, true);
+nvrCheck('AI children delegates simple values through application service', strpos($handlerSource, "NeedApplicationService::resolveAndApply(\$chat_id, 'children'") !== false, true);
 nvrCheck('AI children keeps multi-field party clarification before simple resolver', strpos($handlerSource, 'if ($partyClarification !== null)') !== false && strpos($handlerSource, 'elseif ($ageCountClarification !== null)') !== false, true);
 nvrCheck('AI children no longer owns generic short number parsing', strpos($handlerSource, 'numberFromShortText') === false, true);
-nvrCheck('AI child ages delegates to resolver', strpos($handlerSource, "NeedValueResolver::resolve('child_ages'") !== false, true);
-nvrCheck('AI child ages no longer owns numeric extraction', strpos($handlerSource, "preg_match_all('/\\b(\\d{1,2})\\b/u', $lower") === false, true);
+nvrCheck('AI child ages delegates through application service', strpos($handlerSource, "NeedApplicationService::resolveAndApply(\$chat_id, 'child_ages'") !== false, true);
+nvrCheck('AI child ages no longer owns numeric extraction', strpos($handlerSource, 'preg_match_all(\'/\\b(\\d{1,2})\\b/u\', $lower') === false, true);
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
