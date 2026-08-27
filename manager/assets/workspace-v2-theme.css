@@ -48,7 +48,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .outcomeBadge.won{background:var(--ws-success-soft);color:var(--ws-success)}.outcomeBadge.lost{background:var(--ws-danger-soft);color:var(--ws-danger)}
 .nextTask{background:var(--ws-surface-subtle);border:1px solid var(--ws-border)}.nextTask.overdue{background:var(--ws-danger-soft);border-color:#f3d2d2;color:var(--ws-danger)}
 .messages{scrollbar-gutter:stable}.msg{border:1px solid rgba(23,33,43,.06);box-shadow:var(--ws-shadow-sm)}
-.msg.customer{background:var(--ws-surface);border-bottom-left-radius:5px}.msg.ai{background:var(--ws-accent-soft);border-color:#d9eafa;border-bottom-right-radius:5px}.msg.manager{background:var(--ws-success-soft);border-color:#d3efdf;border-bottom-right-radius:5px}
+.msg.customer{background:var(--ws-surface);border-bottom-left-radius:5px}.msg.ai{background:var(--ws-accent-soft);border-color:#d9eafa;border-bottom-right-radius:5px}.msg.manager{background:#1f3447;color:#fff;border-color:#1f3447;border-bottom-right-radius:5px}
 .composer{border-color:var(--ws-border);background:rgba(255,255,255,.97);box-shadow:0 -6px 24px rgba(23,33,43,.04)}.composer textarea:focus{background:#fff}
 .leadCard{background:var(--ws-surface)}.section{border-color:var(--ws-border)}.sectionTitle{letter-spacing:-.005em}.label{color:var(--ws-muted)}.readonlyNote,.empty{color:var(--ws-muted)}
 .error{background:var(--ws-danger-soft);color:var(--ws-danger);border:1px solid #f3d2d2}
