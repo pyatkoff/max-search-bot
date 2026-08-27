@@ -1,12 +1,8 @@
 <?php
-session_name('anytour_manager_panel');
-session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-session_start();
-
 $baseDir = dirname(__DIR__);
 require_once $baseDir . '/config.php';
 require_once $baseDir . '/maxsearchclass.php';
-require_once $baseDir . '/services/ManagerAuthService.php';
+require_once $baseDir . '/services/ManagerRequestContext.php';
 require_once $baseDir . '/services/ManagerAvailabilityService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
@@ -17,16 +13,17 @@ require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
 require_once $baseDir . '/services/ManagerPriorityService.php';
+ManagerRequestContext::startSession();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 function out(array $data, int $status=200): void { http_response_code($status); echo json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
-function body(): array { $raw=(string)file_get_contents('php://input'); $v=json_decode($raw,true); return is_array($v)?$v:[]; }
-function manager(): ?array { $id=(int)($_SESSION['manager_id']??0); return $id?ManagerAuthService::byId($id):null; }
-function csrf(): string { if(empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex(random_bytes(24)); return (string)$_SESSION['csrf']; }
-function requireCsrf(array $data): void { if(!hash_equals(csrf(),(string)($data['csrf']??''))) out(['ok'=>false,'error'=>'csrf'],403); }
-function requireAdmin(array $m): void { if((string)($m['role']??'manager')!=='admin') out(['ok'=>false,'error'=>'forbidden'],403); }
+function body(): array { return ManagerRequestContext::jsonBody(); }
+function manager(): ?array { return ManagerRequestContext::manager(); }
+function csrf(): string { return ManagerRequestContext::csrf(true); }
+function requireCsrf(array $data): void { ManagerRequestContext::csrf(true); if(!ManagerRequestContext::validCsrf(isset($data['csrf'])?(string)$data['csrf']:null)) out(['ok'=>false,'error'=>'csrf'],403); }
+function requireAdmin(array $m): void { if(!ManagerRequestContext::isAdmin($m)) out(['ok'=>false,'error'=>'forbidden'],403); }
 function withoutSuspendedWaiting(array $rows): array {
     if(!$rows)return[];
     $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
@@ -43,7 +40,7 @@ if($action==='login'){
 }
 
 $m=manager(); if(!$m) out(['ok'=>false,'error'=>'unauthorized'],401);
-$isAdmin=(string)($m['role']??'manager')==='admin';
+$isAdmin=ManagerRequestContext::isAdmin($m);
 if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
 requireCsrf($data);
 
