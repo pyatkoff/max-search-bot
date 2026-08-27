@@ -9,6 +9,7 @@ find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php 
 
 checks=(
   'php tests/run_autopilot_operating_contract_regression.php'
+  'php tests/run_autopilot_snapshot_regression.php'
   'php tests/run_regression.php'
   'php tests/run_live_september_typo_regression.php'
   'php tests/run_ai_context_regression.php'
