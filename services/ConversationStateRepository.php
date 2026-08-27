@@ -100,7 +100,7 @@ class ConversationStateRepository
         return $row ? $row['UF_VALUE'] : false;
     }
 
-    public static function upsertValue($hlId, $chatId, $statusId, $value)
+    public static function upsertValue($hlId, $chatId, $statusId, $value, $startStatusId = 64)
     {
         $class = self::dataClass($hlId);
         $row = $class::getList([
@@ -109,7 +109,17 @@ class ConversationStateRepository
             'select'=>['ID'],
             'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$statusId],
         ])->fetch();
-        if ($row) {
+        $startRow = $class::getList([
+            'order'=>['ID'=>'desc'],
+            'limit'=>1,
+            'select'=>['ID'],
+            'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$startStatusId],
+        ])->fetch();
+
+        // savedData() intentionally ignores rows before the latest start marker.
+        // Reusing a pre-start row here would make a successful write immediately
+        // disappear from the current dialogue state and can loop the same question.
+        if ($row && self::shouldReuseValueRow($row['ID'] ?? 0, $startRow['ID'] ?? 0)) {
             $class::update($row['ID'], ['UF_VALUE'=>$value]);
             return 'updated';
         }
@@ -121,6 +131,13 @@ class ConversationStateRepository
             'UF_MESSID'=>'',
         ]);
         return 'inserted';
+    }
+
+    public static function shouldReuseValueRow($rowId, $startRowId): bool
+    {
+        $rowId = (int)$rowId;
+        $startRowId = (int)$startRowId;
+        return $rowId > 0 && ($startRowId <= 0 || $rowId > $startRowId);
     }
 
     public static function savedData($hlId, $chatId, $statusStart, $statusCheck)
