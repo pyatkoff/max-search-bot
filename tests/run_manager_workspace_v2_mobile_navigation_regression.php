@@ -23,6 +23,9 @@ mobileCheck('conversation delegates successful open to mobile owner',strpos($con
 mobileCheck('local conversation mutations do not create duplicate mobile history',substr_count($conversation,"mobileHistory:'none'")>=2);
 mobileCheck('conversation no longer owns mobile back or lead transition',strpos($conversation,"$('mobileBack').onclick")===false&&strpos($conversation,"$('mobileLeadBtn').onclick")===false&&strpos($conversation,"$('leadZone').onclick")===false);
 mobileCheck('lead card no longer owns mobile close transition',strpos($lead,"$('mobileLeadClose')")===false&&strpos($lead,"classList.remove('open')")===false);
+mobileCheck('reply drafts are scoped by conversation',strpos($conversation,'const drafts=new Map()')!==false&&strpos($conversation,'saveDraft(previous)')!==false&&strpos($conversation,'restoreDraft(S.current)')!==false);
+mobileCheck('reply draft never leaks after successful send',strpos($conversation,'drafts.delete(Number(S.current))')!==false&&strpos($conversation,"$('replyText').value=''")!==false);
+mobileCheck('typing and quick replies update the current draft',strpos($conversation,"reply.addEventListener('input',()=>{saveDraft();autoGrow()})")!==false&&strpos($conversation,"reply.value=b.dataset.reply||'';saveDraft()")!==false);
 mobileCheck('mobile CSS uses one explicit screen state model',strpos($mobileCss,'data-mobile-screen="inbox"')!==false&&strpos($mobileCss,'data-mobile-screen="conversation"')!==false&&strpos($mobileCss,'data-mobile-screen="lead"')!==false);
 mobileCheck('mobile viewport and safe area are stable',strpos($mobileCss,'100dvh')!==false&&strpos($mobileCss,'env(safe-area-inset-bottom)')!==false&&strpos($mobileCss,'overscroll-behavior')!==false);
 mobileCheck('reduced motion is respected',strpos($mobileCss,'prefers-reduced-motion:reduce')!==false);
