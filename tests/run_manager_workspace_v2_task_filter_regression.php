@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
+$root=dirname(__DIR__);
+$workspace=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
+$pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$api=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$passed=0;$failed=0;
+function tfCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
+tfCheck('workspace exposes task filter',strpos($workspace,'id="leadTaskFilter"')!==false&&strpos($workspace,'Просроченные')!==false&&strpos($workspace,'Запланированные')!==false&&strpos($workspace,'Без задачи')!==false);
+tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($pipeline,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
+tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
+tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
+$rows=[
+ ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1],
+ ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0],
+ ['id'=>3,'lead_outcome'=>'open','next_task_title'=>null,'next_task_overdue'=>0],
+];
+tfCheck('overdue filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1]);
+tfCheck('planned filter excludes overdue',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
+tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
+tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===3);
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
