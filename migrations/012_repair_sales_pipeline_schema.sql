@@ -30,7 +30,7 @@ SET @lead_stage_column_exists = (
 SET @lead_stage_column_sql = IF(
     @lead_stage_column_exists=0,
     'ALTER TABLE conversations ADD COLUMN lead_stage_key VARCHAR(32) NOT NULL DEFAULT ''new'' AFTER status',
-    'SELECT 1'
+    'DO 0'
 );
 PREPARE lead_stage_column_stmt FROM @lead_stage_column_sql;
 EXECUTE lead_stage_column_stmt;
@@ -43,7 +43,7 @@ SET @lead_stage_index_exists = (
 SET @lead_stage_index_sql = IF(
     @lead_stage_index_exists=0,
     'ALTER TABLE conversations ADD KEY idx_conversations_lead_stage (lead_stage_key,last_message_at)',
-    'SELECT 1'
+    'DO 0'
 );
 PREPARE lead_stage_index_stmt FROM @lead_stage_index_sql;
 EXECUTE lead_stage_index_stmt;
