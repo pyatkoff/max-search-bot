@@ -1,0 +1,64 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/ManagerAuthService.php';
+
+/** Shared HTTP/session authorization policy for manager interfaces. */
+final class ManagerRequestContext
+{
+    public static function startSession(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) return;
+        session_name('anytour_manager_panel');
+        session_set_cookie_params([
+            'lifetime'=>60*60*12,
+            'path'=>'/max-search/manager/',
+            'secure'=>true,
+            'httponly'=>true,
+            'samesite'=>'Lax',
+        ]);
+        session_start();
+    }
+
+    public static function managerId(): int
+    {
+        return (int)($_SESSION['manager_id'] ?? 0);
+    }
+
+    public static function manager(): ?array
+    {
+        $id=self::managerId();
+        return $id>0 ? ManagerAuthService::byId($id) : null;
+    }
+
+    public static function csrf(bool $create=false): string
+    {
+        if($create && empty($_SESSION['csrf'])) $_SESSION['csrf']=bin2hex(random_bytes(24));
+        return (string)($_SESSION['csrf'] ?? '');
+    }
+
+    public static function validCsrf(?string $provided): bool
+    {
+        $expected=self::csrf(false);
+        return $expected!=='' && hash_equals($expected,(string)$provided);
+    }
+
+    public static function isAdmin(array $manager): bool
+    {
+        return (string)($manager['role'] ?? 'manager') === 'admin';
+    }
+
+    public static function canEditAssignedConversation(array $conversation,array $manager): bool
+    {
+        if(self::isAdmin($manager)) return true;
+        $assigned=(int)($conversation['manager_id'] ?? 0);
+        return $assigned>0 && $assigned===(int)($manager['id'] ?? 0);
+    }
+
+    public static function jsonBody(): array
+    {
+        $value=json_decode((string)file_get_contents('php://input'),true);
+        return is_array($value)?$value:[];
+    }
+}
