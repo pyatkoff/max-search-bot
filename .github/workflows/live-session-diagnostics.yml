@@ -73,20 +73,25 @@ jobs:
           ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php 1' > live_sessions.json
           php -r '$j=json_decode(file_get_contents("live_sessions.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"live_session_snapshot_not_ok\n");exit(1);}'
+          php tools/compose_live_anomalies.php live_sessions.json > live_anomalies.json
+          php -r '$j=json_decode(file_get_contents("live_anomalies.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"live_anomalies_not_ok\n");exit(1);}'
 
       - name: Publish diagnostics
         shell: bash
         run: |
           set -euo pipefail
-          out="$RUNNER_TEMP/live_sessions.json"
-          cp live_sessions.json "$out"
-          rm -f live_sessions.json
+          sessions_out="$RUNNER_TEMP/live_sessions.json"
+          anomalies_out="$RUNNER_TEMP/live_anomalies.json"
+          cp live_sessions.json "$sessions_out"
+          cp live_anomalies.json "$anomalies_out"
+          rm -f live_sessions.json live_anomalies.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          cp "$out" live_sessions.json
-          git add live_sessions.json
+          cp "$sessions_out" live_sessions.json
+          cp "$anomalies_out" live_anomalies.json
+          git add live_sessions.json live_anomalies.json
           git commit -m "Update live session diagnostics" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
