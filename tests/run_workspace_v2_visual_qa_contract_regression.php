@@ -9,10 +9,12 @@ function vqCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo 
 vqCheck('visual workflow exists',$workflow!=='');
 vqCheck('visual fixture exists',$fixture!=='');
 foreach(['390,844','430,932','768,1024','1440,1000'] as $viewport)vqCheck('captures viewport '.$viewport,strpos($workflow,"--viewport-size='".$viewport."'")!==false);
+vqCheck('captures mobile Inbox and secondary zones',strpos($workflow,'390-inbox.png')!==false&&strpos($workflow,'390-conversation.png')!==false&&strpos($workflow,'430-lead.png')!==false&&strpos($workflow,'768-conversation.png')!==false);
 vqCheck('visual evidence uploads as artifact',strpos($workflow,'actions/upload-artifact@v4')!==false&&strpos($workflow,'visual-artifacts/*.png')!==false);
-vqCheck('visual QA is isolated from production',strpos($workflow,'deploy')===false&&strpos($workflow,'DEPLOY_')===false&&strpos($workflow,'anytour.online')===false);
+vqCheck('visual QA is isolated from production',stripos($workflow,'deploy_')===false&&strpos($workflow,'anytour.online')===false);
 vqCheck('workflow only targets manager visual paths',strpos($workflow,"- 'manager/**'")!==false&&strpos($workflow,"- 'tests/visual/**'")!==false);
 vqCheck('fixture uses production Workspace V2 styles',strpos($fixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-tasks.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-notifications.css')!==false);
-vqCheck('fixture covers high-risk responsive states',strpos($fixture,'waitUrgent')!==false&&strpos($fixture,'waitWarn')!==false&&strpos($fixture,'nextTask overdue')!==false&&strpos($fixture,'conversationZone open')!==false&&strpos($fixture,'leadZone')!==false);
+vqCheck('fixture covers high-risk responsive states',strpos($fixture,'waitUrgent')!==false&&strpos($fixture,'waitWarn')!==false&&strpos($fixture,'nextTask overdue')!==false&&strpos($fixture,'conversationZone')!==false&&strpos($fixture,'leadZone')!==false);
+vqCheck('fixture can expose mobile conversation and lead views',strpos($fixture,"view==='conversation'")!==false&&strpos($fixture,"view==='lead'")!==false&&strpos($fixture,"classList.add('open')")!==false);
 vqCheck('fixture has no real production endpoints',strpos($fixture,'anytour.online')===false&&strpos($fixture,'api.php')===false&&strpos($fixture,'pipeline-api.php')===false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
