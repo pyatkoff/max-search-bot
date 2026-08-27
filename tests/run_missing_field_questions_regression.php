@@ -39,6 +39,11 @@ $source = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php
 mfqCheck('AiMessageHandler has no direct MaxSend', strpos($source,'MaxSearchApi::MaxSend(') === false, true);
 mfqCheck('AiMessageHandler uses shared service', strpos($source,'MissingFieldQuestionService::sendForMissing') !== false, true);
 
+$shortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+mfqCheck('AiShortAnswerHandler uses shared missing-field progression', strpos($shortSource,'MissingFieldQuestionService::sendForMissing($chat_id, $missingAfter)') !== false, true);
+mfqCheck('AiShortAnswerHandler no longer owns duplicate question copy', strpos($shortSource,"'city'=>'Из какого города планируете вылет?'") === false, true);
+mfqCheck('AiShortAnswerHandler no longer sends next question directly', strpos($shortSource,'IntegrationRegistry::messenger()->send(') === false, true);
+
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
