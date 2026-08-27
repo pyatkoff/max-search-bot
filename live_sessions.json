@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T18:01:24+00:00",
+    "generated_at": "2026-08-27T18:09:49+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -3054,21 +3054,15 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 13,
-            "outbound_messages": 12,
+            "outbound_messages": 13,
             "date_picks": 1,
             "drop_point": "tours_opened",
             "flags": [
                 "excessive_turns"
             ],
             "started_at": "2026-08-27 19:56:04",
-            "last_message_at": "2026-08-27 19:57:31",
+            "last_message_at": "2026-08-27 20:09:02",
             "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-                    "created_at": "2026-08-27 19:56:04"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -3206,9 +3200,15 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-08-27 19:57:31"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-08-27 20:09:02"
                 }
             ]
         }
     ],
-    "since_utc": "2026-08-27 17:01:24"
+    "since_utc": "2026-08-27 17:09:49"
 }
