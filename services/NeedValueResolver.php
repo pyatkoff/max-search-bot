@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/AdultsParser.php';
+require_once __DIR__ . '/StarsParser.php';
 require_once __DIR__ . '/MealParser.php';
 require_once __DIR__ . '/NightsParser.php';
 
@@ -19,6 +21,16 @@ class NeedValueResolver
     public static function resolve(string $field, string $text, array $context = []): array
     {
         $field = trim($field);
+
+        if ($field === 'adults') {
+            $value = AdultsParser::parse($text);
+            return self::result($value !== null, $value, 'deterministic:adults_parser');
+        }
+
+        if ($field === 'stars') {
+            $value = StarsParser::parse($text);
+            return self::result($value !== null, $value, 'deterministic:stars_parser');
+        }
 
         if ($field === 'meal') {
             $value = MealParser::parse($text);
