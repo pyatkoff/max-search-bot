@@ -28,21 +28,15 @@ class AiMessageHandler
                     $shortDateValue = AiDateHandler::resolvePendingShortDate($chat_id, $userText);
 
                     if ($shortDateValue !== '') {
-                        MaxSearchApi::saveLastValue(
+                        $appliedPendingDate = NeedApplicationService::applyParameters(
                             $chat_id,
-                            MaxSearchApi::$statusDate,
-                            $shortDateValue
+                            ['date'=>$shortDateValue]
                         );
 
-                        $missingAfterDate = MaxSearchApi::getAiMissingFields($chat_id);
-
-                        if (empty($missingAfterDate)) {
-                            DialogueView::check($chat_id);
-                        } else {
-                            MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterDate);
+                        if (!empty($appliedPendingDate['date'])) {
+                            NeedProgressionService::advance($chat_id);
+                            return;
                         }
-
-                        return;
                     }
                 }
 
