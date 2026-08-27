@@ -8,7 +8,9 @@ $push=(string)file_get_contents($base.'/services/ManagerPushService.php');
 $snapshot=(string)file_get_contents($base.'/tools/production_snapshot.php');
 $sw=(string)file_get_contents($base.'/manager/sw.js');
 $enable=(string)file_get_contents($base.'/manager/push-enable.php');
+$pushEndpoint=(string)file_get_contents($base.'/manager/push.php');
 $statusEndpoint=(string)file_get_contents($base.'/manager/push-status.php');
+$context=(string)file_get_contents($base.'/services/ManagerRequestContext.php');
 $panel=(string)file_get_contents($base.'/manager/index.php');
 $passed=0;$failed=0;
 function mphCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -30,7 +32,8 @@ mphCheck('service worker repairs server push subscription',strpos($sw,'syncPushS
 mphCheck('service worker repairs subscription on activation',strpos($sw,"self.addEventListener('activate'")!==false && strpos($sw,'await syncPushSubscription()')!==false);
 mphCheck('service worker replaces stale VAPID subscription',strpos($sw,'applicationServerKey')!==false && strpos($sw,'await sub.unsubscribe()')!==false);
 mphCheck('push enable replaces stale VAPID subscription',strpos($enable,'applicationServerKey')!==false && strpos($enable,'await sub.unsubscribe()')!==false && strpos($enable,"action:'subscribe'")!==false);
-mphCheck('authenticated push status endpoint uses current session manager',strpos($statusEndpoint,"\$_SESSION['manager_id']")!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false);
+mphCheck('push endpoints reuse shared manager request context',strpos($pushEndpoint,'ManagerRequestContext::startSession()')!==false&&strpos($pushEndpoint,'ManagerRequestContext::manager()')!==false&&strpos($statusEndpoint,'ManagerRequestContext::startSession()')!==false&&strpos($statusEndpoint,'ManagerRequestContext::managerId()')!==false&&strpos($enable,'ManagerRequestContext::startSession()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
+mphCheck('authenticated push status endpoint uses current manager context',strpos($statusEndpoint,'ManagerRequestContext::managerId()')!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false);
 mphCheck('manager panel distinguishes working without push',strpos($panel,'В работе · Push недоступен')!==false && strpos($panel,'notification_path_usable===false')!==false);
 mphCheck('manager panel offers explicit push repair path',strpos($panel,'Push недоступен · Исправить')!==false && strpos($panel,"location.href='push-enable.php'")!==false);
 mphCheck('manager panel only claims push works when server path is usable',strpos($panel,"S.pushStatus?.notification_path_usable===true")!==false && strpos($panel,'🔔 Push работает')!==false);
