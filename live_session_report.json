@@ -1,13 +1,13 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T22:08:29+00:00",
+    "generated_at": "2026-08-27T22:14:21+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 18,
-        "started": 18,
-        "needs_collected": 14,
-        "tours_opened": 14,
+        "sessions": 17,
+        "started": 17,
+        "needs_collected": 13,
+        "tours_opened": 13,
         "manager_requested": 3,
         "manager_replied": 1,
         "phone_received": 1,
@@ -21,7 +21,7 @@
             "max_seconds": 38729
         },
         "drop_points": {
-            "tours_opened": 11,
+            "tours_opened": 10,
             "collecting_needs": 4,
             "manager_requested": 2,
             "manager_replied": 1
@@ -36,29 +36,6 @@
         }
     },
     "sessions": [
-        {
-            "conversation_id": 474,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 4,
-            "outbound_messages": 4,
-            "date_picks": 0,
-            "drop_point": "tours_opened",
-            "flags": [],
-            "started_at": "2026-08-27 21:11:08",
-            "last_message_at": "2026-08-27 21:13:11"
-        },
         {
             "conversation_id": 475,
             "project_key": "anytour",
@@ -2093,5 +2070,5 @@
             ]
         }
     ],
-    "since_utc": "2026-08-27 21:08:29"
+    "since_utc": "2026-08-27 21:14:21"
 }
