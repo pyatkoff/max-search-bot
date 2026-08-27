@@ -25,4 +25,23 @@ foreach ($cases as [$name, $input, $expected]) {
     $failed++;
 }
 
+$aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
+$sourceChecks = [
+    'AiMessageHandler loads NeedApplicationService' => strpos($aiMessageSource, 'NeedApplicationService.php') !== false,
+    'AiMessageHandler loads NeedProgressionService' => strpos($aiMessageSource, 'NeedProgressionService.php') !== false,
+    'AiMessageHandler resolves child ages through application boundary' => strpos($aiMessageSource, "NeedApplicationService::resolveAndApply(\n                        \$chat_id,\n                        'child_ages'") !== false,
+    'AiMessageHandler advances after deterministic child ages' => strpos($aiMessageSource, 'NeedProgressionService::advance($chat_id)') !== false,
+    'AiMessageHandler no longer owns numeric child-age extraction' => strpos($aiMessageSource, "preg_match_all('/\\b(\\d{1,2})\\b/u', \$ageText") === false,
+    'AiMessageHandler no longer writes child age directly' => strpos($aiMessageSource, 'MaxSearchApi::$statusAge') === false,
+];
+
+foreach ($sourceChecks as $name => $ok) {
+    if ($ok) {
+        echo "PASS  {$name}\n";
+        continue;
+    }
+    echo "FAIL  {$name}\n";
+    $failed++;
+}
+
 exit($failed ? 1 : 0);
