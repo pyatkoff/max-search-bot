@@ -6,12 +6,12 @@ This roadmap complements GitHub issue #55. It is intentionally incremental and m
 
 ### 1. Manager frontend monolith risk
 - `manager/index.php` is a legacy all-in-one PHP/CSS/JS screen.
-- `manager/workspace-v2.php` already combines shell, CSS, state, API calls, rendering and responsive behavior.
-- Action: extract V2 assets/modules before adding tasks, kanban and richer media UX.
+- Workspace V2 now has a thin PHP shell plus extracted CSS/JS after #183.
+- Action: split the extracted JS into focused modules only as features are touched; do not rebuild the frontend framework.
 
 ### 2. Manager API duplication
 - `manager/api.php`, `manager/pipeline-api.php`, media/push/admin endpoints repeat session/auth/CSRF/visibility patterns.
-- Action: introduce a shared manager HTTP bootstrap/authorization boundary, then migrate endpoints one by one.
+- Action: use `ManagerRequestContext` as the shared manager HTTP/session/authorization boundary and migrate endpoints one by one.
 
 ### 3. Dialogue business logic spans multiple generations
 - root legacy orchestration, handlers, actions/callbacks and services coexist.
@@ -26,16 +26,16 @@ Candidate clusters:
 - Dialogue: state, trip, parsers, need resolution/application, interaction guard, views.
 - Handoff: manager request, availability, dispatch, phone fallback, timeline/integrity.
 - Manager: auth, conversations, outbound/media, push, admin directory.
-- Sales: pipeline, future tasks/reminders/outcomes.
+- Sales: pipeline, tasks/reminders/outcomes.
 - Infrastructure: DB/migrations/logging/external adapters.
 
 ### 5. Authorization is easy to duplicate incorrectly
-- Workspace V2 already exposed how source-format-sensitive regression checks can hide actual permission behavior.
+- Workspace V2 exposed how source-format-sensitive regression checks can hide actual permission behavior.
 - Action: centralize `manager/admin`, visibility and ownership rules and test behavior rather than endpoint formatting.
 
 ### 6. Migration discipline needs explicit guardrails
 - partial/repaired pipeline migrations demonstrated the cost of changing already-recorded files.
-- Action: add repository documentation and required checks that applied migrations are immutable and new repairs are forward-only.
+- Action: keep applied migrations immutable and repairs forward-only; preserve required checksum/migration-runner checks.
 
 ### 7. Regression suite contains fragile source assertions
 - many tests are valuable, but some test exact source strings/formatting.
@@ -55,15 +55,16 @@ Candidate clusters:
 - [ ] Add architecture checks only where they protect important boundaries without coupling to formatting.
 
 ### Phase B — Manager Workspace V2 structural split
-- [ ] Extract Workspace V2 CSS to `manager/assets/workspace.css`.
-- [ ] Extract Workspace V2 JS to `manager/assets/workspace.js` without changing behavior.
-- [ ] Split JS into small modules only after the basic extraction is production-proven.
-- [ ] Introduce shared manager API bootstrap/session/CSRF helper.
-- [ ] Introduce shared manager conversation authorization helper.
+- [x] Extract Workspace V2 CSS to `manager/assets/workspace-v2.css` (#183).
+- [x] Extract Workspace V2 JS to `manager/assets/workspace-v2.js` without changing behavior (#183).
+- [ ] Split JS into small modules only as the relevant UI areas are touched.
+- [ ] Introduce shared manager API bootstrap/session/CSRF helper. `ManagerRequestContext` foundation is in #187; migrate remaining endpoints incrementally.
+- [ ] Introduce shared manager conversation authorization helper. Owner/admin pipeline edit authorization moves into `ManagerRequestContext` in #187; visibility/read access still needs consolidation.
 - [ ] Keep legacy manager UI operational until V2 feature parity and production verification.
 
 ### Phase C — Sales workflow product work on the new structure
-- [ ] Wire lead outcome (`open/won/lost`), close reason and note into Lead Card V2.
+- [x] Wire lead outcome (`open/won/lost`), close reason and note into Lead Card V2 (#181/#184).
+- [x] Make Inbox V2 lead-centric with outcome/search filters and batch projection (#186).
 - [ ] Add manager tasks/reminders with due/overdue inbox views.
 - [ ] Add admin-configurable pipeline stages/tags UI.
 - [ ] Add kanban only after list-mode stage management is stable.
@@ -80,18 +81,19 @@ Candidate clusters:
 ### Phase E — Handoff/routing consolidation
 - [ ] Inventory duplicated working-hours/availability/fallback decisions.
 - [ ] Keep one canonical handoff policy/application boundary.
-- [ ] Centralize owner/visibility rules shared by manager API and pipeline API.
+- [ ] Centralize owner/visibility rules shared by manager API and pipeline/media endpoints.
 - [ ] Continue structured request → selection → push → take → reply → delivery lifecycle.
 
 ### Phase F — Persistence and infrastructure cleanup
 - [ ] Inventory runtime DDL and eliminate remaining request-path schema mutation.
 - [ ] Review indexes for manager inbox pipeline filters/tasks and hot diagnostics queries.
+- [ ] Move search/outcome filtering closer to SQL only when data volume/latency evidence justifies it; current V2 batch projection avoids N+1 but still decorates a bounded candidate set in PHP.
 - [ ] Introduce repositories where direct SQL currently leaks into domain/application logic and causes duplication.
 - [ ] Keep simple direct queries where abstraction would add no value.
 
 ### Phase G — Test architecture cleanup
 - [ ] Tag/source-list tests by type: behavior, scenario, integration, static architecture.
-- [ ] Replace fragile formatting assertions in touched areas.
+- [ ] Replace fragile formatting assertions in touched areas. Workspace V2 ownership/outcome assertions have started moving to shared contracts in #187.
 - [ ] Keep production-derived live regression corpus bounded and reusable.
 - [ ] Add manager V2 behavior tests for permissions, outcome, tasks and filters.
 
@@ -120,8 +122,10 @@ Every touched backend area should ask:
 
 ## Immediate next sequence
 
-1. Finish production verification of lead outcomes migration/PR #181.
-2. Wire lead outcome UI into Workspace V2 if not already present.
-3. Extract Workspace V2 CSS/JS before adding reminders/kanban, so new UI work lands on a maintainable shell.
-4. Add manager tasks/reminders on the extracted V2 structure.
-5. Continue dialogue-core canonicalization in parallel only when no live/product-manager issue outranks it.
+1. Finish #187 and verify the shared manager request context in production.
+2. Migrate media endpoints to the shared manager request/session/CSRF boundary without changing media behavior.
+3. Migrate the main manager API bootstrap/admin checks incrementally, preserving login/session semantics.
+4. Add a caller/dependency inventory and identify safe legacy candidates before moving/deleting files.
+5. Review hot Inbox V2 queries/indexes before tasks/reminders add new due/overdue filters.
+6. Build tasks/reminders on the cleaned manager boundary, then add Kanban only after list-mode workflow is stable.
+7. Continue dialogue-core canonicalization in parallel only when no live/product-manager issue outranks it.
