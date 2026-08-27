@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-27T22:01:16+00:00",
+    "generated_at": "2026-08-27T22:05:36+00:00",
     "production": {
-        "sha": "1ff33ee92c877338b931148bd687a5e48a0ba0a8",
+        "sha": "2f6d02fc550eab22c96aed088e0a17439dfd2ead",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 15926,
+            "oldest_wait_seconds": 16184,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 15926,
+                    "wait_seconds": 16184,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 11866,
+                    "wait_seconds": 12124,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 4356,
+                    "wait_seconds": 4614,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -162,10 +162,10 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-27 21:01:12",
+        "since_utc": "2026-08-27 21:05:31",
         "summary": {
-            "sessions": 18,
-            "started": 18,
+            "sessions": 20,
+            "started": 20,
             "needs_collected": 15,
             "tours_opened": 15,
             "manager_requested": 3,
@@ -182,7 +182,7 @@
             },
             "drop_points": {
                 "tours_opened": 12,
-                "collecting_needs": 3,
+                "collecting_needs": 5,
                 "manager_requested": 2,
                 "manager_replied": 1
             },
@@ -325,13 +325,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "1ff33ee92c877338b931148bd687a5e48a0ba0a8",
+        "sha": "2f6d02fc550eab22c96aed088e0a17439dfd2ead",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-27T22:01:16Z"
+        "reported_at": "2026-08-27T22:05:36Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
