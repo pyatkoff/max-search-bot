@@ -39,13 +39,26 @@ class ManagerPhoneFallbackService
                     WHERE e2.conversation_id=c.id AND e2.event_type='waiting_manager'
                     ORDER BY e2.id DESC LIMIT 1
                 )
-                WHERE c.channel='max' AND c.status IN ('waiting_manager','manager')
+                WHERE c.channel='max'
+                  AND c.status IN ('waiting_manager','manager')
+                  AND e.created_at<=FROM_UNIXTIME(?)
+                  AND NOT EXISTS (
+                    SELECT 1 FROM conversation_events terminal
+                    WHERE terminal.conversation_id=c.id
+                      AND terminal.event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed')
+                      AND CAST(JSON_UNQUOTE(JSON_EXTRACT(terminal.payload_json,'$.request_event_id')) AS UNSIGNED)=e.id
+                  )
+                  AND NOT EXISTS (
+                    SELECT 1 FROM messages mr
+                    WHERE mr.conversation_id=c.id
+                      AND mr.direction='outbound'
+                      AND mr.sender_type='manager'
+                      AND mr.created_at>=e.created_at
+                  )
                 ORDER BY e.created_at ASC LIMIT {$limit}";
-        $rows = $pdo->query($sql)->fetchAll();
-        return array_values(array_filter($rows, static function (array $row) use ($now): bool {
-            $requestedAt = strtotime((string)($row['request_at'] ?? ''));
-            return $requestedAt > 0 && ($now - $requestedAt) >= self::DELAY_SECONDS;
-        }));
+        $q = $pdo->prepare($sql);
+        $q->execute([$now - self::DELAY_SECONDS]);
+        return $q->fetchAll();
     }
 
     public static function processCandidate(array $candidate, ?int $now = null): string
