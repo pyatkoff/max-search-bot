@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../services/DialogueView.php');
 require_once(__DIR__ . '/../services/NeedApplicationService.php');
 require_once(__DIR__ . '/../services/NeedProgressionService.php');
 require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
+require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
 
 class AiMessageHandler
 {
@@ -161,56 +162,8 @@ class AiMessageHandler
                 // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
-                // STEP 3: бизнес-дефолты. Стартовую ветку не трогаем.
-                if (is_array($ai) && empty($ai['_error'])) {
-                    if (!isset($ai['parameters']) || !is_array($ai['parameters'])) {
-                        $ai['parameters'] = [];
-                    }
-
-                    $p =& $ai['parameters'];
-
-                    // Если город вылета не указан — Москва.
-                    if (empty($p['city']) && empty($current['city'])) {
-                        $p['city'] = 'Москва';
-                    }
-
-                    // "вдвоём / вдвоем / на двоих" = 2 взрослых, без детей.
-                    $lt = function_exists('mb_strtolower')
-                        ? mb_strtolower((string)$userText, 'UTF-8')
-                        : strtolower((string)$userText);
-
-                    if (
-                        strpos($lt, 'вдвоём') !== false ||
-                        strpos($lt, 'вдвоем') !== false ||
-                        strpos($lt, 'на двоих') !== false
-                    ) {
-                        // Если человек говорит "на двоих", без упоминания детей,
-                        // считаем это двумя взрослыми без детей.
-                        if (empty($p['adults']) && empty($current['adults'])) {
-                            $p['adults'] = 2;
-                        }
-                        if (
-                            (!isset($p['children']) || $p['children'] === null || $p['children'] === '') &&
-                            !array_key_exists('children', $current)
-                        ) {
-                            $p['children'] = 0;
-                        }
-                    }
-
-                    $country = trim((string)($p['country'] ?? ($current['country'] ?? '')));
-                    $countryKey = function_exists('mb_strtolower')
-                        ? mb_strtolower($country, 'UTF-8')
-                        : strtolower($country);
-
-                    // Для Турции и Египта — разумные дефолты, если пользователь не указал другое.
-                    if (in_array($countryKey, ['турция','египет'], true)) {
-                        if (empty($p['meal']) && empty($current['meal'])) {
-                            $p['meal'] = 'all_inclusive';
-                        }
-                        if (empty($p['stars']) && empty($current['stars'])) {
-                            $p['stars'] = 4;
-                        }
-                    }
+                if (is_array($ai)) {
+                    $ai = AiBusinessDefaultsService::apply($ai, $userText, $current);
                 }
 
                 if (!is_array($ai) || !empty($ai['_error'])) {
