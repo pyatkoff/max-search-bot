@@ -84,7 +84,7 @@ class AiMessageHandler
                     $hadCurrentBeforeLocal = !empty($current);
 
                     if (!empty($localParams)) {
-                        $appliedLocal = MaxSearchApi::applyAiParameters($chat_id,$localParams);
+                        $appliedLocal = NeedApplicationService::applyParameters($chat_id, $localParams);
                         $current=MaxSearchApi::getAiSearchContext($chat_id);
                     } else {
                         $appliedLocal = [];
