@@ -21,8 +21,8 @@ spCheck('pending repair recreates missing tag storage',strpos($migration012,'CRE
 $normalApplyStart=strpos($runner,'$started = microtime(true);');
 $normalApply=$normalApplyStart===false?'':substr($runner,$normalApplyStart);
 $execPos=strpos($normalApply,'$this->pdo->exec($statement);');
-$recordPos=strpos($normalApply,"INSERT INTO schema_migrations (version,checksum,baseline,execution_ms)");
-spCheck('migration runner records only after statements succeed',$normalApply!=='' && $execPos!==false && $recordPos!==false && $execPos<$recordPos);
+$recordExecutePos=strpos($normalApply,'$q->execute([$version, $checksum, $elapsed]);');
+spCheck('migration runner records only after statements succeed',$normalApply!=='' && $execPos!==false && $recordExecutePos!==false && $execPos<$recordExecutePos);
 spCheck('tag catalog exists',strpos($migration011,'CREATE TABLE IF NOT EXISTS lead_tags')!==false);
 spCheck('many-to-many conversation tags exist',strpos($migration011,'CREATE TABLE IF NOT EXISTS conversation_lead_tags')!==false && strpos($migration011,'PRIMARY KEY (conversation_id,tag_id)')!==false);
 spCheck('service reads ordered active stages',strpos($service,'public static function stages')!==false && strpos($service,'ORDER BY sort_order,display_name,stage_key')!==false);
