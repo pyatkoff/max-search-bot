@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/DestinationHintService.php';
 
 class AiBusinessDefaultsService
 {
@@ -34,6 +35,10 @@ class AiBusinessDefaultsService
                 $p['children'] = 0;
             }
         }
+
+        // Rich requests bypass the short local fallback. Seed a country only from
+        // conservative resort hints when neither AI nor current state supplied one.
+        $p = DestinationHintService::seedCountry($p, $userText, $current);
 
         $country = trim((string)($p['country'] ?? ($current['country'] ?? '')));
         $countryKey = self::lower($country);
