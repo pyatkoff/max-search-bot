@@ -32,6 +32,9 @@ class LocalAiFallbackService
             $params['city'] = 'Москва';
         }
 
+        // Country recognition must not depend on mbstring being loaded in the
+        // production PHP binary. PCRE /ui gives us Unicode-aware case-insensitive
+        // matching for explicit short answers such as "Египет".
         $countries = [
             'турц'=>'Турция',
             'егип'=>'Египет',
@@ -45,7 +48,7 @@ class LocalAiFallbackService
             'хайнан'=>'Китай',
         ];
         foreach ($countries as $stem => $name) {
-            if (strpos($localText, $stem) !== false) {
+            if (preg_match('/'.preg_quote($stem, '/').'/ui', $userText)) {
                 $params['country'] = $name;
                 break;
             }
@@ -78,9 +81,8 @@ class LocalAiFallbackService
     {
         if (empty($params)) return $params;
 
-        $country = $params['country'] ?? ($current['country'] ?? '');
-        $countryKey = self::lower((string)$country);
-        if (in_array($countryKey, ['турция','египет'], true)) {
+        $country = (string)($params['country'] ?? ($current['country'] ?? ''));
+        if (preg_match('/^(?:турция|египет)$/ui', trim($country))) {
             if (empty($current['meal'])) $params['meal'] = 'all_inclusive';
             if (empty($current['stars'])) $params['stars'] = 4;
         }
