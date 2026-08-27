@@ -89,9 +89,8 @@ if($action==='detail'){
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
     $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
 
-    // Before the first human reply, put a panel-only summary at the bottom of the
-    // transcript so the manager sees the needs already collected by the bot.
-    // This is not persisted and is never sent to the tourist.
+    // Before the first human reply, put a panel-only summary and explicit reply
+    // guidance at the bottom of the transcript. This is never sent to the tourist.
     if (!ManagerHandoffContextService::hasManagerReply($d['messages'])) {
         $chatId=$d['conversation']['external_chat_id']??null;
         if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
@@ -105,7 +104,7 @@ if($action==='detail'){
                         'id'=>0,
                         'direction'=>'outbound',
                         'sender_type'=>'ai',
-                        'text'=>"📋 Запрос туриста для менеджера\n".$summary,
+                        'text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),
                         'created_at'=>(string)($d['conversation']['last_message_at']??''),
                         'attachments'=>[],
                     ];
