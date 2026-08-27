@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T15:08:24+00:00",
+    "generated_at": "2026-08-27T15:13:28+00:00",
     "production": {
-        "sha": "d1a3b5b8c7a1f43b9e1d51cb081cb472d5890950",
+        "sha": "5e7d58356ae9911022eed74efc0cd81d05ab6d12",
         "branch": "main"
     },
     "database": {
@@ -104,10 +104,10 @@
         }
     ],
     "stats": {
-        "customers": 445,
-        "customer_channels": 445,
-        "conversations": 446,
-        "messages": 12060,
+        "customers": 446,
+        "customer_channels": 446,
+        "conversations": 447,
+        "messages": 12066,
         "managers": 5,
         "manager_assignments": 100,
         "conversation_events": 869,
@@ -360,41 +360,6 @@
             "data": {
                 "dispatch_id": "aba32c4d5311bbe3",
                 "conversation_id": 439,
-                "eligible_manager_ids": [
-                    4,
-                    5
-                ],
-                "selected_manager_ids": [
-                    4,
-                    5
-                ],
-                "scores": {
-                    "4": 0,
-                    "5": 0
-                },
-                "score_breakdown": {
-                    "4": {
-                        "base": 0,
-                        "matched_rules": [],
-                        "final": 0
-                    },
-                    "5": {
-                        "base": 0,
-                        "matched_rules": [],
-                        "final": 0
-                    }
-                },
-                "entry_channel": null
-            }
-        },
-        {
-            "ts": "2026-08-27T15:20:28+02:00",
-            "level": "info",
-            "component": "manager_priority",
-            "event": "push_selected",
-            "data": {
-                "dispatch_id": "2a36b83b6587afa9",
-                "conversation_id": 437,
                 "eligible_manager_ids": [
                     4,
                     5
@@ -849,7 +814,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 374
+            "count": 375
         },
         {
             "project_key": "anytour",
@@ -1014,6 +979,60 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 12066,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "На сколько ночей планируете поездку?",
+            "created_at": "2026-08-27 17:13:22"
+        },
+        {
+            "id": 12065,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "5 до 7 ночей",
+            "created_at": "2026-08-27 17:13:20"
+        },
+        {
+            "id": 12064,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "На сколько ночей планируете поездку?",
+            "created_at": "2026-08-27 17:13:04"
+        },
+        {
+            "id": 12063,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Хотим в Турцию в октябре, ноябре на двоих отель от 4 звёзд все включено",
+            "created_at": "2026-08-27 17:12:52"
+        },
+        {
+            "id": 12062,
+            "conversation_id": 447,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-27 17:11:59"
+        },
+        {
+            "id": 12061,
+            "conversation_id": 447,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-27 17:11:59"
+        },
         {
             "id": 12060,
             "conversation_id": 445,
@@ -1499,60 +1518,6 @@
             "channel": "max",
             "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
             "created_at": "2026-08-27 16:38:57"
-        },
-        {
-            "id": 12006,
-            "conversation_id": 444,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_4",
-            "created_at": "2026-08-27 16:38:56"
-        },
-        {
-            "id": 12005,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-27 16:38:49"
-        },
-        {
-            "id": 12004,
-            "conversation_id": 444,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_1",
-            "created_at": "2026-08-27 16:38:48"
-        },
-        {
-            "id": 12003,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-27 16:38:45"
-        },
-        {
-            "id": 12002,
-            "conversation_id": 444,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-08-27 16:38:45"
-        },
-        {
-            "id": 12001,
-            "conversation_id": 444,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-08-27 16:38:37"
         }
     ],
     "recent_events": [
