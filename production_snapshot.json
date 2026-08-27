@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-26T23:45:53+00:00",
+    "generated_at": "2026-08-27T00:23:37+00:00",
     "production": {
-        "sha": "75d738ab688efa6b3e7a9419920bf5d63e3c5121",
+        "sha": "368a6d54cd27ba2fa83235a8bdb76a1719f0918e",
         "branch": "main"
     },
     "database": {
@@ -86,10 +86,10 @@
         "customers": 370,
         "customer_channels": 370,
         "conversations": 371,
-        "messages": 9791,
+        "messages": 9793,
         "managers": 5,
         "manager_assignments": 88,
-        "conversation_events": 325,
+        "conversation_events": 326,
         "admin_audit_log": 14
     },
     "managers": [
@@ -109,7 +109,7 @@
             "role": "admin",
             "is_active": 1,
             "is_working": 0,
-            "last_login_at": "2026-08-26 12:38:14"
+            "last_login_at": "2026-08-27 02:16:17"
         },
         {
             "id": 3,
@@ -220,7 +220,7 @@
         "pending_count": 2,
         "overdue_count": 2,
         "stuck_count": 2,
-        "oldest_wait_seconds": 12923,
+        "oldest_wait_seconds": 15187,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -230,7 +230,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 22:10:31",
-                "wait_seconds": 12923,
+                "wait_seconds": 15187,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -245,7 +245,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-26 23:17:25",
-                "wait_seconds": 8909,
+                "wait_seconds": 11173,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -390,6 +390,19 @@
         }
     ],
     "recent_manager_push_events": [
+        {
+            "ts": "2026-08-27T02:16:08+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "c1b61b628f17a177",
+                "conversation_id": 2,
+                "manager_id": 2,
+                "subscription_id": 1,
+                "http_code": 201
+            }
+        },
         {
             "ts": "2026-08-26T23:17:25+02:00",
             "level": "warning",
@@ -580,6 +593,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 9793,
+            "conversation_id": 2,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "📎 Фото",
+            "created_at": "2026-08-27 02:16:56"
+        },
+        {
+            "id": 9792,
+            "conversation_id": 2,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "📎 Фото",
+            "created_at": "2026-08-27 02:16:07"
+        },
         {
             "id": 9791,
             "conversation_id": 371,
@@ -1101,27 +1132,17 @@
             "channel": "max",
             "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
             "created_at": "2026-08-26 22:30:42"
-        },
-        {
-            "id": 9733,
-            "conversation_id": 369,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_3",
-            "created_at": "2026-08-26 22:30:42"
-        },
-        {
-            "id": 9732,
-            "conversation_id": 369,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-26 22:30:37"
         }
     ],
     "recent_events": [
+        {
+            "id": 326,
+            "conversation_id": 2,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "2",
+            "created_at": "2026-08-27 02:16:56"
+        },
         {
             "id": 325,
             "conversation_id": 371,
@@ -1593,14 +1614,6 @@
             "actor_type": "manager",
             "actor_id": "5",
             "created_at": "2026-08-26 13:47:20"
-        },
-        {
-            "id": 266,
-            "conversation_id": 305,
-            "event_type": "manager_taken",
-            "actor_type": "manager",
-            "actor_id": "5",
-            "created_at": "2026-08-26 13:47:08"
         }
     ],
     "recent_manager_delivery_failures": [
