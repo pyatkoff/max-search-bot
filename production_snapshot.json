@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T10:42:45+00:00",
+    "generated_at": "2026-08-27T10:48:56+00:00",
     "production": {
-        "sha": "0eef054fb7505effe2bd6193bd3580e3aa2cbc50",
+        "sha": "1b7537f67f71a2ebe8e26c87d07f8b9393f1f567",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -86,10 +86,10 @@
         "customers": 419,
         "customer_channels": 419,
         "conversations": 420,
-        "messages": 11275,
+        "messages": 11276,
         "managers": 5,
         "manager_assignments": 97,
-        "conversation_events": 842,
+        "conversation_events": 843,
         "admin_audit_log": 15
     },
     "managers": [
@@ -712,6 +712,15 @@
     ],
     "recent_messages": [
         {
+            "id": 11276,
+            "conversation_id": 403,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Отели в Казани по системе все включено не работают. Только на завтраках. Включен перелет туда-обратно ( только ручная кладь, без багажа, багаж на стойке авиакомпании можно приобрести дополнительно) проживание, указанный тип питания и страховка. По желанию можно добавить т...",
+            "created_at": "2026-08-27 12:45:36"
+        },
+        {
             "id": 11275,
             "conversation_id": 403,
             "direction": "inbound",
@@ -1241,18 +1250,17 @@
             "channel": "max",
             "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
             "created_at": "2026-08-27 12:15:04"
-        },
-        {
-            "id": 11216,
-            "conversation_id": 419,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-08-27 12:15:03"
         }
     ],
     "recent_events": [
+        {
+            "id": 843,
+            "conversation_id": 403,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-27 12:45:36"
+        },
         {
             "id": 842,
             "conversation_id": 403,
@@ -1720,14 +1728,6 @@
         {
             "id": 784,
             "conversation_id": 263,
-            "event_type": "manager_phone_fallback_failed",
-            "actor_type": "system",
-            "actor_id": null,
-            "created_at": "2026-08-27 11:12:02"
-        },
-        {
-            "id": 783,
-            "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
