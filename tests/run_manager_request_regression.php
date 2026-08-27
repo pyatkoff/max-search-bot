@@ -61,6 +61,8 @@ $aiContext=[
 ];
 $messages=[
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_30.08.2026'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Октябрь'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'3х разовое'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'Хочу спокойный отель 18+ со средней территорией'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837'],
 ];
@@ -69,9 +71,15 @@ mrCheck('handoff summary includes route',strpos($summary,'Маршрут: Мос
 mrCheck('handoff summary includes tourists',strpos($summary,'Туристы: 1 взр. + 0 реб.')!==false,true);
 mrCheck('handoff summary includes hotel and meal',strpos($summary,'Отель: от 4★')!==false&&strpos($summary,'Питание: all_inclusive')!==false,true);
 mrCheck('handoff summary preserves meaningful free-text note',strpos($summary,'Дополнение туриста: Хочу спокойный отель 18+ со средней территорией')!==false,true);
-mrCheck('handoff context ignores phone as free-text note',strpos($summary,'79158966837')===false,true);
+mrCheck('raw transcript is explicitly labelled',strpos($summary,'🗣 Что писал турист')!==false,true);
+mrCheck('raw transcript preserves short month answer',strpos($summary,'• Октябрь')!==false,true);
+mrCheck('raw transcript preserves exact meal wording',strpos($summary,'• 3х разовое')!==false,true);
+mrCheck('raw transcript preserves meaningful customer wording',strpos($summary,'• Хочу спокойный отель 18+ со средней территорией')!==false,true);
+mrCheck('raw transcript excludes callback payloads',strpos($summary,'pick_date_30.08.2026')===false,true);
+mrCheck('phone is not misclassified as free-text note',strpos($summary,'Дополнение туриста: 79158966837')===false,true);
 $guidance=ManagerHandoffContextService::firstReplyGuidance();
-mrCheck('first reply guidance forbids asking tourist to repeat needs',strpos($guidance,'Не просите туриста повторять пожелания')!==false,true);
+mrCheck('first reply guidance says verbatim tourist messages are visible',strpos($guidance,'дословные сообщения туриста')!==false,true);
+mrCheck('first reply guidance forbids asking tourist to repeat needs',strpos($guidance,'Не просите туриста повторять уже указанные пожелания')!==false,true);
 mrCheck('first reply guidance points manager to missing budget or details',strpos($guidance,'бюджет')!==false,true);
 mrCheck('no manager reply is detected before handoff response',ManagerHandoffContextService::hasManagerReply($messages),false);
 $messages[]=['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте'];
