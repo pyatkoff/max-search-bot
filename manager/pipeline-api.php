@@ -36,6 +36,21 @@ pipelineRequireCsrf($data);
 if($action==='catalog'){
     pipelineOut(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true)]);
 }
+if($action==='list'){
+    $rows=ManagerConversationService::list(
+        (int)$m['id'],
+        (string)($data['queue']??'waiting'),
+        100,
+        (string)($data['project_key']??'*'),
+        '',
+        (string)($data['lead_stage_key']??''),
+        (int)($data['lead_tag_id']??0)
+    );
+    if(in_array((string)($data['queue']??'waiting'),['waiting','attention'],true)){
+        $rows=array_values(array_filter($rows,static function($row){return empty($row['delivery_failure_category']);}));
+    }
+    pipelineOut(['ok'=>true,'conversations'=>$rows]);
+}
 
 $conversationId=(int)($data['conversation_id']??0);
 $conversation=pipelineConversation($conversationId,(int)$m['id']);
