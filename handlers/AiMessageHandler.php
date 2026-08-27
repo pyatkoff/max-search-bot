@@ -315,7 +315,7 @@ class AiMessageHandler
                     "ROUTE AFTER AI: APPLY_PARAMETERS\n",
                     FILE_APPEND|LOCK_EX
                 );
-                $appliedResult = MaxSearchApi::applyAiParameters($chat_id, $params);
+                $appliedResult = NeedApplicationService::applyParameters($chat_id, $params);
                 $missing = MaxSearchApi::getAiMissingFields($chat_id);
 
                 @file_put_contents(
@@ -327,16 +327,10 @@ class AiMessageHandler
                     FILE_APPEND|LOCK_EX
                 );
 
-                if (empty($missing)) {
-                    DialogueView::check($chat_id);
-                    return;
-                }
-
                 // ВАЖНО: после применения бизнес-дефолтов AI-вопрос может быть уже устаревшим.
-                // Поэтому следующий вопрос строим только по ФАКТИЧЕСКИ первому missing-полю.
-                MissingFieldQuestionService::sendForMissing(
+                // Поэтому progression заново читает ФАКТИЧЕСКИ missing-поля после применения.
+                NeedProgressionService::advance(
                     $chat_id,
-                    $missing,
                     ['country_explicit'=>true]
                 );
 
