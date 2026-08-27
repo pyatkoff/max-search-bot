@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+$root=dirname(__DIR__);
+$page=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$js=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$css=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
+$passed=0;$failed=0;
+function inboxCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+
+inboxCheck('workspace loads dedicated inbox stylesheet',strpos($page,'assets/workspace-v2-inbox.css')!==false);
+inboxCheck('search is primary and advanced filters are collapsible',strpos($page,'id="leadSearch"')!==false&&strpos($page,'id="filtersToggle"')!==false&&strpos($page,'id="filtersPanel" class="filtersPanel hidden"')!==false);
+inboxCheck('advanced filters preserve stage tag outcome and task semantics',strpos($page,'id="leadStageFilter"')!==false&&strpos($page,'id="leadTagFilter"')!==false&&strpos($page,'id="leadOutcomeFilter"')!==false&&strpos($page,'id="leadTaskFilter"')!==false);
+inboxCheck('filter badge and reset are explicit',strpos($page,'id="filtersCount"')!==false&&strpos($page,'id="clearFilters"')!==false&&strpos($pipeline,'activeFilterCount')!==false&&strpos($pipeline,"S.leadTaskFilter=''")!==false);
+inboxCheck('lead cards use compact identity trip preview action hierarchy',strpos($js,'leadPrimary')!==false&&strpos($js,'leadAvatar')!==false&&strpos($js,'leadTrip')!==false&&strpos($js,'leadPreview')!==false&&strpos($js,'leadActionRow')!==false);
+inboxCheck('lead cards keep urgency unread stage outcome and task evidence',strpos($js,'unreadBadge')!==false&&strpos($js,'leadStageCompact')!==false&&strpos($js,'leadTaskCompact')!==false&&strpos($js,'leadWaitCompact')!==false&&strpos($js,'leadOutcomeCompact')!==false);
+inboxCheck('ordinary open outcome is not rendered as permanent visual noise',strpos($js,"outcome==='won'||outcome==='lost'")!==false);
+inboxCheck('inbox refresh still preserves scroll after stability fix',strpos($js,'scrollTop=box.scrollTop')!==false&&strpos($js,'if(preserveScroll)box.scrollTop=scrollTop')!==false);
+inboxCheck('mobile inbox has dedicated compact treatment',strpos($css,'@media(max-width:520px)')!==false&&strpos($css,'.inboxSearchRow')!==false&&strpos($css,'.filtersToggle:before')!==false&&strpos($css,'.leadPrimary')!==false);
+inboxCheck('redesign remains presentation only',stripos($js.$pipeline.$css,'set_working')===false&&stripos($js.$pipeline.$css,'metrika')===false&&stripos($js.$pipeline.$css,'yclid')===false);
+
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
+exit($failed?1:0);
