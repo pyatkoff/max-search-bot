@@ -23,6 +23,6 @@ ctxCheck('main manager API delegates session to shared context',strpos($api,'Man
 ctxCheck('main manager API delegates manager and csrf lookup',strpos($api,'ManagerRequestContext::manager()')!==false&&strpos($api,'ManagerRequestContext::csrf(true)')!==false&&strpos($api,'ManagerRequestContext::validCsrf')!==false);
 ctxCheck('main manager API delegates admin role decision',strpos($api,'ManagerRequestContext::isAdmin($m)')!==false);
 ctxCheck('login and me still return csrf tokens',strpos($api,"'csrf'=>csrf()")!==false&&substr_count($api,"'csrf'=>csrf()")>=2);
-ctxCheck('manager lifecycle actions remain intact',strpos($api,"$action==='take'")!==false&&strpos($api,"$action==='release'")!==false&&strpos($api,"$action==='close'")!==false&&strpos($api,"$action==='reopen'")!==false&&strpos($api,"$action==='send'")!==false);
+ctxCheck('manager lifecycle actions remain intact',strpos($api,"\$action==='take'")!==false&&strpos($api,"\$action==='release'")!==false&&strpos($api,"\$action==='close'")!==false&&strpos($api,"\$action==='reopen'")!==false&&strpos($api,"\$action==='send'")!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
