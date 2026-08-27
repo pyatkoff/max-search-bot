@@ -18,5 +18,5 @@ outcomeCheck('workspace persists outcome through pipeline API',strpos($js,"pipe(
 outcomeCheck('outcome controls respect shared pipeline ownership',strpos($js,"canEdit?'':'disabled'")!==false&&strpos($api,'ManagerRequestContext::canEditAssignedConversation')!==false&&strpos($context,'canEditAssignedConversation')!==false);
 outcomeCheck('outcome UI has dedicated styling',strpos($css,'.outcomeBox')!==false&&strpos($css,'.outcomeNote')!==false&&strpos($css,'.outcomeSave')!==false);
 
-echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed]\n";
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
