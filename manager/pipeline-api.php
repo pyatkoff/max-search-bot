@@ -19,6 +19,10 @@ function pipelineManager():?array{$id=(int)($_SESSION['manager_id']??0);return $
 function pipelineCsrf():string{return(string)($_SESSION['csrf']??'');}
 function pipelineRequireCsrf(array $data):void{$expected=pipelineCsrf();if($expected===''||!hash_equals($expected,(string)($data['csrf']??'')))pipelineOut(['ok'=>false,'error'=>'csrf'],403);}
 function pipelineConversation(int $conversationId,int $managerId):?array{$detail=ManagerConversationService::detail($conversationId,$managerId);return $detail?(array)($detail['conversation']??[]):null;}
+function pipelineCanEdit(array $conversation,array $manager):bool{
+    if((string)($manager['role']??'manager')==='admin')return true;
+    return (int)($conversation['manager_id']??0)>0 && (int)($conversation['manager_id']??0)===(int)($manager['id']??0);
+}
 function pipelineTrip(array $conversation):array{
     $chatId=$conversation['external_chat_id']??null;
     if($chatId===null||$chatId==='')return[];
@@ -32,14 +36,31 @@ pipelineRequireCsrf($data);
 if($action==='catalog'){
     pipelineOut(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true)]);
 }
+if($action==='list'){
+    $rows=ManagerConversationService::list(
+        (int)$m['id'],
+        (string)($data['queue']??'waiting'),
+        100,
+        (string)($data['project_key']??'*'),
+        '',
+        (string)($data['lead_stage_key']??''),
+        (int)($data['lead_tag_id']??0)
+    );
+    if(in_array((string)($data['queue']??'waiting'),['waiting','attention'],true)){
+        $rows=array_values(array_filter($rows,static function($row){return empty($row['delivery_failure_category']);}));
+    }
+    pipelineOut(['ok'=>true,'conversations'=>$rows]);
+}
 
 $conversationId=(int)($data['conversation_id']??0);
 $conversation=pipelineConversation($conversationId,(int)$m['id']);
 if(!$conversation)pipelineOut(['ok'=>false,'error'=>'not_found'],404);
+$canEdit=pipelineCanEdit($conversation,$m);
 
 if($action==='detail'){
     pipelineOut([
         'ok'=>true,
+        'can_edit_pipeline'=>$canEdit,
         'pipeline'=>SalesPipelineService::conversationSnapshot($conversationId),
         'trip'=>pipelineTrip($conversation),
         'contact'=>['phone'=>$conversation['phone']??null,'email'=>$conversation['email']??null],
@@ -55,10 +76,12 @@ if($action==='detail'){
     ]);
 }
 if($action==='set_stage'){
+    if(!$canEdit)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);
     $ok=SalesPipelineService::setStage($conversationId,(string)($data['stage_key']??''));
     pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
 }
 if($action==='set_tags'){
+    if(!$canEdit)pipelineOut(['ok'=>false,'error'=>'forbidden'],403);
     $ok=SalesPipelineService::setTags($conversationId,(array)($data['tag_ids']??[]),(int)$m['id']);
     pipelineOut(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($conversationId):null],$ok?200:409);
 }

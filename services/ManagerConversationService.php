@@ -6,6 +6,7 @@ require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
+require_once __DIR__ . '/SalesPipelineService.php';
 
 class ManagerConversationService
 {
@@ -37,7 +38,7 @@ class ManagerConversationService
         return '⏱ Без ответа '.$hours.' ч'.($rest>0?' '.$rest.' мин':'');
     }
 
-    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter=''): array
+    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);$isAdmin=$manager && (string)($manager['role']??'manager')==='admin';
@@ -67,10 +68,14 @@ class ManagerConversationService
             elseif(ctype_digit($managerFilter) && (int)$managerFilter>0){$where[]='c.manager_id=?';$args[]=(int)$managerFilter;}
         }
 
+        $leadStageKey=trim($leadStageKey);
+        if($leadStageKey!==''){$where[]='c.lead_stage_key=?';$args[]=$leadStageKey;}
+        if($leadTagId>0){$where[]='EXISTS (SELECT 1 FROM conversation_lead_tags clt_filter WHERE clt_filter.conversation_id=c.id AND clt_filter.tag_id=?)';$args[]=$leadTagId;}
+
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
-        $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
+        $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
             .'cu.display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
             .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
@@ -81,6 +86,7 @@ class ManagerConversationService
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':'COALESCE(c.last_message_at,c.started_at) DESC').' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
+        $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
         foreach($rows as &$row){
             $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
@@ -120,7 +126,7 @@ class ManagerConversationService
     public static function detail(int $conversationId,int $managerId): ?array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
-        $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
+        $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!RoutingAccessService::canSeeConversation($managerId,$conversation))return null;
         ManagerReadService::markRead($managerId,$conversationId);
         $q=ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');$q->execute([$conversationId]);$messages=$q->fetchAll();
