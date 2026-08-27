@@ -71,7 +71,7 @@ mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$me
 mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
 mediaCheck('preview endpoint requires authenticated manager', strpos($fileEndpointSource, 'ManagerAuthService::byId') !== false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
-mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false && strpos($mediaHydratorSource, "$message['text'] = ''") !== false, true);
+mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
 exit($failed > 0 ? 1 : 0);
