@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-$js=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2.js');
-$css=(string)file_get_contents(dirname(__DIR__).'/manager/assets/workspace-v2.css');
-$api=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-api.php');
-$service=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineService.php');
-$context=(string)file_get_contents(dirname(__DIR__).'/services/ManagerRequestContext.php');
+$root=dirname(__DIR__);
+$leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$js=$leadCardJs."\n".$pipelineJs;
+$css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
+$api=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
+$context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
 $passed=0;$failed=0;
 function outcomeCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
