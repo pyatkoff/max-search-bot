@@ -13,7 +13,9 @@ class ManagerLeadInboxService
         $q=$pdo->prepare("SELECT c.id,c.lead_outcome,cu.phone,cu.email FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE c.id IN ({$in})");$q->execute($ids);foreach($q->fetchAll() as $item)$lead[(int)$item['id']]=$item;
         $summaries=[];$q=$pdo->prepare("SELECT conversation_id,text FROM messages WHERE conversation_id IN ({$in}) AND sender_type='ai' AND direction='outbound' AND text LIKE '%Готово! Проверьте параметры%' ORDER BY id DESC");$q->execute($ids);
         foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summaries[$id]=self::cleanTripSummary((string)($message['text']??''));}
-        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
+        $tasks=[];$q=$pdo->prepare("SELECT conversation_id,title,due_at_utc,CASE WHEN due_at_utc IS NOT NULL AND due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue FROM lead_tasks WHERE conversation_id IN ({$in}) AND status='open' ORDER BY conversation_id ASC,CASE WHEN due_at_utc IS NULL THEN 1 ELSE 0 END,due_at_utc ASC,id ASC");$q->execute($ids);
+        foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0||array_key_exists($id,$tasks))continue;$tasks[$id]=$task;}
+        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_overdue']=!empty($task['overdue']);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
     }
 
     public static function filter(array $rows,string $outcome='',string $search=''): array
@@ -21,7 +23,7 @@ class ManagerLeadInboxService
         $outcome=trim($outcome);if(!in_array($outcome,['','open','won','lost'],true))$outcome='';$search=trim($search);
         return array_values(array_filter($rows,static function(array $row)use($outcome,$search):bool{
             if($outcome!==''&&(string)($row['lead_outcome']??'open')!==$outcome)return false;if($search==='')return true;
-            $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??''],static fn($v)=>$v!==null&&$v!==''));
+            $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??'',$row['next_task_title']??''],static fn($v)=>$v!==null&&$v!==''));
             return function_exists('mb_stripos')?mb_stripos($haystack,$search,0,'UTF-8')!==false:stripos($haystack,$search)!==false;
         }));
     }
