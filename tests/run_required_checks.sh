@@ -59,6 +59,7 @@ checks=(
   'php tests/run_manager_workspace_v2_regression.php'
   'php tests/run_manager_workspace_v2_stability_regression.php'
   'php tests/run_manager_workspace_v2_inbox_redesign_regression.php'
+  'php tests/run_manager_workspace_v2_conversation_redesign_regression.php'
   'php tests/run_manager_workspace_v2_task_filter_regression.php'
   'php tests/run_manager_workspace_v2_kanban_regression.php'
   'php tests/run_manager_workspace_v2_origin_regression.php'
