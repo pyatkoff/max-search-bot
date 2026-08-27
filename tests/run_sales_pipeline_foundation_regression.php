@@ -18,7 +18,11 @@ spCheck('pending repair checks existing column',strpos($migration012,'informatio
 spCheck('pending repair checks existing index',strpos($migration012,'information_schema.STATISTICS')!==false && strpos($migration012,"INDEX_NAME='idx_conversations_lead_stage'")!==false && strpos($migration012,'PREPARE lead_stage_index_stmt')!==false);
 spCheck('pending repair no-op produces no result set',substr_count($migration012,"'DO 0'")===2 && strpos($migration012,"'SELECT 1'")===false);
 spCheck('pending repair recreates missing tag storage',strpos($migration012,'CREATE TABLE IF NOT EXISTS lead_tags')!==false && strpos($migration012,'CREATE TABLE IF NOT EXISTS conversation_lead_tags')!==false);
-spCheck('migration runner records only after statements succeed',strpos($runner,'foreach ($this->splitStatements($sql) as $statement)')!==false && strpos($runner,"INSERT INTO schema_migrations (version,checksum,baseline,execution_ms)")!==false && strpos($runner,'$this->pdo->exec($statement);') < strpos($runner,"INSERT INTO schema_migrations (version,checksum,baseline,execution_ms)"));
+$normalApplyStart=strpos($runner,'$started = microtime(true);');
+$normalApply=$normalApplyStart===false?'':substr($runner,$normalApplyStart);
+$execPos=strpos($normalApply,'$this->pdo->exec($statement);');
+$recordPos=strpos($normalApply,"INSERT INTO schema_migrations (version,checksum,baseline,execution_ms)");
+spCheck('migration runner records only after statements succeed',$normalApply!=='' && $execPos!==false && $recordPos!==false && $execPos<$recordPos);
 spCheck('tag catalog exists',strpos($migration011,'CREATE TABLE IF NOT EXISTS lead_tags')!==false);
 spCheck('many-to-many conversation tags exist',strpos($migration011,'CREATE TABLE IF NOT EXISTS conversation_lead_tags')!==false && strpos($migration011,'PRIMARY KEY (conversation_id,tag_id)')!==false);
 spCheck('service reads ordered active stages',strpos($service,'public static function stages')!==false && strpos($service,'ORDER BY sort_order,display_name,stage_key')!==false);
