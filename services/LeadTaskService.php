@@ -31,9 +31,10 @@ class LeadTaskService
         if($conversationId<=0||$createdByManagerId<=0)return ['ok'=>false,'error'=>'invalid_owner'];
         $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
         $assignedManagerId=(int)($assignedManagerId??0);if($assignedManagerId<=0)$assignedManagerId=$createdByManagerId;
-        $q=ConversationDb::connection()->prepare("INSERT INTO lead_tasks (conversation_id,title,due_at_utc,status,assigned_manager_id,created_by_manager_id,created_at,updated_at) VALUES (?,?,?,'open',?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())");
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare("INSERT INTO lead_tasks (conversation_id,title,due_at_utc,status,assigned_manager_id,created_by_manager_id,created_at,updated_at) VALUES (?,?,?,'open',?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())");
         $q->execute([$conversationId,$input['title'],$input['due_at_utc'],$assignedManagerId,$createdByManagerId]);
-        return ['ok'=>true,'id'=>(int)ConversationDb::connection()->lastInsertId()];
+        return ['ok'=>true,'id'=>(int)$pdo->lastInsertId()];
     }
 
     public static function setCompleted(int $conversationId,int $taskId,bool $completed): bool
@@ -46,6 +47,8 @@ class LeadTaskService
 
     private static function length(string $value): int
     {
-        return function_exists('mb_strlen')?mb_strlen($value,'UTF-8'):strlen($value);
+        if(function_exists('mb_strlen'))return mb_strlen($value,'UTF-8');
+        $count=preg_match_all('/./us',$value,$unused);
+        return $count===false?strlen($value):$count;
     }
 }
