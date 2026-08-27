@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-27T22:57:19+00:00",
+    "generated_at": "2026-08-27T23:03:06+00:00",
     "production": {
-        "sha": "0a31a28347d5c74c4a938adaff6a2edab0a68bf2",
+        "sha": "79c8fe42a902576dd68fe4bbe3a2482cac0620ef",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 19288,
+            "oldest_wait_seconds": 19634,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 19288,
+                    "wait_seconds": 19634,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 15228,
+                    "wait_seconds": 15574,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 7718,
+                    "wait_seconds": 8064,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -162,7 +162,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-27 21:57:14",
+        "since_utc": "2026-08-27 22:03:00",
         "summary": {
             "sessions": 15,
             "started": 15,
@@ -304,13 +304,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "0a31a28347d5c74c4a938adaff6a2edab0a68bf2",
+        "sha": "79c8fe42a902576dd68fe4bbe3a2482cac0620ef",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-27T22:57:19Z"
+        "reported_at": "2026-08-27T23:03:06Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
