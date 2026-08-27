@@ -74,6 +74,11 @@ nvrCheck('meal canonical value', $meal['value'], 'all_inclusive');
 nvrCheck('meal source is deterministic', $meal['source'], 'deterministic:meal_parser');
 nvrCheck('meal deterministic confidence', $meal['confidence'], 1.0);
 
+$liveMeal = NeedValueResolver::resolve('meal', '3х разовое');
+nvrCheck('live 3х meal shorthand recognized', $liveMeal['recognized'], true);
+nvrCheck('live 3х meal shorthand maps to full board', $liveMeal['value'], 'full_board');
+nvrCheck('live 3х meal shorthand stays deterministic', $liveMeal['source'], 'deterministic:meal_parser');
+
 $mealUnknown = NeedValueResolver::resolve('meal', 'Вкусное');
 nvrCheck('unknown meal not recognized', $mealUnknown['recognized'], false);
 nvrCheck('unknown meal has no value', $mealUnknown['value'], null);
