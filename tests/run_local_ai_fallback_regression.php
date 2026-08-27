@@ -41,6 +41,14 @@ localCheck('Egypt recognized locally', $params['country'] ?? null, 'Египет
 localCheck('Egypt default meal preserved', $params['meal'] ?? null, 'all_inclusive');
 localCheck('Egypt default stars preserved', $params['stars'] ?? null, 4);
 
+$params = LocalAiFallbackService::parameters('ЕГИПЕТ', ['city'=>'Москва']);
+localCheck('uppercase Cyrillic country is recognized without lowercasing dependency', $params['country'] ?? null, 'Египет');
+$params = LocalAiFallbackService::parameters('еГиПеТ', ['city'=>'Москва']);
+localCheck('mixed-case Cyrillic country is recognized', $params['country'] ?? null, 'Египет');
+
+$source = (string)file_get_contents(__DIR__ . '/../services/LocalAiFallbackService.php');
+localCheck('country matching uses Unicode case-insensitive PCRE', strpos($source, 'preg_quote($stem, \'/\')') !== false && strpos($source, "'/ui'") !== false, true);
+
 $params = LocalAiFallbackService::parameters('На двоих без детей на неделю', ['city'=>'Казань']);
 localCheck('existing departure is not replaced', array_key_exists('city', $params), false);
 localCheck('two adults recognized', $params['adults'] ?? null, 2);
