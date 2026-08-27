@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T08:43:50+00:00",
+    "generated_at": "2026-08-27T09:07:58+00:00",
     "production": {
-        "sha": "c7383635551b22221f64484cb15b0dea83f30743",
+        "sha": "f325ef5aab5c141dbce76ebd5d2b6b38fdc80a92",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -83,13 +83,13 @@
         }
     ],
     "stats": {
-        "customers": 404,
-        "customer_channels": 404,
-        "conversations": 405,
-        "messages": 10822,
+        "customers": 405,
+        "customer_channels": 405,
+        "conversations": 406,
+        "messages": 10842,
         "managers": 5,
         "manager_assignments": 94,
-        "conversation_events": 611,
+        "conversation_events": 755,
         "admin_audit_log": 15
     },
     "managers": [
@@ -1077,7 +1077,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 339
+            "count": 340
         },
         {
             "project_key": "anytour",
@@ -1242,6 +1242,186 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 10842,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-27 11:06:46"
+        },
+        {
+            "id": 10841,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-27 11:06:46"
+        },
+        {
+            "id": 10840,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Мальдивы 👥 2 взр. + 1 реб. (10 лет) 🏨 от 4★ 🍽 Все Включено 🌙 7 ночей 📅 12.10.2026 — 18.10.2026 Что удобнее дальше?",
+            "created_at": "2026-08-27 11:06:38"
+        },
+        {
+            "id": 10839,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "15.10.2026",
+            "created_at": "2026-08-27 11:06:34"
+        },
+        {
+            "id": 10838,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая ориентировочная дата вылета?",
+            "created_at": "2026-08-27 11:06:21"
+        },
+        {
+            "id": 10837,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "7",
+            "created_at": "2026-08-27 11:06:18"
+        },
+        {
+            "id": 10836,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "На сколько ночей планируете поездку?",
+            "created_at": "2026-08-27 11:06:12"
+        },
+        {
+            "id": 10835,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Все включено",
+            "created_at": "2026-08-27 11:06:08"
+        },
+        {
+            "id": 10834,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какое питание предпочитаете?",
+            "created_at": "2026-08-27 11:05:57"
+        },
+        {
+            "id": 10833,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "4,5",
+            "created_at": "2026-08-27 11:05:48"
+        },
+        {
+            "id": 10832,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+            "created_at": "2026-08-27 11:05:37"
+        },
+        {
+            "id": 10831,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "10",
+            "created_at": "2026-08-27 11:05:30"
+        },
+        {
+            "id": 10830,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Сколько лет детям?",
+            "created_at": "2026-08-27 11:05:24"
+        },
+        {
+            "id": 10829,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "1",
+            "created_at": "2026-08-27 11:05:21"
+        },
+        {
+            "id": 10828,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Будут дети? Если да — сколько?",
+            "created_at": "2026-08-27 11:05:14"
+        },
+        {
+            "id": 10827,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "2",
+            "created_at": "2026-08-27 11:05:10"
+        },
+        {
+            "id": 10826,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Сколько будет взрослых туристов?",
+            "created_at": "2026-08-27 11:05:04"
+        },
+        {
+            "id": 10825,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "2 и ребенок 10 лет",
+            "created_at": "2026-08-27 11:05:00"
+        },
+        {
+            "id": 10824,
+            "conversation_id": 406,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Сколько будет взрослых туристов?",
+            "created_at": "2026-08-27 11:04:44"
+        },
+        {
+            "id": 10823,
+            "conversation_id": 406,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Туры на мальдивы",
+            "created_at": "2026-08-27 11:04:40"
+        },
         {
             "id": 10822,
             "conversation_id": 381,
@@ -1601,668 +1781,488 @@
             "channel": "max",
             "text": "pick_city_1",
             "created_at": "2026-08-27 10:25:56"
-        },
-        {
-            "id": 10782,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-08-27 10:25:56"
-        },
-        {
-            "id": 10781,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_5",
-            "created_at": "2026-08-27 10:25:56"
-        },
-        {
-            "id": 10780,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-27 10:25:53"
-        },
-        {
-            "id": 10779,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_0",
-            "created_at": "2026-08-27 10:25:53"
-        },
-        {
-            "id": 10778,
-            "conversation_id": 405,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-27 10:25:50"
-        },
-        {
-            "id": 10777,
-            "conversation_id": 405,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-08-27 10:25:50"
-        },
-        {
-            "id": 10776,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-08-27 10:25:49"
-        },
-        {
-            "id": 10775,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-08-27 10:25:49"
-        },
-        {
-            "id": 10774,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-08-27 10:25:46"
-        },
-        {
-            "id": 10773,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_1",
-            "created_at": "2026-08-27 10:25:46"
-        },
-        {
-            "id": 10772,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-27 10:25:41"
-        },
-        {
-            "id": 10771,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_1",
-            "created_at": "2026-08-27 10:25:41"
-        },
-        {
-            "id": 10770,
-            "conversation_id": 404,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-27 10:25:37"
-        },
-        {
-            "id": 10769,
-            "conversation_id": 404,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-08-27 10:25:37"
-        },
-        {
-            "id": 10768,
-            "conversation_id": 396,
-            "direction": "outbound",
-            "sender_type": "manager",
-            "channel": "max",
-            "text": "Направляю Вам варианты отдыха с окончательной стоимостью на данный момент. В стоимость тура включено: перелет, проживание, указанный тип питания, страховой полис и трансфер. По ссылке в конце письма Вы можете ознакомиться с более подробной информацией о туре и об отеле. 30.08, 6н, Romance Regency Club Adults Only 16+ 5*, UAI - Ультра Все Включено, 92 633 RUB 29.08, 8н, The Three Corners Ocean View Adults Only 16+ 4*, BB - Только завтрак, 92 094 RUB 29.08, 6н, Amphoras Blu Resort Adult Only (+...",
-            "created_at": "2026-08-27 10:24:43"
-        },
-        {
-            "id": 10767,
-            "conversation_id": 403,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-27 10:22:46"
-        },
-        {
-            "id": 10766,
-            "conversation_id": 403,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-27 10:22:46"
-        },
-        {
-            "id": 10765,
-            "conversation_id": 403,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр., без детей 🏨 от 4★ 🍽 Полный Пансион 🌙 7 ночей 📅 12.01.2027 — 18.01.2027 Что удобнее дальше?",
-            "created_at": "2026-08-27 10:22:27"
-        },
-        {
-            "id": 10764,
-            "conversation_id": 403,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Середина января",
-            "created_at": "2026-08-27 10:22:24"
-        },
-        {
-            "id": 10763,
-            "conversation_id": 403,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Какая ориентировочная дата вылета?",
-            "created_at": "2026-08-27 10:22:07"
         }
     ],
     "recent_events": [
         {
-            "id": 611,
+            "id": 755,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:02"
+            "created_at": "2026-08-27 11:07:03"
         },
         {
-            "id": 610,
+            "id": 754,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:02"
+            "created_at": "2026-08-27 11:07:03"
         },
         {
-            "id": 609,
+            "id": 753,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:01"
+            "created_at": "2026-08-27 11:07:02"
         },
         {
-            "id": 608,
+            "id": 752,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:01"
+            "created_at": "2026-08-27 11:07:02"
         },
         {
-            "id": 607,
+            "id": 751,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:01"
+            "created_at": "2026-08-27 11:07:02"
         },
         {
-            "id": 606,
+            "id": 750,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:43:01"
+            "created_at": "2026-08-27 11:07:02"
         },
         {
-            "id": 605,
+            "id": 749,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:03"
         },
         {
-            "id": 604,
+            "id": 748,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:02"
         },
         {
-            "id": 603,
+            "id": 747,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:02"
         },
         {
-            "id": 602,
+            "id": 746,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:02"
         },
         {
-            "id": 601,
+            "id": 745,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:02"
         },
         {
-            "id": 600,
+            "id": 744,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:42:02"
+            "created_at": "2026-08-27 11:06:02"
         },
         {
-            "id": 599,
+            "id": 743,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:03"
+            "created_at": "2026-08-27 11:05:02"
         },
         {
-            "id": 598,
+            "id": 742,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:02"
+            "created_at": "2026-08-27 11:05:02"
         },
         {
-            "id": 597,
+            "id": 741,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:02"
+            "created_at": "2026-08-27 11:05:02"
         },
         {
-            "id": 596,
+            "id": 740,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:02"
+            "created_at": "2026-08-27 11:05:02"
         },
         {
-            "id": 595,
+            "id": 739,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:02"
+            "created_at": "2026-08-27 11:05:01"
         },
         {
-            "id": 594,
+            "id": 738,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:41:02"
+            "created_at": "2026-08-27 11:05:01"
         },
         {
-            "id": 593,
+            "id": 737,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:06"
+            "created_at": "2026-08-27 11:04:03"
         },
         {
-            "id": 592,
+            "id": 736,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:06"
+            "created_at": "2026-08-27 11:04:03"
         },
         {
-            "id": 591,
+            "id": 735,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:06"
+            "created_at": "2026-08-27 11:04:02"
         },
         {
-            "id": 590,
+            "id": 734,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:05"
+            "created_at": "2026-08-27 11:04:02"
         },
         {
-            "id": 589,
+            "id": 733,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:05"
+            "created_at": "2026-08-27 11:04:02"
         },
         {
-            "id": 588,
+            "id": 732,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:40:05"
+            "created_at": "2026-08-27 11:04:02"
         },
         {
-            "id": 587,
+            "id": 731,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:03"
+            "created_at": "2026-08-27 11:03:03"
         },
         {
-            "id": 586,
+            "id": 730,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:03"
+            "created_at": "2026-08-27 11:03:03"
         },
         {
-            "id": 585,
+            "id": 729,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:02"
+            "created_at": "2026-08-27 11:03:03"
         },
         {
-            "id": 584,
+            "id": 728,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:02"
+            "created_at": "2026-08-27 11:03:02"
         },
         {
-            "id": 583,
+            "id": 727,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:02"
+            "created_at": "2026-08-27 11:03:02"
         },
         {
-            "id": 582,
+            "id": 726,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:39:02"
+            "created_at": "2026-08-27 11:03:02"
         },
         {
-            "id": 581,
+            "id": 725,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:02"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 580,
+            "id": 724,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:02"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 579,
+            "id": 723,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:02"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 578,
+            "id": 722,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:02"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 577,
+            "id": 721,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:02"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 576,
+            "id": 720,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:38:01"
+            "created_at": "2026-08-27 11:02:02"
         },
         {
-            "id": 575,
+            "id": 719,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:03"
+            "created_at": "2026-08-27 11:01:03"
         },
         {
-            "id": 574,
+            "id": 718,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:02"
+            "created_at": "2026-08-27 11:01:02"
         },
         {
-            "id": 573,
+            "id": 717,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:02"
+            "created_at": "2026-08-27 11:01:02"
         },
         {
-            "id": 572,
+            "id": 716,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:02"
+            "created_at": "2026-08-27 11:01:02"
         },
         {
-            "id": 571,
+            "id": 715,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:02"
+            "created_at": "2026-08-27 11:01:02"
         },
         {
-            "id": 570,
+            "id": 714,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:37:02"
+            "created_at": "2026-08-27 11:01:02"
         },
         {
-            "id": 569,
+            "id": 713,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:04"
+            "created_at": "2026-08-27 11:00:04"
         },
         {
-            "id": 568,
+            "id": 712,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:04"
+            "created_at": "2026-08-27 11:00:04"
         },
         {
-            "id": 567,
+            "id": 711,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:04"
+            "created_at": "2026-08-27 11:00:04"
         },
         {
-            "id": 566,
+            "id": 710,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:04"
+            "created_at": "2026-08-27 11:00:03"
         },
         {
-            "id": 565,
+            "id": 709,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:04"
+            "created_at": "2026-08-27 11:00:03"
         },
         {
-            "id": 564,
+            "id": 708,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:36:03"
+            "created_at": "2026-08-27 11:00:03"
         },
         {
-            "id": 563,
+            "id": 707,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:03"
         },
         {
-            "id": 562,
+            "id": 706,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:03"
         },
         {
-            "id": 561,
+            "id": 705,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:03"
         },
         {
-            "id": 560,
+            "id": 704,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:02"
         },
         {
-            "id": 559,
+            "id": 703,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:02"
         },
         {
-            "id": 558,
+            "id": 702,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:35:02"
+            "created_at": "2026-08-27 10:59:02"
         },
         {
-            "id": 557,
+            "id": 701,
             "conversation_id": 302,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:02"
+            "created_at": "2026-08-27 10:58:03"
         },
         {
-            "id": 556,
+            "id": 700,
             "conversation_id": 263,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:02"
+            "created_at": "2026-08-27 10:58:03"
         },
         {
-            "id": 555,
+            "id": 699,
             "conversation_id": 233,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:02"
+            "created_at": "2026-08-27 10:58:02"
         },
         {
-            "id": 554,
+            "id": 698,
             "conversation_id": 217,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:01"
+            "created_at": "2026-08-27 10:58:02"
         },
         {
-            "id": 553,
+            "id": 697,
             "conversation_id": 178,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:01"
+            "created_at": "2026-08-27 10:58:02"
         },
         {
-            "id": 552,
+            "id": 696,
             "conversation_id": 18,
             "event_type": "manager_phone_fallback_failed",
             "actor_type": "system",
             "actor_id": null,
-            "created_at": "2026-08-27 10:34:01"
+            "created_at": "2026-08-27 10:58:02"
         }
     ],
     "recent_manager_delivery_failures": [
