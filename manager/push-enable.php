@@ -1,8 +1,8 @@
 <?php
-session_name('anytour_manager_panel');
-session_set_cookie_params(['lifetime'=>60*60*12,'path'=>'/max-search/manager/','secure'=>true,'httponly'=>true,'samesite'=>'Lax']);
-session_start();
-if(empty($_SESSION['manager_id'])){header('Location: ./');exit;}
+$baseDir=dirname(__DIR__);
+require_once $baseDir.'/services/ManagerRequestContext.php';
+ManagerRequestContext::startSession();
+if(ManagerRequestContext::managerId()<=0||!ManagerRequestContext::manager()){header('Location: ./');exit;}
 ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AnyTour — Web Push</title><style>body{font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f6f8;margin:0;padding:24px;color:#18202a}.card{max-width:520px;margin:40px auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 30px #0001}button{border:0;border-radius:10px;padding:12px 16px;background:#111827;color:#fff;font:inherit}.muted{color:#737d89;margin-top:12px}a{color:#111827}</style></head><body><div class="card"><h2>Уведомления менеджера</h2><p>Включите Web Push на этом устройстве. После этого новые заявки и ответы клиентов смогут приходить даже при закрытой панели.</p><button id="enable">Включить уведомления</button><div id="status" class="muted"></div><p><a href="./">← Вернуться в панель</a></p></div><script>
 const $=id=>document.getElementById(id);
 function b64ToUint8(base64String){const padding='='.repeat((4-base64String.length%4)%4);const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
