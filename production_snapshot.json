@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T14:11:45+00:00",
+    "generated_at": "2026-08-27T14:24:41+00:00",
     "production": {
-        "sha": "eb0928054983f6b107d0e516d1f7d2859bacad79",
+        "sha": "52ad35d958dffe0589354ec5628a78ec74137f5f",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.29999999999999999
+        "latency_ms": 0.20000000000000001
     },
     "migrations": [
         {
@@ -97,10 +97,10 @@
         }
     ],
     "stats": {
-        "customers": 439,
-        "customer_channels": 439,
-        "conversations": 440,
-        "messages": 11928,
+        "customers": 440,
+        "customer_channels": 440,
+        "conversations": 441,
+        "messages": 11938,
         "managers": 5,
         "manager_assignments": 100,
         "conversation_events": 864,
@@ -869,7 +869,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 368
+            "count": 369
         },
         {
             "project_key": "anytour",
@@ -1034,6 +1034,96 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 11938,
+            "conversation_id": 441,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-27 16:24:41"
+        },
+        {
+            "id": 11937,
+            "conversation_id": 441,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-27 16:24:41"
+        },
+        {
+            "id": 11936,
+            "conversation_id": 441,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Египет 👥 4 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 10 ночей 📅 02.10.2026 — 08.10.2026 Что удобнее дальше?",
+            "created_at": "2026-08-27 16:24:26"
+        },
+        {
+            "id": 11935,
+            "conversation_id": 441,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Начало октября",
+            "created_at": "2026-08-27 16:24:23"
+        },
+        {
+            "id": 11934,
+            "conversation_id": 441,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая ориентировочная дата вылета?",
+            "created_at": "2026-08-27 16:24:01"
+        },
+        {
+            "id": 11933,
+            "conversation_id": 441,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "10",
+            "created_at": "2026-08-27 16:23:59"
+        },
+        {
+            "id": 11932,
+            "conversation_id": 441,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "На сколько ночей планируете поездку?",
+            "created_at": "2026-08-27 16:23:49"
+        },
+        {
+            "id": 11931,
+            "conversation_id": 441,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Москва Египет, четверо взрослых, отель не ниже 4*, первая линия, всё включено",
+            "created_at": "2026-08-27 16:23:41"
+        },
+        {
+            "id": 11930,
+            "conversation_id": 441,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-27 16:21:53"
+        },
+        {
+            "id": 11929,
+            "conversation_id": 441,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-27 16:21:53"
+        },
         {
             "id": 11928,
             "conversation_id": 207,
@@ -1483,96 +1573,6 @@
             "channel": "max",
             "text": "edit_params",
             "created_at": "2026-08-27 15:50:54"
-        },
-        {
-            "id": 11878,
-            "conversation_id": 439,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 2 взр. + 1 реб. (10 лет) 🏨 от 4★ 🍽 Все Включено 🌙 6-7 ночей 📅 01.10.2026 — 07.10.2026 Что удобнее дальше?",
-            "created_at": "2026-08-27 15:50:50"
-        },
-        {
-            "id": 11877,
-            "conversation_id": 439,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_5",
-            "created_at": "2026-08-27 15:50:50"
-        },
-        {
-            "id": 11876,
-            "conversation_id": 439,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-27 15:50:47"
-        },
-        {
-            "id": 11875,
-            "conversation_id": 439,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_city",
-            "created_at": "2026-08-27 15:50:47"
-        },
-        {
-            "id": 11874,
-            "conversation_id": 439,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-27 15:50:42"
-        },
-        {
-            "id": 11873,
-            "conversation_id": 439,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-27 15:50:42"
-        },
-        {
-            "id": 11872,
-            "conversation_id": 439,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🙂 <b>Удалось найти подходящий тур?</b> Если вариантов слишком много или сложно определиться — менеджер может посмотреть ваш запрос и помочь с выбором.",
-            "created_at": "2026-08-27 15:50:38"
-        },
-        {
-            "id": 11871,
-            "conversation_id": 439,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "tours_checked",
-            "created_at": "2026-08-27 15:50:38"
-        },
-        {
-            "id": 11870,
-            "conversation_id": 439,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👩‍💼 <b>Передаю запрос менеджеру</b> Параметры поездки уже сохранены — повторно заполнять ничего не нужно. Менеджер сейчас онлайн и ответит прямо в этом чате. Номер телефона оставлять не нужно.",
-            "created_at": "2026-08-27 15:50:20"
-        },
-        {
-            "id": 11869,
-            "conversation_id": 439,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "manager_after_tours",
-            "created_at": "2026-08-27 15:50:19"
         }
     ],
     "recent_events": [
