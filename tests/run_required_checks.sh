@@ -62,6 +62,7 @@ checks=(
   'php tests/run_sales_pipeline_foundation_regression.php'
   'php tests/run_manager_workspace_v2_regression.php'
   'php tests/run_manager_workspace_v2_stability_regression.php'
+  'php tests/run_manager_workspace_v2_session_recovery_regression.php'
   'php tests/run_manager_workspace_v2_inbox_redesign_regression.php'
   'php tests/run_manager_workspace_v2_conversation_redesign_regression.php'
   'php tests/run_manager_workspace_v2_lead_card_redesign_regression.php'
