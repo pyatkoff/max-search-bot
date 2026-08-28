@@ -63,6 +63,7 @@ checks=(
   'php tests/run_manager_workspace_v2_lead_card_redesign_regression.php'
   'php tests/run_manager_workspace_v2_mobile_navigation_regression.php'
   'php tests/run_manager_workspace_v2_task_filter_regression.php'
+  'php tests/run_manager_workspace_v2_action_shortcuts_regression.php'
   'php tests/run_manager_workspace_v2_kanban_regression.php'
   'php tests/run_manager_workspace_v2_origin_regression.php'
   'php tests/run_manager_workspace_v2_wait_urgency_regression.php'
