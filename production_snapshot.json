@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T23:05:28+00:00",
+    "generated_at": "2026-08-28T23:08:43+00:00",
     "production": {
-        "sha": "c471489870ac58ef530da52d2f4ff72b211fe808",
+        "sha": "0e250fa69e5d89e7665d48a106561e499cad5941",
         "branch": "main"
     },
     "database": {
@@ -129,6 +129,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-28 22:53:43"
+        },
+        {
+            "version": "018_manager_push_subscriptions.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-29 01:08:39"
         }
     ],
     "stats": {
