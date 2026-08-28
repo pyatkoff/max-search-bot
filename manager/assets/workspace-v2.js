@@ -1,4 +1,5 @@
 (function(){
+if(/\/workspace-v2\.php$/.test(location.pathname)){location.replace(location.pathname.replace(/workspace-v2\.php$/,'')+location.search+location.hash);return}
 const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
