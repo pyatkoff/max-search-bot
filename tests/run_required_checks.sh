@@ -47,6 +47,7 @@ checks=(
   'php tests/run_manager_request_context_regression.php'
   'php tests/run_manager_phone_fallback_regression.php'
   'php tests/run_manager_visibility_regression.php'
+  'php tests/run_manager_admin_audit_regression.php'
   'php tests/run_manager_delivery_failure_regression.php'
   'php tests/run_manager_delivery_snapshot_regression.php'
   'php tests/run_manager_delivery_panel_regression.php'
