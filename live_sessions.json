@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T22:28:10+00:00",
+    "generated_at": "2026-08-28T22:33:06+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -46,7 +46,7 @@
             "inbound_messages": 18,
             "outbound_messages": 15,
             "date_picks": 1,
-            "anomaly_inbound_messages": 7,
+            "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-28 21:26:38",
@@ -173,5 +173,5 @@
             "last_message_at": "2026-08-28 23:09:03"
         }
     ],
-    "since_utc": "2026-08-28 21:28:10"
+    "since_utc": "2026-08-28 21:33:06"
 }
