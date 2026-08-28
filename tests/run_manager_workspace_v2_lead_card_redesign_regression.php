@@ -5,12 +5,13 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/workspace-v2.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$mobile=(string)file_get_contents($root.'/manager/assets/workspace-v2-mobile.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css');
 $passed=0;$failed=0;
 function lcCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 lcCheck('workspace loads dedicated lead card stylesheet',strpos($page,'assets/workspace-v2-lead-card.css')!==false);
-lcCheck('mobile lead card has explicit close control',strpos($page,'id="mobileLeadClose"')!==false&&strpos($js,"$('mobileLeadClose')")!==false);
+lcCheck('mobile lead card has explicit close control',strpos($page,'id="mobileLeadClose"')!==false&&strpos($mobile,"$('mobileLeadClose')")!==false&&strpos($mobile,'back()')!==false);
 lcCheck('lead card prioritizes identity contact and trip',strpos($js,'leadHeroName')!==false&&strpos($js,'leadContactActions')!==false&&strpos($js,'leadRouteMain')!==false);
 lcCheck('phone action is safely normalized',strpos($js,'function phoneHref')!==false&&strpos($js,"/^\\+?\\d{5,20}$/")!==false&&strpos($js,"'tel:'")!==false);
 lcCheck('email action is validated before mailto',strpos($js,'function emailHref')!==false&&strpos($js,"'mailto:'")!==false);
