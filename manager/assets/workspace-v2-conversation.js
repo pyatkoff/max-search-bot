@@ -50,7 +50,31 @@ async function change(a){
   }catch(e){if(!S.authExpired&&openSeq===generation)setLoadStatus(copy.error,'error')}
   finally{setBusy(false)}
 }
-async function sendReply(){if(busy||deliverySuspended())return;const text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();if(!text&&!hasFile)return;setBusy(true);setReplyStatus('Отправляем сообщение…');try{let j;if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:S.current,text});if(!j?.ok){const failure=j?.failure||null;if(failure){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}setReplyStatus(j?.error_message||failure?.message||'Не удалось отправить сообщение','error');return}drafts.delete(Number(S.current));$('replyText').value='';autoGrow();await open(S.current,{stickToBottom:true,mobileHistory:'none'});await window.WorkspaceV2Inbox?.load({preserveScroll:true});setReplyStatus('Отправлено','success');setTimeout(()=>{if(!busy)setReplyStatus()},1400)}finally{setBusy(false)}}
+async function sendReply(){
+  if(busy||deliverySuspended())return;
+  const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  if(!target||(!text&&!hasFile))return;
+  setBusy(true);setReplyStatus('Отправляем сообщение…');
+  try{
+    let j;if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
+    const stillCurrent=openSeq===generation&&Number(S.current)===target;
+    if(!j?.ok){
+      const failure=j?.failure||null;
+      if(stillCurrent&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
+      if(stillCurrent&&!S.authExpired)setReplyStatus(j?.error_message||failure?.message||'Не удалось отправить сообщение','error');
+      return
+    }
+    drafts.delete(target);
+    if(stillCurrent){
+      $('replyText').value='';autoGrow();
+      const refreshed=await open(target,{stickToBottom:true,mobileHistory:'none'});
+      if(refreshed){const statusGeneration=openSeq;setReplyStatus('Отправлено','success');setTimeout(()=>{if(!busy&&Number(S.current)===target&&openSeq===statusGeneration)setReplyStatus()},1400)}
+    }
+    await window.WorkspaceV2Inbox?.load({preserveScroll:true})
+  }catch(e){
+    if(!S.authExpired&&openSeq===generation&&Number(S.current)===target)setReplyStatus('Не удалось отправить сообщение','error')
+  }finally{setBusy(false)}
+}
 function bind(){if(bound)return;bound=true;const form=$('composer'),reply=$('replyText');form.onsubmit=async e=>{e.preventDefault();await sendReply()};reply.addEventListener('input',()=>{saveDraft();autoGrow()});reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>{reply.value=b.dataset.reply||'';saveDraft();autoGrow();reply.focus()})}
 window.WorkspaceV2Conversation={bind,open,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
 })();
