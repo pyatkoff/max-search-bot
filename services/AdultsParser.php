@@ -9,6 +9,9 @@ class AdultsParser
         if ($n === null && preg_match('/^(\d)\s*(?:взросл(?:ый|ых|ого)?|человек(?:а)?)$/ui', $lower, $m)) {
             $n = (int)$m[1];
         }
+        if ($n === null && preg_match('/(?:^|\s)(\d|один|одна|одного|два|двое|двух|три|трое|трех|трёх|четыре|четверо|пять|пятеро|шесть|шестеро)\s+взросл(?:ый|ая|ые|ых|ого)?(?:\s|$)/ui', $lower, $m)) {
+            $n = self::numberFromShortText((string)$m[1], 1, 6);
+        }
         return ($n !== null && $n >= 1 && $n <= 6) ? $n : null;
     }
 
