@@ -1,5 +1,6 @@
 <?php
 $widget = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget.js');
+$enhancer = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget-a11y.js');
 $preview = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/index.php');
 $rollout = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/rollout.php');
 
@@ -31,10 +32,24 @@ $check(strpos($widget, "new URL('api.php'") !== false, 'widget still uses local 
 $check(strpos($widget, "action:'send'") !== false, 'existing send transport is preserved');
 $check(strpos($widget, "action:'poll'") !== false, 'existing polling transport is preserved');
 $check(strpos($widget, "action:'profile'") !== false, 'existing contact handoff transport is preserved');
+
+$check($enhancer !== '', 'accessibility enhancer exists');
+$check(strpos($enhancer, "setAttribute('aria-expanded'") !== false, 'launcher exposes expanded state');
+$check(strpos($enhancer, "setAttribute('aria-controls'") !== false, 'launcher is linked to dialog');
+$check(strpos($enhancer, "event.key!=='Tab'") !== false, 'open dialog traps keyboard tab navigation');
+$check(strpos($enhancer, 'prefers-reduced-motion:reduce') !== false, 'reduced motion preference is respected');
+$check(strpos($enhancer, "document.body.style.overflow='hidden'") !== false, 'mobile fullscreen locks background page scroll');
+$check(strpos($enhancer, 'previousBodyOverflow') !== false, 'background scroll state is restored after close');
+$check(strpos($enhancer, 'MutationObserver') !== false, 'enhancer tracks open and closed dialog state');
+
 $check(strpos($preview, "filemtime(__DIR__ . '/widget.js')") !== false, 'preview cache-busts widget from file modification time');
+$check(strpos($preview, "filemtime(__DIR__ . '/widget-a11y.js')") !== false, 'preview cache-busts accessibility enhancer');
 $check(strpos($preview, 'widget.js?v=<?=') !== false, 'preview emits a versioned widget URL');
+$check(strpos($preview, 'widget-a11y.js?v=<?=') !== false, 'preview loads accessibility enhancer');
 $check(strpos($rollout, "filemtime(__DIR__ . '/widget.js')") !== false, 'default rollout cache-busts widget from file modification time');
 $check(strpos($rollout, "'/max-search/web-consultant/widget.js?v='") !== false, 'default rollout emits a versioned canonical widget URL');
+$check(strpos($rollout, "'/max-search/web-consultant/widget-a11y.js?v='") !== false, 'rollout emits a versioned accessibility enhancer URL');
+$check(strpos($rollout, 's.onload=ensureEnhancer') !== false, 'rollout loads enhancer after widget is ready');
 
 if ($failures) {
     fwrite(STDERR, "Web consultant V2 regression failed: " . implode('; ', $failures) . "\n");
