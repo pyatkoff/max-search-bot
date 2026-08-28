@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 $root=dirname(__DIR__);
-$page=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$page=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.css');
 $passed=0;$failed=0;
