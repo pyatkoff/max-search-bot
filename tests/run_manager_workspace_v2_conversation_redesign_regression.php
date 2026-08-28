@@ -17,5 +17,17 @@ checkConversationUi('composer autosizes and supports explicit keyboard submit',$
 checkConversationUi('send path preserves text and media backends',strpos($js,"api('send',{conversation_id:S.current,text})")!==false&&strpos($js,'WorkspaceV2Media.send(text)')!==false);
 checkConversationUi('double submit is guarded in UI',strpos($js,'if(busy)return')!==false&&strpos($js,'setBusy(true)')!==false&&strpos($js,'setBusy(false)')!==false);
 checkConversationUi('read-only conversation shows explicit reply lock reason',strpos($page,'id="composerLocked"')!==false&&strpos($js,'Переписку можно читать без назначения')!==false);
-checkConversationUi('mobile conversation remains full-screen and usable',strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.messages{padding:16px 12px 24px}')!==false&&strpos($css,'.composer{padding:8px 9px')!==false);
+$mobileUsable=strpos($css,'@media(max-width:900px)')!==false
+    && strpos($css,'height:100dvh;max-height:100dvh')!==false
+    && strpos($css,'.messages{padding:12px 10px 14px}')!==false
+    && strpos($css,'.composer{padding:7px 8px')!==false;
+checkConversationUi('mobile conversation remains full-screen and usable',$mobileUsable);
+$scrollContract=strpos($css,'.conversationZone{background:#f4f7f9;min-height:0;overflow:hidden}')!==false
+    && strpos($css,'.messages{min-height:0;flex:1 1 auto')!==false
+    && strpos($css,'overflow-y:auto;overflow-x:hidden')!==false
+    && strpos($css,'.composer{position:relative;z-index:5;flex:0 0 auto')!==false;
+checkConversationUi('long transcript cannot push composer out of viewport',$scrollContract);
+$mediaContract=strpos($css,'.attachments img,.attachments video{display:block;width:auto;height:auto')!==false
+    && strpos($css,'max-height:420px;object-fit:contain')!==false;
+checkConversationUi('conversation media is bounded inside message flow',$mediaContract);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
