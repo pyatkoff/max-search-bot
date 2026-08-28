@@ -32,6 +32,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The visual fixture predates the dedicated mobile stylesheet. Ensure
+          # responsive QA renders the same mobile adaptation layer as production.
+          if ! grep -q 'workspace-v2-mobile.css' tests/visual/workspace-v2-fixture.html; then
+            sed -i 's#<link rel="stylesheet" href="../../manager/assets/workspace-v2-tasks.css">#<link rel="stylesheet" href="../../manager/assets/workspace-v2-mobile.css"><link rel="stylesheet" href="../../manager/assets/workspace-v2-tasks.css">#' tests/visual/workspace-v2-fixture.html
+          fi
+          grep -q 'workspace-v2-mobile.css' tests/visual/workspace-v2-fixture.html
           python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/visual-server.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/visual-server.pid"
           for attempt in $(seq 1 20); do
