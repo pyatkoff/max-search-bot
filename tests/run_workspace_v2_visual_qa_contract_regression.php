@@ -12,6 +12,8 @@ vqCheck('visual fixture exists',$fixture!=='');
 vqCheck('kanban visual fixture exists',$kanbanFixture!=='');
 foreach(['390,844','430,932','768,1024','1440,1000'] as $viewport)vqCheck('captures viewport '.$viewport,strpos($workflow,"--viewport-size='".$viewport."'")!==false);
 vqCheck('captures mobile Inbox and secondary zones',strpos($workflow,'390-inbox.png')!==false&&strpos($workflow,'390-conversation.png')!==false&&strpos($workflow,'430-lead.png')!==false&&strpos($workflow,'768-conversation.png')!==false);
+vqCheck('captures production-like long chat on mobile and desktop',strpos($workflow,'390-conversation-stress.png')!==false&&strpos($workflow,'1440-conversation-stress.png')!==false&&substr_count($workflow,'stress=chat')>=2);
+vqCheck('long chat fixture includes repeated history and media',strpos($fixture,"stress==='chat'")!==false&&strpos($fixture,'round<3')!==false&&strpos($fixture,'class=\"attachments\"')!==false&&strpos($fixture,'hotel photo')!==false);
 vqCheck('captures desktop and mobile kanban',strpos($workflow,'390-kanban.png')!==false&&strpos($workflow,'1440-kanban.png')!==false&&strpos($workflow,'workspace-v2-kanban-fixture.html')!==false);
 vqCheck('visual evidence uploads as artifact',strpos($workflow,'actions/upload-artifact@v4')!==false&&strpos($workflow,'visual-artifacts/*.png')!==false);
 vqCheck('visual QA is isolated from production',stripos($workflow,'deploy_')===false&&strpos($workflow,'anytour.online')===false);
