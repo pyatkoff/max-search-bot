@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+require_once dirname(__DIR__).'/services/LeadTaskService.php';
+$root=dirname(__DIR__);
+$taskService=(string)file_get_contents($root.'/services/LeadTaskService.php');
+$inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
+$inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$kanbanJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.js');
+$inboxCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
+$kanbanCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.css');
+$passed=0;$failed=0;
+function ppCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+$order=LeadTaskService::openTaskOrderSql('t');
+ppCheck('canonical open task order prioritizes pinned work',strpos($order,'t.is_pinned=1')!==false&&strpos($order,'t.due_at_utc ASC')!==false&&strpos($order,'t.is_pinned=1')<strpos($order,'t.due_at_utc ASC'));
+ppCheck('task detail list consumes canonical priority order',strpos($taskService,"\$order=self::openTaskOrderSql('t')")!==false&&strpos($taskService,'ORDER BY CASE WHEN t.status=\'open\' THEN 0 ELSE 1 END,{$order}')!==false);
+ppCheck('inbox projection consumes same canonical priority order',strpos($inboxService,"LeadTaskService::openTaskOrderSql('t')")!==false&&strpos($inboxService,'ORDER BY t.conversation_id ASC,{$taskOrder}')!==false);
+ppCheck('inbox batch projection includes pinned state',strpos($inboxService,'t.is_pinned')!==false&&strpos($inboxService,"next_task_pinned")!==false);
+ppCheck('inbox visibly marks projected pinned task',strpos($inboxJs,'c.next_task_pinned')!==false&&strpos($inboxJs,"taskPinned?'📌'")!==false&&strpos($inboxCss,'.leadTaskCompact.pinned')!==false);
+ppCheck('kanban visibly marks projected pinned task',strpos($kanbanJs,'c.next_task_pinned')!==false&&strpos($kanbanJs,'📌 В приоритете')!==false&&strpos($kanbanCss,'.kanbanTask.pinned')!==false);
+ppCheck('presentation modules do not own pin mutations',strpos($inboxJs,"pipe('set_task_pinned'")===false&&strpos($kanbanJs,"pipe('set_task_pinned'")===false);
+
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
+exit($failed?1:0);
