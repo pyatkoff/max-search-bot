@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+$root=dirname(__DIR__);
+$audit=(string)file_get_contents($root.'/services/AuditLogService.php');
+$directory=(string)file_get_contents($root.'/services/AdminDirectoryService.php');
+$api=(string)file_get_contents($root.'/manager/api.php');
+
+$passed=0;$failed=0;
+function maaCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+
+maaCheck('audit service exposes a bounded read-only admin projection',strpos($audit,'function recentSummaries')!==false&&strpos($audit,'min(100,$limit)')!==false&&strpos($audit,'ORDER BY a.id DESC LIMIT')!==false);
+maaCheck('admin audit projection resolves actor identity',strpos($audit,'LEFT JOIN managers m ON m.id=a.actor_manager_id')!==false&&strpos($audit,'actor_name')!==false&&strpos($audit,'actor_login')!==false);
+maaCheck('admin audit projection is data minimized',strpos($audit,'recentSummaries')!==false&&strpos($audit,'a.before_json')===false&&strpos($audit,'a.after_json')===false);
+maaCheck('admin directory snapshot includes recent audit summaries',strpos($directory,"'audit'=>AuditLogService::recentSummaries(50)")!==false);
+maaCheck('admin snapshot remains server-side role gated',strpos($api,"if(\$action==='admin_snapshot')")!==false&&strpos($api,'requireAdmin($m);')!==false);
+
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
+exit($failed?1:0);
