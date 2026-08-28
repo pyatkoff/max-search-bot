@@ -1,8 +1,8 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T19:37:46+00:00",
-    "source_generated_at": "2026-08-28T19:37:45+00:00",
+    "generated_at": "2026-08-28T19:47:19+00:00",
+    "source_generated_at": "2026-08-28T19:47:18+00:00",
     "window_hours": 1,
     "summary": {
         "sessions": 11,
@@ -23,7 +23,7 @@
             ],
             "status": "ai",
             "drop_point": "tours_opened",
-            "last_message_at": "2026-08-28 21:29:28"
+            "last_message_at": "2026-08-28 21:40:02"
         },
         {
             "conversation_id": 542,
@@ -36,7 +36,7 @@
             ],
             "status": "ai",
             "drop_point": "tours_opened",
-            "last_message_at": "2026-08-28 21:24:25"
+            "last_message_at": "2026-08-28 21:42:02"
         }
     ]
 }
