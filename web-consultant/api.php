@@ -28,6 +28,7 @@ if ($prolog !== '' && is_file($prolog)) require_once $prolog;
 
 require_once $root . '/maxsearchclass.php';
 require_once $root . '/services/WebsiteSessionService.php';
+require_once $root . '/services/WebsitePageContextService.php';
 require_once $root . '/services/IncomingUpdateDispatcher.php';
 require_once $root . '/services/IntegrationRegistry.php';
 require_once $root . '/integrations/WebsiteIncomingAdapter.php';
@@ -42,6 +43,13 @@ try {
     $action = strtolower(trim((string)($payload['action'] ?? 'init')));
     $session = WebsiteSessionService::resolve((string)($payload['token'] ?? ''));
     $afterId = max(0,(int)($payload['after_id'] ?? 0));
+
+    if ($action === 'context') {
+        $context = is_array($payload['page_context'] ?? null) ? $payload['page_context'] : [];
+        if (!$context) webOut(['ok'=>false,'error'=>'invalid_context'],422);
+        $saved = WebsitePageContextService::save($session['external_user_id'],(int)$session['chat_id'],$context);
+        webOut(['ok'=>$saved,'token'=>$session['token']],$saved?200:422);
+    }
 
     if ($action === 'init' || $action === 'poll') {
         $snapshot = WebsiteSessionService::messages($session['external_user_id'],$afterId);

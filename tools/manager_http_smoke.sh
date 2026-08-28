@@ -64,16 +64,20 @@ request consultant_root "$CONSULTANT_BASE_URL/"
 request consultant_index "$CONSULTANT_BASE_URL/index.php"
 request consultant_widget "$CONSULTANT_BASE_URL/widget.js"
 request consultant_a11y "$CONSULTANT_BASE_URL/widget-a11y.js"
+request consultant_context "$CONSULTANT_BASE_URL/widget-context.js"
 
 assert_status consultant_root 200
 assert_status consultant_index 200
 assert_status consultant_widget 200
 assert_status consultant_a11y 200
+assert_status consultant_context 200
 assert_body_contains consultant_root 'AnyTour'
 assert_body_contains consultant_index 'widget.js'
 assert_body_contains consultant_index 'widget-a11y.js'
 assert_body_contains consultant_widget 'anytour-consultant-host'
 assert_body_contains consultant_a11y 'anytour-consultant-dialog'
 assert_body_contains consultant_a11y 'prefers-reduced-motion:reduce'
+assert_body_contains consultant_context "action:'context'"
+assert_body_contains consultant_context 'page_context'
 
 echo 'MANAGER + WEB CONSULTANT HTTP SMOKE: OK'
