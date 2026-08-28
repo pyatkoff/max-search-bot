@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T21:06:58+00:00",
+    "generated_at": "2026-08-28T22:06:23+00:00",
     "production": {
-        "sha": "f4aa42c608742b14dcf53eed3c831c5a95b6f42c",
+        "sha": "e13fc251a7778750038d8decdcbb62bfed275740",
         "branch": "main"
     },
     "migrations": {
@@ -58,11 +58,11 @@
                     "display_name": "Светлана",
                     "is_working": true,
                     "subscription_table_exists": true,
-                    "subscription_count": 3,
-                    "healthy_subscription_count": 3,
+                    "subscription_count": 2,
+                    "healthy_subscription_count": 2,
                     "notification_path_usable": true,
                     "notification_path_reason": "healthy_subscription",
-                    "last_success_at": "2026-08-28 13:59:11",
+                    "last_success_at": "2026-08-28 23:09:03",
                     "last_error_at": null,
                     "last_error": null
                 }
@@ -130,27 +130,28 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 20:06:54",
+        "since_utc": "2026-08-28 21:06:18",
         "summary": {
-            "sessions": 11,
-            "started": 11,
-            "needs_collected": 8,
-            "tours_opened": 8,
-            "manager_requested": 0,
-            "manager_replied": 0,
+            "sessions": 6,
+            "started": 6,
+            "needs_collected": 5,
+            "tours_opened": 5,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 2,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 0,
+                "answered_after_90s": 1,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 1046,
+                "max_seconds": 1046
             },
             "drop_points": {
-                "tours_opened": 8,
-                "collecting_needs": 3
+                "tours_opened": 4,
+                "collecting_needs": 1,
+                "manager_replied": 1
             },
             "flags": {
                 "excessive_turns": 2,
@@ -184,13 +185,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "f4aa42c608742b14dcf53eed3c831c5a95b6f42c",
+        "sha": "e13fc251a7778750038d8decdcbb62bfed275740",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T21:06:58Z"
+        "reported_at": "2026-08-28T22:06:23Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",

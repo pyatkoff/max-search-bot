@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T21:06:51+00:00",
+    "generated_at": "2026-08-28T22:06:15+00:00",
     "production": {
-        "sha": "f4aa42c608742b14dcf53eed3c831c5a95b6f42c",
+        "sha": "e13fc251a7778750038d8decdcbb62bfed275740",
         "branch": "main"
     },
     "database": {
@@ -135,7 +135,7 @@
         "customers": 544,
         "customer_channels": 544,
         "conversations": 545,
-        "messages": 14857,
+        "messages": 14858,
         "managers": 5,
         "manager_assignments": 111,
         "conversation_events": 927,
@@ -298,11 +298,11 @@
                 "display_name": "Светлана",
                 "is_working": true,
                 "subscription_table_exists": true,
-                "subscription_count": 3,
-                "healthy_subscription_count": 3,
+                "subscription_count": 2,
+                "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-28 13:59:11",
+                "last_success_at": "2026-08-28 23:09:03",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -399,6 +399,45 @@
     "recent_entry_attribution": [],
     "recent_manager_priority_events": [],
     "recent_manager_push_events": [
+        {
+            "ts": "2026-08-28T23:09:03+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "46e15fd6cbb1b99f",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-28T23:09:03+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "46e15fd6cbb1b99f",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-28T23:09:03+02:00",
+            "level": "warning",
+            "component": "manager_push",
+            "event": "subscription_expired",
+            "data": {
+                "dispatch_id": "46e15fd6cbb1b99f",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 2,
+                "http_code": 410
+            }
+        },
         {
             "ts": "2026-08-28T13:59:11+02:00",
             "level": "info",
@@ -733,6 +772,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 14858,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Добрый вечер. Можно ещё варианты. Ничего не зацепило",
+            "created_at": "2026-08-28 23:09:03"
+        },
         {
             "id": 14857,
             "conversation_id": 544,
@@ -1263,15 +1311,6 @@
             "channel": "max",
             "text": "pick_city_other",
             "created_at": "2026-08-28 21:26:52"
-        },
-        {
-            "id": 14798,
-            "conversation_id": 543,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-28 21:26:38"
         }
     ],
     "recent_events": [
