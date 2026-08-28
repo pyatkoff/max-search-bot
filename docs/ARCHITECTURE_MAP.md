@@ -14,7 +14,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/AuditLogService.php` — admin audit persistence plus bounded data-minimized read projection; UI must not expose raw before/after payloads.
 - `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
 - Sales-pipeline services/repositories — business lead state, independent from technical conversation status.
-- `manager/workspace-v2.php` plus focused `manager/assets/workspace-v2-*` modules — forward manager UI, kept thin and progressively modular.
+- `manager/index.php` plus focused `manager/assets/workspace-v2-*` modules — canonical forward Manager UI entrypoint, kept thin and progressively modular; do not recreate a second Workspace PHP shell.
 - `manager/admin.php` + `manager/assets/admin.css` — current role-gated admin interface; keep behavior in PHP/JS thin and presentation outside the PHP monolith while splitting further only when a real slice needs it.
 - `migrations/` — only owner of production schema evolution; applied files immutable.
 - `tests/scenarios/<suite>/` + `tests/support/ScenarioEngine.php` — reusable production-derived behavior scenarios; add new step handlers only when a real case needs them.
@@ -35,7 +35,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 
 - Business/state decisions still inside transport handlers → application/domain services.
 - SQL persistence embedded in request/UI code → repositories/infrastructure services.
-- Rendering/network logic remaining in `manager/workspace-v2.php` → focused `manager/assets/` modules or view helpers.
+- Rendering/network logic remaining in `manager/index.php` → focused `manager/assets/` modules or view helpers.
 - Manager UI business mutations → manager application services; PHP endpoints remain interface adapters using the shared `ManagerHttp` boundary.
 - Admin rendering/business logic that grows beyond the current thin page → focused admin assets/services; do not rebuild another PHP/CSS/JS monolith.
 - Structured operational decisions embedded only in text logs → typed diagnostic events/snapshots.
