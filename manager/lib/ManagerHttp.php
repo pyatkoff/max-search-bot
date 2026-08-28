@@ -52,6 +52,18 @@ final class ManagerHttp
         }
     }
 
+    public static function canEditConversation(array $conversation,array $manager): bool
+    {
+        return ManagerRequestContext::canEditAssignedConversation($conversation,$manager);
+    }
+
+    public static function requireConversationEdit(array $conversation,array $manager): void
+    {
+        if(!self::canEditConversation($conversation,$manager)){
+            self::respond(['ok'=>false,'error'=>'forbidden'],403);
+        }
+    }
+
     public static function respond(array $data,int $status=200): void
     {
         http_response_code($status);

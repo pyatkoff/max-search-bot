@@ -4,17 +4,18 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Target boundaries
 
-- **Entrypoint / shell** — `index.php` is the production entrypoint. It renders the workspace and never performs HTTP canonical redirects. Browser-visible aliases are normalized without a network navigation.
+- **Entrypoint / shell** — `index.php` is the single production workspace entrypoint. It renders the workspace and never performs HTTP canonical redirects. Browser-visible `/manager/index.php` is normalized with `history.replaceState`, not a network navigation.
 - **Workspace modules** — inbox, conversation, lead card, pipeline, tasks, media, notifications, kanban and mobile behavior own their corresponding `assets/workspace-v2-*` files.
-- **Manager HTTP interfaces** — `api.php`, `pipeline-api.php`, media and push endpoints are thin interfaces. Authentication, authorization and validation must converge on shared request helpers instead of being reimplemented per endpoint.
-- **Business rules** — remain outside presentation code. UI code may project and invoke manager use-cases but must not become a second owner of routing, technical conversation state, sales-stage semantics or delivery rules.
+- **Manager HTTP interfaces** — `api.php`, `pipeline-api.php`, media and push endpoints are thin interfaces. Authentication, authorization and validation converge on `lib/ManagerHttp.php` instead of being reimplemented per endpoint.
+- **Business rules** — remain outside presentation/interface code. UI and HTTP code may project and invoke manager use-cases but must not become a second owner of routing, technical conversation state, sales-stage semantics or delivery rules.
 
 ## Keep / merge / move / delete map
 
 ### Keep
 
-- `index.php` — canonical production entrypoint; redirect-free.
-- `workspace-v2.php` — current workspace shell while it is progressively split; must not accumulate module logic.
+- `index.php` — canonical production workspace entrypoint; redirect-free.
+- `lib/ManagerHttp.php` — shared Manager JSON/session/auth/CSRF/conversation-authorization boundary. Keep it business-service free.
+- `assets/workspace-v2.js` — shared state/transport/boot/auth-recovery core only; feature rendering stays in modules.
 - `assets/workspace-v2-inbox.*` — inbox owner.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
 - `assets/workspace-v2-lead-card.*` — structured lead information owner.
@@ -22,11 +23,12 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-media.*` — outbound media UI owner.
 - `assets/workspace-v2-notifications.*` — notification UI owner.
 - `assets/workspace-v2-mobile.*` — mobile navigation/layout owner only; business behavior stays in feature modules.
-- `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep until push lifecycle is centralized and behavior is covered.
+- `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep; push behavior remains in services while endpoints use the shared HTTP boundary.
 
 ### Merge / centralize incrementally
 
-- Repeated JSON response, session, auth, CSRF and HTTP-error handling across `api.php`, `pipeline-api.php`, media and push endpoints → one manager HTTP bootstrap/request layer.
+- **Completed:** push endpoints and `media-upload.php` use `ManagerHttp`; `pipeline-api.php` is the next migrated interface slice.
+- Remaining repeated JSON response/session/auth/CSRF handling in `api.php` and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
 - Duplicated frontend fetch/error/auth behavior in workspace/admin/routing → one small manager HTTP client module.
 - Admin/routing visual primitives → shared manager admin CSS, without coupling them to conversation CSS.
 
@@ -34,13 +36,14 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 - Inline CSS/JS from `admin.php` → `assets/admin.css` + `assets/admin.js`.
 - Inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`.
-- Shell-only markup from `workspace-v2.php` → components/templates once entrypoint stability is proven. Do not move all files in one PR.
-- Manager-specific endpoint helpers currently duplicated in top-level PHP files → `manager/lib/` or equivalent interface helpers; shared business services stay outside `manager/`.
+- Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
+- Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
 
 ### Delete only after compatibility evidence
 
-- Network redirect code between `/manager/`, `/manager/index.php` and `workspace-v2.php` — delete/avoid; canonicalization must not create requests.
-- Legacy/duplicate entry aliases only after production logs and links confirm they are unused. Until then aliases may render the same implementation but must not become separate versions.
+- `workspace-v2.php` — **deleted after #252**. Do not recreate it or another workspace alias.
+- Network redirect code between `/manager/` and `/manager/index.php` — keep deleted/forbidden; canonicalization must not create requests.
+- Legacy/duplicate endpoint helpers only after the owning endpoint has moved to the shared boundary and required behavior tests are green.
 - Dead CSS selectors / JS hooks only after visual QA and DOM contract checks prove no use.
 
 ## Invariants
@@ -51,13 +54,14 @@ This directory is the owned interface boundary for the manager product. Changes 
 4. Original tourist transcript is preserved; structured trip/contact/source/handoff data lives outside it.
 5. Manager composer must remain reachable and usable on supported desktop/mobile viewports.
 6. Authorization and CSRF are server-side requirements; UI hiding is not authorization.
-7. Production verification requires real HTTP entrypoint smoke in addition to static regression and screenshot QA.
+7. Sales Pipeline mutations require assigned-manager/admin authorization at the shared interface boundary and remain independent of technical conversation state.
+8. Production verification requires real HTTP entrypoint smoke in addition to static regression and screenshot QA.
 
 ## Refactor sequence
 
-1. Entrypoint stability and real HTTP smoke.
-2. Central request/auth/error interface layer.
+1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
+2. **In progress:** central request/auth/error interface layer (`push*`, media upload, then Sales Pipeline API).
 3. Split admin and routing monolith assets.
-4. Reduce `workspace-v2.php` to shell/components.
-5. Consolidate endpoint validation and structured errors.
-6. Continue feature work only on top of these stable boundaries.
+4. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior.
+5. Consolidate remaining endpoint validation and structured errors, especially the large `api.php`, in narrow slices.
+6. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
