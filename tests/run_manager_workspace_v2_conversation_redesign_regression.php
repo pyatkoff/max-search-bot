@@ -25,9 +25,14 @@ checkConversationUi('mobile conversation remains full-screen and usable',$mobile
 $scrollContract=strpos($css,'.conversationZone{background:#f4f7f9;min-height:0;overflow:hidden}')!==false
     && strpos($css,'.messages{min-height:0;flex:1 1 auto')!==false
     && strpos($css,'overflow-y:auto;overflow-x:hidden')!==false
-    && strpos($css,'.composer{position:relative;z-index:5;flex:0 0 auto')!==false;
+    && strpos($css,'.composer{position:relative;z-index:5;flex:0 0 auto;display:grid')!==false;
 checkConversationUi('long transcript cannot push composer out of viewport',$scrollContract);
+$composerContract=strpos($css,'display:grid;grid-template-columns:minmax(0,1fr);align-content:start;width:100%')!==false
+    && strpos($css,'.composerSurface{display:grid;grid-template-columns:minmax(0,1fr) auto')!==false;
+checkConversationUi('composer overrides legacy horizontal flex layout',$composerContract);
 $mediaContract=strpos($css,'.attachments img,.attachments video{display:block;width:auto;height:auto')!==false
-    && strpos($css,'max-height:420px;object-fit:contain')!==false;
-checkConversationUi('conversation media is bounded inside message flow',$mediaContract);
+    && strpos($css,'max-height:420px;object-fit:contain')!==false
+    && strpos($js,'function looksLikeImage')!==false
+    && strpos($js,'function mediaFallback')!==false;
+checkConversationUi('conversation media is bounded and historical images degrade safely',$mediaContract);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
