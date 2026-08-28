@@ -26,9 +26,11 @@ $check(!$policy->isAllowed('https://anytour.com.evil.example'), 'suffix spoofing
 $check(!$policy->isAllowed('javascript://anytour.com'), 'non-http schemes are rejected');
 $check(!$policy->isAllowed('https://anytour.com/path'), 'origins containing paths are rejected');
 
-$apiSource = (string) file_get_contents(dirname(__DIR__) . '/website/api.php');
-$check(strpos($apiSource, "REQUEST_METHOD'] ?? 'GET') === 'OPTIONS'") !== false, 'WEBSITE API handles CORS preflight before application dispatch');
-$check(strpos($apiSource, "origin_not_allowed") !== false, 'WEBSITE API rejects disallowed cross-origin callers');
+$canonicalApiSource = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/api.php');
+$legacyApiSource = (string) file_get_contents(dirname(__DIR__) . '/website/api.php');
+$check(strpos($canonicalApiSource, "REQUEST_METHOD'] ?? 'GET') === 'OPTIONS'") !== false, 'WEB CONSULTANT API handles CORS preflight before application dispatch');
+$check(strpos($canonicalApiSource, "origin_not_allowed") !== false, 'WEB CONSULTANT API rejects disallowed cross-origin callers');
+$check(strpos($legacyApiSource, "../web-consultant/api.php") !== false, 'legacy WEBSITE API delegates to canonical web consultant API');
 
 if ($failures) {
     fwrite(STDERR, "Website origin policy regression failed: " . implode('; ', $failures) . "\n");
