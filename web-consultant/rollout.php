@@ -9,8 +9,10 @@ $percent = max(0, min(100, $percent));
 $widgetUrl = defined('WEBSITE_WIDGET_URL') && trim((string) WEBSITE_WIDGET_URL) !== ''
     ? (string) WEBSITE_WIDGET_URL
     : '/max-search/web-consultant/widget.js';
+$uxUrl = '/max-search/web-consultant/ux.js';
 
 $encodedUrl = json_encode($widgetUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+$encodedUxUrl = json_encode($uxUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 $encodedPercent = json_encode($percent);
 
 $loader = <<<'JS'
@@ -55,9 +57,17 @@ $loader = <<<'JS'
   s.src=__WIDGET_URL__;
   s.async=true;
   s.setAttribute('data-anytour-webchat','1');
+  s.onload=function(){
+    if(document.querySelector('script[data-anytour-webchat-ux]'))return;
+    var ux=document.createElement('script');
+    ux.src=__UX_URL__;
+    ux.async=true;
+    ux.setAttribute('data-anytour-webchat-ux','1');
+    document.head.appendChild(ux);
+  };
   document.head.appendChild(s);
 }());
 JS;
 
-$loader = str_replace(['__PERCENT__', '__WIDGET_URL__'], [$encodedPercent, $encodedUrl], $loader);
+$loader = str_replace(['__PERCENT__', '__WIDGET_URL__', '__UX_URL__'], [$encodedPercent, $encodedUrl, $encodedUxUrl], $loader);
 echo $loader . "\n";
