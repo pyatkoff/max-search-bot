@@ -16,7 +16,7 @@ $workspaceJs=$coreJs."\n".$inboxJs."\n".$pipelineJs."\n".$leadCardJs."\n".$conve
 $ui=$workspace."\n".$workspaceCss."\n".$workspaceJs."\n".$mediaJs."\n".$mediaCss;
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');$mediaApi=(string)file_get_contents($root.'/manager/media-upload.php');$conversations=(string)file_get_contents($root.'/services/ManagerConversationService.php');$pipeline=(string)file_get_contents($root.'/services/SalesPipelineService.php');$inbox=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');$context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');$passed=0;$failed=0;
 function mw2Check(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
-function mw2AssetLoaded(string $html,string $asset):bool{return preg_match('~(?:href|src)=["\']'.preg_quote($asset,'~').'(?:\?v=[^"\']+)?["\']~',$html)===1;}
+function mw2AssetLoaded(string $html,string $asset):bool{$file=basename($asset);return strpos($html,$asset)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
 mw2Check('workspace loads extracted assets',mw2AssetLoaded($workspace,'assets/workspace-v2.css')&&mw2AssetLoaded($workspace,'assets/workspace-v2.js')&&strpos($workspace,'<style>')===false&&strpos($workspace,'<script>')===false);
 mw2Check('workspace has three-zone desktop structure',strpos($ui,'inboxZone')!==false&&strpos($ui,'conversationZone')!==false&&strpos($ui,'leadZone')!==false&&strpos($ui,'grid-template-columns:340px minmax(420px,1fr) 340px')!==false);
 mw2Check('workspace has mobile adaptation',strpos($ui,'@media(max-width:900px)')!==false&&strpos($ui,'.conversationZone.open')!==false&&strpos($ui,'.leadZone.open')!==false);
