@@ -67,7 +67,7 @@ function bindWorkspaceOnce(){
   S.workspaceBound=true;
 }
 async function resumeAuthenticated(me){
-  S.authExpired=false;hideAuthRecovery();applyIdentity(me);await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  S.authExpired=false;hideAuthRecovery();applyIdentity(me);await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
 }
 async function loginFromRecovery(){
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;
