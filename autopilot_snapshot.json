@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T13:11:12+00:00",
+    "generated_at": "2026-08-28T13:27:14+00:00",
     "production": {
-        "sha": "6c639b57d6e2b674b1258bbca3994f4d3c6b7e62",
+        "sha": "a73696d845e9b9259a17f4164b962ab2e4af32dc",
         "branch": "main"
     },
     "migrations": {
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 12:11:06",
+        "since_utc": "2026-08-28 12:27:09",
         "summary": {
-            "sessions": 18,
-            "started": 18,
-            "needs_collected": 16,
-            "tours_opened": 16,
+            "sessions": 17,
+            "started": 17,
+            "needs_collected": 15,
+            "tours_opened": 15,
             "manager_requested": 4,
             "manager_replied": 4,
             "phone_received": 1,
@@ -149,7 +149,7 @@
                 "max_seconds": 40781
             },
             "drop_points": {
-                "tours_opened": 12,
+                "tours_opened": 11,
                 "manager_replied": 4,
                 "collecting_needs": 2
             },
@@ -294,13 +294,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "6c639b57d6e2b674b1258bbca3994f4d3c6b7e62",
+        "sha": "a73696d845e9b9259a17f4164b962ab2e4af32dc",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T13:11:12Z"
+        "reported_at": "2026-08-28T13:27:14Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
