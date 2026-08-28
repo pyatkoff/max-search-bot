@@ -13,6 +13,7 @@ checkConversationUi('conversation stylesheet is isolated',conversationAssetLoade
 checkConversationUi('header exposes customer identity and technical state separately',strpos($page,'id="conversationAvatar"')!==false&&strpos($page,'id="conversationState"')!==false&&strpos($js,'renderHeader(c)')!==false);
 checkConversationUi('messages distinguish tourist AI and manager',strpos($js,"who==='customer'?'Турист':who==='manager'?'Менеджер':'AI'")!==false&&strpos($css,'.msg.customer')!==false&&strpos($css,'.msg.ai')!==false&&strpos($css,'.msg.manager')!==false);
 checkConversationUi('original transcript remains rendered from detail messages',strpos($js,'renderMessages(d.messages||[]')!==false&&strpos($js,'body.textContent=m.text||')!==false);
+checkConversationUi('successful detail read clears stale Inbox unread signal',strpos($js,"if(d.ok)window.WorkspaceV2Inbox?.markRead(S.current)")!==false&&strpos($js,'if(!d.ok||!p.ok)return')!==false&&strpos($js,"api('detail',{conversation_id:S.current})")!==false);
 checkConversationUi('composer has quick replies without auto send',strpos($page,'class="quickReplies"')!==false&&strpos($js,"b.onclick=()=>{reply.value=b.dataset.reply||''")!==false);
 $inputAutosizes=strpos($js,"reply.addEventListener('input',autoGrow)")!==false||strpos($js,"reply.addEventListener('input',()=>{saveDraft();autoGrow()})")!==false;
 checkConversationUi('composer autosizes and supports explicit keyboard submit',$inputAutosizes&&strpos($js,"e.metaKey||e.ctrlKey")!==false&&strpos($js,'form.requestSubmit()')!==false);
