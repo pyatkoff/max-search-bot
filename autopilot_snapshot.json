@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T03:17:26+00:00",
+    "generated_at": "2026-08-28T03:23:08+00:00",
     "production": {
-        "sha": "e716e881254f6ccad6458749ed45a5fa314b2bbb",
+        "sha": "15193444583195e36e6aabbb8c2dfbdfbe6bef15",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 34894,
+            "oldest_wait_seconds": 35239,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 34894,
+                    "wait_seconds": 35239,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 30834,
+                    "wait_seconds": 31179,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 23324,
+                    "wait_seconds": 23669,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -162,7 +162,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 02:17:21",
+        "since_utc": "2026-08-28 02:23:04",
         "summary": {
             "sessions": 2,
             "started": 2,
@@ -207,13 +207,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "e716e881254f6ccad6458749ed45a5fa314b2bbb",
+        "sha": "15193444583195e36e6aabbb8c2dfbdfbe6bef15",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T03:17:26Z"
+        "reported_at": "2026-08-28T03:23:08Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
