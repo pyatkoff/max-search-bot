@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 $root=dirname(__DIR__);
-$workspace=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$workspace=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-notifications.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-notifications.css');
 $endpoint=(string)file_get_contents($root.'/manager/push-status.php');
