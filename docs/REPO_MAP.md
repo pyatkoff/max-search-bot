@@ -19,6 +19,13 @@ Fast orientation for autonomous work. This is a map, not a replacement for `docs
 Canonical direction for recognized needs:
 `NeedValueResolver → NeedApplicationService → NeedProgressionService / DialogueView`.
 
+### Web consultant
+- `web-consultant/` — canonical customer-facing website consultant surface: preview, widget, API transport and rollout loader;
+- `website/` — compatibility-only paths delegating to `web-consultant/`;
+- `services/Website*`, `integrations/Website*` — shared website transport/session/origin rules used by the web consultant without duplicating dialogue/business logic.
+
+New website integrations should use `/max-search/web-consultant/` URLs. Keep shared AI, dialogue, search, handoff and persistence rules outside the UI module.
+
 ### Manager / sales
 - `manager/` — legacy manager panel plus Workspace V2 endpoints/UI;
 - `manager/assets/workspace-v2-*` — V2 Inbox, Conversation, Lead Card, Pipeline, Media, Tasks, Notifications modules;

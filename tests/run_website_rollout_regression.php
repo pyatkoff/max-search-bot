@@ -35,8 +35,8 @@ for ($i = 0; $i < 1000; $i++) {
 }
 assertTrue($selected >= 60 && $selected <= 140, '10 percent rollout should select an approximately bounded share');
 
-$loaderSource = file_get_contents(__DIR__ . '/../website/rollout.php');
-assertTrue(is_string($loaderSource) && $loaderSource !== '', 'rollout loader source must be readable');
+$loaderSource = file_get_contents(__DIR__ . '/../web-consultant/rollout.php');
+assertTrue(is_string($loaderSource) && $loaderSource !== '', 'canonical rollout loader source must be readable');
 assertTrue(strpos($loaderSource, 'window.localStorage.getItem') !== false, 'browser rollout must read a first-party localStorage bucket');
 assertTrue(strpos($loaderSource, 'window.localStorage.setItem') !== false, 'browser rollout must persist a first-party localStorage bucket');
 assertTrue(strpos($loaderSource, 'document.cookie=key') !== false, 'browser rollout must have a first-party cookie fallback');
@@ -44,5 +44,9 @@ assertTrue(strpos($loaderSource, "setcookie('anytour_webchat_rollout'") === fals
 assertTrue(strpos($loaderSource, "\$_COOKIE['anytour_webchat_rollout']") === false, 'cross-origin loader must not read server-side third-party assignment cookies');
 assertTrue(strpos($loaderSource, "if(percent<=0)return") !== false, '0 percent rollout must short-circuit before loading widget');
 assertTrue(strpos($loaderSource, "if(percent<100&&bucket>=percent)return") !== false, 'browser bucket must gate widget by configured percent');
+assertTrue(strpos($loaderSource, '/max-search/web-consultant/widget.js') !== false, 'canonical rollout must default to canonical widget URL');
 
-echo "WEBSITE ROLLOUT REGRESSION PASS selected={$selected}/1000 first_party_sticky=1\n";
+$legacyLoader = file_get_contents(__DIR__ . '/../website/rollout.php');
+assertTrue(strpos((string)$legacyLoader, "web-consultant/rollout.php") !== false, 'legacy rollout path must delegate to canonical module');
+
+echo "WEBSITE ROLLOUT REGRESSION PASS selected={$selected}/1000 first_party_sticky=1 canonical_module=1\n";
