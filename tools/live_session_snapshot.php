@@ -24,6 +24,16 @@ function liveDiagnosticMessageTail(array $messages,int $limit=24):array
     },$tail);
 }
 
+function liveDiagnosticWindowMessages(array $messages,int $sinceTs):array
+{
+    return array_values(array_filter($messages,static function(array $message)use($sinceTs):bool{
+        $created=trim((string)($message['created_at']??''));
+        if($created==='')return true;
+        $ts=strtotime($created);
+        return $ts===false||$ts>=$sinceTs;
+    }));
+}
+
 $hours=isset($argv[1])?max(1,min(24,(int)$argv[1])):1;
 $result=[
     'ok'=>false,
@@ -38,6 +48,8 @@ try{
     if(!ConversationDb::isConfigured()) throw new RuntimeException('conversation_db_not_configured');
     $pdo=ConversationDb::connection();
     $since=(new DateTimeImmutable('now',new DateTimeZone('UTC')))->modify('-'.$hours.' hours')->format('Y-m-d H:i:s');
+    $sinceTs=strtotime($since);
+    if($sinceTs===false)throw new RuntimeException('invalid_diagnostic_window');
 
     $q=$pdo->prepare("SELECT id,project_key,channel,status,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=? ORDER BY COALESCE(last_message_at,started_at) ASC");
     $q->execute([$since]);
@@ -52,8 +64,11 @@ try{
         $eq=$pdo->prepare('SELECT event_type,actor_type,actor_id,created_at FROM conversation_events WHERE conversation_id=? ORDER BY id ASC');
         $eq->execute([$id]);
         $events=$eq->fetchAll(PDO::FETCH_ASSOC);
-        $session=LiveSessionAnalyzer::analyze($conversation,$messages,$events);
-        if(!empty($session['flags']))$session['message_tail']=liveDiagnosticMessageTail($messages);
+        $session=LiveSessionAnalyzer::analyze($conversation,$messages,$events,$sinceTs);
+        if(!empty($session['flags'])){
+            $evidence=liveDiagnosticWindowMessages($messages,$sinceTs);
+            $session['message_tail']=liveDiagnosticMessageTail($evidence?:$messages);
+        }
         $sessions[]=$session;
     }
 
