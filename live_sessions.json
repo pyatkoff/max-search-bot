@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T16:26:11+00:00",
+    "generated_at": "2026-08-28T17:04:44+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -8,200 +8,28 @@
         "started": 4,
         "needs_collected": 1,
         "tours_opened": 1,
-        "manager_requested": 1,
-        "manager_replied": 1,
+        "manager_requested": 0,
+        "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 2,
+        "flagged_sessions": 1,
         "manager_response": {
-            "answered_in_90s": 1,
+            "answered_in_90s": 0,
             "answered_after_90s": 0,
             "still_unanswered": 0,
-            "measured_responses": 1,
-            "avg_seconds": 22,
-            "max_seconds": 22
+            "measured_responses": 0,
+            "avg_seconds": null,
+            "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 2,
-            "manager_replied": 1,
+            "collecting_needs": 3,
             "tours_opened": 1
         },
         "flags": {
-            "excessive_turns": 2,
-            "repeated_callback_input": 1
+            "repeated_callback_input": 1,
+            "excessive_turns": 1
         }
     },
     "sessions": [
-        {
-            "conversation_id": 2,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "manager",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": true,
-            "manager_replied": true,
-            "manager_request_at": "2026-08-24 10:13:56",
-            "manager_first_reply_at": "2026-08-24 10:14:18",
-            "manager_response_seconds": 22,
-            "manager_response_bucket": "answered_in_90s",
-            "phone_received": false,
-            "inbound_messages": 20,
-            "outbound_messages": 16,
-            "date_picks": 0,
-            "drop_point": "manager_replied",
-            "flags": [
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-24 02:10:19",
-            "last_message_at": "2026-08-28 15:40:10",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Куда хотите поехать?",
-                    "created_at": "2026-08-24 12:13:05"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Турция",
-                    "created_at": "2026-08-24 12:13:11"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Сколько будет взрослых туристов?",
-                    "created_at": "2026-08-24 12:13:14"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Двое",
-                    "created_at": "2026-08-24 12:13:44"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Будут дети? Если да — сколько?",
-                    "created_at": "2026-08-24 12:13:50"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Позови менеджера",
-                    "created_at": "2026-08-24 12:13:55"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "👩‍💼 <b>Передам запрос менеджеру</b> Параметры поездки уже сохранены — повторно заполнять ничего не нужно. Осталось поделиться номером телефона, чтобы менеджер мог связаться с вами.",
-                    "created_at": "2026-08-24 12:13:56"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Добрый день",
-                    "created_at": "2026-08-24 12:14:18"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "что там?",
-                    "created_at": "2026-08-24 14:30:07"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Не получилось распознать номер. Напишите его в формате +71234567890.",
-                    "created_at": "2026-08-24 14:30:07"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ау",
-                    "created_at": "2026-08-24 14:30:38"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Тест",
-                    "created_at": "2026-08-24 14:34:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Тест",
-                    "created_at": "2026-08-24 14:34:30"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Тут?",
-                    "created_at": "2026-08-24 14:36:20"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Или там",
-                    "created_at": "2026-08-24 14:36:35"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "сяч",
-                    "created_at": "2026-08-24 14:59:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "тест",
-                    "created_at": "2026-08-24 15:09:37"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "!",
-                    "created_at": "2026-08-24 15:25:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ЮД",
-                    "created_at": "2026-08-24 15:26:58"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "",
-                    "created_at": "2026-08-26 17:21:28"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "📎 Фото",
-                    "created_at": "2026-08-27 02:16:07"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "📎 Фото",
-                    "created_at": "2026-08-27 02:16:56"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "📎 Фото",
-                    "created_at": "2026-08-27 09:56:59"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "📎 Фото",
-                    "created_at": "2026-08-28 15:40:10"
-                }
-            ]
-        },
         {
             "conversation_id": 530,
             "project_key": "anytour",
@@ -419,7 +247,30 @@
             "flags": [],
             "started_at": "2026-08-28 18:06:38",
             "last_message_at": "2026-08-28 18:07:28"
+        },
+        {
+            "conversation_id": 534,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 8,
+            "outbound_messages": 8,
+            "date_picks": 0,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-08-28 18:38:54",
+            "last_message_at": "2026-08-28 18:39:26"
         }
     ],
-    "since_utc": "2026-08-28 15:26:11"
+    "since_utc": "2026-08-28 16:04:44"
 }
