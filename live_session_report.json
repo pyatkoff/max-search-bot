@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T06:51:52+00:00",
+    "generated_at": "2026-08-28T06:56:35+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
         "sessions": 12,
         "started": 12,
-        "needs_collected": 10,
-        "tours_opened": 10,
+        "needs_collected": 9,
+        "tours_opened": 9,
         "manager_requested": 2,
         "manager_replied": 1,
         "phone_received": 1,
-        "flagged_sessions": 9,
+        "flagged_sessions": 8,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
@@ -21,14 +21,14 @@
             "max_seconds": 1667
         },
         "drop_points": {
-            "tours_opened": 8,
-            "collecting_needs": 2,
+            "tours_opened": 7,
+            "collecting_needs": 3,
             "manager_requested": 1,
             "manager_replied": 1
         },
         "flags": {
-            "excessive_turns": 7,
-            "repeated_callback_input": 3,
+            "excessive_turns": 6,
+            "repeated_callback_input": 2,
             "manager_requested_no_reply": 1,
             "left_waiting_queue_without_manager_reply": 1,
             "rapid_date_reselection": 1,
@@ -36,178 +36,6 @@
         }
     },
     "sessions": [
-        {
-            "conversation_id": 493,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 23,
-            "outbound_messages": 19,
-            "date_picks": 2,
-            "drop_point": "tours_opened",
-            "flags": [
-                "repeated_callback_input",
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-28 05:39:34",
-            "last_message_at": "2026-08-28 05:53:01",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-08-28 05:40:52"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-                    "created_at": "2026-08-28 05:40:52"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "nights_9_11",
-                    "created_at": "2026-08-28 05:40:56"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:40:56"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-28 05:41:03"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:41:03"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-28 05:41:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-28 05:41:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-28 05:41:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-28 05:41:07"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_10.2026",
-                    "created_at": "2026-08-28 05:41:12"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:41:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_11.2026",
-                    "created_at": "2026-08-28 05:41:15"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:41:15"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_12.2026",
-                    "created_at": "2026-08-28 05:41:18"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:41:19"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_01.2027",
-                    "created_at": "2026-08-28 05:41:22"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 05:41:22"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_11.01.2027",
-                    "created_at": "2026-08-28 05:41:26"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Китай 👥 2 взр. + 1 реб. (13 лет) 🏨 от 3★ 🍽 Все Включено 🌙 9-11 ночей 📅 08.01.2027 — 14.01.2027 Что удобнее дальше?",
-                    "created_at": "2026-08-28 05:41:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_11.01.2027",
-                    "created_at": "2026-08-28 05:41:28"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-28 05:41:41"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-28 05:41:42"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
-                    "created_at": "2026-08-28 05:53:01"
-                }
-            ]
-        },
         {
             "conversation_id": 494,
             "project_key": "anytour",
@@ -1570,7 +1398,30 @@
             "flags": [],
             "started_at": "2026-08-28 08:48:54",
             "last_message_at": "2026-08-28 08:49:02"
+        },
+        {
+            "conversation_id": 502,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 8,
+            "outbound_messages": 8,
+            "date_picks": 0,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-08-28 08:55:44",
+            "last_message_at": "2026-08-28 08:56:33"
         }
     ],
-    "since_utc": "2026-08-28 05:51:52"
+    "since_utc": "2026-08-28 05:56:35"
 }
