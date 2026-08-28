@@ -38,12 +38,12 @@ $slowResult=LiveSessionAnalyzer::analyze($c,$slow,[]);
 lsCheck('spaced date edits are not called rapid',!in_array('rapid_date_reselection',$slowResult['flags'],true));
 
 $callbackMessages=[
- ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:01'],
- ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:02'],
- ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 20:00:03'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_country_1','created_at'=>'2026-08-24 20:00:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_country_1','created_at'=>'2026-08-24 20:00:02'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_country_1','created_at'=>'2026-08-24 20:00:03'],
 ];
 $callbackResult=LiveSessionAnalyzer::analyze($c,$callbackMessages,[]);
-lsCheck('repeated callback input has dedicated flag',in_array('repeated_callback_input',$callbackResult['flags'],true));
+lsCheck('repeated actionable callback input has dedicated flag',in_array('repeated_callback_input',$callbackResult['flags'],true));
 lsCheck('repeated callback input is not mislabeled as user text',!in_array('repeated_same_input',$callbackResult['flags'],true));
 
 $textMessages=[
