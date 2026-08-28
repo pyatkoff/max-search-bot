@@ -14,6 +14,7 @@ checks=(
   'php tests/run_workspace_v2_visual_qa_contract_regression.php'
   'php tests/run_regression.php'
   'php tests/run_live_september_typo_regression.php'
+  'php tests/run_live_show_tours_duplicate_regression.php'
   'php tests/run_ai_context_regression.php'
   'php tests/run_trip_state_regression.php'
   'php tests/run_v2_architecture_regression.php'
