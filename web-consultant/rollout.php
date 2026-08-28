@@ -6,9 +6,10 @@ header('Cache-Control: private, no-store');
 
 $percent = defined('WEBSITE_ROLLOUT_PERCENT') ? (int) WEBSITE_ROLLOUT_PERCENT : 0;
 $percent = max(0, min(100, $percent));
-$widgetUrl = defined('WEBSITE_WIDGET_URL') && trim((string) WEBSITE_WIDGET_URL) !== ''
+$customWidgetUrl = defined('WEBSITE_WIDGET_URL') && trim((string) WEBSITE_WIDGET_URL) !== '';
+$widgetUrl = $customWidgetUrl
     ? (string) WEBSITE_WIDGET_URL
-    : '/max-search/web-consultant/widget.js';
+    : '/max-search/web-consultant/widget.js?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/widget.js') ?: time()));
 
 $encodedUrl = json_encode($widgetUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 $encodedPercent = json_encode($percent);

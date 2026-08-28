@@ -1,6 +1,7 @@
 <?php
 $widget = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget.js');
 $preview = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/index.php');
+$rollout = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/rollout.php');
 
 $failures = [];
 $check = function (bool $ok, string $message) use (&$failures): void {
@@ -30,7 +31,10 @@ $check(strpos($widget, "new URL('api.php'") !== false, 'widget still uses local 
 $check(strpos($widget, "action:'send'") !== false, 'existing send transport is preserved');
 $check(strpos($widget, "action:'poll'") !== false, 'existing polling transport is preserved');
 $check(strpos($widget, "action:'profile'") !== false, 'existing contact handoff transport is preserved');
-$check(strpos($preview, 'widget.js?v=2') !== false, 'preview loads V2 widget cache key');
+$check(strpos($preview, "filemtime(__DIR__ . '/widget.js')") !== false, 'preview cache-busts widget from file modification time');
+$check(strpos($preview, 'widget.js?v=<?=') !== false, 'preview emits a versioned widget URL');
+$check(strpos($rollout, "filemtime(__DIR__ . '/widget.js')") !== false, 'default rollout cache-busts widget from file modification time');
+$check(strpos($rollout, "'/max-search/web-consultant/widget.js?v='") !== false, 'default rollout emits a versioned canonical widget URL');
 
 if ($failures) {
     fwrite(STDERR, "Web consultant V2 regression failed: " . implode('; ', $failures) . "\n");
