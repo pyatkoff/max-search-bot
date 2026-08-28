@@ -1,13 +1,13 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T05:29:08+00:00",
-    "source_generated_at": "2026-08-28T05:29:08+00:00",
+    "generated_at": "2026-08-28T06:09:13+00:00",
+    "source_generated_at": "2026-08-28T06:09:12+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 7,
-        "ranked": 4,
-        "high": 1,
+        "sessions": 12,
+        "ranked": 6,
+        "high": 3,
         "medium": 3
     },
     "anomalies": [
@@ -23,6 +23,33 @@
             "status": "ai",
             "drop_point": "manager_requested",
             "last_message_at": "2026-08-28 07:05:23"
+        },
+        {
+            "conversation_id": 499,
+            "severity": "high",
+            "score": 90,
+            "signals": [
+                "customer_repeated_answer",
+                "repeated_same_input",
+                "bot_repeated_question_tourists"
+            ],
+            "status": "ai",
+            "drop_point": "collecting_needs",
+            "last_message_at": "2026-08-28 08:04:35"
+        },
+        {
+            "conversation_id": 497,
+            "severity": "high",
+            "score": 90,
+            "signals": [
+                "customer_repeated_answer",
+                "rapid_date_reselection",
+                "repeated_callback_input",
+                "bot_repeated_question_date"
+            ],
+            "status": "ai",
+            "drop_point": "tours_opened",
+            "last_message_at": "2026-08-28 07:43:02"
         },
         {
             "conversation_id": 494,
