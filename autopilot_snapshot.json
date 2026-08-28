@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T06:09:21+00:00",
+    "generated_at": "2026-08-28T06:35:34+00:00",
     "production": {
-        "sha": "d38bfe078be413e041651a3f32370e2f63a65e67",
+        "sha": "8708bfd853ef3af0f7f7ea45b1aa28a7bd1d06d8",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 45212,
+            "oldest_wait_seconds": 46784,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 45212,
+                    "wait_seconds": 46784,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 41152,
+                    "wait_seconds": 42724,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 33642,
+                    "wait_seconds": 35214,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -162,16 +162,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 05:09:17",
+        "since_utc": "2026-08-28 05:35:30",
         "summary": {
-            "sessions": 12,
-            "started": 12,
-            "needs_collected": 11,
-            "tours_opened": 11,
+            "sessions": 11,
+            "started": 11,
+            "needs_collected": 10,
+            "tours_opened": 10,
             "manager_requested": 2,
             "manager_replied": 1,
             "phone_received": 1,
-            "flagged_sessions": 10,
+            "flagged_sessions": 9,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 1,
@@ -181,14 +181,14 @@
                 "max_seconds": 1667
             },
             "drop_points": {
-                "tours_opened": 9,
+                "tours_opened": 8,
                 "manager_requested": 1,
                 "manager_replied": 1,
                 "collecting_needs": 1
             },
             "flags": {
-                "excessive_turns": 8,
-                "repeated_callback_input": 4,
+                "excessive_turns": 7,
+                "repeated_callback_input": 3,
                 "manager_requested_no_reply": 1,
                 "left_waiting_queue_without_manager_reply": 1,
                 "rapid_date_reselection": 1,
@@ -196,16 +196,6 @@
             }
         },
         "flagged_sessions": [
-            {
-                "conversation_id": 492,
-                "flags": [
-                    "repeated_callback_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "tours_opened",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            },
             {
                 "conversation_id": 493,
                 "flags": [
@@ -299,13 +289,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "d38bfe078be413e041651a3f32370e2f63a65e67",
+        "sha": "8708bfd853ef3af0f7f7ea45b1aa28a7bd1d06d8",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T06:09:21Z"
+        "reported_at": "2026-08-28T06:35:34Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",

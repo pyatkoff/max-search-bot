@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T06:09:14+00:00",
+    "generated_at": "2026-08-28T06:35:27+00:00",
     "production": {
-        "sha": "d38bfe078be413e041651a3f32370e2f63a65e67",
+        "sha": "8708bfd853ef3af0f7f7ea45b1aa28a7bd1d06d8",
         "branch": "main"
     },
     "database": {
@@ -128,7 +128,7 @@
         "customers": 499,
         "customer_channels": 499,
         "conversations": 500,
-        "messages": 13682,
+        "messages": 13683,
         "managers": 5,
         "manager_assignments": 102,
         "conversation_events": 883,
@@ -151,7 +151,7 @@
             "role": "admin",
             "is_active": 1,
             "is_working": 0,
-            "last_login_at": "2026-08-27 23:59:35"
+            "last_login_at": "2026-08-28 08:34:19"
         },
         {
             "id": 3,
@@ -262,7 +262,7 @@
         "pending_count": 3,
         "overdue_count": 3,
         "stuck_count": 3,
-        "oldest_wait_seconds": 45212,
+        "oldest_wait_seconds": 46784,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -272,7 +272,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 19:35:44",
-                "wait_seconds": 45212,
+                "wait_seconds": 46784,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -287,7 +287,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 20:43:24",
-                "wait_seconds": 41152,
+                "wait_seconds": 42724,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -302,7 +302,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 22:48:34",
-                "wait_seconds": 33642,
+                "wait_seconds": 35214,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -787,6 +787,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 13683,
+            "conversation_id": 500,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-28 08:17:02"
+        },
         {
             "id": 13682,
             "conversation_id": 500,
@@ -1317,15 +1326,6 @@
             "channel": "max",
             "text": "🌴 <b>Отлично!</b> Если хотите следить за хорошими ценами и горящими предложениями, подписывайтесь на наш MAX-канал.",
             "created_at": "2026-08-28 07:36:25"
-        },
-        {
-            "id": 13623,
-            "conversation_id": 485,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "tours_found",
-            "created_at": "2026-08-28 07:36:24"
         }
     ],
     "recent_events": [
