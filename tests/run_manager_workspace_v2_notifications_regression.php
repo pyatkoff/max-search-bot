@@ -10,8 +10,9 @@ $endpoint=(string)file_get_contents($root.'/manager/push-status.php');
 $health=(string)file_get_contents($root.'/services/ManagerPushHealth.php');
 $passed=0;$failed=0;
 function nCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function nAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
 
-nCheck('workspace loads dedicated notifications module',strpos($workspace,'assets/workspace-v2-notifications.css')!==false&&strpos($workspace,'assets/workspace-v2-notifications.js')!==false&&strpos($workspace,'id="notificationStatus"')!==false);
+nCheck('workspace loads dedicated notifications module',nAssetLoaded($workspace,'workspace-v2-notifications.css')&&nAssetLoaded($workspace,'workspace-v2-notifications.js')&&strpos($workspace,'id="notificationStatus"')!==false);
 nCheck('notification module is read-only health UI',strpos($js,"fetch('push-status.php'")!==false&&strpos($js,'notification_path_usable')!==false&&strpos($js,'healthy_subscription_count')!==false&&strpos($js,"href=\"push-enable.php\"")!==false&&strpos($js,'is_working')!==false);
 nCheck('notification module never mutates manager shift',strpos($js,'is_working=')===false&&strpos($js,'set_working')===false&&strpos($js,"fetch('push.php'")===false);
 nCheck('notification endpoint uses shared request context',strpos($endpoint,'ManagerRequestContext::startSession()')!==false&&strpos($endpoint,'ManagerRequestContext::managerId()')!==false&&strpos($endpoint,'ManagerPushHealth::statusForManager')!==false);
