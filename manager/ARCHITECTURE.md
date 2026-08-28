@@ -14,7 +14,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 ### Keep
 
 - `index.php` — canonical production workspace entrypoint; redirect-free.
-- `lib/ManagerHttp.php` — shared Manager JSON/session/auth/CSRF/conversation-authorization boundary. Keep it business-service free.
+- `lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/conversation-authorization boundary. `start()` owns session bootstrap for binary/non-JSON endpoints; `startJson()` layers JSON headers on the same lifecycle. Keep it business-service free.
 - `assets/workspace-v2.js` — shared state/transport/boot/auth-recovery core only; feature rendering stays in modules.
 - `assets/workspace-v2-inbox.*` — inbox owner.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
@@ -27,8 +27,8 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ### Merge / centralize incrementally
 
-- **Completed:** push endpoints and `media-upload.php` use `ManagerHttp`; `pipeline-api.php` is the next migrated interface slice.
-- Remaining repeated JSON response/session/auth/CSRF handling in `api.php` and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
+- **Completed:** push endpoints, `media-upload.php`, `media-file.php` and `pipeline-api.php` use `ManagerHttp` for their applicable session/auth/CSRF/response lifecycle.
+- Remaining repeated response/session/auth/CSRF handling in `api.php`, `push-enable.php`, admin/routing actions and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
 - Duplicated frontend fetch/error/auth behavior in workspace/admin/routing → one small manager HTTP client module.
 - Admin/routing visual primitives → shared manager admin CSS, without coupling them to conversation CSS.
 
@@ -60,7 +60,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 ## Refactor sequence
 
 1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
-2. **In progress:** central request/auth/error interface layer (`push*`, media upload, then Sales Pipeline API).
+2. **In progress:** central request/auth/error interface layer. Push, media upload/preview and Sales Pipeline API are migrated; continue with narrow slices of the remaining endpoints rather than widening `ManagerHttp` into a business layer.
 3. Split admin and routing monolith assets.
 4. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior.
 5. Consolidate remaining endpoint validation and structured errors, especially the large `api.php`, in narrow slices.
