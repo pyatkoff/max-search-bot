@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T11:58:59+00:00",
+    "generated_at": "2026-08-28T12:03:58+00:00",
     "production": {
-        "sha": "b0d85c91019ef6d2c283db3cd717ad079cc48845",
+        "sha": "39487ce3b2d4f36699a6e5b05dd9b904d56291aa",
         "branch": "main"
     },
     "migrations": {
@@ -62,7 +62,7 @@
                     "healthy_subscription_count": 2,
                     "notification_path_usable": true,
                     "notification_path_reason": "healthy_subscription",
-                    "last_success_at": "2026-08-28 13:57:41",
+                    "last_success_at": "2026-08-28 13:59:11",
                     "last_error_at": null,
                     "last_error": null
                 }
@@ -130,34 +130,34 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 10:58:53",
+        "since_utc": "2026-08-28 11:03:53",
         "summary": {
-            "sessions": 20,
-            "started": 20,
-            "needs_collected": 17,
-            "tours_opened": 17,
-            "manager_requested": 5,
-            "manager_replied": 5,
-            "phone_received": 0,
-            "flagged_sessions": 15,
+            "sessions": 21,
+            "started": 21,
+            "needs_collected": 18,
+            "tours_opened": 18,
+            "manager_requested": 6,
+            "manager_replied": 6,
+            "phone_received": 1,
+            "flagged_sessions": 16,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 5,
+                "answered_after_90s": 6,
                 "still_unanswered": 0,
-                "measured_responses": 5,
-                "avg_seconds": 3388,
-                "max_seconds": 9903
+                "measured_responses": 6,
+                "avg_seconds": 9620,
+                "max_seconds": 40781
             },
             "drop_points": {
                 "tours_opened": 12,
-                "manager_replied": 5,
+                "manager_replied": 6,
                 "collecting_needs": 3
             },
             "flags": {
-                "excessive_turns": 14,
+                "excessive_turns": 15,
                 "repeated_callback_input": 6,
                 "rapid_date_reselection": 3,
-                "repeated_same_input": 1
+                "repeated_same_input": 2
             }
         },
         "flagged_sessions": [
@@ -304,6 +304,16 @@
                 "drop_point": "manager_replied",
                 "manager_response_bucket": "answered_after_90s",
                 "manager_response_seconds": 535
+            },
+            {
+                "conversation_id": 480,
+                "flags": [
+                    "repeated_same_input",
+                    "excessive_turns"
+                ],
+                "drop_point": "manager_replied",
+                "manager_response_bucket": "answered_after_90s",
+                "manager_response_seconds": 40781
             }
         ]
     },
@@ -312,13 +322,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "b0d85c91019ef6d2c283db3cd717ad079cc48845",
+        "sha": "39487ce3b2d4f36699a6e5b05dd9b904d56291aa",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T11:58:59Z"
+        "reported_at": "2026-08-28T12:03:58Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
