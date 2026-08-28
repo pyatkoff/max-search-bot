@@ -20,7 +20,7 @@ function anomalyCustomer(array $m):bool{return ($m['direction']??'')==='inbound'
 function anomalyBot(array $m):bool{return ($m['direction']??'')==='outbound'&&($m['sender_type']??'')!=='manager';}
 function anomalyCallbackInput(string $text):bool{
     if($text==='')return false;
-    if(in_array($text,['start_search','show_tours','restart'],true))return true;
+    if(in_array($text,['start_search','show_tours','restart','month_click','day_click'],true))return true;
     return (bool)preg_match('/^(?:pick_|month_change_|adult_|adults_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
 }
 function anomalyNormalize(string $text):string{

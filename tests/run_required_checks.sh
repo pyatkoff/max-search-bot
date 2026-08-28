@@ -83,6 +83,7 @@ checks=(
   'php tests/run_deploy_diagnostics_contract_regression.php'
   'php tests/run_production_snapshot_encoding_regression.php'
   'php tests/run_live_session_analyzer_regression.php'
+  'php tests/run_live_calendar_callback_noise_regression.php'
   'php tests/run_live_session_snapshot_regression.php'
   'php tests/run_live_destination_context_regression.php'
   'php tests/run_live_star_answer_regression.php'
