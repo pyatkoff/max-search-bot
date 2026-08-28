@@ -19,7 +19,8 @@ function mpCheck(string $name, bool $ok): void
 
 $pushSource = (string)file_get_contents(__DIR__ . '/../services/ManagerPushService.php');
 $swSource = (string)file_get_contents(__DIR__ . '/../manager/sw.js');
-$panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
+$notificationSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-notifications.js');
+$conversationSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-conversation.js');
 
 mpCheck(
     'subscription identity is unique per manager and endpoint',
@@ -35,7 +36,7 @@ mpCheck(
 );
 mpCheck(
     'priority selection is correlated to push dispatch',
-    strpos($pushSource, "'push_selected',['dispatch_id'=>$dispatchId") !== false
+    strpos($pushSource, "'push_selected',['dispatch_id'=>\$dispatchId") !== false
 );
 mpCheck(
     'push fanout sends once for every selected subscription row with same dispatch id',
@@ -44,19 +45,19 @@ mpCheck(
 );
 mpCheck(
     'push success and missing subscription logs carry dispatch id',
-    strpos($pushSource, "'delivery_success',['dispatch_id'=>$dispatchId") !== false
-        && strpos($pushSource, "'no_subscription',['dispatch_id'=>$dispatchId") !== false
+    strpos($pushSource, "'delivery_success',['dispatch_id'=>\$dispatchId") !== false
+        && strpos($pushSource, "'no_subscription',['dispatch_id'=>\$dispatchId") !== false
 );
 mpCheck(
     'push failure paths carry dispatch id',
-    strpos($pushSource, "'delivery_exception',['dispatch_id'=>$dispatchId") !== false
-        && strpos($pushSource, "'delivery_failed',['dispatch_id'=>$dispatchId") !== false
-        && strpos($pushSource, "'subscription_expired',['dispatch_id'=>$dispatchId") !== false
-        && strpos($pushSource, "'notify_failed',['dispatch_id'=>$dispatchId") !== false
+    strpos($pushSource, "'delivery_exception',['dispatch_id'=>\$dispatchId") !== false
+        && strpos($pushSource, "'delivery_failed',['dispatch_id'=>\$dispatchId") !== false
+        && strpos($pushSource, "'subscription_expired',['dispatch_id'=>\$dispatchId") !== false
+        && strpos($pushSource, "'notify_failed',['dispatch_id'=>\$dispatchId") !== false
 );
 mpCheck(
     'push payload carries exact conversation id',
-    strpos($pushSource, "'conversationId'=>$conversationId") !== false
+    strpos($pushSource, "'conversationId'=>\$conversationId") !== false
 );
 mpCheck(
     'service worker uses conversation-scoped notification tag',
@@ -76,25 +77,26 @@ mpCheck(
     strpos($swSource, 'if(self.clients.openWindow)return self.clients.openWindow(target);') !== false
 );
 mpCheck(
-    'panel maps service-worker open command directly to openChat',
-    strpos($panelSource, "e.data?.type==='OPEN_CONVERSATION'&&e.data.conversationId)openChat(e.data.conversationId)") !== false
+    'Workspace V2 maps service-worker open command directly to conversation open',
+    strpos($notificationSource, "data.type==='OPEN_CONVERSATION'") !== false
+        && strpos($notificationSource, 'WorkspaceV2Conversation?.open(Number(data.conversationId))') !== false
 );
 
-$openChat = '';
-if (preg_match('/async function openChat\(id\)\{(.*?)\}\nfunction renderDeliveryFailure/s', $panelSource, $m)) {
-    $openChat = (string)$m[1];
+$openConversation = '';
+if (preg_match('/async function open\(id,options=\{\}\)\{(.*?)\}\nasync function refreshLeadData/s', $conversationSource, $m)) {
+    $openConversation = (string)$m[1];
 }
-mpCheck('openChat function found for side-effect contract', $openChat !== '');
+mpCheck('Workspace V2 conversation open function found for side-effect contract', $openConversation !== '');
 mpCheck(
     'opening a conversation is read-only and does not auto-take it',
-    $openChat !== ''
-        && strpos($openChat, "api('detail'") !== false
-        && strpos($openChat, "change('take')") === false
-        && strpos($openChat, "api('take'") === false
+    $openConversation !== ''
+        && strpos($openConversation, "api('detail'") !== false
+        && strpos($openConversation, "change('take')") === false
+        && strpos($openConversation, "api('take'") === false
 );
 mpCheck(
     'take remains an explicit manager action',
-    strpos($panelSource, "btn('Взять','primary',()=>change('take'))") !== false
+    strpos($conversationSource, "action('Взять','primary',()=>change('take'))") !== false
 );
 
 $total = $passed + $failed;
