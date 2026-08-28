@@ -6,7 +6,7 @@ $root=dirname(__DIR__);
 $leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
 $pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $js=$leadCardJs."\n".$pipelineJs;
-$css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
+$css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css')."\n".(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
@@ -21,6 +21,9 @@ outcomeCheck('lost outcome requires structured reason',strpos($js,"outcome==='lo
 outcomeCheck('workspace persists outcome through pipeline API',strpos($js,"pipe('set_outcome'")!==false&&strpos($api,"\$action==='set_outcome'")!==false&&strpos($api,'SalesPipelineService::setOutcome')!==false);
 outcomeCheck('outcome controls respect shared pipeline ownership',strpos($js,"canEdit?'':'disabled'")!==false&&strpos($api,'ManagerHttp::requireConversationEdit($c,$m);')!==false&&strpos($http,'ManagerRequestContext::canEditAssignedConversation')!==false&&strpos($context,'canEditAssignedConversation')!==false);
 outcomeCheck('outcome UI has dedicated styling',strpos($css,'.outcomeBox')!==false&&strpos($css,'.outcomeNote')!==false&&strpos($css,'.outcomeSave')!==false);
+outcomeCheck('outcome save is enabled only after a user edit',strpos($leadCardJs,'id="saveOutcome" class="actionBtn primary outcomeSave" type="button" disabled')!==false&&strpos($pipelineJs,'function setOutcomeDirty(dirty=true)')!==false&&strpos($pipelineJs,'button.disabled=!outcomeDirty')!==false);
+outcomeCheck('all editable outcome fields mark state dirty',strpos($leadCardJs,'outcomeEl.onchange=')!==false&&strpos($leadCardJs,'reasonEl.onchange=')!==false&&strpos($leadCardJs,"$('leadOutcomeNote').oninput=")!==false&&substr_count($leadCardJs,'setOutcomeDirty(true)')>=3);
+outcomeCheck('dirty state is explicit and save errors keep edits retryable',strpos($pipelineJs,'Есть несохранённые изменения')!==false&&strpos($css,'.outcomeSaveStatus.dirty')!==false&&strpos($pipelineJs,"outcomeDirty=true;setOutcomeSaveState('Не удалось сохранить результат','error')")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
