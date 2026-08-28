@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T06:35:34+00:00",
+    "generated_at": "2026-08-28T06:46:34+00:00",
     "production": {
-        "sha": "8708bfd853ef3af0f7f7ea45b1aa28a7bd1d06d8",
+        "sha": "c7ea92609714503533b7b3ce6a72d8db6acd6f76",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 46784,
+            "oldest_wait_seconds": 47445,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 46784,
+                    "wait_seconds": 47445,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 42724,
+                    "wait_seconds": 43385,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 35214,
+                    "wait_seconds": 35875,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -162,7 +162,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 05:35:30",
+        "since_utc": "2026-08-28 05:46:30",
         "summary": {
             "sessions": 11,
             "started": 11,
@@ -289,13 +289,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "8708bfd853ef3af0f7f7ea45b1aa28a7bd1d06d8",
+        "sha": "c7ea92609714503533b7b3ce6a72d8db6acd6f76",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T06:35:34Z"
+        "reported_at": "2026-08-28T06:46:34Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
