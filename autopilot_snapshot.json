@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T07:27:15+00:00",
+    "generated_at": "2026-08-28T08:01:49+00:00",
     "production": {
-        "sha": "70107134863bdcf1f3b5674ebb5eb7c484861b58",
+        "sha": "e60daa6f0894c314cf13caf3361199649da93948",
         "branch": "main"
     },
     "migrations": {
@@ -26,10 +26,10 @@
             "ok": false,
             "warning_after_seconds": 90,
             "stuck_after_seconds": 600,
-            "pending_count": 5,
-            "overdue_count": 5,
-            "stuck_count": 4,
-            "oldest_wait_seconds": 49885,
+            "pending_count": 6,
+            "overdue_count": 6,
+            "stuck_count": 5,
+            "oldest_wait_seconds": 51959,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 49885,
+                    "wait_seconds": 51959,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 45825,
+                    "wait_seconds": 47899,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 38315,
+                    "wait_seconds": 40389,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -84,7 +84,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-28 09:03:43",
-                    "wait_seconds": 1406,
+                    "wait_seconds": 3480,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -99,7 +99,22 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-28 09:22:01",
-                    "wait_seconds": 308,
+                    "wait_seconds": 2382,
+                    "severity": "stuck",
+                    "eligible_working_manager_ids": [
+                        4
+                    ],
+                    "eligible_working_manager_count": 1,
+                    "routing_blocked": false
+                },
+                {
+                    "conversation_id": 505,
+                    "project_key": "anytour",
+                    "channel": "max",
+                    "status": "waiting_manager",
+                    "manager_id": null,
+                    "manager_request_at": "2026-08-28 09:54:03",
+                    "wait_seconds": 460,
                     "severity": "overdue",
                     "eligible_working_manager_ids": [
                         4
@@ -146,7 +161,7 @@
                 "is_working": false,
                 "all": 200,
                 "mine": 2,
-                "waiting": 12,
+                "waiting": 13,
                 "assigned_to_others": 26
             },
             {
@@ -156,7 +171,7 @@
                 "is_working": false,
                 "all": 200,
                 "mine": 0,
-                "waiting": 12,
+                "waiting": 13,
                 "assigned_to_others": 27
             },
             {
@@ -166,7 +181,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 18,
-                "waiting": 7,
+                "waiting": 8,
                 "assigned_to_others": 0
             },
             {
@@ -174,7 +189,7 @@
                 "login": "Svetlana",
                 "role": "manager",
                 "is_working": false,
-                "all": 195,
+                "all": 194,
                 "mine": 47,
                 "waiting": 5,
                 "assigned_to_others": 0
@@ -192,34 +207,34 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 06:27:11",
+        "since_utc": "2026-08-28 07:01:45",
         "summary": {
-            "sessions": 14,
-            "started": 14,
-            "needs_collected": 12,
-            "tours_opened": 12,
-            "manager_requested": 4,
+            "sessions": 17,
+            "started": 17,
+            "needs_collected": 13,
+            "tours_opened": 13,
+            "manager_requested": 5,
             "manager_replied": 1,
             "phone_received": 1,
-            "flagged_sessions": 11,
+            "flagged_sessions": 12,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 1,
-                "still_unanswered": 3,
+                "still_unanswered": 4,
                 "measured_responses": 1,
                 "avg_seconds": 1667,
                 "max_seconds": 1667
             },
             "drop_points": {
                 "tours_opened": 8,
-                "manager_requested": 3,
-                "collecting_needs": 2,
+                "manager_requested": 4,
+                "collecting_needs": 4,
                 "manager_replied": 1
             },
             "flags": {
-                "excessive_turns": 10,
-                "repeated_callback_input": 4,
-                "manager_requested_no_reply": 3,
+                "excessive_turns": 11,
+                "repeated_callback_input": 5,
+                "manager_requested_no_reply": 4,
                 "rapid_date_reselection": 3,
                 "left_waiting_queue_without_manager_reply": 1,
                 "repeated_same_input": 1
@@ -308,15 +323,6 @@
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 505,
-                "flags": [
-                    "excessive_turns"
-                ],
-                "drop_point": "tours_opened",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            },
-            {
                 "conversation_id": 504,
                 "flags": [
                     "excessive_turns",
@@ -335,6 +341,26 @@
                 "drop_point": "tours_opened",
                 "manager_response_bucket": null,
                 "manager_response_seconds": null
+            },
+            {
+                "conversation_id": 505,
+                "flags": [
+                    "excessive_turns",
+                    "manager_requested_no_reply"
+                ],
+                "drop_point": "manager_requested",
+                "manager_response_bucket": "still_unanswered",
+                "manager_response_seconds": null
+            },
+            {
+                "conversation_id": 507,
+                "flags": [
+                    "repeated_callback_input",
+                    "excessive_turns"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
             }
         ]
     },
@@ -343,13 +369,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "70107134863bdcf1f3b5674ebb5eb7c484861b58",
+        "sha": "e60daa6f0894c314cf13caf3361199649da93948",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T07:27:15Z"
+        "reported_at": "2026-08-28T08:01:49Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
