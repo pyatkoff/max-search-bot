@@ -36,11 +36,14 @@ mphCheck('push enable replaces stale VAPID subscription',strpos($enable,'applica
 mphCheck('push surfaces reuse shared manager HTTP/context boundary',strpos($pushEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($statusEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($enable,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($pushEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($statusEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($enable,'ManagerHttp::start()')!==false&&strpos($enable,'ManagerHttp::managerId()')!==false&&strpos($enable,'ManagerRequestContext::')===false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'ManagerRequestContext::manager()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
 mphCheck('authenticated push status endpoint uses current manager through shared boundary',strpos($statusEndpoint,'ManagerHttp::managerId()')!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false && strpos($http,'return ManagerRequestContext::managerId();')!==false);
 $readsShift=strpos($panel,"hasOwnProperty.call(status,'is_working')")!==false&&strpos($panel,'!!status.is_working')!==false;
-$separatesReachability=strpos($panel,"usable=!!status?.notification_path_usable")!==false&&strpos($panel,"root.className='notificationHealth '+(usable?'ok':'warn')")!==false;
+$separatesReachability=strpos($panel,"usable=!!status?.notification_path_usable")!==false&&strpos($panel,"workingWithoutPush=working===true&&!usable")!==false&&strpos($panel,"root.className='notificationHealth '+(usable?'ok':workingWithoutPush?'critical':'warn')")!==false;
 $honestUnknown=strpos($panel,"working===null?'Статус смены неизвестен':working?'Смена включена':'Вне смены'")!==false&&strpos($panel,"notification_path_reason:'health_check_failed',is_working:false")===false&&strpos($panel,"notification_path_reason:'session_expired',is_working:false")===false;
 mphCheck('Manager workspace keeps shift and push reachability independent',$readsShift&&$separatesReachability&&$honestUnknown);
-mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'class="notificationAction" href="push-enable.php"')!==false && strpos($panel,"usable?'':")!==false);
-mphCheck('Manager workspace only claims notifications enabled for healthy server path',strpos($panel,"healthy_subscription:'Уведомления включены'")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"label=reasonText(reason)")!==false);
+mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'class="notificationAction" href="push-enable.php"')!==false && strpos($panel,"usable?'':")!==false && strpos($panel,"workingWithoutPush?'Включить':'Настроить'")!==false);
+$healthyLabel=strpos($panel,"healthy_subscription:'Уведомления включены'")!==false;
+$healthyPath=strpos($panel,"usable=!!status?.notification_path_usable")!==false;
+$criticalOverride=strpos($panel,"label=workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
+mphCheck('Manager workspace only claims notifications enabled for healthy server path',$healthyLabel&&$healthyPath&&$criticalOverride);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
