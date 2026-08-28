@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T17:11:07+00:00",
+    "generated_at": "2026-08-28T17:35:59+00:00",
     "production": {
-        "sha": "b1e98e5d3a09b61aeacf5a6d3f6e74a754aac035",
+        "sha": "3732edf871d69f8a91df6ad6c119e58841ba6247",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -125,10 +125,10 @@
         }
     ],
     "stats": {
-        "customers": 533,
-        "customer_channels": 533,
-        "conversations": 534,
-        "messages": 14639,
+        "customers": 534,
+        "customer_channels": 534,
+        "conversations": 535,
+        "messages": 14641,
         "managers": 5,
         "manager_assignments": 111,
         "conversation_events": 927,
@@ -222,7 +222,7 @@
             "all": 200,
             "mine": 2,
             "waiting": 7,
-            "assigned_to_others": 30
+            "assigned_to_others": 29
         },
         {
             "manager_id": 3,
@@ -232,7 +232,7 @@
             "all": 200,
             "mine": 0,
             "waiting": 7,
-            "assigned_to_others": 31
+            "assigned_to_others": 30
         },
         {
             "manager_id": 4,
@@ -797,7 +797,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 452
+            "count": 453
         },
         {
             "project_key": "anytour",
@@ -995,6 +995,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 14641,
+            "conversation_id": 535,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-28 19:12:58"
+        },
+        {
+            "id": 14640,
+            "conversation_id": 535,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-28 19:12:58"
+        },
         {
             "id": 14639,
             "conversation_id": 534,
@@ -1516,24 +1534,6 @@
             "channel": "max",
             "text": "show_tours",
             "created_at": "2026-08-28 15:59:04"
-        },
-        {
-            "id": 14581,
-            "conversation_id": 530,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 1 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9-11 ночей 📅 Вылет 08.11.2026 · ищем 05.11–11.11.2026 Что удобнее дальше?",
-            "created_at": "2026-08-28 15:58:54"
-        },
-        {
-            "id": 14580,
-            "conversation_id": 530,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "8 ноября",
-            "created_at": "2026-08-28 15:58:50"
         }
     ],
     "recent_events": [

@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T17:11:13+00:00",
+    "generated_at": "2026-08-28T17:36:06+00:00",
     "production": {
-        "sha": "b1e98e5d3a09b61aeacf5a6d3f6e74a754aac035",
+        "sha": "3732edf871d69f8a91df6ad6c119e58841ba6247",
         "branch": "main"
     },
     "migrations": {
@@ -85,7 +85,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 7,
-                "assigned_to_others": 30
+                "assigned_to_others": 29
             },
             {
                 "manager_id": 3,
@@ -95,7 +95,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 7,
-                "assigned_to_others": 31
+                "assigned_to_others": 30
             },
             {
                 "manager_id": 4,
@@ -130,16 +130,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 16:11:09",
+        "since_utc": "2026-08-28 16:36:02",
         "summary": {
-            "sessions": 4,
-            "started": 4,
-            "needs_collected": 1,
-            "tours_opened": 1,
+            "sessions": 3,
+            "started": 3,
+            "needs_collected": 0,
+            "tours_opened": 0,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -149,39 +149,24 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 3,
-                "tours_opened": 1
+                "collecting_needs": 3
             },
-            "flags": {
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
-            }
+            "flags": []
         },
-        "flagged_sessions": [
-            {
-                "conversation_id": 531,
-                "flags": [
-                    "repeated_callback_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "collecting_needs",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            }
-        ]
+        "flagged_sessions": []
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "b1e98e5d3a09b61aeacf5a6d3f6e74a754aac035",
+        "sha": "3732edf871d69f8a91df6ad6c119e58841ba6247",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T17:11:13Z"
+        "reported_at": "2026-08-28T17:36:06Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
