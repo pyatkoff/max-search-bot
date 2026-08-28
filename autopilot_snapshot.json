@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T02:07:56+00:00",
+    "generated_at": "2026-08-28T03:03:49+00:00",
     "production": {
-        "sha": "92b45fb06f41c66481448103c97e47e6bb5b496b",
+        "sha": "9e2762f39a5b05ddc5ccd2623b7ad12bae0d3275",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 3,
             "overdue_count": 3,
             "stuck_count": 3,
-            "oldest_wait_seconds": 30727,
+            "oldest_wait_seconds": 34079,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 19:35:44",
-                    "wait_seconds": 30727,
+                    "wait_seconds": 34079,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -54,7 +54,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 20:43:24",
-                    "wait_seconds": 26667,
+                    "wait_seconds": 30019,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -69,7 +69,7 @@
                     "status": "waiting_manager",
                     "manager_id": null,
                     "manager_request_at": "2026-08-27 22:48:34",
-                    "wait_seconds": 19157,
+                    "wait_seconds": 22509,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4
@@ -117,7 +117,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 10,
-                "assigned_to_others": 31
+                "assigned_to_others": 30
             },
             {
                 "manager_id": 3,
@@ -127,7 +127,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 10,
-                "assigned_to_others": 32
+                "assigned_to_others": 31
             },
             {
                 "manager_id": 4,
@@ -162,7 +162,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 01:07:53",
+        "since_utc": "2026-08-28 02:03:45",
         "summary": {
             "sessions": 1,
             "started": 1,
@@ -192,13 +192,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "92b45fb06f41c66481448103c97e47e6bb5b496b",
+        "sha": "9e2762f39a5b05ddc5ccd2623b7ad12bae0d3275",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T02:07:56Z"
+        "reported_at": "2026-08-28T03:03:49Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
