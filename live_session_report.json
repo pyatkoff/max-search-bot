@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T01:08:26+00:00",
+    "generated_at": "2026-08-28T02:07:53+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -50,5 +50,5 @@
             "last_message_at": "2026-08-28 02:02:28"
         }
     ],
-    "since_utc": "2026-08-28 00:08:26"
+    "since_utc": "2026-08-28 01:07:53"
 }
