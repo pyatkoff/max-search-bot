@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T02:07:49+00:00",
+    "generated_at": "2026-08-28T03:03:41+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -27,7 +27,7 @@
     },
     "sessions": [
         {
-            "conversation_id": 490,
+            "conversation_id": 491,
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
@@ -41,14 +41,14 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 1,
-            "outbound_messages": 1,
+            "inbound_messages": 2,
+            "outbound_messages": 2,
             "date_picks": 0,
             "drop_point": "collecting_needs",
             "flags": [],
-            "started_at": "2026-08-28 02:02:18",
-            "last_message_at": "2026-08-28 02:02:28"
+            "started_at": "2026-08-28 04:44:01",
+            "last_message_at": "2026-08-28 04:44:46"
         }
     ],
-    "since_utc": "2026-08-28 01:07:49"
+    "since_utc": "2026-08-28 02:03:41"
 }
