@@ -55,6 +55,38 @@ $textResult=LiveSessionAnalyzer::analyze($c,$textMessages,[]);
 lsCheck('repeated free text keeps context-loss triage flag',in_array('repeated_same_input',$textResult['flags'],true));
 lsCheck('repeated free text is not callback noise',!in_array('repeated_callback_input',$textResult['flags'],true));
 
+$normalWizard=[];
+for($i=0;$i<14;$i++){
+    $normalWizard[]=['direction'=>'inbound','sender_type'=>'customer','text'=>'step_'.$i,'created_at'=>sprintf('2026-08-24 20:10:%02d',$i*2)];
+    $normalWizard[]=['direction'=>'outbound','sender_type'=>'ai','text'=>'Шаг '.($i+1),'created_at'=>sprintf('2026-08-24 20:10:%02d',$i*2+1)];
+}
+$normalWizardResult=LiveSessionAnalyzer::analyze($c,$normalWizard,[]);
+lsCheck('normal guided flow is not excessive just because bot replies double message count',!in_array('excessive_turns',$normalWizardResult['flags'],true));
+lsCheck('normal guided flow reports fourteen observed customer turns',($normalWizardResult['anomaly_inbound_messages']??0)===14);
+
+$windowSince=strtotime('2026-08-24 20:00:00');
+$oldHistory=[
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 18:00:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 18:00:02'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_11.2026','created_at'=>'2026-08-24 18:00:03'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 18:01:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 18:01:02'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Турция','created_at'=>'2026-08-24 18:01:03'],
+ ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 18:02:00'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'show_tours','created_at'=>'2026-08-24 18:02:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'Спасибо','created_at'=>'2026-08-24 20:05:00'],
+];
+$windowResult=LiveSessionAnalyzer::analyze($c,$oldHistory,[],$windowSince);
+lsCheck('historical funnel progress remains visible inside a later diagnostic window',!empty($windowResult['needs_collected'])&&!empty($windowResult['tours_opened']));
+lsCheck('old repeated callbacks do not pollute current diagnostic window',!in_array('repeated_callback_input',$windowResult['flags'],true));
+lsCheck('old repeated free text does not pollute current diagnostic window',!in_array('repeated_same_input',$windowResult['flags'],true));
+lsCheck('window counts only recent customer turns',($windowResult['anomaly_inbound_messages']??0)===1);
+
+$busyWindow=[];
+for($i=0;$i<18;$i++)$busyWindow[]=['direction'=>'inbound','sender_type'=>'customer','text'=>'Ответ '.$i,'created_at'=>sprintf('2026-08-24 20:%02d:00',$i)];
+$busyResult=LiveSessionAnalyzer::analyze($c,$busyWindow,[],$windowSince);
+lsCheck('genuinely long current-window customer flow remains flagged',in_array('excessive_turns',$busyResult['flags'],true));
+
 $c['status']='waiting_manager';
 $events=[['event_type'=>'waiting_manager','actor_type'=>'customer','created_at'=>'2026-08-24 20:04:00']];
 $r=LiveSessionAnalyzer::analyze($c,$m,$events);
