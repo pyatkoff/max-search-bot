@@ -1,8 +1,8 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T09:04:44+00:00",
-    "source_generated_at": "2026-08-28T09:04:43+00:00",
+    "generated_at": "2026-08-28T09:12:00+00:00",
+    "source_generated_at": "2026-08-28T09:11:59+00:00",
     "window_hours": 1,
     "summary": {
         "sessions": 21,
@@ -49,7 +49,7 @@
             ],
             "status": "ai",
             "drop_point": "tours_opened",
-            "last_message_at": "2026-08-28 11:04:43"
+            "last_message_at": "2026-08-28 11:04:44"
         },
         {
             "conversation_id": 503,
