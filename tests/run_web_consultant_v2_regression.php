@@ -2,6 +2,7 @@
 $widget = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget.js');
 $preview = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/index.php');
 $rollout = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/rollout.php');
+$notifications = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/notifications.js');
 
 $failures = [];
 $check = function (bool $ok, string $message) use (&$failures): void {
@@ -35,6 +36,13 @@ $check(strpos($preview, "filemtime(__DIR__ . '/widget.js')") !== false, 'preview
 $check(strpos($preview, 'widget.js?v=<?=') !== false, 'preview emits a versioned widget URL');
 $check(strpos($rollout, "filemtime(__DIR__ . '/widget.js')") !== false, 'default rollout cache-busts widget from file modification time');
 $check(strpos($rollout, "'/max-search/web-consultant/widget.js?v='") !== false, 'default rollout emits a versioned canonical widget URL');
+$check($notifications !== '', 'unread notification companion exists');
+$check(strpos($notifications, 'anytour-unread-badge') !== false, 'notification companion renders an unread badge');
+$check(strpos($notifications, "action:'poll'") !== false, 'notification companion uses existing poll transport only');
+$check(strpos($notifications, "m.direction!=='inbound'") !== false, 'badge counts only assistant or manager replies');
+$check(strpos($notifications, 'document.hidden') !== false, 'background unread polling pauses for hidden pages');
+$check(strpos($preview, 'notifications.js?v=<?=') !== false, 'preview loads versioned unread companion');
+$check(strpos($rollout, 'data-anytour-webchat-notifications') !== false, 'default rollout loads unread companion after widget');
 
 if ($failures) {
     fwrite(STDERR, "Web consultant V2 regression failed: " . implode('; ', $failures) . "\n");
