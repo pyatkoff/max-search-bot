@@ -20,6 +20,9 @@ $check(strpos($widget, "await submitText(prompt)") !== false, 'quick prompts sen
 $check(strpos($widget, "e.key==='Escape'") !== false, 'desktop Escape closes the consultant');
 $check(strpos($widget, 'resetComposerHeight') !== false, 'composer height resets after send or close');
 $check(strpos($widget, 'lastFocus') !== false, 'closing consultant restores prior focus');
+$check(strpos($widget, '.welcome.is-hidden{display:none}') !== false, 'welcome screen has compact conversation state');
+$check(strpos($widget, 'const hideWelcome=') !== false, 'widget hides welcome after real conversation messages arrive');
+$check(strpos($widget, 'hideWelcome();const d=document.createElement') !== false, 'message rendering activates compact conversation state');
 $check(strpos($widget, '100dvh') !== false, 'mobile consultant uses dynamic viewport height');
 $check(strpos($widget, 'env(safe-area-inset-top)') !== false, 'mobile header respects top safe area');
 $check(strpos($widget, 'env(safe-area-inset-bottom)') !== false, 'mobile composer respects bottom safe area');
