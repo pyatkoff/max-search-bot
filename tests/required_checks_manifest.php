@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'architecture' => [
         'php tests/run_required_checks_inventory_regression.php',
+        'php tests/run_required_checks_manifest_regression.php',
         'php tests/run_autopilot_operating_contract_regression.php',
         'php tests/run_autopilot_snapshot_regression.php',
         'php tests/run_architecture_inventory_regression.php',
