@@ -19,11 +19,26 @@ class LeadTaskService
         return ['ok'=>true,'title'=>$title,'due_at_utc'=>$dueUtc];
     }
 
+    /** Canonical business classification for task urgency in Europe/Kaliningrad. */
+    public static function dueState($dueAtUtc,bool $overdue=false,?DateTimeImmutable $nowUtc=null): string
+    {
+        $dueAtUtc=trim((string)($dueAtUtc??''));
+        if($dueAtUtc==='')return'unscheduled';
+        if($overdue)return'overdue';
+        try{
+            $utc=new DateTimeZone('UTC');$local=new DateTimeZone('Europe/Kaliningrad');
+            $due=new DateTimeImmutable($dueAtUtc,$utc);$now=$nowUtc?:new DateTimeImmutable('now',$utc);
+            return$due->setTimezone($local)->format('Y-m-d')===$now->setTimezone($local)->format('Y-m-d')?'today':'upcoming';
+        }catch(Throwable $ignored){return'upcoming';}
+    }
+
     public static function listForConversation(int $conversationId): array
     {
         if($conversationId<=0)return[];
-        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,CASE WHEN t.due_at_utc IS NULL THEN 1 ELSE 0 END,t.due_at_utc ASC,t.id DESC");
-        $q->execute([$conversationId]);return$q->fetchAll()?:[];
+        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,CASE WHEN t.due_at_utc IS NULL THEN 1 ELSE 0 END,t.due_at_utc ASC,t.id DESC");
+        $q->execute([$conversationId]);$rows=$q->fetchAll()?:[];
+        foreach($rows as &$row){$row['due_state']=self::dueState($row['due_at_utc']??null,!empty($row['overdue']));}unset($row);
+        return$rows;
     }
 
     public static function create(int $conversationId,string $title,?string $dueIso,int $createdByManagerId,?int $assignedManagerId=null): array
