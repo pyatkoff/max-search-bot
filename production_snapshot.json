@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T06:46:28+00:00",
+    "generated_at": "2026-08-28T06:51:49+00:00",
     "production": {
-        "sha": "c7ea92609714503533b7b3ce6a72d8db6acd6f76",
+        "sha": "70e0770293f5f31171f91cfb1a09fa44199d066d",
         "branch": "main"
     },
     "database": {
@@ -125,10 +125,10 @@
         }
     ],
     "stats": {
-        "customers": 499,
-        "customer_channels": 499,
-        "conversations": 500,
-        "messages": 13683,
+        "customers": 500,
+        "customer_channels": 500,
+        "conversations": 501,
+        "messages": 13687,
         "managers": 5,
         "manager_assignments": 102,
         "conversation_events": 883,
@@ -222,7 +222,7 @@
             "all": 200,
             "mine": 2,
             "waiting": 10,
-            "assigned_to_others": 29
+            "assigned_to_others": 28
         },
         {
             "manager_id": 3,
@@ -232,7 +232,7 @@
             "all": 200,
             "mine": 0,
             "waiting": 10,
-            "assigned_to_others": 30
+            "assigned_to_others": 29
         },
         {
             "manager_id": 4,
@@ -262,7 +262,7 @@
         "pending_count": 3,
         "overdue_count": 3,
         "stuck_count": 3,
-        "oldest_wait_seconds": 47445,
+        "oldest_wait_seconds": 47765,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -272,7 +272,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 19:35:44",
-                "wait_seconds": 47445,
+                "wait_seconds": 47765,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -287,7 +287,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 20:43:24",
-                "wait_seconds": 43385,
+                "wait_seconds": 43705,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -302,7 +302,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 22:48:34",
-                "wait_seconds": 35875,
+                "wait_seconds": 36195,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -587,7 +587,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 425
+            "count": 426
         },
         {
             "project_key": "anytour",
@@ -776,6 +776,42 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 13687,
+            "conversation_id": 501,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Введите город вылета</b> Например: Самара, Уфа или Новосибирск.",
+            "created_at": "2026-08-28 08:49:02"
+        },
+        {
+            "id": 13686,
+            "conversation_id": 501,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_other",
+            "created_at": "2026-08-28 08:49:02"
+        },
+        {
+            "id": 13685,
+            "conversation_id": 501,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-08-28 08:48:54"
+        },
+        {
+            "id": 13684,
+            "conversation_id": 501,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-28 08:48:54"
+        },
         {
             "id": 13683,
             "conversation_id": 500,
@@ -1279,42 +1315,6 @@
             "channel": "max",
             "text": "start_search",
             "created_at": "2026-08-28 07:49:30"
-        },
-        {
-            "id": 13627,
-            "conversation_id": 498,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-08-28 07:49:30"
-        },
-        {
-            "id": 13626,
-            "conversation_id": 498,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "ai_start",
-            "created_at": "2026-08-28 07:49:30"
-        },
-        {
-            "id": 13625,
-            "conversation_id": 497,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
-            "created_at": "2026-08-28 07:43:02"
-        },
-        {
-            "id": 13624,
-            "conversation_id": 485,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌴 <b>Отлично!</b> Если хотите следить за хорошими ценами и горящими предложениями, подписывайтесь на наш MAX-канал.",
-            "created_at": "2026-08-28 07:36:25"
         }
     ],
     "recent_events": [
