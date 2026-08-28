@@ -138,6 +138,7 @@ jobs:
             /opt/php81/bin/php -l telegram_webhook.php
             /opt/php81/bin/php -l telegram_webhook_admin.php
             /opt/php81/bin/php tools/telegram_smoke_test.php
+            bash tools/manager_http_smoke.sh
             /opt/php81/bin/php export_debug_logs.php
             rm -rf diagnostics
             mkdir -p diagnostics
