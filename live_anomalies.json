@@ -1,14 +1,14 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T11:11:13+00:00",
-    "source_generated_at": "2026-08-28T11:11:12+00:00",
+    "generated_at": "2026-08-28T11:58:48+00:00",
+    "source_generated_at": "2026-08-28T11:58:47+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 24,
-        "ranked": 11,
-        "high": 4,
-        "medium": 7
+        "sessions": 20,
+        "ranked": 8,
+        "high": 3,
+        "medium": 5
     },
     "anomalies": [
         {
@@ -17,12 +17,11 @@
             "score": 100,
             "signals": [
                 "customer_reports_stuck",
-                "bot_repeated_question_date",
                 "bot_repeated_question_nights"
             ],
             "status": "manager",
             "drop_point": "manager_replied",
-            "last_message_at": "2026-08-28 12:54:41"
+            "last_message_at": "2026-08-28 13:57:41"
         },
         {
             "conversation_id": 64,
@@ -49,18 +48,6 @@
             "status": "ai",
             "drop_point": "tours_opened",
             "last_message_at": "2026-08-28 12:28:07"
-        },
-        {
-            "conversation_id": 480,
-            "severity": "high",
-            "score": 90,
-            "signals": [
-                "customer_repeated_answer",
-                "repeated_same_input"
-            ],
-            "status": "manager",
-            "drop_point": "manager_replied",
-            "last_message_at": "2026-08-28 10:28:34"
         },
         {
             "conversation_id": 523,
@@ -128,31 +115,6 @@
             "status": "ai",
             "drop_point": "tours_opened",
             "last_message_at": "2026-08-28 11:31:30"
-        },
-        {
-            "conversation_id": 507,
-            "severity": "medium",
-            "score": 70,
-            "signals": [
-                "repeated_callback_input",
-                "bot_repeated_question_nights",
-                "bot_repeated_question_date"
-            ],
-            "status": "ai",
-            "drop_point": "tours_opened",
-            "last_message_at": "2026-08-28 10:17:56"
-        },
-        {
-            "conversation_id": 509,
-            "severity": "medium",
-            "score": 70,
-            "signals": [
-                "repeated_callback_input",
-                "bot_repeated_question_nights"
-            ],
-            "status": "ai",
-            "drop_point": "tours_opened",
-            "last_message_at": "2026-08-28 10:14:02"
         }
     ]
 }
