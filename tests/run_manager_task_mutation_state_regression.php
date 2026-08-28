@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+$root=dirname(__DIR__);
+$tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
+$lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$css=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');
+$passed=0;$failed=0;
+function tmCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+
+tmCheck('task row mutations share one async guard',strpos($tasks,'async function runMutation')!==false&&strpos($tasks,'if(control.disabled)return')!==false&&strpos($tasks,"row?.classList.add('saving')")!==false);
+tmCheck('completion mutation awaits backend and reverts checkbox on failure',strpos($tasks,'runMutation(el,row,()=>onToggle')!==false&&strpos($tasks,'el.checked=!wanted')!==false);
+tmCheck('pin mutation awaits backend before trusting refreshed row',strpos($tasks,'runMutation(el,row,()=>onPin')!==false&&strpos($tasks,"el.dataset.pinned!=='1'")!==false);
+tmCheck('failed row mutation is visibly marked and controls recover',strpos($tasks,"row?.classList.add('saveError')")!==false&&strpos($tasks,'control.disabled=false')!==false&&strpos($css,'.taskRow.saveError')!==false);
+tmCheck('busy row mutation is visibly distinct',strpos($css,'.taskRow.saving')!==false&&strpos($css,'.taskPinBtn:disabled')!==false);
+tmCheck('lead card returns explicit success or failure for completion',strpos($lead,"async function toggleTask")!==false&&strpos($lead,"pipe('set_task_completed'")!==false&&strpos($lead,'if(!j.ok)return false')!==false&&substr_count($lead,'return true')>=3);
+tmCheck('lead card returns explicit success or failure for pinning',strpos($lead,"async function pinTask")!==false&&strpos($lead,"pipe('set_task_pinned'")!==false&&strpos($lead,'if(!j.ok)return false')!==false);
+tmCheck('task mutation UX does not alter technical conversation state',strpos($tasks,'set_status')===false&&strpos($lead,"pipe('set_status'")===false);
+
+echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
+exit($failed?1:0);
