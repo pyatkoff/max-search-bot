@@ -3,7 +3,7 @@ $baseDir=dirname(__DIR__);
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerMediaCache.php';
-ManagerRequestContext::startSession();
+ManagerHttp::start();
 
 $manager=ManagerHttp::requireManager();
 $managerId=ManagerHttp::managerId();
