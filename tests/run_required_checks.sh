@@ -16,6 +16,7 @@ checks=(
   'php tests/run_live_september_typo_regression.php'
   'php tests/run_live_show_tours_duplicate_regression.php'
   'php tests/run_live_party_word_counts_regression.php'
+  'php tests/run_live_date_window_summary_regression.php'
   'php tests/run_ai_context_regression.php'
   'php tests/run_trip_state_regression.php'
   'php tests/run_v2_architecture_regression.php'
