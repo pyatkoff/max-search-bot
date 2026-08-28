@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T20:14:53+00:00",
+    "generated_at": "2026-08-28T20:53:54+00:00",
     "production": {
-        "sha": "92455fa43eaf160049566f76ffa053da9d7205d4",
+        "sha": "9ae775d626519d3a09ecf91421efacd25c28b212",
         "branch": "main"
     },
     "migrations": {
-        "total": 16,
+        "total": 17,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "016_lead_task_pinning.sql"
+        "latest_version": "017_website_page_context.sql"
     },
     "health": {
         "manager_visibility_ok": true,
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 19:14:49",
+        "since_utc": "2026-08-28 19:53:50",
         "summary": {
-            "sessions": 12,
-            "started": 12,
-            "needs_collected": 9,
-            "tours_opened": 9,
+            "sessions": 11,
+            "started": 11,
+            "needs_collected": 8,
+            "tours_opened": 8,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -149,7 +149,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 9,
+                "tours_opened": 8,
                 "collecting_needs": 3
             },
             "flags": {
@@ -184,13 +184,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "92455fa43eaf160049566f76ffa053da9d7205d4",
+        "sha": "9ae775d626519d3a09ecf91421efacd25c28b212",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T20:14:52Z"
+        "reported_at": "2026-08-28T20:53:54Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",

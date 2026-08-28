@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T20:14:47+00:00",
+    "generated_at": "2026-08-28T20:53:47+00:00",
     "production": {
-        "sha": "92455fa43eaf160049566f76ffa053da9d7205d4",
+        "sha": "9ae775d626519d3a09ecf91421efacd25c28b212",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -122,6 +122,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-28 08:09:11"
+        },
+        {
+            "version": "017_website_page_context.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-28 22:53:43"
         }
     ],
     "stats": {
