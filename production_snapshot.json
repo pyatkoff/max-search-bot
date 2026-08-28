@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T14:50:40+00:00",
+    "generated_at": "2026-08-28T15:07:06+00:00",
     "production": {
-        "sha": "e498a2187bbb9b4f113b9060945abae64e627373",
+        "sha": "d0d0e37e9445caa7691dce49ebc74d797e12e158",
         "branch": "main"
     },
     "database": {
@@ -125,10 +125,10 @@
         }
     ],
     "stats": {
-        "customers": 530,
-        "customer_channels": 530,
-        "conversations": 531,
-        "messages": 14613,
+        "customers": 531,
+        "customer_channels": 531,
+        "conversations": 532,
+        "messages": 14615,
         "managers": 5,
         "manager_assignments": 111,
         "conversation_events": 927,
@@ -364,6 +364,18 @@
         }
     ],
     "website_attribution": [
+        {
+            "conversation_id": 532,
+            "project_key": "anytour",
+            "source_id": 2,
+            "status": "ai",
+            "manager_id": null,
+            "started_at": "2026-08-28 16:59:23",
+            "last_message_at": "2026-08-28 16:59:23",
+            "source_key": "website:anytour-main",
+            "source_project_key": "anytour",
+            "source_channel": "website"
+        },
         {
             "conversation_id": 76,
             "project_key": "anytour",
@@ -808,6 +820,12 @@
         {
             "project_key": "anytour",
             "channel": "website",
+            "status": "ai",
+            "count": 1
+        },
+        {
+            "project_key": "anytour",
+            "channel": "website",
             "status": "manager",
             "count": 1
         }
@@ -977,6 +995,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 14615,
+            "conversation_id": 532,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "website",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-28 16:59:23"
+        },
+        {
+            "id": 14614,
+            "conversation_id": 532,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "website",
+            "text": "/start",
+            "created_at": "2026-08-28 16:59:23"
+        },
         {
             "id": 14613,
             "conversation_id": 531,
@@ -1498,24 +1534,6 @@
             "channel": "max",
             "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
             "created_at": "2026-08-28 14:36:00"
-        },
-        {
-            "id": 14555,
-            "conversation_id": 529,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_6_8",
-            "created_at": "2026-08-28 14:36:00"
-        },
-        {
-            "id": 14554,
-            "conversation_id": 529,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-28 14:35:55"
         }
     ],
     "recent_events": [
