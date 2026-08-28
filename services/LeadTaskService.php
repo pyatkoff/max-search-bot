@@ -32,10 +32,18 @@ class LeadTaskService
         }catch(Throwable $ignored){return'upcoming';}
     }
 
+    /** Canonical priority order for open-task projections: pinned first, then nearest deadline. */
+    public static function openTaskOrderSql(string $alias='t'): string
+    {
+        $alias=preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/',$alias)?$alias:'t';$p=$alias.'.';
+        return "CASE WHEN {$p}is_pinned=1 THEN 0 ELSE 1 END,CASE WHEN {$p}due_at_utc IS NULL THEN 1 ELSE 0 END,{$p}due_at_utc ASC,{$p}id DESC";
+    }
+
     public static function listForConversation(int $conversationId): array
     {
         if($conversationId<=0)return[];
-        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.is_pinned,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,CASE WHEN t.status='open' AND t.is_pinned=1 THEN 0 ELSE 1 END,CASE WHEN t.due_at_utc IS NULL THEN 1 ELSE 0 END,t.due_at_utc ASC,t.id DESC");
+        $order=self::openTaskOrderSql('t');
+        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.is_pinned,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,{$order}");
         $q->execute([$conversationId]);$rows=$q->fetchAll()?:[];
         foreach($rows as &$row){$row['is_pinned']=!empty($row['is_pinned']);$row['due_state']=self::dueState($row['due_at_utc']??null,!empty($row['overdue']));}unset($row);
         return$rows;
@@ -74,6 +82,6 @@ class LeadTaskService
     {
         if(function_exists('mb_strlen'))return mb_strlen($value,'UTF-8');
         $count=preg_match_all('/./us',$value,$unused);
-        return $count===false?strlen($value):$count;
+        return$count===false?strlen($value):$count;
     }
 }
