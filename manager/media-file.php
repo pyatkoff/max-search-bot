@@ -1,13 +1,12 @@
 <?php
 $baseDir=dirname(__DIR__);
-require_once $baseDir.'/services/ManagerRequestContext.php';
+require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerMediaCache.php';
-ManagerRequestContext::startSession();
+ManagerHttp::start();
 
-$managerId=ManagerRequestContext::managerId();
-$manager=ManagerRequestContext::manager();
-if(!$manager){http_response_code(401);exit;}
+$manager=ManagerHttp::requireManager();
+$managerId=ManagerHttp::managerId();
 $id=(string)($_GET['id']??'');$media=ManagerMediaCache::get($id);
 if(!$media){http_response_code(404);exit;}
 $conversationId=(int)($media['conversation_id']??0);

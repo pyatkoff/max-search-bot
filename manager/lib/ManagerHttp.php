@@ -6,9 +6,14 @@ require_once dirname(__DIR__,2).'/services/ManagerRequestContext.php';
 
 final class ManagerHttp
 {
-    public static function startJson(): void
+    public static function start(): void
     {
         ManagerRequestContext::startSession();
+    }
+
+    public static function startJson(): void
+    {
+        self::start();
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
     }
