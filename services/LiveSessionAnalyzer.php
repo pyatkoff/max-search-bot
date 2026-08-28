@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 final class LiveSessionAnalyzer
 {
+    private const EXCESSIVE_INBOUND_TURNS = 18;
+
     private static function ts($value): ?int
     {
         $value=trim((string)$value);
@@ -24,31 +26,32 @@ final class LiveSessionAnalyzer
         return (bool)preg_match('/(?<!\d)(?:\+7|7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u',$text);
     }
 
-    public static function analyze(array $conversation,array $messages,array $events=[]):array
+    public static function analyze(array $conversation,array $messages,array $events=[],?int $anomalySinceTs=null):array
     {
-        $inbound=[];$outbound=[];$datePicks=0;$datePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
-        $managerMessageTimes=[];
+        $inbound=[];$outbound=[];$datePicks=0;$anomalyDatePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
+        $managerMessageTimes=[];$anomalyInboundTurns=0;
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
+            $messageTs=self::ts($m['created_at']??null);
+            $inAnomalyWindow=$anomalySinceTs===null||$messageTs===null||$messageTs>=$anomalySinceTs;
             if(($m['direction']??'')==='inbound'){
                 $inbound[]=$text;
                 if(strpos($text,'pick_date_')===0){
                     $datePicks++;
-                    $ts=self::ts($m['created_at']??null);
-                    if($ts!==null)$datePickTimes[]=$ts;
+                    if($inAnomalyWindow&&$messageTs!==null)$anomalyDatePickTimes[]=$messageTs;
                 }
                 if($text==='show_tours')$showTours=true;
                 if(self::containsPhone($text))$phone=true;
-                if($text!==''){
-                    if(self::isCallbackInput($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
-                    else $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
+                if($inAnomalyWindow){
+                    $anomalyInboundTurns++;
+                    if($text!==''){
+                        if(self::isCallbackInput($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
+                        else $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
+                    }
                 }
             } else {
                 $outbound[]=$text;
-                if(($m['sender_type']??'')==='manager'){
-                    $ts=self::ts($m['created_at']??null);
-                    if($ts!==null)$managerMessageTimes[]=$ts;
-                }
+                if(($m['sender_type']??'')==='manager'&&$messageTs!==null)$managerMessageTimes[]=$messageTs;
             }
         }
 
@@ -86,15 +89,15 @@ final class LiveSessionAnalyzer
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
         $started=count($inbound)>0;
-        if(count($datePickTimes)>=3){
-            sort($datePickTimes);
-            for($i=2,$n=count($datePickTimes);$i<$n;$i++){
-                if(($datePickTimes[$i]-$datePickTimes[$i-2])<=10){$flags[]='rapid_date_reselection';break;}
+        if(count($anomalyDatePickTimes)>=3){
+            sort($anomalyDatePickTimes);
+            for($i=2,$n=count($anomalyDatePickTimes);$i<$n;$i++){
+                if(($anomalyDatePickTimes[$i]-$anomalyDatePickTimes[$i-2])<=10){$flags[]='rapid_date_reselection';break;}
             }
         }
         foreach($repeatedCallbacks as $text=>$count){if($count>=3){$flags[]='repeated_callback_input';break;}}
         foreach($repeatedFreeText as $text=>$count){if($count>=3){$flags[]='repeated_same_input';break;}}
-        if(count($messages)>=24)$flags[]='excessive_turns';
+        if($anomalyInboundTurns>=self::EXCESSIVE_INBOUND_TURNS)$flags[]='excessive_turns';
         if($managerRequested&&!$managerReplied)$flags[]='manager_requested_no_reply';
         if($managerRequested&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';
         if($managerTaken&&!$managerReplied)$flags[]='manager_taken_no_reply';
@@ -123,6 +126,7 @@ final class LiveSessionAnalyzer
             'inbound_messages'=>count($inbound),
             'outbound_messages'=>count($outbound),
             'date_picks'=>$datePicks,
+            'anomaly_inbound_messages'=>$anomalyInboundTurns,
             'drop_point'=>$drop,
             'flags'=>array_values(array_unique($flags)),
             'started_at'=>$conversation['started_at']??null,
