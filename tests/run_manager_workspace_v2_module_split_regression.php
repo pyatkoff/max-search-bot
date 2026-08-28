@@ -12,9 +12,10 @@ $conversation=(string)file_get_contents($root.'/manager/assets/workspace-v2-conv
 $bootstrap=(string)file_get_contents($root.'/manager/assets/workspace-v2-bootstrap.js');
 $passed=0;$failed=0;
 function splitCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function splitAssetPos(string $html,string $asset){$static=strpos($html,$asset);if($static!==false)return$static;$file=basename($asset);return strpos($html,"workspaceAsset('{$file}')");}
 
 $ordered=['assets/workspace-v2.js','assets/workspace-v2-inbox.js','assets/workspace-v2-pipeline.js','assets/workspace-v2-lead-card.js','assets/workspace-v2-conversation.js','assets/workspace-v2-bootstrap.js'];
-$positions=array_map(fn($asset)=>strpos($page,$asset),$ordered);
+$positions=array_map(fn($asset)=>splitAssetPos($page,$asset),$ordered);
 $validOrder=!in_array(false,$positions,true);
 if($validOrder){for($i=1;$i<count($positions);$i++){if($positions[$i]<=$positions[$i-1]){$validOrder=false;break;}}}
 splitCheck('workspace loads feature modules after shared core in dependency-safe order',$validOrder);
