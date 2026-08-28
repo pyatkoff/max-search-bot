@@ -5,6 +5,7 @@ declare(strict_types=1);
 $base=dirname(__DIR__);
 $service=(string)file_get_contents($base.'/services/ManagerPushHealth.php');
 $push=(string)file_get_contents($base.'/services/ManagerPushService.php');
+$pushMigration=(string)file_get_contents($base.'/migrations/018_manager_push_subscriptions.sql');
 $snapshot=(string)file_get_contents($base.'/tools/production_snapshot.php');
 $sw=(string)file_get_contents($base.'/manager/sw.js');
 $enable=(string)file_get_contents($base.'/manager/push-enable.php');
@@ -25,6 +26,8 @@ mphCheck('push health gives per-manager notification path usability',strpos($ser
 mphCheck('push path distinguishes missing, unhealthy and healthy subscription',strpos($service,"'no_subscription'")!==false && strpos($service,"'subscription_unhealthy'")!==false && strpos($service,"'healthy_subscription'")!==false);
 mphCheck('push health can report one manager regardless of working state',strpos($service,'statusForManager(PDO $pdo, int $managerId)')!==false && strpos($service,"'is_working'")!==false);
 mphCheck('production snapshot includes manager push health',strpos($snapshot,"ManagerPushHealth.php")!==false && strpos($snapshot,"'manager_push_health'")!==false && strpos($snapshot,"'manager_push_ok'")!==false);
+mphCheck('push subscription schema is migration owned',strpos($pushMigration,'CREATE TABLE IF NOT EXISTS manager_push_subscriptions')!==false && strpos($pushMigration,'UNIQUE KEY uq_manager_endpoint')!==false && strpos($pushMigration,'KEY idx_manager_push_manager')!==false);
+mphCheck('runtime push service never creates schema',stripos($push,'CREATE TABLE')===false && strpos($push,'ensureSchema')===false);
 mphCheck('push delivery logs missing selected manager subscription',strpos($push,"'no_subscription'")!==false && strpos($push,"'conversation_id'=>\$conversationId")!==false && strpos($push,"'manager_id'=>(int)\$managerId")!==false);
 mphCheck('push delivery logs successful subscription send',strpos($push,"'delivery_success'")!==false && strpos($push,"'subscription_id'=>\$subscriptionId")!==false && strpos($push,"'http_code'=>\$code")!==false);
 mphCheck('push delivery logs failed and expired sends',strpos($push,"'delivery_failed'")!==false && strpos($push,"'subscription_expired'")!==false && strpos($push,"'delivery_exception'")!==false);

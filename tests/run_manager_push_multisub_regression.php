@@ -18,13 +18,14 @@ function mpCheck(string $name, bool $ok): void
 }
 
 $pushSource = (string)file_get_contents(__DIR__ . '/../services/ManagerPushService.php');
+$pushMigration = (string)file_get_contents(__DIR__ . '/../migrations/018_manager_push_subscriptions.sql');
 $swSource = (string)file_get_contents(__DIR__ . '/../manager/sw.js');
 $notificationSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-notifications.js');
 $conversationSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-conversation.js');
 
 mpCheck(
     'subscription identity is unique per manager and endpoint',
-    strpos($pushSource, 'UNIQUE KEY uq_manager_endpoint (manager_id,endpoint_hash)') !== false
+    strpos($pushMigration, 'UNIQUE KEY uq_manager_endpoint (manager_id,endpoint_hash)') !== false
 );
 mpCheck(
     'selected managers load all registered subscriptions',

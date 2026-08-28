@@ -13,27 +13,6 @@ class ManagerPushService
         catch (Throwable $e) { return str_replace('.', '', uniqid('', true)); }
     }
 
-    public static function ensureSchema(): void
-    {
-        $pdo=ConversationDb::connection();
-        $pdo->exec('CREATE TABLE IF NOT EXISTS manager_push_subscriptions (
-            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            manager_id BIGINT UNSIGNED NOT NULL,
-            endpoint TEXT NOT NULL,
-            endpoint_hash CHAR(64) NOT NULL,
-            p256dh VARCHAR(255) NOT NULL,
-            auth_secret VARCHAR(255) NOT NULL,
-            user_agent VARCHAR(500) NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            last_success_at DATETIME NULL,
-            last_error_at DATETIME NULL,
-            last_error VARCHAR(500) NULL,
-            UNIQUE KEY uq_manager_endpoint (manager_id,endpoint_hash),
-            KEY idx_manager_push_manager (manager_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
-    }
-
     private static function configPath(): string { return dirname(__DIR__) . '/.runtime/manager_push_vapid.php'; }
 
     public static function vapid(): array
@@ -60,7 +39,6 @@ class ManagerPushService
 
     public static function saveSubscription(int $managerId,array $subscription,string $userAgent=''): bool
     {
-        self::ensureSchema();
         $endpoint=trim((string)($subscription['endpoint']??''));
         $keys=(array)($subscription['keys']??[]); $p256dh=trim((string)($keys['p256dh']??'')); $auth=trim((string)($keys['auth']??''));
         if($endpoint===''||$p256dh===''||$auth==='') return false;
@@ -73,7 +51,6 @@ class ManagerPushService
     {
         $dispatchId=self::dispatchId();
         try{
-            self::ensureSchema();
             $pdo=ConversationDb::connection();
             $q=$pdo->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,cu.display_name,p.display_name AS project_name,s.display_name AS source_name,s.source_key FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
             $q->execute([$conversationId]); $c=$q->fetch(); if(!$c) return;
