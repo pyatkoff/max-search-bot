@@ -51,14 +51,17 @@ assert_body_contains() {
 request manager_root "$BASE_URL/"
 request manager_index "$BASE_URL/index.php"
 request manager_api_me "$BASE_URL/api.php" POST
+request manager_pipeline_api "$BASE_URL/pipeline-api.php" POST
 
 assert_status manager_root 200
 assert_status manager_index 200
 assert_status manager_api_me 401
+assert_status manager_pipeline_api 401
 
 assert_body_contains manager_root 'id="workspaceRoot"'
 assert_body_contains manager_index 'id="workspaceRoot"'
 assert_body_contains manager_api_me '"error":"unauthorized"'
+assert_body_contains manager_pipeline_api '"error":"unauthorized"'
 
 request consultant_root "$CONSULTANT_BASE_URL/"
 request consultant_index "$CONSULTANT_BASE_URL/index.php"
