@@ -1,5 +1,11 @@
 (function(){
-if(/\/workspace-v2\.php$/.test(location.pathname)){location.replace(location.pathname.replace(/workspace-v2\.php$/,'')+location.search+location.hash);return}
+function canonicalizeManagerUrl(){
+  const path=String(location.pathname||'');
+  if(!/\/(?:index|workspace-v2)\.php$/.test(path))return;
+  const canonical=path.replace(/(?:index|workspace-v2)\.php$/,'')+location.search+location.hash;
+  if(history?.replaceState)history.replaceState(history.state,'',canonical);
+}
+canonicalizeManagerUrl();
 const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
@@ -13,5 +19,5 @@ function formatWait(seconds){const s=Math.max(0,Number(seconds||0));if(s<60)retu
 function val(v){return(v===null||v===undefined||v==='')?'—':String(v)}
 function tripField(label,value){return`<div class="field"><span class="label">${esc(label)}</span><span class="value">${esc(val(value))}</span></div>`}
 async function boot(){const me=await api('me').catch(()=>null);if(!me?.ok)return;S.csrf=me.csrf;S.manager=me.manager;window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,0);$('managerName').textContent=(S.manager.display_name||S.manager.login)+' · Workspace V2';const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin');const cat=await pipe('catalog').catch(()=>null);if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};window.WorkspaceV2Pipeline?.renderFilters();window.WorkspaceV2Pipeline?.bindFilters();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();await window.WorkspaceV2Notifications?.init();if(!S.authExpired)await window.WorkspaceV2Inbox?.load().catch(()=>{})}
-window.WorkspaceV2={S,$,esc,api,pipe,statusText,outcomeText,formatWait,val,tripField,boot,showFatal};
+window.WorkspaceV2={S,$,esc,api,pipe,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,canonicalizeManagerUrl};
 })();
