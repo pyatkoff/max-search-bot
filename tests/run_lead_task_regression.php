@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/LeadTaskService.php';
+require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 $passed=0;$failed=0;function ltCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 $input=LeadTaskService::normalizeCreateInput('  Перезвонить   туристу  ','2026-08-27T18:30:00+02:00');
@@ -11,6 +12,19 @@ ltCheck('empty task is rejected',LeadTaskService::normalizeCreateInput('   ',nul
 ltCheck('invalid task date is rejected',LeadTaskService::normalizeCreateInput('Позвонить','not-a-date')['error']==='invalid_due_at');
 ltCheck('task without due date is allowed',LeadTaskService::normalizeCreateInput('Уточнить паспортные данные',null)['due_at_utc']===null);
 ltCheck('unicode title limit is character based',!empty(LeadTaskService::normalizeCreateInput(str_repeat('я',255),null)['ok'])&&LeadTaskService::normalizeCreateInput(str_repeat('я',256),null)['error']==='invalid_title');
+
+$now=new DateTimeImmutable('2026-08-28 01:30:00',new DateTimeZone('UTC'));
+ltCheck('Kaliningrad due-today classification is explicit',ManagerLeadInboxService::taskDueState('2026-08-28 18:00:00',false,$now)==='today');
+ltCheck('future Kaliningrad task stays upcoming',ManagerLeadInboxService::taskDueState('2026-08-29 00:30:00',false,$now)==='upcoming');
+ltCheck('overdue task wins over calendar-day classification',ManagerLeadInboxService::taskDueState('2026-08-28 00:15:00',true,$now)==='overdue');
+ltCheck('task without deadline is unscheduled',ManagerLeadInboxService::taskDueState(null,false,$now)==='unscheduled');
+$actionRows=ManagerLeadInboxService::filter([
+    ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Сегодня','next_task_due_state'=>'today'],
+    ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Просрочено','next_task_due_state'=>'overdue','next_task_overdue'=>1],
+    ['id'=>3,'lead_outcome'=>'open','next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],
+    ['id'=>4,'lead_outcome'=>'open','next_task_title'=>null,'next_task_due_state'=>'unscheduled'],
+],'','','action');
+ltCheck('action-required filter means due today or overdue only',array_column($actionRows,'id')===[1,2]);
 
 $root=dirname(__DIR__);$migration=(string)file_get_contents($root.'/migrations/014_lead_tasks.sql');$api=(string)file_get_contents($root.'/manager/pipeline-api.php');$shell=(string)file_get_contents($root.'/manager/workspace-v2.php');$leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');$taskJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');$taskCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');$inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');$inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');$inboxCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
 ltCheck('migration is forward-only and indexed',strpos($migration,'CREATE TABLE IF NOT EXISTS lead_tasks')!==false&&strpos($migration,'idx_lead_tasks_due')!==false&&strpos($migration,'due_at_utc')!==false&&stripos($migration,'DROP TABLE')===false);
@@ -22,7 +36,8 @@ ltCheck('lead card delegates task rendering and mutations to task module',strpos
 ltCheck('task module renders open done create and due controls',strpos($taskJs,'Задачи и напоминания')!==false&&strpos($taskJs,'datetime-local')!==false&&strpos($taskJs,'Выполнено:')!==false&&strpos($taskCss,'.taskCreate')!==false&&strpos($taskCss,'.taskRow.done')!==false);
 ltCheck('V2 inbox batch-projects one next open task without N+1',strpos($inboxService,"FROM lead_tasks WHERE conversation_id IN ({\$in}) AND status='open'")!==false&&strpos($inboxService,"array_key_exists(\$id,\$tasks)")!==false&&substr_count($inboxService,'lead_tasks')===1);
 ltCheck('V2 inbox exposes overdue task signal and due time',strpos($inboxService,'next_task_title')!==false&&strpos($inboxService,'next_task_due_at_utc')!==false&&strpos($inboxService,'next_task_overdue')!==false&&strpos($inboxService,'UTC_TIMESTAMP()')!==false);
-ltCheck('V2 inbox renders task title due and overdue state',strpos($inboxJs,'c.next_task_title')!==false&&strpos($inboxJs,'c.next_task_due_at_utc')!==false&&strpos($inboxJs,'c.next_task_overdue')!==false&&strpos($inboxJs,'leadTaskCompact')!==false&&strpos($inboxJs,"taskOverdue?'overdue':''")!==false&&strpos($inboxJs,'title="${esc(taskDue)}"')!==false&&strpos($inboxCss,'.leadTaskCompact.overdue')!==false);
+ltCheck('V2 inbox action-required is deadline-derived and Kaliningrad-aware',strpos($inboxService,"'action'")!==false&&strpos($inboxService,'Europe/Kaliningrad')!==false&&strpos($inboxService,"['overdue','today']")!==false&&strpos($shell,'Нужно действие')!==false);
+ltCheck('V2 inbox renders task title due and urgency states',strpos($inboxJs,'c.next_task_title')!==false&&strpos($inboxJs,'c.next_task_due_at_utc')!==false&&strpos($inboxJs,'c.next_task_overdue')!==false&&strpos($inboxJs,'c.next_task_due_state')!==false&&strpos($inboxJs,'leadTaskCompact')!==false&&strpos($inboxCss,'.leadTaskCompact.today')!==false&&strpos($inboxCss,'.leadTaskCompact.overdue')!==false);
 ltCheck('V2 inbox search includes task title',strpos($inboxService,"\$row['next_task_title']??''")!==false);
 ltCheck('task signal stays read-only in inbox',strpos($inboxJs,"pipe('create_task'")===false&&strpos($inboxJs,"pipe('set_task_completed'")===false);
 
