@@ -25,4 +25,12 @@ class AuditLogService
         $q=ConversationDb::connection()->query('SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,before_json,after_json,created_at FROM admin_audit_log ORDER BY id DESC LIMIT '.$limit);
         return $q?$q->fetchAll():[];
     }
+
+    /** Read-only, data-minimized projection for the admin UI. */
+    public static function recentSummaries(int $limit=50): array
+    {
+        $limit=max(1,min(100,$limit));
+        $q=ConversationDb::connection()->query("SELECT a.id,a.actor_manager_id,a.action,a.entity_type,a.entity_id,a.project_key,a.created_at,m.display_name AS actor_name,m.login AS actor_login FROM admin_audit_log a LEFT JOIN managers m ON m.id=a.actor_manager_id ORDER BY a.id DESC LIMIT {$limit}");
+        return $q?$q->fetchAll():[];
+    }
 }

@@ -23,7 +23,7 @@ class AdminDirectoryService
             $manager=self::withOperationalSignals($manager,ManagerPushHealth::statusForManager($pdo,(int)$manager['id']));
         }
         unset($manager);
-        return ['projects'=>$projects,'managers'=>$managers,'sources'=>$sources];
+        return ['projects'=>$projects,'managers'=>$managers,'sources'=>$sources,'audit'=>AuditLogService::recentSummaries(50)];
     }
 
     public static function withOperationalSignals(array $manager,array $pushStatus): array
