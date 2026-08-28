@@ -4,6 +4,7 @@ require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/CalendarViewModel.php';
 require_once __DIR__ . '/ManagerRequestService.php';
 require_once __DIR__ . '/PostTourService.php';
+require_once __DIR__ . '/SearchDateSummary.php';
 
 class DialogueView
 {
@@ -130,6 +131,7 @@ class DialogueView
         MaxSearchApi::deletePrevMessage($chatId);
         $savedData = MaxSearchApi::getSavedData($chatId);
         $summary = MaxSearchApi::formatSavedData($savedData);
+        $summary = SearchDateSummary::replaceDateLine($summary, $savedData[MaxSearchApi::$statusDate] ?? null);
         $buttons = ButtonFactory::rows(
             ButtonFactory::row(ButtonFactory::callback('🔥 Показать туры','show_tours')),
             ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать с менеджером','manager_request')),
