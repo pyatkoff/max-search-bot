@@ -1,380 +1,36 @@
 {
     "ok": true,
-    "generated_at": "2026-08-28T14:50:40+00:00",
+    "generated_at": "2026-08-28T15:07:04+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 8,
-        "started": 8,
-        "needs_collected": 5,
-        "tours_opened": 5,
-        "manager_requested": 3,
-        "manager_replied": 3,
-        "phone_received": 1,
-        "flagged_sessions": 6,
+        "sessions": 6,
+        "started": 6,
+        "needs_collected": 3,
+        "tours_opened": 3,
+        "manager_requested": 1,
+        "manager_replied": 1,
+        "phone_received": 0,
+        "flagged_sessions": 4,
         "manager_response": {
             "answered_in_90s": 1,
-            "answered_after_90s": 2,
+            "answered_after_90s": 0,
             "still_unanswered": 0,
-            "measured_responses": 3,
-            "avg_seconds": 13779,
-            "max_seconds": 40781
+            "measured_responses": 1,
+            "avg_seconds": 22,
+            "max_seconds": 22
         },
         "drop_points": {
-            "manager_replied": 3,
             "tours_opened": 3,
-            "collecting_needs": 2
+            "collecting_needs": 2,
+            "manager_replied": 1
         },
         "flags": {
-            "excessive_turns": 6,
-            "repeated_callback_input": 3,
-            "repeated_same_input": 1
+            "excessive_turns": 4,
+            "repeated_callback_input": 3
         }
     },
     "sessions": [
-        {
-            "conversation_id": 517,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "manager",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": true,
-            "manager_replied": true,
-            "manager_request_at": "2026-08-28 10:19:15",
-            "manager_first_reply_at": "2026-08-28 10:28:10",
-            "manager_response_seconds": 535,
-            "manager_response_bucket": "answered_after_90s",
-            "phone_received": false,
-            "inbound_messages": 25,
-            "outbound_messages": 26,
-            "date_picks": 1,
-            "drop_point": "manager_replied",
-            "flags": [
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-28 12:02:41",
-            "last_message_at": "2026-08-28 13:57:41",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-28 12:04:54"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_date",
-                    "created_at": "2026-08-28 12:05:01"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-28 12:05:02"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "2 Апреля 2027",
-                    "created_at": "2026-08-28 12:05:32"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Калининград → Египет 👥 1 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 7-9 ночей 📅 Вылет 02.04.2027 · ищем 30.03–05.04.2027 Что удобнее дальше?",
-                    "created_at": "2026-08-28 12:05:32"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-28 12:05:49"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-28 12:05:49"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-28 12:07:26"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-28 12:07:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_stars",
-                    "created_at": "2026-08-28 12:07:34"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-                    "created_at": "2026-08-28 12:07:35"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "star_1",
-                    "created_at": "2026-08-28 12:07:42"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Калининград → Египет 👥 1 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 7-9 ночей 📅 Вылет 02.04.2027 · ищем 30.03–05.04.2027 Что удобнее дальше?",
-                    "created_at": "2026-08-28 12:07:42"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-28 12:07:49"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-28 12:07:49"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
-                    "created_at": "2026-08-28 12:18:02"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "manager_after_tours",
-                    "created_at": "2026-08-28 12:19:15"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "👩‍💼 <b>Передаю запрос менеджеру</b> Параметры поездки уже сохранены — повторно заполнять ничего не нужно. Менеджер сейчас онлайн и ответит прямо в этом чате. Номер телефона оставлять не нужно.",
-                    "created_at": "2026-08-28 12:19:15"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Здравствуйте! Меня зовут Светлана, я менеджер туристического агентства AnyTour. Вы интересовались турами на нашем сайте. Подскажите, какие пожелания к отдыху и бюджету? Я подберу подходящие варианты, сориентирую по всем деталям и помогу с организацией Вашего отдыха.",
-                    "created_at": "2026-08-28 12:28:10"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Здравствуйте! 5 аппеля 2027 у меня юбилей , и я хотела бы отметить его в Египте. Соответственно, даты хочу подгадать. В средствах ограничена, поэтому рассматриваю разные варианты. Всё зависит от количества ночей и пожеланий. Если есть нюансы, то до 100000, если всё отлично - д...",
-                    "created_at": "2026-08-28 12:54:41"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Наталья, пока на апрель не все отели проставили цены и много вариантов еще не отображается. На данный момент могу предложить эти: 04.04, 9н, Jaz Neo Naama Bay (Ex. Solymar Naama Bay) 4*, AI - Все Включено, 121 273 RUB 04.04, 9н, Rehana Sharm Resort Aqua Park &amp; Spa 4*, Prem...",
-                    "created_at": "2026-08-28 13:46:05"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Спасибо большое! Эл. прчта: tresha.72@yandex.ru Связи по телефону на работе нет, поэтому так удобнее. Буду ждать новостей, а пока порассматриваю эти предложения.)",
-                    "created_at": "2026-08-28 13:52:32"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Принято, как только появятся новые варианты - направлю на почту. Если будут вопросы, это мой личный номер телефона - 8-995-621-49-22",
-                    "created_at": "2026-08-28 13:55:47"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "",
-                    "created_at": "2026-08-28 13:57:41"
-                }
-            ]
-        },
-        {
-            "conversation_id": 480,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "manager",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": true,
-            "manager_replied": true,
-            "manager_request_at": "2026-08-27 20:48:34",
-            "manager_first_reply_at": "2026-08-28 08:08:15",
-            "manager_response_seconds": 40781,
-            "manager_response_bucket": "answered_after_90s",
-            "phone_received": true,
-            "inbound_messages": 29,
-            "outbound_messages": 18,
-            "date_picks": 1,
-            "drop_point": "manager_replied",
-            "flags": [
-                "repeated_same_input",
-                "excessive_turns"
-            ],
-            "started_at": "2026-08-27 22:36:06",
-            "last_message_at": "2026-08-28 13:59:11",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "day_click",
-                    "created_at": "2026-08-27 22:36:49"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "day_click",
-                    "created_at": "2026-08-27 22:36:50"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "day_click",
-                    "created_at": "2026-08-27 22:36:50"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "day_click",
-                    "created_at": "2026-08-27 22:36:51"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-27 22:36:54"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-27 22:36:54"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_01.09.2026",
-                    "created_at": "2026-08-27 22:36:57"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Турция 👥 2 взр., без детей 🏨 от 3★ 🍽 Все Включено 🌙 6-8 ночей 📅 29.08.2026 — 04.09.2026 Что удобнее дальше?",
-                    "created_at": "2026-08-27 22:36:57"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-27 22:37:07"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-27 22:37:08"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
-                    "created_at": "2026-08-27 22:48:03"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "manager_after_tours",
-                    "created_at": "2026-08-27 22:48:34"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
-                    "created_at": "2026-08-27 22:48:34"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "79533697697",
-                    "created_at": "2026-08-27 22:48:39"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Заявка отправлена</b> Менеджер получил параметры вашего отдыха и свяжется с вами. А пока можно заглянуть в наш MAX-канал — там публикуем хорошие цены и горящие предложения.",
-                    "created_at": "2026-08-27 22:48:39"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Здравствуйте! Меня зовут Светлана, я менеджер туристического агентства AnyTour. Вы интересовались турами на нашем сайте. Подскажите, какие пожелания к отдыху и бюджету? Я подберу подходящие варианты, сориентирую по всем деталям и помогу с организацией Вашего отдыха.",
-                    "created_at": "2026-08-28 10:08:15"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Турция до 100 чуть больше",
-                    "created_at": "2026-08-28 10:14:38"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "2",
-                    "created_at": "2026-08-28 10:14:45"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Человека",
-                    "created_at": "2026-08-28 10:14:51"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Направляю Вам варианты отдыха с окончательной стоимостью на данный момент. В стоимость тура включено: перелет, проживание, указанный тип питания, страховой полис и трансфер. По ссылке в конце письма Вы можете ознакомиться с более подробной информацией о туре и об отеле. 03.09,...",
-                    "created_at": "2026-08-28 10:28:34"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-08-28 13:58:59"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-28 13:59:08"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-28 13:59:10"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-28 13:59:11"
-                }
-            ]
-        },
         {
             "conversation_id": 527,
             "project_key": "anytour",
@@ -1109,5 +765,5 @@
             ]
         }
     ],
-    "since_utc": "2026-08-28 13:50:40"
+    "since_utc": "2026-08-28 14:07:04"
 }
