@@ -19,7 +19,7 @@ $positions=array_map(fn($asset)=>splitAssetPos($page,$asset),$ordered);
 $validOrder=!in_array(false,$positions,true);
 if($validOrder){for($i=1;$i<count($positions);$i++){if($positions[$i]<=$positions[$i-1]){$validOrder=false;break;}}}
 splitCheck('workspace loads feature modules after shared core in dependency-safe order',$validOrder);
-splitCheck('shared core owns state transport utilities and boot only',strlen($core)<5000&&strpos($core,'window.WorkspaceV2=')!==false&&strpos($core,"request('api.php'")!==false&&strpos($core,"request('pipeline-api.php'")!==false);
+splitCheck('shared core owns state transport boot and auth recovery only',strpos($core,'window.WorkspaceV2=')!==false&&strpos($core,"request('api.php'")!==false&&strpos($core,"request('pipeline-api.php'")!==false&&strpos($core,'showAuthRecovery')!==false&&strpos($core,'bindWorkspaceOnce')!==false);
 splitCheck('shared core no longer renders inbox conversation or lead card',strpos($core,'leadItem')===false&&strpos($core,'(d.messages||[]).forEach')===false&&strpos($core,'id="leadOutcome"')===false&&strpos($core,"pipe('set_stage'")===false);
 splitCheck('inbox module owns lead list rendering',strpos($inbox,'window.WorkspaceV2Inbox=')!==false&&strpos($inbox,'leadItem')!==false&&strpos($inbox,"pipe('list'")!==false);
 splitCheck('pipeline module owns filters tags and outcome persistence',strpos($pipeline,'window.WorkspaceV2Pipeline=')!==false&&strpos($pipeline,"pipe('set_tags'")!==false&&strpos($pipeline,"pipe('set_outcome'")!==false&&strpos($pipeline,'leadStageFilter')!==false);
