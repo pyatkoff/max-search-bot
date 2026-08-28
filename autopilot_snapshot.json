@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T19:38:03+00:00",
+    "generated_at": "2026-08-28T19:47:27+00:00",
     "production": {
-        "sha": "fe6be147d90105e0d5ad17c31f71b3f414c0a090",
+        "sha": "8c5218c817bb074a88314b08457b344bbd98cdce",
         "branch": "main"
     },
     "migrations": {
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 18:37:57",
+        "since_utc": "2026-08-28 18:47:23",
         "summary": {
             "sessions": 11,
             "started": 11,
-            "needs_collected": 7,
-            "tours_opened": 7,
+            "needs_collected": 8,
+            "tours_opened": 8,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -149,20 +149,20 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 7,
-                "collecting_needs": 4
+                "tours_opened": 8,
+                "collecting_needs": 3
             },
             "flags": {
                 "excessive_turns": 2,
-                "repeated_callback_input": 1,
-                "repeated_same_input": 1
+                "repeated_same_input": 1,
+                "repeated_callback_input": 1
             }
         },
         "flagged_sessions": [
             {
-                "conversation_id": 542,
+                "conversation_id": 543,
                 "flags": [
-                    "repeated_callback_input",
+                    "repeated_same_input",
                     "excessive_turns"
                 ],
                 "drop_point": "tours_opened",
@@ -170,9 +170,9 @@
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 543,
+                "conversation_id": 542,
                 "flags": [
-                    "repeated_same_input",
+                    "repeated_callback_input",
                     "excessive_turns"
                 ],
                 "drop_point": "tours_opened",
@@ -186,13 +186,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "fe6be147d90105e0d5ad17c31f71b3f414c0a090",
+        "sha": "8c5218c817bb074a88314b08457b344bbd98cdce",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T19:38:02Z"
+        "reported_at": "2026-08-28T19:47:27Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
