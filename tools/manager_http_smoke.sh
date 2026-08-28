@@ -49,17 +49,14 @@ assert_body_contains() {
 
 request manager_root "$BASE_URL/"
 request manager_index "$BASE_URL/index.php"
-request manager_workspace_alias "$BASE_URL/workspace-v2.php"
 request manager_api_me "$BASE_URL/api.php" POST
 
 assert_status manager_root 200
 assert_status manager_index 200
-assert_status manager_workspace_alias 200
 assert_status manager_api_me 401
 
 assert_body_contains manager_root 'id="workspaceRoot"'
 assert_body_contains manager_index 'id="workspaceRoot"'
-assert_body_contains manager_workspace_alias 'id="workspaceRoot"'
 assert_body_contains manager_api_me '"error":"unauthorized"'
 
 echo 'MANAGER HTTP SMOKE: OK'

@@ -12,7 +12,7 @@ $pushEndpoint=(string)file_get_contents($base.'/manager/push.php');
 $statusEndpoint=(string)file_get_contents($base.'/manager/push-status.php');
 $http=(string)file_get_contents($base.'/manager/lib/ManagerHttp.php');
 $context=(string)file_get_contents($base.'/services/ManagerRequestContext.php');
-$panel=(string)file_get_contents($base.'/manager/workspace-v2.php')."\n".(string)file_get_contents($base.'/manager/assets/workspace-v2-notifications.js');
+$panel=(string)file_get_contents($base.'/manager/index.php')."\n".(string)file_get_contents($base.'/manager/assets/workspace-v2-notifications.js');
 $passed=0;$failed=0;
 function mphCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -35,9 +35,9 @@ mphCheck('service worker replaces stale VAPID subscription',strpos($sw,'applicat
 mphCheck('push enable replaces stale VAPID subscription',strpos($enable,'applicationServerKey')!==false && strpos($enable,'await sub.unsubscribe()')!==false && strpos($enable,"action:'subscribe'")!==false);
 mphCheck('push endpoints reuse shared manager HTTP/context boundary',strpos($pushEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($statusEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($pushEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($statusEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'ManagerRequestContext::manager()')!==false&&strpos($enable,'ManagerRequestContext::startSession()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
 mphCheck('authenticated push status endpoint uses current manager through shared boundary',strpos($statusEndpoint,'ManagerHttp::managerId()')!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false && strpos($http,'return ManagerRequestContext::managerId();')!==false);
-mphCheck('Workspace V2 distinguishes working without push',strpos($panel,"working=!!status?.is_working")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"root.className='notificationHealth '+(usable?'ok':'warn')")!==false && strpos($panel,"shift=working?'Смена включена':'Вне смены'")!==false);
-mphCheck('Workspace V2 offers explicit push repair path',strpos($panel,'class="notificationAction" href="push-enable.php"')!==false && strpos($panel,"usable?'':")!==false);
-mphCheck('Workspace V2 only claims notifications enabled for healthy server path',strpos($panel,"healthy_subscription:'Уведомления включены'")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"label=reasonText(reason)")!==false);
+mphCheck('Manager workspace distinguishes working without push',strpos($panel,"working=!!status?.is_working")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"root.className='notificationHealth '+(usable?'ok':'warn')")!==false && strpos($panel,"shift=working?'Смена включена':'Вне смены'")!==false);
+mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'class="notificationAction" href="push-enable.php"')!==false && strpos($panel,"usable?'':")!==false);
+mphCheck('Manager workspace only claims notifications enabled for healthy server path',strpos($panel,"healthy_subscription:'Уведомления включены'")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"label=reasonText(reason)")!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

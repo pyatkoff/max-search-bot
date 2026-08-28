@@ -3,7 +3,7 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 $root=dirname(__DIR__);
-$workspace=(string)file_get_contents($root.'/manager/workspace-v2.php');
+$workspace=(string)file_get_contents($root.'/manager/index.php');
 $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
