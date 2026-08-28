@@ -45,30 +45,20 @@ class CalendarViewModel
 
     public static function buttons(array $model): array
     {
-        $rows = [
-            [[ 'text'=>(string)$model['title'], 'callback_data'=>'month_click' ]],
-            [
-                ['text'=>'Пн','callback_data'=>'day_click'],
-                ['text'=>'Вт','callback_data'=>'day_click'],
-                ['text'=>'Ср','callback_data'=>'day_click'],
-                ['text'=>'Чт','callback_data'=>'day_click'],
-                ['text'=>'Пт','callback_data'=>'day_click'],
-                ['text'=>'Сб','callback_data'=>'day_click'],
-                ['text'=>'Вс','callback_data'=>'day_click'],
-            ],
-        ];
-
+        $dateButtons = [];
         foreach ((array)($model['weeks'] ?? []) as $week) {
-            $row = [];
             for ($day = 1; $day <= 7; $day++) {
                 $cell = $week[$day] ?? null;
-                $row[] = $cell
-                    ? ['text'=>(string)$cell['day'], 'callback_data'=>(string)$cell['payload']]
-                    : ['text'=>'·', 'callback_data'=>'empty'];
+                if (!$cell) continue;
+                $date = (string)($cell['date'] ?? '');
+                $dateButtons[] = [
+                    'text'=>substr($date, 0, 5),
+                    'callback_data'=>(string)($cell['payload'] ?? ''),
+                ];
             }
-            $rows[] = $row;
         }
 
+        $rows = array_chunk($dateButtons, 4);
         $rows[] = [
             ['text'=>'‹','callback_data'=>'month_change_'.(string)$model['previous']],
             ['text'=>'›','callback_data'=>'month_change_'.(string)$model['next']],
