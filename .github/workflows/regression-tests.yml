@@ -19,6 +19,9 @@ jobs:
           extensions: mbstring
           coverage: none
 
+      - name: Verify required regression inventory
+        run: php tests/run_required_checks_inventory_regression.php
+
       - name: Run required checks
         run: bash tests/run_required_checks.sh
 
