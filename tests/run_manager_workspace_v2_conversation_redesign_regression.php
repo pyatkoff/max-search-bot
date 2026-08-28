@@ -5,6 +5,7 @@ $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.css');
+$mobileCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-mobile.css');
 $passed=0;$failed=0;
 function checkConversationUi(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 function conversationAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
@@ -23,6 +24,11 @@ $mobileUsable=strpos($css,'@media(max-width:900px)')!==false
     && strpos($css,'.messages{padding:12px 10px 14px}')!==false
     && strpos($css,'.composer{padding:7px 8px')!==false;
 checkConversationUi('mobile conversation remains full-screen and usable',$mobileUsable);
+$mobileTyping=strpos($mobileCss,'@media(max-width:520px)')!==false
+    && strpos($mobileCss,'.quickReplies{order:0}')!==false
+    && strpos($mobileCss,'.composerSurface{order:1}')!==false
+    && strpos($mobileCss,'.composer:focus-within .quickReplies{display:none}')!==false;
+checkConversationUi('mobile typing keeps reply surface primary and hides shortcuts while focused',$mobileTyping);
 $scrollContract=strpos($css,'.conversationZone{background:#f4f7f9;min-height:0;overflow:hidden}')!==false
     && strpos($css,'.messages{min-height:0;flex:1 1 auto')!==false
     && strpos($css,'overflow-y:auto;overflow-x:hidden')!==false
