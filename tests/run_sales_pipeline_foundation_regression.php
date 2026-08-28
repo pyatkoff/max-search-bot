@@ -36,7 +36,7 @@ $setTagsStart=strpos($service,'public static function setTags');
 $setStage=$setStageStart===false?'':substr($service,$setStageStart,($setTagsStart!==false?$setTagsStart:$setStageStart)-$setStageStart);
 spCheck('stage transition is transactional with immutable history',$setStage!=='' && strpos($setStage,'beginTransaction()')!==false && strpos($setStage,'INSERT INTO lead_stage_history')!==false && strpos($setStage,'commit()')!==false);
 spCheck('same-stage write is idempotent without duplicate history',strpos($setStage,'if($current===$key)return true;')!==false && strpos($setStage,'if($current===$key)return true;')<strpos($setStage,'INSERT INTO lead_stage_history'));
-spCheck('pipeline stage API attributes manager actor',strpos($pipelineApi,"SalesPipelineService::setStage($id,(string)($data['stage_key']??''),(int)$m['id'])")!==false);
+spCheck('pipeline stage API attributes manager actor',strpos($pipelineApi,'SalesPipelineService::setStage($id,(string)($data[\'stage_key\']??\'\'),(int)$m[\'id\'])')!==false);
 spCheck('service replaces lead tags transactionally',strpos($service,'beginTransaction()')!==false && strpos($service,'DELETE FROM conversation_lead_tags WHERE conversation_id=?')!==false && strpos($service,'INSERT INTO conversation_lead_tags')!==false);
 spCheck('conversation snapshot exposes stage tags and immutable history',strpos($service,"'stage'=>self::stageForConversation")!==false && strpos($service,"'stage_history'=>self::stageHistoryForConversation")!==false && strpos($service,"'tags'=>self::tagsForConversation")!==false);
 
