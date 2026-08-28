@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T20:11:20+00:00",
+    "generated_at": "2026-08-28T20:14:53+00:00",
     "production": {
-        "sha": "b2237dd05514dd22c5b2811826eb6d519289cb31",
+        "sha": "92455fa43eaf160049566f76ffa053da9d7205d4",
         "branch": "main"
     },
     "migrations": {
@@ -130,10 +130,10 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 19:11:15",
+        "since_utc": "2026-08-28 19:14:49",
         "summary": {
-            "sessions": 13,
-            "started": 13,
+            "sessions": 12,
+            "started": 12,
             "needs_collected": 9,
             "tours_opened": 9,
             "manager_requested": 0,
@@ -150,7 +150,7 @@
             },
             "drop_points": {
                 "tours_opened": 9,
-                "collecting_needs": 4
+                "collecting_needs": 3
             },
             "flags": {
                 "excessive_turns": 2,
@@ -184,13 +184,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "b2237dd05514dd22c5b2811826eb6d519289cb31",
+        "sha": "92455fa43eaf160049566f76ffa053da9d7205d4",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T20:11:20Z"
+        "reported_at": "2026-08-28T20:14:52Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
