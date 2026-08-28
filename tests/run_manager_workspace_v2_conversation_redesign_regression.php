@@ -7,7 +7,8 @@ $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.j
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.css');
 $passed=0;$failed=0;
 function checkConversationUi(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
-checkConversationUi('conversation stylesheet is isolated',strpos($page,'assets/workspace-v2-conversation.css')!==false&&strlen($css)>1000);
+function conversationAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
+checkConversationUi('conversation stylesheet is isolated',conversationAssetLoaded($page,'workspace-v2-conversation.css')&&strlen($css)>1000);
 checkConversationUi('header exposes customer identity and technical state separately',strpos($page,'id="conversationAvatar"')!==false&&strpos($page,'id="conversationState"')!==false&&strpos($js,'renderHeader(c)')!==false);
 checkConversationUi('messages distinguish tourist AI and manager',strpos($js,"who==='customer'?'Турист':who==='manager'?'Менеджер':'AI'")!==false&&strpos($css,'.msg.customer')!==false&&strpos($css,'.msg.ai')!==false&&strpos($css,'.msg.manager')!==false);
 checkConversationUi('original transcript remains rendered from detail messages',strpos($js,'renderMessages(d.messages||[]')!==false&&strpos($js,'body.textContent=m.text||')!==false);
