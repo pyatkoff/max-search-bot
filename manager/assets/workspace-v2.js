@@ -6,10 +6,16 @@ function canonicalizeManagerUrl(){
   if(history?.replaceState)history.replaceState(history.state,'',canonical);
 }
 canonicalizeManagerUrl();
-const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,workspaceBound:false};
+const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,workspaceBound:false,booting:false};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
+function showStartupFailure(message='Не удалось загрузить рабочее место. Проверьте соединение и попробуйте ещё раз.'){
+  const box=$('inboxList');
+  if(box){box.innerHTML=`<div class="startupFailure" role="alert"><div class="startupFailureIcon" aria-hidden="true">↻</div><strong>Не удалось загрузить лиды</strong><span>${esc(message)}</span><button id="managerStartupRetry" class="actionBtn primary" type="button">Попробовать снова</button></div>`;const retry=$('managerStartupRetry');if(retry)retry.onclick=async()=>{retry.disabled=true;retry.textContent='Пробуем…';await boot()}}
+  const health=$('notificationStatus');if(health){health.className='notificationHealth warn';const text=health.querySelector('.notificationText');if(text)text.innerHTML='<strong>Нет связи с сервером</strong><span>Рабочее место не загружено</span>'}
+  const composer=$('composer');if(composer)composer.classList.add('hidden');
+}
 function ensureAuthRecovery(){
   let overlay=$('managerAuthRecovery');
   if(overlay)return overlay;
@@ -82,6 +88,15 @@ async function loginFromRecovery(){
   }catch(e){error.textContent='Нет связи с сервером. Попробуйте ещё раз.';error.classList.remove('hidden')}
   finally{submit.disabled=false;submit.textContent='Войти и продолжить'}
 }
-async function boot(){const me=await api('me').catch(()=>null);if(!me?.ok)return;await resumeAuthenticated(me)}
-window.WorkspaceV2={S,$,esc,api,pipe,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery};
+async function boot(){
+  if(S.booting)return;
+  S.booting=true;
+  try{
+    const me=await api('me');
+    if(!me?.ok){if(!S.authExpired)showStartupFailure();return}
+    await resumeAuthenticated(me);
+  }catch(e){if(!S.authExpired)showStartupFailure()}
+  finally{S.booting=false}
+}
+window.WorkspaceV2={S,$,esc,api,pipe,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
 })();
