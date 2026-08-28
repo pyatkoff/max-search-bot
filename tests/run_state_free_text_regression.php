@@ -30,8 +30,9 @@ foreach ($tests as [$text, $expected, $label]) {
     }
 }
 
-// Conversation 308: the short answer "От 7-9" must be accepted instead of
-// repeating the nights question. Keep the exact live phrase in required CI.
+// Keep exact live nights phrases in required CI. Conversation 308 exposed the
+// prefixed range "От 7-9"; conversation 484 exposed the natural short range
+// "8 9", which must not force the tourist to re-enter a valid range.
 $nightsTests = [
     ['6', '6', 'plain nights'],
     ['На 6', '6', 'live MAX phrase На 6'],
@@ -41,6 +42,11 @@ $nightsTests = [
     ['на 7–10 ночей', '7-10', 'natural range with en dash'],
     ['От 7-9', '7-9', 'live AI phrase prefixed range'],
     ['от 7–9 ночей', '7-9', 'prefixed range with noun and en dash'],
+    ['8 9', '8-9', 'live MAX whitespace nights range'],
+    ['8 9 ночей', '8-9', 'whitespace nights range with noun'],
+    ['1.10', '', 'date-like value is not reinterpreted as nights'],
+    ['10 8', '', 'reject reversed whitespace range'],
+    ['8 29', '', 'reject whitespace range above nights limit'],
     ['от 7', '', 'do not invent upper bound from minimum-only phrase'],
     ['неделя', '7', 'week synonym'],
     ['на неделю', '7', 'natural week synonym'],
