@@ -33,6 +33,16 @@ final class ManagerHttp
         return ManagerRequestContext::managerId();
     }
 
+    public static function csrf(bool $rotate=false): string
+    {
+        return ManagerRequestContext::csrf($rotate);
+    }
+
+    public static function isAdmin(array $manager): bool
+    {
+        return ManagerRequestContext::isAdmin($manager);
+    }
+
     public static function requireManager(): array
     {
         $manager=self::manager();
@@ -52,7 +62,7 @@ final class ManagerHttp
 
     public static function requireAdmin(array $manager): void
     {
-        if(!ManagerRequestContext::isAdmin($manager)){
+        if(!self::isAdmin($manager)){
             self::respond(['ok'=>false,'error'=>'forbidden'],403);
         }
     }
