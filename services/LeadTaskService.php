@@ -35,9 +35,9 @@ class LeadTaskService
     public static function listForConversation(int $conversationId): array
     {
         if($conversationId<=0)return[];
-        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,CASE WHEN t.due_at_utc IS NULL THEN 1 ELSE 0 END,t.due_at_utc ASC,t.id DESC");
+        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.is_pinned,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,CASE WHEN t.status='open' AND t.is_pinned=1 THEN 0 ELSE 1 END,CASE WHEN t.due_at_utc IS NULL THEN 1 ELSE 0 END,t.due_at_utc ASC,t.id DESC");
         $q->execute([$conversationId]);$rows=$q->fetchAll()?:[];
-        foreach($rows as &$row){$row['due_state']=self::dueState($row['due_at_utc']??null,!empty($row['overdue']));}unset($row);
+        foreach($rows as &$row){$row['is_pinned']=!empty($row['is_pinned']);$row['due_state']=self::dueState($row['due_at_utc']??null,!empty($row['overdue']));}unset($row);
         return$rows;
     }
 
@@ -47,7 +47,7 @@ class LeadTaskService
         $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
         $assignedManagerId=(int)($assignedManagerId??0);if($assignedManagerId<=0)$assignedManagerId=$createdByManagerId;
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare("INSERT INTO lead_tasks (conversation_id,title,due_at_utc,status,assigned_manager_id,created_by_manager_id,created_at,updated_at) VALUES (?,?,?,'open',?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())");
+        $q=$pdo->prepare("INSERT INTO lead_tasks (conversation_id,title,due_at_utc,status,is_pinned,assigned_manager_id,created_by_manager_id,created_at,updated_at) VALUES (?,?,?,'open',0,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP())");
         $q->execute([$conversationId,$input['title'],$input['due_at_utc'],$assignedManagerId,$createdByManagerId]);
         return ['ok'=>true,'id'=>(int)$pdo->lastInsertId()];
     }
@@ -58,6 +58,16 @@ class LeadTaskService
         $status=$completed?'done':'open';$completedSql=$completed?'UTC_TIMESTAMP()':'NULL';
         $q=ConversationDb::connection()->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=?");
         $q->execute([$status,$taskId,$conversationId]);return$q->rowCount()>0;
+    }
+
+    public static function setPinned(int $conversationId,int $taskId,bool $pinned): bool
+    {
+        if($conversationId<=0||$taskId<=0)return false;
+        $pdo=ConversationDb::connection();$value=$pinned?1:0;
+        $q=$pdo->prepare("UPDATE lead_tasks SET is_pinned=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
+        $q->execute([$value,$taskId,$conversationId]);if($q->rowCount()>0)return true;
+        $q=$pdo->prepare("SELECT 1 FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' AND is_pinned=? LIMIT 1");
+        $q->execute([$taskId,$conversationId,$value]);return(bool)$q->fetchColumn();
     }
 
     private static function length(string $value): int

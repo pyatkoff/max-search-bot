@@ -9,7 +9,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/NeedApplicationService.php` — applying recognized need values.
 - `services/InteractionGuard.php` — callback concurrency/staleness safety.
 - `services/ManagerRequestContext.php` — manager conversation authorization/visibility context.
-- `services/LeadTaskService.php` — lead task/reminder mutations and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
+- `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
 - Sales-pipeline services/repositories — business lead state, independent from technical conversation status.
 - `manager/workspace-v2.php` plus `manager/assets/workspace-v2-*` modules — forward manager UI, kept thin and progressively modular.
 - `migrations/` — only owner of production schema evolution; applied files immutable.
@@ -23,7 +23,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Manager endpoint authorization / CSRF / validation plumbing → shared manager request/application boundary.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.
 - Repeated sales-stage mutation paths → one sales-pipeline application service.
-- Any remaining lead-task deadline/urgency classification outside `LeadTaskService` → delegate to `LeadTaskService` and keep UI/read models projection-only.
+- Any remaining lead-task deadline/urgency/pinning/priority classification or mutation outside `LeadTaskService` → delegate to `LeadTaskService` and keep UI/read models projection-only.
 - Production-derived bespoke regression runners → shared scenario suites where the scenario engine can represent the behavior without weakening coverage.
 
 ## MOVE — responsibilities that should leave their current layer when touched
