@@ -63,8 +63,11 @@ class LeadTaskService
     public static function setPinned(int $conversationId,int $taskId,bool $pinned): bool
     {
         if($conversationId<=0||$taskId<=0)return false;
-        $q=ConversationDb::connection()->prepare("UPDATE lead_tasks SET is_pinned=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
-        $q->execute([$pinned?1:0,$taskId,$conversationId]);return$q->rowCount()>0;
+        $pdo=ConversationDb::connection();$value=$pinned?1:0;
+        $q=$pdo->prepare("UPDATE lead_tasks SET is_pinned=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
+        $q->execute([$value,$taskId,$conversationId]);if($q->rowCount()>0)return true;
+        $q=$pdo->prepare("SELECT 1 FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' AND is_pinned=? LIMIT 1");
+        $q->execute([$taskId,$conversationId,$value]);return(bool)$q->fetchColumn();
     }
 
     private static function length(string $value): int
