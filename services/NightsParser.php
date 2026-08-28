@@ -26,7 +26,11 @@ class NightsParser
             return ($value >= 1 && $value <= 28) ? (string)$value : '';
         }
 
-        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})\s*-\s*(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
+        // A short two-number answer such as "8 9" is a natural range reply to the
+        // nights question. Accept whitespace as a range separator alongside a dash,
+        // but keep dotted/slashed values (for example "1.10") invalid so an
+        // accidentally entered date is never reinterpreted as nights.
+        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})(?:\s*-\s*|\s+)(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
             $from = (int)$m[1];
             $to = (int)$m[2];
             if ($from >= 1 && $to >= $from && $to <= 28) {
