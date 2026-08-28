@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${MANAGER_BASE_URL:-https://anytour.online/max-search/manager}"
+CONSULTANT_BASE_URL="${CONSULTANT_BASE_URL:-https://anytour.online/max-search/web-consultant}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
@@ -59,4 +60,15 @@ assert_body_contains manager_root 'id="workspaceRoot"'
 assert_body_contains manager_index 'id="workspaceRoot"'
 assert_body_contains manager_api_me '"error":"unauthorized"'
 
-echo 'MANAGER HTTP SMOKE: OK'
+request consultant_root "$CONSULTANT_BASE_URL/"
+request consultant_index "$CONSULTANT_BASE_URL/index.php"
+request consultant_widget "$CONSULTANT_BASE_URL/widget.js"
+
+assert_status consultant_root 200
+assert_status consultant_index 200
+assert_status consultant_widget 200
+assert_body_contains consultant_root 'AnyTour'
+assert_body_contains consultant_index 'widget.js'
+assert_body_contains consultant_widget 'anytour-consultant-host'
+
+echo 'MANAGER + WEB CONSULTANT HTTP SMOKE: OK'
