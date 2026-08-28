@@ -22,6 +22,14 @@ jobs:
       - name: Verify required regression inventory
         run: php tests/run_required_checks_inventory_regression.php
 
+      - name: Run inventoried reliability regressions
+        run: |
+          php tests/run_manager_conversation_lifecycle_state_regression.php
+          php tests/run_manager_inbox_load_integrity_regression.php
+          php tests/run_manager_lead_mutation_navigation_integrity_regression.php
+          php tests/run_manager_workspace_v2_send_context_integrity_regression.php
+          php tests/run_update_deduplicator_regression.php
+
       - name: Run required checks
         run: bash tests/run_required_checks.sh
 
