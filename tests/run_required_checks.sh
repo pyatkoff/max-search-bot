@@ -29,6 +29,7 @@ checks=(
   'php tests/run_website_production_smoke_regression.php'
   'php tests/run_website_rollout_regression.php'
   'php tests/run_website_origin_policy_regression.php'
+  'php tests/run_web_consultant_v2_regression.php'
   'php tests/run_telegram_webhook_regression.php'
   'php tools/telegram_smoke_test.php'
   'php tests/run_dialogue_application_regression.php'
