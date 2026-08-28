@@ -39,7 +39,6 @@ final class ManagerHttp
 
     public static function requireCsrf(array $data): void
     {
-        ManagerRequestContext::csrf(true);
         $token=isset($data['csrf'])?(string)$data['csrf']:null;
         if(!ManagerRequestContext::validCsrf($token)){
             self::respond(['ok'=>false,'error'=>'csrf'],403);
