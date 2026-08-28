@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-27T23:17:40+00:00",
+    "generated_at": "2026-08-28T00:08:41+00:00",
     "production": {
-        "sha": "34929c0f281c06db62fc0b515fab82401c36fb34",
+        "sha": "84e6c58c3999270b6a3d6f700cd31a1b25a687d6",
         "branch": "main"
     },
     "database": {
@@ -111,10 +111,10 @@
         }
     ],
     "stats": {
-        "customers": 488,
-        "customer_channels": 488,
-        "conversations": 489,
-        "messages": 13400,
+        "customers": 489,
+        "customer_channels": 489,
+        "conversations": 490,
+        "messages": 13402,
         "managers": 5,
         "manager_assignments": 102,
         "conversation_events": 881,
@@ -248,7 +248,7 @@
         "pending_count": 3,
         "overdue_count": 3,
         "stuck_count": 3,
-        "oldest_wait_seconds": 20517,
+        "oldest_wait_seconds": 23579,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -258,7 +258,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 19:35:44",
-                "wait_seconds": 20517,
+                "wait_seconds": 23579,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -273,7 +273,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 20:43:24",
-                "wait_seconds": 16457,
+                "wait_seconds": 19519,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -288,7 +288,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-08-27 22:48:34",
-                "wait_seconds": 8947,
+                "wait_seconds": 12009,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4
@@ -532,7 +532,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 414
+            "count": 415
         },
         {
             "project_key": "anytour",
@@ -721,6 +721,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 13402,
+            "conversation_id": 490,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Сколько будет взрослых туристов?",
+            "created_at": "2026-08-28 02:02:28"
+        },
+        {
+            "id": 13401,
+            "conversation_id": 490,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Хочу в Казань с выездом из Ярославля",
+            "created_at": "2026-08-28 02:02:18"
+        },
         {
             "id": 13400,
             "conversation_id": 489,
@@ -1242,24 +1260,6 @@
             "channel": "max",
             "text": "star_4",
             "created_at": "2026-08-27 23:29:18"
-        },
-        {
-            "id": 13342,
-            "conversation_id": 486,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-08-27 23:29:13"
-        },
-        {
-            "id": 13341,
-            "conversation_id": 486,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_0",
-            "created_at": "2026-08-27 23:29:13"
         }
     ],
     "recent_events": [
