@@ -10,13 +10,18 @@ $customWidgetUrl = defined('WEBSITE_WIDGET_URL') && trim((string) WEBSITE_WIDGET
 $widgetUrl = $customWidgetUrl
     ? (string) WEBSITE_WIDGET_URL
     : '/max-search/web-consultant/widget.js?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/widget.js') ?: time()));
+$notificationsUrl = $customWidgetUrl
+    ? ''
+    : '/max-search/web-consultant/notifications.js?v=' . rawurlencode((string) (@filemtime(__DIR__ . '/notifications.js') ?: time()));
 
 $encodedUrl = json_encode($widgetUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+$encodedNotificationsUrl = json_encode($notificationsUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 $encodedPercent = json_encode($percent);
 
 $loader = <<<'JS'
 (function(){
   var percent=__PERCENT__;
+  var notificationsUrl=__NOTIFICATIONS_URL__;
   if(percent<=0)return;
 
   var key='anytour_webchat_rollout_bucket_v1';
@@ -56,9 +61,23 @@ $loader = <<<'JS'
   s.src=__WIDGET_URL__;
   s.async=true;
   s.setAttribute('data-anytour-webchat','1');
+  if(notificationsUrl){
+    s.onload=function(){
+      if(document.querySelector('script[data-anytour-webchat-notifications]'))return;
+      var n=document.createElement('script');
+      n.src=notificationsUrl;
+      n.async=true;
+      n.setAttribute('data-anytour-webchat-notifications','1');
+      document.head.appendChild(n);
+    };
+  }
   document.head.appendChild(s);
 }());
 JS;
 
-$loader = str_replace(['__PERCENT__', '__WIDGET_URL__'], [$encodedPercent, $encodedUrl], $loader);
+$loader = str_replace(
+    ['__PERCENT__', '__WIDGET_URL__', '__NOTIFICATIONS_URL__'],
+    [$encodedPercent, $encodedUrl, $encodedNotificationsUrl],
+    $loader
+);
 echo $loader . "\n";
