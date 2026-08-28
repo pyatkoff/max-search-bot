@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T18:57:07+00:00",
+    "generated_at": "2026-08-28T19:05:01+00:00",
     "production": {
-        "sha": "6c21d8a85780ad488dd88d9187c4ad8c67e26ab0",
+        "sha": "344aba72cd79ad36aed937ef438ebdc5853a1624",
         "branch": "main"
     },
     "migrations": {
@@ -85,7 +85,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 7,
-                "assigned_to_others": 28
+                "assigned_to_others": 27
             },
             {
                 "manager_id": 3,
@@ -95,7 +95,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 7,
-                "assigned_to_others": 29
+                "assigned_to_others": 28
             },
             {
                 "manager_id": 4,
@@ -130,10 +130,10 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 17:57:02",
+        "since_utc": "2026-08-28 18:04:57",
         "summary": {
-            "sessions": 9,
-            "started": 9,
+            "sessions": 10,
+            "started": 10,
             "needs_collected": 4,
             "tours_opened": 4,
             "manager_requested": 0,
@@ -149,7 +149,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 5,
+                "collecting_needs": 6,
                 "tours_opened": 4
             },
             "flags": {
@@ -186,13 +186,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "6c21d8a85780ad488dd88d9187c4ad8c67e26ab0",
+        "sha": "344aba72cd79ad36aed937ef438ebdc5853a1624",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T18:57:07Z"
+        "reported_at": "2026-08-28T19:05:01Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
