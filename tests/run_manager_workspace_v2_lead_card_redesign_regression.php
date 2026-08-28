@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $mobile=(string)file_get_contents($root.'/manager/assets/workspace-v2-mobile.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css');
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
@@ -21,12 +22,16 @@ lcCheck('next action appears before sales controls',($taskPos=strpos($js,'Сле
 lcCheck('sales stage history is read-only lead context',strpos($js,'function stageHistoryMarkup')!==false&&strpos($js,'pipeline.stage_history')!==false&&strpos($js,'История этапов')!==false&&strpos($js,"pipe('set_stage_history'")===false);
 lcCheck('stage history projection exposes manager display name',strpos($service,'changed_by_manager_name')!==false&&strpos($service,'LEFT JOIN managers m ON m.id=h.changed_by_manager_id')!==false);
 lcCheck('stage history layout stays compact and responsive',strpos($css,'.leadStageHistoryDetails')!==false&&strpos($css,'.leadStageHistoryRow')!==false&&strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.leadStageHistoryDetails summary{min-height:40px}')!==false);
+lcCheck('outcome save has inline accessible status',strpos($js,'id="outcomeSaveStatus"')!==false&&strpos($js,'aria-live="polite"')!==false&&strpos($pipeline,'function setOutcomeSaveState')!==false);
+lcCheck('outcome save prevents duplicate submit and reports progress',strpos($pipeline,'if(outcomeSaving)return')!==false&&strpos($pipeline,"button.textContent='Сохраняем…'")!==false&&strpos($pipeline,"setOutcomeSaveState('Результат сохранён','success')")!==false);
+lcCheck('lost outcome validation is inline and focuses reason',strpos($pipeline,"setOutcomeSaveState('Выберите причину отказа','error')")!==false&&strpos($pipeline,"$('leadCloseReason').focus()")!==false);
+lcCheck('outcome save status has success and error presentation',strpos($css,'.outcomeSaveStatus.success')!==false&&strpos($css,'.outcomeSaveStatus.error')!==false);
 lcCheck('technical state is collapsed into details',strpos($js,'Источник и служебная информация')!==false&&strpos($js,'<details class="leadDetails">')!==false&&strpos($js,"statusText(handoff.technical_status)")!==false);
 lcCheck('technical status remains read only',strpos($js,"pipe('set_stage'")!==false&&strpos($js,"pipe('set_status'")===false&&strpos($js,'technical_status=')===false);
 lcCheck('lead card mutations keep stability refresh boundary',substr_count($js,'refreshLeadData({refreshInbox:true})')>=3&&strpos($js,'WorkspaceV2Conversation?.open')===false);
 lcCheck('mobile lead card is a full screen surface',strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.leadZone{inset:0!important')!==false);
-lcCheck('redesign does not mutate manager shift or routing',stripos($js.' '.$css,'set_working')===false&&stripos($js.' '.$css,'routing_bonus')===false);
-lcCheck('redesign does not touch metrika or lead delivery',stripos($js.' '.$css,'metrika')===false&&strpos($js,'LeadDestination')===false);
+lcCheck('redesign does not mutate manager shift or routing',stripos($js.' '.$pipeline.' '.$css,'set_working')===false&&stripos($js.' '.$pipeline.' '.$css,'routing_bonus')===false);
+lcCheck('redesign does not touch metrika or lead delivery',stripos($js.' '.$pipeline.' '.$css,'metrika')===false&&strpos($js.$pipeline,'LeadDestination')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
