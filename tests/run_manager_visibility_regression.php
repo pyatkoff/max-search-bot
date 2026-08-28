@@ -43,7 +43,7 @@ mvCheck('working status writes audit',strpos($availability,'AuditLogService::rec
 mvCheck('manager and project admin writes audit',substr_count($admin,'AuditLogService::record')>=2);
 mvCheck('routing writes audit',substr_count($routing,'AuditLogService::record')>=2);
 mvCheck('canonical manager entrypoint renders Workspace V2',strpos($managerEntry,"require __DIR__.'/workspace-v2.php';")!==false);
-mvCheck('direct Workspace V2 URL canonicalizes to manager root',strpos($workspaceJs,"/\\/workspace-v2\\.php$/")!==false && strpos($workspaceJs,"location.replace(location.pathname.replace(/workspace-v2\\.php$/,'')+location.search+location.hash)")!==false);
+mvCheck('manager aliases canonicalize to root without network redirect',strpos($workspaceJs,'history.replaceState')!==false && strpos($workspaceJs,'(?:index|workspace-v2)\\.php')!==false && strpos($workspaceJs,'location.replace(')===false);
 mvCheck('Workspace V2 contains admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,'href="admin.php"')!==false && strpos($workspace,'Настройки и менеджеры')!==false);
 mvCheck('Workspace V2 admin settings link starts hidden',strpos($workspace,'id="adminLink" class="actionBtn hidden"')!==false);
 mvCheck('Workspace V2 admin settings link is role gated',strpos($workspaceJs,"adminLink.classList.toggle('hidden',S.manager.role!=='admin')")!==false);
