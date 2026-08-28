@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 $base=dirname(__DIR__);
 $api=(string)file_get_contents($base.'/manager/api.php');
-$panel=(string)file_get_contents($base.'/manager/index.php');
+$panel=(string)file_get_contents($base.'/manager/workspace-v2.php')."\n".(string)file_get_contents($base.'/manager/assets/workspace-v2-conversation.js');
 $state=(string)file_get_contents($base.'/services/ManagerDeliveryStateService.php');
 $conversations=(string)file_get_contents($base.'/services/ManagerConversationService.php');
 $passed=0;$failed=0;
@@ -14,9 +14,9 @@ mdpCheck('manager detail exposes active delivery failure',strpos($api,"\$d['deli
 mdpCheck('state is based on structured manager_message_failed events',strpos($state,"event_type='manager_message_failed'")!==false && strpos($state,"['category']")!==false && strpos($state,"'suspended'")!==false);
 mdpCheck('new customer inbound clears suspended state',strpos($state,"direction='inbound'")!==false && strpos($state,'$lastInboundAt')!==false && strpos($state,'$failedAt')!==false && strpos($state,'$lastInboundAt>')!==false);
 mdpCheck('suspended state explicitly disables retry',strpos($state,"'retry_allowed'=>false")!==false || strpos($state,"'retry_allowed' => false")!==false);
-mdpCheck('manager panel has persistent delivery failure marker',strpos($panel,'id="deliveryFailure"')!==false && strpos($panel,'renderDeliveryFailure(j.delivery_failure)')!==false);
-mdpCheck('manager panel disables send controls while suspended',strpos($panel,"f.category==='suspended'")!==false && strpos($panel,'send.disabled=suspended')!==false && strpos($panel,"$('text').disabled=suspended")!==false);
-mdpCheck('failed send renders returned reason immediately',strpos($panel,'j.error_message')!==false && strpos($panel,'renderDeliveryFailure(j.failure')!==false);
+mdpCheck('Workspace V2 has persistent delivery failure marker',strpos($panel,'id="deliveryFailure"')!==false && strpos($panel,'renderDeliveryFailure(d.delivery_failure||null)')!==false);
+mdpCheck('Workspace V2 disables send controls while suspended',strpos($panel,"deliverySuspended()")!==false && strpos($panel,'send.disabled=busy||suspended')!==false && strpos($panel,'reply.disabled=busy||suspended')!==false);
+mdpCheck('failed send renders returned reason immediately',strpos($panel,'j?.error_message')!==false && strpos($panel,'renderDeliveryFailure(failure)')!==false);
 mdpCheck('delivery state supports batched list lookup',strpos($state,'function activeFailures(array $conversationIds)')!==false && strpos($conversations,'ManagerDeliveryStateService::activeFailures')!==false);
 mdpCheck('manager list visibly marks suspended MAX recipient',strpos($conversations,'🔴 Клиент недоступен в MAX')!==false && strpos($conversations,"'delivery_failure_category'")!==false);
 mdpCheck('urgent waiting list excludes active suspended recipients',strpos($api,'function withoutSuspendedWaiting(array $rows)')!==false && strpos($api,"if(\$queue==='waiting'||\$queue==='attention')\$rows=withoutSuspendedWaiting(\$rows)")!==false);

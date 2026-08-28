@@ -44,7 +44,8 @@ $adapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxIncomi
 $maxAdapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxMessengerAdapter.php');
 $recorderSource = (string)file_get_contents(__DIR__ . '/../services/ConversationRecorder.php');
 $apiSource = (string)file_get_contents(__DIR__ . '/../manager/api.php');
-$panelSource = (string)file_get_contents(__DIR__ . '/../manager/index.php');
+$conversationUiSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-conversation.js');
+$mediaUiSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspace-v2-media.js');
 $transportSource = (string)file_get_contents(__DIR__ . '/../services/MaxTransport.php');
 $outboundSource = (string)file_get_contents(__DIR__ . '/../services/ManagerOutboundService.php');
 $uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.php');
@@ -55,10 +56,10 @@ $contextSource = (string)file_get_contents(__DIR__ . '/../services/ManagerReques
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
 mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$metadata[\'attachments\'] = $attachments') !== false, true);
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
-mediaCheck('manager panel renders image media', strpos($panelSource, "type==='image'") !== false && strpos($panelSource, "document.createElement('img')") !== false, true);
-mediaCheck('manager panel renders video media', strpos($panelSource, "type==='video'") !== false && strpos($panelSource, "document.createElement('video')") !== false, true);
-mediaCheck('manager panel renders audio media', strpos($panelSource, "type==='audio'") !== false && strpos($panelSource, "document.createElement('audio')") !== false, true);
-mediaCheck('manager panel renders files as safe links', strpos($panelSource, "rel='noopener noreferrer'") !== false, true);
+mediaCheck('Workspace V2 renders image media', strpos($conversationUiSource, "a.type==='image'") !== false && strpos($conversationUiSource, "document.createElement('img')") !== false && strpos($conversationUiSource, 'n.loading=\'lazy\'') !== false, true);
+mediaCheck('Workspace V2 renders video media', strpos($conversationUiSource, "a.type==='video'") !== false && strpos($conversationUiSource, "document.createElement('video')") !== false && strpos($conversationUiSource, 'n.controls=true') !== false, true);
+mediaCheck('Workspace V2 renders audio media', strpos($conversationUiSource, "a.type==='audio'") !== false && strpos($conversationUiSource, "document.createElement('audio')") !== false && strpos($conversationUiSource, 'n.controls=true') !== false, true);
+mediaCheck('Workspace V2 renders files as safe links', strpos($conversationUiSource, "document.createElement('a')") !== false && strpos($conversationUiSource, "n.target='_blank'") !== false && strpos($conversationUiSource, "n.rel='noopener'") !== false, true);
 mediaCheck('MAX media flow starts with uploads endpoint', strpos($transportSource, "'/uploads'") !== false && strpos($transportSource, '[\'type\'=>$type]') !== false, true);
 mediaCheck('MAX media upload is multipart data', strpos($transportSource, 'new CURLFile(') !== false && strpos($transportSource, '[\'data\'=>new CURLFile') !== false, true);
 mediaCheck('MAX media send uses attachments payload', strpos($transportSource, '$body=[\'attachments\'=>[$attachment]]') !== false, true);
@@ -66,7 +67,7 @@ mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSo
 mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, '$channel!==\'max\'') !== false && strpos($outboundSource, '(int)$c[\'manager_id\']!==$managerId') !== false, true);
 mediaCheck('upload endpoint uses shared manager session and csrf context', strpos($uploadSource, 'ManagerRequestContext::startSession()') !== false && strpos($uploadSource, 'ManagerRequestContext::manager()') !== false && strpos($uploadSource, 'ManagerRequestContext::validCsrf') !== false, true);
 mediaCheck('media endpoints no longer duplicate session cookie policy', strpos($uploadSource, 'session_set_cookie_params') === false && strpos($fileEndpointSource, 'session_set_cookie_params') === false && strpos($contextSource, "session_name('anytour_manager_panel')") !== false, true);
-mediaCheck('manager composer uses multipart FormData', strpos($panelSource, 'new FormData()') !== false && strpos($panelSource, "fetch('media-upload.php'") !== false, true);
+mediaCheck('Workspace V2 media owner uses multipart FormData', strpos($mediaUiSource, 'new FormData()') !== false && strpos($mediaUiSource, "fetch('media-upload.php'") !== false && strpos($mediaUiSource, "data.append('conversation_id'") !== false && strpos($mediaUiSource, "data.append('file'") !== false, true);
 mediaCheck('successful manager upload creates private preview cache', strpos($uploadSource, 'ManagerMediaCache::store') !== false, true);
 mediaCheck('failed MAX send removes unused cached preview', strpos($uploadSource, 'ManagerMediaCache::remove') !== false, true);
 mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$metadataAttachment[\'url\']=trim($previewUrl)') !== false, true);
