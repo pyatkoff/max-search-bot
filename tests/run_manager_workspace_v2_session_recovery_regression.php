@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 $root=dirname(__DIR__);
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
+$notifications=(string)file_get_contents($root.'/manager/assets/workspace-v2-notifications.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
 $api=(string)file_get_contents($root.'/manager/api.php');
 $passed=0;$failed=0;
@@ -16,6 +17,10 @@ srCheck('recovery dialog asks for login and password accessibly',strpos($js,'id=
 srCheck('login recovery uses same-origin API directly',strpos($js,"fetch('api.php'")!==false&&strpos($js,"action:'login',login,password")!==false&&strpos($js,"credentials:'same-origin'")!==false);
 srCheck('invalid credentials stay inside recovery dialog',strpos($js,"r.status===401?'Неверный логин или пароль.'")!==false&&strpos($js,'managerAuthError')!==false);
 srCheck('successful login restores csrf identity and workspace without reload',strpos($js,'S.authExpired=false;hideAuthRecovery();applyIdentity(me)')!==false&&strpos($js,'S.csrf=me.csrf')!==false&&strpos($js,'bindWorkspaceOnce()')!==false&&strpos($js,'WorkspaceV2Inbox?.load({preserveScroll:true})')!==false&&strpos($js,'location.reload')===false);
+srCheck('successful login refreshes notification health after initialized service worker',strpos($js,'await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();')!==false);
+srCheck('notification 401 delegates to the canonical auth recovery owner',strpos($notifications,'window.WorkspaceV2?.showAuthRecovery?.()')!==false&&strpos($notifications,'workspace.S.authExpired=true')===false&&strpos($notifications,'showFatal')===false);
+srCheck('notification auth handling never navigates or reloads the workspace',strpos($notifications,'location.href')===false&&strpos($notifications,'location.replace')===false&&strpos($notifications,'location.assign')===false&&strpos($notifications,'location.reload')===false);
+srCheck('notification health fetch keeps manager session credentials explicit',strpos($notifications,"credentials:'same-origin'")!==false&&strpos($notifications,"cache:'no-store'")!==false);
 srCheck('recovery avoids duplicate event binding after re-login',strpos($js,'workspaceBound:false')!==false&&strpos($js,'if(S.workspaceBound)return')!==false&&strpos($js,'S.workspaceBound=true')!==false);
 srCheck('mobile recovery is full-screen safe-area aware and touch friendly',strpos($css,'.managerAuthRecovery{position:fixed;inset:0')!==false&&strpos($css,'env(safe-area-inset-bottom)')!==false&&strpos($css,'.managerAuthCard button{width:100%;min-height:46px')!==false&&strpos($css,'@media(max-width:520px)')!==false&&strpos($css,'.managerAuthRecovery{align-items:flex-end')!==false);
 srCheck('expired-session copy no longer sends manager to an impossible manual refresh flow',strpos($js,'Обновите страницу после повторного входа')===false&&strpos($js,'Войти и продолжить')!==false);
