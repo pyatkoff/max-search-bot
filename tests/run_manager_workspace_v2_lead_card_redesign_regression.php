@@ -10,8 +10,9 @@ $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
 $passed=0;$failed=0;
 function lcCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function lcAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
 
-lcCheck('workspace loads dedicated lead card stylesheet',strpos($page,'assets/workspace-v2-lead-card.css')!==false);
+lcCheck('workspace loads dedicated lead card stylesheet',lcAssetLoaded($page,'workspace-v2-lead-card.css'));
 lcCheck('mobile lead card has explicit close control',strpos($page,'id="mobileLeadClose"')!==false&&strpos($mobile,"$('mobileLeadClose')")!==false&&strpos($mobile,'back()')!==false);
 lcCheck('lead card prioritizes identity contact and trip',strpos($js,'leadHeroName')!==false&&strpos($js,'leadContactActions')!==false&&strpos($js,'leadRouteMain')!==false);
 lcCheck('phone action is safely normalized',strpos($js,'function phoneHref')!==false&&strpos($js,"/^\\+?\\d{5,20}$/")!==false&&strpos($js,"'tel:'")!==false);
