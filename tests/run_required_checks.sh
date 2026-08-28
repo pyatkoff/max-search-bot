@@ -12,6 +12,7 @@ checks=(
   'php tests/run_autopilot_snapshot_regression.php'
   'php tests/run_architecture_inventory_regression.php'
   'php tests/run_workspace_v2_visual_qa_contract_regression.php'
+  'php tests/run_manager_http_smoke_contract_regression.php'
   'php tests/run_regression.php'
   'php tests/run_live_september_typo_regression.php'
   'php tests/run_live_show_tours_duplicate_regression.php'
