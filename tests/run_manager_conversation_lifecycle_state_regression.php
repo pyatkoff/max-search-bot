@@ -15,7 +15,7 @@ lifecycleCheck('late lifecycle completion cannot reopen a conversation after nav
 lifecycleCheck('successful mutation still refreshes Inbox projection',strpos($js,'await window.WorkspaceV2Inbox?.load({preserveScroll:true})')!==false);
 lifecycleCheck('backend lifecycle errors are visible inline',strpos($js,"j?.error_message||copy.error")!==false&&strpos($js,"setLoadStatus(copy.error,'error')")!==false);
 lifecycleCheck('each lifecycle action has progress success and failure copy',strpos($js,"take:{loading:'Берём лид…',success:'Лид назначен вам',error:'Не удалось взять лид'}")!==false&&strpos($js,"release:{loading:'Возвращаем лид AI…'")!==false&&strpos($js,"close:{loading:'Закрываем диалог…'")!==false&&strpos($js,"reopen:{loading:'Переоткрываем диалог…'")!==false);
-lifecycleCheck('send path shares busy lock with lifecycle mutations',strpos($js,'async function sendReply(){if(busy||deliverySuspended())return')!==false&&substr_count($js,'setBusy(true)')>=2);
+lifecycleCheck('send path shares busy lock with lifecycle mutations',strpos($js,'async function sendReply()')!==false&&strpos($js,'if(busy||deliverySuspended())return;')!==false&&substr_count($js,'setBusy(true)')>=2&&substr_count($js,'setBusy(false)')>=2);
 lifecycleCheck('slice does not alter protected analytics or routing boundaries',stripos($js,'metrika')===false&&stripos($js,'routing_bonus')===false&&stripos($js,'set_working')===false&&strpos($js,'LeadDestination')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
