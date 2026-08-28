@@ -17,8 +17,13 @@ final class LiveSessionAnalyzer
     private static function isCallbackInput(string $text): bool
     {
         if($text==='')return false;
-        if(in_array($text,['start_search','show_tours','restart'],true))return true;
-        return (bool)preg_match('/^(?:pick_|month_change_|adult_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
+        if(in_array($text,['start_search','show_tours','restart','month_click','day_click'],true))return true;
+        return (bool)preg_match('/^(?:pick_|month_change_|adult_|adults_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
+    }
+
+    private static function isPassiveCallback(string $text): bool
+    {
+        return $text==='month_click'||$text==='day_click'||strpos($text,'month_change_')===0;
     }
 
     private static function containsPhone(string $text): bool
@@ -45,8 +50,11 @@ final class LiveSessionAnalyzer
                 if($inAnomalyWindow){
                     $anomalyInboundTurns++;
                     if($text!==''){
-                        if(self::isCallbackInput($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
-                        else $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
+                        if(self::isCallbackInput($text)){
+                            if(!self::isPassiveCallback($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
+                        } else {
+                            $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
+                        }
                     }
                 }
             } else {
