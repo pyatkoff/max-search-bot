@@ -1,6 +1,8 @@
 <?php
 $widget = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget.js');
 $preview = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/index.php');
+$ux = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/ux.js');
+$rollout = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/rollout.php');
 
 $failures = [];
 $check = function (bool $ok, string $message) use (&$failures): void {
@@ -28,6 +30,12 @@ $check(strpos($widget, "action:'send'") !== false, 'existing send transport is p
 $check(strpos($widget, "action:'poll'") !== false, 'existing polling transport is preserved');
 $check(strpos($widget, "action:'profile'") !== false, 'existing contact handoff transport is preserved');
 $check(strpos($preview, 'widget.js?v=2') !== false, 'preview loads V2 widget cache key');
+$check(strpos($preview, 'ux.js?v=1') !== false, 'preview loads conversation focus UX companion');
+$check(strpos($ux, "messages.querySelector('.msg')") !== false, 'conversation UX detects real chat messages');
+$check(strpos($ux, 'welcome.remove()') !== false, 'welcome content is removed after conversation starts');
+$check(strpos($ux, 'MutationObserver') !== false, 'conversation focus follows asynchronously loaded messages');
+$check(strpos($rollout, '/max-search/web-consultant/ux.js') !== false, 'rollout includes conversation focus UX companion');
+$check(strpos($rollout, 'data-anytour-webchat-ux') !== false, 'rollout guards UX companion against duplicate injection');
 
 if ($failures) {
     fwrite(STDERR, "Web consultant V2 regression failed: " . implode('; ', $failures) . "\n");
