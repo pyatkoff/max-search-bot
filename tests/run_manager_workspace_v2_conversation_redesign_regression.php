@@ -21,7 +21,7 @@ checkConversationUi('media and active inbox switch only after successful detail 
 checkConversationUi('composer has quick replies without auto send',strpos($page,'class="quickReplies"')!==false&&strpos($js,"b.onclick=()=>{reply.value=b.dataset.reply||''")!==false);
 $inputAutosizes=strpos($js,"reply.addEventListener('input',autoGrow)")!==false||strpos($js,"reply.addEventListener('input',()=>{saveDraft();autoGrow()})")!==false;
 checkConversationUi('composer autosizes and supports explicit keyboard submit',$inputAutosizes&&strpos($js,"e.metaKey||e.ctrlKey")!==false&&strpos($js,'form.requestSubmit()')!==false);
-checkConversationUi('send path preserves text and media backends',strpos($js,"api('send',{conversation_id:S.current,text})")!==false&&strpos($js,'WorkspaceV2Media.send(text)')!==false);
+checkConversationUi('send path preserves source-pinned text and media backends',strpos($js,'const target=Number(S.current||0),generation=openSeq,text=')!==false&&strpos($js,"api('send',{conversation_id:target,text})")!==false&&strpos($js,'WorkspaceV2Media.send(text)')!==false);
 checkConversationUi('double submit is guarded in UI',strpos($js,'if(busy)return')!==false&&strpos($js,'setBusy(true)')!==false&&strpos($js,'setBusy(false)')!==false);
 checkConversationUi('read-only conversation shows explicit reply lock reason',strpos($page,'id="composerLocked"')!==false&&strpos($js,'Переписку можно читать без назначения')!==false);
 $mobileUsable=strpos($css,'@media(max-width:900px)')!==false
