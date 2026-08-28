@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-28T18:12:51+00:00",
+    "generated_at": "2026-08-28T18:27:04+00:00",
     "production": {
-        "sha": "bdc411ba894c8e754f7556166f0eb4036c00f914",
+        "sha": "4d9489ff302c1198d13cd7961414991bb8d0dcba",
         "branch": "main"
     },
     "migrations": {
@@ -85,7 +85,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 7,
-                "assigned_to_others": 29
+                "assigned_to_others": 28
             },
             {
                 "manager_id": 3,
@@ -95,7 +95,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 7,
-                "assigned_to_others": 30
+                "assigned_to_others": 29
             },
             {
                 "manager_id": 4,
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-28 17:12:47",
+        "since_utc": "2026-08-28 17:26:59",
         "summary": {
-            "sessions": 4,
-            "started": 4,
-            "needs_collected": 1,
-            "tours_opened": 1,
+            "sessions": 7,
+            "started": 7,
+            "needs_collected": 2,
+            "tours_opened": 2,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -149,8 +149,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 3,
-                "tours_opened": 1
+                "collecting_needs": 5,
+                "tours_opened": 2
             },
             "flags": []
         },
@@ -161,13 +161,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "bdc411ba894c8e754f7556166f0eb4036c00f914",
+        "sha": "4d9489ff302c1198d13cd7961414991bb8d0dcba",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-28T18:12:51Z"
+        "reported_at": "2026-08-28T18:27:04Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
