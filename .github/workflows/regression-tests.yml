@@ -6,32 +6,67 @@ on:
   workflow_dispatch:
 
 jobs:
-  regression:
+  inventory:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring
           coverage: none
-
       - name: Verify required regression inventory
         run: php tests/run_required_checks_inventory_regression.php
 
-      - name: Run inventoried reliability regressions
+  php-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring
+          coverage: none
+      - name: PHP syntax check
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+  required:
+    needs: inventory
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [architecture, dialogue, website, manager, diagnostics]
+    runs-on: ubuntu-latest
+    name: required / ${{ matrix.group }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring
+          coverage: none
+      - name: Run required group
+        run: php tests/run_required_group.php "${{ matrix.group }}"
+
+  regression:
+    name: regression
+    needs: [inventory, php-syntax, required]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every gate
+        env:
+          INVENTORY_RESULT: ${{ needs.inventory.result }}
+          SYNTAX_RESULT: ${{ needs.php-syntax.result }}
+          REQUIRED_RESULT: ${{ needs.required.result }}
         run: |
-          php tests/run_manager_conversation_lifecycle_state_regression.php
-          php tests/run_manager_inbox_load_integrity_regression.php
-          php tests/run_manager_lead_mutation_navigation_integrity_regression.php
-          php tests/run_manager_workspace_v2_send_context_integrity_regression.php
-          php tests/run_update_deduplicator_regression.php
-
-      - name: Run required checks
-        run: bash tests/run_required_checks.sh
-
-      - name: Manager HTTP boundary regression
-        run: php tests/run_manager_http_boundary_regression.php
+          printf 'inventory=%s\nsyntax=%s\nrequired=%s\n' "$INVENTORY_RESULT" "$SYNTAX_RESULT" "$REQUIRED_RESULT"
+          test "$INVENTORY_RESULT" = success
+          test "$SYNTAX_RESULT" = success
+          test "$REQUIRED_RESULT" = success

@@ -8,54 +8,88 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $root = dirname(__DIR__);
-$runnerPath = $root . '/tests/run_required_checks.sh';
-$workflowPath = $root . '/.github/workflows/regression-tests.yml';
+$manifestPath = $root . '/tests/required_checks_manifest.php';
+$manifest = is_file($manifestPath) ? require $manifestPath : null;
+if (!is_array($manifest)) {
+    fwrite(STDERR, "Required-check manifest missing or invalid\n");
+    exit(2);
+}
 
-$runner = is_file($runnerPath) ? (string)file_get_contents($runnerPath) : '';
-$workflow = is_file($workflowPath) ? (string)file_get_contents($workflowPath) : '';
+$commands = [];
+$groups = [];
+foreach ($manifest as $group => $items) {
+    if (!is_string($group) || $group === '' || !is_array($items)) {
+        fwrite(STDERR, "Required-check manifest has invalid group\n");
+        exit(2);
+    }
+    $groups[$group] = count($items);
+    foreach ($items as $command) {
+        if (!is_string($command) || trim($command) === '') {
+            fwrite(STDERR, "Required-check manifest has invalid command in {$group}\n");
+            exit(2);
+        }
+        $commands[] = ['group'=>$group, 'command'=>trim($command)];
+    }
+}
 
 $files = glob($root . '/tests/run_*_regression.php') ?: [];
 sort($files);
+$discovered = array_map(static fn(string $file): string => 'tests/' . basename($file), $files);
 
-$discovered = [];
-$covered = [];
-$orphans = [];
-foreach ($files as $file) {
-    $relative = 'tests/' . basename($file);
-    $discovered[] = $relative;
-    $isCovered = strpos($runner, $relative) !== false || strpos($workflow, $relative) !== false;
-    if ($isCovered) {
-        $covered[] = $relative;
-    } else {
-        $orphans[] = $relative;
-    }
-}
-
-preg_match_all("/'([^']*tests\\/run_[^']+)'/", $runner, $matches);
-$commands = array_values(array_unique($matches[1] ?? []));
+$coverage = [];
 $missingReferenced = [];
-foreach ($commands as $command) {
-    if (!preg_match('/(?:php\\s+)?(tests\\/run_[^\\s]+\\.php)/', $command, $m)) {
+$commandOccurrences = [];
+foreach ($commands as $entry) {
+    $command = $entry['command'];
+    $commandOccurrences[$command] = ($commandOccurrences[$command] ?? 0) + 1;
+    if (!preg_match('/^php\s+([^\s]+\.php)(?:\s|$)/', $command, $m)) {
         continue;
     }
-    if (!is_file($root . '/' . $m[1])) {
-        $missingReferenced[] = $m[1];
+    $path = ltrim($m[1], './');
+    if (!is_file($root . '/' . $path)) {
+        $missingReferenced[] = $path;
+        continue;
+    }
+    if (preg_match('#^tests/run_.*_regression\.php$#', $path)) {
+        $coverage[$path] = ($coverage[$path] ?? 0) + 1;
     }
 }
 
+$covered = [];
+$orphans = [];
+$duplicateRegressionAssignments = [];
+foreach ($discovered as $relative) {
+    $count = $coverage[$relative] ?? 0;
+    if ($count > 0) $covered[] = $relative; else $orphans[] = $relative;
+    if ($count > 1) $duplicateRegressionAssignments[$relative] = $count;
+}
+
+$duplicateCommands = [];
+foreach ($commandOccurrences as $command => $count) {
+    if ($count > 1) $duplicateCommands[$command] = $count;
+}
+
+$missingReferenced = array_values(array_unique($missingReferenced));
 $result = [
-    'ok' => $orphans === [] && $missingReferenced === [],
-    'schema_version' => 1,
+    'ok' => $orphans === [] && $missingReferenced === [] && $duplicateRegressionAssignments === [] && $duplicateCommands === [],
+    'schema_version' => 2,
     'generated_at' => gmdate('c'),
+    'groups' => $groups,
     'discovered_regressions' => $discovered,
     'covered_regressions' => $covered,
     'orphan_regressions' => $orphans,
-    'missing_referenced_regressions' => array_values(array_unique($missingReferenced)),
+    'missing_referenced_checks' => $missingReferenced,
+    'duplicate_regression_assignments' => $duplicateRegressionAssignments,
+    'duplicate_commands' => $duplicateCommands,
     'counts' => [
+        'groups' => count($groups),
+        'commands' => count($commands),
         'discovered' => count($discovered),
         'covered' => count($covered),
         'orphans' => count($orphans),
-        'missing_referenced' => count(array_unique($missingReferenced)),
+        'missing_referenced' => count($missingReferenced),
+        'duplicate_regression_assignments' => count($duplicateRegressionAssignments),
+        'duplicate_commands' => count($duplicateCommands),
     ],
 ];
 
