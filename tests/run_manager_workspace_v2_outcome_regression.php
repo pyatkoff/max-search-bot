@@ -8,6 +8,7 @@ $pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeli
 $js=$leadCardJs."\n".$pipelineJs;
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
 $context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
 $passed=0;$failed=0;
@@ -18,7 +19,7 @@ outcomeCheck('detail snapshot includes outcome',strpos($service,"'outcome'=>self
 outcomeCheck('workspace renders outcome controls',strpos($js,'id="leadOutcome"')!==false&&strpos($js,'id="leadCloseReason"')!==false&&strpos($js,'id="leadOutcomeNote"')!==false);
 outcomeCheck('lost outcome requires structured reason',strpos($js,"outcome==='lost'&&!closeReason")!==false&&strpos($service,"\$outcome==='lost'")!==false);
 outcomeCheck('workspace persists outcome through pipeline API',strpos($js,"pipe('set_outcome'")!==false&&strpos($api,"\$action==='set_outcome'")!==false&&strpos($api,'SalesPipelineService::setOutcome')!==false);
-outcomeCheck('outcome controls respect shared pipeline ownership',strpos($js,"canEdit?'':'disabled'")!==false&&strpos($api,'ManagerRequestContext::canEditAssignedConversation')!==false&&strpos($context,'canEditAssignedConversation')!==false);
+outcomeCheck('outcome controls respect shared pipeline ownership',strpos($js,"canEdit?'':'disabled'")!==false&&strpos($api,'ManagerHttp::requireConversationEdit($c,$m);')!==false&&strpos($http,'ManagerRequestContext::canEditAssignedConversation')!==false&&strpos($context,'canEditAssignedConversation')!==false);
 outcomeCheck('outcome UI has dedicated styling',strpos($css,'.outcomeBox')!==false&&strpos($css,'.outcomeNote')!==false&&strpos($css,'.outcomeSave')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
