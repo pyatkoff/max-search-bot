@@ -1,14 +1,27 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T03:03:41+00:00",
-    "source_generated_at": "2026-08-28T03:03:41+00:00",
+    "generated_at": "2026-08-28T03:17:18+00:00",
+    "source_generated_at": "2026-08-28T03:17:17+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 1,
-        "ranked": 0,
+        "sessions": 2,
+        "ranked": 1,
         "high": 0,
-        "medium": 0
+        "medium": 1
     },
-    "anomalies": []
+    "anomalies": [
+        {
+            "conversation_id": 492,
+            "severity": "medium",
+            "score": 70,
+            "signals": [
+                "repeated_callback_input",
+                "bot_repeated_question_nights"
+            ],
+            "status": "ai",
+            "drop_point": "tours_opened",
+            "last_message_at": "2026-08-28 05:11:53"
+        }
+    ]
 }
