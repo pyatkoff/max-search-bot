@@ -11,9 +11,11 @@ $conversation=(string)file_get_contents($root.'/manager/assets/workspace-v2-conv
 $lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
 $passed=0;$failed=0;
 function mobileCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function mobileAssetPos(string $html,string $file){$static=strpos($html,'assets/'.$file);if($static!==false)return$static;return strpos($html,"workspaceAsset('{$file}')");}
 
-mobileCheck('workspace loads dedicated mobile navigation assets',strpos($page,'assets/workspace-v2-mobile.css')!==false&&strpos($page,'assets/workspace-v2-mobile.js')!==false);
-$conversationPos=strpos($page,'assets/workspace-v2-conversation.js');$mobilePos=strpos($page,'assets/workspace-v2-mobile.js');$bootstrapPos=strpos($page,'assets/workspace-v2-bootstrap.js');
+$mobileCssPos=mobileAssetPos($page,'workspace-v2-mobile.css');$mobileJsPos=mobileAssetPos($page,'workspace-v2-mobile.js');
+mobileCheck('workspace loads dedicated mobile navigation assets',$mobileCssPos!==false&&$mobileJsPos!==false);
+$conversationPos=mobileAssetPos($page,'workspace-v2-conversation.js');$mobilePos=$mobileJsPos;$bootstrapPos=mobileAssetPos($page,'workspace-v2-bootstrap.js');
 mobileCheck('mobile owner loads after feature modules and before bootstrap',$conversationPos!==false&&$mobilePos!==false&&$bootstrapPos!==false&&$conversationPos<$mobilePos&&$mobilePos<$bootstrapPos);
 mobileCheck('workspace boot binds one mobile navigation owner',strpos($core,'WorkspaceV2Mobile?.bind()')!==false);
 mobileCheck('mobile state has explicit inbox conversation lead screens',strpos($mobile,"screen='inbox'")!==false&&strpos($mobile,"next==='lead'?'lead':next==='conversation'?'conversation':'inbox'")!==false);

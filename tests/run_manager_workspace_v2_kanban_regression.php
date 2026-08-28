@@ -10,7 +10,8 @@ $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.css');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $passed=0;$failed=0;
 function kbCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
-kbCheck('workspace loads dedicated kanban module and stylesheet',strpos($workspace,'assets/workspace-v2-kanban.js')!==false&&strpos($workspace,'assets/workspace-v2-kanban.css')!==false);
+function kbAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
+kbCheck('workspace loads dedicated kanban module and stylesheet',kbAssetLoaded($workspace,'workspace-v2-kanban.js')&&kbAssetLoaded($workspace,'workspace-v2-kanban.css'));
 kbCheck('workspace exposes list and board toggle',strpos($workspace,'id="listViewBtn"')!==false&&strpos($workspace,'id="kanbanViewBtn"')!==false&&strpos($workspace,'id="kanbanBoard"')!==false);
 kbCheck('kanban mode is explicit UI state',strpos($core,"viewMode:'list'")!==false&&strpos($kanban,"S.viewMode=mode")!==false&&strpos($kanban,"mode==='kanban'")!==false);
 kbCheck('board reuses existing filtered lead list',strpos($inbox,'async function fetchRows()')!==false&&strpos($kanban,'WorkspaceV2Inbox')!==false&&strpos($inbox,"if(S.viewMode==='kanban')")!==false);

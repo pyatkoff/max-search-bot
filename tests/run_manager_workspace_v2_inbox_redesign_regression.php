@@ -9,8 +9,9 @@ $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
 $passed=0;$failed=0;
 function inboxCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
+function inboxAssetLoaded(string $html,string $file):bool{return strpos($html,'assets/'.$file)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
 
-inboxCheck('workspace loads dedicated inbox stylesheet',strpos($page,'assets/workspace-v2-inbox.css')!==false);
+inboxCheck('workspace loads dedicated inbox stylesheet',inboxAssetLoaded($page,'workspace-v2-inbox.css'));
 inboxCheck('search is primary and advanced filters are collapsible',strpos($page,'id="leadSearch"')!==false&&strpos($page,'id="filtersToggle"')!==false&&strpos($page,'id="filtersPanel" class="filtersPanel hidden"')!==false);
 inboxCheck('advanced filters preserve stage tag outcome and task semantics',strpos($page,'id="leadStageFilter"')!==false&&strpos($page,'id="leadTagFilter"')!==false&&strpos($page,'id="leadOutcomeFilter"')!==false&&strpos($page,'id="leadTaskFilter"')!==false);
 inboxCheck('filter badge and reset are explicit',strpos($page,'id="filtersCount"')!==false&&strpos($page,'id="clearFilters"')!==false&&strpos($pipeline,'activeFilterCount')!==false&&strpos($pipeline,"S.leadTaskFilter=''")!==false);
