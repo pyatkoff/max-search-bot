@@ -21,3 +21,6 @@ jobs:
 
       - name: Run required checks
         run: bash tests/run_required_checks.sh
+
+      - name: Manager HTTP boundary regression
+        run: php tests/run_manager_http_boundary_regression.php

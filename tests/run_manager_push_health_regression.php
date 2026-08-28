@@ -10,6 +10,7 @@ $sw=(string)file_get_contents($base.'/manager/sw.js');
 $enable=(string)file_get_contents($base.'/manager/push-enable.php');
 $pushEndpoint=(string)file_get_contents($base.'/manager/push.php');
 $statusEndpoint=(string)file_get_contents($base.'/manager/push-status.php');
+$http=(string)file_get_contents($base.'/manager/lib/ManagerHttp.php');
 $context=(string)file_get_contents($base.'/services/ManagerRequestContext.php');
 $panel=(string)file_get_contents($base.'/manager/workspace-v2.php')."\n".(string)file_get_contents($base.'/manager/assets/workspace-v2-notifications.js');
 $passed=0;$failed=0;
@@ -32,8 +33,8 @@ mphCheck('service worker repairs server push subscription',strpos($sw,'syncPushS
 mphCheck('service worker repairs subscription on activation',strpos($sw,"self.addEventListener('activate'")!==false && strpos($sw,'await syncPushSubscription()')!==false);
 mphCheck('service worker replaces stale VAPID subscription',strpos($sw,'applicationServerKey')!==false && strpos($sw,'await sub.unsubscribe()')!==false);
 mphCheck('push enable replaces stale VAPID subscription',strpos($enable,'applicationServerKey')!==false && strpos($enable,'await sub.unsubscribe()')!==false && strpos($enable,"action:'subscribe'")!==false);
-mphCheck('push endpoints reuse shared manager request context',strpos($pushEndpoint,'ManagerRequestContext::startSession()')!==false&&strpos($pushEndpoint,'ManagerRequestContext::manager()')!==false&&strpos($statusEndpoint,'ManagerRequestContext::startSession()')!==false&&strpos($statusEndpoint,'ManagerRequestContext::managerId()')!==false&&strpos($enable,'ManagerRequestContext::startSession()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
-mphCheck('authenticated push status endpoint uses current manager context',strpos($statusEndpoint,'ManagerRequestContext::managerId()')!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false);
+mphCheck('push endpoints reuse shared manager HTTP/context boundary',strpos($pushEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($statusEndpoint,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($pushEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($statusEndpoint,'ManagerHttp::requireManager()')!==false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'ManagerRequestContext::manager()')!==false&&strpos($enable,'ManagerRequestContext::startSession()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
+mphCheck('authenticated push status endpoint uses current manager through shared boundary',strpos($statusEndpoint,'ManagerHttp::managerId()')!==false && strpos($statusEndpoint,'ManagerPushHealth::statusForManager')!==false && strpos($http,'return ManagerRequestContext::managerId();')!==false);
 mphCheck('Workspace V2 distinguishes working without push',strpos($panel,"working=!!status?.is_working")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"root.className='notificationHealth '+(usable?'ok':'warn')")!==false && strpos($panel,"shift=working?'Смена включена':'Вне смены'")!==false);
 mphCheck('Workspace V2 offers explicit push repair path',strpos($panel,'class="notificationAction" href="push-enable.php"')!==false && strpos($panel,"usable?'':")!==false);
 mphCheck('Workspace V2 only claims notifications enabled for healthy server path',strpos($panel,"healthy_subscription:'Уведомления включены'")!==false && strpos($panel,"usable=!!status?.notification_path_usable")!==false && strpos($panel,"label=reasonText(reason)")!==false);
