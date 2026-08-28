@@ -1,8 +1,14 @@
 <?php
 $widget = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget.js');
 $enhancer = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget-a11y.js');
+$context = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/widget-context.js');
 $preview = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/index.php');
 $rollout = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/rollout.php');
+$api = (string) file_get_contents(dirname(__DIR__) . '/web-consultant/api.php');
+$pageContextService = (string) file_get_contents(dirname(__DIR__) . '/services/WebsitePageContextService.php');
+$aiInvocation = (string) file_get_contents(dirname(__DIR__) . '/services/AiInvocationService.php');
+$aiRouter = (string) file_get_contents(dirname(__DIR__) . '/ai/AiRouter.php');
+$migration = (string) file_get_contents(dirname(__DIR__) . '/migrations/017_website_page_context.sql');
 
 $failures = [];
 $check = function (bool $ok, string $message) use (&$failures): void {
@@ -42,6 +48,14 @@ $check(strpos($enhancer, "document.body.style.overflow='hidden'") !== false, 'mo
 $check(strpos($enhancer, 'previousBodyOverflow') !== false, 'background scroll state is restored after close');
 $check(strpos($enhancer, 'MutationObserver') !== false, 'enhancer tracks open and closed dialog state');
 
+$check($context !== '', 'page context reporter exists');
+$check(strpos($context, "action:'context'") !== false, 'page context reporter posts dedicated context action');
+$check(strpos($context, 'url:location.href') !== false, 'page context reporter captures current page URL');
+$check(strpos($context, 'title:document.title') !== false, 'page context reporter captures current page title');
+$check(strpos($context, 'anytour_consultant_token_v1') !== false, 'page context reporter reuses canonical consultant session token');
+$check(strpos($context, "window.addEventListener('popstate'") !== false, 'page context reporter notices client-side navigation');
+$check(strpos($context, 'setInterval') !== false, 'page context reporter refreshes SPA page context');
+
 $check(strpos($preview, "filemtime(__DIR__ . '/widget.js')") !== false, 'preview cache-busts widget from file modification time');
 $check(strpos($preview, "filemtime(__DIR__ . '/widget-a11y.js')") !== false, 'preview cache-busts accessibility enhancer');
 $check(strpos($preview, 'widget.js?v=<?=') !== false, 'preview emits a versioned widget URL');
@@ -49,7 +63,20 @@ $check(strpos($preview, 'widget-a11y.js?v=<?=') !== false, 'preview loads access
 $check(strpos($rollout, "filemtime(__DIR__ . '/widget.js')") !== false, 'default rollout cache-busts widget from file modification time');
 $check(strpos($rollout, "'/max-search/web-consultant/widget.js?v='") !== false, 'default rollout emits a versioned canonical widget URL');
 $check(strpos($rollout, "'/max-search/web-consultant/widget-a11y.js?v='") !== false, 'rollout emits a versioned accessibility enhancer URL');
-$check(strpos($rollout, 's.onload=ensureEnhancer') !== false, 'rollout loads enhancer after widget is ready');
+$check(strpos($rollout, "'/max-search/web-consultant/widget-context.js?v='") !== false, 'rollout emits a versioned page context reporter URL');
+$check(strpos($rollout, 's.onload=ensureExtras') !== false, 'rollout loads consultant extras after widget is ready');
+$check(strpos($rollout, 'data-anytour-webchat-context') !== false, 'rollout loads page context reporter once');
+
+$check(strpos($api, "\$action === 'context'") !== false, 'API exposes dedicated page context action');
+$check(strpos($api, 'WebsitePageContextService::save') !== false, 'API stores page context separately from dialogue transport');
+$check(strpos($pageContextService, 'WebsiteOriginPolicy::configuredOrigins()') !== false, 'page context URL is limited to configured website origins');
+$check(strpos($pageContextService, "strpos(\$lower, 'utm_') === 0") !== false, 'page context strips UTM parameters');
+$check(strpos($pageContextService, "\$lower === 'yclid'") !== false, 'page context strips Yandex click id');
+$check(strpos($pageContextService, 'ON DUPLICATE KEY UPDATE') !== false, 'page context follows current page within one session');
+$check(strpos($aiInvocation, "\$aiCurrent['_page_context']") !== false, 'AI receives website page context only at invocation boundary');
+$check(strpos($aiRouter, '_page_context') !== false, 'AI prompt defines safe page context semantics');
+$check(strpos($aiRouter, 'НЕЛЬЗЯ переносить из URL/заголовка параметры') !== false, 'AI is forbidden from inventing search parameters from page context');
+$check(strpos($migration, 'CREATE TABLE IF NOT EXISTS website_page_context') !== false, 'page context has isolated migration-backed storage');
 
 if ($failures) {
     fwrite(STDERR, "Web consultant V2 regression failed: " . implode('; ', $failures) . "\n");
