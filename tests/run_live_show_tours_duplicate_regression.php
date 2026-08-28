@@ -13,6 +13,8 @@ function liveToursCheck(string $name,bool $ok):void{global$passed,$failed;if($ok
 
 $source=(string)file_get_contents(__DIR__.'/../actions/callbacks/ToursCallbackAction.php');
 liveToursCheck('live conversation 492 four-second repeat is suppressed',ToursCallbackAction::isDuplicateShowTours('show_tours',100.0,'show_tours',104.0));
+liveToursCheck('same callback near ten-second boundary is suppressed',ToursCallbackAction::isDuplicateShowTours('show_tours',100.0,'show_tours',109.9));
+liveToursCheck('same callback after ten-second boundary is allowed',!ToursCallbackAction::isDuplicateShowTours('show_tours',100.0,'show_tours',110.1));
 liveToursCheck('live conversation 492 fifty-six-second retry remains allowed',!ToursCallbackAction::isDuplicateShowTours('show_tours',100.0,'show_tours',156.0));
 liveToursCheck('different tours callback is not suppressed',!ToursCallbackAction::isDuplicateShowTours('show_tours',100.0,'tours_checked',104.0));
 liveToursCheck('show tours uses shared interaction serialization',strpos($source,"InteractionGuard::synchronized(\$chatId, 'tours_show'")!==false);
