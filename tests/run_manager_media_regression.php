@@ -49,6 +49,7 @@ $mediaUiSource = (string)file_get_contents(__DIR__ . '/../manager/assets/workspa
 $transportSource = (string)file_get_contents(__DIR__ . '/../services/MaxTransport.php');
 $outboundSource = (string)file_get_contents(__DIR__ . '/../services/ManagerOutboundService.php');
 $uploadSource = (string)file_get_contents(__DIR__ . '/../manager/media-upload.php');
+$httpSource = (string)file_get_contents(__DIR__ . '/../manager/lib/ManagerHttp.php');
 $cacheSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMediaCache.php');
 $fileEndpointSource = (string)file_get_contents(__DIR__ . '/../manager/media-file.php');
 $mediaHydratorSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMessageMediaService.php');
@@ -65,7 +66,7 @@ mediaCheck('MAX media upload is multipart data', strpos($transportSource, 'new C
 mediaCheck('MAX media send uses attachments payload', strpos($transportSource, '$body=[\'attachments\'=>[$attachment]]') !== false, true);
 mediaCheck('video and audio preserve upload-endpoint token', strpos($transportSource, 'in_array($type,[\'video\',\'audio\'],true) ? $prefetchedToken') !== false, true);
 mediaCheck('outbound media is restricted to owned MAX conversation', strpos($outboundSource, '$channel!==\'max\'') !== false && strpos($outboundSource, '(int)$c[\'manager_id\']!==$managerId') !== false, true);
-mediaCheck('upload endpoint uses shared manager session and csrf context', strpos($uploadSource, 'ManagerRequestContext::startSession()') !== false && strpos($uploadSource, 'ManagerRequestContext::manager()') !== false && strpos($uploadSource, 'ManagerRequestContext::validCsrf') !== false, true);
+mediaCheck('upload endpoint uses shared Manager HTTP auth and csrf boundary', strpos($uploadSource, "require_once __DIR__.'/lib/ManagerHttp.php'") !== false && strpos($uploadSource, 'ManagerHttp::requireManager()') !== false && strpos($uploadSource, 'ManagerHttp::requireCsrf($_POST)') !== false && strpos($uploadSource, 'ManagerRequestContext::') === false && strpos($httpSource, 'ManagerRequestContext::validCsrf') !== false, true);
 mediaCheck('media endpoints no longer duplicate session cookie policy', strpos($uploadSource, 'session_set_cookie_params') === false && strpos($fileEndpointSource, 'session_set_cookie_params') === false && strpos($contextSource, "session_name('anytour_manager_panel')") !== false, true);
 mediaCheck('Workspace V2 media owner uses multipart FormData', strpos($mediaUiSource, 'new FormData()') !== false && strpos($mediaUiSource, "fetch('media-upload.php'") !== false && strpos($mediaUiSource, "data.append('conversation_id'") !== false && strpos($mediaUiSource, "data.append('file'") !== false, true);
 mediaCheck('successful manager upload creates private preview cache', strpos($uploadSource, 'ManagerMediaCache::store') !== false, true);
