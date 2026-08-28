@@ -1,14 +1,14 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-28T14:06:08+00:00",
-    "source_generated_at": "2026-08-28T14:06:08+00:00",
+    "generated_at": "2026-08-28T14:47:07+00:00",
+    "source_generated_at": "2026-08-28T14:47:07+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 11,
-        "ranked": 5,
+        "sessions": 10,
+        "ranked": 6,
         "high": 4,
-        "medium": 1
+        "medium": 2
     },
     "anomalies": [
         {
@@ -59,6 +59,18 @@
             "status": "manager",
             "drop_point": "manager_replied",
             "last_message_at": "2026-08-28 13:59:11"
+        },
+        {
+            "conversation_id": 531,
+            "severity": "medium",
+            "score": 70,
+            "signals": [
+                "repeated_callback_input",
+                "bot_repeated_question_date"
+            ],
+            "status": "ai",
+            "drop_point": "collecting_needs",
+            "last_message_at": "2026-08-28 16:21:34"
         },
         {
             "conversation_id": 528,
