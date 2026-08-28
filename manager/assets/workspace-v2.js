@@ -4,7 +4,7 @@ const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStag
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong><br>Обновите страницу после повторного входа.</div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
-async function request(url,action,data={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));if(r.status===401){S.authExpired=true;showFatal('Сессия менеджера истекла.');throw new Error('unauthorized')}if(!r.ok&&r.status>=500){showFatal('Ошибка сервера при загрузке рабочего места.');throw new Error(`manager_api_${r.status}`)}return j}
+async function request(url,action,data={}){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));if(r.status===401){S.authExpired=true;showFatal('Сессия менеджера истекла.');throw new Error('unauthorized')}if(!r.ok)return{...j,ok:false,http_status:r.status};return j}
 const api=(action,data={})=>request('api.php',action,data);
 const pipe=(action,data={})=>request('pipeline-api.php',action,data);
 function statusText(s){return{ai:'AI',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Закрыт'}[s]||s||''}
