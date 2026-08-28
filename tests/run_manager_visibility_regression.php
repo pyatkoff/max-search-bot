@@ -48,8 +48,8 @@ mvCheck('Workspace V2 admin settings link starts hidden',strpos($workspace,'id="
 mvCheck('Workspace V2 admin settings link is role gated',strpos($workspaceJs,"adminLink.classList.toggle('hidden',S.manager.role!=='admin')")!==false);
 mvCheck('Workspace V2 registers manager service worker',strpos($workspaceNotifications,"serviceWorker.register('sw.js'")!==false);
 mvCheck('Workspace V2 notification click opens exact conversation',strpos($workspaceNotifications,"data.type==='OPEN_CONVERSATION'")!==false && strpos($workspaceNotifications,'WorkspaceV2Conversation?.open(Number(data.conversationId))')!==false);
-mvCheck('server push includes project source and channel context',strpos($managerPush,"$c['project_name']??$c['project_key']")!==false && strpos($managerPush,"$c['source_name']")!==false && strpos($managerPush,"$c['channel']")!==false);
-mvCheck('server push includes customer/body context',strpos($managerPush,"'body'=>($ctx?implode(' · ',$ctx).' — ':'').$body")!==false);
+mvCheck('server push includes project source and channel context',strpos($managerPush,"\$c['project_name']??\$c['project_key']")!==false && strpos($managerPush,"\$c['source_name']")!==false && strpos($managerPush,"\$c['channel']")!==false);
+mvCheck('server push includes customer/body context',strpos($managerPush,"'body'=>(\$ctx?implode(' · ',\$ctx).' — ':'').\$body")!==false);
 mvCheck('service worker targets exact conversation',strpos($serviceWorker,"conversationId:Number(data.conversationId||0)")!==false && strpos($serviceWorker,"postMessage({type:'OPEN_CONVERSATION',conversationId})")!==false);
 mvCheck('audit table is versioned migration',strpos($auditMigration,'CREATE TABLE IF NOT EXISTS admin_audit_log')!==false);
 mvCheck('production snapshot exposes entry-channel attribution',strpos($productionSnapshot,"'recent_entry_attribution'=>[]")!==false && strpos($productionSnapshot,"entry_channel IS NOT NULL AND entry_channel<>''")!==false);
