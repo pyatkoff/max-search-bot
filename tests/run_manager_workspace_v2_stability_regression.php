@@ -10,7 +10,7 @@ $lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $passed=0;$failed=0;
 function stableCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
-stableCheck('manager index is redirect-free and owns the workspace implementation',strpos($index,"header('Location:")===false&&strpos($index,'workspace-v2.php')===false&&strpos($index,'id="inboxZone"')!==false&&strpos($index,'id="conversationZone"')!==false&&strpos($index,'id="leadZone"')!==false);
+stableCheck('manager index is redirect-free and owns the workspace implementation',strpos($index,"header('Location:")===false&&strpos($index,'workspace-v2.php')===false&&strpos($index,'id="workspaceRoot"')!==false&&strpos($index,'class="zone inboxZone"')!==false&&strpos($index,'id="conversationZone"')!==false&&strpos($index,'id="leadZone"')!==false);
 stableCheck('explicit index canonicalizes without network navigation',strpos($core,'history.replaceState')!==false&&strpos($core,"location.replace(")===false&&strpos($core,'/\\/index\\.php$/')!==false&&strpos($core,'workspace-v2')===false);
 stableCheck('opening a lead does not force a full inbox reload',strpos($conversation,"await window.WorkspaceV2Inbox?.load()")===false&&strpos($conversation,'WorkspaceV2Inbox?.markActive')!==false);
 stableCheck('inbox refresh preserves scroll for local mutations',strpos($inbox,'scrollTop=box.scrollTop')!==false&&strpos($inbox,'if(preserveScroll)box.scrollTop=scrollTop')!==false&&strpos($inbox,'replaceChildren(frag)')!==false);
