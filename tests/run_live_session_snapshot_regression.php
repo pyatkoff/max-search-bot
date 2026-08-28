@@ -9,10 +9,10 @@ $passed=0;$failed=0;
 function lssCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 lssCheck('snapshot passes diagnostic window into anomaly analyzer',strpos($source,'LiveSessionAnalyzer::analyze($conversation,$messages,$events,$sinceTs)')!==false);
-lssCheck('flagged sessions expose evidence from the same diagnostic window',strpos($source,'liveDiagnosticWindowMessages($messages,$sinceTs)')!==false&&strpos($source,"$session['message_tail']=liveDiagnosticMessageTail($evidence?:$messages)")!==false);
+lssCheck('flagged sessions expose evidence from the same diagnostic window',strpos($source,'liveDiagnosticWindowMessages($messages,$sinceTs)')!==false&&strpos($source,"\$session['message_tail']=liveDiagnosticMessageTail(\$evidence?:\$messages)")!==false);
 lssCheck('message evidence is capped to recent tail',strpos($source,'array_slice($messages,-max(1,$limit))')!==false && strpos($source,'int $limit=24')!==false);
-lssCheck('message text is compacted and truncated',strpos($source,'mb_strlen($text)>280')!==false && strpos($source,"mb_substr($text,0,277).'...'")!==false);
-lssCheck('unflagged sessions do not receive message evidence',strpos($source,"if(!empty($session['flags']))")!==false);
+lssCheck('message text is compacted and truncated',strpos($source,'mb_strlen($text)>280')!==false && strpos($source,"mb_substr(\$text,0,277).'...'")!==false);
+lssCheck('unflagged sessions do not receive message evidence',strpos($source,"if(!empty(\$session['flags']))")!==false);
 lssCheck('newer main push cancels stale diagnostics waiter',strpos($workflow,"group: production-live-session-diagnostics")!==false&&strpos($workflow,"cancel-in-progress: true")!==false);
 
 $tmp=tempnam(sys_get_temp_dir(),'live-anomaly-');
