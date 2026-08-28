@@ -2,7 +2,7 @@
 $baseDir = dirname(__DIR__);
 require_once $baseDir . '/config.php';
 require_once $baseDir . '/maxsearchclass.php';
-require_once $baseDir . '/services/ManagerRequestContext.php';
+require_once __DIR__ . '/lib/ManagerHttp.php';
 require_once $baseDir . '/services/ManagerAvailabilityService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
@@ -13,17 +13,14 @@ require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
 require_once $baseDir . '/services/ManagerPriorityService.php';
-ManagerRequestContext::startSession();
+ManagerHttp::startJson();
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
-
-function out(array $data, int $status=200): void { http_response_code($status); echo json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); exit; }
-function body(): array { return ManagerRequestContext::jsonBody(); }
-function manager(): ?array { return ManagerRequestContext::manager(); }
-function csrf(): string { return ManagerRequestContext::csrf(true); }
-function requireCsrf(array $data): void { ManagerRequestContext::csrf(true); if(!ManagerRequestContext::validCsrf(isset($data['csrf'])?(string)$data['csrf']:null)) out(['ok'=>false,'error'=>'csrf'],403); }
-function requireAdmin(array $m): void { if(!ManagerRequestContext::isAdmin($m)) out(['ok'=>false,'error'=>'forbidden'],403); }
+function out(array $data, int $status=200): void { ManagerHttp::respond($data,$status); }
+function body(): array { return ManagerHttp::body(); }
+function manager(): ?array { return ManagerHttp::manager(); }
+function csrf(): string { return ManagerHttp::csrf(true); }
+function requireCsrf(array $data): void { ManagerHttp::requireCsrf($data); }
+function requireAdmin(array $m): void { ManagerHttp::requireAdmin($m); }
 function withoutSuspendedWaiting(array $rows): array {
     if(!$rows)return[];
     $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
@@ -40,7 +37,7 @@ if($action==='login'){
 }
 
 $m=manager(); if(!$m) out(['ok'=>false,'error'=>'unauthorized'],401);
-$isAdmin=ManagerRequestContext::isAdmin($m);
+$isAdmin=ManagerHttp::isAdmin($m);
 if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
 requireCsrf($data);
 
