@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T16:07:44+00:00",
+    "generated_at": "2026-08-29T16:30:49+00:00",
     "production": {
-        "sha": "034861b6461456a93d721f3fb55c8ea3925d0c9e",
+        "sha": "f0f4905e075e3b177af0cf0e386b25b76bb3bef0",
         "branch": "main"
     },
     "migrations": {
@@ -62,7 +62,7 @@
                     "healthy_subscription_count": 2,
                     "notification_path_usable": true,
                     "notification_path_reason": "healthy_subscription",
-                    "last_success_at": "2026-08-29 11:07:37",
+                    "last_success_at": "2026-08-29 18:24:10",
                     "last_error_at": null,
                     "last_error": null
                 }
@@ -130,26 +130,26 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 15:07:40",
+        "since_utc": "2026-08-29 15:30:44",
         "summary": {
-            "sessions": 2,
-            "started": 2,
-            "needs_collected": 2,
-            "tours_opened": 2,
-            "manager_requested": 1,
-            "manager_replied": 1,
+            "sessions": 3,
+            "started": 3,
+            "needs_collected": 3,
+            "tours_opened": 3,
+            "manager_requested": 2,
+            "manager_replied": 2,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 1,
+                "answered_after_90s": 2,
                 "still_unanswered": 0,
-                "measured_responses": 1,
-                "avg_seconds": 4142,
+                "measured_responses": 2,
+                "avg_seconds": 2594,
                 "max_seconds": 4142
             },
             "drop_points": {
-                "manager_replied": 1,
+                "manager_replied": 2,
                 "tours_opened": 1
             },
             "flags": []
@@ -161,19 +161,53 @@
         "summary": []
     },
     "ops": {
-        "sha": "034861b6461456a93d721f3fb55c8ea3925d0c9e",
+        "sha": "f0f4905e075e3b177af0cf0e386b25b76bb3bef0",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
+        "daily_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T16:07:44Z"
+        "reported_at": "2026-08-29T16:30:49Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
         "live": "live_session_report.json",
         "handoff": "handoff.json",
         "website": "website_smoke.json",
-        "ops": "ops_status.json"
+        "ops": "ops_status.json",
+        "daily": "daily_session_report.json"
+    },
+    "daily": {
+        "window_hours": 24,
+        "since_utc": "2026-08-28 16:30:46",
+        "summary": {
+            "sessions": 47,
+            "started": 47,
+            "needs_collected": 32,
+            "tours_opened": 32,
+            "manager_requested": 3,
+            "manager_replied": 3,
+            "phone_received": 0,
+            "flagged_sessions": 10,
+            "manager_response": {
+                "answered_in_90s": 0,
+                "answered_after_90s": 3,
+                "still_unanswered": 0,
+                "measured_responses": 3,
+                "avg_seconds": 3670,
+                "max_seconds": 5823
+            },
+            "drop_points": {
+                "tours_opened": 29,
+                "collecting_needs": 15,
+                "manager_replied": 3
+            },
+            "flags": {
+                "repeated_callback_input": 8,
+                "excessive_turns": 5,
+                "rapid_date_reselection": 3
+            }
+        }
     }
 }

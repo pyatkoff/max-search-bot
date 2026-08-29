@@ -1,27 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T16:07:40+00:00",
+    "generated_at": "2026-08-29T16:30:44+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
-        "sessions": 2,
-        "started": 2,
-        "needs_collected": 2,
-        "tours_opened": 2,
-        "manager_requested": 1,
-        "manager_replied": 1,
+        "sessions": 3,
+        "started": 3,
+        "needs_collected": 3,
+        "tours_opened": 3,
+        "manager_requested": 2,
+        "manager_replied": 2,
         "phone_received": 0,
         "flagged_sessions": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 1,
+            "answered_after_90s": 2,
             "still_unanswered": 0,
-            "measured_responses": 1,
-            "avg_seconds": 4142,
+            "measured_responses": 2,
+            "avg_seconds": 2594,
             "max_seconds": 4142
         },
         "drop_points": {
-            "manager_replied": 1,
+            "manager_replied": 2,
             "tours_opened": 1
         },
         "flags": []
@@ -74,7 +74,31 @@
             "flags": [],
             "started_at": "2026-08-27 17:16:29",
             "last_message_at": "2026-08-29 17:13:10"
+        },
+        {
+            "conversation_id": 334,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "manager",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": true,
+            "manager_replied": true,
+            "manager_request_at": "2026-08-27 13:02:09",
+            "manager_first_reply_at": "2026-08-27 13:19:35",
+            "manager_response_seconds": 1046,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": false,
+            "inbound_messages": 20,
+            "outbound_messages": 13,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 1,
+            "drop_point": "manager_replied",
+            "flags": [],
+            "started_at": "2026-08-26 17:05:22",
+            "last_message_at": "2026-08-29 18:24:10"
         }
     ],
-    "since_utc": "2026-08-29 15:07:40"
+    "since_utc": "2026-08-29 15:30:44"
 }
