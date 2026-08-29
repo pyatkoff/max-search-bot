@@ -1,5 +1,5 @@
 const S={csrf:'',manager:null,data:{projects:[],managers:[],sources:[],audit:[],priority:{rules:[],rule_types:[]}}};const $=id=>document.getElementById(id);
-async function api(action,data={}){try{const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,csrf:S.csrf,...data})});const j=await r.json();return j&&typeof j==='object'?j:{ok:false,error:'invalid_response'}}catch(e){return{ok:false,error:'network_error'}}}
+const api=(action,data={})=>ManagerHttpClient.request(action,data,S.csrf);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 const ruleLabels={project_key:'Проект',source_key:'Источник',platform:'Платформа',entry_channel:'MAX-канал входа',region_id:'Регион',campaign_id:'Кампания'};
 const auditLabels={project_created:'Создан проект',project_updated:'Изменён проект',manager_created:'Создан менеджер',manager_updated:'Изменён менеджер',priority_rule_created:'Создано правило',priority_rule_updated:'Изменено правило',priority_rule_deleted:'Удалено правило'};
