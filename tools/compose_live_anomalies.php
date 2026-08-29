@@ -78,11 +78,11 @@ foreach((array)($data['sessions']??[]) as $session){
         $signals['needs_collected_without_tours']=true;$score=max($score,80);
     }
     foreach((array)($session['flags']??[]) as $flag){
-        if($flag==='rapid_date_reselection'){$signals[$flag]=true;$score=max($score,75);}
+        if($flag==='rapid_date_reselection'){$contextSignals[$flag]=true;}
         if($flag==='repeated_same_input'){$signals[$flag]=true;$score=max($score,90);}
         if($flag==='repeated_callback_input'){$contextSignals[$flag]=true;}
         if($flag==='manager_taken_no_reply'||$flag==='left_waiting_queue_without_manager_reply'){$signals[$flag]=true;$score=max($score,95);}
-        // repeated_callback_input, excessive_turns and ordinary manager wait are context only without user-visible failure evidence.
+        // Calendar reselection, repeated callbacks, excessive turns and ordinary manager wait are context only without user-visible failure evidence.
     }
     if(!$signals)continue;
     foreach($contextSignals as $key=>$present)if($present)$signals[$key]=true;
