@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T16:35:17+00:00",
+    "generated_at": "2026-08-29T17:03:56+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -2007,5 +2007,7 @@
     ],
     "local_date": "2026-08-29",
     "local_day_started_at": "2026-08-29T00:00:00+02:00",
-    "since_utc": "2026-08-28 22:00:00"
+    "local_day_ended_at": "2026-08-30T00:00:00+02:00",
+    "since_utc": "2026-08-28 22:00:00",
+    "until_utc": "2026-08-29 22:00:00"
 }
