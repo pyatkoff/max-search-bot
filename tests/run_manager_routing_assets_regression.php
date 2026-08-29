@@ -11,6 +11,6 @@ checkRouting('routing shell loads extracted css',strpos($page,'assets/routing.cs
 checkRouting('routing shell loads extracted js',strpos($page,'assets/routing.js?v=')!==false&&strpos($page,'const S=')===false);
 checkRouting('source save validation remains in routing module',strpos($js,"missing_source_key")!==false&&strpos($js,"duplicate_source_key")!==false&&strpos($js,"fallback_group_required")!==false);
 checkRouting('routing API actions remain unchanged',strpos($js,"api('routing_snapshot'")!==false&&strpos($js,"api('save_group'")!==false&&strpos($js,"api('save_source'")!==false);
-checkRouting('responsive routing styles remain extracted',strpos($css,'@media(max-width:700px)')!==false&&strpos($css,'.grid{grid-template-columns:1fr 1fr')!==false);
+checkRouting('responsive routing styles remain extracted',strpos($css,'grid-template-columns:1fr 1fr')!==false&&strpos($css,'@media(max-width:700px){.grid{grid-template-columns:1fr}')!==false&&strpos($css,'.wrap{padding:12px}')!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS $passed | FAIL $failed\n";
 exit($failed?1:0);
