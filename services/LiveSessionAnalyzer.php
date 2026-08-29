@@ -80,6 +80,9 @@ final class LiveSessionAnalyzer
         if(!$managerRequested){
             foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false){$managerRequested=true;break;}}
         }
+        // A request remains part of funnel history after the conversation leaves the
+        // technical handoff states, but it is no longer an active unanswered wait.
+        $managerRequestActive=$managerRequested&&in_array($status,['waiting_manager','manager'],true);
 
         $managerRequestAt=$requestTimes?max($requestTimes):null;
         $managerFirstReplyAt=null;
@@ -92,7 +95,7 @@ final class LiveSessionAnalyzer
         $managerResponseSeconds=($managerRequestAt!==null&&$managerFirstReplyAt!==null)?max(0,$managerFirstReplyAt-$managerRequestAt):null;
         $managerResponseBucket=null;
         if($managerResponseSeconds!==null)$managerResponseBucket=$managerResponseSeconds<=90?'answered_in_90s':'answered_after_90s';
-        elseif($managerRequested)$managerResponseBucket='still_unanswered';
+        elseif($managerRequestActive)$managerResponseBucket='still_unanswered';
 
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
@@ -106,9 +109,9 @@ final class LiveSessionAnalyzer
         foreach($repeatedCallbacks as $text=>$count){if($count>=3){$flags[]='repeated_callback_input';break;}}
         foreach($repeatedFreeText as $text=>$count){if($count>=3){$flags[]='repeated_same_input';break;}}
         if($anomalyInboundTurns>=self::EXCESSIVE_INBOUND_TURNS)$flags[]='excessive_turns';
-        if($managerRequested&&!$managerReplied)$flags[]='manager_requested_no_reply';
-        if($managerRequested&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';
-        if($managerTaken&&!$managerReplied)$flags[]='manager_taken_no_reply';
+        if($managerRequestActive&&!$managerReplied)$flags[]='manager_requested_no_reply';
+        if($managerRequestActive&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';
+        if($managerTaken&&$managerRequestActive&&!$managerReplied)$flags[]='manager_taken_no_reply';
 
         $drop='started_only';
         if($started)$drop='collecting_needs';
@@ -125,6 +128,7 @@ final class LiveSessionAnalyzer
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
             'manager_requested'=>$managerRequested,
+            'manager_request_active'=>$managerRequestActive,
             'manager_replied'=>$managerReplied,
             'manager_request_at'=>$managerRequestAt!==null?gmdate('Y-m-d H:i:s',$managerRequestAt):null,
             'manager_first_reply_at'=>$managerFirstReplyAt!==null?gmdate('Y-m-d H:i:s',$managerFirstReplyAt):null,
