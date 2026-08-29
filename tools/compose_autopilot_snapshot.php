@@ -45,12 +45,13 @@ function flaggedLiveSessions(array $sessions,int $limit=30):array
 }
 
 try{
-    if($argc<6)throw new RuntimeException('usage: compose_autopilot_snapshot.php production.json live.json handoff.json website.json ops.json');
+    if($argc<6)throw new RuntimeException('usage: compose_autopilot_snapshot.php production.json live.json handoff.json website.json ops.json [daily.json]');
     $production=readAutopilotJson($argv[1],'production');
     $live=readAutopilotJson($argv[2],'live');
     $handoff=readAutopilotJson($argv[3],'handoff');
     $website=readAutopilotJson($argv[4],'website');
     $ops=readAutopilotJson($argv[5],'ops');
+    $daily=$argc>=7?readAutopilotJson($argv[6],'daily'):null;
 
     $snapshot=[
         'ok'=>true,
@@ -88,6 +89,14 @@ try{
             'ops'=>'ops_status.json',
         ],
     ];
+    if(is_array($daily)){
+        $snapshot['daily']=[
+            'window_hours'=>$daily['window_hours']??null,
+            'since_utc'=>$daily['since_utc']??null,
+            'summary'=>$daily['summary']??[],
+        ];
+        $snapshot['artifacts']['daily']='daily_session_report.json';
+    }
 
     $json=json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT|JSON_INVALID_UTF8_SUBSTITUTE);
     if($json===false)throw new RuntimeException('autopilot_snapshot_json_encode_failed');
