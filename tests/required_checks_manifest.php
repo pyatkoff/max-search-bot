@@ -102,6 +102,7 @@ return [
         'php tests/run_manager_workspace_v2_outcome_regression.php',
         'php tests/run_lead_task_regression.php',
         'php tests/run_manager_workspace_v2_task_create_failure_regression.php',
+        'php tests/run_manager_workspace_v2_stage_failure_regression.php',
         'php tests/run_manager_task_mutation_state_regression.php',
         'php tests/run_manager_conversation_lifecycle_state_regression.php',
         'php tests/run_manager_inbox_load_integrity_regression.php',
