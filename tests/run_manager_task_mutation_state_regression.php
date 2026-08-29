@@ -16,6 +16,11 @@ tmCheck('failed row mutation is visibly marked and controls recover',strpos($tas
 tmCheck('busy row mutation is visibly distinct',strpos($css,'.taskRow.saving')!==false&&strpos($css,'.taskPinBtn:disabled')!==false);
 tmCheck('lead card returns explicit success or failure for completion',strpos($lead,"async function toggleTask")!==false&&strpos($lead,"pipe('set_task_completed'")!==false&&strpos($lead,'if(!j.ok)return false')!==false&&substr_count($lead,'return true')>=3);
 tmCheck('lead card returns explicit success or failure for pinning',strpos($lead,"async function pinTask")!==false&&strpos($lead,"pipe('set_task_pinned'")!==false&&strpos($lead,'if(!j.ok)return false')!==false);
+tmCheck('task editor starts with save disabled',strpos($tasks,'data-task-edit-save="${id}" disabled')!==false);
+tmCheck('task editor exposes dirty-state comparison for title and deadline',strpos($tasks,"const syncDirty=()=>")!==false&&strpos($tasks,"String(titleEl?.value||'').trim()!==initialTitle")!==false&&strpos($tasks,"String(dueEl?.value||'')!==initialDue")!==false);
+tmCheck('task editor clearly signals unsaved edits',strpos($tasks,'Есть несохранённые изменения')!==false&&strpos($tasks,"dirty?'dirty':'")!==false&&strpos($css,'.taskEditStatus.dirty')!==false);
+tmCheck('task editor cancel restores persisted values before closing',strpos($tasks,'form._taskEditReset=()=>')!==false&&strpos($tasks,'form?._taskEditReset?.()')!==false);
+tmCheck('task save refuses unchanged payloads',strpos($tasks,'!form._taskEditSyncDirty?.()')!==false);
 tmCheck('task mutation UX does not alter technical conversation state',strpos($tasks,'set_status')===false&&strpos($lead,"pipe('set_status'")===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
