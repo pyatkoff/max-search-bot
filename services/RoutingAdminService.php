@@ -39,16 +39,45 @@ class RoutingAdminService
 
     public static function saveSource(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter): bool
     {
-        if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
-        RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$sourceKey=trim($sourceKey);$displayName=trim($displayName);$fallbackMode=in_array($fallbackMode,['none','delayed','immediate'],true)?$fallbackMode:'none';$fallbackAfter=max(0,$fallbackAfter);
-        if($projectId<=0||$sourceKey===''||$displayName==='')return false;
+        return !empty(self::saveSourceResult($managerId,$projectKey,$sourceId,$sourceKey,$displayName,$channel,$primaryGroupId,$fallbackMode,$fallbackGroupId,$fallbackAfter)['ok']);
+    }
+
+    public static function saveSourceResult(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter): array
+    {
+        if(!self::requireAdmin($managerId))return['ok'=>false,'error'=>'admin_required'];
+        if(!ProjectAccessService::canAccess($managerId,$projectKey))return['ok'=>false,'error'=>'project_access_denied'];
+        RoutingAccessService::ensureSchema();
+        $pdo=ConversationDb::connection();
+        $projectId=ProjectAccessService::projectIdByKey($projectKey);
+        $sourceKey=trim($sourceKey);$displayName=trim($displayName);$channel=trim($channel);
+        $fallbackMode=in_array($fallbackMode,['none','delayed','immediate'],true)?$fallbackMode:'none';$fallbackAfter=max(0,$fallbackAfter);
+        if($projectId<=0)return['ok'=>false,'error'=>'project_not_found'];
+        if($sourceKey==='')return['ok'=>false,'error'=>'missing_source_key'];
+        if($displayName==='')return['ok'=>false,'error'=>'missing_display_name'];
+        if(!in_array($channel,['max','telegram','website'],true))return['ok'=>false,'error'=>'invalid_channel'];
         $before=$sourceId>0?self::sourceRow($sourceId):null;
+        if($sourceId>0&&!$before)return['ok'=>false,'error'=>'source_not_found'];
         $validGroup=function(int $id)use($pdo,$projectId):?int{if($id<=0)return null;$q=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=? AND is_active=1');$q->execute([$id,$projectId]);return$q->fetchColumn()?(int)$id:null;};
-        $primary=$validGroup($primaryGroupId);$fallback=$validGroup($fallbackGroupId);if($fallbackMode==='none'){$fallback=null;$fallbackAfter=0;}if($fallbackMode==='immediate')$fallbackAfter=0;
-        if($sourceId>0){$q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');$ok=$q->execute([$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);}
-        else{$q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?)');$ok=$q->execute([$projectId,$sourceKey,$displayName,$channel!==''?$channel:null,$primary,$fallbackMode,$fallback,$fallbackAfter]);$sourceId=(int)$pdo->lastInsertId();}
-        if($ok)AuditLogService::record($managerId,$before?'routing_source_updated':'routing_source_created','conversation_source',(string)$sourceId,$projectKey,$before,self::sourceRow($sourceId));
-        return(bool)$ok;
+        $primary=$validGroup($primaryGroupId);$fallback=$validGroup($fallbackGroupId);
+        if($primaryGroupId>0&&$primary===null)return['ok'=>false,'error'=>'invalid_primary_group'];
+        if($fallbackMode==='none'){$fallback=null;$fallbackAfter=0;}
+        if($fallbackMode==='immediate')$fallbackAfter=0;
+        if($fallbackMode!=='none'&&$fallbackGroupId>0&&$fallback===null)return['ok'=>false,'error'=>'invalid_fallback_group'];
+        if($fallbackMode!=='none'&&$fallback===null)return['ok'=>false,'error'=>'fallback_group_required'];
+        try{
+            if($sourceId>0){
+                $q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');
+                $q->execute([$sourceKey,$displayName,$channel,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);
+            }else{
+                $q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?)');
+                $q->execute([$projectId,$sourceKey,$displayName,$channel,$primary,$fallbackMode,$fallback,$fallbackAfter]);
+                $sourceId=(int)$pdo->lastInsertId();
+            }
+        }catch(Throwable $e){
+            return['ok'=>false,'error'=>'duplicate_source_key'];
+        }
+        AuditLogService::record($managerId,$before?'routing_source_updated':'routing_source_created','conversation_source',(string)$sourceId,$projectKey,$before,self::sourceRow($sourceId));
+        return['ok'=>true,'source_id'=>$sourceId];
     }
 
     private static function groupRow(int $id): ?array
