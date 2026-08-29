@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T22:22:24+00:00",
+    "generated_at": "2026-08-29T23:02:53+00:00",
     "production": {
-        "sha": "43f7353d7ef7df4130d160ff7b07f78953209720",
+        "sha": "7cf745cbe76fb50e385c86167fc700e09b22b829",
         "branch": "main"
     },
     "database": {
@@ -153,10 +153,10 @@
         }
     ],
     "stats": {
-        "customers": 615,
-        "customer_channels": 615,
-        "conversations": 617,
-        "messages": 15647,
+        "customers": 616,
+        "customer_channels": 616,
+        "conversations": 618,
+        "messages": 15650,
         "managers": 5,
         "manager_assignments": 114,
         "conversation_events": 941,
@@ -1653,7 +1653,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 487
+            "count": 488
         },
         {
             "project_key": "anytour",
@@ -1851,6 +1851,33 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15650,
+            "conversation_id": 618,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+            "created_at": "2026-08-30 00:47:03"
+        },
+        {
+            "id": 15649,
+            "conversation_id": 618,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 00:46:51"
+        },
+        {
+            "id": 15648,
+            "conversation_id": 618,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Здравствуйте, скажите пожалуйста хочу отдохнуть поехать в Тайланд. Сколько стоит путевка на двоих на неделю или две. Какие условия. Стоимость.",
+            "created_at": "2026-08-30 00:46:51"
+        },
         {
             "id": 15647,
             "conversation_id": 334,
@@ -2363,33 +2390,6 @@
             "channel": "max",
             "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
             "created_at": "2026-08-29 17:07:36"
-        },
-        {
-            "id": 15590,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_other",
-            "created_at": "2026-08-29 17:07:36"
-        },
-        {
-            "id": 15589,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-29 17:07:33"
-        },
-        {
-            "id": 15588,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_country",
-            "created_at": "2026-08-29 17:07:33"
         }
     ],
     "recent_events": [
