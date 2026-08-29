@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T07:01:47+00:00",
+    "generated_at": "2026-08-29T07:05:22+00:00",
     "production": {
-        "sha": "22fc2674e60de5f60f6aa36c0302c4081b8b4d5d",
+        "sha": "45198f3a69307ac5d430cd3b5546a5938f4d7dac",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 2949,
+            "oldest_wait_seconds": 3162,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "manager",
                     "manager_id": 5,
                     "manager_request_at": "2026-08-29 08:12:32",
-                    "wait_seconds": 2949,
+                    "wait_seconds": 3162,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4,
@@ -55,7 +55,7 @@
                     "status": "manager",
                     "manager_id": 5,
                     "manager_request_at": "2026-08-29 08:39:52",
-                    "wait_seconds": 1309,
+                    "wait_seconds": 1522,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4,
@@ -163,7 +163,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 06:01:43",
+        "since_utc": "2026-08-29 06:05:17",
         "summary": {
             "sessions": 14,
             "started": 14,
@@ -272,13 +272,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "22fc2674e60de5f60f6aa36c0302c4081b8b4d5d",
+        "sha": "45198f3a69307ac5d430cd3b5546a5938f4d7dac",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T07:01:47Z"
+        "reported_at": "2026-08-29T07:05:22Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
