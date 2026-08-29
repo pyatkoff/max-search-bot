@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T04:07:49+00:00",
+    "generated_at": "2026-08-29T05:08:09+00:00",
     "production": {
-        "sha": "163805c6385649b15de6327b7f74a5312c4c6f45",
+        "sha": "a414943c90aaab26f9ea36a39dc592e5ac7532ec",
         "branch": "main"
     },
     "migrations": {
@@ -130,16 +130,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 03:07:45",
+        "since_utc": "2026-08-29 04:08:05",
         "summary": {
-            "sessions": 5,
-            "started": 5,
-            "needs_collected": 2,
-            "tours_opened": 2,
+            "sessions": 11,
+            "started": 11,
+            "needs_collected": 6,
+            "tours_opened": 6,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 2,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -149,11 +149,11 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 3,
-                "tours_opened": 2
+                "tours_opened": 6,
+                "collecting_needs": 5
             },
             "flags": {
-                "repeated_callback_input": 1,
+                "repeated_callback_input": 2,
                 "excessive_turns": 1
             }
         },
@@ -167,6 +167,15 @@
                 "drop_point": "tours_opened",
                 "manager_response_bucket": null,
                 "manager_response_seconds": null
+            },
+            {
+                "conversation_id": 553,
+                "flags": [
+                    "repeated_callback_input"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
             }
         ]
     },
@@ -175,13 +184,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "163805c6385649b15de6327b7f74a5312c4c6f45",
+        "sha": "a414943c90aaab26f9ea36a39dc592e5ac7532ec",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T04:07:48Z"
+        "reported_at": "2026-08-29T05:08:09Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
