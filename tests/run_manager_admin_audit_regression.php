@@ -8,6 +8,7 @@ $directory=(string)file_get_contents($root.'/services/AdminDirectoryService.php'
 $api=(string)file_get_contents($root.'/manager/api.php');
 $admin=(string)file_get_contents($root.'/manager/admin.php');
 $css=(string)file_get_contents($root.'/manager/assets/admin.css');
+$js=(string)file_get_contents($root.'/manager/assets/admin.js');
 
 $passed=0;$failed=0;
 function maaCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -17,10 +18,11 @@ maaCheck('admin audit projection resolves actor identity',strpos($audit,'LEFT JO
 maaCheck('admin audit projection is data minimized',strpos($audit,'recentSummaries')!==false&&strpos($audit,'a.before_json')===false&&strpos($audit,'a.after_json')===false);
 maaCheck('admin directory snapshot includes recent audit summaries',strpos($directory,"'audit'=>AuditLogService::recentSummaries(50)")!==false);
 maaCheck('admin snapshot remains server-side role gated',strpos($api,"if(\$action==='admin_snapshot')")!==false&&strpos($api,'requireAdmin($m);')!==false);
-maaCheck('admin UI renders the bounded audit projection',strpos($admin,'id="audit"')!==false&&strpos($admin,'function renderAudit')!==false&&strpos($admin,'S.data.audit||[]')!==false);
-maaCheck('admin UI does not request raw audit payloads',strpos($admin,'before_json')===false&&strpos($admin,'after_json')===false&&strpos($admin,"api('admin_snapshot')")!==false);
-maaCheck('admin audit keeps actor action target and timestamp visible',strpos($admin,'auditActor')!==false&&strpos($admin,'auditAction')!==false&&strpos($admin,'auditTarget')!==false&&strpos($admin,'created_at')!==false);
+maaCheck('admin UI renders the bounded audit projection',strpos($admin,'id="audit"')!==false&&strpos($js,'function renderAudit')!==false&&strpos($js,'S.data.audit||[]')!==false);
+maaCheck('admin UI does not request raw audit payloads',strpos($js,'before_json')===false&&strpos($js,'after_json')===false&&strpos($js,"api('admin_snapshot')")!==false);
+maaCheck('admin audit keeps actor action target and timestamp visible',strpos($js,'auditActor')!==false&&strpos($js,'auditAction')!==false&&strpos($js,'auditTarget')!==false&&strpos($js,'created_at')!==false);
 maaCheck('admin styles are extracted from the php monolith',strpos($admin,'assets/admin.css')!==false&&strpos($admin,'<style>')===false&&strpos($css,'.auditRow')!==false);
+maaCheck('admin javascript is extracted from the php monolith',strpos($admin,'assets/admin.js')!==false&&strpos($admin,'<script>')===false&&strpos($js,"api('me')")!==false&&strpos($js,"api('admin_snapshot')")!==false);
 maaCheck('admin audit has responsive mobile layout',strpos($css,'@media(max-width:700px)')!==false&&strpos($css,'.auditRow{grid-template-columns:1fr')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
