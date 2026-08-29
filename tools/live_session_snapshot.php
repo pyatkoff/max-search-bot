@@ -34,11 +34,23 @@ function liveDiagnosticWindowMessages(array $messages,int $sinceTs):array
     }));
 }
 
-$hours=isset($argv[1])?max(1,min(24,(int)$argv[1])):1;
+function liveDiagnosticTs($value):?int
+{
+    $value=trim((string)$value);
+    if($value==='')return null;
+    $ts=strtotime($value);
+    return $ts===false?null:$ts;
+}
+
+$windowArg=(string)($argv[1]??'1');
+$calendarDay=$windowArg==='today';
+$hours=$calendarDay?null:max(1,min(24,(int)$windowArg));
 $result=[
     'ok'=>false,
     'generated_at'=>gmdate('c'),
+    'window_type'=>$calendarDay?'calendar_day':'rolling_hours',
     'window_hours'=>$hours,
+    'timezone'=>$calendarDay?'Europe/Kaliningrad':'UTC',
     'channel'=>'max',
     'summary'=>[],
     'sessions'=>[],
@@ -47,8 +59,17 @@ $result=[
 try{
     if(!ConversationDb::isConfigured()) throw new RuntimeException('conversation_db_not_configured');
     $pdo=ConversationDb::connection();
-    $since=(new DateTimeImmutable('now',new DateTimeZone('UTC')))->modify('-'.$hours.' hours')->format('Y-m-d H:i:s');
-    $sinceTs=strtotime($since);
+    if($calendarDay){
+        $tz=new DateTimeZone('Europe/Kaliningrad');
+        $localNow=new DateTimeImmutable('now',$tz);
+        $localStart=$localNow->setTime(0,0,0);
+        $since=$localStart->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $result['local_date']=$localNow->format('Y-m-d');
+        $result['local_day_started_at']=$localStart->format(DateTimeInterface::ATOM);
+    } else {
+        $since=(new DateTimeImmutable('now',new DateTimeZone('UTC')))->modify('-'.$hours.' hours')->format('Y-m-d H:i:s');
+    }
+    $sinceTs=strtotime($since.' UTC');
     if($sinceTs===false)throw new RuntimeException('invalid_diagnostic_window');
 
     $q=$pdo->prepare("SELECT id,project_key,channel,status,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=? ORDER BY COALESCE(last_message_at,started_at) ASC");
@@ -92,6 +113,15 @@ try{
         'drop_points'=>[],
         'flags'=>[],
     ];
+    if($calendarDay){
+        $summary['calendar_day']=[
+            'conversations_started'=>0,
+            'needs_collected_from_started'=>0,
+            'tours_opened_from_started'=>0,
+            'manager_requested'=>0,
+            'manager_replied'=>0,
+        ];
+    }
     $responseSeconds=[];
     foreach($sessions as $session){
         foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
@@ -102,6 +132,20 @@ try{
         $drop=(string)($session['drop_point']??'unknown');
         $summary['drop_points'][$drop]=($summary['drop_points'][$drop]??0)+1;
         foreach((array)($session['flags']??[]) as $flag)$summary['flags'][$flag]=($summary['flags'][$flag]??0)+1;
+
+        if($calendarDay){
+            $startedAt=liveDiagnosticTs($session['started_at']??null);
+            $startedToday=$startedAt!==null&&$startedAt>=$sinceTs;
+            if($startedToday){
+                $summary['calendar_day']['conversations_started']++;
+                if(!empty($session['needs_collected']))$summary['calendar_day']['needs_collected_from_started']++;
+                if(!empty($session['tours_opened']))$summary['calendar_day']['tours_opened_from_started']++;
+            }
+            $requestAt=liveDiagnosticTs($session['manager_request_at']??null);
+            if($requestAt!==null&&$requestAt>=$sinceTs)$summary['calendar_day']['manager_requested']++;
+            $replyAt=liveDiagnosticTs($session['manager_first_reply_at']??null);
+            if($replyAt!==null&&$replyAt>=$sinceTs)$summary['calendar_day']['manager_replied']++;
+        }
     }
     if($responseSeconds){
         $summary['manager_response']['measured_responses']=count($responseSeconds);
