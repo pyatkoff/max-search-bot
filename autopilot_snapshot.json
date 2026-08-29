@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T03:05:35+00:00",
+    "generated_at": "2026-08-29T04:05:47+00:00",
     "production": {
-        "sha": "ad1c541442d74c9111b0419a27d174b216e1a4bd",
+        "sha": "522fde9dc327901eb8ffd23f3a24b04dda127ddf",
         "branch": "main"
     },
     "migrations": {
@@ -85,7 +85,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 7,
-                "assigned_to_others": 25
+                "assigned_to_others": 24
             },
             {
                 "manager_id": 3,
@@ -95,7 +95,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 7,
-                "assigned_to_others": 26
+                "assigned_to_others": 25
             },
             {
                 "manager_id": 4,
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 02:05:32",
+        "since_utc": "2026-08-29 03:05:41",
         "summary": {
-            "sessions": 2,
-            "started": 2,
-            "needs_collected": 1,
-            "tours_opened": 1,
+            "sessions": 5,
+            "started": 5,
+            "needs_collected": 2,
+            "tours_opened": 2,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -149,8 +149,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 1,
-                "collecting_needs": 1
+                "collecting_needs": 3,
+                "tours_opened": 2
             },
             "flags": {
                 "repeated_callback_input": 1,
@@ -175,13 +175,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "ad1c541442d74c9111b0419a27d174b216e1a4bd",
+        "sha": "522fde9dc327901eb8ffd23f3a24b04dda127ddf",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T03:05:35Z"
+        "reported_at": "2026-08-29T04:05:47Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
