@@ -20,6 +20,12 @@ class StarsParser
             if ($values) return min($values);
         }
 
+        // Natural alternatives such as "4 или 5", "4 или 5 звезд" mean
+        // the minimum acceptable hotel category, matching the UI/search semantics.
+        if (preg_match('/^([1-5])\s*(?:\*|★|зв[её]зд(?:а|ы)?)?\s+или\s+([1-5])\s*(?:\*|★|зв[её]зд(?:а|ы)?)?$/ui', $lower, $m)) {
+            return min((int)$m[1], (int)$m[2]);
+        }
+
         return self::numberFromShortText($lower, 1, 5);
     }
 
