@@ -7,6 +7,7 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 $root=dirname(__DIR__);
 $areas=['handlers','actions','services','integrations','manager','website','cron','migrations','tests','tools'];
 $runtimeAreas=['handlers','actions','services','integrations','manager','website','cron'];
+$schemaInfrastructurePaths=['services/MigrationRunner.php'];
 $result=[
     'ok'=>true,
     'schema_version'=>1,
@@ -15,6 +16,7 @@ $result=[
     'hotspots'=>[],
     'signals'=>[
         'runtime_ddl'=>[],
+        'schema_infrastructure_ddl'=>[],
         'direct_sql_writes'=>[],
         'authorization_mentions'=>[],
         'validation_mentions'=>[],
@@ -37,7 +39,10 @@ foreach($areas as $area){
                 $fileLines=substr_count($content,"\n")+1;$lines+=$fileLines;
                 if(in_array($ext,['php','js'],true))$phpJs[]=['path'=>$path,'lines'=>$fileLines,'bytes'=>$file->getSize()];
                 if(in_array($area,$runtimeAreas,true)&&$ext==='php'){
-                    if(preg_match('/\b(?:CREATE|ALTER|DROP)\s+TABLE\b/i',$content))$result['signals']['runtime_ddl'][]=$path;
+                    if(preg_match('/\b(?:CREATE|ALTER|DROP)\s+TABLE\b/i',$content)){
+                        $signal=in_array($path,$schemaInfrastructurePaths,true)?'schema_infrastructure_ddl':'runtime_ddl';
+                        $result['signals'][$signal][]=$path;
+                    }
                     if(preg_match('/\b(?:INSERT\s+INTO|UPDATE\s+[A-Za-z_`]|DELETE\s+FROM)\b/i',$content))$result['signals']['direct_sql_writes'][]=$path;
                     if(preg_match('/\b(?:canEdit|canView|authorize|authorization|permission|role)\b/i',$content))$result['signals']['authorization_mentions'][]=$path;
                     if(preg_match('/\b(?:validate|validation|csrf|invalid_)\b/i',$content))$result['signals']['validation_mentions'][]=$path;

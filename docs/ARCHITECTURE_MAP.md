@@ -17,8 +17,9 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `manager/index.php` plus focused `manager/assets/workspace-v2-*` modules — canonical forward Manager UI entrypoint, kept thin and progressively modular; do not recreate a second Workspace PHP shell.
 - `manager/admin.php` + `manager/assets/admin.css` — current role-gated admin interface; keep behavior in PHP/JS thin and presentation outside the PHP monolith while splitting further only when a real slice needs it.
 - `migrations/` — only owner of production schema evolution; applied files immutable.
+- `services/MigrationRunner.php` — migration execution infrastructure only. DDL here is reported separately as `schema_infrastructure_ddl`; it must never be treated as permission for business/request services to own schema.
 - `tests/scenarios/<suite>/` + `tests/support/ScenarioEngine.php` — reusable production-derived behavior scenarios; add new step handlers only when a real case needs them.
-- `tools/production_snapshot.php`, `tools/live_session_snapshot.php`, `tools/architecture_inventory.php` — bounded operational evidence for autopilot.
+- `tools/production_snapshot.php`, `tools/live_session_snapshot.php`, `tools/architecture_inventory.php` — bounded operational evidence for autopilot. `runtime_ddl` is reserved for request/business runtime code; migration infrastructure is classified separately so the signal remains actionable.
 
 ## MERGE — duplicate responsibilities to converge behind one owner
 
@@ -50,4 +51,4 @@ This is the current incremental refactoring map. It is intentionally conservativ
 
 ## Audit rule
 
-Run `php tools/architecture_inventory.php` during periodic full-repository audits. Treat its output as triage evidence, not an automatic refactor order: production/lead safety and the roadmap priority order still decide what is changed next.
+Run `php tools/architecture_inventory.php` during periodic full-repository audits. Treat its output as triage evidence, not an automatic refactor order: production/lead safety and the roadmap priority order still decide what is changed next. `runtime_ddl` should be empty unless a real request/business runtime schema owner remains; `schema_infrastructure_ddl` may contain only the migration execution boundary.
