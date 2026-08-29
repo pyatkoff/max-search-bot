@@ -57,6 +57,12 @@ if($action==='create_task'){
     $result=LeadTaskService::create($id,(string)($data['title']??''),isset($data['due_at'])?(string)$data['due_at']:null,(int)$m['id'],$assigned>0?$assigned:(int)$m['id']);
     ManagerHttp::respond($result+['tasks'=>!empty($result['ok'])?LeadTaskService::listForConversation($id):null],!empty($result['ok'])?200:422);
 }
+if($action==='update_task'){
+    ManagerHttp::requireConversationEdit($c,$m);
+    $result=LeadTaskService::update($id,(int)($data['task_id']??0),(string)($data['title']??''),isset($data['due_at'])?(string)$data['due_at']:null);
+    $status=!empty($result['ok'])?200:(($result['error']??'')==='not_found'?404:422);
+    ManagerHttp::respond($result+['tasks'=>!empty($result['ok'])?LeadTaskService::listForConversation($id):null],$status);
+}
 if($action==='set_task_completed'){
     ManagerHttp::requireConversationEdit($c,$m);
     $ok=LeadTaskService::setCompleted($id,(int)($data['task_id']??0),!empty($data['completed']));
