@@ -1,0 +1,10 @@
+(function(){
+const W=window.WorkspaceV2;if(!W)return;const {$,S}=W;let bound=false,observer=null,resizeObserver=null;
+function distanceFromLatest(){const box=$('messages');if(!box)return 0;return Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight)}
+function ensureButton(){let button=$('jumpToLatest');if(button)return button;const actions=document.querySelector('#conversationZone .conversationHead .actions');if(!actions)return null;button=document.createElement('button');button.id='jumpToLatest';button.className='jumpToLatest actionBtn hidden';button.type='button';button.setAttribute('aria-label','Перейти к последним сообщениям');button.title='К последним сообщениям';button.innerHTML='<span aria-hidden="true">↓</span><span class="jumpToLatestLabel">К последним</span>';button.onclick=()=>scrollToLatest({smooth:true});const anchor=$('mobileLeadBtn');if(anchor)actions.insertBefore(button,anchor);else actions.prepend(button);return button}
+function update(){const button=ensureButton(),box=$('messages');if(!button||!box)return;const hasConversation=Number(S.current||0)>0,farFromLatest=distanceFromLatest()>160;button.classList.toggle('hidden',!(hasConversation&&farFromLatest));button.setAttribute('aria-hidden',hasConversation&&farFromLatest?'false':'true')}
+function scrollToLatest({smooth=false}={}){const box=$('messages');if(!box)return;box.scrollTo({top:box.scrollHeight,behavior:smooth?'smooth':'auto'});window.setTimeout(update,smooth?220:0)}
+function bind(){if(bound)return;bound=true;const box=$('messages');if(!box)return;ensureButton();box.addEventListener('scroll',update,{passive:true});observer=new MutationObserver(()=>window.requestAnimationFrame(update));observer.observe(box,{childList:true,subtree:true});if('ResizeObserver'in window){resizeObserver=new ResizeObserver(()=>update());resizeObserver.observe(box)}window.addEventListener('resize',update,{passive:true});update()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+window.WorkspaceV2Jump={bind,update,scrollToLatest,distanceFromLatest};
+})();
