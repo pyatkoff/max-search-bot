@@ -11,6 +11,8 @@ $pushEnable=(string)file_get_contents($root.'/manager/push-enable.php');
 $mediaUpload=(string)file_get_contents($root.'/manager/media-upload.php');
 $mediaFile=(string)file_get_contents($root.'/manager/media-file.php');
 $pipeline=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$admin=(string)file_get_contents($root.'/manager/admin.php');
+$routing=(string)file_get_contents($root.'/manager/routing.php');
 
 $passed=0;$failed=0;
 function mhCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -30,6 +32,7 @@ mhCheck('push enable page delegates session and auth lifecycle without JSON head
 mhCheck('media upload delegates auth csrf and JSON response lifecycle',strpos($mediaUpload,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($mediaUpload,'ManagerHttp::startJson();')!==false&&strpos($mediaUpload,'ManagerHttp::requireManager();')!==false&&strpos($mediaUpload,'ManagerHttp::requireCsrf($_POST);')!==false&&strpos($mediaUpload,'ManagerRequestContext::')===false&&strpos($mediaUpload,'function mediaOut')===false);
 mhCheck('media preview delegates session and auth lifecycle without JSON headers',strpos($mediaFile,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($mediaFile,'ManagerHttp::start();')!==false&&strpos($mediaFile,'ManagerHttp::requireManager();')!==false&&strpos($mediaFile,'ManagerHttp::managerId();')!==false&&strpos($mediaFile,'ManagerRequestContext::')===false&&strpos($mediaFile,'ManagerHttp::startJson();')===false);
 mhCheck('pipeline API delegates auth csrf response and conversation authorization',strpos($pipeline,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($pipeline,'ManagerHttp::startJson();')!==false&&strpos($pipeline,'ManagerHttp::body();')!==false&&strpos($pipeline,'ManagerHttp::requireManager();')!==false&&strpos($pipeline,'ManagerHttp::requireCsrf($data);')!==false&&strpos($pipeline,'ManagerHttp::canEditConversation(')!==false&&strpos($pipeline,'ManagerHttp::requireConversationEdit(')!==false&&strpos($pipeline,'ManagerRequestContext::')===false&&strpos($pipeline,'function pipelineOut')===false);
+mhCheck('admin and routing shells delegate session bootstrap to ManagerHttp',strpos($admin,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($admin,'ManagerHttp::start();')!==false&&strpos($admin,'ManagerRequestContext::')===false&&strpos($routing,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($routing,'ManagerHttp::start();')!==false&&strpos($routing,'ManagerRequestContext::')===false);
 mhCheck('pipeline business services stay outside HTTP helper',strpos($pipeline,'SalesPipelineService::')!==false&&strpos($pipeline,'LeadTaskService::')!==false&&strpos($http,'SalesPipelineService')===false&&strpos($http,'LeadTaskService')===false);
 mhCheck('business services remain outside HTTP helper',strpos($http,'ManagerPushService')===false&&strpos($http,'ManagerPushHealth')===false&&strpos($http,'ManagerOutboundService')===false&&strpos($push,'ManagerPushService::')!==false&&strpos($status,'ManagerPushHealth::')!==false&&strpos($mediaUpload,'ManagerOutboundService::')!==false);
 
