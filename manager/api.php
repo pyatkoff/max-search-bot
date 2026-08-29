@@ -60,7 +60,11 @@ if($action==='save_group'){
     $ok=RoutingAdminService::saveGroup((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));out(['ok'=>$ok],$ok?200:403);
 }
 if($action==='save_source'){
-    $ok=RoutingAdminService::saveSource((int)$m['id'],(string)($data['project_key']??''),(int)($data['source_id']??0),(string)($data['source_key']??''),(string)($data['display_name']??''),(string)($data['channel']??''),(int)($data['primary_group_id']??0),(string)($data['fallback_mode']??'none'),(int)($data['fallback_group_id']??0),(int)($data['fallback_after_minutes']??0));out(['ok'=>$ok],$ok?200:403);
+    $r=RoutingAdminService::saveSourceResult((int)$m['id'],(string)($data['project_key']??''),(int)($data['source_id']??0),(string)($data['source_key']??''),(string)($data['display_name']??''),(string)($data['channel']??''),(int)($data['primary_group_id']??0),(string)($data['fallback_mode']??'none'),(int)($data['fallback_group_id']??0),(int)($data['fallback_after_minutes']??0));
+    if(!empty($r['ok']))out($r);
+    $error=(string)($r['error']??'save_failed');
+    $status=in_array($error,['admin_required','project_access_denied'],true)?403:(in_array($error,['project_not_found','source_not_found'],true)?404:($error==='duplicate_source_key'?409:($error==='save_failed'?500:422)));
+    out($r,$status);
 }
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
