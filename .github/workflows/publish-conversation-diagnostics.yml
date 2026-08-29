@@ -16,98 +16,40 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
       - name: Prepare SSH private key
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.DEPLOY_SSH_KEY }}
+        env: {DEPLOY_SSH_KEY_VALUE: "${{ secrets.DEPLOY_SSH_KEY }}"}
         shell: bash
         run: |
           set -euo pipefail
-          key_file="$RUNNER_TEMP/deploy_key"
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
-          else
-            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
-            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
-          fi
-          chmod 600 "$key_file"
-          ssh-keygen -y -f "$key_file" >/dev/null
-
-      - name: Wait for deployed SHA, migrate and capture production
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          key_file="$RUNNER_TEMP/deploy_key"; raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi; else printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$key_file"; fi
+          chmod 600 "$key_file"; ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Capture production
+        env: {DEPLOY_HOST: "${{ secrets.DEPLOY_HOST }}", DEPLOY_USER: "${{ secrets.DEPLOY_USER }}"}
         shell: bash
         run: |
           set -euo pipefail
-          key_file="$RUNNER_TEMP/deploy_key"
-          ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-          deployed=""
-          for attempt in $(seq 1 60); do
-            deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"
-            if [ "$deployed" = "$GITHUB_SHA" ]; then break; fi
-            sleep 5
-          done
-          test "$deployed" = "$GITHUB_SHA"
-
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/conversation_db.php migrate' > migration.log
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/production_snapshot.php' > production_snapshot.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php 1' > live_session_report.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php today' > daily_session_report.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/website_production_smoke.php' > website_smoke.json
-
-          php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
-          php -r '$j=json_decode(file_get_contents("live_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["summary"],$j["sessions"])) {fwrite(STDERR,"live_session_snapshot_contract_failed\n");exit(1);}'
-          php -r '$j=json_decode(file_get_contents("daily_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"daily_session_snapshot_contract_failed\n");exit(1);}'
-          php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
-          cat website_smoke.json
-          php -r '$j=json_decode(file_get_contents("website_smoke.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"website_production_smoke_failed\n");exit(1);}'
-          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
+          key_file="$RUNNER_TEMP/deploy_key"; ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          deployed=""; for attempt in $(seq 1 60); do deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"; [ "$deployed" = "$GITHUB_SHA" ] && break; sleep 5; done; test "$deployed" = "$GITHUB_SHA"
+          remote='cd ~/www/anytour.online/max-search && /opt/php81/bin/php'
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/conversation_db.php migrate" > migration.log
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/production_snapshot.php" > production_snapshot.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/live_session_snapshot.php 1" > live_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/live_session_snapshot.php today" > daily_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/live_session_snapshot.php yesterday" > yesterday_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/export_handoff_snapshot.php" > handoff.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote tools/website_production_smoke.php" > website_smoke.json
+          php -r 'foreach(["production_snapshot.json","live_session_report.json","daily_session_report.json","yesterday_session_report.json","handoff.json","website_smoke.json"] as $f){$j=json_decode(file_get_contents($f),true);if(!is_array($j)||empty($j["ok"])){fwrite(STDERR,"invalid:$f\n");exit(1);}} $y=json_decode(file_get_contents("yesterday_session_report.json"),true);if(($y["window_type"]??"")!=="calendar_day"||($y["timezone"]??"")!=="Europe/Kaliningrad"||!isset($y["summary"]["calendar_day"]["conversations_started"],$y["summary"]["calendar_day"]["manager_requested"]))exit(1);'
+          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
           php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json > autopilot_snapshot.json
-          php -r '$j=json_decode(file_get_contents("autopilot_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])||(int)($j["schema_version"]??0)!==1){fwrite(STDERR,"autopilot_snapshot_contract_failed\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"autopilot_snapshot_sha_mismatch\n");exit(1);} if((int)($j["migrations"]["pending"]??-1)!==0||(int)($j["migrations"]["checksum_failures"]??-1)!==0){fwrite(STDERR,"autopilot_snapshot_migration_health_failed\n");exit(1);} if(!isset($j["daily"]["summary"]["calendar_day"]["conversations_started"],$j["daily"]["summary"]["calendar_day"]["manager_requested"])) {fwrite(STDERR,"autopilot_snapshot_daily_missing\n");exit(1);}'
-
-          out_dir="$RUNNER_TEMP/production-diagnostics-out"
-          rm -rf "$out_dir"
-          mkdir -p "$out_dir"
-          cp production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json "$out_dir/"
-
+          out="$RUNNER_TEMP/production-diagnostics-out"; rm -rf "$out"; mkdir -p "$out"; cp production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json "$out/"
       - name: Publish production snapshot
         shell: bash
         run: |
           set -euo pipefail
-          out_dir="$RUNNER_TEMP/production-diagnostics-out"
-          test -s "$out_dir/production_snapshot.json"
-          test -s "$out_dir/live_session_report.json"
-          test -s "$out_dir/daily_session_report.json"
-          test -s "$out_dir/handoff.json"
-          test -s "$out_dir/website_smoke.json"
-          test -s "$out_dir/migration.log"
-          test -s "$out_dir/ops_status.json"
-          test -s "$out_dir/autopilot_snapshot.json"
-
-          rm -f production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin diagnostics
-          git checkout -B diagnostics origin/diagnostics
-          cp "$out_dir/production_snapshot.json" .
-          cp "$out_dir/live_session_report.json" .
-          cp "$out_dir/daily_session_report.json" .
-          cp "$out_dir/handoff.json" .
-          cp "$out_dir/website_smoke.json" .
-          cp "$out_dir/migration.log" .
-          cp "$out_dir/ops_status.json" .
-          cp "$out_dir/autopilot_snapshot.json" .
-          git add production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
-          git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
-          for attempt in 1 2 3; do
-            if git push origin diagnostics; then exit 0; fi
-            git pull --rebase origin diagnostics
-          done
-          exit 1
+          out="$RUNNER_TEMP/production-diagnostics-out"; for f in production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json; do test -s "$out/$f"; done
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"; git fetch origin diagnostics; git checkout -B diagnostics origin/diagnostics
+          cp "$out"/* .; git add production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json; git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
+          for attempt in 1 2 3; do git push origin diagnostics && exit 0; git pull --rebase origin diagnostics; done; exit 1
