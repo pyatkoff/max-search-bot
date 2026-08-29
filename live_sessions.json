@@ -1,7 +1,9 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T16:30:35+00:00",
+    "generated_at": "2026-08-29T16:35:11+00:00",
+    "window_type": "rolling_hours",
     "window_hours": 1,
+    "timezone": "UTC",
     "channel": "max",
     "summary": {
         "sessions": 3,
@@ -69,7 +71,7 @@
             "inbound_messages": 23,
             "outbound_messages": 24,
             "date_picks": 2,
-            "anomaly_inbound_messages": 12,
+            "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 17:16:29",
@@ -100,5 +102,5 @@
             "last_message_at": "2026-08-29 18:24:10"
         }
     ],
-    "since_utc": "2026-08-29 15:30:35"
+    "since_utc": "2026-08-29 15:35:11"
 }
