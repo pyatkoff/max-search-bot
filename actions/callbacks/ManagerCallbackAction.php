@@ -26,7 +26,7 @@ class ManagerCallbackAction
                 self::userName($query),
                 $afterTours
             );
-            if ($handoff['sent']) {
+            if (!empty($handoff['queue_waiting'])) {
                 ConversationControlService::markWaitingByChat($platform,$chatId,[
                     'from_tours'=>$afterTours,
                     'source'=>'callback',
