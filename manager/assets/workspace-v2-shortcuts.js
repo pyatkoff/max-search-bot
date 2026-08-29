@@ -1,0 +1,13 @@
+(function(){
+const W=window.WorkspaceV2,{S,$}=W;let bound=false;
+function isEditable(target){if(!(target instanceof Element))return false;const tag=target.tagName;return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||target.isContentEditable}
+function isVisible(el){return !!(el&&el.isConnected&&!el.classList.contains('hidden')&&el.getClientRects().length)}
+function focusSearch(){const input=$('leadSearch');if(!isVisible(input))return false;input.focus();if(typeof input.select==='function')input.select();return true}
+function attentionItems(){return Array.from(document.querySelectorAll('#inboxList .leadItem')).filter(el=>el.classList.contains('waitUrgent')||el.classList.contains('waitWarn')||!!el.querySelector('.unreadBadge'))}
+function openNextAttention(){const items=attentionItems();if(!items.length)return false;const current=items.findIndex(el=>Number(el.dataset.conversationId||0)===Number(S.current||0));const next=items[(current+1+items.length)%items.length];next?.click();next?.scrollIntoView({block:'nearest'});return !!next}
+function focusComposer(){const input=$('replyText'),composer=$('composer');if(!S.current||!isVisible(composer)||!isVisible(input)||input.disabled)return false;input.focus();return true}
+function openLeadCard(){if(!S.current)return false;if(window.WorkspaceV2Mobile?.isMobile?.()){window.WorkspaceV2Mobile.showLead();return true}const zone=$('leadZone');if(!isVisible(zone))return false;if(!zone.hasAttribute('tabindex'))zone.setAttribute('tabindex','-1');zone.focus({preventScroll:true});return true}
+function onKeydown(e){if(e.defaultPrevented||e.repeat)return;const editable=isEditable(e.target);if(!editable&&!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&e.key==='/'){if(focusSearch())e.preventDefault();return}if(editable)return;if(e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey){const key=String(e.key||'').toLowerCase();if(key==='j'&&openNextAttention()){e.preventDefault();return}if(key==='r'&&focusComposer()){e.preventDefault();return}if(key==='l'&&openLeadCard())e.preventDefault()}}
+function bind(){if(bound)return;bound=true;$('leadSearch')?.setAttribute('aria-keyshortcuts','/');$('inboxList')?.setAttribute('aria-keyshortcuts','Alt+J');$('replyText')?.setAttribute('aria-keyshortcuts','Alt+R');$('mobileLeadBtn')?.setAttribute('aria-keyshortcuts','Alt+L');document.addEventListener('keydown',onKeydown)}
+window.WorkspaceV2Shortcuts={bind,focusSearch,openNextAttention,focusComposer,openLeadCard,attentionItems};
+})();
