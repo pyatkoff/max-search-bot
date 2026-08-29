@@ -113,6 +113,7 @@ return [
         'php tests/run_manager_workspace_v2_send_context_integrity_regression.php',
         'php tests/run_manager_http_boundary_regression.php',
         'php tests/run_manager_routing_assets_regression.php',
+        'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
         'php tests/run_live_september_typo_regression.php',
