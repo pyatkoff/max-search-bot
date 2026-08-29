@@ -34,6 +34,16 @@ function liveDiagnosticWindowMessages(array $messages,int $sinceTs):array
     }));
 }
 
+function liveDiagnosticBefore(array $items,int $untilTs):array
+{
+    return array_values(array_filter($items,static function(array $item)use($untilTs):bool{
+        $created=trim((string)($item['created_at']??''));
+        if($created==='')return true;
+        $ts=strtotime($created);
+        return $ts===false||$ts<$untilTs;
+    }));
+}
+
 function liveDiagnosticTs($value):?int
 {
     $value=trim((string)$value);
@@ -43,7 +53,7 @@ function liveDiagnosticTs($value):?int
 }
 
 $windowArg=(string)($argv[1]??'1');
-$calendarDay=$windowArg==='today';
+$calendarDay=in_array($windowArg,['today','yesterday'],true);
 $hours=$calendarDay?null:max(1,min(24,(int)$windowArg));
 $result=[
     'ok'=>false,
@@ -59,21 +69,31 @@ $result=[
 try{
     if(!ConversationDb::isConfigured()) throw new RuntimeException('conversation_db_not_configured');
     $pdo=ConversationDb::connection();
+    $until=null;
     if($calendarDay){
         $tz=new DateTimeZone('Europe/Kaliningrad');
         $localNow=new DateTimeImmutable('now',$tz);
-        $localStart=$localNow->setTime(0,0,0);
+        $targetDay=$windowArg==='yesterday'?$localNow->modify('-1 day'):$localNow;
+        $localStart=$targetDay->setTime(0,0,0);
+        $localEnd=$localStart->modify('+1 day');
         $since=$localStart->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        $result['local_date']=$localNow->format('Y-m-d');
+        $until=$localEnd->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $result['local_date']=$targetDay->format('Y-m-d');
         $result['local_day_started_at']=$localStart->format(DateTimeInterface::ATOM);
+        $result['local_day_ended_at']=$localEnd->format(DateTimeInterface::ATOM);
     } else {
         $since=(new DateTimeImmutable('now',new DateTimeZone('UTC')))->modify('-'.$hours.' hours')->format('Y-m-d H:i:s');
     }
     $sinceTs=strtotime($since.' UTC');
+    $untilTs=$until!==null?strtotime($until.' UTC'):null;
     if($sinceTs===false)throw new RuntimeException('invalid_diagnostic_window');
 
-    $q=$pdo->prepare("SELECT id,project_key,channel,status,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=? ORDER BY COALESCE(last_message_at,started_at) ASC");
-    $q->execute([$since]);
+    $sql="SELECT id,project_key,channel,status,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=?";
+    $params=[$since];
+    if($until!==null){$sql.=' AND started_at<?';$params[]=$until;}
+    $sql.=' ORDER BY COALESCE(last_message_at,started_at) ASC';
+    $q=$pdo->prepare($sql);
+    $q->execute($params);
     $conversations=$q->fetchAll(PDO::FETCH_ASSOC);
 
     $sessions=[];
@@ -85,6 +105,10 @@ try{
         $eq=$pdo->prepare('SELECT event_type,actor_type,actor_id,created_at FROM conversation_events WHERE conversation_id=? ORDER BY id ASC');
         $eq->execute([$id]);
         $events=$eq->fetchAll(PDO::FETCH_ASSOC);
+        if($untilTs!==null){
+            $messages=liveDiagnosticBefore($messages,$untilTs);
+            $events=liveDiagnosticBefore($events,$untilTs);
+        }
         $session=LiveSessionAnalyzer::analyze($conversation,$messages,$events,$sinceTs);
         if(!empty($session['flags'])){
             $evidence=liveDiagnosticWindowMessages($messages,$sinceTs);
@@ -135,16 +159,16 @@ try{
 
         if($calendarDay){
             $startedAt=liveDiagnosticTs($session['started_at']??null);
-            $startedToday=$startedAt!==null&&$startedAt>=$sinceTs;
-            if($startedToday){
+            $startedInDay=$startedAt!==null&&$startedAt>=$sinceTs&&($untilTs===null||$startedAt<$untilTs);
+            if($startedInDay){
                 $summary['calendar_day']['conversations_started']++;
                 if(!empty($session['needs_collected']))$summary['calendar_day']['needs_collected_from_started']++;
                 if(!empty($session['tours_opened']))$summary['calendar_day']['tours_opened_from_started']++;
             }
             $requestAt=liveDiagnosticTs($session['manager_request_at']??null);
-            if($requestAt!==null&&$requestAt>=$sinceTs)$summary['calendar_day']['manager_requested']++;
+            if($requestAt!==null&&$requestAt>=$sinceTs&&($untilTs===null||$requestAt<$untilTs))$summary['calendar_day']['manager_requested']++;
             $replyAt=liveDiagnosticTs($session['manager_first_reply_at']??null);
-            if($replyAt!==null&&$replyAt>=$sinceTs)$summary['calendar_day']['manager_replied']++;
+            if($replyAt!==null&&$replyAt>=$sinceTs&&($untilTs===null||$replyAt<$untilTs))$summary['calendar_day']['manager_replied']++;
         }
     }
     if($responseSeconds){
@@ -156,6 +180,7 @@ try{
     arsort($summary['flags']);
 
     $result['since_utc']=$since;
+    if($until!==null)$result['until_utc']=$until;
     $result['summary']=$summary;
     $result['sessions']=$sessions;
     $result['ok']=true;

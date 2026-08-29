@@ -59,23 +59,25 @@ jobs:
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/production_snapshot.php' > production_snapshot.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php 1' > live_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php today' > daily_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php yesterday' > yesterday_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/website_production_smoke.php' > website_smoke.json
 
           php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("live_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["summary"],$j["sessions"])) {fwrite(STDERR,"live_session_snapshot_contract_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("daily_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"daily_session_snapshot_contract_failed\n");exit(1);}'
+          php -r '$j=json_decode(file_get_contents("yesterday_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"yesterday_session_snapshot_contract_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("handoff.json"),true); if(!is_array($j)||empty($j["ok"])) exit(1);'
           cat website_smoke.json
           php -r '$j=json_decode(file_get_contents("website_smoke.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"website_production_smoke_failed\n");exit(1);}'
-          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
+          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
           php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json > autopilot_snapshot.json
           php -r '$j=json_decode(file_get_contents("autopilot_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])||(int)($j["schema_version"]??0)!==1){fwrite(STDERR,"autopilot_snapshot_contract_failed\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"autopilot_snapshot_sha_mismatch\n");exit(1);} if((int)($j["migrations"]["pending"]??-1)!==0||(int)($j["migrations"]["checksum_failures"]??-1)!==0){fwrite(STDERR,"autopilot_snapshot_migration_health_failed\n");exit(1);} if(!isset($j["daily"]["summary"]["calendar_day"]["conversations_started"],$j["daily"]["summary"]["calendar_day"]["manager_requested"])) {fwrite(STDERR,"autopilot_snapshot_daily_missing\n");exit(1);}'
 
           out_dir="$RUNNER_TEMP/production-diagnostics-out"
           rm -rf "$out_dir"
           mkdir -p "$out_dir"
-          cp production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json "$out_dir/"
+          cp production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json "$out_dir/"
 
       - name: Publish production snapshot
         shell: bash
@@ -85,13 +87,14 @@ jobs:
           test -s "$out_dir/production_snapshot.json"
           test -s "$out_dir/live_session_report.json"
           test -s "$out_dir/daily_session_report.json"
+          test -s "$out_dir/yesterday_session_report.json"
           test -s "$out_dir/handoff.json"
           test -s "$out_dir/website_smoke.json"
           test -s "$out_dir/migration.log"
           test -s "$out_dir/ops_status.json"
           test -s "$out_dir/autopilot_snapshot.json"
 
-          rm -f production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
+          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
@@ -99,12 +102,13 @@ jobs:
           cp "$out_dir/production_snapshot.json" .
           cp "$out_dir/live_session_report.json" .
           cp "$out_dir/daily_session_report.json" .
+          cp "$out_dir/yesterday_session_report.json" .
           cp "$out_dir/handoff.json" .
           cp "$out_dir/website_smoke.json" .
           cp "$out_dir/migration.log" .
           cp "$out_dir/ops_status.json" .
           cp "$out_dir/autopilot_snapshot.json" .
-          git add production_snapshot.json live_session_report.json daily_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
+          git add production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log ops_status.json autopilot_snapshot.json
           git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
