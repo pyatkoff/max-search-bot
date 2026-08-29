@@ -23,18 +23,19 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-media.*` — outbound media UI owner.
 - `assets/workspace-v2-notifications.*` — notification UI owner.
 - `assets/workspace-v2-mobile.*` — mobile navigation/layout owner only; business behavior stays in feature modules.
+- `assets/admin.css` + `assets/admin.js` — admin presentation/interaction owner; `admin.php` remains markup/session shell only.
 - `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep; push behavior remains in services while endpoints use the shared HTTP boundary.
 
 ### Merge / centralize incrementally
 
-- **Completed:** push API/status/enable surfaces, `media-upload.php`, `media-file.php` and `pipeline-api.php` use `ManagerHttp` for their applicable session/auth/CSRF/response lifecycle.
-- Remaining repeated response/session/auth/CSRF handling in `api.php`, admin/routing actions and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
+- **Completed:** push API/status/enable surfaces, `media-upload.php`, `media-file.php`, `pipeline-api.php` and the main `api.php` use `ManagerHttp` for their applicable session/auth/CSRF/response lifecycle.
+- Remaining repeated response/session/auth/CSRF handling in admin/routing actions and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
 - Duplicated frontend fetch/error/auth behavior in workspace/admin/routing → one small manager HTTP client module.
 - Admin/routing visual primitives → shared manager admin CSS, without coupling them to conversation CSS.
 
 ### Move / split incrementally
 
-- Inline CSS/JS from `admin.php` → `assets/admin.css` + `assets/admin.js`.
+- **Completed:** inline CSS/JS from `admin.php` → `assets/admin.css` + `assets/admin.js`.
 - Inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`.
 - Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
 - Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
@@ -60,8 +61,8 @@ This directory is the owned interface boundary for the manager product. Changes 
 ## Refactor sequence
 
 1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
-2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview and Sales Pipeline API are migrated; continue with narrow slices of the remaining endpoints rather than widening `ManagerHttp` into a business layer.
-3. Split admin and routing monolith assets.
+2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview, Sales Pipeline API and the main Manager API are migrated; continue with narrow slices of the remaining endpoints rather than widening `ManagerHttp` into a business layer.
+3. **In progress:** split admin and routing monolith assets. Admin CSS/JS is extracted; routing remains.
 4. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior.
-5. Consolidate remaining endpoint validation and structured errors, especially the large `api.php`, in narrow slices.
+5. Consolidate remaining endpoint validation and structured errors in narrow slices.
 6. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
