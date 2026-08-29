@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T16:30:49+00:00",
+    "generated_at": "2026-08-29T16:35:22+00:00",
     "production": {
-        "sha": "f0f4905e075e3b177af0cf0e386b25b76bb3bef0",
+        "sha": "006fb07dccdc17843a4fbed54fe68a9ac93537fc",
         "branch": "main"
     },
     "migrations": {
@@ -130,7 +130,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 15:30:44",
+        "since_utc": "2026-08-29 15:35:15",
         "summary": {
             "sessions": 3,
             "started": 3,
@@ -161,14 +161,14 @@
         "summary": []
     },
     "ops": {
-        "sha": "f0f4905e075e3b177af0cf0e386b25b76bb3bef0",
+        "sha": "006fb07dccdc17843a4fbed54fe68a9ac93537fc",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "daily_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T16:30:49Z"
+        "reported_at": "2026-08-29T16:35:22Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -179,17 +179,17 @@
         "daily": "daily_session_report.json"
     },
     "daily": {
-        "window_hours": 24,
-        "since_utc": "2026-08-28 16:30:46",
+        "window_hours": null,
+        "since_utc": "2026-08-28 22:00:00",
         "summary": {
-            "sessions": 47,
-            "started": 47,
-            "needs_collected": 32,
-            "tours_opened": 32,
+            "sessions": 35,
+            "started": 35,
+            "needs_collected": 25,
+            "tours_opened": 25,
             "manager_requested": 3,
             "manager_replied": 3,
             "phone_received": 0,
-            "flagged_sessions": 10,
+            "flagged_sessions": 8,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 3,
@@ -199,14 +199,21 @@
                 "max_seconds": 5823
             },
             "drop_points": {
-                "tours_opened": 29,
-                "collecting_needs": 15,
+                "tours_opened": 22,
+                "collecting_needs": 10,
                 "manager_replied": 3
             },
             "flags": {
-                "repeated_callback_input": 8,
-                "excessive_turns": 5,
+                "repeated_callback_input": 7,
+                "excessive_turns": 3,
                 "rapid_date_reselection": 3
+            },
+            "calendar_day": {
+                "conversations_started": 26,
+                "needs_collected_from_started": 18,
+                "tours_opened_from_started": 18,
+                "manager_requested": 2,
+                "manager_replied": 2
             }
         }
     }
