@@ -74,10 +74,19 @@ class RoutingAdminService
                 $sourceId=(int)$pdo->lastInsertId();
             }
         }catch(Throwable $e){
-            return['ok'=>false,'error'=>'duplicate_source_key'];
+            if(self::isDuplicateKeyFailure($e))return['ok'=>false,'error'=>'duplicate_source_key'];
+            return['ok'=>false,'error'=>'save_failed'];
         }
         AuditLogService::record($managerId,$before?'routing_source_updated':'routing_source_created','conversation_source',(string)$sourceId,$projectKey,$before,self::sourceRow($sourceId));
         return['ok'=>true,'source_id'=>$sourceId];
+    }
+
+    private static function isDuplicateKeyFailure(Throwable $e): bool
+    {
+        if(!$e instanceof PDOException)return false;
+        $driverCode=(int)($e->errorInfo[1]??0);
+        if($driverCode===1062)return true;
+        return (string)$e->getCode()==='23000'&&stripos($e->getMessage(),'duplicate')!==false;
     }
 
     private static function groupRow(int $id): ?array
