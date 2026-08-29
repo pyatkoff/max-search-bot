@@ -69,7 +69,7 @@ async function loadCatalog(){
 }
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
-  window.WorkspaceV2Pipeline?.bindFilters();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();
+  window.WorkspaceV2Pipeline?.bindFilters();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();
   S.workspaceBound=true;
 }
 async function resumeAuthenticated(me){
