@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T07:01:48+00:00",
+    "generated_at": "2026-08-29T07:05:09+00:00",
     "window_hours": 1,
     "channel": "max",
     "summary": {
@@ -53,7 +53,7 @@
             "inbound_messages": 7,
             "outbound_messages": 7,
             "date_picks": 0,
-            "anomaly_inbound_messages": 7,
+            "anomaly_inbound_messages": 6,
             "drop_point": "collecting_needs",
             "flags": [],
             "started_at": "2026-08-29 06:04:32",
@@ -1084,5 +1084,5 @@
             ]
         }
     ],
-    "since_utc": "2026-08-29 06:01:48"
+    "since_utc": "2026-08-29 06:05:09"
 }
