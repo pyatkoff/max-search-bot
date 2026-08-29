@@ -1,7 +1,7 @@
 <?php
 $baseDir=dirname(__DIR__);
-require_once $baseDir.'/services/ManagerRequestContext.php';
-ManagerRequestContext::startSession();
+require_once __DIR__.'/lib/ManagerHttp.php';
+ManagerHttp::start();
 $cssVersion=(string)(@filemtime(__DIR__.'/assets/routing.css')?:1);
 $httpClientVersion=(string)(@filemtime(__DIR__.'/assets/manager-http-client.js')?:1);
 $jsVersion=(string)(@filemtime(__DIR__.'/assets/routing.js')?:1);
