@@ -33,6 +33,11 @@ class ProjectConfig
         return rtrim((string)self::get('search.base_domain', ''), '/');
     }
 
+    public static function trackingBaseDomain(): string
+    {
+        return rtrim((string)self::get('search.tracking_base_domain', self::baseDomain()), '/');
+    }
+
     public static function claimUrl(string $code, string $yclid = ''): string
     {
         $path = (string)self::get('search.claim_path', '/poisk-turov-tg/{code}/');

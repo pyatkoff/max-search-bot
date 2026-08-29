@@ -31,7 +31,8 @@ ProjectConfig::resetForTests([
         'open_channel_path'=>'/track/channel.php',
     ],
     'search'=>[
-        'base_domain'=>'https://agency.test',
+        'base_domain'=>'https://public-search.test',
+        'tracking_base_domain'=>'https://tracker.test',
         'open_tours_path'=>'/track/tours.php',
     ],
 ]);
@@ -42,14 +43,16 @@ trCheck('channel url preserved', $model['channel_url'], 'https://max.ru/test?sta
 trCheck('MAX button label', $model['buttons'][1][0]['text'], '🔥 Горящие туры в MAX');
 trCheck('manager callback', $model['buttons'][2][0]['callback_data'], 'manager_after_tours');
 trCheck('edit callback', $model['buttons'][3][0]['callback_data'], 'edit_params');
-trCheck('tour tracking url', $model['buttons'][0][0]['url'], 'https://agency.test/track/tours.php?chat=-123&url='.rawurlencode('https://agency.test/search/abc/?yclid=777'));
-trCheck('channel tracking url', $model['buttons'][1][0]['url'], 'https://agency.test/track/channel.php?chat=-123&url='.rawurlencode('https://max.ru/test?startapp=777'));
+trCheck('tour tracking url uses tracking origin', $model['buttons'][0][0]['url'], 'https://tracker.test/track/tours.php?chat=-123&url='.rawurlencode('https://agency.test/search/abc/?yclid=777'));
+trCheck('channel tracking url uses tracking origin', $model['buttons'][1][0]['url'], 'https://tracker.test/track/channel.php?chat=-123&url='.rawurlencode('https://max.ru/test?startapp=777'));
+trCheck('public and tracking origins stay independent', ProjectConfig::baseDomain(), 'https://public-search.test');
 trCheck('MAX message wording', strpos($model['text'], 'MAX-канал') !== false, true);
 
 ProjectConfig::resetForTests([
     'messenger'=>['provider'=>'telegram'],
     'search'=>['base_domain'=>'https://other.test'],
 ]);
+trCheck('tracking origin falls back to base domain', ProjectConfig::trackingBaseDomain(), 'https://other.test');
 trCheck('Telegram button label', TourResultsService::channelButtonText(), '🔥 Горящие туры в Telegram');
 trCheck('Telegram message wording', strpos(TourResultsService::messageText(), 'Telegram-канал') !== false, true);
 trCheck('absolute tracking path supported', TourResultsService::trackedUrl('https://tracker.test/open', 5, 'https://target.test/a'), 'https://tracker.test/open?chat=5&url='.rawurlencode('https://target.test/a'));
