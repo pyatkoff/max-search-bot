@@ -23,15 +23,16 @@ class ManagerAction
 
         $platform = strtolower(trim((string)($userContext['platform'] ?? ProjectConfig::get('messenger.provider', 'max'))));
         $handoff = ManagerHandoffDispatchService::dispatch($chatId, $platform, $name, $fromTours);
+        $eventType = !empty($handoff['queue_waiting']) ? 'manager_request' : 'manager_request_deferred';
 
-        ConversationRecorder::eventByChat($platform,$chatId,'manager_request',[
+        ConversationRecorder::eventByChat($platform,$chatId,$eventType,[
             'summary'=>$plan['summary'],
             'from_tours'=>$fromTours,
             'manager_available'=>$handoff['manager_available'],
             'within_working_hours'=>$handoff['within_working_hours'],
         ],'ai');
 
-        if ($handoff['sent']) ConversationControlService::markWaitingByChat($platform,$chatId,[
+        if (!empty($handoff['queue_waiting'])) ConversationControlService::markWaitingByChat($platform,$chatId,[
             'summary'=>$plan['summary'],
             'from_tours'=>$fromTours,
             'manager_available'=>$handoff['manager_available'],
