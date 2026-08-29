@@ -16,6 +16,8 @@ class WebsiteOriginPolicy
             'https://www.anytour.com',
             'https://anytour.online',
             'https://www.anytour.online',
+            'https://anytoour.ru',
+            'https://www.anytoour.ru',
         ];
 
         if (defined('WEBSITE_ALLOWED_ORIGINS')) {
