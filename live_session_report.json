@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T21:03:56+00:00",
+    "generated_at": "2026-08-29T21:07:48+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -28,7 +28,8 @@
             "tours_opened": 1
         },
         "flags": {
-            "manager_requested_no_reply": 1
+            "manager_requested_no_reply": 1,
+            "left_waiting_queue_without_manager_reply": 1
         }
     },
     "sessions": [
@@ -60,7 +61,7 @@
             "conversation_id": 617,
             "project_key": "anytour",
             "channel": "max",
-            "status": "waiting_manager",
+            "status": "ai",
             "started": true,
             "needs_collected": true,
             "tours_opened": true,
@@ -77,7 +78,8 @@
             "anomaly_inbound_messages": 0,
             "drop_point": "manager_requested",
             "flags": [
-                "manager_requested_no_reply"
+                "manager_requested_no_reply",
+                "left_waiting_queue_without_manager_reply"
             ],
             "started_at": "2026-08-29 21:03:37",
             "last_message_at": "2026-08-29 21:42:07",
@@ -253,5 +255,5 @@
             "last_message_at": "2026-08-29 21:55:02"
         }
     ],
-    "since_utc": "2026-08-29 20:03:56"
+    "since_utc": "2026-08-29 20:07:48"
 }
