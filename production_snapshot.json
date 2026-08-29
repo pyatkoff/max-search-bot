@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T21:11:46+00:00",
+    "generated_at": "2026-08-29T22:10:39+00:00",
     "production": {
-        "sha": "95aaf23af380914305b84fc4509fa76dda331357",
+        "sha": "9d4d3ec1415ecbd4ba59400fce11b3fe93cdab31",
         "branch": "main"
     },
     "database": {
@@ -156,7 +156,7 @@
         "customers": 615,
         "customer_channels": 615,
         "conversations": 617,
-        "messages": 15634,
+        "messages": 15647,
         "managers": 5,
         "manager_assignments": 114,
         "conversation_events": 941,
@@ -323,7 +323,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-29 21:42:07",
+                "last_success_at": "2026-08-30 00:01:37",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -1032,6 +1032,318 @@
     ],
     "recent_manager_push_events": [
         {
+            "ts": "2026-08-30T00:01:37+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "1df563e4709bf8a7",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:37+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "1df563e4709bf8a7",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:36+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "2e0f00350d3987df",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:36+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "2e0f00350d3987df",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:36+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ebb4b60953105a8e",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:36+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ebb4b60953105a8e",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:35+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "fc2d8247df4ca94b",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:35+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "fc2d8247df4ca94b",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:33+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "91cc7ee5f7a9254c",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:33+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "91cc7ee5f7a9254c",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:33+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "e1f17b4c952fd920",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:33+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "e1f17b4c952fd920",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:32+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "fffbde5d381222ed",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:32+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "fffbde5d381222ed",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "2de87052e8b1801c",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "2de87052e8b1801c",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "5732710e23db5057",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "5732710e23db5057",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "41950984283a9ed5",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:31+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "41950984283a9ed5",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:29+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "d52bf875e7a4726a",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:29+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "d52bf875e7a4726a",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:25+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ff836210295ddca1",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T00:01:25+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ff836210295ddca1",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
             "ts": "2026-08-29T21:42:07+02:00",
             "level": "info",
             "component": "manager_push",
@@ -1540,6 +1852,123 @@
     ],
     "recent_messages": [
         {
+            "id": 15647,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:37"
+        },
+        {
+            "id": 15646,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:36"
+        },
+        {
+            "id": 15645,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:36"
+        },
+        {
+            "id": 15644,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:35"
+        },
+        {
+            "id": 15643,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-30 00:01:33"
+        },
+        {
+            "id": 15642,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-30 00:01:33"
+        },
+        {
+            "id": 15641,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-30 00:01:32"
+        },
+        {
+            "id": 15640,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:31"
+        },
+        {
+            "id": 15639,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:31"
+        },
+        {
+            "id": 15638,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:31"
+        },
+        {
+            "id": 15637,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:29"
+        },
+        {
+            "id": 15636,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 00:01:25"
+        },
+        {
+            "id": 15635,
+            "conversation_id": 334,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 00:01:13"
+        },
+        {
             "id": 15634,
             "conversation_id": 513,
             "direction": "outbound",
@@ -1961,123 +2390,6 @@
             "channel": "max",
             "text": "edit_country",
             "created_at": "2026-08-29 17:07:33"
-        },
-        {
-            "id": 15587,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Таиланд 👥 2 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 02.09.2026 · ищем 30.08–05.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-29 17:07:28"
-        },
-        {
-            "id": 15586,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "back_check",
-            "created_at": "2026-08-29 17:07:27"
-        },
-        {
-            "id": 15585,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-29 17:07:20"
-        },
-        {
-            "id": 15584,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-29 17:07:20"
-        },
-        {
-            "id": 15583,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Таиланд 👥 2 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 02.09.2026 · ищем 30.08–05.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-29 17:06:35"
-        },
-        {
-            "id": 15582,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_02.09.2026",
-            "created_at": "2026-08-29 17:06:35"
-        },
-        {
-            "id": 15581,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-29 17:06:31"
-        },
-        {
-            "id": 15580,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-29 17:06:31"
-        },
-        {
-            "id": 15579,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-29 17:06:28"
-        },
-        {
-            "id": 15578,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-29 17:06:27"
-        },
-        {
-            "id": 15577,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Таиланд 👥 2 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 02.09.2026 · ищем 30.08–05.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-29 17:06:22"
-        },
-        {
-            "id": 15576,
-            "conversation_id": 448,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_1",
-            "created_at": "2026-08-29 17:06:21"
-        },
-        {
-            "id": 15575,
-            "conversation_id": 448,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-29 17:06:19"
         }
     ],
     "recent_events": [
