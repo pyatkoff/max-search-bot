@@ -1,6 +1,6 @@
 <?php
-require_once dirname(__DIR__).'/services/ManagerRequestContext.php';
-ManagerRequestContext::startSession();
+require_once __DIR__.'/lib/ManagerHttp.php';
+ManagerHttp::start();
 function workspaceAsset(string $name): string {
     $path=__DIR__.'/assets/'.$name;
     $version=is_file($path)?(string)filemtime($path):'1';
