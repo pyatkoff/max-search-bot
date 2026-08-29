@@ -41,7 +41,7 @@ jobs:
           python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/visual-server.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/visual-server.pid"
           for attempt in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-kanban-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-theme-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-activity-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-startup-failure-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-load-failure-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/admin-audit-fixture.html >/dev/null; then exit 0; fi
+            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-kanban-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-theme-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-activity-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-startup-failure-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-load-failure-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-task-edit-fixture.html >/dev/null && curl -fsS http://127.0.0.1:4173/tests/visual/admin-audit-fixture.html >/dev/null; then exit 0; fi
             sleep 1
           done
           cat "$RUNNER_TEMP/visual-server.log"
@@ -58,6 +58,7 @@ jobs:
           activity='http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-activity-fixture.html'
           startup='http://127.0.0.1:4173/tests/visual/workspace-v2-startup-failure-fixture.html'
           inboxFailure='http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-load-failure-fixture.html'
+          taskEdit='http://127.0.0.1:4173/tests/visual/workspace-v2-task-edit-fixture.html'
           adminAudit='http://127.0.0.1:4173/tests/visual/admin-audit-fixture.html'
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390-inbox.png
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-390-conversation.png
@@ -79,9 +80,11 @@ jobs:
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$startup" visual-artifacts/workspace-v2-1440-startup-failure.png
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$inboxFailure" visual-artifacts/workspace-v2-390-inbox-load-failure.png
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$inboxFailure" visual-artifacts/workspace-v2-1440-inbox-load-failure.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-390.png
+          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-1440.png
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$adminAudit" visual-artifacts/admin-audit-390.png
           npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$adminAudit" visual-artifacts/admin-audit-1440.png
-          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 22
+          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 24
           find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
 
       - name: Upload visual evidence
