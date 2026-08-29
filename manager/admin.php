@@ -1,7 +1,7 @@
 <?php
 $baseDir=dirname(__DIR__);
-require_once $baseDir.'/services/ManagerRequestContext.php';
-ManagerRequestContext::startSession();
+require_once __DIR__.'/lib/ManagerHttp.php';
+ManagerHttp::start();
 $httpClientVersion=(string)(@filemtime(__DIR__.'/assets/manager-http-client.js')?:1);
 $adminJsVersion=(string)(@filemtime(__DIR__.'/assets/admin.js')?:1);
 ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AnyTour — администрирование</title><link rel="stylesheet" href="assets/admin.css"></head><body><div class="wrap"><div class="head"><div><h1>Администрирование</h1><div class="muted">Проекты, менеджеры и приоритет заявок</div></div><div class="nav"><a href="./">Диалоги</a><a href="routing.php">Маршрутизация</a></div></div><div id="denied" class="card hidden">Доступно только администратору.</div><div id="app" class="hidden">
