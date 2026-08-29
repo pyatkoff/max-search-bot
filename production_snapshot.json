@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T04:05:36+00:00",
+    "generated_at": "2026-08-29T04:07:43+00:00",
     "production": {
-        "sha": "522fde9dc327901eb8ffd23f3a24b04dda127ddf",
+        "sha": "163805c6385649b15de6327b7f74a5312c4c6f45",
         "branch": "main"
     },
     "database": {
@@ -142,7 +142,7 @@
         "customers": 549,
         "customer_channels": 549,
         "conversations": 550,
-        "messages": 14937,
+        "messages": 14944,
         "managers": 5,
         "manager_assignments": 111,
         "conversation_events": 927,
@@ -650,6 +650,60 @@
     ],
     "recent_messages": [
         {
+            "id": 14944,
+            "conversation_id": 550,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какое питание предпочитаете?",
+            "created_at": "2026-08-29 06:06:25"
+        },
+        {
+            "id": 14943,
+            "conversation_id": 550,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "На хуй иди тупизна",
+            "created_at": "2026-08-29 06:06:23"
+        },
+        {
+            "id": 14942,
+            "conversation_id": 550,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какое питание предпочитаете?",
+            "created_at": "2026-08-29 06:06:03"
+        },
+        {
+            "id": 14941,
+            "conversation_id": 550,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Без питания",
+            "created_at": "2026-08-29 06:06:00"
+        },
+        {
+            "id": 14940,
+            "conversation_id": 550,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какое питание предпочитаете?",
+            "created_at": "2026-08-29 06:05:47"
+        },
+        {
+            "id": 14939,
+            "conversation_id": 550,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "4",
+            "created_at": "2026-08-29 06:05:44"
+        },
+        {
             "id": 14938,
             "conversation_id": 550,
             "direction": "outbound",
@@ -1134,60 +1188,6 @@
             "channel": "max",
             "text": "nights_12_14",
             "created_at": "2026-08-29 04:21:46"
-        },
-        {
-            "id": 14884,
-            "conversation_id": 546,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-29 04:21:40"
-        },
-        {
-            "id": 14883,
-            "conversation_id": 546,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_12_14",
-            "created_at": "2026-08-29 04:21:40"
-        },
-        {
-            "id": 14882,
-            "conversation_id": 546,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-29 04:21:23"
-        },
-        {
-            "id": 14881,
-            "conversation_id": 546,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "back_nights",
-            "created_at": "2026-08-29 04:21:23"
-        },
-        {
-            "id": 14880,
-            "conversation_id": 546,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-29 04:21:21"
-        },
-        {
-            "id": 14879,
-            "conversation_id": 546,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-29 04:21:19"
         }
     ],
     "recent_events": [
