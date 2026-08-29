@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T14:10:03+00:00",
+    "generated_at": "2026-08-29T15:10:51+00:00",
     "production": {
-        "sha": "686a49c34d6e6c1b3bcbdb6640d1fb8bb4aae4e9",
+        "sha": "887b6ba77b4777756507f47a4fe6dd1fe9001d3c",
         "branch": "main"
     },
     "migrations": {
@@ -130,25 +130,26 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 13:09:59",
+        "since_utc": "2026-08-29 14:10:46",
         "summary": {
-            "sessions": 1,
-            "started": 1,
-            "needs_collected": 1,
-            "tours_opened": 1,
-            "manager_requested": 0,
-            "manager_replied": 0,
+            "sessions": 2,
+            "started": 2,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 0,
+                "answered_after_90s": 1,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 4142,
+                "max_seconds": 4142
             },
             "drop_points": {
+                "manager_replied": 1,
                 "tours_opened": 1
             },
             "flags": []
@@ -160,13 +161,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "686a49c34d6e6c1b3bcbdb6640d1fb8bb4aae4e9",
+        "sha": "887b6ba77b4777756507f47a4fe6dd1fe9001d3c",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T14:10:03Z"
+        "reported_at": "2026-08-29T15:10:51Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
