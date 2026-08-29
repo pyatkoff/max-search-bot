@@ -24,6 +24,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-notifications.*` — notification UI owner.
 - `assets/workspace-v2-mobile.*` — mobile navigation/layout owner only; business behavior stays in feature modules.
 - `assets/admin.css` + `assets/admin.js` — admin presentation/interaction owner; `admin.php` remains markup/session shell only.
+- `assets/routing.css` + `assets/routing.js` — routing-admin presentation/interaction owner; `routing.php` remains the session/markup shell only.
 - `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep; push behavior remains in services while endpoints use the shared HTTP boundary.
 
 ### Merge / centralize incrementally
@@ -36,7 +37,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 ### Move / split incrementally
 
 - **Completed:** inline CSS/JS from `admin.php` → `assets/admin.css` + `assets/admin.js`.
-- Inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`.
+- **Completed:** inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`; keep routing business rules/server authorization outside these assets.
 - Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
 - Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
 
@@ -62,7 +63,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
 2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview, Sales Pipeline API and the main Manager API are migrated; continue with narrow slices of the remaining endpoints rather than widening `ManagerHttp` into a business layer.
-3. **In progress:** split admin and routing monolith assets. Admin CSS/JS is extracted; routing remains.
+3. **Done:** split admin and routing monolith assets. Admin and routing CSS/JS are extracted; PHP files remain session/markup shells.
 4. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior.
 5. Consolidate remaining endpoint validation and structured errors in narrow slices.
 6. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
