@@ -60,6 +60,23 @@ class LeadTaskService
         return ['ok'=>true,'id'=>(int)$pdo->lastInsertId()];
     }
 
+    /** Edit the business task itself without touching technical conversation state. Completed tasks stay immutable. */
+    public static function update(int $conversationId,int $taskId,string $title,?string $dueIso): array
+    {
+        if($conversationId<=0||$taskId<=0)return ['ok'=>false,'error'=>'not_found'];
+        $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare("UPDATE lead_tasks SET title=?,due_at_utc=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
+        $q->execute([$input['title'],$input['due_at_utc'],$taskId,$conversationId]);
+        if($q->rowCount()>0)return ['ok'=>true];
+        $q=$pdo->prepare("SELECT title,due_at_utc FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' LIMIT 1");
+        $q->execute([$taskId,$conversationId]);$current=$q->fetch();
+        if(!$current)return ['ok'=>false,'error'=>'not_found'];
+        $sameTitle=(string)($current['title']??'')===$input['title'];
+        $sameDue=(string)($current['due_at_utc']??'')===(string)($input['due_at_utc']??'');
+        return $sameTitle&&$sameDue?['ok'=>true]:['ok'=>false,'error'=>'update_failed'];
+    }
+
     public static function setCompleted(int $conversationId,int $taskId,bool $completed): bool
     {
         if($conversationId<=0||$taskId<=0)return false;
