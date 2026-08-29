@@ -1,6 +1,6 @@
 const S={csrf:'',manager:null,projects:[],routing:null};
 const $=id=>document.getElementById(id);
-async function api(action,data={}){try{const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,csrf:S.csrf,...data})});const j=await r.json();return j&&typeof j==='object'?j:{ok:false,error:'invalid_response'}}catch(e){return{ok:false,error:'network_error'}}}
+const api=(action,data={})=>ManagerHttpClient.request(action,data,S.csrf);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 async function boot(){const j=await api('me');if(!j.ok||!j.manager||j.manager.role!=='admin'){$('denied').classList.remove('hidden');return}S.csrf=j.csrf;S.manager=j.manager;S.projects=j.projects||[];$('app').classList.remove('hidden');$('project').innerHTML=S.projects.map(p=>`<option value="${esc(p.project_key)}">${esc(p.display_name)}</option>`).join('');$('project').onchange=load;await load()}
 async function load(){const key=$('project').value;if(!key)return;const j=await api('routing_snapshot',{project_key:key});if(!j.ok){alert('Не удалось загрузить маршрутизацию');return}S.routing=j.routing||{groups:[],sources:[],managers:[]};render()}
