@@ -1,14 +1,39 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-29T06:11:50+00:00",
-    "source_generated_at": "2026-08-29T06:11:49+00:00",
+    "generated_at": "2026-08-29T07:01:49+00:00",
+    "source_generated_at": "2026-08-29T07:01:48+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 13,
-        "ranked": 0,
-        "high": 0,
+        "sessions": 14,
+        "ranked": 2,
+        "high": 2,
         "medium": 0
     },
-    "anomalies": []
+    "anomalies": [
+        {
+            "conversation_id": 541,
+            "severity": "high",
+            "score": 95,
+            "signals": [
+                "left_waiting_queue_without_manager_reply",
+                "manager_taken_no_reply"
+            ],
+            "status": "manager",
+            "drop_point": "manager_requested",
+            "last_message_at": "2026-08-29 08:39:52"
+        },
+        {
+            "conversation_id": 521,
+            "severity": "high",
+            "score": 95,
+            "signals": [
+                "left_waiting_queue_without_manager_reply",
+                "manager_taken_no_reply"
+            ],
+            "status": "manager",
+            "drop_point": "manager_requested",
+            "last_message_at": "2026-08-29 08:12:32"
+        }
+    ]
 }
