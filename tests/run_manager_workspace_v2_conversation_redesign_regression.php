@@ -30,9 +30,11 @@ $mobileUsable=strpos($css,'@media(max-width:900px)')!==false
     && strpos($css,'.composer{padding:7px 8px')!==false;
 checkConversationUi('mobile conversation remains full-screen and usable',$mobileUsable);
 $mobileTyping=strpos($mobileCss,'@media(max-width:520px)')!==false
-    && strpos($mobileCss,'.quickReplies{order:0}')!==false
-    && strpos($mobileCss,'.composerSurface{order:1}')!==false
-    && strpos($mobileCss,'.composer:focus-within .quickReplies{display:none}')!==false;
+    && strpos($mobileCss,'.quickReplies{order:2')!==false
+    && strpos($mobileCss,'.composerSurface{order:1')!==false
+    && strpos($mobileCss,'.composer:focus-within .quickReplies{display:none}')!==false
+    && strpos($mobileCss,'.composer textarea{min-height:46px;max-height:128px')!==false
+    && strpos($mobileCss,'.composer .sendBtn{width:42px;min-width:42px')!==false;
 checkConversationUi('mobile typing keeps reply surface primary and hides shortcuts while focused',$mobileTyping);
 $scrollContract=strpos($css,'.conversationZone{background:#f4f7f9;min-height:0;overflow:hidden}')!==false
     && strpos($css,'.messages{min-height:0;flex:1 1 auto')!==false
