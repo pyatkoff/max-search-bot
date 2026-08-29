@@ -11,6 +11,11 @@ require_once __DIR__ . '/ManagerRequestService.php';
  */
 class ManagerHandoffDispatchService
 {
+    public static function shouldQueueWaiting(bool $sent, bool $withinWorkingHours): bool
+    {
+        return $sent && $withinWorkingHours;
+    }
+
     public static function dispatch($chatId, string $platform, string $name = '', bool $fromTours = false, ?int $now = null): array
     {
         $platform = strtolower(trim($platform));
@@ -41,6 +46,7 @@ class ManagerHandoffDispatchService
         } else {
             // Outside working hours phone remains optional and the copy is explicit about
             // the next working period; self-service/tours remain available via Back.
+            // This is a deferred contact offer, not an active manager queue request.
             $sent = DialogueView::managerRequest(
                 $chatId,
                 $name,
@@ -53,6 +59,7 @@ class ManagerHandoffDispatchService
             'sent'=>(bool)$sent,
             'manager_available'=>$managerAvailable,
             'within_working_hours'=>$withinWorkingHours,
+            'queue_waiting'=>self::shouldQueueWaiting((bool)$sent, $withinWorkingHours),
         ];
     }
 }
