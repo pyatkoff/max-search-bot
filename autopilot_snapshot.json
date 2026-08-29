@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T07:05:22+00:00",
+    "generated_at": "2026-08-29T07:35:38+00:00",
     "production": {
-        "sha": "45198f3a69307ac5d430cd3b5546a5938f4d7dac",
+        "sha": "0d2e9dcfd4492c66c34bc49a7a02f3cab26ce520",
         "branch": "main"
     },
     "migrations": {
@@ -29,7 +29,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 3162,
+            "oldest_wait_seconds": 4981,
             "routing_blocked_count": 0,
             "requests": [
                 {
@@ -39,7 +39,7 @@
                     "status": "manager",
                     "manager_id": 5,
                     "manager_request_at": "2026-08-29 08:12:32",
-                    "wait_seconds": 3162,
+                    "wait_seconds": 4981,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4,
@@ -55,7 +55,7 @@
                     "status": "manager",
                     "manager_id": 5,
                     "manager_request_at": "2026-08-29 08:39:52",
-                    "wait_seconds": 1522,
+                    "wait_seconds": 3341,
                     "severity": "stuck",
                     "eligible_working_manager_ids": [
                         4,
@@ -163,12 +163,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 06:05:17",
+        "since_utc": "2026-08-29 06:35:34",
         "summary": {
-            "sessions": 14,
-            "started": 14,
-            "needs_collected": 11,
-            "tours_opened": 11,
+            "sessions": 12,
+            "started": 12,
+            "needs_collected": 10,
+            "tours_opened": 10,
             "manager_requested": 2,
             "manager_replied": 0,
             "phone_received": 0,
@@ -182,8 +182,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 9,
-                "collecting_needs": 3,
+                "tours_opened": 8,
+                "collecting_needs": 2,
                 "manager_requested": 2
             },
             "flags": {
@@ -272,13 +272,13 @@
         "summary": []
     },
     "ops": {
-        "sha": "45198f3a69307ac5d430cd3b5546a5938f4d7dac",
+        "sha": "0d2e9dcfd4492c66c34bc49a7a02f3cab26ce520",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T07:05:22Z"
+        "reported_at": "2026-08-29T07:35:38Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
