@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T21:07:56+00:00",
+    "generated_at": "2026-08-29T21:11:56+00:00",
     "production": {
-        "sha": "a277bf2ec210dcced9cf720d1b641d090edb9f1c",
+        "sha": "95aaf23af380914305b84fc4509fa76dda331357",
         "branch": "main"
     },
     "migrations": {
@@ -130,53 +130,38 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 20:07:48",
+        "since_utc": "2026-08-29 20:11:48",
         "summary": {
-            "sessions": 3,
-            "started": 3,
-            "needs_collected": 3,
-            "tours_opened": 3,
-            "manager_requested": 2,
-            "manager_replied": 1,
+            "sessions": 2,
+            "started": 2,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "manager_requested": 1,
+            "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 1,
-                "still_unanswered": 1,
-                "measured_responses": 1,
-                "avg_seconds": 1453,
-                "max_seconds": 1453
+                "answered_after_90s": 0,
+                "still_unanswered": 0,
+                "measured_responses": 0,
+                "avg_seconds": null,
+                "max_seconds": null
             },
             "drop_points": {
-                "manager_replied": 1,
                 "manager_requested": 1,
                 "tours_opened": 1
             },
-            "flags": {
-                "manager_requested_no_reply": 1,
-                "left_waiting_queue_without_manager_reply": 1
-            }
+            "flags": []
         },
-        "flagged_sessions": [
-            {
-                "conversation_id": 617,
-                "flags": [
-                    "manager_requested_no_reply",
-                    "left_waiting_queue_without_manager_reply"
-                ],
-                "drop_point": "manager_requested",
-                "manager_response_bucket": "still_unanswered",
-                "manager_response_seconds": null
-            }
-        ]
+        "flagged_sessions": []
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "a277bf2ec210dcced9cf720d1b641d090edb9f1c",
+        "sha": "95aaf23af380914305b84fc4509fa76dda331357",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -184,7 +169,7 @@
         "yesterday_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T21:07:56Z"
+        "reported_at": "2026-08-29T21:11:55Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -205,11 +190,11 @@
             "manager_requested": 6,
             "manager_replied": 5,
             "phone_received": 0,
-            "flagged_sessions": 9,
+            "flagged_sessions": 8,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 5,
-                "still_unanswered": 1,
+                "still_unanswered": 0,
                 "measured_responses": 5,
                 "avg_seconds": 2895,
                 "max_seconds": 5823
@@ -223,9 +208,7 @@
             "flags": {
                 "repeated_callback_input": 7,
                 "excessive_turns": 3,
-                "rapid_date_reselection": 3,
-                "manager_requested_no_reply": 1,
-                "left_waiting_queue_without_manager_reply": 1
+                "rapid_date_reselection": 3
             },
             "calendar_day": {
                 "conversations_started": 27,
