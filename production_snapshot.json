@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-29T15:10:43+00:00",
+    "generated_at": "2026-08-29T16:07:38+00:00",
     "production": {
-        "sha": "887b6ba77b4777756507f47a4fe6dd1fe9001d3c",
+        "sha": "034861b6461456a93d721f3fb55c8ea3925d0c9e",
         "branch": "main"
     },
     "database": {
@@ -149,7 +149,7 @@
         "customers": 614,
         "customer_channels": 614,
         "conversations": 616,
-        "messages": 15591,
+        "messages": 15595,
         "managers": 5,
         "manager_assignments": 113,
         "conversation_events": 935,
@@ -1284,6 +1284,42 @@
     ],
     "recent_messages": [
         {
+            "id": 15595,
+            "conversation_id": 448,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-29 17:13:10"
+        },
+        {
+            "id": 15594,
+            "conversation_id": 448,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-29 17:13:10"
+        },
+        {
+            "id": 15593,
+            "conversation_id": 448,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Абхазия 👥 2 взр., без детей 🏨 Категория не важна 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 02.09.2026 · ищем 30.08–05.09.2026 Что удобнее дальше?",
+            "created_at": "2026-08-29 17:12:55"
+        },
+        {
+            "id": 15592,
+            "conversation_id": 448,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Абхазия",
+            "created_at": "2026-08-29 17:12:55"
+        },
+        {
             "id": 15591,
             "conversation_id": 448,
             "direction": "outbound",
@@ -1786,42 +1822,6 @@
             "channel": "website",
             "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
             "created_at": "2026-08-29 14:47:48"
-        },
-        {
-            "id": 15535,
-            "conversation_id": 605,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "website",
-            "text": "/start",
-            "created_at": "2026-08-29 14:47:48"
-        },
-        {
-            "id": 15534,
-            "conversation_id": 604,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "website",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-29 14:47:43"
-        },
-        {
-            "id": 15533,
-            "conversation_id": 604,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "website",
-            "text": "/start",
-            "created_at": "2026-08-29 14:47:43"
-        },
-        {
-            "id": 15532,
-            "conversation_id": 603,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "website",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-29 14:44:46"
         }
     ],
     "recent_events": [
