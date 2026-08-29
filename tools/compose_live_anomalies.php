@@ -55,7 +55,7 @@ $out=[
 foreach((array)($data['sessions']??[]) as $session){
     $messages=(array)($session['message_tail']??[]);
     if(!$messages)continue;
-    $signals=[];$score=0;$customerCounts=[];$promptCounts=[];
+    $signals=[];$contextSignals=[];$score=0;$customerCounts=[];$promptCounts=[];
     foreach($messages as $m){
         $text=anomalyText($m); if($text==='')continue;
         if(anomalyCustomer($m)){
@@ -80,11 +80,12 @@ foreach((array)($data['sessions']??[]) as $session){
     foreach((array)($session['flags']??[]) as $flag){
         if($flag==='rapid_date_reselection'){$signals[$flag]=true;$score=max($score,75);}
         if($flag==='repeated_same_input'){$signals[$flag]=true;$score=max($score,90);}
-        if($flag==='repeated_callback_input'){$signals[$flag]=true;$score=max($score,70);}
+        if($flag==='repeated_callback_input'){$contextSignals[$flag]=true;}
         if($flag==='manager_taken_no_reply'||$flag==='left_waiting_queue_without_manager_reply'){$signals[$flag]=true;$score=max($score,95);}
-        // excessive_turns and ordinary manager wait are intentionally not sufficient by themselves.
+        // repeated_callback_input, excessive_turns and ordinary manager wait are context only without user-visible failure evidence.
     }
     if(!$signals)continue;
+    foreach($contextSignals as $key=>$present)if($present)$signals[$key]=true;
     // Repeated bot prompts are useful context only after an independent signal makes the session actionable.
     foreach($promptCounts as $key=>$count)if($count>=2)$signals['bot_repeated_question_'.$key]=true;
     $severity=$score>=90?'high':'medium';

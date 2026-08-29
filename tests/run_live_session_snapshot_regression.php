@@ -19,13 +19,19 @@ $tmp=tempnam(sys_get_temp_dir(),'live-anomaly-');
 $fixture=[
     'ok'=>true,'generated_at'=>'2026-08-27T18:01:24+00:00','window_hours'=>1,
     'sessions'=>[
-        ['conversation_id'=>390,'status'=>'ai','needs_collected'=>true,'tours_opened'=>true,'drop_point'=>'tours_opened','flags'=>['excessive_turns'],'last_message_at'=>'2026-08-27 17:31:00','message_tail'=>[
+        ['conversation_id'=>390,'status'=>'ai','needs_collected'=>true,'tours_opened'=>true,'drop_point'=>'tours_opened','flags'=>['repeated_callback_input','excessive_turns'],'last_message_at'=>'2026-08-27 17:31:00','message_tail'=>[
             ['direction'=>'inbound','sender_type'=>'customer','text'=>'nights_6_8'],
             ['direction'=>'outbound','sender_type'=>'ai','text'=>'🌙 На сколько ночей хотите поехать?'],
             ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_09.2026'],
             ['direction'=>'outbound','sender_type'=>'ai','text'=>'📅 Когда хотите вылететь?'],
             ['direction'=>'inbound','sender_type'=>'customer','text'=>'month_change_09.2026'],
             ['direction'=>'outbound','sender_type'=>'ai','text'=>'📅 Когда хотите вылететь?'],
+        ]],
+        ['conversation_id'=>998,'status'=>'ai','needs_collected'=>false,'tours_opened'=>false,'drop_point'=>'collecting_needs','flags'=>['repeated_callback_input'],'last_message_at'=>'2026-08-27 17:59:00','message_tail'=>[
+            ['direction'=>'inbound','sender_type'=>'customer','text'=>'nights_9_11'],
+            ['direction'=>'inbound','sender_type'=>'customer','text'=>'nights_9_11'],
+            ['direction'=>'inbound','sender_type'=>'customer','text'=>'nights_9_11'],
+            ['direction'=>'inbound','sender_type'=>'customer','text'=>'Опять спрашивает по кругу'],
         ]],
         ['conversation_id'=>999,'status'=>'ai','needs_collected'=>false,'tours_opened'=>false,'drop_point'=>'collecting_needs','flags'=>['repeated_same_input'],'last_message_at'=>'2026-08-27 18:00:00','message_tail'=>[
             ['direction'=>'inbound','sender_type'=>'customer','text'=>'7 ночей'],
@@ -39,8 +45,10 @@ file_put_contents($tmp,json_encode($fixture,JSON_UNESCAPED_UNICODE|JSON_UNESCAPE
 $lines=[];$code=0;exec('php '.escapeshellarg($base.'/tools/compose_live_anomalies.php').' '.escapeshellarg($tmp),$lines,$code);@unlink($tmp);
 $composed=json_decode(implode("\n",$lines),true);$anomalies=(array)($composed['anomalies']??[]);$ids=array_map(static fn($a)=>(int)($a['conversation_id']??0),$anomalies);
 lssCheck('live anomaly composer executes',$code===0&&is_array($composed)&&!empty($composed['ok']));
-lssCheck('ordinary repeated callbacks are not promoted as repeated customer answers',!in_array(390,$ids,true));
+lssCheck('callback-only noise is not promoted without user-visible failure evidence',!in_array(390,$ids,true));
 lssCheck('repeated free-text answers remain actionable',in_array(999,$ids,true));
+$callbackContext=null;foreach($anomalies as $a)if((int)($a['conversation_id']??0)===998)$callbackContext=$a;
+lssCheck('repeated callback remains context when customer reports a stuck flow',is_array($callbackContext)&&in_array('customer_reports_stuck',(array)($callbackContext['signals']??[]),true)&&in_array('repeated_callback_input',(array)($callbackContext['signals']??[]),true));
 $target=null;foreach($anomalies as $a)if((int)($a['conversation_id']??0)===999)$target=$a;
 lssCheck('repeated bot question is context after independent signal',is_array($target)&&in_array('customer_repeated_answer',(array)($target['signals']??[]),true)&&in_array('bot_repeated_question_nights',(array)($target['signals']??[]),true));
 lssCheck('bounded anomaly summary remains internally consistent',(int)($composed['summary']['ranked']??-1)===count($anomalies)&&((int)($composed['summary']['high']??0)+(int)($composed['summary']['medium']??0))===count($anomalies));
