@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-29T02:10:32+00:00",
+    "generated_at": "2026-08-29T03:05:35+00:00",
     "production": {
-        "sha": "02da1ed92220ea6835d05d9dbf5b718d548e7102",
+        "sha": "ad1c541442d74c9111b0419a27d174b216e1a4bd",
         "branch": "main"
     },
     "migrations": {
@@ -130,16 +130,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 01:10:27",
+        "since_utc": "2026-08-29 02:05:32",
         "summary": {
-            "sessions": 0,
-            "started": 0,
-            "needs_collected": 0,
-            "tours_opened": 0,
+            "sessions": 2,
+            "started": 2,
+            "needs_collected": 1,
+            "tours_opened": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 0,
+            "flagged_sessions": 1,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -148,23 +148,40 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": [],
-            "flags": []
+            "drop_points": {
+                "tours_opened": 1,
+                "collecting_needs": 1
+            },
+            "flags": {
+                "repeated_callback_input": 1,
+                "excessive_turns": 1
+            }
         },
-        "flagged_sessions": []
+        "flagged_sessions": [
+            {
+                "conversation_id": 546,
+                "flags": [
+                    "repeated_callback_input",
+                    "excessive_turns"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
+            }
+        ]
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "02da1ed92220ea6835d05d9dbf5b718d548e7102",
+        "sha": "ad1c541442d74c9111b0419a27d174b216e1a4bd",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-29T02:10:32Z"
+        "reported_at": "2026-08-29T03:05:35Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
