@@ -21,6 +21,9 @@ tmCheck('task editor exposes dirty-state comparison for title and deadline',strp
 tmCheck('task editor clearly signals unsaved edits',strpos($tasks,'Есть несохранённые изменения')!==false&&strpos($tasks,"dirty?'dirty':'")!==false&&strpos($css,'.taskEditStatus.dirty')!==false);
 tmCheck('task editor cancel restores persisted values before closing',strpos($tasks,'form._taskEditReset=()=>')!==false&&strpos($tasks,'form?._taskEditReset?.()')!==false);
 tmCheck('task save refuses unchanged payloads',strpos($tasks,'!form._taskEditSyncDirty?.()')!==false);
+tmCheck('dirty task editor cannot be hidden by its edit toggle',strpos($tasks,'if(form._taskEditIsDirty?.())')!==false&&strpos($tasks,"form._taskEditWarn?.()")!==false&&strpos($tasks,"Сохраните или отмените изменения")!==false);
+tmCheck('opening another task editor cannot discard an existing dirty draft',strpos($tasks,"const otherDirty=[...root.querySelectorAll('.taskEditForm:not(.hidden)')]")!==false&&strpos($tasks,'x!==form&&x._taskEditIsDirty?.()')!==false&&strpos($tasks,'otherDirty._taskEditWarn?.()')!==false);
+tmCheck('task dirty state is retained as an explicit form-owned draft flag',strpos($tasks,'form._taskEditDirty=dirty')!==false&&strpos($tasks,'form._taskEditIsDirty=()=>!!form._taskEditDirty')!==false);
 tmCheck('task mutation UX does not alter technical conversation state',strpos($tasks,'set_status')===false&&strpos($lead,"pipe('set_status'")===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
