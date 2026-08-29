@@ -47,7 +47,7 @@ class TourResultsService
 
     public static function trackedUrl(string $path, $chatId, string $targetUrl): string
     {
-        $base = ProjectConfig::baseDomain();
+        $base = ProjectConfig::trackingBaseDomain();
         if (preg_match('~^https?://~i', $path)) $url = $path;
         else $url = $base . '/' . ltrim($path, '/');
 
