@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T07:32:04+00:00",
+    "generated_at": "2026-08-30T08:13:11+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -13,7 +13,7 @@
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 1,
+        "flagged_sessions": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -26,9 +26,7 @@
             "collecting_needs": 1,
             "tours_opened": 1
         },
-        "flags": {
-            "repeated_same_input": 1
-        }
+        "flags": []
     },
     "sessions": [
         {
@@ -50,75 +48,11 @@
             "inbound_messages": 8,
             "outbound_messages": 8,
             "date_picks": 0,
-            "anomaly_inbound_messages": 5,
+            "anomaly_inbound_messages": 0,
             "drop_point": "collecting_needs",
-            "flags": [
-                "repeated_same_input"
-            ],
+            "flags": [],
             "started_at": "2026-08-29 07:06:15",
-            "last_message_at": "2026-08-30 08:35:28",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "3,4",
-                    "created_at": "2026-08-30 08:34:17"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-08-30 08:34:21"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "3,4",
-                    "created_at": "2026-08-30 08:34:30"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-08-30 08:34:34"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "3,4",
-                    "created_at": "2026-08-30 08:34:44"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-08-30 08:34:46"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "2,3",
-                    "created_at": "2026-08-30 08:35:04"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-08-30 08:35:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "2,3 д",
-                    "created_at": "2026-08-30 08:35:21"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-08-30 08:35:28"
-                }
-            ]
+            "last_message_at": "2026-08-30 08:35:28"
         },
         {
             "conversation_id": 419,
@@ -139,12 +73,12 @@
             "inbound_messages": 29,
             "outbound_messages": 19,
             "date_picks": 8,
-            "anomaly_inbound_messages": 1,
+            "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 12:14:37",
             "last_message_at": "2026-08-30 09:12:04"
         }
     ],
-    "since_utc": "2026-08-30 06:32:04"
+    "since_utc": "2026-08-30 07:13:11"
 }
