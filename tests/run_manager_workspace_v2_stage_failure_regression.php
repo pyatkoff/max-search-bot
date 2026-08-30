@@ -15,6 +15,9 @@ sfCheck('stage mutation restores previous value for explicit API failure',substr
 sfCheck('stage mutation reports failure for both false result and rejection',substr_count($pipelineJs,"setSalesSaveState('Не удалось изменить этап','error')")>=2);
 sfCheck('stage mutation always restores control availability',strpos($pipelineJs,'finally{if(stage.isConnected)stage.disabled=false}')!==false);
 sfCheck('stage mutation refreshes lead data only after successful write',strpos($pipelineJs,"await refreshAfterSave(target);if(sameLead(target))setSalesSaveState('Этап сохранён','success')")!==false);
+sfCheck('sales editor tracks the last confirmed stage instead of the initial render forever',strpos($pipelineJs,"let confirmedStage=String(pipeline.stage?.stage_key||stage.value)")!==false&&strpos($pipelineJs,'if(await saveStage(stage,confirmedStage))confirmedStage=wanted')!==false);
+sfCheck('stage rollback state advances only after a successful write',strpos($pipelineJs,'const wanted=stage.value;if(await saveStage(stage,confirmedStage))confirmedStage=wanted')!==false);
+sfCheck('legacy immutable previousStage binding is gone',strpos($pipelineJs,'const previousStage=String(pipeline.stage?.stage_key||stage.value)')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
