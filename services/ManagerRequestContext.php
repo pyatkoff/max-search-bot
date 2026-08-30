@@ -49,7 +49,7 @@ final class ManagerRequestContext
 
     public static function isAdmin(array $manager): bool
     {
-        return (string) ($manager['role'] ?? 'manager') === 'admin';
+        return ManagerAuthService::isAdmin($manager);
     }
 
     public static function canEditAssignedConversation(array $conversation, array $manager): bool

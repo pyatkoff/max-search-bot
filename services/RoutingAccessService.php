@@ -22,8 +22,8 @@ class RoutingAccessService
         if(!ProjectAccessService::canAccess($managerId,$projectKey))return false;
 
         $manager=ManagerAuthService::byId($managerId);
-        if($manager && (string)($manager['role']??'manager')==='admin')return true;
-        if((string)($conversation['status']??'')==='waiting_manager' && !($manager && !empty($manager['is_working'])))return false;
+        if(ManagerAuthService::isAdmin($manager))return true;
+        if((string)($conversation['status']??'')==='waiting_manager' && !ManagerAuthService::isWorking($manager))return false;
 
         $sourceId=(int)($conversation['source_id']??0);
         if($sourceId<=0)return true;

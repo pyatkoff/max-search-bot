@@ -41,7 +41,7 @@ class ManagerConversationService
     public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
-        $manager=ManagerAuthService::byId($managerId);$isAdmin=$manager && (string)($manager['role']??'manager')==='admin';
+        $manager=ManagerAuthService::byId($managerId);$isAdmin=ManagerAuthService::isAdmin($manager);
         $limit=max(1,min(200,$limit));$where=[];$args=[];
         if($projectKey==='*' || trim($projectKey)===''){
             $projects=ProjectAccessService::projectsForManager($managerId);
@@ -115,7 +115,7 @@ class ManagerConversationService
 
     public static function filterManagers(int $managerId): array
     {
-        $manager=ManagerAuthService::byId($managerId);if(!$manager || (string)($manager['role']??'manager')!=='admin')return[];
+        $manager=ManagerAuthService::byId($managerId);if(!ManagerAuthService::isAdmin($manager))return[];
         $projects=ProjectAccessService::projectsForManager($managerId);$projectIds=array_values(array_filter(array_map(static function($p){return(int)($p['id']??0);},$projects)));
         $pdo=ConversationDb::connection();
         if(!$projectIds){$q=$pdo->query('SELECT id,login,display_name FROM managers WHERE is_active=1 ORDER BY COALESCE(display_name,login),id');return$q->fetchAll();}
