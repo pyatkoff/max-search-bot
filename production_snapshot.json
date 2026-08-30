@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T13:12:13+00:00",
+    "generated_at": "2026-08-30T14:09:46+00:00",
     "production": {
-        "sha": "2cd96782a730d023c56fbd88f8afee244f92ea97",
+        "sha": "2c9e017d61969a576efd14ed7230e862927f3083",
         "branch": "main"
     },
     "database": {
@@ -157,13 +157,20 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-30 11:03:21"
+        },
+        {
+            "version": "021_lead_sale_tracking.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-30 16:09:43"
         }
     ],
     "stats": {
         "customers": 619,
         "customer_channels": 619,
         "conversations": 621,
-        "messages": 15763,
+        "messages": 15764,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -2139,6 +2146,15 @@
     ],
     "recent_messages": [
         {
+            "id": 15764,
+            "conversation_id": 291,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-30 15:45:02"
+        },
+        {
             "id": 15763,
             "conversation_id": 542,
             "direction": "outbound",
@@ -2662,15 +2678,6 @@
         },
         {
             "id": 15705,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_30.10.2026",
-            "created_at": "2026-08-30 01:17:44"
-        },
-        {
-            "id": 15704,
             "conversation_id": 618,
             "direction": "inbound",
             "sender_type": "customer",
