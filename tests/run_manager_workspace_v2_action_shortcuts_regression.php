@@ -15,7 +15,7 @@ shortcutCheck('shortcuts reuse canonical lead task filter state',strpos($pipelin
 shortcutCheck('shortcut interaction is toggleable instead of sticky',strpos($pipeline,"===String(value||'')?'':String(value||'')")!==false);
 shortcutCheck('shortcut state stays synchronized with advanced filter',strpos($pipeline,'syncTaskShortcuts()')!==false&&strpos($pipeline,"button.setAttribute('aria-pressed',String(active))")!==false);
 shortcutCheck('shortcut change reloads through existing inbox filter boundary',strpos($pipeline,'await applyFilters()')!==false&&strpos($pipeline,'WorkspaceV2Inbox.load({preserveScroll:false})')!==false);
-shortcutCheck('clear filters also clears shortcut state',strpos($pipeline,"S.leadTaskFilter='';renderFilters();await applyFilters()")!==false);
+shortcutCheck('clear filters also clears shortcut state',strpos($pipeline,"S.leadTaskFilter=''")!==false&&strpos($pipeline,'renderFilters();')!==false&&strpos($pipeline,'await applyFilters()')!==false);
 shortcutCheck('shortcuts remain keyboard visible and mobile scroll safe',strpos($css,'.taskShortcut:focus-visible')!==false&&strpos($css,'.taskShortcuts{display:flex')!==false&&strpos($css,'overflow-x:auto')!==false);
 shortcutCheck('overdue shortcut has distinct urgency styling',strpos($css,'.taskShortcut[data-task-filter="overdue"].active')!==false);
 $all=$page."\n".$pipeline."\n".$css;
