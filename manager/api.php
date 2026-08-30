@@ -16,11 +16,6 @@ require_once $baseDir . '/services/ManagerPriorityService.php';
 ManagerHttp::startJson();
 
 function out(array $data, int $status=200): void { ManagerHttp::respond($data,$status); }
-function body(): array { return ManagerHttp::body(); }
-function manager(): ?array { return ManagerHttp::manager(); }
-function csrf(): string { return ManagerHttp::csrf(true); }
-function requireCsrf(array $data): void { ManagerHttp::requireCsrf($data); }
-function requireAdmin(array $m): void { ManagerHttp::requireAdmin($m); }
 function withoutSuspendedWaiting(array $rows): array {
     if(!$rows)return[];
     $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
@@ -28,18 +23,18 @@ function withoutSuspendedWaiting(array $rows): array {
     return array_values(array_filter($rows,static function($row)use($failures){return !isset($failures[(int)($row['id']??0)]);}));
 }
 
-$data=body(); $action=(string)($data['action']??'');
+$data=ManagerHttp::body(); $action=(string)($data['action']??'');
 if($action==='login'){
     $m=ManagerAuthService::authenticate((string)($data['login']??''),(string)($data['password']??''));
     if(!$m) out(['ok'=>false,'error'=>'invalid_credentials'],401);
     session_regenerate_id(true); $_SESSION['manager_id']=(int)$m['id'];
-    out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
+    out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 }
 
-$m=manager(); if(!$m) out(['ok'=>false,'error'=>'unauthorized'],401);
+$m=ManagerHttp::requireManager();
 $isAdmin=ManagerHttp::isAdmin($m);
-if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>csrf()]);
-requireCsrf($data);
+if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
+ManagerHttp::requireCsrf($data);
 
 if($action==='logout'){ $_SESSION=[]; session_destroy(); out(['ok'=>true]); }
 if($action==='set_working'){
@@ -48,13 +43,13 @@ if($action==='set_working'){
     out(['ok'=>$ok,'manager'=>$fresh]);
 }
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
-if($action==='manager_filters'){ requireAdmin($m); out(['ok'=>true,'managers'=>ManagerConversationService::filterManagers((int)$m['id'])]); }
+if($action==='manager_filters'){ ManagerHttp::requireAdmin($m); out(['ok'=>true,'managers'=>ManagerConversationService::filterManagers((int)$m['id'])]); }
 if($action==='admin_snapshot'){
-    requireAdmin($m);$admin=AdminDirectoryService::snapshot();$admin['priority']=ManagerPriorityService::snapshot();out(['ok'=>true,'admin'=>$admin]);
+    ManagerHttp::requireAdmin($m);$admin=AdminDirectoryService::snapshot();$admin['priority']=ManagerPriorityService::snapshot();out(['ok'=>true,'admin'=>$admin]);
 }
-if($action==='save_project'){ requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,$r['ok']?200:409); }
-if($action==='save_manager'){ requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
-if($action==='save_priority_rule'){ requireAdmin($m); $r=ManagerPriorityService::saveRule($data,(int)$m['id']); out($r,$r['ok']?200:409); }
+if($action==='save_project'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,$r['ok']?200:409); }
+if($action==='save_manager'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
+if($action==='save_priority_rule'){ ManagerHttp::requireAdmin($m); $r=ManagerPriorityService::saveRule($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
 if($action==='save_group'){
     $ok=RoutingAdminService::saveGroup((int)$m['id'],(string)($data['project_key']??''),(int)($data['group_id']??0),(string)($data['group_key']??''),(string)($data['display_name']??''),(array)($data['member_ids']??[]));out(['ok'=>$ok],$ok?200:403);
