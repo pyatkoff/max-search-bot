@@ -44,14 +44,29 @@ function flaggedLiveSessions(array $sessions,int $limit=30):array
     return $out;
 }
 
+function architectureSummary(array $inventory):array
+{
+    $signals=(array)($inventory['signals']??[]);
+    $signalCounts=[];
+    foreach($signals as $key=>$paths)$signalCounts[(string)$key]=count((array)$paths);
+    return [
+        'generated_at'=>$inventory['generated_at']??null,
+        'areas'=>$inventory['areas']??[],
+        'hotspots'=>array_slice((array)($inventory['hotspots']??[]),0,10),
+        'signal_counts'=>$signalCounts,
+        'signals'=>$signals,
+    ];
+}
+
 try{
-    if($argc<6)throw new RuntimeException('usage: compose_autopilot_snapshot.php production.json live.json handoff.json website.json ops.json [daily.json]');
+    if($argc<6)throw new RuntimeException('usage: compose_autopilot_snapshot.php production.json live.json handoff.json website.json ops.json [daily.json] [architecture.json]');
     $production=readAutopilotJson($argv[1],'production');
     $live=readAutopilotJson($argv[2],'live');
     $handoff=readAutopilotJson($argv[3],'handoff');
     $website=readAutopilotJson($argv[4],'website');
     $ops=readAutopilotJson($argv[5],'ops');
     $daily=$argc>=7?readAutopilotJson($argv[6],'daily'):null;
+    $architecture=$argc>=8?readAutopilotJson($argv[7],'architecture'):null;
 
     $snapshot=[
         'ok'=>true,
@@ -96,6 +111,10 @@ try{
             'summary'=>$daily['summary']??[],
         ];
         $snapshot['artifacts']['daily']='daily_session_report.json';
+    }
+    if(is_array($architecture)){
+        $snapshot['architecture']=architectureSummary($architecture);
+        $snapshot['artifacts']['architecture']='architecture_inventory.json';
     }
 
     $json=json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT|JSON_INVALID_UTF8_SUBSTITUTE);
