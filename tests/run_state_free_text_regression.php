@@ -32,7 +32,8 @@ foreach ($tests as [$text, $expected, $label]) {
 
 // Keep exact live nights phrases in required CI. Conversation 308 exposed the
 // prefixed range "От 7-9"; conversation 484 exposed the natural short range
-// "8 9", which must not force the tourist to re-enter a valid range.
+// "8 9"; conversation 555 exposed comma-separated short ranges such as "3,4".
+// These must not force the tourist to re-enter an otherwise unambiguous duration.
 $nightsTests = [
     ['6', '6', 'plain nights'],
     ['На 6', '6', 'live MAX phrase На 6'],
@@ -44,7 +45,13 @@ $nightsTests = [
     ['от 7–9 ночей', '7-9', 'prefixed range with noun and en dash'],
     ['8 9', '8-9', 'live MAX whitespace nights range'],
     ['8 9 ночей', '8-9', 'whitespace nights range with noun'],
+    ['3,4', '3-4', 'live MAX comma nights range'],
+    ['2,3', '2-3', 'live MAX second comma nights range'],
+    ['2,3 д', '2-3', 'live MAX comma duration with short day suffix'],
     ['1.10', '', 'date-like value is not reinterpreted as nights'],
+    ['1/10', '', 'slash date-like value is not reinterpreted as nights'],
+    ['10,8', '', 'reject reversed comma range'],
+    ['8,29', '', 'reject comma range above nights limit'],
     ['10 8', '', 'reject reversed whitespace range'],
     ['8 29', '', 'reject whitespace range above nights limit'],
     ['от 7', '', 'do not invent upper bound from minimum-only phrase'],
