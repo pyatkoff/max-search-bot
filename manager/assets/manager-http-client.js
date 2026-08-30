@@ -1,7 +1,7 @@
 window.ManagerHttpClient={
-  async request(action,data={},csrf=''){
+  async request(action,data={},csrf='',endpoint='api.php'){
     try{
-      const response=await fetch('api.php',{
+      const response=await fetch(endpoint,{
         method:'POST',
         credentials:'same-origin',
         headers:{'Content-Type':'application/json'},

@@ -10,11 +10,14 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/InteractionGuard.php` — callback concurrency/staleness safety.
 - `services/ManagerRequestContext.php` — manager identity plus conversation authorization/visibility context.
 - `manager/lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/JSON/error boundary for thin PHP endpoints; new endpoint plumbing should converge here instead of recreating local guards.
-- `manager/assets/manager-http-client.js` — shared browser request/auth/error helper for Manager/Admin/Routing only where semantics actually match; feature-specific state stays in its owning module.
+- `manager/assets/manager-http-client.js` — shared browser request/auth/error helper for Manager/Admin/Routing and focused feature endpoints where semantics actually match; endpoint selection is a transport concern, while feature-specific state stays in its owning module.
 - `services/AdminDirectoryService.php` — bounded admin directory/read snapshot composition.
 - `services/AuditLogService.php` — admin audit persistence plus bounded data-minimized read projection; UI must not expose raw before/after payloads.
 - `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
-- Sales-pipeline services/repositories — business lead state, independent from technical conversation status.
+- `services/SalesPipelineService.php` — canonical per-lead business sales state, stage history, tags, outcome and sale facts; independent from technical conversation status.
+- `services/SalesPipelineCatalogAdminService.php` — admin-only stage/tag catalog mutations and validation; audit every catalog change and never mutate technical dialogue state.
+- `manager/pipeline-api.php` — thin authorized Sales Pipeline interface; ordinary lead mutations and role-gated catalog administration delegate to their application owners.
+- `manager/pipeline-admin.php` + `manager/assets/pipeline-admin.css` + `manager/assets/pipeline-admin.js` — focused role-gated business-funnel catalog UI; kept separate from Workspace V2 and general admin page to avoid another monolith.
 - `manager/assets/workspace-v2-pipeline.js` — Workspace V2 browser owner for sales-stage/tag/outcome mutations plus pipeline filters; lead-card rendering delegates mutation wiring here instead of issuing sales writes directly.
 - `manager/index.php` plus focused `manager/assets/workspace-v2-*` modules — canonical forward Manager UI entrypoint, kept thin and progressively modular; do not recreate a second Workspace PHP shell.
 - `manager/admin.php` + `manager/assets/admin.css` + `manager/assets/admin.js` — current role-gated admin interface; PHP remains a thin shell and presentation/behavior stay in owned assets.
@@ -22,7 +25,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `migrations/` — only owner of production schema evolution; applied files immutable.
 - `services/MigrationRunner.php` — migration execution infrastructure only. DDL here is reported separately as `schema_infrastructure_ddl`; it must never be treated as permission for business/request services to own schema.
 - `tests/required_checks_manifest.php`, `tests/run_required_group.php`, `tests/run_required_checks.sh` — canonical required-check inventory/group/full-suite orchestration.
-- `tests/visual/workspace-v2-layout.spec.js` plus visual fixtures/workflow — executable responsive layout contracts plus screenshot evidence; fixtures must load production assets directly and must not be rewritten in CI.
+- `tests/visual/workspace-v2-layout.spec.js` plus visual fixtures/workflow — executable responsive layout contracts plus screenshot evidence for material manager surfaces, including focused admin pages; fixtures load production assets directly and must not be rewritten in CI.
 - `tests/scenarios/<suite>/` + `tests/support/ScenarioEngine.php` — reusable production-derived behavior scenarios; add new step handlers only when a real case needs them.
 - `tools/production_snapshot.php`, `tools/live_session_snapshot.php`, `tools/architecture_inventory.php` — bounded operational evidence for autopilot. `runtime_ddl` is reserved for request/business runtime code; migration infrastructure is classified separately so the signal remains actionable.
 
@@ -35,6 +38,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Repeated admin directory/audit read assembly → `AdminDirectoryService` / `AuditLogService`, leaving `manager/admin.php` as an interface renderer.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.
 - Repeated sales-stage/tag/outcome mutation paths → sales-pipeline application services on the backend and `workspace-v2-pipeline.js` for Workspace V2 browser orchestration.
+- Any stage/tag catalog writes outside `SalesPipelineCatalogAdminService` → delegate there; `SalesPipelineService` remains the per-lead state owner and read catalog consumer.
 - Any remaining lead-task deadline/urgency/pinning/priority classification or mutation outside `LeadTaskService` → delegate to `LeadTaskService` and keep UI/read models projection-only.
 - Production-derived bespoke regression runners → shared scenario suites where the scenario engine can represent the behavior without weakening coverage.
 

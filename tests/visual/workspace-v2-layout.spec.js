@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 const base = 'http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html';
+const pipelineAdmin = 'http://127.0.0.1:4173/tests/visual/pipeline-admin-fixture.html';
 
 async function rect(locator) {
   const box = await locator.boundingBox();
@@ -87,4 +88,25 @@ test('1440px desktop keeps three usable zones', async ({ page }) => {
   expect(lead.width).toBeGreaterThanOrEqual(300);
   expect(inbox.x + inbox.width).toBeLessThanOrEqual(conversation.x + 1);
   expect(conversation.x + conversation.width).toBeLessThanOrEqual(lead.x + 1);
+});
+
+test('390px pipeline admin editor remains usable without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(pipelineAdmin);
+  await expectNoHorizontalOverflow(page);
+  const card = await rect(page.locator('.card').first());
+  const editor = await rect(page.locator('.editor'));
+  expect(card.width).toBeLessThanOrEqual(390);
+  expect(editor.width).toBeGreaterThanOrEqual(320);
+  expect(page.locator('.grid input')).toHaveCount(4);
+});
+
+test('1440px pipeline admin uses multi-column editor and bounded content width', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(pipelineAdmin);
+  await expectNoHorizontalOverflow(page);
+  const wrap = await rect(page.locator('.wrap'));
+  const inputs = await page.locator('.grid input').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+  expect(wrap.width).toBeLessThanOrEqual(1180);
+  expect(Math.min(...inputs)).toBeGreaterThanOrEqual(200);
 });

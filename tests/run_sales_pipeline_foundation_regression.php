@@ -7,7 +7,12 @@ $migration012=(string)file_get_contents(dirname(__DIR__).'/migrations/012_repair
 $migration015=(string)file_get_contents(dirname(__DIR__).'/migrations/015_lead_stage_history.sql');
 $runner=(string)file_get_contents(dirname(__DIR__).'/services/MigrationRunner.php');
 $service=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineService.php');
+$catalogAdmin=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineCatalogAdminService.php');
 $pipelineApi=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-api.php');
+$pipelineAdmin=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-admin.php');
+$pipelineAdminJs=(string)file_get_contents(dirname(__DIR__).'/manager/assets/pipeline-admin.js');
+$pipelineAdminCss=(string)file_get_contents(dirname(__DIR__).'/manager/assets/pipeline-admin.css');
+$managerHttpClient=(string)file_get_contents(dirname(__DIR__).'/manager/assets/manager-http-client.js');
 $passed=0;$failed=0;
 function spCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -39,6 +44,14 @@ spCheck('same-stage write is idempotent without duplicate history',strpos($setSt
 spCheck('pipeline stage API attributes manager actor',strpos($pipelineApi,'SalesPipelineService::setStage($id,(string)($data[\'stage_key\']??\'\'),(int)$m[\'id\'])')!==false);
 spCheck('service replaces lead tags transactionally',strpos($service,'beginTransaction()')!==false && strpos($service,'DELETE FROM conversation_lead_tags WHERE conversation_id=?')!==false && strpos($service,'INSERT INTO conversation_lead_tags')!==false);
 spCheck('conversation snapshot exposes stage tags and immutable history',strpos($service,"'stage'=>self::stageForConversation")!==false && strpos($service,"'stage_history'=>self::stageHistoryForConversation")!==false && strpos($service,"'tags'=>self::tagsForConversation")!==false);
+spCheck('pipeline catalog admin is role gated',substr_count($pipelineApi,'ManagerHttp::requireAdmin($m)')>=3 && strpos($pipelineApi,"$action==='admin_catalog'")!==false && strpos($pipelineApi,"$action==='save_stage'")!==false && strpos($pipelineApi,"$action==='save_tag'")!==false);
+spCheck('catalog admin owns stage and tag writes',strpos($catalogAdmin,'UPDATE lead_stages')!==false && strpos($catalogAdmin,'UPDATE lead_tags')!==false && strpos($catalogAdmin,'AuditLogService::record')!==false);
+spCheck('won stages are terminal by invariant',strpos($catalogAdmin,'if($won)$terminal=1;')!==false);
+spCheck('pipeline admin explicitly separates business and technical state',strpos($pipelineAdmin,'Технические состояния диалога здесь не меняются')!==false);
+spCheck('pipeline admin uses focused assets',strpos($pipelineAdmin,'pipeline-admin.js')!==false && strpos($pipelineAdmin,'pipeline-admin.css')!==false);
+spCheck('pipeline admin reuses shared HTTP client',strpos($pipelineAdminJs,"ManagerHttpClient.request(action,data,S.csrf,'pipeline-api.php')")!==false && strpos($managerHttpClient,"endpoint='api.php'")!==false && strpos($managerHttpClient,'fetch(endpoint')!==false);
+spCheck('pipeline admin has mobile responsive rules',strpos($pipelineAdminCss,'@media(max-width:760px)')!==false && strpos($pipelineAdminCss,'@media(max-width:460px)')!==false);
+spCheck('existing stage key is immutable in editor',strpos($pipelineAdminJs,"$('stageKey').readOnly=true")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
