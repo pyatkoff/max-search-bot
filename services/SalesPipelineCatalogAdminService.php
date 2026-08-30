@@ -7,7 +7,11 @@ final class SalesPipelineCatalogAdminService
 {
     public static function snapshot(): array
     {
-        return ['stages'=>SalesPipelineService::stages(false),'tags'=>SalesPipelineService::tags(false)];
+        $stages=SalesPipelineService::stages(false);
+        $usage=self::stageUsageCounts();
+        foreach($stages as &$stage)$stage['usage_count']=$usage[(string)$stage['stage_key']]??0;
+        unset($stage);
+        return ['stages'=>$stages,'tags'=>SalesPipelineService::tags(false)];
     }
 
     public static function saveStage(array $data,int $actor): array
@@ -24,6 +28,10 @@ final class SalesPipelineCatalogAdminService
         if($won)$terminal=1;
         $pdo=ConversationDb::connection();
         $q=$pdo->prepare('SELECT * FROM lead_stages WHERE stage_key=? LIMIT 1');$q->execute([$key]);$before=$q->fetch()?:null;
+        if($before && !$active && !empty($before['is_active'])){
+            $usage=self::stageUsageCount($key);
+            if($usage>0)return['ok'=>false,'error'=>'stage_in_use','usage_count'=>$usage];
+        }
         try{
             if($before){$q=$pdo->prepare('UPDATE lead_stages SET display_name=?,color=?,sort_order=?,is_active=?,is_terminal=?,is_won=? WHERE stage_key=?');$q->execute([$name,$color,$sort,$active,$terminal,$won,$key]);}
             else{$q=$pdo->prepare('INSERT INTO lead_stages(stage_key,display_name,color,sort_order,is_active,is_terminal,is_won) VALUES(?,?,?,?,?,?,?)');$q->execute([$key,$name,$color,$sort,$active,$terminal,$won]);}
@@ -48,6 +56,12 @@ final class SalesPipelineCatalogAdminService
         return['ok'=>true,'tag'=>$after];
     }
 
+    private static function stageUsageCounts(): array
+    {
+        $rows=ConversationDb::connection()->query("SELECT lead_stage_key,COUNT(*) AS usage_count FROM conversations WHERE lead_stage_key IS NOT NULL AND lead_stage_key<>'' GROUP BY lead_stage_key")->fetchAll();
+        $out=[];foreach($rows as $row)$out[(string)$row['lead_stage_key']]=(int)$row['usage_count'];return$out;
+    }
+    private static function stageUsageCount(string $key): int{$q=ConversationDb::connection()->prepare('SELECT COUNT(*) FROM conversations WHERE lead_stage_key=?');$q->execute([$key]);return(int)$q->fetchColumn();}
     private static function color(string $v): string{return preg_match('/^#[0-9a-fA-F]{6}$/',$v)?strtolower($v):'#64748b';}
     private static function stage(string $key): ?array{$q=ConversationDb::connection()->prepare('SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages WHERE stage_key=?');$q->execute([$key]);return$q->fetch()?:null;}
     private static function tag(int $id): ?array{$q=ConversationDb::connection()->prepare('SELECT id,tag_key,display_name,color,sort_order,is_active FROM lead_tags WHERE id=?');$q->execute([$id]);return$q->fetch()?:null;}
