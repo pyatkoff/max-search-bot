@@ -5,11 +5,14 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
 $pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$kanbanJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.js');
 $js=$leadCardJs."\n".$pipelineJs;
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css')."\n".(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
+$inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
 $context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
 $migration=(string)file_get_contents($root.'/migrations/021_lead_sale_tracking.sql');
 $passed=0;$failed=0;
@@ -30,6 +33,9 @@ outcomeCheck('won outcome exposes amount and sale date controls',strpos($leadCar
 outcomeCheck('sale fields are submitted only through existing outcome boundary',strpos($pipelineJs,'sale_amount:saleAmount')!==false&&strpos($pipelineJs,'sale_date:saleDate')!==false&&strpos($api,"isset(\$data['sale_amount'])")!==false&&strpos($api,"isset(\$data['sale_date'])")!==false);
 outcomeCheck('backend owns sale validation and clears sale facts for non-won outcomes',strpos($service,"if(\$outcome==='won')")!==false&&strpos($service,'is_numeric($rawAmount)')!==false&&strpos($service,"createFromFormat('!Y-m-d'")!==false&&strpos($service,'lead_sale_amount=?,lead_sale_date=?')!==false);
 outcomeCheck('sale edits participate in dirty-state protection',strpos($pipelineJs,'saleAmountEl.oninput=()=>setOutcomeDirty(true)')!==false&&strpos($pipelineJs,'saleDateEl.onchange=()=>setOutcomeDirty(true)')!==false);
+outcomeCheck('lead inbox projection exposes persisted sale facts',strpos($inboxService,'c.lead_sale_amount,c.lead_sale_date')!==false&&strpos($inboxService,"\$row['lead_sale_amount']")!==false&&strpos($inboxService,"\$row['lead_sale_date']")!==false);
+outcomeCheck('inbox owns shared sale summary formatting',strpos($inboxJs,'function saleSummary(c)')!==false&&strpos($inboxJs,'formatSaleAmount')!==false&&strpos($inboxJs,'formatSaleDate')!==false&&strpos($inboxJs,"String(c?.lead_outcome||'open')!=='won'")!==false);
+outcomeCheck('list and Kanban surface won sale facts without new persistence path',strpos($inboxJs,"sale=saleSummary(c)")!==false&&strpos($kanbanJs,"sale=window.WorkspaceV2Inbox?.saleSummary(c)")!==false&&substr_count($inboxJs,'Продажа:')>=1&&substr_count($kanbanJs,'Продажа:')>=1);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
