@@ -14,6 +14,9 @@ tfCheck('workspace exposes task filter',strpos($workspace,'id="leadTaskFilter"')
 tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($pipeline,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
+tfCheck('inbox filters and search persist for current browser session',strpos($pipeline,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($pipeline,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($pipeline,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($pipeline,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
+tfCheck('restored search is reflected in visible input',strpos($pipeline,"if(search)search.value=S.leadSearch")!==false);
+tfCheck('clear filters also clears restored search state',strpos($pipeline,"S.leadTaskFilter='';S.leadSearch='';renderFilters();saveFilterState()")!==false);
 $rows=[
  ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1],
  ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0],
