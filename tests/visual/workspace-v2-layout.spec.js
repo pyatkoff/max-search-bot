@@ -98,7 +98,7 @@ test('390px pipeline admin editor remains usable without horizontal overflow', a
   const editor = await rect(page.locator('.editor'));
   expect(card.width).toBeLessThanOrEqual(390);
   expect(editor.width).toBeGreaterThanOrEqual(320);
-  expect(page.locator('.grid input')).toHaveCount(4);
+  await expect(page.locator('.grid input')).toHaveCount(4);
 });
 
 test('1440px pipeline admin uses multi-column editor and bounded content width', async ({ page }) => {
