@@ -52,7 +52,17 @@ jobs:
           extensions: mbstring
           coverage: none
       - name: Run required group
+        env:
+          REQUIRED_CHECK_REPORT: ${{ runner.temp }}/required-check-${{ matrix.group }}.json
         run: php tests/run_required_group.php "${{ matrix.group }}"
+      - name: Upload required-check timing report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: required-check-report-${{ matrix.group }}
+          path: ${{ runner.temp }}/required-check-${{ matrix.group }}.json
+          if-no-files-found: warn
+          retention-days: 14
 
   regression:
     name: regression
