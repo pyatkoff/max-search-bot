@@ -69,6 +69,7 @@ return [
         'php tests/run_manager_outside_hours_handoff_regression.php',
         'php tests/run_outside_hours_queue_repair_regression.php',
         'php tests/run_manager_request_context_regression.php',
+        'php tests/run_manager_role_policy_regression.php',
         'php tests/run_manager_phone_fallback_regression.php',
         'php tests/run_manager_visibility_regression.php',
         'php tests/run_manager_admin_audit_regression.php',
