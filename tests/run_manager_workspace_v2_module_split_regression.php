@@ -18,7 +18,7 @@ $passed=0;$failed=0;
 function splitCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 function splitAssetPos(string $html,string $asset){$static=strpos($html,$asset);if($static!==false)return$static;$file=basename($asset);return strpos($html,"workspaceAsset('{$file}')");}
 
-$ordered=['assets/workspace-v2.js','assets/workspace-v2-inbox.js','assets/workspace-v2-pipeline.js','assets/workspace-v2-stage-history.js','assets/workspace-v2-lead-card.js','assets/workspace-v2-conversation.js','assets/workspace-v2-bootstrap.js'];
+$ordered=['assets/workspace-v2.js','assets/workspace-v2-inbox.js','assets/workspace-v2-pipeline.js','assets/workspace-v2-stage-history.js','assets/workspace-v2-lead-card.js','assets/workspace-v2-conversation.js','assets/workspace-v2-shift.js','assets/workspace-v2-bootstrap.js'];
 $positions=array_map(fn($asset)=>splitAssetPos($page,$asset),$ordered);
 $validOrder=!in_array(false,$positions,true);
 if($validOrder){for($i=1;$i<count($positions);$i++){if($positions[$i]<=$positions[$i-1]){$validOrder=false;break;}}}
@@ -33,7 +33,8 @@ splitCheck('conversation module owns transcript lifecycle and source-pinned comp
 splitCheck('workspace exposes explicit shift control',strpos($page,'id="managerShiftBtn"')!==false&&strpos($page,'Начать смену')!==false);
 splitCheck('dedicated shift module uses existing set_working API',strpos($shift,'window.WorkspaceV2Shift=')!==false&&strpos($shift,"W.api('set_working',{working:next})")!==false&&strpos($shift,'S.manager=j.manager')!==false&&strpos($shift,"aria-pressed")!==false);
 splitCheck('shift backend remains owned by ManagerAvailabilityService',strpos($api,"if(\$action==='set_working')")!==false&&strpos($api,'ManagerAvailabilityService::setWorking')!==false&&strpos($availability,'public static function setWorking')!==false&&strpos($availability,'UPDATE managers SET is_working=?')!==false);
-splitCheck('bootstrap loads shift feature before starting assembled workspace',strpos($bootstrap,"script.src='assets/workspace-v2-shift.js?v=1'")!==false&&strpos($bootstrap,'script.onload=start')!==false&&strpos($bootstrap,'script.onerror=start')!==false);
+$shiftPos=splitAssetPos($page,'assets/workspace-v2-shift.js');$bootstrapPos=splitAssetPos($page,'assets/workspace-v2-bootstrap.js');
+splitCheck('shift feature is cache-busted and loaded before bootstrap starts assembled workspace',$shiftPos!==false&&$bootstrapPos!==false&&$shiftPos<$bootstrapPos&&strpos($page,"workspaceAsset('workspace-v2-shift.js')")!==false&&strpos($bootstrap,'window.WorkspaceV2?.boot()')!==false&&strpos($bootstrap,'workspace-v2-shift.js')===false);
 $all=$core."\n".$inbox."\n".$pipeline."\n".$history."\n".$lead."\n".$conversation."\n".$shift."\n".$bootstrap;
 splitCheck('shift UI does not duplicate shift storage or routing policy',strpos($shift,'UPDATE managers')===false&&strpos($shift,'manager_projects')===false&&strpos($shift,'RoutingAccessService')===false);
 splitCheck('module split does not touch analytics or lead delivery contracts',stripos($all,'metrika')===false&&stripos($all,'yclid')===false&&strpos($all,'LeadDestination')===false);
