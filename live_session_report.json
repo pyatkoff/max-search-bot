@@ -1,15 +1,15 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T07:05:50+00:00",
+    "generated_at": "2026-08-30T07:32:07+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 1,
-        "started": 1,
-        "needs_collected": 0,
-        "tours_opened": 0,
+        "sessions": 2,
+        "started": 2,
+        "needs_collected": 1,
+        "tours_opened": 1,
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
@@ -23,7 +23,8 @@
             "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 1
+            "collecting_needs": 1,
+            "tours_opened": 1
         },
         "flags": {
             "repeated_same_input": 1
@@ -49,7 +50,7 @@
             "inbound_messages": 8,
             "outbound_messages": 8,
             "date_picks": 0,
-            "anomaly_inbound_messages": 7,
+            "anomaly_inbound_messages": 5,
             "drop_point": "collecting_needs",
             "flags": [
                 "repeated_same_input"
@@ -57,30 +58,6 @@
             "started_at": "2026-08-29 07:06:15",
             "last_message_at": "2026-08-30 08:35:28",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 08:16:02"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-                    "created_at": "2026-08-30 08:16:02"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Отдых на двоих, рыбалка всё включено с седьмого сентября во круг Москвы 300 км",
-                    "created_at": "2026-08-30 08:17:24"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
-                    "created_at": "2026-08-30 08:17:30"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -142,7 +119,32 @@
                     "created_at": "2026-08-30 08:35:28"
                 }
             ]
+        },
+        {
+            "conversation_id": 419,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 29,
+            "outbound_messages": 19,
+            "date_picks": 8,
+            "anomaly_inbound_messages": 1,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-27 12:14:37",
+            "last_message_at": "2026-08-30 09:12:04"
         }
     ],
-    "since_utc": "2026-08-30 06:05:50"
+    "since_utc": "2026-08-30 06:32:07"
 }

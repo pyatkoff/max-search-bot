@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T07:05:47+00:00",
+    "generated_at": "2026-08-30T07:32:03+00:00",
     "production": {
-        "sha": "3cd847a32d24905902760b0651bae5d47ac5df6c",
+        "sha": "dcc2623e6bb8242f8b022422c59390eeaf862124",
         "branch": "main"
     },
     "database": {
@@ -156,7 +156,7 @@
         "customers": 616,
         "customer_channels": 616,
         "conversations": 618,
-        "messages": 15722,
+        "messages": 15724,
         "managers": 5,
         "manager_assignments": 114,
         "conversation_events": 941,
@@ -179,7 +179,7 @@
             "role": "admin",
             "is_active": 1,
             "is_working": 0,
-            "last_login_at": "2026-08-29 20:35:46"
+            "last_login_at": "2026-08-30 09:20:57"
         },
         {
             "id": 3,
@@ -1778,6 +1778,24 @@
     ],
     "recent_messages": [
         {
+            "id": 15724,
+            "conversation_id": 419,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
+            "created_at": "2026-08-30 09:12:04"
+        },
+        {
+            "id": 15723,
+            "conversation_id": 419,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-08-30 09:12:04"
+        },
+        {
             "id": 15722,
             "conversation_id": 555,
             "direction": "outbound",
@@ -2298,24 +2316,6 @@
             "channel": "max",
             "text": "meal_7",
             "created_at": "2026-08-30 01:16:18"
-        },
-        {
-            "id": 15664,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-08-30 01:16:10"
-        },
-        {
-            "id": 15663,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-08-30 01:16:10"
         }
     ],
     "recent_events": [
