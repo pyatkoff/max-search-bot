@@ -11,24 +11,27 @@ function failHotelDb(string $message): void
 }
 
 if (HotelDatabase::configured()) {
-    failHotelDb('hotel DB must not silently reuse bot DB configuration');
+    failHotelDb('AnyTour data DB must not silently reuse bot DB configuration');
 }
 
 try {
     HotelDatabase::connection();
-    failHotelDb('missing hotel DB configuration must fail closed');
+    failHotelDb('missing AnyTour data DB configuration must fail closed');
 } catch (RuntimeException $e) {
-    if ($e->getMessage() !== 'Hotel database is not configured') {
+    if ($e->getMessage() !== 'AnyTour data database is not configured') {
         failHotelDb('unexpected missing-config error');
     }
 }
 
 $source = (string) file_get_contents(__DIR__ . '/../services/HotelDatabase.php');
-foreach (['HOTEL_DB_HOST', 'HOTEL_DB_NAME', 'HOTEL_DB_USER', 'HOTEL_DB_PASS'] as $constant) {
+foreach (['ANYTOUR_DATA_DB_HOST', 'ANYTOUR_DATA_DB_NAME', 'ANYTOUR_DATA_DB_USER', 'ANYTOUR_DATA_DB_PASSWORD'] as $constant) {
     if (strpos($source, $constant) === false) failHotelDb("missing {$constant} boundary");
 }
 if (strpos($source, 'CONVERSATION_DB_') !== false) {
-    failHotelDb('hotel DB boundary must not depend on conversation DB credentials');
+    failHotelDb('AnyTour data DB boundary must not depend on conversation DB credentials');
+}
+if (strpos($source, 'HOTEL_DB_') !== false) {
+    failHotelDb('obsolete HOTEL_DB_* configuration must not be introduced');
 }
 
-echo "OK: separate hotel database boundary regression passed\n";
+echo "OK: separate AnyTour data database boundary regression passed\n";
