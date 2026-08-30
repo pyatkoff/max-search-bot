@@ -27,8 +27,8 @@ $good=AdminProjectAccessHealth::collect($pdo);
 apahCheck('health becomes green when every active admin has every active project',$good['ok']===true&&(int)$good['missing_count']===0&&$good['missing']===[]);
 
 $snapshot=(string)file_get_contents($root.'/tools/production_snapshot.php');
-apahCheck('production snapshot exposes admin project access health',strpos($snapshot,"AdminProjectAccessHealth.php")!==false&&strpos($snapshot,"'admin_project_access_health'")!==false);
-apahCheck('production snapshot publishes admin project access gate',strpos($snapshot,"'admin_project_access_ok'=>false")!==false&&strpos($snapshot,"$snapshot['health']['admin_project_access_ok']=$adminProjectAccessHealth['ok'];")!==false);
+apahCheck('production snapshot exposes admin project access health',strpos($snapshot,'AdminProjectAccessHealth.php')!==false&&strpos($snapshot,"'admin_project_access_health'")!==false);
+apahCheck('production snapshot publishes admin project access gate',strpos($snapshot,"'admin_project_access_ok'=>false")!==false&&strpos($snapshot,'$snapshot[\'health\'][\'admin_project_access_ok\']=$adminProjectAccessHealth[\'ok\'];')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
