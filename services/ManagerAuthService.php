@@ -14,6 +14,14 @@ class ManagerAuthService
         ProjectAccessService::ensureSchema();
         self::$schemaReady=true;
     }
+    public static function isAdmin(?array $manager): bool
+    {
+        return $manager!==null && (string)($manager['role']??'manager')==='admin';
+    }
+    public static function isWorking(?array $manager): bool
+    {
+        return $manager!==null && !empty($manager['is_working']);
+    }
     public static function hasAccounts(): bool
     {
         self::ensureSchema();return (int)ConversationDb::connection()->query("SELECT COUNT(*) FROM managers WHERE is_active=1 AND password_hash IS NOT NULL AND password_hash<>''")->fetchColumn()>0;
