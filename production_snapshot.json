@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T08:20:19+00:00",
+    "generated_at": "2026-08-30T08:35:36+00:00",
     "production": {
-        "sha": "04d5c0fecba8d618451235add00a19aece9ee911",
+        "sha": "c058254b2ed9eeeb8f306376c4922accd0657490",
         "branch": "main"
     },
     "database": {
@@ -156,11 +156,11 @@
         "customers": 616,
         "customer_channels": 616,
         "conversations": 618,
-        "messages": 15724,
+        "messages": 15725,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 941,
-        "admin_audit_log": 19
+        "admin_audit_log": 20
     },
     "managers": [
         {
@@ -179,7 +179,7 @@
             "role": "admin",
             "is_active": 1,
             "is_working": 0,
-            "last_login_at": "2026-08-30 09:20:57"
+            "last_login_at": "2026-08-30 10:28:26"
         },
         {
             "id": 3,
@@ -387,6 +387,12 @@
             "id": 67514,
             "project_key": "max-any-spb",
             "display_name": "Макс Any Спб",
+            "is_active": 1
+        },
+        {
+            "id": 84066,
+            "project_key": "anytour-spb-max",
+            "display_name": "Any Спб Макс",
             "is_active": 1
         }
     ],
@@ -1639,6 +1645,15 @@
     ],
     "recent_admin_audit": [
         {
+            "id": 20,
+            "actor_manager_id": 2,
+            "action": "project_created",
+            "entity_type": "project",
+            "entity_id": "84066",
+            "project_key": "anytour-spb-max",
+            "created_at": "2026-08-30 10:29:19"
+        },
+        {
             "id": 19,
             "actor_manager_id": 2,
             "action": "manager_created",
@@ -1811,6 +1826,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15725,
+            "conversation_id": 2,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 10:25:07"
+        },
         {
             "id": 15724,
             "conversation_id": 419,
@@ -2340,15 +2364,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-30 01:16:18"
-        },
-        {
-            "id": 15665,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_7",
             "created_at": "2026-08-30 01:16:18"
         }
     ],
