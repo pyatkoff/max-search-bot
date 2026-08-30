@@ -1,19 +1,19 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T06:08:31+00:00",
+    "generated_at": "2026-08-30T07:05:50+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 0,
-        "started": 0,
+        "sessions": 1,
+        "started": 1,
         "needs_collected": 0,
         "tours_opened": 0,
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 0,
+        "flagged_sessions": 1,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -22,9 +22,127 @@
             "avg_seconds": null,
             "max_seconds": null
         },
-        "drop_points": [],
-        "flags": []
+        "drop_points": {
+            "collecting_needs": 1
+        },
+        "flags": {
+            "repeated_same_input": 1
+        }
     },
-    "sessions": [],
-    "since_utc": "2026-08-30 05:08:31"
+    "sessions": [
+        {
+            "conversation_id": 555,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 8,
+            "outbound_messages": 8,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 7,
+            "drop_point": "collecting_needs",
+            "flags": [
+                "repeated_same_input"
+            ],
+            "started_at": "2026-08-29 07:06:15",
+            "last_message_at": "2026-08-30 08:35:28",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 08:16:02"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+                    "created_at": "2026-08-30 08:16:02"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Отдых на двоих, рыбалка всё включено с седьмого сентября во круг Москвы 300 км",
+                    "created_at": "2026-08-30 08:17:24"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+                    "created_at": "2026-08-30 08:17:30"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3,4",
+                    "created_at": "2026-08-30 08:34:17"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-30 08:34:21"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3,4",
+                    "created_at": "2026-08-30 08:34:30"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-30 08:34:34"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3,4",
+                    "created_at": "2026-08-30 08:34:44"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-30 08:34:46"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2,3",
+                    "created_at": "2026-08-30 08:35:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-30 08:35:06"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2,3 д",
+                    "created_at": "2026-08-30 08:35:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-08-30 08:35:28"
+                }
+            ]
+        }
+    ],
+    "since_utc": "2026-08-30 06:05:50"
 }
