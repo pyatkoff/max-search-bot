@@ -31,7 +31,13 @@
     if(create)enhance(create,create.querySelector('#leadTaskDue'));
     root.querySelectorAll?.('.taskEditForm').forEach(form=>enhance(form,form.querySelector('[data-task-edit-due]')));
   }
+  let observing=false;
+  function start(){
+    enhanceAll();
+    const root=document.getElementById('leadCard');
+    if(root&&!observing){observer.observe(root,{childList:true,subtree:true});observing=true}
+  }
   const observer=new MutationObserver(mutations=>mutations.forEach(m=>m.addedNodes.forEach(node=>{if(node.nodeType===1)enhanceAll(node.closest?.('#leadTasksBody')||node)})));
-  document.addEventListener('DOMContentLoaded',()=>{enhanceAll();const root=document.getElementById('leadCard');if(root)observer.observe(root,{childList:true,subtree:true})});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
   window.WorkspaceV2TaskPresets={dateForPreset,localInputValue,apply,enhanceAll};
 })();
