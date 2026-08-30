@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/ProjectConfig.php';
+require_once __DIR__ . '/../services/TelegramStartSourceResolver.php';
 
 class TelegramWebhookHandler
 {
@@ -28,7 +29,7 @@ class TelegramWebhookHandler
             return false;
         }
 
-        $incoming['source_key'] = (string)ProjectConfig::get('messenger.telegram.source_key', 'telegram:anytour-main');
+        $incoming['source_key'] = TelegramStartSourceResolver::resolve($incoming);
 
         $messenger = $messenger ?: new TelegramMessengerAdapter();
         IntegrationRegistry::useMessenger($messenger);
