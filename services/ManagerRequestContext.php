@@ -6,6 +6,15 @@ require_once __DIR__ . '/ManagerAuthService.php';
 
 final class ManagerRequestContext
 {
+    public static function sessionCookiePath(?string $scriptName = null): string
+    {
+        $scriptName = $scriptName ?? (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+        if ($scriptName !== '' && preg_match('~^(.*?/manager)(?:/|$)~', $scriptName, $matches) === 1) {
+            return rtrim((string) $matches[1], '/') . '/';
+        }
+        return '/manager/';
+    }
+
     public static function startSession(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -14,7 +23,7 @@ final class ManagerRequestContext
         session_name('anytour_manager_panel');
         session_set_cookie_params([
             'lifetime' => 60 * 60 * 12,
-            'path' => '/max-search/manager/',
+            'path' => self::sessionCookiePath(),
             'secure' => true,
             'httponly' => true,
             'samesite' => 'Lax',
