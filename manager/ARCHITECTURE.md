@@ -5,7 +5,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 ## Target boundaries
 
 - **Entrypoint / shell** — `index.php` is the single production workspace entrypoint. It renders the workspace and never performs HTTP canonical redirects. Browser-visible `/manager/index.php` is normalized with `history.replaceState`, not a network navigation.
-- **Workspace modules** — inbox, conversation, lead card, pipeline, tasks, media, notifications, kanban and mobile behavior own their corresponding `assets/workspace-v2-*` files.
+- **Workspace modules** — inbox, conversation, lead card, pipeline, tasks, stage history, media, notifications, kanban and mobile behavior own their corresponding `assets/workspace-v2-*` files.
 - **Manager HTTP interfaces** — `api.php`, `pipeline-api.php`, media and push endpoints are thin interfaces. Authentication, authorization and validation converge on `lib/ManagerHttp.php` instead of being reimplemented per endpoint.
 - **Business rules** — remain outside presentation/interface code. UI and HTTP code may project and invoke manager use-cases but must not become a second owner of routing, technical conversation state, sales-stage semantics or delivery rules.
 
@@ -18,7 +18,8 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2.js` — shared state/transport/boot/auth-recovery core only; feature rendering stays in modules.
 - `assets/workspace-v2-inbox.*` — inbox owner.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
-- `assets/workspace-v2-lead-card.*` — structured lead information owner.
+- `assets/workspace-v2-lead-card.*` — structured lead information/composition owner; delegate feature-specific subviews rather than growing another monolith.
+- `assets/workspace-v2-stage-history.js` — sales-stage history presentation owner; stage-history persistence and semantics remain in `SalesPipelineService`.
 - `assets/workspace-v2-pipeline.*` and `workspace-v2-kanban.*` — sales pipeline UI owner.
 - `assets/workspace-v2-media.*` — outbound media UI owner.
 - `assets/workspace-v2-notifications.*` — notification UI owner.
@@ -40,6 +41,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 - **Completed:** inline CSS/JS from `admin.php` → `assets/admin.css` + `assets/admin.js`.
 - **Completed:** inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`; keep routing business rules/server authorization outside these assets.
+- **Completed:** sales-stage history renderer moved out of `workspace-v2-lead-card.js` → `assets/workspace-v2-stage-history.js`; lead card composes it, while `SalesPipelineService` remains the single business owner of stage history.
 - Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
 - Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
 
@@ -67,6 +69,6 @@ This directory is the owned interface boundary for the manager product. Changes 
 2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview, Sales Pipeline API, main Manager API, and admin/routing shell session bootstrap are migrated; continue with narrow slices rather than widening `ManagerHttp` into a business layer.
 3. **Done:** split admin and routing monolith assets. Admin and routing CSS/JS are extracted; PHP files remain markup shells.
 4. **Done for admin/routing frontend transport:** one small JSON client owns duplicated fetch/network/invalid-response behavior while page modules retain role gates, CSRF state and domain-specific errors.
-5. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior.
+5. Keep `workspace-v2.js` small and feature-neutral while auth/session recovery remains shared core behavior; continue splitting feature-specific subviews such as stage history out of lead-card composition when ownership is clear.
 6. Consolidate remaining endpoint validation and structured errors in narrow slices.
 7. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
