@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T09:03:28+00:00",
+    "generated_at": "2026-08-30T09:10:44+00:00",
     "production": {
-        "sha": "0b0f37de7808131b0b4d852a3b101a7e5de9c4fc",
+        "sha": "6ea834c76faf5a2db8bbd5a682c2de258c8a1ba7",
         "branch": "main"
     },
     "database": {
@@ -374,12 +374,21 @@
         "anomaly_count": 0,
         "anomalies": []
     },
+    "admin_project_access_health": {
+        "ok": true,
+        "active_admins": 2,
+        "active_projects": 3,
+        "expected_links": 6,
+        "missing_count": 0,
+        "missing": []
+    },
     "health": {
         "manager_visibility_ok": true,
         "manager_visibility_anomalies": [],
         "manager_response_ok": true,
         "manager_push_ok": false,
         "handoff_integrity_ok": true,
+        "admin_project_access_ok": true,
         "website_attribution_ok": true,
         "website_attribution_anomalies": []
     },
@@ -1630,19 +1639,6 @@
                 "conversation_id": 541,
                 "manager_id": 5,
                 "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-08-29T09:54:58+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "3182796604536bb1",
-                "conversation_id": 521,
-                "manager_id": 5,
-                "subscription_id": 85,
                 "http_code": 201
             }
         }

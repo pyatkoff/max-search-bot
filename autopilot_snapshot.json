@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T09:03:43+00:00",
+    "generated_at": "2026-08-30T09:10:56+00:00",
     "production": {
-        "sha": "0b0f37de7808131b0b4d852a3b101a7e5de9c4fc",
+        "sha": "6ea834c76faf5a2db8bbd5a682c2de258c8a1ba7",
         "branch": "main"
     },
     "migrations": {
@@ -18,6 +18,7 @@
         "manager_response_ok": true,
         "manager_push_ok": false,
         "handoff_integrity_ok": true,
+        "admin_project_access_ok": true,
         "website_attribution_ok": true,
         "website_attribution_anomalies": []
     },
@@ -140,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 08:03:32",
+        "since_utc": "2026-08-30 08:10:47",
         "summary": {
             "sessions": 3,
             "started": 3,
@@ -172,7 +173,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "0b0f37de7808131b0b4d852a3b101a7e5de9c4fc",
+        "sha": "6ea834c76faf5a2db8bbd5a682c2de258c8a1ba7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -181,7 +182,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T09:03:43Z"
+        "reported_at": "2026-08-30T09:10:56Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -233,7 +234,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T09:03:43+00:00",
+        "generated_at": "2026-08-30T09:10:56+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -246,9 +247,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 107,
-                "bytes": 430324,
-                "code_lines": 9141
+                "files": 108,
+                "bytes": 431996,
+                "code_lines": 9181
             },
             "integrations": {
                 "files": 8,
@@ -276,14 +277,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 139,
-                "bytes": 528504,
-                "code_lines": 6658
+                "files": 140,
+                "bytes": 531333,
+                "code_lines": 6697
             },
             "tools": {
                 "files": 21,
-                "bytes": 79936,
-                "code_lines": 1254
+                "bytes": 80477,
+                "code_lines": 1262
             }
         },
         "hotspots": [
@@ -342,9 +343,9 @@
                 "severity": "observe"
             },
             {
-                "path": "services/ConversationRecorder.php",
-                "lines": 184,
-                "bytes": 9611,
+                "path": "tools/production_snapshot.php",
+                "lines": 191,
+                "bytes": 11891,
                 "severity": "observe"
             }
         ],
@@ -352,7 +353,7 @@
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
             "direct_sql_writes": 17,
-            "authorization_mentions": 10,
+            "authorization_mentions": 11,
             "validation_mentions": 3
         },
         "signals": {
@@ -384,6 +385,7 @@
                 "manager/push-enable.php",
                 "manager/routing.php",
                 "services/AdminDirectoryService.php",
+                "services/AdminProjectAccessHealth.php",
                 "services/DiagnosticLogger.php",
                 "services/ManagerAuthService.php",
                 "services/ManagerConversationService.php",
