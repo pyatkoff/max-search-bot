@@ -4,6 +4,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $workflow=(string)@file_get_contents($root.'/.github/workflows/workspace-v2-visual-qa.yml');
 $fixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-fixture.html');
+$layoutSpec=(string)@file_get_contents($root.'/tests/visual/workspace-v2-layout.spec.js');
 $kanbanFixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-kanban-fixture.html');
 $activityFixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-inbox-activity-fixture.html');
 $startupFixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-startup-failure-fixture.html');
@@ -13,6 +14,7 @@ $passed=0;$failed=0;
 function vqCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 vqCheck('visual workflow exists',$workflow!=='');
 vqCheck('visual fixture exists',$fixture!=='');
+vqCheck('layout assertion spec exists',$layoutSpec!=='');
 vqCheck('kanban visual fixture exists',$kanbanFixture!=='');
 vqCheck('inbox activity visual fixture exists',$activityFixture!=='');
 vqCheck('startup failure visual fixture exists',$startupFixture!=='');
@@ -30,7 +32,10 @@ vqCheck('captures admin audit on mobile and desktop',strpos($workflow,'admin-aud
 vqCheck('visual evidence uploads as artifact',strpos($workflow,'actions/upload-artifact@v4')!==false&&strpos($workflow,'visual-artifacts/*.png')!==false);
 vqCheck('visual QA is isolated from production',stripos($workflow,'deploy_')===false&&strpos($workflow,'anytour.online')===false);
 vqCheck('workflow only targets manager visual paths',strpos($workflow,"- 'manager/**'")!==false&&strpos($workflow,"- 'tests/visual/**'")!==false);
-vqCheck('fixture uses production Workspace V2 styles',strpos($fixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-tasks.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-notifications.css')!==false);
+vqCheck('fixture uses production Workspace V2 styles',strpos($fixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-mobile.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-tasks.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-notifications.css')!==false);
+vqCheck('visual workflow does not rewrite fixture at runtime',strpos($workflow,'sed -i')===false&&strpos($workflow,"grep -q 'workspace-v2-mobile.css'")!==false);
+vqCheck('visual workflow runs browser layout assertions',strpos($workflow,'workspace-v2-layout.spec.js')!==false&&strpos($workflow,'Assert responsive layout contracts')!==false&&strpos($workflow,'@playwright/test@1.55.0')!==false);
+vqCheck('layout assertions cover overflow composer bubbles media and desktop zones',strpos($layoutSpec,'expectNoHorizontalOverflow')!==false&&strpos($layoutSpec,"'.composer textarea'")!==false&&strpos($layoutSpec,"'.quickReplies'")!==false&&strpos($layoutSpec,"'.msg.customer'")!==false&&strpos($layoutSpec,"'.msg:has(.attachments)'")!==false&&strpos($layoutSpec,"'.inboxZone'")!==false&&strpos($layoutSpec,"'.conversationZone'")!==false&&strpos($layoutSpec,"'.leadZone'")!==false);
 vqCheck('activity fixture uses production inbox and mobile styles',strpos($activityFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-mobile.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-theme.css')!==false);
 vqCheck('startup fixture uses production core inbox notification and mobile styles',strpos($startupFixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-notifications.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-mobile.css')!==false);
 vqCheck('Inbox failure fixture uses production inbox and mobile styles',strpos($inboxFailureFixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($inboxFailureFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($inboxFailureFixture,'../../manager/assets/workspace-v2-mobile.css')!==false);
