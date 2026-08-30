@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T09:22:56+00:00",
+    "generated_at": "2026-08-30T09:25:05+00:00",
     "production": {
-        "sha": "3908050df94339b5d150627190ff6933e800dd9c",
+        "sha": "de854db8af712b9bfc31073da8dd4024e3d5dd30",
         "branch": "main"
     },
     "database": {
@@ -160,10 +160,10 @@
         }
     ],
     "stats": {
-        "customers": 616,
-        "customer_channels": 616,
-        "conversations": 618,
-        "messages": 15725,
+        "customers": 617,
+        "customer_channels": 617,
+        "conversations": 619,
+        "messages": 15726,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 941,
@@ -484,6 +484,18 @@
             "fallback_mode": "delayed",
             "fallback_group_id": 1,
             "fallback_after_minutes": 2
+        },
+        {
+            "id": 8,
+            "project_key": "anytour",
+            "source_key": "telegram:anytour-main",
+            "display_name": "telegram:anytour-main",
+            "channel": "telegram",
+            "is_active": 1,
+            "primary_group_id": null,
+            "fallback_mode": "immediate",
+            "fallback_group_id": null,
+            "fallback_after_minutes": 0
         }
     ],
     "website_attribution": [
@@ -1666,7 +1678,7 @@
             "project_key": "anytour",
             "channel": "telegram",
             "status": "ai",
-            "count": 1
+            "count": 2
         },
         {
             "project_key": "anytour",
@@ -1954,6 +1966,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15726,
+            "conversation_id": 619,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "Хочу в Турцию в сентябре",
+            "created_at": "2026-08-30 11:25:03"
+        },
         {
             "id": 15725,
             "conversation_id": 2,
@@ -2484,15 +2505,6 @@
             "channel": "max",
             "text": "nights_6_8",
             "created_at": "2026-08-30 01:16:25"
-        },
-        {
-            "id": 15666,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-30 01:16:18"
         }
     ],
     "recent_events": [
