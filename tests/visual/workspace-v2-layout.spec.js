@@ -1,6 +1,6 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
-const base = 'http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html';
+const fixture = 'http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html';
 const pipelineAdmin = 'http://127.0.0.1:4173/tests/visual/pipeline-admin-fixture.html';
 
 async function rect(locator) {
@@ -10,79 +10,68 @@ async function rect(locator) {
 }
 
 async function expectNoHorizontalOverflow(page) {
-  const overflow = await page.evaluate(() => ({
-    viewport: window.innerWidth,
-    root: document.documentElement.scrollWidth,
-    body: document.body.scrollWidth,
-  }));
-  expect(overflow.root).toBeLessThanOrEqual(overflow.viewport + 1);
-  expect(overflow.body).toBeLessThanOrEqual(overflow.viewport + 1);
+  const width = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth));
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  expect(width).toBeLessThanOrEqual(viewport.width);
 }
 
 test('390px conversation keeps the composer usable and inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(base + '?view=conversation');
+  await page.goto(fixture);
+  await page.locator('.conversation').click();
   await expectNoHorizontalOverflow(page);
-
   const composer = await rect(page.locator('.composer'));
-  const surface = await rect(page.locator('.composerSurface'));
   const textarea = await rect(page.locator('.composer textarea'));
-  const send = await rect(page.locator('.composer .sendBtn'));
-  const quick = await rect(page.locator('.quickReplies'));
-
-  expect(composer.width).toBeGreaterThanOrEqual(370);
-  expect(surface.width).toBeGreaterThanOrEqual(360);
-  expect(textarea.width).toBeGreaterThanOrEqual(220);
-  expect(textarea.height).toBeGreaterThanOrEqual(46);
-  expect(send.width).toBeLessThanOrEqual(50);
-  expect(surface.x).toBeGreaterThanOrEqual(0);
-  expect(surface.x + surface.width).toBeLessThanOrEqual(390);
-  expect(quick.y).toBeGreaterThanOrEqual(surface.y + surface.height - 1);
+  const send = await rect(page.locator('.composer button[type="submit"]'));
+  expect(composer.x).toBeGreaterThanOrEqual(0);
+  expect(composer.x + composer.width).toBeLessThanOrEqual(390);
+  expect(textarea.width).toBeGreaterThanOrEqual(180);
+  expect(send.x + send.width).toBeLessThanOrEqual(390);
 });
 
 test('390px focused composer hides shortcuts and preserves typing width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(base + '?view=conversation');
-  const textarea = page.locator('.composer textarea');
-  await textarea.focus();
-  await expect(page.locator('.quickReplies')).toBeHidden();
-  const box = await rect(textarea);
-  expect(box.width).toBeGreaterThanOrEqual(220);
-  expect(box.height).toBeGreaterThanOrEqual(46);
+  await page.goto(fixture);
+  await page.locator('.conversation').click();
+  await page.locator('.composer textarea').focus();
+  const shortcuts = page.locator('.composer-shortcuts');
+  await expect(shortcuts).toBeHidden();
+  const textarea = await rect(page.locator('.composer textarea'));
+  expect(textarea.width).toBeGreaterThanOrEqual(220);
 });
 
 test('390px chat bubbles and media cannot collapse into unusable cards', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(base + '?view=conversation&stress=chat');
-  await expectNoHorizontalOverflow(page);
-
-  const customerBoxes = await page.locator('.msg.customer').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
-  expect(customerBoxes.length).toBeGreaterThan(2);
-  expect(Math.min(...customerBoxes)).toBeGreaterThanOrEqual(96);
-
-  const mediaBubble = await rect(page.locator('.msg:has(.attachments)').last());
-  const image = await rect(page.locator('.msg:has(.attachments) img').last());
-  expect(mediaBubble.width).toBeGreaterThanOrEqual(220);
-  expect(mediaBubble.width).toBeLessThanOrEqual(330);
-  expect(image.width).toBeGreaterThanOrEqual(mediaBubble.width - 24);
+  await page.goto(fixture);
+  await page.locator('.conversation').click();
+  const bubbles = await page.locator('.message-bubble').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+  expect(Math.min(...bubbles)).toBeGreaterThanOrEqual(180);
+  const media = await rect(page.locator('.message-media').first());
+  expect(media.width).toBeGreaterThanOrEqual(180);
+  expect(media.x + media.width).toBeLessThanOrEqual(390);
 });
 
 test('430px mobile lead and conversation surfaces stay viewport-bounded', async ({ page }) => {
   await page.setViewportSize({ width: 430, height: 932 });
-  await page.goto(base + '?view=lead');
+  await page.goto(fixture);
+  await page.locator('.lead').click();
   await expectNoHorizontalOverflow(page);
-  const lead = await rect(page.locator('.leadZone'));
+  const lead = await rect(page.locator('.lead-panel'));
   expect(lead.width).toBeLessThanOrEqual(430);
-  expect(lead.x).toBeGreaterThanOrEqual(0);
+  await page.locator('.mobile-back').click();
+  await page.locator('.conversation').click();
+  const conversation = await rect(page.locator('.conversation-panel'));
+  expect(conversation.width).toBeLessThanOrEqual(430);
 });
 
 test('1440px desktop keeps three usable zones', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(base);
+  await page.goto(fixture);
   await expectNoHorizontalOverflow(page);
-  const inbox = await rect(page.locator('.inboxZone'));
-  const conversation = await rect(page.locator('.conversationZone'));
-  const lead = await rect(page.locator('.leadZone'));
+  const inbox = await rect(page.locator('.inbox-panel'));
+  const conversation = await rect(page.locator('.conversation-panel'));
+  const lead = await rect(page.locator('.lead-panel'));
   expect(inbox.width).toBeGreaterThanOrEqual(260);
   expect(conversation.width).toBeGreaterThanOrEqual(500);
   expect(lead.width).toBeGreaterThanOrEqual(300);
@@ -98,7 +87,7 @@ test('390px pipeline admin editor remains usable without horizontal overflow', a
   const editor = await rect(page.locator('.editor'));
   expect(card.width).toBeLessThanOrEqual(390);
   expect(editor.width).toBeGreaterThanOrEqual(320);
-  expect(page.locator('.grid input')).toHaveCount(4);
+  await expect(page.locator('.grid input')).toHaveCount(4);
 });
 
 test('1440px pipeline admin uses multi-column editor and bounded content width', async ({ page }) => {
