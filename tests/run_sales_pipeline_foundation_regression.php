@@ -47,6 +47,9 @@ spCheck('conversation snapshot exposes stage tags and immutable history',strpos(
 spCheck('pipeline catalog admin is role gated',substr_count($pipelineApi,'ManagerHttp::requireAdmin($m)')>=3 && strpos($pipelineApi,"$action==='admin_catalog'")!==false && strpos($pipelineApi,"$action==='save_stage'")!==false && strpos($pipelineApi,"$action==='save_tag'")!==false);
 spCheck('catalog admin owns stage and tag writes',strpos($catalogAdmin,'UPDATE lead_stages')!==false && strpos($catalogAdmin,'UPDATE lead_tags')!==false && strpos($catalogAdmin,'AuditLogService::record')!==false);
 spCheck('won stages are terminal by invariant',strpos($catalogAdmin,'if($won)$terminal=1;')!==false);
+spCheck('catalog snapshot exposes stage usage counts',strpos($catalogAdmin,"$stage['usage_count']")!==false && strpos($catalogAdmin,'SELECT lead_stage_key,COUNT(*) AS usage_count FROM conversations')!==false);
+spCheck('active stage with leads cannot be deactivated',strpos($catalogAdmin,"'error'=>'stage_in_use'")!==false && strpos($catalogAdmin,'stageUsageCount($key)')!==false && strpos($catalogAdmin,'if($usage>0)return')!==false);
+spCheck('pipeline admin explains stage usage and safe deactivation',strpos($pipelineAdminJs,'leadCountLabel')!==false && strpos($pipelineAdminJs,"r.error==='stage_in_use'")!==false && strpos($pipelineAdminJs,'Сначала перенесите лиды в другой этап')!==false);
 spCheck('pipeline admin explicitly separates business and technical state',strpos($pipelineAdmin,'Технические состояния диалога здесь не меняются')!==false);
 spCheck('pipeline admin uses focused assets',strpos($pipelineAdmin,'pipeline-admin.js')!==false && strpos($pipelineAdmin,'pipeline-admin.css')!==false);
 spCheck('pipeline admin reuses shared HTTP client',strpos($pipelineAdminJs,"ManagerHttpClient.request(action,data,S.csrf,'pipeline-api.php')")!==false && strpos($managerHttpClient,"endpoint='api.php'")!==false && strpos($managerHttpClient,'fetch(endpoint')!==false);
