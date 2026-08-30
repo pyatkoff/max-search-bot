@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T02:05:42+00:00",
+    "generated_at": "2026-08-30T03:01:37+00:00",
     "production": {
-        "sha": "4e5cd5a34b71456ff0eab35a5b818fa1f8886600",
+        "sha": "994c26a2e9140b1cbf294885550dfd6eca25b42c",
         "branch": "main"
     },
     "migrations": {
@@ -130,12 +130,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 01:05:30",
+        "since_utc": "2026-08-30 02:01:29",
         "summary": {
-            "sessions": 1,
-            "started": 1,
-            "needs_collected": 1,
-            "tours_opened": 1,
+            "sessions": 0,
+            "started": 0,
+            "needs_collected": 0,
+            "tours_opened": 0,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -148,9 +148,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "tours_opened": 1
-            },
+            "drop_points": [],
             "flags": []
         },
         "flagged_sessions": []
@@ -160,7 +158,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "4e5cd5a34b71456ff0eab35a5b818fa1f8886600",
+        "sha": "994c26a2e9140b1cbf294885550dfd6eca25b42c",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -169,7 +167,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T02:05:42Z"
+        "reported_at": "2026-08-30T03:01:37Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -220,7 +218,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T02:05:41+00:00",
+        "generated_at": "2026-08-30T03:01:37+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -263,9 +261,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 137,
-                "bytes": 516275,
-                "code_lines": 6480
+                "files": 138,
+                "bytes": 521474,
+                "code_lines": 6607
             },
             "tools": {
                 "files": 21,
