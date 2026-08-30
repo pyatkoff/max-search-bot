@@ -41,6 +41,7 @@ class AdminDirectoryService
     public static function saveProject(array $data,int $actorManagerId=0): array
     {
         ProjectAccessService::ensureSchema();
+        ManagerAuthService::ensureSchema();
         $id=(int)($data['project_id']??0);
         $key=strtolower(trim((string)($data['project_key']??'')));
         $name=trim((string)($data['display_name']??''));
@@ -49,14 +50,25 @@ class AdminDirectoryService
         if($name==='')return ['ok'=>false,'error'=>'missing_display_name'];
         $pdo=ConversationDb::connection();
         $before=$id>0?self::projectRow($id):null;
-        if($id>0){
-            $q=$pdo->prepare('UPDATE projects SET project_key=?,display_name=?,is_active=? WHERE id=?');
-            try{$q->execute([$key,$name,$active,$id]);}catch(Throwable $e){return ['ok'=>false,'error'=>'duplicate_project_key'];}
-            if(!$q->rowCount() && !self::projectExists($id))return ['ok'=>false,'error'=>'not_found'];
-        }else{
-            $q=$pdo->prepare('INSERT INTO projects (project_key,display_name,is_active) VALUES (?,?,?)');
-            try{$q->execute([$key,$name,$active]);}catch(Throwable $e){return ['ok'=>false,'error'=>'duplicate_project_key'];}
-            $id=(int)$pdo->lastInsertId();
+        $pdo->beginTransaction();
+        try{
+            if($id>0){
+                $q=$pdo->prepare('UPDATE projects SET project_key=?,display_name=?,is_active=? WHERE id=?');
+                $q->execute([$key,$name,$active,$id]);
+                if(!$q->rowCount() && !self::projectExists($id)){
+                    $pdo->rollBack();
+                    return ['ok'=>false,'error'=>'not_found'];
+                }
+            }else{
+                $q=$pdo->prepare('INSERT INTO projects (project_key,display_name,is_active) VALUES (?,?,?)');
+                $q->execute([$key,$name,$active]);
+                $id=(int)$pdo->lastInsertId();
+            }
+            if($active)self::grantProjectToActiveAdmins($pdo,$id);
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            return ['ok'=>false,'error'=>'duplicate_project_key'];
         }
         AuditLogService::record($actorManagerId,$before?'project_updated':'project_created','project',(string)$id,$key,$before,self::projectRow($id));
         return ['ok'=>true,'project_id'=>$id];
@@ -101,6 +113,12 @@ class AdminDirectoryService
             AuditLogService::record($actorManagerId,$before?'manager_updated':'manager_created','manager',(string)$id,'',$before,self::managerRow($id));
             return ['ok'=>true,'manager_id'=>$id];
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return ['ok'=>false,'error'=>'duplicate_login'];}
+    }
+
+    private static function grantProjectToActiveAdmins(PDO $pdo,int $projectId): void
+    {
+        $q=$pdo->prepare("INSERT IGNORE INTO manager_projects (manager_id,project_id) SELECT id,? FROM managers WHERE role='admin' AND is_active=1");
+        $q->execute([$projectId]);
     }
 
     private static function managerRow(int $id): ?array
