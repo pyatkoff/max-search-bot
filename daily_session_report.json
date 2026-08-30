@@ -1,19 +1,19 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T15:09:14+00:00",
+    "generated_at": "2026-08-30T16:14:33+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 10,
-        "started": 10,
-        "needs_collected": 7,
-        "tours_opened": 7,
+        "sessions": 11,
+        "started": 11,
+        "needs_collected": 8,
+        "tours_opened": 8,
         "manager_requested": 3,
         "manager_replied": 3,
         "phone_received": 0,
-        "flagged_sessions": 4,
+        "flagged_sessions": 5,
         "manager_response": {
             "answered_in_90s": 1,
             "answered_after_90s": 2,
@@ -23,20 +23,20 @@
             "max_seconds": 2013
         },
         "drop_points": {
-            "tours_opened": 5,
+            "tours_opened": 6,
             "manager_replied": 3,
             "collecting_needs": 2
         },
         "flags": {
-            "repeated_callback_input": 3,
+            "repeated_callback_input": 4,
             "repeated_same_input": 2,
             "rapid_date_reselection": 1,
             "excessive_turns": 1
         },
         "calendar_day": {
-            "conversations_started": 2,
-            "needs_collected_from_started": 1,
-            "tours_opened_from_started": 1,
+            "conversations_started": 3,
+            "needs_collected_from_started": 2,
+            "tours_opened_from_started": 2,
             "manager_requested": 0,
             "manager_replied": 0
         }
@@ -652,31 +652,6 @@
             "last_message_at": "2026-08-30 14:42:05"
         },
         {
-            "conversation_id": 542,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 20,
-            "outbound_messages": 21,
-            "date_picks": 1,
-            "anomaly_inbound_messages": 0,
-            "drop_point": "tours_opened",
-            "flags": [],
-            "started_at": "2026-08-28 21:19:24",
-            "last_message_at": "2026-08-30 15:01:01"
-        },
-        {
             "conversation_id": 291,
             "project_key": "anytour",
             "channel": "max",
@@ -700,6 +675,156 @@
             "flags": [],
             "started_at": "2026-08-26 10:16:52",
             "last_message_at": "2026-08-30 15:45:02"
+        },
+        {
+            "conversation_id": 542,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 20,
+            "outbound_messages": 22,
+            "date_picks": 1,
+            "anomaly_inbound_messages": 0,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-28 21:19:24",
+            "last_message_at": "2026-08-30 18:04:59"
+        },
+        {
+            "conversation_id": 622,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 10,
+            "outbound_messages": 6,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 10,
+            "drop_point": "tours_opened",
+            "flags": [
+                "repeated_callback_input"
+            ],
+            "started_at": "2026-08-30 18:01:10",
+            "last_message_at": "2026-08-30 18:05:00",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 18:01:10"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+                    "created_at": "2026-08-30 18:01:10"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "С 15 ноября на 12-14 ночней",
+                    "created_at": "2026-08-30 18:02:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "В какую страну хотите поехать?",
+                    "created_at": "2026-08-30 18:02:11"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_city_5",
+                    "created_at": "2026-08-30 18:02:11"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ОАЭ или египет",
+                    "created_at": "2026-08-30 18:03:07"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько будет взрослых туристов?",
+                    "created_at": "2026-08-30 18:03:13"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2",
+                    "created_at": "2026-08-30 18:03:21"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-08-30 18:03:23"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Нет",
+                    "created_at": "2026-08-30 18:03:31"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Египет 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 12-14 ночей 📅 Вылет 15.11.2026 · ищем 12.11–18.11.2026 Что удобнее дальше?",
+                    "created_at": "2026-08-30 18:03:34"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "С Санкт петербурга",
+                    "created_at": "2026-08-30 18:04:02"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_city_5",
+                    "created_at": "2026-08-30 18:04:26"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_city_5",
+                    "created_at": "2026-08-30 18:04:27"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-30 18:05:00"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+                    "created_at": "2026-08-30 18:05:00"
+                }
+            ]
         }
     ],
     "local_date": "2026-08-30",

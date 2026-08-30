@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T15:09:22+00:00",
+    "generated_at": "2026-08-30T16:14:43+00:00",
     "production": {
-        "sha": "58e71d1046e2b4765c7335a394782f8f08b8442f",
+        "sha": "3a14fcc0606465ffa92b64133be6dc749eae27ee",
         "branch": "main"
     },
     "migrations": {
@@ -141,16 +141,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 14:09:12",
+        "since_utc": "2026-08-30 15:14:31",
         "summary": {
             "sessions": 3,
             "started": 3,
-            "needs_collected": 2,
-            "tours_opened": 2,
+            "needs_collected": 3,
+            "tours_opened": 3,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 0,
+            "flagged_sessions": 1,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -160,19 +160,30 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 2,
-                "collecting_needs": 1
+                "tours_opened": 3
             },
-            "flags": []
+            "flags": {
+                "repeated_callback_input": 1
+            }
         },
-        "flagged_sessions": []
+        "flagged_sessions": [
+            {
+                "conversation_id": 622,
+                "flags": [
+                    "repeated_callback_input"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
+            }
+        ]
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "58e71d1046e2b4765c7335a394782f8f08b8442f",
+        "sha": "3a14fcc0606465ffa92b64133be6dc749eae27ee",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -181,7 +192,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T15:09:22Z"
+        "reported_at": "2026-08-30T16:14:43Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -196,14 +207,14 @@
         "window_hours": null,
         "since_utc": "2026-08-29 22:00:00",
         "summary": {
-            "sessions": 10,
-            "started": 10,
-            "needs_collected": 7,
-            "tours_opened": 7,
+            "sessions": 11,
+            "started": 11,
+            "needs_collected": 8,
+            "tours_opened": 8,
             "manager_requested": 3,
             "manager_replied": 3,
             "phone_received": 0,
-            "flagged_sessions": 4,
+            "flagged_sessions": 5,
             "manager_response": {
                 "answered_in_90s": 1,
                 "answered_after_90s": 2,
@@ -213,31 +224,31 @@
                 "max_seconds": 2013
             },
             "drop_points": {
-                "tours_opened": 5,
+                "tours_opened": 6,
                 "manager_replied": 3,
                 "collecting_needs": 2
             },
             "flags": {
-                "repeated_callback_input": 3,
+                "repeated_callback_input": 4,
                 "repeated_same_input": 2,
                 "rapid_date_reselection": 1,
                 "excessive_turns": 1
             },
             "calendar_day": {
-                "conversations_started": 2,
-                "needs_collected_from_started": 1,
-                "tours_opened_from_started": 1,
+                "conversations_started": 3,
+                "needs_collected_from_started": 2,
+                "tours_opened_from_started": 2,
                 "manager_requested": 0,
                 "manager_replied": 0
             }
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T15:09:22+00:00",
+        "generated_at": "2026-08-30T16:14:43+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 268833,
+                "bytes": 269715,
                 "code_lines": 921
             },
             "actions": {
@@ -246,9 +257,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 110,
-                "bytes": 438932,
-                "code_lines": 9331
+                "files": 111,
+                "bytes": 442924,
+                "code_lines": 9386
             },
             "integrations": {
                 "files": 8,
@@ -256,9 +267,9 @@
                 "code_lines": 484
             },
             "manager": {
-                "files": 46,
-                "bytes": 224119,
-                "code_lines": 1148
+                "files": 49,
+                "bytes": 235023,
+                "code_lines": 1164
             },
             "website": {
                 "files": 4,
@@ -276,9 +287,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 141,
-                "bytes": 541382,
-                "code_lines": 6772
+                "files": 142,
+                "bytes": 547051,
+                "code_lines": 6807
             },
             "tools": {
                 "files": 22,
@@ -351,8 +362,8 @@
         "signal_counts": {
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
-            "direct_sql_writes": 17,
-            "authorization_mentions": 11,
+            "direct_sql_writes": 18,
+            "authorization_mentions": 12,
             "validation_mentions": 3
         },
         "signals": {
@@ -375,12 +386,14 @@
                 "services/ProjectAccessService.php",
                 "services/RoutingAccessService.php",
                 "services/RoutingAdminService.php",
+                "services/SalesPipelineCatalogAdminService.php",
                 "services/SalesPipelineService.php",
                 "services/WebsitePageContextService.php",
                 "services/WebsiteSessionService.php"
             ],
             "authorization_mentions": [
                 "manager/index.php",
+                "manager/pipeline-admin.php",
                 "manager/push-enable.php",
                 "manager/routing.php",
                 "services/AdminDirectoryService.php",
