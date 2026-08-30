@@ -9,6 +9,7 @@ $api=(string)file_get_contents($root.'/manager/api.php');
 $admin=(string)file_get_contents($root.'/manager/admin.php');
 $css=(string)file_get_contents($root.'/manager/assets/admin.css');
 $js=(string)file_get_contents($root.'/manager/assets/admin.js');
+$accessBackfill=(string)file_get_contents($root.'/migrations/020_backfill_active_admin_project_access.sql');
 
 $passed=0;$failed=0;
 function maaCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -26,6 +27,7 @@ maaCheck('admin javascript is extracted from the php monolith',strpos($admin,'as
 maaCheck('admin audit has responsive mobile layout',strpos($css,'@media(max-width:700px)')!==false&&strpos($css,'.auditRow{grid-template-columns:1fr')!==false);
 maaCheck('new active projects grant access to every active admin',strpos($directory,'if($active)self::grantProjectToActiveAdmins($pdo,$id);')!==false&&strpos($directory,"WHERE role='admin' AND is_active=1")!==false);
 maaCheck('project creation and admin ACL update are atomic',strpos($directory,'public static function saveProject')!==false&&strpos($directory,'$pdo->beginTransaction();')!==false&&strpos($directory,'if($pdo->inTransaction())$pdo->rollBack();')!==false);
+maaCheck('existing active admins are backfilled to every active project',strpos($accessBackfill,'INSERT IGNORE INTO manager_projects')!==false&&strpos($accessBackfill,'CROSS JOIN projects p')!==false&&strpos($accessBackfill,"m.role = 'admin'")!==false&&strpos($accessBackfill,'m.is_active = 1')!==false&&strpos($accessBackfill,'p.is_active = 1')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
