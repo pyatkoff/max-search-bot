@@ -5,6 +5,7 @@ require_once __DIR__ . '/../services/DialogueApplication.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
+require_once __DIR__ . '/../services/ProjectConfig.php';
 
 class TelegramWebhookHandler
 {
@@ -27,6 +28,8 @@ class TelegramWebhookHandler
             return false;
         }
 
+        $incoming['source_key'] = (string)ProjectConfig::get('messenger.telegram.source_key', 'telegram:anytour-main');
+
         $messenger = $messenger ?: new TelegramMessengerAdapter();
         IntegrationRegistry::useMessenger($messenger);
 
@@ -46,6 +49,7 @@ class TelegramWebhookHandler
         DiagnosticLogger::log('telegram_webhook', $handled ? 'handled' : 'ignored', [
             'update_id'=>$update['update_id'] ?? null,
             'type'=>$incoming['type'] ?? '',
+            'source_key'=>$incoming['source_key'] ?? '',
         ], $incoming['user']['chat_id'] ?? null);
         return $handled;
     }
