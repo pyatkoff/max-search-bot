@@ -11,6 +11,7 @@ $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
 $context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
+$migration=(string)file_get_contents($root.'/migrations/021_lead_sale_tracking.sql');
 $passed=0;$failed=0;
 function outcomeCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -24,6 +25,11 @@ outcomeCheck('outcome UI has dedicated styling',strpos($css,'.outcomeBox')!==fal
 outcomeCheck('outcome save is enabled only after a user edit',strpos($leadCardJs,'id="saveOutcome" class="actionBtn primary outcomeSave" type="button" disabled')!==false&&strpos($pipelineJs,'function setOutcomeDirty(dirty=true)')!==false&&strpos($pipelineJs,'button.disabled=!outcomeDirty')!==false);
 outcomeCheck('all editable outcome fields mark state dirty',strpos($pipelineJs,'outcomeEl.onchange=')!==false&&strpos($pipelineJs,'reasonEl.onchange=')!==false&&strpos($pipelineJs,'noteEl.oninput=')!==false&&substr_count($pipelineJs,'setOutcomeDirty(true)')>=3);
 outcomeCheck('dirty state is explicit and save errors keep edits retryable',strpos($pipelineJs,'Есть несохранённые изменения')!==false&&strpos($css,'.outcomeSaveStatus.dirty')!==false&&strpos($pipelineJs,"outcomeDirty=true;setOutcomeSaveState('Не удалось сохранить результат','error')")!==false);
+outcomeCheck('sale tracking uses forward-only conversation fields',strpos($migration,'lead_sale_amount DECIMAL(12,2)')!==false&&strpos($migration,'lead_sale_date DATE')!==false);
+outcomeCheck('won outcome exposes amount and sale date controls',strpos($leadCardJs,'id="leadSaleWrap"')!==false&&strpos($leadCardJs,'id="leadSaleAmount"')!==false&&strpos($leadCardJs,'id="leadSaleDate"')!==false&&strpos($leadCardJs,"outcome.outcome==='won'")!==false);
+outcomeCheck('sale fields are submitted only through existing outcome boundary',strpos($pipelineJs,'sale_amount:saleAmount')!==false&&strpos($pipelineJs,'sale_date:saleDate')!==false&&strpos($api,"isset(\$data['sale_amount'])")!==false&&strpos($api,"isset(\$data['sale_date'])")!==false);
+outcomeCheck('backend owns sale validation and clears sale facts for non-won outcomes',strpos($service,"if(\$outcome==='won')")!==false&&strpos($service,'is_numeric($rawAmount)')!==false&&strpos($service,"createFromFormat('!Y-m-d'")!==false&&strpos($service,'lead_sale_amount=?,lead_sale_date=?')!==false);
+outcomeCheck('sale edits participate in dirty-state protection',strpos($pipelineJs,'saleAmountEl.oninput=()=>setOutcomeDirty(true)')!==false&&strpos($pipelineJs,'saleDateEl.onchange=()=>setOutcomeDirty(true)')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
