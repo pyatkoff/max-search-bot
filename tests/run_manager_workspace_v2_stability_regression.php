@@ -10,6 +10,7 @@ $jump=(string)file_get_contents($root.'/manager/assets/workspace-v2-jump.js');
 $shortcuts=(string)file_get_contents($root.'/manager/assets/workspace-v2-shortcuts.js');
 $lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$taskDraft=(string)file_get_contents($root.'/manager/assets/workspace-v2-task-draft.js');
 $passed=0;$failed=0;
 function stableCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 stableCheck('manager index is redirect-free and owns the workspace implementation',strpos($index,"header('Location:")===false&&strpos($index,'workspace-v2.php')===false&&strpos($index,'id="workspaceRoot"')!==false&&strpos($index,'class="zone inboxZone"')!==false&&strpos($index,'id="conversationZone"')!==false&&strpos($index,'id="leadZone"')!==false);
@@ -26,4 +27,7 @@ stableCheck('shortcuts advertise key bindings through aria-keyshortcuts',strpos(
 stableCheck('lead card mutations refresh only target-pinned lead data',strpos($lead,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($lead,'WorkspaceV2Conversation.open(S.current)')===false&&strpos($conversation,'conversationId=S.current')!==false&&strpos($conversation,'const stillCurrent=Number(S.current)===target')!==false);
 stableCheck('pipeline mutations use target-pinned refresh and do not reopen transcript',substr_count($pipeline,'await refreshAfterSave(target)')>=2&&strpos($pipeline,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($pipeline,'WorkspaceV2Conversation.open(S.current)')===false);
 stableCheck('filters intentionally reset inbox scroll through one owner',strpos($pipeline,'async function applyFilters()')!==false&&strpos($pipeline,'load({preserveScroll:false})')!==false&&substr_count($pipeline,'await applyFilters()')>=5);
+stableCheck('task draft persistence is isolated in its own workspace module',strpos($index,"workspaceAsset('workspace-v2-task-draft.js')")!==false&&strpos($taskDraft,'window.WorkspaceV2TaskDraft=')!==false&&strpos($taskDraft,'workspaceV2.taskDraft.')!==false&&strpos($taskDraft,'sessionStorage')!==false);
+stableCheck('task drafts are scoped per lead and fail open around browser storage',strpos($taskDraft,'currentId()')!==false&&strpos($taskDraft,'keyFor(id=currentId())')!==false&&substr_count($taskDraft,'catch(e)')>=3);
+stableCheck('successful task creation does not restore a stale draft during lead refresh',strpos($taskDraft,'pending.add(key)')!==false&&strpos($taskDraft,'!pending.has(key)')!==false&&strpos($taskDraft,'if(result!==false)clear(key)')!==false&&strpos($taskDraft,'pending.delete(key)')!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
