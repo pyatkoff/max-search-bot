@@ -24,6 +24,8 @@ maaCheck('admin audit keeps actor action target and timestamp visible',strpos($j
 maaCheck('admin styles are extracted from the php monolith',strpos($admin,'assets/admin.css')!==false&&strpos($admin,'<style>')===false&&strpos($css,'.auditRow')!==false);
 maaCheck('admin javascript is extracted from the php monolith',strpos($admin,'assets/admin.js')!==false&&strpos($admin,'<script>')===false&&strpos($js,"api('me')")!==false&&strpos($js,"api('admin_snapshot')")!==false);
 maaCheck('admin audit has responsive mobile layout',strpos($css,'@media(max-width:700px)')!==false&&strpos($css,'.auditRow{grid-template-columns:1fr')!==false);
+maaCheck('new active projects grant access to every active admin',strpos($directory,'if($active)self::grantProjectToActiveAdmins($pdo,$id);')!==false&&strpos($directory,"WHERE role='admin' AND is_active=1")!==false);
+maaCheck('project creation and admin ACL update are atomic',strpos($directory,'public static function saveProject')!==false&&strpos($directory,'$pdo->beginTransaction();')!==false&&strpos($directory,'if($pdo->inTransaction())$pdo->rollBack();')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
