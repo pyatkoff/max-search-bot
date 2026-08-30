@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T00:10:35+00:00",
+    "generated_at": "2026-08-30T01:10:32+00:00",
     "production": {
-        "sha": "444568c2acf301ebbd4594d24c255147644995a6",
+        "sha": "56f299b2ae255e22970669cd3b1331e1f2c9ae60",
         "branch": "main"
     },
     "database": {
@@ -1634,17 +1634,6 @@
                 "manager_id": 5,
                 "subscription_id": 3,
                 "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-08-29T08:12:32+02:00",
-            "level": "warning",
-            "component": "manager_push",
-            "event": "no_subscription",
-            "data": {
-                "dispatch_id": "a0c5b3aa985939ec",
-                "conversation_id": 521,
-                "manager_id": 4
             }
         }
     ],
