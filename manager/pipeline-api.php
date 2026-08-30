@@ -7,6 +7,7 @@ require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/ManagerLeadInboxService.php';
 require_once $baseDir.'/services/SalesPipelineService.php';
+require_once $baseDir.'/services/SalesPipelineCatalogAdminService.php';
 require_once $baseDir.'/services/LeadTaskService.php';
 
 ManagerHttp::startJson();
@@ -20,6 +21,9 @@ $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
 
 if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions()]);
+if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
+if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
+if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),'',(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
