@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T08:41:38+00:00",
+    "generated_at": "2026-08-30T09:03:28+00:00",
     "production": {
-        "sha": "2015fea215d6dd98cc74d73f1657d85220ef8ed2",
+        "sha": "0b0f37de7808131b0b4d852a3b101a7e5de9c4fc",
         "branch": "main"
     },
     "database": {
@@ -150,6 +150,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-29 23:07:44"
+        },
+        {
+            "version": "020_backfill_active_admin_project_access.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-30 11:03:21"
         }
     ],
     "stats": {
@@ -160,7 +167,7 @@
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 941,
-        "admin_audit_log": 20
+        "admin_audit_log": 30
     },
     "managers": [
         {
@@ -206,7 +213,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-29 21:56:54"
+            "last_login_at": "2026-08-30 11:00:04"
         },
         {
             "id": 6,
@@ -420,6 +427,54 @@
             "fallback_mode": "immediate",
             "fallback_group_id": null,
             "fallback_after_minutes": 0
+        },
+        {
+            "id": 3,
+            "project_key": "anytour",
+            "source_key": "tg:anytour-main",
+            "display_name": "tg:anytour-main",
+            "channel": "telegram",
+            "is_active": 1,
+            "primary_group_id": 1,
+            "fallback_mode": "immediate",
+            "fallback_group_id": 1,
+            "fallback_after_minutes": 0
+        },
+        {
+            "id": 4,
+            "project_key": "anytour",
+            "source_key": "max:anytour-msk",
+            "display_name": "max:anytour-msk",
+            "channel": "max",
+            "is_active": 1,
+            "primary_group_id": 1,
+            "fallback_mode": "immediate",
+            "fallback_group_id": 1,
+            "fallback_after_minutes": 0
+        },
+        {
+            "id": 5,
+            "project_key": "anytour",
+            "source_key": "max:anytour-msk2",
+            "display_name": "max:anytour-msk2",
+            "channel": "max",
+            "is_active": 1,
+            "primary_group_id": 1,
+            "fallback_mode": "immediate",
+            "fallback_group_id": 1,
+            "fallback_after_minutes": 0
+        },
+        {
+            "id": 6,
+            "project_key": "anytour",
+            "source_key": "max_anytour_spb",
+            "display_name": "max_anytour_spb",
+            "channel": "max",
+            "is_active": 1,
+            "primary_group_id": 2,
+            "fallback_mode": "delayed",
+            "fallback_group_id": 1,
+            "fallback_after_minutes": 2
         }
     ],
     "website_attribution": [
@@ -1590,19 +1645,6 @@
                 "subscription_id": 85,
                 "http_code": 201
             }
-        },
-        {
-            "ts": "2026-08-29T09:54:58+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "3182796604536bb1",
-                "conversation_id": 521,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
         }
     ],
     "conversation_status": [
@@ -1644,6 +1686,96 @@
         }
     ],
     "recent_admin_audit": [
+        {
+            "id": 30,
+            "actor_manager_id": 2,
+            "action": "routing_source_updated",
+            "entity_type": "conversation_source",
+            "entity_id": "6",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 11:02:31"
+        },
+        {
+            "id": 29,
+            "actor_manager_id": 2,
+            "action": "routing_group_created",
+            "entity_type": "manager_group",
+            "entity_id": "2",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 11:02:10"
+        },
+        {
+            "id": 28,
+            "actor_manager_id": 2,
+            "action": "routing_source_updated",
+            "entity_type": "conversation_source",
+            "entity_id": "6",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 11:01:54"
+        },
+        {
+            "id": 27,
+            "actor_manager_id": 2,
+            "action": "routing_source_created",
+            "entity_type": "conversation_source",
+            "entity_id": "6",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:59:20"
+        },
+        {
+            "id": 26,
+            "actor_manager_id": 2,
+            "action": "routing_source_created",
+            "entity_type": "conversation_source",
+            "entity_id": "5",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:59:02"
+        },
+        {
+            "id": 25,
+            "actor_manager_id": 2,
+            "action": "routing_source_created",
+            "entity_type": "conversation_source",
+            "entity_id": "4",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:58:49"
+        },
+        {
+            "id": 24,
+            "actor_manager_id": 2,
+            "action": "routing_source_updated",
+            "entity_type": "conversation_source",
+            "entity_id": "3",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:57:23"
+        },
+        {
+            "id": 23,
+            "actor_manager_id": 2,
+            "action": "routing_group_created",
+            "entity_type": "manager_group",
+            "entity_id": "1",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:56:57"
+        },
+        {
+            "id": 22,
+            "actor_manager_id": 2,
+            "action": "routing_source_created",
+            "entity_type": "conversation_source",
+            "entity_id": "3",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:56:05"
+        },
+        {
+            "id": 21,
+            "actor_manager_id": 2,
+            "action": "project_updated",
+            "entity_type": "project",
+            "entity_id": "1",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 10:47:27"
+        },
         {
             "id": 20,
             "actor_manager_id": 2,
