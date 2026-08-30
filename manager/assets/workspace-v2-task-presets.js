@@ -17,12 +17,21 @@
     input.dispatchEvent(new Event('change',{bubbles:true}));
     return true;
   }
-  function markup(prefix='taskDuePreset'){
+  function markup(){
     return `<div class="taskDuePresets" role="group" aria-label="Быстро выбрать срок"><button type="button" data-due-preset="hour">Через час</button><button type="button" data-due-preset="evening">Сегодня 18:00</button><button type="button" data-due-preset="tomorrow">Завтра 10:00</button></div>`;
   }
-  function bind(root,input){
-    if(!root||!input)return;
-    root.querySelectorAll('[data-due-preset]').forEach(btn=>btn.onclick=()=>apply(input,String(btn.dataset.duePreset||'')));
+  function enhance(form,input){
+    if(!form||!input||form.querySelector('.taskDuePresets'))return;
+    input.insertAdjacentHTML('afterend',markup());
+    const presets=input.nextElementSibling;
+    presets?.querySelectorAll('[data-due-preset]').forEach(btn=>btn.onclick=()=>apply(input,String(btn.dataset.duePreset||'')));
   }
-  window.WorkspaceV2TaskPresets={dateForPreset,localInputValue,apply,markup,bind};
+  function enhanceAll(root=document){
+    const create=root.querySelector?.('.taskCreate');
+    if(create)enhance(create,create.querySelector('#leadTaskDue'));
+    root.querySelectorAll?.('.taskEditForm').forEach(form=>enhance(form,form.querySelector('[data-task-edit-due]')));
+  }
+  const observer=new MutationObserver(mutations=>mutations.forEach(m=>m.addedNodes.forEach(node=>{if(node.nodeType===1)enhanceAll(node.closest?.('#leadTasksBody')||node)})));
+  document.addEventListener('DOMContentLoaded',()=>{enhanceAll();const root=document.getElementById('leadCard');if(root)observer.observe(root,{childList:true,subtree:true})});
+  window.WorkspaceV2TaskPresets={dateForPreset,localInputValue,apply,enhanceAll};
 })();
