@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T13:06:59+00:00",
+    "generated_at": "2026-08-30T13:12:24+00:00",
     "production": {
-        "sha": "ca9269357d9c504521500bdcc38036356a9a742b",
+        "sha": "2cd96782a730d023c56fbd88f8afee244f92ea97",
         "branch": "main"
     },
     "migrations": {
@@ -141,27 +141,27 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 12:06:49",
+        "since_utc": "2026-08-30 12:12:16",
         "summary": {
-            "sessions": 5,
-            "started": 5,
-            "needs_collected": 4,
-            "tours_opened": 4,
-            "manager_requested": 2,
-            "manager_replied": 2,
+            "sessions": 4,
+            "started": 4,
+            "needs_collected": 3,
+            "tours_opened": 3,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 2,
+                "answered_after_90s": 1,
                 "still_unanswered": 0,
-                "measured_responses": 2,
-                "avg_seconds": 1530,
-                "max_seconds": 2013
+                "measured_responses": 1,
+                "avg_seconds": 1046,
+                "max_seconds": 1046
             },
             "drop_points": {
-                "manager_replied": 2,
                 "tours_opened": 2,
+                "manager_replied": 1,
                 "collecting_needs": 1
             },
             "flags": []
@@ -173,7 +173,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "ca9269357d9c504521500bdcc38036356a9a742b",
+        "sha": "2cd96782a730d023c56fbd88f8afee244f92ea97",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -182,7 +182,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T13:06:59Z"
+        "reported_at": "2026-08-30T13:12:24Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -234,7 +234,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T13:06:58+00:00",
+        "generated_at": "2026-08-30T13:12:23+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -258,8 +258,8 @@
             },
             "manager": {
                 "files": 46,
-                "bytes": 221765,
-                "code_lines": 1144
+                "bytes": 221932,
+                "code_lines": 1145
             },
             "website": {
                 "files": 4,
@@ -278,8 +278,8 @@
             },
             "tests": {
                 "files": 141,
-                "bytes": 538383,
-                "code_lines": 6757
+                "bytes": 538919,
+                "code_lines": 6760
             },
             "tools": {
                 "files": 22,
