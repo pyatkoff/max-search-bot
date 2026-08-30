@@ -25,18 +25,15 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Chromium for Playwright
-        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Install Playwright
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
 
       - name: Start static server
         shell: bash
         run: |
           set -euo pipefail
-          # The visual fixture predates the dedicated mobile stylesheet. Ensure
-          # responsive QA renders the same mobile adaptation layer as production.
-          if ! grep -q 'workspace-v2-mobile.css' tests/visual/workspace-v2-fixture.html; then
-            sed -i 's#<link rel="stylesheet" href="../../manager/assets/workspace-v2-tasks.css">#<link rel="stylesheet" href="../../manager/assets/workspace-v2-mobile.css"><link rel="stylesheet" href="../../manager/assets/workspace-v2-tasks.css">#' tests/visual/workspace-v2-fixture.html
-          fi
           grep -q 'workspace-v2-mobile.css' tests/visual/workspace-v2-fixture.html
           python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/visual-server.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/visual-server.pid"
@@ -46,6 +43,9 @@ jobs:
           done
           cat "$RUNNER_TEMP/visual-server.log"
           exit 1
+
+      - name: Assert responsive layout contracts
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js --reporter=line --workers=1
 
       - name: Capture responsive screenshots
         shell: bash
@@ -60,30 +60,30 @@ jobs:
           inboxFailure='http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-load-failure-fixture.html'
           taskEdit='http://127.0.0.1:4173/tests/visual/workspace-v2-task-edit-fixture.html'
           adminAudit='http://127.0.0.1:4173/tests/visual/admin-audit-fixture.html'
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390-inbox.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-390-conversation.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation&stress=chat" visual-artifacts/workspace-v2-390-conversation-stress.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url" visual-artifacts/workspace-v2-430-inbox.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$url?view=lead" visual-artifacts/workspace-v2-430-lead.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='768,1024' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-768-conversation.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url" visual-artifacts/workspace-v2-1440-desktop.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url?view=conversation&stress=chat" visual-artifacts/workspace-v2-1440-conversation-stress.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$kanban" visual-artifacts/workspace-v2-390-kanban.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$kanban" visual-artifacts/workspace-v2-1440-kanban.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$theme" visual-artifacts/workspace-v2-theme-390-inbox.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='430,932' --full-page "$theme?view=lead" visual-artifacts/workspace-v2-theme-430-lead.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='768,1024' --full-page "$theme?view=conversation" visual-artifacts/workspace-v2-theme-768-conversation.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$theme" visual-artifacts/workspace-v2-theme-1440-desktop.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$activity" visual-artifacts/workspace-v2-390-inbox-activity.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$activity" visual-artifacts/workspace-v2-1440-inbox-activity.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$startup" visual-artifacts/workspace-v2-390-startup-failure.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$startup" visual-artifacts/workspace-v2-1440-startup-failure.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$inboxFailure" visual-artifacts/workspace-v2-390-inbox-load-failure.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$inboxFailure" visual-artifacts/workspace-v2-1440-inbox-load-failure.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-390.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-1440.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='390,844' --full-page "$adminAudit" visual-artifacts/admin-audit-390.png
-          npx --yes playwright@1.55.0 screenshot --browser chromium --viewport-size='1440,1000' --full-page "$adminAudit" visual-artifacts/admin-audit-1440.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$url" visual-artifacts/workspace-v2-390-inbox.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-390-conversation.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$url?view=conversation&stress=chat" visual-artifacts/workspace-v2-390-conversation-stress.png
+          npx playwright screenshot --browser chromium --viewport-size='430,932' --full-page "$url" visual-artifacts/workspace-v2-430-inbox.png
+          npx playwright screenshot --browser chromium --viewport-size='430,932' --full-page "$url?view=lead" visual-artifacts/workspace-v2-430-lead.png
+          npx playwright screenshot --browser chromium --viewport-size='768,1024' --full-page "$url?view=conversation" visual-artifacts/workspace-v2-768-conversation.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url" visual-artifacts/workspace-v2-1440-desktop.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$url?view=conversation&stress=chat" visual-artifacts/workspace-v2-1440-conversation-stress.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$kanban" visual-artifacts/workspace-v2-390-kanban.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$kanban" visual-artifacts/workspace-v2-1440-kanban.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$theme" visual-artifacts/workspace-v2-theme-390-inbox.png
+          npx playwright screenshot --browser chromium --viewport-size='430,932' --full-page "$theme?view=lead" visual-artifacts/workspace-v2-theme-430-lead.png
+          npx playwright screenshot --browser chromium --viewport-size='768,1024' --full-page "$theme?view=conversation" visual-artifacts/workspace-v2-theme-768-conversation.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$theme" visual-artifacts/workspace-v2-theme-1440-desktop.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$activity" visual-artifacts/workspace-v2-390-inbox-activity.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$activity" visual-artifacts/workspace-v2-1440-inbox-activity.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$startup" visual-artifacts/workspace-v2-390-startup-failure.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$startup" visual-artifacts/workspace-v2-1440-startup-failure.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$inboxFailure" visual-artifacts/workspace-v2-390-inbox-load-failure.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$inboxFailure" visual-artifacts/workspace-v2-1440-inbox-load-failure.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-390.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$taskEdit" visual-artifacts/workspace-v2-task-edit-1440.png
+          npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$adminAudit" visual-artifacts/admin-audit-390.png
+          npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$adminAudit" visual-artifacts/admin-audit-1440.png
           test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 24
           find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
 
