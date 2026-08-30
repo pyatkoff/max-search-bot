@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T23:05:32+00:00",
+    "generated_at": "2026-08-30T23:36:15+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -26,5 +26,5 @@
         "flags": []
     },
     "sessions": [],
-    "since_utc": "2026-08-30 22:05:32"
+    "since_utc": "2026-08-30 22:36:15"
 }
