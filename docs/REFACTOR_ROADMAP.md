@@ -1,8 +1,8 @@
 # Architecture & Maintainability Refactor Roadmap
 
-Updated: 2026-08-29
+Updated: 2026-08-30
 
-This roadmap complements issue #55 and `docs/TECHNICAL_AUDIT.md`. The current user-directed execution mode is **technical/checks first, Manager UX/visual second**. Confirmed production outages, lead-loss/data-integrity defects and broken manager handoff still interrupt refactor work immediately.
+This roadmap complements issue #55 and `docs/TECHNICAL_AUDIT.md`. Current execution mode is **technical/checks first, Manager UX/visual second**. Confirmed production outages, lead-loss/data-integrity defects and broken manager handoff still interrupt refactor work immediately.
 
 ## Current baseline
 
@@ -12,33 +12,40 @@ Already completed and production-proven:
 - [x] `manager/index.php` is the single Workspace V2 production entrypoint; `workspace-v2.php` is retired;
 - [x] Workspace V2 frontend is split into feature-owned `workspace-v2-*` modules;
 - [x] shared `manager/lib/ManagerHttp.php` boundary exists and multiple push/media/pipeline/main API paths have been migrated incrementally;
+- [x] `manager/admin.php` and `manager/routing.php` presentation/behavior are split into owned CSS/JS assets and both use the shared browser HTTP client;
 - [x] Sales Pipeline foundation, lead outcomes, tasks/reminders and Kanban exist;
 - [x] Manager startup/session/send/load/mutation integrity has focused regression coverage;
+- [x] one machine-readable required-check manifest exists with stable `architecture`, `dialogue`, `website`, `manager`, `diagnostics` groups;
+- [x] PR CI runs required groups independently in parallel while preserving the aggregate `regression` gate;
+- [x] `tests/run_required_checks.sh` remains the canonical full local/deploy gate;
+- [x] required-regression inventory/orphan detection prevents focused regressions from silently escaping the required suite;
+- [x] Workspace visual QA captures 390/430/768/1440 evidence and, since #334, also enforces browser layout contracts for viewport overflow, mobile composer usability, bubble/media sizing and desktop three-zone geometry;
+- [x] visual fixtures load production styles directly; CI no longer rewrites the main Workspace fixture at runtime;
 - [x] architecture inventory tooling exists (`tools/architecture_inventory.php`);
 - [x] production/deploy/live-session diagnostics are published and used by autopilot;
 - [x] production migrations are forward-only with checksum health in diagnostics.
 
-The old roadmap lagged behind implementation; do not use old PR numbers or the retired Workspace alias as planning truth.
+Do not use old unchecked roadmap items as implementation truth. Verify current main first, then update this document when a technical milestone lands.
 
 ## Phase A — Test architecture and autopilot speed
 
-Highest priority for the current technical pass.
-
 - [x] Keep one canonical full gate: `tests/run_required_checks.sh`.
-- [x] Add required-regression inventory/orphan detection so focused regression files cannot silently remain ungated.
-- [ ] Introduce one machine-readable required-check manifest with stable groups.
-- [ ] Group checks into at least `architecture`, `dialogue`, `website`, `manager`, `diagnostics`.
-- [ ] Make PR CI run independent groups in parallel and expose group-level failures/timing.
-- [ ] Preserve an all-groups local/autopilot command.
-- [ ] Review duplicated PR/deploy verification only after main-branch provenance/branch protection makes removal safe.
+- [x] Required-regression inventory/orphan detection.
+- [x] Machine-readable required-check manifest with stable groups.
+- [x] Parallel PR groups: `architecture`, `dialogue`, `website`, `manager`, `diagnostics`.
+- [x] Preserve one aggregate required result (`regression`) and one all-groups local/deploy command.
+- [x] Promote responsive Workspace Visual QA from screenshot-only evidence to executable layout assertions.
+- [ ] Add timing metadata/reporting per required group so slow areas can be optimized from evidence rather than intuition.
 - [ ] Classify optional/manual tests explicitly instead of relying on naming accidents.
+- [ ] Review duplicated PR/deploy verification only after main-branch provenance/branch protection makes removal safe.
 - [ ] Convert formatting-sensitive source assertions to behavior tests when those areas are touched; keep static checks for true architecture/security invariants.
 
 ## Phase B — Architecture truth and inventory
 
 - [x] Generate lightweight code-area/hotspot/runtime-write inventory from the real tree.
 - [x] Correct repository map so Manager V2 ownership matches production.
-- [ ] Publish/surface architecture inventory summary as an autopilot artifact or stable checkpoint.
+- [x] Maintain explicit keep/merge/move/delete ownership map in `docs/ARCHITECTURE_MAP.md`.
+- [ ] Publish/surface architecture inventory summary as a stable diagnostics/autopilot artifact after deploys.
 - [ ] Add caller-backed legacy candidate inventory before any deletion.
 - [ ] Review every `runtime_ddl` signal; production request paths must not mutate schema.
 - [ ] Review `direct_sql_writes` signals and identify only the places where repositories/owners would reduce duplicated domain logic.
@@ -50,12 +57,12 @@ Do this before the next broad visual polish pass.
 
 - [x] Workspace core and feature modules separated.
 - [x] Push status/API/enable, media upload/preview, Sales Pipeline and main Manager API work moved toward shared `ManagerHttp` lifecycle in narrow slices.
-- [ ] Inventory remaining Manager/admin/routing endpoint families not using the canonical HTTP/auth/error boundary.
+- [x] Admin and routing CSS/JS moved out of PHP shells into owned assets.
+- [x] Shared `manager-http-client.js` is used by Workspace/Admin/Routing where request/auth/error semantics match.
+- [ ] Inventory remaining Manager endpoint families not using the canonical HTTP/auth/error boundary.
 - [ ] Centralize conversation visibility/ownership authorization behavior shared by Manager and Sales Pipeline APIs.
-- [ ] Split inline CSS/JS from `manager/admin.php` into owned assets.
-- [ ] Split inline CSS/JS from `manager/routing.php` into owned assets.
-- [ ] Introduce one small browser HTTP/auth/error client where workspace/admin/routing semantics genuinely match.
 - [ ] Keep `workspace-v2.js` feature-neutral; do not turn shared core into another frontend monolith.
+- [ ] Review duplicate client-side request/error wrappers and remove only caller-proven duplicates.
 
 ## Phase D — Dialogue canonical ownership
 
@@ -78,6 +85,7 @@ No large rewrite. Move one caller-backed rule at a time.
 
 ## Phase F — Persistence and diagnostics
 
+- [ ] Publish architecture/test inventory in stable diagnostics so technical drift is visible without a manual repository reread.
 - [ ] Review Manager inbox/tasks/pipeline and diagnostics query patterns before adding indexes.
 - [ ] Keep schema changes migration-only; applied migrations immutable and repairs forward-only.
 - [ ] Introduce repositories only where repeated direct SQL leaks application/domain rules.
@@ -88,14 +96,14 @@ No large rewrite. Move one caller-backed rule at a time.
 
 Resume broad UX/visual work after the technical/check baseline is stable.
 
-- [ ] Full responsive visual audit at 390, 430, 768 and 1440 CSS px.
+- [ ] Full responsive visual audit at 390, 430, 768 and 1440 CSS px, using both screenshots and executable layout assertions.
 - [ ] Inbox hierarchy, scan speed, urgency and task states.
 - [ ] Conversation/composer keyboard/mobile/media/error states.
 - [ ] Lead Card density and mutation/dirty/saving/error/success clarity.
 - [ ] Kanban usefulness and mobile fallback.
-- [ ] Admin/routing visual consistency after their asset split.
+- [ ] Admin/routing visual consistency after their structural split.
 
-Every material UI slice must keep draft/context/scroll safety where applicable, server-side authorization and the original tourist transcript.
+Every material UI slice must preserve drafts, selected lead/context, scroll where applicable, server-side authorization and the original tourist transcript.
 
 ## Phase H — Legacy retirement
 
@@ -108,14 +116,12 @@ Only after canonical owners are proven:
 
 ## Immediate autonomous sequence
 
-1. Land required-regression inventory/orphan protection and synchronized technical docs.
-2. Build required-check manifest + grouped runner without changing test semantics.
-3. Parallelize PR regression groups and measure the speedup.
-4. Audit Visual QA trigger/viewport coverage and production smoke coverage against current surfaces.
-5. Run architecture inventory against current main and review runtime DDL/direct SQL/hotspots.
-6. Finish the highest-value remaining Manager HTTP/auth/admin/routing structural slices.
-7. Audit dialogue/handoff canonical ownership in small behavior-preserving slices.
-8. Then return to the full Manager UX/visual pass.
+1. Publish architecture inventory as a stable deploy/diagnostics artifact and review current signals.
+2. Add test-group timing/reporting and explicit optional/manual classification if it can be done without weakening the required gate.
+3. Finish the highest-value remaining Manager HTTP/auth/authorization ownership slices.
+4. Audit dialogue and handoff canonical ownership in small behavior-preserving slices.
+5. Review direct SQL/runtime DDL/hotspots from current inventory and create caller-backed refactor candidates.
+6. Then return to the full Manager UX/visual pass with the stronger layout gate in place.
 
 ## Continuous refactor questions
 
@@ -133,4 +139,4 @@ For every user-facing change:
 - loading/empty/error/read-only states checked?
 - no draft/context/scroll loss?
 - permission behavior server-side?
-- visual QA evidence captured when relevant?
+- executable layout assertions plus visual evidence captured when relevant?
