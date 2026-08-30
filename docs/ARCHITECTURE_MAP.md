@@ -15,6 +15,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/AuditLogService.php` — admin audit persistence plus bounded data-minimized read projection; UI must not expose raw before/after payloads.
 - `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
 - Sales-pipeline services/repositories — business lead state, independent from technical conversation status.
+- `manager/assets/workspace-v2-pipeline.js` — Workspace V2 browser owner for sales-stage/tag/outcome mutations plus pipeline filters; lead-card rendering delegates mutation wiring here instead of issuing sales writes directly.
 - `manager/index.php` plus focused `manager/assets/workspace-v2-*` modules — canonical forward Manager UI entrypoint, kept thin and progressively modular; do not recreate a second Workspace PHP shell.
 - `manager/admin.php` + `manager/assets/admin.css` + `manager/assets/admin.js` — current role-gated admin interface; PHP remains a thin shell and presentation/behavior stay in owned assets.
 - `manager/routing.php` + `manager/assets/routing.css` + `manager/assets/routing.js` — current role-gated routing interface; PHP remains a thin shell and routing policy is not to be duplicated in frontend code.
@@ -33,7 +34,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Remaining browser fetch/auth/error wrappers with the same semantics → `manager/assets/manager-http-client.js`; do not merge feature-specific request behavior merely for code-count reduction.
 - Repeated admin directory/audit read assembly → `AdminDirectoryService` / `AuditLogService`, leaving `manager/admin.php` as an interface renderer.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.
-- Repeated sales-stage mutation paths → one sales-pipeline application service.
+- Repeated sales-stage/tag/outcome mutation paths → sales-pipeline application services on the backend and `workspace-v2-pipeline.js` for Workspace V2 browser orchestration.
 - Any remaining lead-task deadline/urgency/pinning/priority classification or mutation outside `LeadTaskService` → delegate to `LeadTaskService` and keep UI/read models projection-only.
 - Production-derived bespoke regression runners → shared scenario suites where the scenario engine can represent the behavior without weakening coverage.
 
