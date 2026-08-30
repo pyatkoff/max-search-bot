@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T09:33:29+00:00",
+    "generated_at": "2026-08-30T09:52:19+00:00",
     "production": {
-        "sha": "071944ac93603d6d7e807904e6c11e7d36f0593d",
+        "sha": "4eb884f804ed5bb0794e15187d8ff5661f23b20a",
         "branch": "main"
     },
     "database": {
@@ -163,11 +163,11 @@
         "customers": 617,
         "customer_channels": 617,
         "conversations": 619,
-        "messages": 15726,
+        "messages": 15733,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 941,
-        "admin_audit_log": 30
+        "admin_audit_log": 31
     },
     "managers": [
         {
@@ -355,7 +355,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-30 00:01:37",
+                "last_success_at": "2026-08-30 11:37:28",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -494,6 +494,18 @@
             "is_active": 1,
             "primary_group_id": null,
             "fallback_mode": "immediate",
+            "fallback_group_id": null,
+            "fallback_after_minutes": 0
+        },
+        {
+            "id": 9,
+            "project_key": "anytour",
+            "source_key": "tg_anytour_msk",
+            "display_name": "tg_anytour_msk",
+            "channel": "telegram",
+            "is_active": 1,
+            "primary_group_id": 1,
+            "fallback_mode": "none",
             "fallback_group_id": null,
             "fallback_after_minutes": 0
         }
@@ -1139,6 +1151,110 @@
     ],
     "recent_manager_push_events": [
         {
+            "ts": "2026-08-30T11:37:28+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "0b087c8667c9799b",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:28+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "0b087c8667c9799b",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:26+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "6959fae724d7cc47",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:26+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "6959fae724d7cc47",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:25+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "4b1d9a3575d127d6",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:25+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "4b1d9a3575d127d6",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:23+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "68e6282d2a614392",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T11:37:23+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "68e6282d2a614392",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
             "ts": "2026-08-30T00:01:37+02:00",
             "level": "info",
             "component": "manager_push",
@@ -1695,6 +1811,15 @@
     ],
     "recent_admin_audit": [
         {
+            "id": 31,
+            "actor_manager_id": 2,
+            "action": "routing_source_created",
+            "entity_type": "conversation_source",
+            "entity_id": "9",
+            "project_key": "anytour",
+            "created_at": "2026-08-30 11:46:15"
+        },
+        {
             "id": 30,
             "actor_manager_id": 2,
             "action": "routing_source_updated",
@@ -1966,6 +2091,69 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15733,
+            "conversation_id": 1,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 11:43:37"
+        },
+        {
+            "id": 15732,
+            "conversation_id": 1,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "/start",
+            "created_at": "2026-08-30 11:43:37"
+        },
+        {
+            "id": 15731,
+            "conversation_id": 1,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "test",
+            "created_at": "2026-08-30 11:41:26"
+        },
+        {
+            "id": 15730,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-30 11:37:28"
+        },
+        {
+            "id": 15729,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-30 11:37:26"
+        },
+        {
+            "id": 15728,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 11:37:25"
+        },
+        {
+            "id": 15727,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-30 11:37:23"
+        },
         {
             "id": 15726,
             "conversation_id": 619,
@@ -2442,69 +2630,6 @@
             "channel": "max",
             "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Краснодар → Таиланд 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 30.08.2026 · ищем 30.08–02.09.2026 Что удобнее дальше?",
             "created_at": "2026-08-30 01:16:37"
-        },
-        {
-            "id": 15673,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_30.08.2026",
-            "created_at": "2026-08-30 01:16:37"
-        },
-        {
-            "id": 15672,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_07.2026",
-            "created_at": "2026-08-30 01:16:37"
-        },
-        {
-            "id": 15671,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-30 01:16:36"
-        },
-        {
-            "id": 15670,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_07.2026",
-            "created_at": "2026-08-30 01:16:36"
-        },
-        {
-            "id": 15669,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_07.2026",
-            "created_at": "2026-08-30 01:16:36"
-        },
-        {
-            "id": 15668,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-30 01:16:25"
-        },
-        {
-            "id": 15667,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_6_8",
-            "created_at": "2026-08-30 01:16:25"
         }
     ],
     "recent_events": [
