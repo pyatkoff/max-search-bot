@@ -8,33 +8,37 @@ require_once __DIR__ . '/ProjectConfig.php';
 
 final class TelegramStartSourceResolver
 {
-    public static function resolve(array $incoming): string
+    public static function resolve(array $incoming, ?callable $existingSourceLookup = null): string
     {
         $default = (string)ProjectConfig::get('messenger.telegram.source_key', 'tg:anytour-main');
+        $lookup = $existingSourceLookup ?: static fn(string $sourceKey): string => self::existingSource($sourceKey);
         $text = trim((string)($incoming['text'] ?? ''));
         if (!preg_match('~^/start(?:@\w+)?(?:\s+([A-Za-z0-9_-]{1,64}))?\s*$~u', $text, $m)) {
-            return self::existingSource($default) ?: $default;
+            return $lookup($default) ?: $default;
         }
 
         $payload = trim((string)($m[1] ?? ''));
-        if ($payload === '') return self::existingSource($default) ?: $default;
+        if ($payload === '') return $lookup($default) ?: $default;
 
         foreach (self::candidateKeys($payload) as $candidate) {
-            $resolved = self::existingSource($candidate);
+            $resolved = (string)$lookup($candidate);
             if ($resolved !== '') return $resolved;
         }
 
-        return self::existingSource($default) ?: $default;
+        return $lookup($default) ?: $default;
     }
 
-    private static function candidateKeys(string $payload): array
+    public static function candidateKeys(string $payload): array
     {
+        $payload = trim($payload);
+        if ($payload === '') return [];
         $candidates = [$payload];
         if (str_starts_with($payload, 'tg_')) {
             $tail = substr($payload, 3);
             if ($tail !== '') {
-                $candidates[] = 'tg:' . str_replace('_', '-', $tail);
-                $candidates[] = 'telegram:' . str_replace('_', '-', $tail);
+                $normalized = str_replace('_', '-', $tail);
+                $candidates[] = 'tg:' . $normalized;
+                $candidates[] = 'telegram:' . $normalized;
             }
         }
         return array_values(array_unique($candidates));
