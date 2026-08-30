@@ -6,7 +6,9 @@ $workspace=(string)file_get_contents($root.'/manager/index.php');
 $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $kanban=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.js');
+$presets=(string)file_get_contents($root.'/manager/assets/workspace-v2-task-presets.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.css');
+$taskCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $passed=0;$failed=0;
@@ -28,6 +30,7 @@ kbCheck('board cards preserve lead context',strpos($kanban,'origin_label')!==fal
 kbCheck('board surfaces shared task urgency projection',strpos($kanban,'next_task_due_state')!==false&&strpos($kanban,'next_task_overdue')!==false&&strpos($kanban,'next_task_due_at_utc')!==false&&strpos($kanban,'WorkspaceV2Inbox?.formatTaskDue')!==false&&strpos($kanban,"'Просрочено'")!==false&&strpos($kanban,"'Сегодня'")!==false&&strpos($css,'.kanbanTask.overdue')!==false&&strpos($css,'.kanbanTask.today')!==false);
 kbCheck('column headers summarize actionable attention signals',strpos($kanban,'function columnSummary')!==false&&strpos($kanban,'awaiting_first_reply')!==false&&strpos($kanban,'next_task_overdue')!==false&&strpos($kanban,'unread_count')!==false&&strpos($kanban,'без ответа')!==false&&strpos($kanban,'просроч.')!==false&&strpos($kanban,'непрочит.')!==false&&strpos($kanban,'function columnHeader')!==false&&strpos($css,'.kanbanColumnTitle small')!==false);
 kbCheck('editable cards expose direct quick task creation',strpos($kanban,'kanbanQuickTaskToggle')!==false&&strpos($kanban,'kanbanTaskTitle')!==false&&strpos($kanban,'kanbanTaskDue')!==false&&strpos($kanban,"pipe('create_task'")!==false);
+kbCheck('Kanban quick tasks reuse the shared due preset owner',strpos($presets,".kanbanQuickTaskForm")!==false&&strpos($presets,".kanbanTaskDue")!==false&&strpos($kanban,'WorkspaceV2TaskPresets?.enhanceAll(root)')!==false&&strpos($kanban,'Сегодня 18:00')===false&&strpos($kanban,'Завтра 10:00')===false&&strpos($taskCss,'.taskDuePresets')!==false);
 kbCheck('quick task reuses canonical backend task owner and authorization',strpos($api,"if(\$action==='create_task'")!==false&&strpos($api,'LeadTaskService::create')!==false&&strpos($api,'ManagerHttp::requireConversationEdit($c,$m);')!==false);
 kbCheck('quick task is hidden from read-only cards',strpos($kanban,"if(!c.can_edit_pipeline)return''")!==false&&strpos($kanban,'function quickTaskControl')!==false);
 kbCheck('quick task has explicit save error and true reentry guard',strpos($kanban,"if(form.dataset.saving==='1')return")!==false&&strpos($kanban,"form.dataset.saving='1'")!==false&&strpos($kanban,"form.dataset.saving='0'")!==false&&strpos($kanban,"save.disabled=true")!==false&&strpos($kanban,"taskStatus(error,'Не удалось сохранить задачу','error')")!==false&&strpos($kanban,"if(!title)")!==false);
