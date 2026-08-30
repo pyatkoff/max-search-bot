@@ -15,6 +15,7 @@ return [
         'php tests/run_v2_action_layer_regression.php',
         'php tests/run_integration_contracts_regression.php',
         'php tests/run_platform_boundary_regression.php',
+        'php tests/run_hotel_database_boundary_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',
