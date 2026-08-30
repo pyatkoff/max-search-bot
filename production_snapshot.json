@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T11:07:00+00:00",
+    "generated_at": "2026-08-30T12:07:07+00:00",
     "production": {
-        "sha": "034fa890fdf526b5fca910a4ba9ff729d6469a73",
+        "sha": "8562f484b8b688ddca90a05d677e4fc05a93234e",
         "branch": "main"
     },
     "database": {
@@ -160,10 +160,10 @@
         }
     ],
     "stats": {
-        "customers": 617,
-        "customer_channels": 617,
-        "conversations": 619,
-        "messages": 15743,
+        "customers": 618,
+        "customer_channels": 618,
+        "conversations": 620,
+        "messages": 15750,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -355,7 +355,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-30 12:31:54",
+                "last_success_at": "2026-08-30 13:07:21",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -1163,6 +1163,32 @@
     ],
     "recent_manager_push_events": [
         {
+            "ts": "2026-08-30T13:07:21+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "267e93afac59c87a",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T13:07:21+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "267e93afac59c87a",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
             "ts": "2026-08-30T12:31:54+02:00",
             "level": "info",
             "component": "manager_push",
@@ -1777,32 +1803,6 @@
             "data": {
                 "dispatch_id": "afb539d0c7e77e04",
                 "conversation_id": 334,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-08-29T11:07:37+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "b4d429bc9b71f388",
-                "conversation_id": 541,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-08-29T11:07:37+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "b4d429bc9b71f388",
-                "conversation_id": 541,
                 "manager_id": 5,
                 "subscription_id": 3,
                 "http_code": 201
@@ -1832,7 +1832,7 @@
             "project_key": "anytour",
             "channel": "telegram",
             "status": "ai",
-            "count": 2
+            "count": 3
         },
         {
             "project_key": "anytour",
@@ -2138,6 +2138,69 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15750,
+            "conversation_id": 620,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 13:29:42"
+        },
+        {
+            "id": 15749,
+            "conversation_id": 620,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "/start tg_anytour_msk2",
+            "created_at": "2026-08-30 13:29:42"
+        },
+        {
+            "id": 15748,
+            "conversation_id": 620,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 13:28:04"
+        },
+        {
+            "id": 15747,
+            "conversation_id": 620,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "/start tg_anytour_msk2",
+            "created_at": "2026-08-30 13:28:04"
+        },
+        {
+            "id": 15746,
+            "conversation_id": 620,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 13:27:50"
+        },
+        {
+            "id": 15745,
+            "conversation_id": 620,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "/start tg_anytour_msk",
+            "created_at": "2026-08-30 13:27:49"
+        },
+        {
+            "id": 15744,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Добрый день. Горящих нет туров?",
+            "created_at": "2026-08-30 13:07:21"
+        },
         {
             "id": 15743,
             "conversation_id": 433,
@@ -2614,69 +2677,6 @@
             "channel": "max",
             "text": "month_change_10.2026",
             "created_at": "2026-08-30 01:17:30"
-        },
-        {
-            "id": 15690,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-30 01:17:25"
-        },
-        {
-            "id": 15689,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_07.2026",
-            "created_at": "2026-08-30 01:17:24"
-        },
-        {
-            "id": 15688,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-30 01:17:24"
-        },
-        {
-            "id": 15687,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-30 01:17:24"
-        },
-        {
-            "id": 15686,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-30 01:17:23"
-        },
-        {
-            "id": 15685,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-30 01:17:23"
-        },
-        {
-            "id": 15684,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-30 01:17:23"
         }
     ],
     "recent_events": [

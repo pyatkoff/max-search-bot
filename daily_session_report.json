@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T11:07:05+00:00",
+    "generated_at": "2026-08-30T12:07:11+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -406,6 +406,77 @@
             "last_message_at": "2026-08-30 12:10:34"
         },
         {
+            "conversation_id": 433,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 17,
+            "outbound_messages": 13,
+            "date_picks": 1,
+            "anomaly_inbound_messages": 4,
+            "drop_point": "tours_opened",
+            "flags": [
+                "repeated_callback_input"
+            ],
+            "started_at": "2026-08-27 14:01:36",
+            "last_message_at": "2026-08-30 12:55:49",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-08-30 12:55:33"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+                    "created_at": "2026-08-30 12:55:33"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-30 12:55:44"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-30 12:55:45"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-30 12:55:49"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+                    "created_at": "2026-08-30 12:55:49"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-08-30 12:55:49"
+                }
+            ]
+        },
+        {
             "conversation_id": 334,
             "project_key": "anytour",
             "channel": "max",
@@ -421,17 +492,17 @@
             "manager_response_seconds": 1046,
             "manager_response_bucket": "answered_after_90s",
             "phone_received": false,
-            "inbound_messages": 36,
+            "inbound_messages": 37,
             "outbound_messages": 16,
             "date_picks": 0,
-            "anomaly_inbound_messages": 16,
+            "anomaly_inbound_messages": 17,
             "drop_point": "manager_replied",
             "flags": [
                 "repeated_callback_input",
                 "repeated_same_input"
             ],
             "started_at": "2026-08-26 17:05:22",
-            "last_message_at": "2026-08-30 12:46:21",
+            "last_message_at": "2026-08-30 13:07:21",
             "message_tail": [
                 {
                     "direction": "outbound",
@@ -546,77 +617,12 @@
                     "sender_type": "manager",
                     "text": "Сразу отмечу: при бюджетедо 200 тыс. руб. найти отель на первой линии, с хорошей зелёной территорией, песчаным пляжем и действительно достойным питанием в формате «всё включено» сейчас, к сожалению, не получается. Поэтому отправляю несколько вариантов — первый максимально близ...",
                     "created_at": "2026-08-30 12:46:21"
-                }
-            ]
-        },
-        {
-            "conversation_id": 433,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 17,
-            "outbound_messages": 13,
-            "date_picks": 1,
-            "anomaly_inbound_messages": 4,
-            "drop_point": "tours_opened",
-            "flags": [
-                "repeated_callback_input"
-            ],
-            "started_at": "2026-08-27 14:01:36",
-            "last_message_at": "2026-08-30 12:55:49",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-08-30 12:55:33"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-08-30 12:55:33"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-30 12:55:44"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-30 12:55:45"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-30 12:55:49"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-08-30 12:55:49"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-08-30 12:55:49"
+                    "text": "Добрый день. Горящих нет туров?",
+                    "created_at": "2026-08-30 13:07:21"
                 }
             ]
         }
