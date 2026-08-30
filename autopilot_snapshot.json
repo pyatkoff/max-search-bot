@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T17:07:34+00:00",
+    "generated_at": "2026-08-30T18:05:38+00:00",
     "production": {
-        "sha": "34dbd2e0227fb41d2c46f491af1978906978a569",
+        "sha": "3cc3bfdb78c19d64aafdd02330f875688c0afba4",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 16:07:23",
+        "since_utc": "2026-08-30 17:05:28",
         "summary": {
             "sessions": 2,
             "started": 2,
@@ -171,7 +171,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "34dbd2e0227fb41d2c46f491af1978906978a569",
+        "sha": "3cc3bfdb78c19d64aafdd02330f875688c0afba4",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -180,7 +180,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T17:07:34Z"
+        "reported_at": "2026-08-30T18:05:38Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -232,7 +232,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T17:07:34+00:00",
+        "generated_at": "2026-08-30T18:05:37+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -246,8 +246,8 @@
             },
             "services": {
                 "files": 111,
-                "bytes": 443928,
-                "code_lines": 9400
+                "bytes": 444834,
+                "code_lines": 9413
             },
             "integrations": {
                 "files": 8,
@@ -256,8 +256,8 @@
             },
             "manager": {
                 "files": 49,
-                "bytes": 235798,
-                "code_lines": 1164
+                "bytes": 236393,
+                "code_lines": 1163
             },
             "website": {
                 "files": 4,
@@ -276,8 +276,8 @@
             },
             "tests": {
                 "files": 142,
-                "bytes": 547784,
-                "code_lines": 6810
+                "bytes": 548541,
+                "code_lines": 6812
             },
             "tools": {
                 "files": 22,

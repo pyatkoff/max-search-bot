@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T17:07:20+00:00",
+    "generated_at": "2026-08-30T18:05:25+00:00",
     "production": {
-        "sha": "34dbd2e0227fb41d2c46f491af1978906978a569",
+        "sha": "3cc3bfdb78c19d64aafdd02330f875688c0afba4",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.40000000000000002
     },
     "migrations": [
         {
@@ -170,7 +170,7 @@
         "customers": 620,
         "customer_channels": 620,
         "conversations": 622,
-        "messages": 15782,
+        "messages": 15783,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -2146,6 +2146,15 @@
     ],
     "recent_messages": [
         {
+            "id": 15783,
+            "conversation_id": 542,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-30 19:31:25"
+        },
+        {
             "id": 15782,
             "conversation_id": 622,
             "direction": "outbound",
@@ -2674,15 +2683,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
-            "created_at": "2026-08-30 09:12:04"
-        },
-        {
-            "id": 15723,
-            "conversation_id": 419,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "manager_after_tours",
             "created_at": "2026-08-30 09:12:04"
         }
     ],
