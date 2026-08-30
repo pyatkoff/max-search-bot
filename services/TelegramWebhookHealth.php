@@ -7,6 +7,12 @@ class TelegramWebhookHealth
     public static function collect(?callable $request = null): array
     {
         $token = defined('TELEGRAM_BOT_TOKEN') ? trim((string)TELEGRAM_BOT_TOKEN) : '';
+        return self::collectToken($token, $request);
+    }
+
+    public static function collectToken(string $token, ?callable $request = null): array
+    {
+        $token = trim($token);
         if ($token === '') {
             return ['ok'=>false,'configured'=>false,'reason'=>'missing_token'];
         }
