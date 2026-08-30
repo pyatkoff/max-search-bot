@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 if (!defined('TELEGRAM_WEBHOOK_SECRET')) define('TELEGRAM_WEBHOOK_SECRET', 'test-secret');
+if (!defined('TELEGRAM_BOT_TOKEN')) define('TELEGRAM_BOT_TOKEN', 'test-token');
 
 require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DialogueApplication.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
+require_once __DIR__ . '/../services/TelegramWebhookHealth.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../handlers/TelegramWebhookHandler.php';
 
@@ -21,6 +23,11 @@ function twCheck(string $name, $actual, $expected): void {
     echo '      actual:   '.json_encode($actual, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";
     $failed++;
 }
+
+ProjectConfig::resetForTests([
+    'id'=>'anytour',
+    'messenger'=>['telegram'=>['source_key'=>'telegram:anytour-main']],
+]);
 
 twCheck('Webhook accepts correct secret', TelegramWebhookHandler::secretAccepted('test-secret'), true);
 twCheck('Webhook rejects wrong secret', TelegramWebhookHandler::secretAccepted('wrong'), false);
@@ -56,6 +63,7 @@ twCheck('Text update handled', TelegramWebhookHandler::dispatchUpdate($textUpdat
 twCheck('Text update reaches application', $messages[0][0]['text'] ?? null, '/start');
 twCheck('Text update keeps Telegram platform', $messages[0][1]['platform'] ?? null, 'telegram');
 twCheck('Telegram keeps positive chat id', $messages[0][1]['user']['chat_id'] ?? null, 777);
+twCheck('Telegram update gets project-specific source', $messages[0][1]['source_key'] ?? null, 'telegram:anytour-main');
 twCheck('Registry overridden to Telegram messenger', IntegrationRegistry::messenger() === $messenger, true);
 
 $callbackUpdate = [
@@ -68,6 +76,7 @@ $callbackUpdate = [
 ];
 twCheck('Callback update handled', TelegramWebhookHandler::dispatchUpdate($callbackUpdate,$dispatcher,$messenger), true);
 twCheck('Callback payload reaches application', $callbacks[0][0]['data'] ?? null, 'pick_country_4');
+twCheck('Callback keeps Telegram source', $callbacks[0][1]['source_key'] ?? null, 'telegram:anytour-main');
 twCheck('Callback acknowledgement hook runs', $acks[0][0] ?? null, 'tg-cb-1');
 
 $contactUpdate = [
@@ -80,10 +89,20 @@ $contactUpdate = [
 ];
 twCheck('Contact update handled', TelegramWebhookHandler::dispatchUpdate($contactUpdate,$dispatcher,$messenger), true);
 twCheck('Contact phone reaches application', $contacts[0][1] ?? null, '+79990000000');
+twCheck('Contact keeps Telegram source', $contacts[0][2]['source_key'] ?? null, 'telegram:anytour-main');
 
 $messenger->answerCallback('direct-callback');
 twCheck('Telegram answerCallback uses API method', $outbound[0][0] ?? null, 'answerCallbackQuery');
 twCheck('Telegram answerCallback sends callback id', $outbound[0][1]['callback_query_id'] ?? null, 'direct-callback');
+
+$health = TelegramWebhookHealth::collect(static function(string $method): array {
+    if ($method === 'getMe') return ['transport_ok'=>true,'http'=>200,'json'=>['ok'=>true,'result'=>['id'=>123,'username'=>'Any_tour_bot','first_name'=>'AnyTour']]];
+    return ['transport_ok'=>true,'http'=>200,'json'=>['ok'=>true,'result'=>['url'=>'https://example.test/current-webhook','pending_update_count'=>2,'allowed_updates'=>['message','callback_query']]]];
+});
+twCheck('Telegram health probe validates API', $health['ok'] ?? null, true);
+twCheck('Telegram health probe exposes username without token', $health['bot']['username'] ?? null, 'Any_tour_bot');
+twCheck('Telegram health probe exposes current webhook', $health['webhook']['url'] ?? null, 'https://example.test/current-webhook');
+twCheck('Telegram health probe never exposes token', array_key_exists('token',$health), false);
 
 $ignored = ['update_id'=>1004,'edited_channel_post'=>['text'=>'ignore me']];
 twCheck('Unsupported update ignored safely', TelegramWebhookHandler::dispatchUpdate($ignored,$dispatcher,$messenger), false);
