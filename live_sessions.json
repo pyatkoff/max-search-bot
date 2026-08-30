@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T17:36:58+00:00",
+    "generated_at": "2026-08-30T18:05:27+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -79,5 +79,5 @@
             "last_message_at": "2026-08-30 19:31:25"
         }
     ],
-    "since_utc": "2026-08-30 16:36:58"
+    "since_utc": "2026-08-30 17:05:27"
 }
