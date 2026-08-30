@@ -95,14 +95,19 @@ $messenger->answerCallback('direct-callback');
 twCheck('Telegram answerCallback uses API method', $outbound[0][0] ?? null, 'answerCallbackQuery');
 twCheck('Telegram answerCallback sends callback id', $outbound[0][1]['callback_query_id'] ?? null, 'direct-callback');
 
-$health = TelegramWebhookHealth::collect(static function(string $method): array {
+$healthRequest = static function(string $method): array {
     if ($method === 'getMe') return ['transport_ok'=>true,'http'=>200,'json'=>['ok'=>true,'result'=>['id'=>123,'username'=>'Any_tour_bot','first_name'=>'AnyTour']]];
     return ['transport_ok'=>true,'http'=>200,'json'=>['ok'=>true,'result'=>['url'=>'https://example.test/current-webhook','pending_update_count'=>2,'allowed_updates'=>['message','callback_query']]]];
-});
+};
+$health = TelegramWebhookHealth::collect($healthRequest);
 twCheck('Telegram health probe validates API', $health['ok'] ?? null, true);
 twCheck('Telegram health probe exposes username without token', $health['bot']['username'] ?? null, 'Any_tour_bot');
 twCheck('Telegram health probe exposes current webhook', $health['webhook']['url'] ?? null, 'https://example.test/current-webhook');
 twCheck('Telegram health probe never exposes token', array_key_exists('token',$health), false);
+
+$explicitHealth = TelegramWebhookHealth::collectToken('different-test-token',$healthRequest);
+twCheck('Telegram health supports explicit token identity inspection', $explicitHealth['bot']['id'] ?? null, 123);
+twCheck('Explicit token health still never exposes token', array_key_exists('token',$explicitHealth), false);
 
 $ignored = ['update_id'=>1004,'edited_channel_post'=>['text'=>'ignore me']];
 twCheck('Unsupported update ignored safely', TelegramWebhookHandler::dispatchUpdate($ignored,$dispatcher,$messenger), false);
