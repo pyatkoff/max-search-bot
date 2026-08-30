@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-require_once dirname(__DIR__).'/services/AdminProjectAccessHealth.php';
+$root=dirname(__DIR__);
+require_once $root.'/services/AdminProjectAccessHealth.php';
 
 $passed=0;$failed=0;
 function apahCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -24,6 +25,10 @@ apahCheck('health reports bounded missing identity',count($bad['missing'])===1&&
 $pdo->exec('INSERT INTO manager_projects VALUES (2,20)');
 $good=AdminProjectAccessHealth::collect($pdo);
 apahCheck('health becomes green when every active admin has every active project',$good['ok']===true&&(int)$good['missing_count']===0&&$good['missing']===[]);
+
+$snapshot=(string)file_get_contents($root.'/tools/production_snapshot.php');
+apahCheck('production snapshot exposes admin project access health',strpos($snapshot,"AdminProjectAccessHealth.php")!==false&&strpos($snapshot,"'admin_project_access_health'")!==false);
+apahCheck('production snapshot publishes admin project access gate',strpos($snapshot,"'admin_project_access_ok'=>false")!==false&&strpos($snapshot,"$snapshot['health']['admin_project_access_ok']=$adminProjectAccessHealth['ok'];")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
