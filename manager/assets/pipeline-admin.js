@@ -9,13 +9,20 @@ function status(msg,ok=false){
     el.className=msg?(ok?'status-ok':'status-error'):'';
 }
 
+function gateMessage(msg){
+    const el=$('denied');
+    el.textContent=msg;
+    el.classList.remove('hidden');
+}
+
 async function safeApi(action,data={},failureMessage='Не удалось выполнить запрос. Проверьте соединение и повторите попытку.'){
     try{return await api(action,data)}catch(e){status(failureMessage);return null}
 }
 
 async function boot(){
-    const me=await ManagerHttpClient.request('me');
-    if(!me.ok||!me.manager||me.manager.role!=='admin'){$('denied').classList.remove('hidden');return}
+    let me;
+    try{me=await ManagerHttpClient.request('me')}catch(e){gateMessage('Не удалось проверить доступ. Проверьте соединение и обновите страницу.');return}
+    if(!me.ok||!me.manager||me.manager.role!=='admin'){gateMessage('Доступно только администратору.');return}
     S.csrf=me.csrf;
     $('app').classList.remove('hidden');
     bind();

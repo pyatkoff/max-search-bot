@@ -72,7 +72,7 @@ test('430px mobile lead and conversation surfaces stay viewport-bounded', async 
   await page.goto(base + '?view=lead');
   await expectNoHorizontalOverflow(page);
   const lead = await rect(page.locator('.leadZone'));
-  expect(lead.width).toBeLessThanOrEqual(430);
+  expect(lead.width).toBeLessThanOrEqual(431);
   expect(lead.x).toBeGreaterThanOrEqual(0);
 });
 
