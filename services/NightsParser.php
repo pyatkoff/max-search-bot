@@ -26,11 +26,14 @@ class NightsParser
             return ($value >= 1 && $value <= 28) ? (string)$value : '';
         }
 
-        // A short two-number answer such as "8 9" is a natural range reply to the
-        // nights question. Accept whitespace as a range separator alongside a dash,
-        // but keep dotted/slashed values (for example "1.10") invalid so an
-        // accidentally entered date is never reinterpreted as nights.
-        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})(?:\s*-\s*|\s+)(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
+        // Short two-number replies are a natural range answer to the nights question.
+        // Accept whitespace, dash and comma separators. The comma form is contextual to
+        // this resolver, so "3,4" means 3-4 nights rather than a decimal number. Keep
+        // dotted/slashed values (for example "1.10") invalid so an accidentally entered
+        // date is never reinterpreted as nights. A short day suffix is also accepted for
+        // live phrases such as "2,3 д" because the surrounding question already fixes
+        // the semantic field to trip duration.
+        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})(?:\s*-\s*|\s*,\s*|\s+)(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?|д|дн(?:я|ей)?))?$/ui', $normalized, $m)) {
             $from = (int)$m[1];
             $to = (int)$m[2];
             if ($from >= 1 && $to >= $from && $to <= 28) {
