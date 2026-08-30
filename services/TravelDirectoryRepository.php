@@ -28,10 +28,12 @@ class TravelDirectoryRepository
 
     public static function cityFromById($hlId, $cityId)
     {
-        // catalog_departures has one canonical display name. Preserve the
-        // legacy method contract by returning it until a dedicated grammatical
-        // departure form is explicitly added to the catalogue schema.
-        return self::cityById($hlId, $cityId);
+        $stmt = self::pdo()->prepare('SELECT name, name_genitive FROM catalog_departures WHERE id = :id AND is_active = 1 LIMIT 1');
+        $stmt->execute(['id' => $cityId]);
+        $row = $stmt->fetch();
+        if (!is_array($row)) return false;
+        $genitive = trim((string) ($row['name_genitive'] ?? ''));
+        return $genitive !== '' ? $genitive : ($row['name'] ?? false);
     }
 
     public static function cityByName($hlId, $name)
@@ -72,6 +74,10 @@ class TravelDirectoryRepository
     public static function cityFromNameFromRow($row)
     {
         if (!is_array($row)) return false;
+        if (array_key_exists('name_genitive', $row)) {
+            $genitive = trim((string) $row['name_genitive']);
+            if ($genitive !== '') return $genitive;
+        }
         if (array_key_exists('name', $row)) return $row['name'];
         return array_key_exists('UF_NAME2', $row) ? $row['UF_NAME2'] : false;
     }
