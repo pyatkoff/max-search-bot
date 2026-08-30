@@ -7,6 +7,7 @@ $page=(string)file_get_contents($root.'/manager/index.php');
 $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$history=(string)file_get_contents($root.'/manager/assets/workspace-v2-stage-history.js');
 $lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
 $conversation=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
 $shift=(string)file_get_contents($root.'/manager/assets/workspace-v2-shift.js');
@@ -17,7 +18,7 @@ $passed=0;$failed=0;
 function splitCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 function splitAssetPos(string $html,string $asset){$static=strpos($html,$asset);if($static!==false)return$static;$file=basename($asset);return strpos($html,"workspaceAsset('{$file}')");}
 
-$ordered=['assets/workspace-v2.js','assets/workspace-v2-inbox.js','assets/workspace-v2-pipeline.js','assets/workspace-v2-lead-card.js','assets/workspace-v2-conversation.js','assets/workspace-v2-bootstrap.js'];
+$ordered=['assets/workspace-v2.js','assets/workspace-v2-inbox.js','assets/workspace-v2-pipeline.js','assets/workspace-v2-stage-history.js','assets/workspace-v2-lead-card.js','assets/workspace-v2-conversation.js','assets/workspace-v2-bootstrap.js'];
 $positions=array_map(fn($asset)=>splitAssetPos($page,$asset),$ordered);
 $validOrder=!in_array(false,$positions,true);
 if($validOrder){for($i=1;$i<count($positions);$i++){if($positions[$i]<=$positions[$i-1]){$validOrder=false;break;}}}
@@ -26,13 +27,14 @@ splitCheck('shared core owns state transport boot and auth recovery only',strpos
 splitCheck('shared core no longer renders inbox conversation or lead card',strpos($core,'leadItem')===false&&strpos($core,'(d.messages||[]).forEach')===false&&strpos($core,'id="leadOutcome"')===false&&strpos($core,"pipe('set_stage'")===false);
 splitCheck('inbox module owns lead list rendering',strpos($inbox,'window.WorkspaceV2Inbox=')!==false&&strpos($inbox,'leadItem')!==false&&strpos($inbox,"pipe('list'")!==false);
 splitCheck('pipeline module owns filters tags and outcome persistence',strpos($pipeline,'window.WorkspaceV2Pipeline=')!==false&&strpos($pipeline,"pipe('set_tags'")!==false&&strpos($pipeline,"pipe('set_outcome'")!==false&&strpos($pipeline,'leadStageFilter')!==false);
+splitCheck('stage history module owns sales-stage history presentation',strpos($history,'window.WorkspaceV2StageHistory=')!==false&&strpos($history,'История этапов')!==false&&strpos($history,'history.slice(0,5)')!==false&&strpos($lead,'WorkspaceV2StageHistory?.markup(history)')!==false&&strpos($lead,'history.slice(0,5)')===false);
 splitCheck('lead card module owns structured business card',strpos($lead,'window.WorkspaceV2LeadCard=')!==false&&strpos($lead,'leadHeroName')!==false&&strpos($lead,'Следующее действие')!==false&&strpos($lead,'<div class="leadPanelTitle">Продажа</div>')!==false&&strpos($lead,'Все параметры поездки')!==false&&strpos($lead,'Источник и служебная информация')!==false);
 splitCheck('conversation module owns transcript lifecycle and source-pinned composer send',strpos($conversation,'window.WorkspaceV2Conversation=')!==false&&strpos($conversation,'function renderMessages(')!==false&&strpos($conversation,'(messages||[]).forEach')!==false&&strpos($conversation,"change('take')")!==false&&strpos($conversation,'const target=Number(S.current||0),generation=openSeq,text=')!==false&&strpos($conversation,"api('send',{conversation_id:target,text})")!==false);
 splitCheck('workspace exposes explicit shift control',strpos($page,'id="managerShiftBtn"')!==false&&strpos($page,'Начать смену')!==false);
 splitCheck('dedicated shift module uses existing set_working API',strpos($shift,'window.WorkspaceV2Shift=')!==false&&strpos($shift,"W.api('set_working',{working:next})")!==false&&strpos($shift,'S.manager=j.manager')!==false&&strpos($shift,"aria-pressed")!==false);
 splitCheck('shift backend remains owned by ManagerAvailabilityService',strpos($api,"if(\$action==='set_working')")!==false&&strpos($api,'ManagerAvailabilityService::setWorking')!==false&&strpos($availability,'public static function setWorking')!==false&&strpos($availability,'UPDATE managers SET is_working=?')!==false);
 splitCheck('bootstrap loads shift feature before starting assembled workspace',strpos($bootstrap,"script.src='assets/workspace-v2-shift.js?v=1'")!==false&&strpos($bootstrap,'script.onload=start')!==false&&strpos($bootstrap,'script.onerror=start')!==false);
-$all=$core."\n".$inbox."\n".$pipeline."\n".$lead."\n".$conversation."\n".$shift."\n".$bootstrap;
+$all=$core."\n".$inbox."\n".$pipeline."\n".$history."\n".$lead."\n".$conversation."\n".$shift."\n".$bootstrap;
 splitCheck('shift UI does not duplicate shift storage or routing policy',strpos($shift,'UPDATE managers')===false&&strpos($shift,'manager_projects')===false&&strpos($shift,'RoutingAccessService')===false);
 splitCheck('module split does not touch analytics or lead delivery contracts',stripos($all,'metrika')===false&&stripos($all,'yclid')===false&&strpos($all,'LeadDestination')===false);
 
