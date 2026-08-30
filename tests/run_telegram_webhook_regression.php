@@ -10,6 +10,7 @@ require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DialogueApplication.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/TelegramWebhookHealth.php';
+require_once __DIR__ . '/../services/TelegramStartSourceResolver.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../handlers/TelegramWebhookHandler.php';
 
@@ -31,6 +32,12 @@ ProjectConfig::resetForTests([
 
 twCheck('Webhook accepts correct secret', TelegramWebhookHandler::secretAccepted('test-secret'), true);
 twCheck('Webhook rejects wrong secret', TelegramWebhookHandler::secretAccepted('wrong'), false);
+twCheck('Deep-link payload builds configured source candidates', TelegramStartSourceResolver::candidateKeys('tg_anytour_msk'), ['tg_anytour_msk','tg:anytour-msk','telegram:anytour-msk']);
+$knownSources=['tg:anytour-msk'=>true,'telegram:anytour-main'=>true];
+$lookup=static fn(string $key): string => !empty($knownSources[$key]) ? $key : '';
+twCheck('Deep-link tg_anytour_msk resolves to existing Telegram source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_anytour_msk'],$lookup), 'tg:anytour-msk');
+twCheck('Unknown deep-link source falls back to configured source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_unknown_place'],$lookup), 'telegram:anytour-main');
+twCheck('Non-start message cannot change source', TelegramStartSourceResolver::resolve(['text'=>'tg_anytour_msk'],$lookup), 'telegram:anytour-main');
 
 $messages = [];
 $callbacks = [];
