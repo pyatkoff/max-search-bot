@@ -14,6 +14,6 @@ dsCheck('create and edit task deadline controls are enhanced',strpos($js,".taskC
 dsCheck('presets offer one hour today evening and tomorrow morning',strpos($js,"preset==='hour'")!==false&&strpos($js,"preset==='evening'")!==false&&strpos($js,"preset==='tomorrow'")!==false&&strpos($js,'Сегодня 18:00')!==false&&strpos($js,'Завтра 10:00')!==false);
 dsCheck('preset application reuses existing task change flow',strpos($js,"dispatchEvent(new Event('change'")!==false&&strpos($js,'input.value=localInputValue')!==false);
 dsCheck('late today preset advances instead of creating a past deadline',strpos($js,'if(d<=from)d.setDate(d.getDate()+1)')!==false);
-dsCheck('shortcut controls are accessible and responsive',strpos($js,'role=\"group\" aria-label=\"Быстро выбрать срок\"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'@media(max-width:520px)')!==false);
+dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'@media(max-width:520px)')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
