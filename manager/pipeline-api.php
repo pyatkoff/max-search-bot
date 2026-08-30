@@ -49,7 +49,7 @@ if($action==='set_tags'){
 }
 if($action==='set_outcome'){
     ManagerHttp::requireConversationEdit($c,$m);
-    $ok=SalesPipelineService::setOutcome($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id']);
+    $ok=SalesPipelineService::setOutcome($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id'],isset($data['sale_amount'])?(string)$data['sale_amount']:null,isset($data['sale_date'])?(string)$data['sale_date']:null);
     ManagerHttp::respond(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:422);
 }
 if($action==='create_task'){
