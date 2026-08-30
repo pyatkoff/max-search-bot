@@ -30,6 +30,7 @@
     const create=root.querySelector?.('.taskCreate');
     if(create)enhance(create,create.querySelector('#leadTaskDue'));
     root.querySelectorAll?.('.taskEditForm').forEach(form=>enhance(form,form.querySelector('[data-task-edit-due]')));
+    root.querySelectorAll?.('.kanbanQuickTaskForm').forEach(form=>enhance(form,form.querySelector('.kanbanTaskDue')));
   }
   let observing=false;
   function start(){
