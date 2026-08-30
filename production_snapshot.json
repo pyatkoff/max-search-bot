@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T10:03:44+00:00",
+    "generated_at": "2026-08-30T11:07:00+00:00",
     "production": {
-        "sha": "65097316dbd1da677d1317e65a38331f5f65dd54",
+        "sha": "034fa890fdf526b5fca910a4ba9ff729d6469a73",
         "branch": "main"
     },
     "database": {
@@ -163,10 +163,10 @@
         "customers": 617,
         "customer_channels": 617,
         "conversations": 619,
-        "messages": 15733,
+        "messages": 15743,
         "managers": 6,
         "manager_assignments": 114,
-        "conversation_events": 941,
+        "conversation_events": 945,
         "admin_audit_log": 32
     },
     "managers": [
@@ -355,7 +355,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-30 11:37:28",
+                "last_success_at": "2026-08-30 12:31:54",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -1162,6 +1162,32 @@
         }
     ],
     "recent_manager_push_events": [
+        {
+            "ts": "2026-08-30T12:31:54+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ed41e8c84b43c145",
+                "conversation_id": 437,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-30T12:31:54+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "ed41e8c84b43c145",
+                "conversation_id": 437,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
         {
             "ts": "2026-08-30T11:37:28+02:00",
             "level": "info",
@@ -2113,6 +2139,96 @@
     ],
     "recent_messages": [
         {
+            "id": 15743,
+            "conversation_id": 433,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-30 12:55:49"
+        },
+        {
+            "id": 15742,
+            "conversation_id": 433,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-08-30 12:55:49"
+        },
+        {
+            "id": 15741,
+            "conversation_id": 433,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-30 12:55:49"
+        },
+        {
+            "id": 15740,
+            "conversation_id": 433,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-08-30 12:55:45"
+        },
+        {
+            "id": 15739,
+            "conversation_id": 433,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-30 12:55:44"
+        },
+        {
+            "id": 15738,
+            "conversation_id": 433,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-30 12:55:33"
+        },
+        {
+            "id": 15737,
+            "conversation_id": 433,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-30 12:55:33"
+        },
+        {
+            "id": 15736,
+            "conversation_id": 334,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Сразу отмечу: при бюджетедо 200 тыс. руб. найти отель на первой линии, с хорошей зелёной территорией, песчаным пляжем и действительно достойным питанием в формате «всё включено» сейчас, к сожалению, не получается. Поэтому отправляю несколько вариантов — первый максимально близок к бюджету, а следующие уже гораздо точнее соответствуют вашим пожеланиям. 07.10, 8н, Presa Di Finica 5*, AI - Все Включено, 194 114 RUB Самый выгодный вариант в подборке. При этом у отеля большая зелёная территория ок...",
+            "created_at": "2026-08-30 12:46:21"
+        },
+        {
+            "id": 15735,
+            "conversation_id": 437,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Светлана, в ближайшее время отправлю варианты. 🌴",
+            "created_at": "2026-08-30 12:10:34"
+        },
+        {
+            "id": 15734,
+            "conversation_id": 334,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Ирина, в ближайшее время - нароавлю варианты.",
+            "created_at": "2026-08-30 12:09:58"
+        },
+        {
             "id": 15733,
             "conversation_id": 1,
             "direction": "outbound",
@@ -2561,99 +2677,41 @@
             "channel": "max",
             "text": "month_change_09.2026",
             "created_at": "2026-08-30 01:17:23"
-        },
-        {
-            "id": 15683,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-30 01:17:23"
-        },
-        {
-            "id": 15682,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-30 01:17:15"
-        },
-        {
-            "id": 15681,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_date",
-            "created_at": "2026-08-30 01:17:15"
-        },
-        {
-            "id": 15680,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-08-30 01:16:56"
-        },
-        {
-            "id": 15679,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-08-30 01:16:56"
-        },
-        {
-            "id": 15678,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-30 01:16:53"
-        },
-        {
-            "id": 15677,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-30 01:16:53"
-        },
-        {
-            "id": 15676,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-08-30 01:16:49"
-        },
-        {
-            "id": 15675,
-            "conversation_id": 618,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-08-30 01:16:49"
-        },
-        {
-            "id": 15674,
-            "conversation_id": 618,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Краснодар → Таиланд 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 30.08.2026 · ищем 30.08–02.09.2026 Что удобнее дальше?",
-            "created_at": "2026-08-30 01:16:37"
         }
     ],
     "recent_events": [
+        {
+            "id": 945,
+            "conversation_id": 334,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-30 12:46:21"
+        },
+        {
+            "id": 944,
+            "conversation_id": 437,
+            "event_type": "manager_message_failed",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-30 12:31:53"
+        },
+        {
+            "id": 943,
+            "conversation_id": 437,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-30 12:10:34"
+        },
+        {
+            "id": 942,
+            "conversation_id": 334,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-30 12:09:58"
+        },
         {
             "id": 941,
             "conversation_id": 617,
@@ -3101,41 +3159,22 @@
             "actor_type": "customer",
             "actor_id": null,
             "created_at": "2026-08-28 09:54:03"
-        },
-        {
-            "id": 885,
-            "conversation_id": 504,
-            "event_type": "waiting_manager",
-            "actor_type": "customer",
-            "actor_id": null,
-            "created_at": "2026-08-28 09:22:01"
-        },
-        {
-            "id": 884,
-            "conversation_id": 503,
-            "event_type": "waiting_manager",
-            "actor_type": "customer",
-            "actor_id": null,
-            "created_at": "2026-08-28 09:03:43"
-        },
-        {
-            "id": 883,
-            "conversation_id": 452,
-            "event_type": "ai_resumed",
-            "actor_type": "customer",
-            "actor_id": null,
-            "created_at": "2026-08-28 07:05:23"
-        },
-        {
-            "id": 882,
-            "conversation_id": 452,
-            "event_type": "waiting_manager",
-            "actor_type": "customer",
-            "actor_id": null,
-            "created_at": "2026-08-28 07:05:14"
         }
     ],
     "recent_manager_delivery_failures": [
+        {
+            "id": 944,
+            "conversation_id": 437,
+            "actor_id": "5",
+            "created_at": "2026-08-30 12:31:53",
+            "payload": {
+                "category": "suspended",
+                "http_code": 403,
+                "message": "Key: error.dialog.suspended, args: [62555699,].",
+                "channel": "max",
+                "project_key": "anytour"
+            }
+        },
         {
             "id": 261,
             "conversation_id": 308,
@@ -3505,19 +3544,6 @@
             "conversation_id": 18,
             "actor_id": "4",
             "created_at": "2026-08-25 11:22:32",
-            "payload": {
-                "category": "unavailable",
-                "http_code": 403,
-                "message": "Key: error.dialog.suspended, args: [35602284,].",
-                "channel": "max",
-                "project_key": "anytour"
-            }
-        },
-        {
-            "id": 156,
-            "conversation_id": 18,
-            "actor_id": "4",
-            "created_at": "2026-08-25 11:22:31",
             "payload": {
                 "category": "unavailable",
                 "http_code": 403,
