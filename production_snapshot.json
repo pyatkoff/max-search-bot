@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T16:14:28+00:00",
+    "generated_at": "2026-08-30T17:07:20+00:00",
     "production": {
-        "sha": "3a14fcc0606465ffa92b64133be6dc749eae27ee",
+        "sha": "34dbd2e0227fb41d2c46f491af1978906978a569",
         "branch": "main"
     },
     "database": {
@@ -170,7 +170,7 @@
         "customers": 620,
         "customer_channels": 620,
         "conversations": 622,
-        "messages": 15781,
+        "messages": 15782,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -220,7 +220,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-30 11:00:04"
+            "last_login_at": "2026-08-30 18:25:12"
         },
         {
             "id": 6,
@@ -2146,6 +2146,15 @@
     ],
     "recent_messages": [
         {
+            "id": 15782,
+            "conversation_id": 622,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-30 18:21:02"
+        },
+        {
             "id": 15781,
             "conversation_id": 622,
             "direction": "outbound",
@@ -2675,15 +2684,6 @@
             "channel": "max",
             "text": "manager_after_tours",
             "created_at": "2026-08-30 09:12:04"
-        },
-        {
-            "id": 15722,
-            "conversation_id": 555,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "На сколько ночей планируете поездку?",
-            "created_at": "2026-08-30 08:35:28"
         }
     ],
     "recent_events": [

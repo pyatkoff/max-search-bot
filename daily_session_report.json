@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T16:14:33+00:00",
+    "generated_at": "2026-08-30T17:07:26+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -718,7 +718,7 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 10,
-            "outbound_messages": 6,
+            "outbound_messages": 7,
             "date_picks": 0,
             "anomaly_inbound_messages": 10,
             "drop_point": "tours_opened",
@@ -726,7 +726,7 @@
                 "repeated_callback_input"
             ],
             "started_at": "2026-08-30 18:01:10",
-            "last_message_at": "2026-08-30 18:05:00",
+            "last_message_at": "2026-08-30 18:21:02",
             "message_tail": [
                 {
                     "direction": "inbound",
@@ -823,6 +823,12 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-08-30 18:05:00"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-08-30 18:21:02"
                 }
             ]
         }
