@@ -10,6 +10,7 @@ require_once $baseDir.'/services/ManagerResponseHealth.php';
 require_once $baseDir.'/services/ManagerPushHealth.php';
 require_once $baseDir.'/services/HandoffIntegrityHealth.php';
 require_once $baseDir.'/services/WebsiteAttributionHealth.php';
+require_once $baseDir.'/services/AdminProjectAccessHealth.php';
 
 function tableExists(PDO $pdo,string $table):bool{
     $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);return(int)$q->fetchColumn()>0;
@@ -67,12 +68,14 @@ try{
         'manager_response_health'=>[],
         'manager_push_health'=>[],
         'handoff_integrity_health'=>[],
+        'admin_project_access_health'=>['ok'=>false,'error'=>'schema_missing'],
         'health'=>[
             'manager_visibility_ok'=>true,
             'manager_visibility_anomalies'=>[],
             'manager_response_ok'=>true,
             'manager_push_ok'=>true,
             'handoff_integrity_ok'=>true,
+            'admin_project_access_ok'=>false,
             'website_attribution_ok'=>true,
             'website_attribution_anomalies'=>[],
         ],
@@ -95,6 +98,11 @@ try{
     if(tableExists($pdo,'managers'))$snapshot['managers']=rows($pdo,'SELECT id,login,display_name,role,is_active,is_working,last_login_at FROM managers ORDER BY id');
     if(tableExists($pdo,'manager_assignments'))$snapshot['manager_usage']=rows($pdo,"SELECT m.id AS manager_id,m.login,COUNT(a.id) AS assignments_total,SUM(CASE WHEN a.id IS NOT NULL AND a.released_at IS NULL THEN 1 ELSE 0 END) AS assignments_open FROM managers m LEFT JOIN manager_assignments a ON a.manager_id=m.id GROUP BY m.id,m.login ORDER BY m.id");
     if(tableExists($pdo,'projects'))$snapshot['projects']=rows($pdo,'SELECT id,project_key,display_name,is_active FROM projects ORDER BY id');
+    if(tableExists($pdo,'managers')&&tableExists($pdo,'projects')&&tableExists($pdo,'manager_projects')){
+        $adminProjectAccessHealth=AdminProjectAccessHealth::collect($pdo);
+        $snapshot['admin_project_access_health']=$adminProjectAccessHealth;
+        $snapshot['health']['admin_project_access_ok']=$adminProjectAccessHealth['ok'];
+    }
     if(tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects'))$snapshot['sources']=rows($pdo,'SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.id');
     if(tableExists($pdo,'conversations')){
         $snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
