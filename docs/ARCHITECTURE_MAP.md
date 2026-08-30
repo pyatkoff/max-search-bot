@@ -15,7 +15,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/AuditLogService.php` — admin audit persistence plus bounded data-minimized read projection; UI must not expose raw before/after payloads.
 - `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
 - `services/SalesPipelineService.php` — canonical per-lead business sales state, stage history, tags, outcome and sale facts; independent from technical conversation status.
-- `services/SalesPipelineCatalogAdminService.php` — admin-only stage/tag catalog mutations and validation; audit every catalog change and never mutate technical dialogue state.
+- `services/SalesPipelineCatalogAdminService.php` — admin-only stage/tag catalog mutations, lifecycle validation and usage-aware safety; audit every catalog change, prevent active stages with assigned leads from being silently deactivated, and never mutate technical dialogue state.
 - `manager/pipeline-api.php` — thin authorized Sales Pipeline interface; ordinary lead mutations and role-gated catalog administration delegate to their application owners.
 - `manager/pipeline-admin.php` + `manager/assets/pipeline-admin.css` + `manager/assets/pipeline-admin.js` — focused role-gated business-funnel catalog UI; kept separate from Workspace V2 and general admin page to avoid another monolith.
 - `manager/assets/workspace-v2-pipeline.js` — Workspace V2 browser owner for sales-stage/tag/outcome mutations plus pipeline filters; lead-card rendering delegates mutation wiring here instead of issuing sales writes directly.
