@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T00:07:30+00:00",
+    "generated_at": "2026-08-30T00:10:51+00:00",
     "production": {
-        "sha": "94eb9bf78a53f4d55c4dfd24784dd8f470ecca18",
+        "sha": "444568c2acf301ebbd4594d24c255147644995a6",
         "branch": "main"
     },
     "migrations": {
@@ -130,7 +130,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-29 23:07:20",
+        "since_utc": "2026-08-29 23:10:39",
         "summary": {
             "sessions": 2,
             "started": 2,
@@ -177,15 +177,16 @@
         "summary": []
     },
     "ops": {
-        "sha": "94eb9bf78a53f4d55c4dfd24784dd8f470ecca18",
+        "sha": "444568c2acf301ebbd4594d24c255147644995a6",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
         "daily_sessions": "success",
         "yesterday_sessions": "success",
+        "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T00:07:30Z"
+        "reported_at": "2026-08-30T00:10:51Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -193,7 +194,8 @@
         "handoff": "handoff.json",
         "website": "website_smoke.json",
         "ops": "ops_status.json",
-        "daily": "daily_session_report.json"
+        "daily": "daily_session_report.json",
+        "architecture": "architecture_inventory.json"
     },
     "daily": {
         "window_hours": null,
@@ -232,6 +234,174 @@
                 "manager_requested": 0,
                 "manager_replied": 0
             }
+        }
+    },
+    "architecture": {
+        "generated_at": "2026-08-30T00:10:50+00:00",
+        "areas": {
+            "handlers": {
+                "files": 11,
+                "bytes": 267468,
+                "code_lines": 916
+            },
+            "actions": {
+                "files": 9,
+                "bytes": 24197,
+                "code_lines": 599
+            },
+            "services": {
+                "files": 107,
+                "bytes": 429051,
+                "code_lines": 9112
+            },
+            "integrations": {
+                "files": 8,
+                "bytes": 21330,
+                "code_lines": 484
+            },
+            "manager": {
+                "files": 42,
+                "bytes": 209195,
+                "code_lines": 1031
+            },
+            "website": {
+                "files": 4,
+                "bytes": 727,
+                "code_lines": 23
+            },
+            "cron": {
+                "files": 0,
+                "bytes": 0,
+                "code_lines": 0
+            },
+            "migrations": {
+                "files": 20,
+                "bytes": 25620,
+                "code_lines": 0
+            },
+            "tests": {
+                "files": 136,
+                "bytes": 513613,
+                "code_lines": 6451
+            },
+            "tools": {
+                "files": 21,
+                "bytes": 79936,
+                "code_lines": 1254
+            }
+        },
+        "hotspots": [
+            {
+                "path": "actions/callbacks/WizardCallbackAction.php",
+                "lines": 235,
+                "bytes": 10511,
+                "severity": "observe"
+            },
+            {
+                "path": "services/DialogueView.php",
+                "lines": 230,
+                "bytes": 13006,
+                "severity": "observe"
+            },
+            {
+                "path": "services/DestinationResolver.php",
+                "lines": 218,
+                "bytes": 14398,
+                "severity": "observe"
+            },
+            {
+                "path": "services/DestinationAreaResolver.php",
+                "lines": 211,
+                "bytes": 9490,
+                "severity": "observe"
+            },
+            {
+                "path": "services/ProjectHealth.php",
+                "lines": 199,
+                "bytes": 6868,
+                "severity": "observe"
+            },
+            {
+                "path": "services/TripStateService.php",
+                "lines": 198,
+                "bytes": 8447,
+                "severity": "observe"
+            },
+            {
+                "path": "tools/live_session_snapshot.php",
+                "lines": 193,
+                "bytes": 8301,
+                "severity": "observe"
+            },
+            {
+                "path": "services/ConversationStateRepository.php",
+                "lines": 192,
+                "bytes": 6445,
+                "severity": "observe"
+            },
+            {
+                "path": "handlers/StateMessageHandler.php",
+                "lines": 191,
+                "bytes": 9308,
+                "severity": "observe"
+            },
+            {
+                "path": "services/ConversationRecorder.php",
+                "lines": 184,
+                "bytes": 9611,
+                "severity": "observe"
+            }
+        ],
+        "signal_counts": {
+            "runtime_ddl": 0,
+            "schema_infrastructure_ddl": 1,
+            "direct_sql_writes": 17,
+            "authorization_mentions": 12,
+            "validation_mentions": 3
+        },
+        "signals": {
+            "runtime_ddl": [],
+            "schema_infrastructure_ddl": [
+                "services/MigrationRunner.php"
+            ],
+            "direct_sql_writes": [
+                "services/AdminDirectoryService.php",
+                "services/AuditLogService.php",
+                "services/ConversationControlService.php",
+                "services/ConversationRecorder.php",
+                "services/LeadTaskService.php",
+                "services/ManagerAuthService.php",
+                "services/ManagerConversationService.php",
+                "services/ManagerPriorityService.php",
+                "services/ManagerPushService.php",
+                "services/ManagerReadService.php",
+                "services/MigrationRunner.php",
+                "services/ProjectAccessService.php",
+                "services/RoutingAccessService.php",
+                "services/RoutingAdminService.php",
+                "services/SalesPipelineService.php",
+                "services/WebsitePageContextService.php",
+                "services/WebsiteSessionService.php"
+            ],
+            "authorization_mentions": [
+                "manager/index.php",
+                "manager/push-enable.php",
+                "manager/routing.php",
+                "services/AdminDirectoryService.php",
+                "services/DiagnosticLogger.php",
+                "services/ManagerAuthService.php",
+                "services/ManagerConversationService.php",
+                "services/ManagerPushService.php",
+                "services/ManagerRequestContext.php",
+                "services/MaxTransport.php",
+                "services/RoutingAccessService.php",
+                "services/RoutingAdminService.php"
+            ],
+            "validation_mentions": [
+                "manager/api.php",
+                "manager/lib/ManagerHttp.php",
+                "services/ManagerRequestContext.php"
+            ]
         }
     }
 }
