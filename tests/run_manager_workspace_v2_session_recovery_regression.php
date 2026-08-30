@@ -7,10 +7,11 @@ $js=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $notifications=(string)file_get_contents($root.'/manager/assets/workspace-v2-notifications.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
 $api=(string)file_get_contents($root.'/manager/api.php');
+$http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $passed=0;$failed=0;
 function srCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
-srCheck('manager API keeps explicit login and unauthorized boundaries',strpos($api,"if(\$action==='login')")!==false&&strpos($api,"error'=>'invalid_credentials'")!==false&&strpos($api,"error'=>'unauthorized'")!==false);
+srCheck('manager API keeps explicit login and shared unauthorized boundaries',strpos($api,"if(\$action==='login')")!==false&&strpos($api,"error'=>'invalid_credentials'")!==false&&strpos($api,'ManagerHttp::requireManager();')!==false&&strpos($http,"'error'=>'unauthorized'")!==false);
 srCheck('workspace turns 401 into in-place auth recovery',strpos($js,'if(r.status===401){showAuthRecovery()')!==false&&strpos($js,"S.authExpired=true")!==false&&strpos($js,'managerAuthRecovery')!==false);
 srCheck('expired auth blocks further protected requests until recovery',strpos($js,'if(S.authExpired){showAuthRecovery();throw new Error(\'unauthorized\')}')!==false);
 srCheck('recovery dialog asks for login and password accessibly',strpos($js,'id="managerAuthForm"')!==false&&strpos($js,'autocomplete="username"')!==false&&strpos($js,'autocomplete="current-password"')!==false&&strpos($js,'aria-modal="true"')!==false);
