@@ -128,6 +128,7 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_live_duplicate_back_callback_regression.php',
         'php tests/run_live_september_typo_regression.php',
         'php tests/run_live_show_tours_duplicate_regression.php',
         'php tests/run_live_party_word_counts_regression.php',
