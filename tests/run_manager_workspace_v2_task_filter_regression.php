@@ -25,6 +25,8 @@ tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$
 tfCheck('inbox filters and search persist for current browser session',strpos($filters,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($filters,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($filters,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($filters,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
 tfCheck('restored search is reflected in visible input',strpos($filters,"if(search)search.value=S.leadSearch")!==false);
 tfCheck('clear filters also clears restored search state',strpos($filters,"S.leadTaskFilter='';S.leadSearch='';render();saveFilterState()")!==false);
+tfCheck('open leads without a task are visible in the inbox row',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false&&strpos($inbox,'Следующее действие не назначено')!==false&&strpos($inbox,'＋ Без задачи')!==false);
+tfCheck('closed outcomes do not get a false missing-task signal',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false);
 $rows=[
  ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue'],
  ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'future'],
