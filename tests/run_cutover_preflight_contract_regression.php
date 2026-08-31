@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 $workflow = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/cutover-preflight.yml');
+$legacyService = (string) file_get_contents(dirname(__DIR__) . '/services/CutoverLegacyHostDependency.php');
+$legacyTool = (string) file_get_contents(dirname(__DIR__) . '/tools/cutover_legacy_host_dependency.php');
 
 function cutoverPreflightAssert(bool $condition, string $message): void
 {
@@ -31,5 +33,14 @@ cutoverPreflightAssert(stripos($workflow, 'systemctl ') === false, 'preflight mu
 
 cutoverPreflightAssert(strpos($workflow, 'secrets.DEPLOY_SSH_KEY') !== false, 'preflight should reuse production deploy SSH connection');
 cutoverPreflightAssert(strpos($workflow, 'secrets.STANDBY_DEPLOY_SSH_KEY') !== false, 'preflight should reuse standby deploy SSH connection');
+
+cutoverPreflightAssert(strpos($legacyService, 'LeadBridgeConfig::receiverUrl()') !== false, 'legacy-host detector must inspect configured lead receiver');
+cutoverPreflightAssert(strpos($legacyService, "'anytour.online'") !== false, 'legacy-host detector must recognize canonical legacy host');
+cutoverPreflightAssert(strpos($legacyService, "'lead_bridge'") !== false, 'legacy-host detector must identify lead bridge dependency');
+cutoverPreflightAssert(strpos($legacyTool, "PHP_SAPI !== 'cli'") !== false, 'legacy-host diagnostic must remain CLI-only');
+cutoverPreflightAssert(strpos($legacyTool, 'LEGACY_HOST_DEPENDENCY=') !== false, 'legacy-host diagnostic must expose dependency result');
+cutoverPreflightAssert(strpos($legacyTool, 'LEAD_RECEIVER_HOST=') !== false, 'legacy-host diagnostic must expose receiver host without secrets');
+cutoverPreflightAssert(strpos($legacyTool, 'MAX_SEARCH_LEAD_BRIDGE_SECRET') === false, 'legacy-host diagnostic must never expose bridge secret');
+cutoverPreflightAssert(strpos($legacyTool, 'CONVERSATION_DB_PASS') === false, 'legacy-host diagnostic must never expose DB password');
 
 echo "OK cutover preflight contract regression\n";
