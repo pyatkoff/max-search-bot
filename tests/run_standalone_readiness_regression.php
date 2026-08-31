@@ -78,4 +78,14 @@ sr_assert(strpos($catalogSource, 'catalog_departures') !== false, 'catalog compa
 sr_assert(strpos($catalogSource, 'catalog_countries') !== false, 'catalog compatibility must query countries directly');
 sr_assert(strpos($catalogSource, 'UF_DEPID') !== false && strpos($catalogSource, 'UF_CID') !== false, 'catalog compatibility must document legacy ID semantics');
 
+$probeTool = (string)file_get_contents(dirname(__DIR__) . '/tools/lead_bridge_probe.php');
+sr_assert(strpos($probeTool, "'probe|' . \$nonce") !== false, 'standby probe must sign a domain-separated challenge');
+sr_assert(strpos($probeTool, 'LEAD_BRIDGE_PROBE=OK') !== false, 'standby probe must expose a stable success marker');
+sr_assert(strpos($probeTool, 'PROPERTY_VALUES') === false, 'read-only bridge probe must never construct a lead payload');
+$receiver = (string)file_get_contents(dirname(__DIR__) . '/lead-receiver.php');
+sr_assert(strpos($receiver, "hash_hmac('sha256', 'probe|' . \$probe, \$secret)") !== false, 'receiver must authenticate the read-only probe with the shared bridge secret');
+sr_assert(strpos($receiver, "'writes' => false") !== false, 'authenticated probe response must explicitly prove that it did not write a lead');
+$standbyWorkflow = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/deploy-standby.yml');
+sr_assert(strpos($standbyWorkflow, 'php tools/lead_bridge_probe.php') !== false, 'standby deploy must verify authenticated bridge connectivity before cutover');
+
 echo "OK standalone readiness regression\n";
