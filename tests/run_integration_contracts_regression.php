@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/SearchRequestBuilder.php';
 require_once __DIR__ . '/../services/LeadDeliveryGateway.php';
+require_once __DIR__ . '/../integrations/MaxWebhookHealth.php';
 
 $passed = 0;
 $failed = 0;
@@ -63,6 +64,34 @@ icCheck('Bitrix adapter preserves iblock module load', strpos($leadGatewaySource
 icCheck('Bitrix adapter preserves CIBlockElement Add', strpos($leadGatewaySource, 'CIBlockElement') !== false && strpos($leadGatewaySource, '->Add($element)') !== false, true);
 icCheck('savePhone delegates lead creation to boundary', strpos($maxSearchSource, 'LeadDeliveryGateway::create($element)') !== false, true);
 icCheck('savePhone no longer owns direct CIBlockElement creation', strpos($maxSearchSource, 'new CIblockElement') === false && strpos($maxSearchSource, 'new CIBlockElement') === false, true);
+
+$expectedWebhook = 'https://app.anytoour.ru/webhook.php';
+$healthyWebhook = MaxWebhookHealth::evaluate([
+    'http'=>200,
+    'errno'=>0,
+    'body'=>json_encode(['subscriptions'=>[['url'=>$expectedWebhook]]]),
+], $expectedWebhook);
+icCheck('MAX webhook health accepts exactly one expected owner', $healthyWebhook['ok'] ?? false, true);
+icCheck('MAX webhook health reports healthy owner', $healthyWebhook['reason'] ?? '', 'healthy');
+$dualWebhook = MaxWebhookHealth::evaluate([
+    'http'=>200,
+    'errno'=>0,
+    'body'=>json_encode(['subscriptions'=>[
+        ['url'=>$expectedWebhook],
+        ['url'=>'https://anytour.online/max-search/webhook.php'],
+    ]]),
+], $expectedWebhook);
+icCheck('MAX webhook health rejects dual ownership', $dualWebhook['ok'] ?? true, false);
+icCheck('MAX webhook health identifies extra subscription', $dualWebhook['reason'] ?? '', 'extra_subscriptions');
+$wrongWebhook = MaxWebhookHealth::evaluate([
+    'http'=>200,
+    'errno'=>0,
+    'body'=>json_encode(['subscriptions'=>[['url'=>'https://anytour.online/max-search/webhook.php']]]),
+], $expectedWebhook);
+icCheck('MAX webhook health rejects wrong owner', $wrongWebhook['ok'] ?? true, false);
+icCheck('MAX webhook health fails closed on transport error', MaxWebhookHealth::evaluate(['http'=>0,'errno'=>7,'body'=>''], $expectedWebhook)['reason'] ?? '', 'transport_error');
+$maxHealthSource = file_get_contents(__DIR__ . '/../integrations/MaxWebhookHealth.php');
+icCheck('MAX webhook health is read-only', stripos($maxHealthSource, 'CURLOPT_POST') === false && stripos($maxHealthSource, 'CURLOPT_CUSTOMREQUEST') === false, true);
 
 ProjectConfig::resetForTests(['messenger'=>['provider'=>'telegram']]);
 IntegrationRegistry::resetForTests();
