@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T08:36:07+00:00",
+    "generated_at": "2026-08-31T08:45:08+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -15,7 +15,7 @@
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
-        "flagged_sessions": 2,
+        "flagged_sessions": 1,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -29,9 +29,9 @@
             "tours_opened": 1
         },
         "flags": {
-            "rapid_date_reselection": 2,
-            "repeated_callback_input": 2,
-            "excessive_turns": 2
+            "rapid_date_reselection": 1,
+            "repeated_callback_input": 1,
+            "excessive_turns": 1
         }
     },
     "sessions": [
@@ -505,161 +505,11 @@
             "inbound_messages": 47,
             "outbound_messages": 21,
             "date_picks": 25,
-            "anomaly_inbound_messages": 20,
+            "anomaly_inbound_messages": 0,
             "drop_point": "collecting_needs",
-            "flags": [
-                "rapid_date_reselection",
-                "repeated_callback_input",
-                "excessive_turns"
-            ],
+            "flags": [],
             "started_at": "2026-08-31 09:33:47",
-            "last_message_at": "2026-08-31 09:39:17",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-31 09:37:27"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-31 09:37:29"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-31 09:37:29"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_30.09.2026",
-                    "created_at": "2026-08-31 09:37:32"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 09:37:36"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_10.2026",
-                    "created_at": "2026-08-31 09:37:43"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_30.09.2026",
-                    "created_at": "2026-08-31 09:37:43"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-31 09:37:43"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_09.2026",
-                    "created_at": "2026-08-31 09:37:47"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-                    "created_at": "2026-08-31 09:37:47"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_30.09.2026",
-                    "created_at": "2026-08-31 09:37:50"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_30.09.2026",
-                    "created_at": "2026-08-31 09:37:53"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_27.09.2026",
-                    "created_at": "2026-08-31 09:37:55"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_23.09.2026",
-                    "created_at": "2026-08-31 09:37:55"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_19.09.2026",
-                    "created_at": "2026-08-31 09:37:56"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_06.09.2026",
-                    "created_at": "2026-08-31 09:37:57"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_01.09.2026",
-                    "created_at": "2026-08-31 09:37:58"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_02.09.2026",
-                    "created_at": "2026-08-31 09:37:58"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_08.09.2026",
-                    "created_at": "2026-08-31 09:37:59"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_23.09.2026",
-                    "created_at": "2026-08-31 09:37:59"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-08-31 09:38:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-31 09:38:09"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-                    "created_at": "2026-08-31 09:38:10"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Из москвы в египет, с 30 сентября на 7-9 ночей, 2 взрослых, отель от 4, все включено",
-                    "created_at": "2026-08-31 09:39:17"
-                }
-            ]
+            "last_message_at": "2026-08-31 09:39:17"
         },
         {
             "conversation_id": 646,
@@ -840,5 +690,5 @@
             ]
         }
     ],
-    "since_utc": "2026-08-31 07:36:07"
+    "since_utc": "2026-08-31 07:45:08"
 }
