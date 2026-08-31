@@ -60,6 +60,48 @@ class InteractionGuard
             && ($now - $previousAt) < $windowSeconds;
     }
 
+    /**
+     * Consume an exact repeated callback delivery inside a short window.
+     * The marker is written while holding the same per-chat/scope lock, so a
+     * concurrent retry sees the first delivery before it can repeat behavior.
+     * Different payloads are never suppressed by this helper.
+     */
+    public static function suppressDuplicateCallback(
+        int $chatId,
+        string $payload,
+        string $scope,
+        float $windowSeconds = 2.0
+    ): bool {
+        $fp = @fopen(self::lockPath($chatId, 'dedupe.' . $scope), 'c+');
+        if (!$fp || !flock($fp, LOCK_EX)) {
+            if ($fp) fclose($fp);
+            self::reportSuppressed($chatId, $payload, 'concurrent', null, null, $scope);
+            return true;
+        }
+
+        try {
+            rewind($fp);
+            $state = json_decode((string)stream_get_contents($fp), true);
+            $previousPayload = is_array($state) ? (string)($state['payload'] ?? '') : '';
+            $previousAt = is_array($state) ? (float)($state['at'] ?? 0.0) : 0.0;
+            $now = microtime(true);
+
+            if (self::isDuplicate($previousPayload, $previousAt, $payload, $now, $windowSeconds)) {
+                self::reportSuppressed($chatId, $payload, 'duplicate', null, null, $scope);
+                return true;
+            }
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode(['payload'=>$payload, 'at'=>$now], JSON_UNESCAPED_SLASHES));
+            fflush($fp);
+            return false;
+        } finally {
+            flock($fp, LOCK_UN);
+            fclose($fp);
+        }
+    }
+
     public static function expectedWizardStatus(string $payload): ?int
     {
         return DialogueStateMachine::expectedStatusForForwardCallback($payload);
