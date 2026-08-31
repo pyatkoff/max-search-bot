@@ -51,13 +51,18 @@ $targets = [
     'MAX_SEARCH_PUBLIC_BASE_URL' => "'https://app.anytoour.ru'",
     'MAX_SEARCH_TRACKING_BASE_URL' => "'https://app.anytoour.ru'",
 ];
+
+$lines = preg_split('/\R/', $source) ?: [];
 foreach ($targets as $name => $value) {
-    $replacement = "define('{$name}', {$value});";
-    $pattern = '/define\s*\(\s*[\'\"]' . preg_quote($name, '/') . '[\'\"]\s*,\s*[^;]+\);/';
-    $count = 0;
-    $source = preg_replace($pattern, $replacement, $source, 1, $count) ?? $source;
-    if ($count === 0) $source .= PHP_EOL . $replacement;
+    $namePattern = preg_quote($name, '/');
+    $lines = array_values(array_filter($lines, static function (string $line) use ($namePattern): bool {
+        $mentionsTarget = preg_match('/[\'\"]' . $namePattern . '[\'\"]/', $line) === 1;
+        $definesConstant = preg_match('/\bdefine\s*\(/', $line) === 1;
+        return !($mentionsTarget && $definesConstant);
+    }));
+    $lines[] = "define('{$name}', {$value});";
 }
+$source = rtrim(implode(PHP_EOL, $lines)) . PHP_EOL;
 
 $tmp = $config . '.standby-tmp-' . getmypid();
 if (file_put_contents($tmp, $source) === false) { @unlink($backup); fwrite(STDERR, "Unable to write standby config temp file\n"); exit(2); }
