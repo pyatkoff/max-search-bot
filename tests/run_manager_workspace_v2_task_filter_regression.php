@@ -12,6 +12,7 @@ $passed=0;$failed=0;
 function tfCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
 tfCheck('workspace exposes task filter',strpos($workspace,'id="leadTaskFilter"')!==false&&strpos($workspace,'Просроченные')!==false&&strpos($workspace,'Сегодня')!==false&&strpos($workspace,'Запланированные')!==false&&strpos($workspace,'В приоритете')!==false&&strpos($workspace,'Без задачи')!==false);
 tfCheck('workspace exposes today task shortcut',strpos($workspace,'data-task-filter="today"')!==false&&strpos($workspace,'● Сегодня')!==false);
+tfCheck('workspace exposes planned task shortcut',strpos($workspace,'data-task-filter="planned"')!==false&&strpos($workspace,'🗓 Запланировано')!==false);
 tfCheck('workspace exposes pinned task shortcut',strpos($workspace,'data-task-filter="pinned"')!==false&&strpos($workspace,'📌 В приоритете')!==false);
 tfCheck('workspace exposes no-task shortcut',strpos($workspace,'data-task-filter="none"')!==false&&strpos($workspace,'＋ Без задачи')!==false);
 tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($pipeline,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
