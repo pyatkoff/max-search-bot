@@ -5,6 +5,7 @@ declare(strict_types=1);
 $workflow = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/cutover-preflight.yml');
 $legacyService = (string) file_get_contents(dirname(__DIR__) . '/services/CutoverLegacyHostDependency.php');
 $legacyTool = (string) file_get_contents(dirname(__DIR__) . '/tools/cutover_legacy_host_dependency.php');
+$legacyDiagnosticWorkflow = (string) file_get_contents(dirname(__DIR__) . '/.github/workflows/standby-legacy-host-diagnostic.yml');
 
 function cutoverPreflightAssert(bool $condition, string $message): void
 {
@@ -42,5 +43,12 @@ cutoverPreflightAssert(strpos($legacyTool, 'LEGACY_HOST_DEPENDENCY=') !== false,
 cutoverPreflightAssert(strpos($legacyTool, 'LEAD_RECEIVER_HOST=') !== false, 'legacy-host diagnostic must expose receiver host without secrets');
 cutoverPreflightAssert(strpos($legacyTool, 'MAX_SEARCH_LEAD_BRIDGE_SECRET') === false, 'legacy-host diagnostic must never expose bridge secret');
 cutoverPreflightAssert(strpos($legacyTool, 'CONVERSATION_DB_PASS') === false, 'legacy-host diagnostic must never expose DB password');
+
+cutoverPreflightAssert(strpos($legacyDiagnosticWorkflow, "branches: [main]") !== false, 'standby legacy-host diagnostic must run from main');
+cutoverPreflightAssert(strpos($legacyDiagnosticWorkflow, "- 'tools/cutover_legacy_host_dependency.php'") !== false, 'standby diagnostic push trigger must stay scoped to detector changes');
+cutoverPreflightAssert(strpos($legacyDiagnosticWorkflow, 'php tools/cutover_legacy_host_dependency.php') !== false, 'standby diagnostic must execute the non-secret detector');
+foreach (['lead_bridge_probe.php', 'mysqldump ', 'mysql ', 'crontab ', 'systemctl ', 'webhook.php'] as $forbidden) {
+    cutoverPreflightAssert(stripos($legacyDiagnosticWorkflow, $forbidden) === false, 'standby diagnostic must remain read-only: ' . $forbidden);
+}
 
 echo "OK cutover preflight contract regression\n";

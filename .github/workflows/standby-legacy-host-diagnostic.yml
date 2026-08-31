@@ -1,0 +1,71 @@
+name: Standby legacy host diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/CutoverLegacyHostDependency.php'
+      - 'tools/cutover_legacy_host_dependency.php'
+      - '.github/workflows/standby-legacy-host-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check standby configuration
+        id: config
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          STANDBY_DEPLOY_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$STANDBY_DEPLOY_HOST" ] && [ -n "$STANDBY_DEPLOY_USER" ] && [ -n "$STANDBY_DEPLOY_SSH_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Standby legacy-host diagnostic skipped: standby SSH configuration is incomplete."
+          fi
+
+      - name: Prepare standby SSH private key
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          STANDBY_DEPLOY_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/standby_deploy_key"
+          raw="$STANDBY_DEPLOY_SSH_KEY"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Read standby legacy-host dependency
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/standby_deploy_key"
+          ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/cutover_legacy_host_dependency.php'
+
+      - name: Confirm read-only policy
+        if: steps.config.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          echo "This diagnostic only reads the configured lead receiver host."
+          echo "It does not send a lead, change configuration, switch traffic, or invoke webhook/cron workers."
