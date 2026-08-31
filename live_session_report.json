@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T20:08:04+00:00",
+    "generated_at": "2026-08-31T20:32:46+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -25,41 +25,13 @@
             "max_seconds": 52322
         },
         "drop_points": {
-            "collecting_needs": 1,
             "tours_opened": 1,
-            "manager_replied": 1
+            "manager_replied": 1,
+            "collecting_needs": 1
         },
         "flags": []
     },
     "sessions": [
-        {
-            "conversation_id": 115,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 14,
-            "outbound_messages": 25,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-08-24 19:56:46",
-            "last_message_at": "2026-08-31 19:25:48"
-        },
         {
             "conversation_id": 654,
             "project_key": "anytour",
@@ -115,7 +87,35 @@
             "flags": [],
             "started_at": "2026-08-24 21:12:32",
             "last_message_at": "2026-08-31 21:24:01"
+        },
+        {
+            "conversation_id": 655,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 15,
+            "outbound_messages": 12,
+            "date_picks": 1,
+            "anomaly_inbound_messages": 15,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-08-31 22:30:53",
+            "last_message_at": "2026-08-31 22:32:45"
         }
     ],
-    "since_utc": "2026-08-31 19:08:04"
+    "since_utc": "2026-08-31 19:32:46"
 }
