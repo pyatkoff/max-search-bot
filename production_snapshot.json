@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T08:45:05+00:00",
+    "generated_at": "2026-08-31T08:59:14+00:00",
     "production": {
-        "sha": "9716a0c5a2284c4b60a68679d5783c69d33ed0e2",
+        "sha": "cb4f29c7ac0f33c2e661c953b3d94c9537bd91a6",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.40000000000000002
+        "latency_ms": 0.20000000000000001
     },
     "migrations": [
         {
@@ -191,10 +191,10 @@
         "customers": 644,
         "customer_channels": 644,
         "conversations": 646,
-        "messages": 16606,
+        "messages": 16612,
         "managers": 6,
         "manager_assignments": 114,
-        "conversation_events": 945,
+        "conversation_events": 946,
         "admin_audit_log": 32
     },
     "managers": [
@@ -241,7 +241,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-31 03:41:52"
+            "last_login_at": "2026-08-31 10:46:35"
         },
         {
             "id": 6,
@@ -1449,6 +1449,60 @@
     ],
     "recent_messages": [
         {
+            "id": 16612,
+            "conversation_id": 637,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-31 10:57:13"
+        },
+        {
+            "id": 16611,
+            "conversation_id": 643,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Хотим из Москвы полететь в Казань 10 октября, 2 взрослых, 5 ночей, отель 4*,все включено",
+            "created_at": "2026-08-31 10:57:06"
+        },
+        {
+            "id": 16610,
+            "conversation_id": 643,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-31 10:55:28"
+        },
+        {
+            "id": 16609,
+            "conversation_id": 643,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-31 10:55:28"
+        },
+        {
+            "id": 16608,
+            "conversation_id": 643,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-08-31 10:55:16"
+        },
+        {
+            "id": 16607,
+            "conversation_id": 334,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Добрый день! По горящим на Ваши даты следующие варианты: 08.10, 7н, Viking Express (Ex. Viking Suite) 4*, AI - Все Включено, 129 839 RUB 08.10, 7н, Miramor Garden Resort Hotel (Ex. Seker Resort) 4*, AI - Все Включено, 138 800 RUB 08.10, 7н, Viking Garden Hotel (Ex. Garden Resort Bergamot) 4*, AI - Все Включено, 143 034 RUB 08.10, 7н, Istanbul Beach Hotel (Ex. Blauhimmel Hotel) 4*, AI - Все Включено, 146 327 RUB 08.10, 7н, Viking Star 5*, AI - Все Включено, 156 900 RUB Подробнее здесь: https:/...",
+            "created_at": "2026-08-31 10:48:24"
+        },
+        {
             "id": 16606,
             "conversation_id": 646,
             "direction": "inbound",
@@ -1933,63 +1987,17 @@
             "channel": "max",
             "text": "pick_date_31.08.2026",
             "created_at": "2026-08-31 09:53:30"
-        },
-        {
-            "id": 16552,
-            "conversation_id": 646,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 09:53:28"
-        },
-        {
-            "id": 16551,
-            "conversation_id": 646,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-31 09:53:23"
-        },
-        {
-            "id": 16550,
-            "conversation_id": 646,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_9_11",
-            "created_at": "2026-08-31 09:53:23"
-        },
-        {
-            "id": 16549,
-            "conversation_id": 646,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-31 09:53:14"
-        },
-        {
-            "id": 16548,
-            "conversation_id": 646,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "back_nights",
-            "created_at": "2026-08-31 09:53:14"
-        },
-        {
-            "id": 16547,
-            "conversation_id": 646,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_29.09.2026",
-            "created_at": "2026-08-31 09:53:11"
         }
     ],
     "recent_events": [
+        {
+            "id": 946,
+            "conversation_id": 334,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-31 10:48:24"
+        },
         {
             "id": 945,
             "conversation_id": 334,
@@ -2461,14 +2469,6 @@
             "actor_type": "manager",
             "actor_id": "5",
             "created_at": "2026-08-28 10:07:04"
-        },
-        {
-            "id": 886,
-            "conversation_id": 505,
-            "event_type": "waiting_manager",
-            "actor_type": "customer",
-            "actor_id": null,
-            "created_at": "2026-08-28 09:54:03"
         }
     ],
     "recent_manager_delivery_failures": [

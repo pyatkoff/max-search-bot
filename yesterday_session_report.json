@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T08:45:11+00:00",
+    "generated_at": "2026-08-31T08:59:22+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -469,159 +469,6 @@
             ]
         },
         {
-            "conversation_id": 334,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "manager",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "manager_requested": true,
-            "manager_request_active": true,
-            "manager_replied": true,
-            "manager_request_at": "2026-08-27 13:02:09",
-            "manager_first_reply_at": "2026-08-27 13:19:35",
-            "manager_response_seconds": 1046,
-            "manager_response_bucket": "answered_after_90s",
-            "phone_received": false,
-            "inbound_messages": 37,
-            "outbound_messages": 16,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 17,
-            "drop_point": "manager_replied",
-            "flags": [
-                "repeated_callback_input",
-                "repeated_same_input"
-            ],
-            "started_at": "2026-08-26 17:05:22",
-            "last_message_at": "2026-08-30 13:07:21",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-08-30 00:01:13"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:25"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:29"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 00:01:32"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 00:01:33"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 00:01:33"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:35"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:36"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:36"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 00:01:37"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 11:37:23"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-08-30 11:37:25"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 11:37:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-30 11:37:28"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Ирина, в ближайшее время - нароавлю варианты.",
-                    "created_at": "2026-08-30 12:09:58"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Сразу отмечу: при бюджетедо 200 тыс. руб. найти отель на первой линии, с хорошей зелёной территорией, песчаным пляжем и действительно достойным питанием в формате «всё включено» сейчас, к сожалению, не получается. Поэтому отправляю несколько вариантов — первый максимально близ...",
-                    "created_at": "2026-08-30 12:46:21"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Добрый день. Горящих нет туров?",
-                    "created_at": "2026-08-30 13:07:21"
-                }
-            ]
-        },
-        {
             "conversation_id": 621,
             "project_key": "anytour",
             "channel": "max",
@@ -894,6 +741,159 @@
             "flags": [],
             "started_at": "2026-08-27 17:58:17",
             "last_message_at": "2026-08-31 08:45:39"
+        },
+        {
+            "conversation_id": 334,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "manager",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": true,
+            "manager_request_active": true,
+            "manager_replied": true,
+            "manager_request_at": "2026-08-27 13:02:09",
+            "manager_first_reply_at": "2026-08-27 13:19:35",
+            "manager_response_seconds": 1046,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": false,
+            "inbound_messages": 37,
+            "outbound_messages": 16,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 17,
+            "drop_point": "manager_replied",
+            "flags": [
+                "repeated_callback_input",
+                "repeated_same_input"
+            ],
+            "started_at": "2026-08-26 17:05:22",
+            "last_message_at": "2026-08-31 10:48:24",
+            "message_tail": [
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+                    "created_at": "2026-08-30 00:01:13"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:25"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:29"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 00:01:32"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 00:01:33"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 00:01:33"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:35"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:36"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:36"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 00:01:37"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 11:37:23"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-08-30 11:37:25"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 11:37:26"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-08-30 11:37:28"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Ирина, в ближайшее время - нароавлю варианты.",
+                    "created_at": "2026-08-30 12:09:58"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Сразу отмечу: при бюджетедо 200 тыс. руб. найти отель на первой линии, с хорошей зелёной территорией, песчаным пляжем и действительно достойным питанием в формате «всё включено» сейчас, к сожалению, не получается. Поэтому отправляю несколько вариантов — первый максимально близ...",
+                    "created_at": "2026-08-30 12:46:21"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Добрый день. Горящих нет туров?",
+                    "created_at": "2026-08-30 13:07:21"
+                }
+            ]
         }
     ],
     "local_date": "2026-08-30",
