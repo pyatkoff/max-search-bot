@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/services/MaxTlsConfig.php';
+
 /**
  * Read-only MAX webhook/subscription health boundary.
  *
@@ -32,7 +34,7 @@ final class MaxWebhookHealth
                 CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_TIMEOUT => 20,
                 CURLOPT_HTTPHEADER => ['Authorization: ' . $token, 'Accept: application/json'],
-            ]);
+            ] + MaxTlsConfig::curlOptions(false));
             $body = curl_exec($ch);
             $errno = curl_errno($ch);
             $http = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);

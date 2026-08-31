@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $root = dirname(__DIR__);
 require_once $root . '/config.php';
 require_once $root . '/services/WebhookTargetConfig.php';
+require_once $root . '/services/MaxTlsConfig.php';
 
 $mode = (string)($argv[1] ?? '--status');
 $oldUrl = 'https://anytour.online/max-search/webhook.php';
@@ -18,16 +19,13 @@ if ($token === '') { fwrite(STDERR, "MAX_SEARCH_TOKEN missing\n"); exit(2); }
 function maxReq(string $method, string $url, string $token, ?array $body = null): array
 {
     $ch = curl_init($url);
-    $headers = ['Authorization: ' . $token, 'Content-Type: application/json'];
     $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST => $method,
-        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_HTTPHEADER => ['Authorization: ' . $token, 'Content-Type: application/json'],
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
-    ];
+    ] + MaxTlsConfig::curlOptions(false);
     if ($body !== null) $opts[CURLOPT_POSTFIELDS] = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
