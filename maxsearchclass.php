@@ -13,6 +13,7 @@ require_once(__DIR__ . '/services/LeadPayloadService.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 require_once(__DIR__ . '/services/DialogueView.php');
 require_once(__DIR__ . '/services/TourResultsService.php');
+require_once(__DIR__ . '/services/NativeDateService.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -99,7 +100,7 @@ class MaxSearchApi extends MaxSearchBase
     }
     public static function getAiMissingFields($chatID){ return AiSearchContextService::missingFromSaved((array)static::getSavedData($chatID),static::statusMap()); }
     public static function applyAiParameters($chatID,array $params){
-        $normalized=AiSearchContextService::normalizeParameters($params,function($name){$r=static::getCityByName($name);return $r?($r['ID']??null):null;},function($name){$r=static::getCountryByName($name);return $r?($r['ID']??null):null;},function($date){try{$o=new \Bitrix\Main\Type\Date($date,'d.m.Y');return $o->getTimestamp()>=strtotime('today');}catch(\Throwable $e){return false;}});
+        $normalized=AiSearchContextService::normalizeParameters($params,function($name){$r=static::getCityByName($name);return $r?($r['ID']??null):null;},function($name){$r=static::getCountryByName($name);return $r?($r['ID']??null):null;},function($date){return NativeDateService::isTodayOrFuture((string)$date);});
         $storageMap=AiSearchContextService::storageMap(static::statusMap()); $applied=[];
         foreach($normalized as $field=>$value){ if(!isset($storageMap[$field]))continue; static::upsertStatusValue($chatID,$storageMap[$field],$value); $applied[$field]=true; }
         return $applied;
@@ -119,10 +120,8 @@ class MaxSearchApi extends MaxSearchBase
         $name=(string)($claim['UF_NAME']??''); $createdAt=date('d.m.Y H:i:s');
         $from=static::getCityByID($claim['UF_CITY']??0); $country=static::getCountryByID($claim['UF_COUNTRY']??0);
         $people=LeadPayloadService::peopleString($claim); $meal=LeadPayloadService::mealString($claim,static::getMealArr());
-        $dateObjPlus=new \Bitrix\Main\Type\DateTime($claim['UF_DATE_DEPART']);$dateObjPlus->add('3 day');
-        $dateObjMinus=new \Bitrix\Main\Type\DateTime($claim['UF_DATE_DEPART']);$dateObjMinus->add('-3 day');
-        $dateNow=new \Bitrix\Main\Type\Date();if($dateNow->getTimestamp()>$dateObjMinus->getTimestamp())$dateObjMinus=$dateNow;
-        $leadData=['name'=>$name,'phone'=>$phone,'clean_phone'=>static::cleanPhone($phone),'created_at'=>$createdAt,'from'=>$from,'country'=>$country,'people'=>$people,'stars'=>$claim['UF_STARS']??'','meal'=>$meal,'dates'=>$dateObjMinus->format('d.m.Y').' - '.$dateObjPlus->format('d.m.Y'),'nights'=>$claim['UF_NIGHTS']??'','status'=>(int)ProjectConfig::get('leads.status_id',static::$claimStatusIDQueue)];
+        $dateWindow=NativeDateService::leadWindow((string)($claim['UF_DATE_DEPART']??''));
+        $leadData=['name'=>$name,'phone'=>$phone,'clean_phone'=>static::cleanPhone($phone),'created_at'=>$createdAt,'from'=>$from,'country'=>$country,'people'=>$people,'stars'=>$claim['UF_STARS']??'','meal'=>$meal,'dates'=>$dateWindow['from'].' - '.$dateWindow['to'],'nights'=>$claim['UF_NIGHTS']??'','status'=>(int)ProjectConfig::get('leads.status_id',static::$claimStatusIDQueue)];
         $uon=(int)ProjectConfig::get('leads.uon_source_id',static::$uonSourceId); if($uon>0)$leadData['source']=$uon;
         if(static::$isAnyOnline)$leadData['is_anytour_online']=CSiteParams::$isAnytourOnline;
         $props=LeadPayloadService::properties($leadData);
