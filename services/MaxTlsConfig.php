@@ -5,19 +5,26 @@ declare(strict_types=1);
 /**
  * One owner for MAX API TLS settings.
  *
- * New hosts can use a deployment-managed CA bundle without disabling peer
- * verification. Legacy runtime remains compatible until its transport is fully
- * migrated to trusted CA verification.
+ * MAX platform-api2 uses the Russian Trusted CA chain. Prefer an explicit
+ * deployment-managed bundle when configured, otherwise fall back to the pinned
+ * project bundle. Peer and host verification stay enabled.
  */
 final class MaxTlsConfig
 {
     private const DEFAULT_CA_BUNDLE = '/var/www/anytoour/data/config/max-ca-bundle.crt';
+    private const PROJECT_CA_BUNDLE = __DIR__ . '/../certs/russian_trusted_ca.pem';
 
     public static function caBundle(): string
     {
         $configured = trim((string)(getenv('MAX_SEARCH_MAX_CA_BUNDLE') ?: ''));
-        $path = $configured !== '' ? $configured : self::DEFAULT_CA_BUNDLE;
-        return is_file($path) && is_readable($path) ? $path : '';
+        $candidates = $configured !== ''
+            ? [$configured]
+            : [self::DEFAULT_CA_BUNDLE, self::PROJECT_CA_BUNDLE];
+
+        foreach ($candidates as $path) {
+            if (is_file($path) && is_readable($path)) return $path;
+        }
+        return '';
     }
 
     /** @return array<int,mixed> */
