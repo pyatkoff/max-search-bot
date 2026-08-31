@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T08:07:16+00:00",
+    "generated_at": "2026-08-31T08:24:07+00:00",
     "production": {
-        "sha": "65f6d9c9099b7639dfbea3332118cf0efb981c8e",
+        "sha": "ee8723100fc870d2472af16d9db5de68b6584f9b",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 07:07:03",
+        "since_utc": "2026-08-31 07:23:58",
         "summary": {
             "sessions": 19,
             "started": 19,
@@ -150,7 +150,7 @@
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
-            "flagged_sessions": 3,
+            "flagged_sessions": 2,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -164,21 +164,12 @@
                 "tours_opened": 1
             },
             "flags": {
-                "repeated_callback_input": 3,
                 "rapid_date_reselection": 2,
+                "repeated_callback_input": 2,
                 "excessive_turns": 2
             }
         },
         "flagged_sessions": [
-            {
-                "conversation_id": 644,
-                "flags": [
-                    "repeated_callback_input"
-                ],
-                "drop_point": "collecting_needs",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            },
             {
                 "conversation_id": 645,
                 "flags": [
@@ -208,7 +199,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "65f6d9c9099b7639dfbea3332118cf0efb981c8e",
+        "sha": "ee8723100fc870d2472af16d9db5de68b6584f9b",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -217,7 +208,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T08:07:16Z"
+        "reported_at": "2026-08-31T08:24:07Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -269,7 +260,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T08:07:15+00:00",
+        "generated_at": "2026-08-31T08:24:07+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -312,9 +303,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 151,
-                "bytes": 575214,
-                "code_lines": 7292
+                "files": 152,
+                "bytes": 577030,
+                "code_lines": 7321
             },
             "tools": {
                 "files": 23,
