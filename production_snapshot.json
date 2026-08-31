@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T10:39:59+00:00",
+    "generated_at": "2026-08-31T10:51:05+00:00",
     "production": {
-        "sha": "5b8c461a0190734fc5bf8fe7cc48a9d619996866",
+        "sha": "19b1be69a6b39330990347979493977d07897d44",
         "branch": "main"
     },
     "database": {
@@ -188,10 +188,10 @@
         }
     ],
     "stats": {
-        "customers": 647,
-        "customer_channels": 647,
-        "conversations": 649,
-        "messages": 16720,
+        "customers": 648,
+        "customer_channels": 648,
+        "conversations": 650,
+        "messages": 16730,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 946,
@@ -1124,7 +1124,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 517
+            "count": 518
         },
         {
             "project_key": "anytour",
@@ -1448,6 +1448,96 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 16730,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Вьетнам",
+            "created_at": "2026-08-31 12:46:28"
+        },
+        {
+            "id": 16729,
+            "conversation_id": 650,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-08-31 12:46:06"
+        },
+        {
+            "id": 16728,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-08-31 12:46:06"
+        },
+        {
+            "id": 16727,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Вьетнам",
+            "created_at": "2026-08-31 12:45:42"
+        },
+        {
+            "id": 16726,
+            "conversation_id": 650,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-08-31 12:45:19"
+        },
+        {
+            "id": 16725,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-08-31 12:45:19"
+        },
+        {
+            "id": 16724,
+            "conversation_id": 650,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-08-31 12:45:13"
+        },
+        {
+            "id": 16723,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_5",
+            "created_at": "2026-08-31 12:45:13"
+        },
+        {
+            "id": 16722,
+            "conversation_id": 650,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-08-31 12:45:09"
+        },
+        {
+            "id": 16721,
+            "conversation_id": 650,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-31 12:45:09"
+        },
         {
             "id": 16720,
             "conversation_id": 649,
@@ -1897,96 +1987,6 @@
             "channel": "max",
             "text": "pick_country_1",
             "created_at": "2026-08-31 11:39:12"
-        },
-        {
-            "id": 16670,
-            "conversation_id": 648,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-31 11:39:09"
-        },
-        {
-            "id": 16669,
-            "conversation_id": 648,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_5",
-            "created_at": "2026-08-31 11:39:09"
-        },
-        {
-            "id": 16668,
-            "conversation_id": 648,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-08-31 11:39:04"
-        },
-        {
-            "id": 16667,
-            "conversation_id": 648,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-08-31 11:39:04"
-        },
-        {
-            "id": 16666,
-            "conversation_id": 647,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Хотим в Египет в конце сентября 2 взрослых, 1 ребёнок 13 лет,отель 5 звезд все включено",
-            "created_at": "2026-08-31 11:32:57"
-        },
-        {
-            "id": 16665,
-            "conversation_id": 647,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-08-31 11:32:08"
-        },
-        {
-            "id": 16664,
-            "conversation_id": 647,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "ai_start",
-            "created_at": "2026-08-31 11:32:07"
-        },
-        {
-            "id": 16663,
-            "conversation_id": 647,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-31 11:32:06"
-        },
-        {
-            "id": 16662,
-            "conversation_id": 647,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 11:31:57"
-        },
-        {
-            "id": 16661,
-            "conversation_id": 647,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-31 11:31:55"
         }
     ],
     "recent_events": [

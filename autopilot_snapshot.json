@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T10:40:11+00:00",
+    "generated_at": "2026-08-31T10:51:21+00:00",
     "production": {
-        "sha": "5b8c461a0190734fc5bf8fe7cc48a9d619996866",
+        "sha": "19b1be69a6b39330990347979493977d07897d44",
         "branch": "main"
     },
     "migrations": {
@@ -141,18 +141,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 09:40:02",
+        "since_utc": "2026-08-31 09:51:08",
         "summary": {
-            "sessions": 7,
-            "raw_sessions": 7,
+            "sessions": 8,
+            "raw_sessions": 8,
             "explicit_test_sessions": 0,
-            "started": 7,
+            "started": 8,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
             "manager_replied": 1,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 1,
@@ -162,33 +162,19 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 6,
+                "collecting_needs": 7,
                 "manager_replied": 1
             },
-            "flags": {
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
-            }
+            "flags": []
         },
-        "flagged_sessions": [
-            {
-                "conversation_id": 648,
-                "flags": [
-                    "repeated_callback_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "collecting_needs",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            }
-        ]
+        "flagged_sessions": []
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "5b8c461a0190734fc5bf8fe7cc48a9d619996866",
+        "sha": "19b1be69a6b39330990347979493977d07897d44",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -197,7 +183,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T10:40:11Z"
+        "reported_at": "2026-08-31T10:51:21Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -212,10 +198,10 @@
         "window_hours": null,
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
-            "sessions": 30,
-            "raw_sessions": 30,
+            "sessions": 31,
+            "raw_sessions": 31,
             "explicit_test_sessions": 0,
-            "started": 30,
+            "started": 31,
             "needs_collected": 2,
             "tours_opened": 2,
             "manager_requested": 2,
@@ -231,7 +217,7 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 27,
+                "collecting_needs": 28,
                 "manager_replied": 2,
                 "tours_opened": 1
             },
@@ -242,7 +228,7 @@
                 "repeated_same_input": 1
             },
             "calendar_day": {
-                "conversations_started": 27,
+                "conversations_started": 28,
                 "needs_collected_from_started": 0,
                 "tours_opened_from_started": 0,
                 "manager_requested": 0,
@@ -251,7 +237,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T10:40:11+00:00",
+        "generated_at": "2026-08-31T10:51:20+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -264,9 +250,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 127,
-                "bytes": 478919,
-                "code_lines": 10318
+                "files": 128,
+                "bytes": 479684,
+                "code_lines": 10347
             },
             "integrations": {
                 "files": 9,
@@ -295,13 +281,13 @@
             },
             "tests": {
                 "files": 156,
-                "bytes": 592292,
-                "code_lines": 7507
+                "bytes": 594098,
+                "code_lines": 7521
             },
             "tools": {
-                "files": 27,
-                "bytes": 91932,
-                "code_lines": 1560
+                "files": 28,
+                "bytes": 92481,
+                "code_lines": 1580
             }
         },
         "hotspots": [
