@@ -2,6 +2,11 @@ name: Cutover data audit
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/cutover_data_snapshot.php'
+      - '.github/workflows/cutover-data-audit.yml'
 
 permissions:
   contents: read
