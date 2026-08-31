@@ -5,6 +5,8 @@ declare(strict_types=1);
 final class LiveSessionAnalyzer
 {
     private const EXCESSIVE_INBOUND_TURNS = 18;
+    private const SUSPECTED_TEST_MIN_TURNS = 18;
+    private const SUSPECTED_TEST_CALLBACK_RATIO = 0.80;
 
     private static function ts($value): ?int
     {
@@ -34,7 +36,7 @@ final class LiveSessionAnalyzer
     public static function analyze(array $conversation,array $messages,array $events=[],?int $anomalySinceTs=null):array
     {
         $inbound=[];$outbound=[];$datePicks=0;$anomalyDatePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
-        $managerMessageTimes=[];$anomalyInboundTurns=0;
+        $managerMessageTimes=[];$anomalyInboundTurns=0;$anomalyCallbackTurns=0;
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
             $messageTs=self::ts($m['created_at']??null);
@@ -51,6 +53,7 @@ final class LiveSessionAnalyzer
                     $anomalyInboundTurns++;
                     if($text!==''){
                         if(self::isCallbackInput($text)){
+                            $anomalyCallbackTurns++;
                             if(!self::isPassiveCallback($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
                         } else {
                             $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
@@ -80,8 +83,6 @@ final class LiveSessionAnalyzer
         if(!$managerRequested){
             foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false){$managerRequested=true;break;}}
         }
-        // A request remains part of funnel history after the conversation leaves the
-        // technical handoff states, but it is no longer an active unanswered wait.
         $managerRequestActive=$managerRequested&&in_array($status,['waiting_manager','manager'],true);
 
         $managerRequestAt=$requestTimes?max($requestTimes):null;
@@ -113,6 +114,13 @@ final class LiveSessionAnalyzer
         if($managerRequestActive&&!$managerReplied&&$status!=='waiting_manager')$flags[]='left_waiting_queue_without_manager_reply';
         if($managerTaken&&$managerRequestActive&&!$managerReplied)$flags[]='manager_taken_no_reply';
 
+        $callbackRatio=$anomalyInboundTurns>0?$anomalyCallbackTurns/$anomalyInboundTurns:0.0;
+        $trafficClass='real_like';$trafficReasons=[];
+        if($anomalyInboundTurns>=self::SUSPECTED_TEST_MIN_TURNS&&$callbackRatio>=self::SUSPECTED_TEST_CALLBACK_RATIO){
+            $trafficClass='suspected_test';
+            $trafficReasons[]='callback_heavy_high_turn_session';
+        }
+
         $drop='started_only';
         if($started)$drop='collecting_needs';
         if($needsCollected)$drop='needs_collected';
@@ -124,6 +132,9 @@ final class LiveSessionAnalyzer
             'project_key'=>(string)($conversation['project_key']??''),
             'channel'=>(string)($conversation['channel']??''),
             'status'=>$status,
+            'traffic_class'=>$trafficClass,
+            'traffic_class_reasons'=>$trafficReasons,
+            'callback_ratio'=>round($callbackRatio,3),
             'started'=>$started,
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
