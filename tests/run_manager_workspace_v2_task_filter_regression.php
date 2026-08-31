@@ -5,22 +5,25 @@ require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 $root=dirname(__DIR__);
 $workspace=(string)file_get_contents($root.'/manager/index.php');
 $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
+$filters=(string)file_get_contents($root.'/manager/assets/workspace-v2-filters.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $passed=0;$failed=0;
 function tfCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
 tfCheck('workspace exposes task filter',strpos($workspace,'id="leadTaskFilter"')!==false&&strpos($workspace,'Просроченные')!==false&&strpos($workspace,'Сегодня')!==false&&strpos($workspace,'Запланированные')!==false&&strpos($workspace,'В приоритете')!==false&&strpos($workspace,'Без задачи')!==false);
+tfCheck('workspace loads dedicated filter module',strpos($workspace,"workspace-v2-filters.js")!==false&&strpos($core,'WorkspaceV2Filters?.render()')!==false&&strpos($core,'WorkspaceV2Filters?.bind()')!==false);
 tfCheck('workspace exposes today task shortcut',strpos($workspace,'data-task-filter="today"')!==false&&strpos($workspace,'● Сегодня')!==false);
 tfCheck('workspace exposes planned task shortcut',strpos($workspace,'data-task-filter="planned"')!==false&&strpos($workspace,'🗓 Запланировано')!==false);
 tfCheck('workspace exposes pinned task shortcut',strpos($workspace,'data-task-filter="pinned"')!==false&&strpos($workspace,'📌 В приоритете')!==false);
 tfCheck('workspace exposes no-task shortcut',strpos($workspace,'data-task-filter="none"')!==false&&strpos($workspace,'＋ Без задачи')!==false);
-tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($pipeline,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
+tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($filters,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
+tfCheck('pipeline module no longer owns inbox filter lifecycle',strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'bindFilters')===false);
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
-tfCheck('inbox filters and search persist for current browser session',strpos($pipeline,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($pipeline,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($pipeline,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($pipeline,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
-tfCheck('restored search is reflected in visible input',strpos($pipeline,"if(search)search.value=S.leadSearch")!==false);
-tfCheck('clear filters also clears restored search state',strpos($pipeline,"S.leadTaskFilter='';S.leadSearch='';renderFilters();saveFilterState()")!==false);
+tfCheck('inbox filters and search persist for current browser session',strpos($filters,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($filters,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($filters,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($filters,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
+tfCheck('restored search is reflected in visible input',strpos($filters,"if(search)search.value=S.leadSearch")!==false);
+tfCheck('clear filters also clears restored search state',strpos($filters,"S.leadTaskFilter='';S.leadSearch='';render();saveFilterState()")!==false);
 $rows=[
  ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue'],
  ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'future'],

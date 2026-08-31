@@ -5,6 +5,7 @@ $root=dirname(__DIR__);
 $index=(string)file_get_contents($root.'/manager/index.php');
 $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
+$filters=(string)file_get_contents($root.'/manager/assets/workspace-v2-filters.js');
 $conversation=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
 $jump=(string)file_get_contents($root.'/manager/assets/workspace-v2-jump.js');
 $shortcuts=(string)file_get_contents($root.'/manager/assets/workspace-v2-shortcuts.js');
@@ -26,7 +27,7 @@ stableCheck('attention shortcut only targets visible inbox urgency or unread evi
 stableCheck('shortcuts advertise key bindings through aria-keyshortcuts',strpos($shortcuts,"setAttribute('aria-keyshortcuts','/')")!==false&&strpos($shortcuts,"setAttribute('aria-keyshortcuts','Alt+J')")!==false&&strpos($shortcuts,"setAttribute('aria-keyshortcuts','Alt+R')")!==false&&strpos($shortcuts,"setAttribute('aria-keyshortcuts','Alt+L')")!==false);
 stableCheck('lead card mutations refresh only target-pinned lead data',strpos($lead,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($lead,'WorkspaceV2Conversation.open(S.current)')===false&&strpos($conversation,'conversationId=S.current')!==false&&strpos($conversation,'const stillCurrent=Number(S.current)===target')!==false);
 stableCheck('pipeline mutations use target-pinned refresh and do not reopen transcript',substr_count($pipeline,'await refreshAfterSave(target)')>=2&&strpos($pipeline,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($pipeline,'WorkspaceV2Conversation.open(S.current)')===false);
-stableCheck('filters intentionally reset inbox scroll through one owner',strpos($pipeline,'async function applyFilters()')!==false&&strpos($pipeline,'load({preserveScroll:false})')!==false&&substr_count($pipeline,'await applyFilters()')>=5);
+stableCheck('filters intentionally reset inbox scroll through dedicated filter owner',strpos($filters,'async function apply()')!==false&&strpos($filters,'load({preserveScroll:false})')!==false&&substr_count($filters,'await apply()')>=5&&strpos($pipeline,'load({preserveScroll:false})')===false);
 stableCheck('task draft persistence is isolated in its own workspace module',strpos($index,"workspaceAsset('workspace-v2-task-draft.js')")!==false&&strpos($taskDraft,'window.WorkspaceV2TaskDraft=')!==false&&strpos($taskDraft,'workspaceV2.taskDraft.')!==false&&strpos($taskDraft,'sessionStorage')!==false);
 stableCheck('task drafts are scoped per lead and fail open around browser storage',strpos($taskDraft,'currentId()')!==false&&strpos($taskDraft,'keyFor(id=currentId())')!==false&&substr_count($taskDraft,'catch(e)')>=3);
 stableCheck('successful task creation does not restore a stale draft during lead refresh',strpos($taskDraft,'pending.add(key)')!==false&&strpos($taskDraft,'!pending.has(key)')!==false&&strpos($taskDraft,'if(result!==false)clear(key)')!==false&&strpos($taskDraft,'pending.delete(key)')!==false);
