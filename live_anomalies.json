@@ -1,8 +1,8 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-30T23:36:15+00:00",
-    "source_generated_at": "2026-08-30T23:36:15+00:00",
+    "generated_at": "2026-08-31T00:01:46+00:00",
+    "source_generated_at": "2026-08-31T00:01:46+00:00",
     "window_hours": 1,
     "summary": {
         "sessions": 0,
