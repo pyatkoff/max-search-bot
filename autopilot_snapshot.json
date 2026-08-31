@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T12:18:03+00:00",
+    "generated_at": "2026-08-31T12:26:15+00:00",
     "production": {
-        "sha": "c673b7ec97f1d3df2ad4830fe7b372069e3557f5",
+        "sha": "042dc9b6164405ccbae17a113d83b91b4c51ac88",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 11:17:50",
+        "since_utc": "2026-08-31 11:26:05",
         "summary": {
             "sessions": 6,
             "raw_sessions": 6,
@@ -192,7 +192,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "c673b7ec97f1d3df2ad4830fe7b372069e3557f5",
+        "sha": "042dc9b6164405ccbae17a113d83b91b4c51ac88",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -201,7 +201,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T12:18:03Z"
+        "reported_at": "2026-08-31T12:26:15Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -255,7 +255,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T12:18:02+00:00",
+        "generated_at": "2026-08-31T12:26:15+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -273,9 +273,9 @@
                 "code_lines": 10347
             },
             "integrations": {
-                "files": 9,
-                "bytes": 21621,
-                "code_lines": 497
+                "files": 10,
+                "bytes": 25256,
+                "code_lines": 586
             },
             "manager": {
                 "files": 50,
@@ -299,13 +299,13 @@
             },
             "tests": {
                 "files": 159,
-                "bytes": 601886,
-                "code_lines": 7643
+                "bytes": 603567,
+                "code_lines": 7672
             },
             "tools": {
-                "files": 29,
-                "bytes": 94118,
-                "code_lines": 1638
+                "files": 30,
+                "bytes": 94525,
+                "code_lines": 1649
             }
         },
         "hotspots": [
@@ -374,7 +374,7 @@
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
             "direct_sql_writes": 20,
-            "authorization_mentions": 12,
+            "authorization_mentions": 13,
             "validation_mentions": 3
         },
         "signals": {
@@ -405,6 +405,7 @@
                 "services/WebsiteSessionService.php"
             ],
             "authorization_mentions": [
+                "integrations/MaxWebhookHealth.php",
                 "manager/index.php",
                 "manager/pipeline-admin.php",
                 "manager/push-enable.php",
