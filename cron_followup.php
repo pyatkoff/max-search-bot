@@ -23,6 +23,7 @@ try {
     require_once(__DIR__ . '/services/FollowupQueueService.php');
     require_once(__DIR__ . '/services/DialogueView.php');
     require_once(__DIR__ . '/services/ManagerPhoneFallbackService.php');
+    require_once(__DIR__ . '/services/LeadTaskReminderService.php');
 
     $now = time();
     $sent = 0;
@@ -71,10 +72,16 @@ try {
     $managerFallback = ManagerPhoneFallbackService::runDue($now);
     cronLog('MANAGER_PHONE_FALLBACK ' . json_encode($managerFallback, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 
+    $taskReminders = LeadTaskReminderService::runDue();
+    cronLog('LEAD_TASK_REMINDERS ' . json_encode($taskReminders, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+
     $summary = 'OK sent=' . $sent . ' waiting=' . $waiting . ' queue=' . count($files)
         . ' manager_phone_sent=' . (int)($managerFallback['sent'] ?? 0)
         . ' manager_phone_failed=' . (int)($managerFallback['failed'] ?? 0)
-        . ' manager_phone_outside_hours=' . (!empty($managerFallback['outside_hours']) ? '1' : '0');
+        . ' manager_phone_outside_hours=' . (!empty($managerFallback['outside_hours']) ? '1' : '0')
+        . ' task_reminders_due=' . (int)($taskReminders['due'] ?? 0)
+        . ' task_reminders_notified=' . (int)($taskReminders['notified'] ?? 0)
+        . ' task_reminders_failed=' . (int)($taskReminders['failed'] ?? 0);
     cronLog($summary);
 
     if (PHP_SAPI !== 'cli') {
