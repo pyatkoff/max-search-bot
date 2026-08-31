@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T19:12:01+00:00",
+    "generated_at": "2026-08-31T19:45:32+00:00",
     "production": {
-        "sha": "2e067da3d808454aab5665972c047cb1c265477b",
+        "sha": "4a8023b1a7fa15195ad4e4e476f6f8aa83211126",
         "branch": "main"
     },
     "database": {
@@ -198,7 +198,7 @@
         "customers": 652,
         "customer_channels": 652,
         "conversations": 654,
-        "messages": 16961,
+        "messages": 16962,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -1483,6 +1483,15 @@
     ],
     "recent_messages": [
         {
+            "id": 16962,
+            "conversation_id": 128,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-08-31 21:24:01"
+        },
+        {
             "id": 16961,
             "conversation_id": 654,
             "direction": "outbound",
@@ -2012,15 +2021,6 @@
             "channel": "max",
             "text": "pick_date_14.09.2026",
             "created_at": "2026-08-31 14:34:43"
-        },
-        {
-            "id": 16902,
-            "conversation_id": 652,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "telegram",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-08-31 14:04:42"
         }
     ],
     "recent_events": [

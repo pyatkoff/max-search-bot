@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T19:12:18+00:00",
+    "generated_at": "2026-08-31T19:45:45+00:00",
     "production": {
-        "sha": "2e067da3d808454aab5665972c047cb1c265477b",
+        "sha": "4a8023b1a7fa15195ad4e4e476f6f8aa83211126",
         "branch": "main"
     },
     "migrations": {
@@ -141,29 +141,30 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 18:12:05",
+        "since_utc": "2026-08-31 18:45:35",
         "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
+            "sessions": 3,
+            "raw_sessions": 3,
             "explicit_test_sessions": 0,
-            "started": 2,
-            "needs_collected": 1,
-            "tours_opened": 1,
-            "manager_requested": 0,
-            "manager_replied": 0,
+            "started": 3,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 0,
+                "answered_after_90s": 1,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 52322,
+                "max_seconds": 52322
             },
             "drop_points": {
                 "collecting_needs": 1,
-                "tours_opened": 1
+                "tours_opened": 1,
+                "manager_replied": 1
             },
             "flags": []
         },
@@ -174,7 +175,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "2e067da3d808454aab5665972c047cb1c265477b",
+        "sha": "4a8023b1a7fa15195ad4e4e476f6f8aa83211126",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -183,7 +184,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T19:12:18Z"
+        "reported_at": "2026-08-31T19:45:45Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -198,28 +199,28 @@
         "window_hours": null,
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
-            "sessions": 36,
-            "raw_sessions": 36,
+            "sessions": 37,
+            "raw_sessions": 37,
             "explicit_test_sessions": 0,
-            "started": 36,
-            "needs_collected": 4,
-            "tours_opened": 4,
-            "manager_requested": 2,
-            "manager_replied": 2,
+            "started": 37,
+            "needs_collected": 5,
+            "tours_opened": 5,
+            "manager_requested": 3,
+            "manager_replied": 3,
             "phone_received": 0,
             "flagged_sessions": 15,
             "manager_response": {
                 "answered_in_90s": 1,
-                "answered_after_90s": 1,
+                "answered_after_90s": 2,
                 "still_unanswered": 0,
-                "measured_responses": 2,
-                "avg_seconds": 534,
-                "max_seconds": 1046
+                "measured_responses": 3,
+                "avg_seconds": 17797,
+                "max_seconds": 52322
             },
             "drop_points": {
                 "collecting_needs": 31,
-                "tours_opened": 3,
-                "manager_replied": 2
+                "manager_replied": 3,
+                "tours_opened": 3
             },
             "flags": {
                 "repeated_callback_input": 14,
@@ -237,7 +238,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T19:12:17+00:00",
+        "generated_at": "2026-08-31T19:45:44+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -261,7 +262,7 @@
             },
             "manager": {
                 "files": 50,
-                "bytes": 245205,
+                "bytes": 246785,
                 "code_lines": 1281
             },
             "website": {
@@ -281,8 +282,8 @@
             },
             "tests": {
                 "files": 162,
-                "bytes": 619111,
-                "code_lines": 7816
+                "bytes": 621471,
+                "code_lines": 7821
             },
             "tools": {
                 "files": 37,
@@ -356,7 +357,7 @@
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
             "direct_sql_writes": 20,
-            "authorization_mentions": 13,
+            "authorization_mentions": 14,
             "validation_mentions": 3
         },
         "signals": {
@@ -388,6 +389,7 @@
             ],
             "authorization_mentions": [
                 "integrations/MaxWebhookHealth.php",
+                "manager/admin.php",
                 "manager/index.php",
                 "manager/pipeline-admin.php",
                 "manager/push-enable.php",
