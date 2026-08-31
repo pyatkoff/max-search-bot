@@ -1,11 +1,11 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-31T12:32:02+00:00",
-    "source_generated_at": "2026-08-31T12:32:01+00:00",
+    "generated_at": "2026-08-31T12:34:50+00:00",
+    "source_generated_at": "2026-08-31T12:34:50+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 6,
+        "sessions": 5,
         "ranked": 1,
         "high": 1,
         "medium": 0
