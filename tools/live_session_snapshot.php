@@ -88,7 +88,7 @@ try{
     $untilTs=$until!==null?strtotime($until.' UTC'):null;
     if($sinceTs===false)throw new RuntimeException('invalid_diagnostic_window');
 
-    $sql="SELECT id,project_key,channel,status,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=?";
+    $sql="SELECT id,project_key,channel,status,is_test,test_source,test_reason,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=?";
     $params=[$since];
     if($until!==null){$sql.=' AND started_at<?';$params[]=$until;}
     $sql.=' ORDER BY COALESCE(last_message_at,started_at) ASC';
@@ -117,8 +117,11 @@ try{
         $sessions[]=$session;
     }
 
+    $businessSessions=array_values(array_filter($sessions,static fn(array $session):bool=>empty($session['is_test'])));
     $summary=[
-        'sessions'=>count($sessions),
+        'sessions'=>count($businessSessions),
+        'raw_sessions'=>count($sessions),
+        'explicit_test_sessions'=>count($sessions)-count($businessSessions),
         'started'=>0,
         'needs_collected'=>0,
         'tours_opened'=>0,
@@ -147,7 +150,7 @@ try{
         ];
     }
     $responseSeconds=[];
-    foreach($sessions as $session){
+    foreach($businessSessions as $session){
         foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
         if(!empty($session['flags']))$summary['flagged_sessions']++;
         $bucket=(string)($session['manager_response_bucket']??'');
