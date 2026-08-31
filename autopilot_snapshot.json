@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T10:00:29+00:00",
+    "generated_at": "2026-08-31T10:05:42+00:00",
     "production": {
-        "sha": "bec9c4ffbc2cebdc883fb8d5bf809f5733ff6d9d",
+        "sha": "d9d60d64084b247d1e85019311b0ca3ee17496dd",
         "branch": "main"
     },
     "migrations": {
@@ -141,12 +141,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 09:00:16",
+        "since_utc": "2026-08-31 09:05:29",
         "summary": {
-            "sessions": 10,
-            "raw_sessions": 10,
+            "sessions": 9,
+            "raw_sessions": 9,
             "explicit_test_sessions": 0,
-            "started": 10,
+            "started": 9,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
@@ -162,7 +162,7 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 9,
+                "collecting_needs": 8,
                 "manager_replied": 1
             },
             "flags": {
@@ -201,7 +201,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "bec9c4ffbc2cebdc883fb8d5bf809f5733ff6d9d",
+        "sha": "d9d60d64084b247d1e85019311b0ca3ee17496dd",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -210,7 +210,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T10:00:29Z"
+        "reported_at": "2026-08-31T10:05:42Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -264,7 +264,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T10:00:29+00:00",
+        "generated_at": "2026-08-31T10:05:42+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -308,13 +308,13 @@
             },
             "tests": {
                 "files": 154,
-                "bytes": 586924,
-                "code_lines": 7430
+                "bytes": 588039,
+                "code_lines": 7440
             },
             "tools": {
-                "files": 25,
-                "bytes": 88862,
-                "code_lines": 1459
+                "files": 26,
+                "bytes": 90348,
+                "code_lines": 1503
             }
         },
         "hotspots": [
