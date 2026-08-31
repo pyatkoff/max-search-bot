@@ -6,7 +6,7 @@ require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/SearchRequestBuilder.php';
 require_once __DIR__ . '/../services/LeadDeliveryGateway.php';
-require_once __DIR__ . '/../services/MaxWebhookHealth.php';
+require_once __DIR__ . '/../integrations/MaxWebhookHealth.php';
 
 $passed = 0;
 $failed = 0;
@@ -90,7 +90,7 @@ $wrongWebhook = MaxWebhookHealth::evaluate([
 ], $expectedWebhook);
 icCheck('MAX webhook health rejects wrong owner', $wrongWebhook['ok'] ?? true, false);
 icCheck('MAX webhook health fails closed on transport error', MaxWebhookHealth::evaluate(['http'=>0,'errno'=>7,'body'=>''], $expectedWebhook)['reason'] ?? '', 'transport_error');
-$maxHealthSource = file_get_contents(__DIR__ . '/../services/MaxWebhookHealth.php');
+$maxHealthSource = file_get_contents(__DIR__ . '/../integrations/MaxWebhookHealth.php');
 icCheck('MAX webhook health is read-only', stripos($maxHealthSource, 'CURLOPT_POST') === false && stripos($maxHealthSource, 'CURLOPT_CUSTOMREQUEST') === false, true);
 
 ProjectConfig::resetForTests(['messenger'=>['provider'=>'telegram']]);
