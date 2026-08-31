@@ -8,11 +8,12 @@ require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/services/ConversationDb.php';
 
 $channel = strtolower(trim((string)($argv[1] ?? 'max')));
+$manifestMode = in_array('--manifest', $argv, true);
 if ($channel === '' || !preg_match('/^[a-z0-9_-]{1,32}$/', $channel)) {
     fwrite(STDERR, "INVALID_CHANNEL\n"); exit(2);
 }
 
-function fingerprintRows(PDO $pdo, string $sql, array $params, string $timeColumn): array
+function fingerprintRows(PDO $pdo, string $sql, array $params, string $timeColumn, bool $manifestMode): array
 {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -20,21 +21,32 @@ function fingerprintRows(PDO $pdo, string $sql, array $params, string $timeColum
     $count = 0;
     $maxId = 0;
     $latest = '';
+    $manifest = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $count++;
-        $maxId = max($maxId, (int)($row['id'] ?? 0));
+        $id = (int)($row['id'] ?? 0);
+        $maxId = max($maxId, $id);
         if ($timeColumn !== '' && isset($row[$timeColumn]) && (string)$row[$timeColumn] > $latest) {
             $latest = (string)$row[$timeColumn];
         }
         ksort($row);
-        hash_update($ctx, json_encode($row, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) . "\n");
+        $encoded = json_encode($row, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        hash_update($ctx, $encoded . "\n");
+        if ($manifestMode && $id > 0) {
+            $manifest[(string)$id] = hash('sha256', $encoded);
+        }
     }
-    return [
+    $result = [
         'row_count' => $count,
         'max_id' => $maxId,
         'latest_at' => $latest,
         'sha256' => hash_final($ctx),
     ];
+    if ($manifestMode) {
+        // Intended only for ephemeral cutover comparison. Workflow output must never print this map.
+        $result['row_manifest'] = $manifest;
+    }
+    return $result;
 }
 
 try {
@@ -68,7 +80,7 @@ try {
 
     $result = ['channel' => $channel, 'tables' => []];
     foreach ($specs as $name => $spec) {
-        $result['tables'][$name] = fingerprintRows($pdo, $spec['sql'], [':channel' => $channel], $spec['time']);
+        $result['tables'][$name] = fingerprintRows($pdo, $spec['sql'], [':channel' => $channel], $spec['time'], $manifestMode);
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR) . PHP_EOL;
 } catch (Throwable $e) {
