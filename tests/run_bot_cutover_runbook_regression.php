@@ -36,6 +36,7 @@ $service = (string)file_get_contents(__DIR__ . '/../services/WebhookTargetConfig
 $telegramAdmin = (string)file_get_contents(__DIR__ . '/../telegram_webhook_admin.php');
 $maxAdmin = (string)file_get_contents(__DIR__ . '/../repair_max_search_subscription.php');
 $template = (string)file_get_contents(__DIR__ . '/../config.example.php');
+$statusTool = (string)file_get_contents(__DIR__ . '/../tools/webhook_target_status.php');
 
 foreach ([
     'TELEGRAM_WEBHOOK_URL',
@@ -60,6 +61,16 @@ if (!str_contains($maxAdmin, 'WebhookTargetConfig::max()')) {
 }
 if (str_contains($telegramAdmin, "\$webhookUrl = 'https://anytour.online")) {
     fwrite(STDERR, "Telegram webhook target remains hardcoded to legacy host\n");
+    exit(1);
+}
+foreach (['WebhookTargetConfig::telegram()', 'WebhookTargetConfig::max()', 'TELEGRAM_WEBHOOK_TARGET_HOST=', 'MAX_WEBHOOK_TARGET_HOST='] as $needle) {
+    if (!str_contains($statusTool, $needle)) {
+        fwrite(STDERR, "Missing webhook target diagnostic contract: {$needle}\n");
+        exit(1);
+    }
+}
+if (preg_match('/TOKEN|SECRET|PASS|PASSWORD/', $statusTool)) {
+    fwrite(STDERR, "Webhook target diagnostic may expose secrets\n");
     exit(1);
 }
 
