@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-30T23:05:34+00:00",
+    "generated_at": "2026-08-31T00:01:47+00:00",
     "production": {
-        "sha": "0c90155b9fb68438f0f17434632120c1c8fdf24b",
+        "sha": "b4f32f8fdf7c96d265521ddd6a418ff192117061",
         "branch": "main"
     },
     "database": {
@@ -164,6 +164,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-30 16:09:43"
+        },
+        {
+            "version": "022_standalone_dialogue_state.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-31 02:01:43"
         }
     ],
     "stats": {

@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-30T23:05:45+00:00",
+    "generated_at": "2026-08-31T00:02:00+00:00",
     "production": {
-        "sha": "0c90155b9fb68438f0f17434632120c1c8fdf24b",
+        "sha": "b4f32f8fdf7c96d265521ddd6a418ff192117061",
         "branch": "main"
     },
     "migrations": {
-        "total": 22,
+        "total": 23,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "021_lead_sale_tracking.sql"
+        "latest_version": "022_standalone_dialogue_state.sql"
     },
     "health": {
         "manager_visibility_ok": true,
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 22:05:36",
+        "since_utc": "2026-08-30 23:01:52",
         "summary": {
             "sessions": 0,
             "started": 0,
@@ -169,7 +169,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "0c90155b9fb68438f0f17434632120c1c8fdf24b",
+        "sha": "b4f32f8fdf7c96d265521ddd6a418ff192117061",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -178,7 +178,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-30T23:05:45Z"
+        "reported_at": "2026-08-31T00:02:00Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -221,7 +221,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-30T23:05:44+00:00",
+        "generated_at": "2026-08-31T00:01:59+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -234,9 +234,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 111,
-                "bytes": 445211,
-                "code_lines": 9422
+                "files": 114,
+                "bytes": 452744,
+                "code_lines": 9590
             },
             "integrations": {
                 "files": 8,
@@ -259,14 +259,14 @@
                 "code_lines": 0
             },
             "migrations": {
-                "files": 22,
-                "bytes": 25971,
+                "files": 23,
+                "bytes": 26659,
                 "code_lines": 0
             },
             "tests": {
-                "files": 143,
-                "bytes": 553187,
-                "code_lines": 6843
+                "files": 144,
+                "bytes": 555733,
+                "code_lines": 6900
             },
             "tools": {
                 "files": 22,
@@ -339,7 +339,7 @@
         "signal_counts": {
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
-            "direct_sql_writes": 18,
+            "direct_sql_writes": 19,
             "authorization_mentions": 12,
             "validation_mentions": 3
         },
@@ -360,6 +360,7 @@
                 "services/ManagerPushService.php",
                 "services/ManagerReadService.php",
                 "services/MigrationRunner.php",
+                "services/MysqlDialogueStateRepository.php",
                 "services/ProjectAccessService.php",
                 "services/RoutingAccessService.php",
                 "services/RoutingAdminService.php",
