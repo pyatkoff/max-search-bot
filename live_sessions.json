@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T04:08:43+00:00",
+    "generated_at": "2026-08-31T04:15:39+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -323,10 +323,10 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 69,
-            "outbound_messages": 31,
-            "date_picks": 35,
-            "anomaly_inbound_messages": 69,
+            "inbound_messages": 77,
+            "outbound_messages": 32,
+            "date_picks": 42,
+            "anomaly_inbound_messages": 77,
             "drop_point": "collecting_needs",
             "flags": [
                 "rapid_date_reselection",
@@ -334,62 +334,8 @@
                 "excessive_turns"
             ],
             "started_at": "2026-08-31 06:05:00",
-            "last_message_at": "2026-08-31 06:08:29",
+            "last_message_at": "2026-08-31 06:09:02",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:29"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:29"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:30"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "pick_date_31.08.2026",
-                    "created_at": "2026-08-31 06:07:31"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-08-31 06:07:42"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-08-31 06:07:54"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-                    "created_at": "2026-08-31 06:07:55"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -479,9 +425,63 @@
                     "sender_type": "customer",
                     "text": "pick_date_31.08.2026",
                     "created_at": "2026-08-31 06:08:29"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "month_change_09.2026",
+                    "created_at": "2026-08-31 06:08:54"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-08-31 06:08:55"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_02.09.2026",
+                    "created_at": "2026-08-31 06:08:57"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_07.09.2026",
+                    "created_at": "2026-08-31 06:08:59"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_07.09.2026",
+                    "created_at": "2026-08-31 06:09:00"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_10.09.2026",
+                    "created_at": "2026-08-31 06:09:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_10.09.2026",
+                    "created_at": "2026-08-31 06:09:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_10.09.2026",
+                    "created_at": "2026-08-31 06:09:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_10.09.2026",
+                    "created_at": "2026-08-31 06:09:02"
                 }
             ]
         }
     ],
-    "since_utc": "2026-08-31 03:08:43"
+    "since_utc": "2026-08-31 03:15:39"
 }
