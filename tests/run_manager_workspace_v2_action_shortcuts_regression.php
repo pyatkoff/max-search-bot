@@ -17,10 +17,11 @@ shortcutCheck('shortcuts reuse canonical lead task filter state',strpos($filters
 shortcutCheck('shortcut interaction is toggleable instead of sticky',strpos($filters,"===String(value||'')?'':String(value||'')")!==false);
 shortcutCheck('shortcut state stays synchronized with advanced filter',strpos($filters,'syncTaskShortcuts()')!==false&&strpos($filters,"button.setAttribute('aria-pressed',String(active))")!==false);
 shortcutCheck('inbox owns queue selection and tab synchronization',strpos($inbox,'function setQueue(queue,{reload=false}={})')!==false&&strpos($inbox,'S.queue=queue')!==false&&strpos($inbox,"classList.toggle('active',x===button)")!==false&&strpos($inbox,'await setQueue(b.dataset.q')!==false);
-shortcutCheck('activating a quick task shortcut switches into manager work queue',strpos($filters,"if(next)window.WorkspaceV2Inbox?.setQueue('mine',{reload:false})")!==false);
-shortcutCheck('toggling an active shortcut off keeps current queue',strpos($filters,"if(next)window.WorkspaceV2Inbox?.setQueue('mine',{reload:false})")!==false&&strpos($filters,"if(!next)window.WorkspaceV2Inbox?.setQueue")===false);
-shortcutCheck('advanced task select does not force a queue change',strpos($filters,"$('leadTaskFilter').onchange=async()=>{S.leadTaskFilter=$('leadTaskFilter').value;await apply()}")!==false);
-shortcutCheck('shortcut change reloads through existing inbox filter boundary',strpos($filters,'await apply()')!==false&&strpos($filters,'WorkspaceV2Inbox.load({preserveScroll:false})')!==false);
+shortcutCheck('task filters share one manager work queue helper',strpos($filters,"function ensureTaskQueue(){if(S.leadTaskFilter)window.WorkspaceV2Inbox?.setQueue('mine',{reload:false})}")!==false);
+shortcutCheck('activating a quick task shortcut switches into manager work queue',strpos($filters,'S.leadTaskFilter=next')!==false&&strpos($filters,'ensureTaskQueue();await apply()')!==false);
+shortcutCheck('toggling an active shortcut off keeps current queue',strpos($filters,"===String(value||'')?'':String(value||'')")!==false&&strpos($filters,"function ensureTaskQueue(){if(S.leadTaskFilter)")!==false);
+shortcutCheck('advanced task select uses the same manager work queue semantics',strpos($filters,"$('leadTaskFilter').onchange=async()=>{S.leadTaskFilter=$('leadTaskFilter').value;ensureTaskQueue();await apply()}")!==false);
+shortcutCheck('task filter change reloads through existing inbox filter boundary',strpos($filters,'await apply()')!==false&&strpos($filters,'WorkspaceV2Inbox.load({preserveScroll:false})')!==false);
 shortcutCheck('clear filters also clears shortcut state',strpos($filters,"S.leadTaskFilter=''")!==false&&strpos($filters,'render();')!==false&&strpos($filters,'await apply()')!==false);
 shortcutCheck('pipeline module stays focused on sales mutations',strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'bindSalesEditor')!==false);
 shortcutCheck('shortcuts remain keyboard visible and mobile scroll safe',strpos($css,'.taskShortcut:focus-visible')!==false&&strpos($css,'.taskShortcuts{display:flex')!==false&&strpos($css,'overflow-x:auto')!==false);
