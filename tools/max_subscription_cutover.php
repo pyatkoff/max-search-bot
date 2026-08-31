@@ -19,14 +19,19 @@ function maxReq(string $method, string $url, string $token, ?array $body = null)
 {
     $ch = curl_init($url);
     $headers = ['Authorization: ' . $token, 'Content-Type: application/json'];
+    $insecureCompat = getenv('MAX_SEARCH_MAX_API_INSECURE_COMPAT') === '1';
     $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_TIMEOUT => 30,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
+        // Secure by default. The guarded cutover workflow may explicitly opt
+        // into the same temporary compatibility behavior already used by the
+        // production MaxTransport until the Minцифры CA is installed on the
+        // new host. Never enable this implicitly from hostname or environment.
+        CURLOPT_SSL_VERIFYPEER => !$insecureCompat,
+        CURLOPT_SSL_VERIFYHOST => $insecureCompat ? 0 : 2,
     ];
     if ($body !== null) $opts[CURLOPT_POSTFIELDS] = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     curl_setopt_array($ch, $opts);
