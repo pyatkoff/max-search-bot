@@ -107,9 +107,8 @@ jobs:
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
           ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php -l manager/index.php; php -l manager/api.php; php -l webhook.php; php -l telegram_webhook.php; echo 'standby_smoke=success'"
 
-      - name: Report standalone cutover readiness
+      - name: Enable standalone mode on passive standby
         if: steps.config.outputs.enabled == 'true'
-        continue-on-error: true
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -118,12 +117,12 @@ jobs:
           set -euo pipefail
           key_file="$RUNNER_TEMP/standby_deploy_key"
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/standalone_readiness.php"
+          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1; php tools/standby_enable_standalone.php --enable; if php tools/standalone_readiness.php; then php tools/standby_enable_standalone.php --commit; echo standby_mode=ready; else php tools/standby_enable_standalone.php --rollback; exit 1; fi'
 
       - name: Confirm passive standby policy
         if: steps.config.outputs.enabled == 'true'
         shell: bash
         run: |
-          echo "Standby code and migrations are synchronized."
-          echo "Standalone readiness is reported above without activating traffic."
+          echo "Standby code, migrations and standalone configuration are synchronized."
+          echo "The readiness doctor is green before retaining the standalone switches."
           echo "This workflow intentionally does not install, start, restart or invoke webhook/cron workers."
