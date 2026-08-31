@@ -33,11 +33,14 @@ $sourceFiles = [
     __DIR__ . '/../webhook.php',
     __DIR__ . '/../telegram_webhook.php',
     __DIR__ . '/../cron_followup.php',
+    __DIR__ . '/../website_consultant_api.php',
+    __DIR__ . '/../web-consultant/api.php',
 ];
 foreach ($sourceFiles as $file) {
     $source = (string)file_get_contents($file);
-    rbCheck(basename($file) . ' uses runtime bootstrap', str_contains($source, 'RuntimeBootstrap::boot('), true);
-    rbCheck(basename($file) . ' has no direct prolog require', str_contains($source, 'require_once($_SERVER[\'DOCUMENT_ROOT\'] . \'/bitrix/modules/main/include/prolog_before.php\')'), false);
+    $label = str_replace(dirname(__DIR__) . '/', '', $file);
+    rbCheck($label . ' uses runtime bootstrap', str_contains($source, 'RuntimeBootstrap::boot('), true);
+    rbCheck($label . ' has no direct Bitrix prolog dependency', str_contains($source, '/bitrix/modules/main/include/prolog_before.php'), false);
 }
 
 echo "\n--------------------------\n";
