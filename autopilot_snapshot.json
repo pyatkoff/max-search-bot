@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T13:03:33+00:00",
+    "generated_at": "2026-08-31T13:12:09+00:00",
     "production": {
-        "sha": "bf839b649c92a338bbf1d12b7dd94f77ae34df3f",
+        "sha": "b175556e44dba0142b908f60b656b46f8eb1a1b7",
         "branch": "main"
     },
     "migrations": {
@@ -141,12 +141,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 12:03:25",
+        "since_utc": "2026-08-31 12:11:57",
         "summary": {
-            "sessions": 7,
-            "raw_sessions": 7,
+            "sessions": 6,
+            "raw_sessions": 6,
             "explicit_test_sessions": 0,
-            "started": 7,
+            "started": 6,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
@@ -162,7 +162,7 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 6,
+                "collecting_needs": 5,
                 "manager_replied": 1
             },
             "flags": []
@@ -174,7 +174,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "bf839b649c92a338bbf1d12b7dd94f77ae34df3f",
+        "sha": "b175556e44dba0142b908f60b656b46f8eb1a1b7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -183,7 +183,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T13:03:33Z"
+        "reported_at": "2026-08-31T13:12:09Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -237,7 +237,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T13:03:33+00:00",
+        "generated_at": "2026-08-31T13:12:08+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -286,8 +286,8 @@
             },
             "tools": {
                 "files": 33,
-                "bytes": 100057,
-                "code_lines": 1776
+                "bytes": 100275,
+                "code_lines": 1781
             }
         },
         "hotspots": [

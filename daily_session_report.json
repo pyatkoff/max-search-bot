@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T13:03:26+00:00",
+    "generated_at": "2026-08-31T13:11:59+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -3180,14 +3180,14 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 5,
-            "outbound_messages": 4,
+            "inbound_messages": 9,
+            "outbound_messages": 7,
             "date_picks": 0,
-            "anomaly_inbound_messages": 5,
+            "anomaly_inbound_messages": 9,
             "drop_point": "collecting_needs",
             "flags": [],
             "started_at": "2026-08-31 15:02:25",
-            "last_message_at": "2026-08-31 15:03:17"
+            "last_message_at": "2026-08-31 15:04:51"
         }
     ],
     "local_date": "2026-08-31",
