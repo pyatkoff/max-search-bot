@@ -8,6 +8,11 @@ on:
         required: true
         default: false
         type: boolean
+      require_legacy_host_independence:
+        description: 'Require standby to have no dependency on the legacy anytour.online host'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -74,12 +79,15 @@ jobs:
             "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/standalone_readiness.php" > "$RUNNER_TEMP/standby-readiness.txt"
           grep -qx 'STANDALONE_READY=YES' "$RUNNER_TEMP/standby-readiness.txt"
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" \
+            "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/cutover_legacy_host_dependency.php" > "$RUNNER_TEMP/standby-legacy-host.txt"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" \
             "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/cutover_data_snapshot.php" > "$RUNNER_TEMP/standby.json"
           python3 -m json.tool "$RUNNER_TEMP/standby.json" >/dev/null
 
       - name: Evaluate cutover blockers
         env:
           REQUIRE_DATA_MATCH: ${{ inputs.require_data_match }}
+          REQUIRE_LEGACY_HOST_INDEPENDENCE: ${{ inputs.require_legacy_host_independence }}
         shell: bash
         run: |
           set -euo pipefail
@@ -92,6 +100,15 @@ jobs:
           prod = json.loads(root.joinpath('prod.json').read_text())
           standby = json.loads(root.joinpath('standby.json').read_text())
           require_match = os.environ.get('REQUIRE_DATA_MATCH', 'false').lower() == 'true'
+          require_legacy_independence = os.environ.get('REQUIRE_LEGACY_HOST_INDEPENDENCE', 'false').lower() == 'true'
+          legacy_lines = root.joinpath('standby-legacy-host.txt').read_text().splitlines()
+          legacy_values = {}
+          for line in legacy_lines:
+              if '=' in line:
+                  key, value = line.split('=', 1)
+                  legacy_values.setdefault(key, []).append(value)
+          legacy_dependency = legacy_values.get('LEGACY_HOST_DEPENDENCY', ['YES'])[0] == 'YES'
+          receiver_host = legacy_values.get('LEAD_RECEIVER_HOST', [''])[0]
 
           blockers = []
           if prod_sha != expected:
@@ -104,6 +121,11 @@ jobs:
           print('expected_sha=' + expected)
           print('production_sha=' + prod_sha)
           print('standby_sha=' + standby_sha)
+          print('lead_receiver_host=' + receiver_host)
+          print('legacy_host_dependency=' + ('YES' if legacy_dependency else 'NO'))
+          print('require_legacy_host_independence=' + ('YES' if require_legacy_independence else 'NO'))
+          for dependency in legacy_values.get('LEGACY_DEPENDENCY', []):
+              print('legacy_dependency=' + dependency)
           print('table\tproduction\tstandby\tdelta')
           for table, p in prod.get('tables', {}).items():
               s = standby.get('tables', {}).get(table, {'row_count': -1, 'max_id': -1})
@@ -117,6 +139,8 @@ jobs:
           print('require_data_match=' + ('YES' if require_match else 'NO'))
           if require_match and not all_equal:
               blockers.append('conversation_data_mismatch')
+          if require_legacy_independence and legacy_dependency:
+              blockers.append('legacy_host_dependency')
 
           if blockers:
               print('CUTOVER_PREFLIGHT_READY=NO')
@@ -130,5 +154,5 @@ jobs:
       - name: Confirm read-only policy
         shell: bash
         run: |
-          echo "Preflight only reads code revision, standalone readiness and conversation-store snapshots."
+          echo "Preflight only reads code revision, standalone readiness, legacy-host dependency and conversation-store snapshots."
           echo "It never freezes traffic, dumps/imports databases, changes webhooks, starts cron, or performs cutover."
