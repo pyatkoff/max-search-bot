@@ -47,6 +47,31 @@ class ManagerPushService
         return $q->execute([$managerId,$endpoint,$hash,$p256dh,$auth,mb_substr($userAgent,0,500)]);
     }
 
+    /** Targeted manager notification used by sales-workspace reminders, independent from dialogue routing/status. */
+    public static function notifyManager(int $managerId,int $conversationId,string $title,string $body): array
+    {
+        if($managerId<=0||$conversationId<=0)return['attempted'=>0,'delivered'=>0];
+        $dispatchId=self::dispatchId();
+        try{
+            $pdo=ConversationDb::connection();
+            $q=$pdo->prepare('SELECT * FROM manager_push_subscriptions WHERE manager_id=?');$q->execute([$managerId]);$subs=$q->fetchAll()?:[];
+            if(!$subs){
+                if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'notification_kind'=>'lead_task_reminder'],null,'warning');}catch(Throwable $ignored){}}
+                return['attempted'=>0,'delivered'=>0];
+            }
+            $payload=json_encode(['title'=>trim($title)!==''?$title:'Напоминание AnyTour','body'=>$body,'conversationId'=>$conversationId,'url'=>'./'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            $delivered=0;
+            foreach($subs as $sub){
+                try{if(self::send($sub,(string)$payload,$conversationId,$dispatchId))$delivered++;}
+                catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>(int)($sub['id']??0),'notification_kind'=>'lead_task_reminder','error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
+            }
+            return['attempted'=>count($subs),'delivered'=>$delivered];
+        }catch(Throwable $e){
+            if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_manager_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'notification_kind'=>'lead_task_reminder','error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}
+            return['attempted'=>0,'delivered'=>0,'error'=>$e->getMessage()];
+        }
+    }
+
     public static function notifyConversation(int $conversationId,string $body='Клиент написал в диалог'): void
     {
         $dispatchId=self::dispatchId();
@@ -83,7 +108,7 @@ class ManagerPushService
         }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }
     }
 
-    private static function send(array $sub,string $payload,int $conversationId,string $dispatchId): void
+    private static function send(array $sub,string $payload,int $conversationId,string $dispatchId): bool
     {
         $cfg=self::vapid(); $endpoint=(string)$sub['endpoint'];
         $clientPub=self::b64ud((string)$sub['p256dh']); $auth=self::b64ud((string)$sub['auth_secret']);
@@ -107,14 +132,15 @@ class ManagerPushService
         if($code>=200&&$code<300){
             $pdo->prepare('UPDATE manager_push_subscriptions SET last_success_at=NOW(),last_error=NULL WHERE id=?')->execute([$subscriptionId]);
             if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_success',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'info');}catch(Throwable $ignored){}}
-            return;
+            return true;
         }
         if(in_array($code,[404,410],true)){
             if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','subscription_expired',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'warning');}catch(Throwable $ignored){}}
-            $pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([$subscriptionId]);return;
+            $pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([$subscriptionId]);return false;
         }
         $pdo->prepare('UPDATE manager_push_subscriptions SET last_error_at=NOW(),last_error=? WHERE id=?')->execute([mb_substr('HTTP '.$code.' '.$err,0,500),$subscriptionId]);
         if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code,'error'=>mb_substr($err,0,300)],null,'warning');}catch(Throwable $ignored){}}
+        return false;
     }
 
     private static function hkdfExpand(string $prk,string $info,int $len): string { $out='';$t='';$i=1;while(strlen($out)<$len){$t=hash_hmac('sha256',$t.$info.chr($i++),$prk,true);$out.=$t;}return substr($out,0,$len); }
