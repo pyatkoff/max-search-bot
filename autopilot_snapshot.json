@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T16:23:41+00:00",
+    "generated_at": "2026-08-31T17:07:43+00:00",
     "production": {
-        "sha": "40c9dfe6219c9ff265ed1cdf3e08b86acb41a7f9",
+        "sha": "02611f46c3de6e08ded7d1bd45ea9ac71e216c8f",
         "branch": "main"
     },
     "migrations": {
@@ -141,14 +141,14 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 15:23:32",
+        "since_utc": "2026-08-31 16:07:31",
         "summary": {
-            "sessions": 1,
-            "raw_sessions": 1,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
-            "started": 1,
-            "needs_collected": 1,
-            "tours_opened": 1,
+            "started": 0,
+            "needs_collected": 0,
+            "tours_opened": 0,
             "manager_requested": 0,
             "manager_replied": 0,
             "phone_received": 0,
@@ -161,9 +161,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "tours_opened": 1
-            },
+            "drop_points": [],
             "flags": []
         },
         "flagged_sessions": []
@@ -173,7 +171,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "40c9dfe6219c9ff265ed1cdf3e08b86acb41a7f9",
+        "sha": "02611f46c3de6e08ded7d1bd45ea9ac71e216c8f",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -182,7 +180,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T16:23:41Z"
+        "reported_at": "2026-08-31T17:07:43Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -236,7 +234,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T16:23:40+00:00",
+        "generated_at": "2026-08-31T17:07:43+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -280,8 +278,8 @@
             },
             "tests": {
                 "files": 161,
-                "bytes": 613050,
-                "code_lines": 7769
+                "bytes": 613235,
+                "code_lines": 7772
             },
             "tools": {
                 "files": 37,
