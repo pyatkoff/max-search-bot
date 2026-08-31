@@ -31,7 +31,8 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Wait for exact production SHA and inspect MAX subscription without mutation
+      - name: Wait for exact production SHA and collect MAX health
+        id: health
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -40,17 +41,68 @@ jobs:
         run: |
           set -euo pipefail
           remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+          matched=0
           for attempt in $(seq 1 30); do
             deployed_sha="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
               'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              matched=1
               echo "Production SHA verified: $deployed_sha"
-              ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
-                'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/max_webhook_status.php'
-              exit 0
+              break
             fi
             echo "Waiting for production SHA $EXPECTED_SHA (current: ${deployed_sha:-unavailable}, attempt $attempt/30)"
             sleep 5
           done
-          echo "Production did not reach expected SHA $EXPECTED_SHA before MAX webhook inspection" >&2
+          if [[ "$matched" != "1" ]]; then
+            echo "reason=sha_not_deployed" >> "$GITHUB_OUTPUT"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          set +e
+          result="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
+            'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/max_webhook_status.php' 2>&1)"
+          rc=$?
+          set -e
+          printf '%s\n' "$result"
+
+          if ! printf '%s\n' "$result" | jq -e . >/dev/null 2>&1; then
+            echo "reason=invalid_diagnostic_output" >> "$GITHUB_OUTPUT"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "diagnostic_rc=$rc" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          reason="$(printf '%s\n' "$result" | jq -r '.reason // "unknown"')"
+          ok="$(printf '%s\n' "$result" | jq -r 'if .ok == true then "true" else "false" end')"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+          echo "diagnostic_rc=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: MAX webhook healthy
+        if: steps.health.outputs.ok == 'true'
+        run: echo "MAX webhook ownership is healthy."
+
+      - name: MAX webhook missing expected owner
+        if: steps.health.outputs.reason == 'expected_subscription_missing'
+        run: echo "Expected MAX webhook subscription is missing."
+
+      - name: MAX webhook has dual ownership
+        if: steps.health.outputs.reason == 'extra_subscriptions'
+        run: echo "More than one MAX webhook subscription is active."
+
+      - name: MAX webhook transport or API failure
+        if: steps.health.outputs.reason == 'transport_error' || steps.health.outputs.reason == 'invalid_api_response' || steps.health.outputs.reason == 'request_exception'
+        run: echo "MAX API health request failed before ownership could be verified."
+
+      - name: MAX health diagnostic unavailable
+        if: steps.health.outputs.reason == 'sha_not_deployed' || steps.health.outputs.reason == 'invalid_diagnostic_output' || steps.health.outputs.reason == 'missing_token' || steps.health.outputs.reason == 'unknown'
+        run: echo "MAX webhook ownership could not be verified because the diagnostic itself is unavailable or incomplete."
+
+      - name: Fail unhealthy MAX webhook state
+        if: steps.health.outputs.ok != 'true'
+        env:
+          REASON: ${{ steps.health.outputs.reason }}
+        run: |
+          echo "MAX webhook health failed: $REASON" >&2
           exit 1
