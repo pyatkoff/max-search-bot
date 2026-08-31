@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T06:11:52+00:00",
+    "generated_at": "2026-08-31T07:11:46+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -855,7 +855,7 @@
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 17:58:17",
-            "last_message_at": "2026-08-31 08:03:29"
+            "last_message_at": "2026-08-31 08:45:39"
         }
     ],
     "local_date": "2026-08-30",
