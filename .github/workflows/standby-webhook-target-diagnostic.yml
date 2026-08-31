@@ -1,0 +1,40 @@
+name: Standby webhook target diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare SSH private key
+        env:
+          STANDBY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/standby_key"
+          raw="$STANDBY_KEY"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            test "$decoded" != ""
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Read configured standby webhook targets
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "$RUNNER_TEMP/standby_key" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" \
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/webhook_target_status.php'
