@@ -56,9 +56,11 @@ $lines = preg_split('/\R/', $source) ?: [];
 foreach ($targets as $name => $value) {
     $namePattern = preg_quote($name, '/');
     $lines = array_values(array_filter($lines, static function (string $line) use ($namePattern): bool {
-        $mentionsTarget = preg_match('/[\'\"]' . $namePattern . '[\'\"]/', $line) === 1;
-        $definesConstant = preg_match('/\bdefine\s*\(/', $line) === 1;
-        return !($mentionsTarget && $definesConstant);
+        $mentionsQuotedTarget = preg_match('/[\'\"]' . $namePattern . '[\'\"]/', $line) === 1;
+        $mentionsBareTarget = preg_match('/\b' . $namePattern . '\b/', $line) === 1;
+        $definesWithFunction = preg_match('/\bdefine\s*\(/', $line) === 1;
+        $definesWithConst = preg_match('/^\s*const\s+' . $namePattern . '\s*=/', $line) === 1;
+        return !(($mentionsQuotedTarget && $definesWithFunction) || ($mentionsBareTarget && $definesWithConst));
     }));
     $lines[] = "define('{$name}', {$value});";
 }
