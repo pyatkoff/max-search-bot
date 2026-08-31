@@ -130,8 +130,11 @@ class DialogueView
         MaxSearchApi::funnelLog($chatId,'search_ready');
         MaxSearchApi::deletePrevMessage($chatId);
         $savedData = MaxSearchApi::getSavedData($chatId);
-        $summary = MaxSearchApi::formatSavedData($savedData);
-        $summary = SearchDateSummary::replaceDateLine($summary, $savedData[MaxSearchApi::$statusDate] ?? null);
+        $selectedDate = $savedData[MaxSearchApi::$statusDate] ?? null;
+        $summaryData = $savedData;
+        $summaryData[MaxSearchApi::$statusDate] = null;
+        $summary = MaxSearchApi::formatSavedData($summaryData);
+        $summary = SearchDateSummary::replaceDateLine($summary, $selectedDate);
         $buttons = ButtonFactory::rows(
             ButtonFactory::row(ButtonFactory::callback('🔥 Показать туры','show_tours')),
             ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать с менеджером','manager_request')),
