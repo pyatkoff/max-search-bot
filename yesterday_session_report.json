@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T11:06:27+00:00",
+    "generated_at": "2026-08-31T11:32:46+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -771,7 +771,7 @@
                 "repeated_same_input"
             ],
             "started_at": "2026-08-26 17:05:22",
-            "last_message_at": "2026-08-31 10:48:24",
+            "last_message_at": "2026-08-31 13:23:44",
             "message_tail": [
                 {
                     "direction": "outbound",

@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T11:06:21+00:00",
+    "generated_at": "2026-08-31T11:32:38+00:00",
     "production": {
-        "sha": "ee70fcea9fc65e42fb03bd8ae778365ebbe657f9",
+        "sha": "95a7bbaf76bc57745ac367e4d7c6edb838979110",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.29999999999999999
+        "latency_ms": 0.20000000000000001
     },
     "migrations": [
         {
@@ -191,10 +191,10 @@
         "customers": 648,
         "customer_channels": 648,
         "conversations": 650,
-        "messages": 16730,
+        "messages": 16734,
         "managers": 6,
         "manager_assignments": 114,
-        "conversation_events": 946,
+        "conversation_events": 947,
         "admin_audit_log": 32
     },
     "managers": [
@@ -383,7 +383,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-30 13:07:21",
+                "last_success_at": "2026-08-31 13:16:35",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -1118,7 +1118,34 @@
     ],
     "recent_entry_attribution": [],
     "recent_manager_priority_events": [],
-    "recent_manager_push_events": [],
+    "recent_manager_push_events": [
+        {
+            "ts": "2026-08-31T13:16:35+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "48fd37bfe3c92e02",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-08-31T13:16:34+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "48fd37bfe3c92e02",
+                "conversation_id": 334,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        }
+    ],
     "conversation_status": [
         {
             "project_key": "anytour",
@@ -1448,6 +1475,42 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 16734,
+            "conversation_id": 1,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-31 13:31:26"
+        },
+        {
+            "id": 16733,
+            "conversation_id": 1,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "telegram",
+            "text": "/start tg_anytour_msk",
+            "created_at": "2026-08-31 13:31:25"
+        },
+        {
+            "id": 16732,
+            "conversation_id": 334,
+            "direction": "outbound",
+            "sender_type": "manager",
+            "channel": "max",
+            "text": "Я на связи, если вопросы будут - пишите",
+            "created_at": "2026-08-31 13:23:44"
+        },
+        {
+            "id": 16731,
+            "conversation_id": 334,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Спасибо большое. С мужем посмотрим",
+            "created_at": "2026-08-31 13:16:34"
+        },
         {
             "id": 16730,
             "conversation_id": 650,
@@ -1951,45 +2014,17 @@
             "channel": "max",
             "text": "child_0",
             "created_at": "2026-08-31 11:39:21"
-        },
-        {
-            "id": 16674,
-            "conversation_id": 648,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-08-31 11:39:16"
-        },
-        {
-            "id": 16673,
-            "conversation_id": 648,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-08-31 11:39:16"
-        },
-        {
-            "id": 16672,
-            "conversation_id": 648,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-08-31 11:39:12"
-        },
-        {
-            "id": 16671,
-            "conversation_id": 648,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_1",
-            "created_at": "2026-08-31 11:39:12"
         }
     ],
     "recent_events": [
+        {
+            "id": 947,
+            "conversation_id": 334,
+            "event_type": "manager_message",
+            "actor_type": "manager",
+            "actor_id": "5",
+            "created_at": "2026-08-31 13:23:44"
+        },
         {
             "id": 946,
             "conversation_id": 334,
@@ -2461,14 +2496,6 @@
             "actor_type": "manager",
             "actor_id": "5",
             "created_at": "2026-08-28 10:07:27"
-        },
-        {
-            "id": 887,
-            "conversation_id": 334,
-            "event_type": "manager_message",
-            "actor_type": "manager",
-            "actor_id": "5",
-            "created_at": "2026-08-28 10:07:04"
         }
     ],
     "recent_manager_delivery_failures": [
