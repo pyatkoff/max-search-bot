@@ -117,7 +117,7 @@ jobs:
           set -euo pipefail
           key_file="$RUNNER_TEMP/standby_deploy_key"
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1; php tools/standby_enable_standalone.php --enable; if php tools/standalone_readiness.php; then php tools/standby_enable_standalone.php --commit; echo standby_mode=ready; else php tools/standby_enable_standalone.php --rollback; exit 1; fi'
+          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1; php tools/standby_cleanup_runtime_config.php; php tools/standby_enable_standalone.php --enable; if php tools/standalone_readiness.php; then php tools/standby_enable_standalone.php --commit; echo standby_mode=ready; else php tools/standby_enable_standalone.php --rollback; exit 1; fi'
 
       - name: Probe lead bridge from passive standby
         if: steps.config.outputs.enabled == 'true'
