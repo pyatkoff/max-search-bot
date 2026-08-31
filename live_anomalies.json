@@ -1,11 +1,11 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-08-31T10:15:12+00:00",
-    "source_generated_at": "2026-08-31T10:15:12+00:00",
+    "generated_at": "2026-08-31T10:39:59+00:00",
+    "source_generated_at": "2026-08-31T10:39:59+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 9,
+        "sessions": 7,
         "ranked": 1,
         "high": 1,
         "medium": 0
@@ -17,7 +17,6 @@
             "score": 90,
             "signals": [
                 "customer_repeated_answer",
-                "rapid_date_reselection",
                 "repeated_callback_input",
                 "bot_repeated_question_date"
             ],
