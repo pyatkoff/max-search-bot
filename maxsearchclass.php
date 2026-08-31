@@ -12,6 +12,7 @@ require_once(__DIR__ . '/services/ClaimRepository.php');
 require_once(__DIR__ . '/services/ClaimCodeGenerator.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
 require_once(__DIR__ . '/services/LeadDeliveryGateway.php');
+require_once(__DIR__ . '/services/ProjectMarkerService.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 require_once(__DIR__ . '/services/DialogueView.php');
 require_once(__DIR__ . '/services/TourResultsService.php');
@@ -125,7 +126,7 @@ class MaxSearchApi extends MaxSearchBase
         $dateWindow=NativeDateService::leadWindow((string)($claim['UF_DATE_DEPART']??''));
         $leadData=['name'=>$name,'phone'=>$phone,'clean_phone'=>static::cleanPhone($phone),'created_at'=>$createdAt,'from'=>$from,'country'=>$country,'people'=>$people,'stars'=>$claim['UF_STARS']??'','meal'=>$meal,'dates'=>$dateWindow['from'].' - '.$dateWindow['to'],'nights'=>$claim['UF_NIGHTS']??'','status'=>(int)ProjectConfig::get('leads.status_id',static::$claimStatusIDQueue)];
         $uon=(int)ProjectConfig::get('leads.uon_source_id',static::$uonSourceId); if($uon>0)$leadData['source']=$uon;
-        if(static::$isAnyOnline)$leadData['is_anytour_online']=CSiteParams::$isAnytourOnline;
+        if(static::$isAnyOnline){$projectMarker=ProjectMarkerService::anytourOnline();if($projectMarker!==null)$leadData['is_anytour_online']=$projectMarker;}
         $props=LeadPayloadService::properties($leadData);
         $element=LeadPayloadService::iblockElement(['iblock_id'=>(int)ProjectConfig::get('leads.iblock_id',static::$claimIB),'section_id'=>(int)ProjectConfig::get('leads.section_id',static::$botSearchSection),'properties'=>$props,'created_at'=>$createdAt]);
         $leadId=LeadDeliveryGateway::create($element);
