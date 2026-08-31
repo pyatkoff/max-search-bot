@@ -7,6 +7,7 @@ $workflow=(string)file_get_contents($base.'/.github/workflows/deploy-standby.yml
 $production=(string)file_get_contents($base.'/.github/workflows/deploy.yml');
 $switch=(string)file_get_contents($base.'/tools/standby_enable_standalone.php');
 $repair=(string)file_get_contents($base.'/tools/repair_standby_external_config.php');
+$cleanup=(string)file_get_contents($base.'/tools/standby_cleanup_runtime_config.php');
 $passed=0;$failed=0;
 function standbyCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -16,12 +17,17 @@ standbyCheck('standby binds deploy to workflow sha',strpos($workflow,'EXPECTED_S
 standbyCheck('standby does not race against moving origin main',strpos($workflow,'git reset --hard origin/main')===false);
 standbyCheck('standby verifies resulting exact sha',strpos($workflow,'git rev-parse HEAD')!==false&&strpos($workflow,"= '\$EXPECTED_SHA'")!==false);
 standbyCheck('standby applies forward conversation migrations',strpos($workflow,'php tools/conversation_db.php migrate')!==false);
+standbyCheck('standby cleans legacy runtime overrides before standalone enable',strpos($workflow,'php tools/standby_cleanup_runtime_config.php; php tools/standby_enable_standalone.php --enable')!==false);
 standbyCheck('standby enables standalone only behind explicit write guard',strpos($workflow,'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1')!==false&&strpos($workflow,'standby_enable_standalone.php --enable')!==false);
 standbyCheck('standby retains switch only after green readiness doctor',strpos($workflow,'if php tools/standalone_readiness.php; then')!==false&&strpos($workflow,'standby_enable_standalone.php --commit')!==false);
 standbyCheck('standby rolls config back if readiness fails',strpos($workflow,'standby_enable_standalone.php --rollback')!==false);
 standbyCheck('switch is restricted to standby checkout',strpos($switch,"'/app.anytoour.ru'")!==false);
 standbyCheck('switch changes only cutover mode constants',strpos($switch,"'MAX_SEARCH_STANDALONE_RUNTIME'")!==false&&strpos($switch,"'MAX_SEARCH_RUNTIME_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_DESTINATION_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_LEAD_DELIVERY'")!==false);
 standbyCheck('switch removes only complete direct target definitions',strpos($switch,'$define = preg_match')!==false&&strpos($switch,'$const = preg_match')!==false&&strpos($switch,'Never delete structural guard/if')!==false&&strpos($switch,'MAX_SEARCH_WEBHOOK_URL')!==false);
+standbyCheck('runtime cleanup is standby-write guarded',strpos($cleanup,"MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE")!==false&&strpos($cleanup,"'/app.anytoour.ru'")!==false);
+standbyCheck('runtime cleanup requires external config ownership',strpos($cleanup,'data/config/max-search.php')!==false&&strpos($cleanup,'Runtime config does not reference external standby config')!==false);
+standbyCheck('runtime cleanup targets only deployment-owned duplicate constants',strpos($cleanup,"'MAX_SEARCH_STANDALONE_RUNTIME'")!==false&&strpos($cleanup,"'MAX_SEARCH_WEBHOOK_URL'")!==false&&strpos($cleanup,"'TELEGRAM_WEBHOOK_URL'")!==false&&strpos($cleanup,"'MAX_SEARCH_PUBLIC_BASE_URL'")!==false);
+standbyCheck('runtime cleanup is lint gated and atomic',strpos($cleanup,'failed PHP lint')!==false&&strpos($cleanup,'rename($tmp, $runtimeConfig)')!==false);
 standbyCheck('repair has lint-gated malformed-config fallback',strpos($repair,'Previous cutover attempts may already have left unmatched braces')!==false&&strpos($repair,"\$safeLines = ['<?php'];")!==false&&strpos($repair,'Repaired standby config still fails PHP lint')!==false);
 standbyCheck('repair preserves existing recovery backup',strpos($repair,'!is_file($backup) && !copy($config, $backup)')!==false);
 standbyCheck('standby does not invoke webhook endpoints',strpos($workflow,'php webhook.php')===false&&strpos($workflow,'curl')===false);
