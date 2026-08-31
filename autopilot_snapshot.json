@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T09:10:37+00:00",
+    "generated_at": "2026-08-31T09:13:59+00:00",
     "production": {
-        "sha": "af7a2ede2c3ee3893bc4a315159a0a5342623276",
+        "sha": "b1e3236f15444aad32106423539f95a270004e01",
         "branch": "main"
     },
     "migrations": {
@@ -141,12 +141,12 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 08:10:29",
+        "since_utc": "2026-08-31 08:13:51",
         "summary": {
-            "sessions": 16,
-            "raw_sessions": 16,
+            "sessions": 15,
+            "raw_sessions": 15,
             "explicit_test_sessions": 0,
-            "started": 16,
+            "started": 15,
             "needs_collected": 2,
             "tours_opened": 2,
             "manager_requested": 1,
@@ -162,7 +162,7 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 14,
+                "collecting_needs": 13,
                 "tours_opened": 1,
                 "manager_replied": 1
             },
@@ -175,7 +175,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "af7a2ede2c3ee3893bc4a315159a0a5342623276",
+        "sha": "b1e3236f15444aad32106423539f95a270004e01",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -184,7 +184,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T09:10:37Z"
+        "reported_at": "2026-08-31T09:13:59Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -238,7 +238,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T09:10:37+00:00",
+        "generated_at": "2026-08-31T09:13:59+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -252,8 +252,8 @@
             },
             "services": {
                 "files": 125,
-                "bytes": 474508,
-                "code_lines": 10194
+                "bytes": 474713,
+                "code_lines": 10198
             },
             "integrations": {
                 "files": 8,
@@ -282,13 +282,13 @@
             },
             "tests": {
                 "files": 154,
-                "bytes": 581067,
-                "code_lines": 7392
+                "bytes": 582832,
+                "code_lines": 7408
             },
             "tools": {
-                "files": 24,
-                "bytes": 85487,
-                "code_lines": 1388
+                "files": 25,
+                "bytes": 88451,
+                "code_lines": 1464
             }
         },
         "hotspots": [
