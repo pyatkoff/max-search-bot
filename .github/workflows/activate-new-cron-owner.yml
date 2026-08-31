@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/activate-new-cron-owner.yml'
-  workflow_dispatch:
+  workflow_dispatch: # manual recovery/retry after runtime cutover fixes
 
 permissions:
   contents: read
