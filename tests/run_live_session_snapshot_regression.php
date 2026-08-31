@@ -5,6 +5,8 @@ declare(strict_types=1);
 $base=dirname(__DIR__);
 $source=(string)file_get_contents($base.'/tools/live_session_snapshot.php');
 $workflow=(string)file_get_contents($base.'/.github/workflows/live-session-diagnostics.yml');
+$analyzer=(string)file_get_contents($base.'/services/LiveSessionAnalyzer.php');
+$migration=(string)file_get_contents($base.'/migrations/024_test_conversation_provenance.sql');
 $passed=0;$failed=0;
 function lssCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -14,6 +16,10 @@ lssCheck('message evidence is capped to recent tail',strpos($source,'array_slice
 lssCheck('message text is compacted and truncated',strpos($source,'mb_strlen($text)>280')!==false && strpos($source,"mb_substr(\$text,0,277).'...'")!==false);
 lssCheck('unflagged sessions do not receive message evidence',strpos($source,"if(!empty(\$session['flags']))")!==false);
 lssCheck('newer main push cancels stale diagnostics waiter',strpos($workflow,"group: production-live-session-diagnostics")!==false&&strpos($workflow,"cancel-in-progress: true")!==false);
+lssCheck('test provenance migration is explicit and immutable',strpos($migration,'ADD COLUMN is_test TINYINT(1) NOT NULL DEFAULT 0')!==false&&strpos($migration,'ADD COLUMN test_source VARCHAR(64) NULL')!==false&&strpos($migration,'ADD COLUMN test_reason VARCHAR(255) NULL')!==false);
+lssCheck('session analyzer carries explicit test provenance',strpos($analyzer,"'is_test'=>!empty(\$conversation['is_test'])")!==false&&strpos($analyzer,"'test_source'=>(string)(\$conversation['test_source']??'')")!==false);
+lssCheck('business summary excludes only explicit test sessions',strpos($source,"\$businessSessions=array_values(array_filter(\$sessions,static fn(array \$session):bool=>empty(\$session['is_test'])))")!==false&&strpos($source,"'explicit_test_sessions'=>count(\$sessions)-count(\$businessSessions)")!==false);
+lssCheck('raw sessions remain visible for diagnostics',strpos($source,"'raw_sessions'=>count(\$sessions)")!==false&&strpos($source,"\$result['sessions']=\$sessions")!==false);
 
 $tmp=tempnam(sys_get_temp_dir(),'live-anomaly-');
 $fixture=[
