@@ -14,6 +14,8 @@ $summary=['✈️ Москва → Турция','📅 10.09.2026 — 16.09.2026
 dateSummaryCheck('legacy technical window line is replaced',SearchDateSummary::replaceDateLine($summary,'13.09.2026',$today),['✈️ Москва → Турция','📅 Вылет 13.09.2026 · ищем 10.09–16.09.2026']);
 $source=(string)file_get_contents(dirname(__DIR__).'/services/DialogueView.php');
 dateSummaryCheck('confirmation delegates date presentation to dedicated formatter',strpos($source,'SearchDateSummary::replaceDateLine')!==false,true);
+dateSummaryCheck('confirmation masks date before legacy base formatter',strpos($source,'$summaryData[MaxSearchApi::$statusDate] = null;')!==false,true);
+dateSummaryCheck('confirmation passes masked summary data to legacy formatter',strpos($source,'MaxSearchApi::formatSavedData($summaryData)')!==false,true);
 dateSummaryCheck('search semantics remain outside presentation formatter',strpos((string)file_get_contents(dirname(__DIR__).'/services/SearchDateSummary.php'),'TourResultsService')===false,true);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
