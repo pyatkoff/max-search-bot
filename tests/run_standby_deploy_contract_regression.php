@@ -21,9 +21,9 @@ standbyCheck('standby retains switch only after green readiness doctor',strpos($
 standbyCheck('standby rolls config back if readiness fails',strpos($workflow,'standby_enable_standalone.php --rollback')!==false);
 standbyCheck('switch is restricted to standby checkout',strpos($switch,"'/app.anytoour.ru'")!==false);
 standbyCheck('switch changes only cutover mode constants',strpos($switch,"'MAX_SEARCH_STANDALONE_RUNTIME'")!==false&&strpos($switch,"'MAX_SEARCH_RUNTIME_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_DESTINATION_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_LEAD_DELIVERY'")!==false);
-standbyCheck('switch removes only complete direct target definitions',strpos($switch,"$define = preg_match")!==false&&strpos($switch,"$const = preg_match")!==false&&strpos($switch,'Never delete structural guard/if')!==false&&strpos($switch,"MAX_SEARCH_WEBHOOK_URL")!==false);
-standbyCheck('repair has lint-gated malformed-config fallback',strpos($repair,'Previous cutover attempts may already have left unmatched braces')!==false&&strpos($repair,"$safeLines = ['<?php'];")!==false&&strpos($repair,'Repaired standby config still fails PHP lint')!==false);
-standbyCheck('repair preserves existing recovery backup',strpos($repair,"!is_file($backup) && !copy($config, $backup)")!==false);
+standbyCheck('switch removes only complete direct target definitions',strpos($switch,'$define = preg_match')!==false&&strpos($switch,'$const = preg_match')!==false&&strpos($switch,'Never delete structural guard/if')!==false&&strpos($switch,'MAX_SEARCH_WEBHOOK_URL')!==false);
+standbyCheck('repair has lint-gated malformed-config fallback',strpos($repair,'Previous cutover attempts may already have left unmatched braces')!==false&&strpos($repair,"\$safeLines = ['<?php'];")!==false&&strpos($repair,'Repaired standby config still fails PHP lint')!==false);
+standbyCheck('repair preserves existing recovery backup',strpos($repair,'!is_file($backup) && !copy($config, $backup)')!==false);
 standbyCheck('standby does not invoke webhook endpoints',strpos($workflow,'php webhook.php')===false&&strpos($workflow,'curl')===false);
 standbyCheck('standby does not start or restart services',!preg_match('/\b(systemctl|service|supervisorctl)\b/',$workflow));
 standbyCheck('standby does not install cron',!preg_match('/\bcrontab\b/',$workflow));
