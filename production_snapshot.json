@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T01:35:07+00:00",
+    "generated_at": "2026-08-31T02:08:03+00:00",
     "production": {
-        "sha": "feb991e796ea22c6672dd68d37fe171f174aa590",
+        "sha": "6c10558e7d7b94039d6e3b6a0f44a8213fcc9496",
         "branch": "main"
     },
     "database": {
@@ -181,10 +181,10 @@
         }
     ],
     "stats": {
-        "customers": 620,
-        "customer_channels": 620,
-        "conversations": 622,
-        "messages": 15784,
+        "customers": 621,
+        "customer_channels": 621,
+        "conversations": 623,
+        "messages": 15785,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -234,7 +234,7 @@
             "role": "manager",
             "is_active": 1,
             "is_working": 1,
-            "last_login_at": "2026-08-30 18:25:12"
+            "last_login_at": "2026-08-31 03:41:52"
         },
         {
             "id": 6,
@@ -1835,7 +1835,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 490
+            "count": 491
         },
         {
             "project_key": "anytour",
@@ -2159,6 +2159,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 15785,
+            "conversation_id": 623,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Тур на троих в 29 декабря",
+            "created_at": "2026-08-31 03:35:24"
+        },
         {
             "id": 15784,
             "conversation_id": 2,
@@ -2689,15 +2698,6 @@
             "channel": "telegram",
             "text": "Хочу в Турцию в сентябре",
             "created_at": "2026-08-30 11:25:03"
-        },
-        {
-            "id": 15725,
-            "conversation_id": 2,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-30 10:25:07"
         }
     ],
     "recent_events": [
