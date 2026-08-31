@@ -28,7 +28,9 @@ dcheck('city name from row', TravelDirectoryRepository::cityNameFromRow(['UF_NAM
 dcheck('standalone departure name from row', TravelDirectoryRepository::cityNameFromRow(['id'=>7,'name'=>'Калининград']), 'Калининград');
 dcheck('city name missing row', TravelDirectoryRepository::cityNameFromRow(false), false);
 dcheck('city from-name from row', TravelDirectoryRepository::cityFromNameFromRow(['UF_NAME2'=>'Калининграда']), 'Калининграда');
-dcheck('standalone departure canonical from-name', TravelDirectoryRepository::cityFromNameFromRow(['id'=>7,'name'=>'Калининград']), 'Калининград');
+dcheck('standalone departure genitive', TravelDirectoryRepository::cityFromNameFromRow(['id'=>7,'name'=>'Калининград','name_genitive'=>'Калининграда']), 'Калининграда');
+dcheck('standalone departure blank genitive falls back to name', TravelDirectoryRepository::cityFromNameFromRow(['id'=>7,'name'=>'Калининград','name_genitive'=>'']), 'Калининград');
+dcheck('standalone departure missing genitive falls back to name', TravelDirectoryRepository::cityFromNameFromRow(['id'=>7,'name'=>'Калининград']), 'Калининград');
 dcheck(
     'city record keeps Tourvisor departure id',
     TravelDirectoryRepository::cityRecordFromRow(['UF_NAME'=>'Москва','UF_DEPID'=>1]),
@@ -65,6 +67,8 @@ $source = (string) file_get_contents(__DIR__ . '/../services/TravelDirectoryRepo
 dcheck('runtime no longer references Bitrix directory API', strpos($source, 'Bitrix') === false, true);
 dcheck('runtime uses catalog_departures', strpos($source, 'catalog_departures') !== false, true);
 dcheck('runtime uses catalog_countries', strpos($source, 'catalog_countries') !== false, true);
+dcheck('missing genitive column fallback is scoped to SQLSTATE 42S22', strpos($source, "getCode() !== '42S22'") !== false, true);
+dcheck('fallback lookup does not require name_genitive', strpos($source, "SELECT name FROM catalog_departures WHERE id = :id") !== false, true);
 
 $total = $passed + $failed;
 echo "\n---------------------------------\n";
