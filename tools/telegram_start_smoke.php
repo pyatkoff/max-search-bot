@@ -1,15 +1,13 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
-$siteRoot = dirname(dirname(__DIR__));
-$prolog = $siteRoot . '/bitrix/modules/main/include/prolog_before.php';
-if (!is_file($prolog)) {
-    fwrite(STDERR, "BITRIX PROLOG NOT FOUND: {$prolog}\n");
-    exit(2);
-}
-require_once $prolog;
-require_once dirname(__DIR__) . '/maxsearchclass.php';
-require_once dirname(__DIR__) . '/handlers/TelegramWebhookHandler.php';
+$root = dirname(__DIR__);
+require_once $root . '/config.php';
+require_once $root . '/services/RuntimeBootstrap.php';
+
+RuntimeBootstrap::boot();
+require_once $root . '/maxsearchclass.php';
+require_once $root . '/handlers/TelegramWebhookHandler.php';
 
 $sent = [];
 $messenger = new TelegramMessengerAdapter(static function (string $method, array $payload) use (&$sent): bool {
