@@ -50,8 +50,22 @@ jobs:
             matches="$(printf '%s\n' "$raw" | grep -E '(^|[[:space:]])([^#[:space:]]*/)?(cron_followup\.php|metrika_queue\.php)([[:space:]]|$)' || true)"
             count="$(printf '%s\n' "$matches" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')"
             echo "${label}_BOT_CRON_COUNT=${count}"
-            # Paths/cadence are operational, but redact shell redirections/args after PHP filename.
             printf '%s\n' "$matches" | sed -E 's#(cron_followup\.php|metrika_queue\.php).*#\1#' | sed "s/^/${label}_BOT_CRON=/"
+            printf '%s\n' "$count" > "$RUNNER_TEMP/${label,,}_bot_cron_count"
           }
           inspect "$RUNNER_TEMP/prod_key" "$DEPLOY_USER@$DEPLOY_HOST" LEGACY
           inspect "$RUNNER_TEMP/standby_key" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" NEW
+
+          legacy="$(cat "$RUNNER_TEMP/legacy_bot_cron_count")"
+          new="$(cat "$RUNNER_TEMP/new_bot_cron_count")"
+          if (( legacy > 0 && new > 0 )); then
+            echo "BOT_CRON_OWNERSHIP=DUAL"
+            echo "Both hosts currently own bot cron work; do not enable another owner." >&2
+          elif (( legacy > 0 )); then
+            echo "BOT_CRON_OWNERSHIP=LEGACY_ONLY"
+          elif (( new > 0 )); then
+            echo "BOT_CRON_OWNERSHIP=NEW_ONLY"
+          else
+            echo "BOT_CRON_OWNERSHIP=NONE"
+            echo "No bot cron owner detected; follow-up/queue processing may be stopped." >&2
+          fi
