@@ -9,7 +9,7 @@ on:
         default: false
         type: boolean
       require_legacy_host_independence:
-        description: 'Require standby to have no dependency on the legacy anytour.online host'
+        description: 'Full old-host retirement only: require no dependency on legacy anytour.online; not required for bot cutover'
         required: true
         default: false
         type: boolean
@@ -123,6 +123,7 @@ jobs:
           print('standby_sha=' + standby_sha)
           print('lead_receiver_host=' + receiver_host)
           print('legacy_host_dependency=' + ('YES' if legacy_dependency else 'NO'))
+          print('legacy_host_retirement_ready=' + ('NO' if legacy_dependency else 'YES'))
           print('require_legacy_host_independence=' + ('YES' if require_legacy_independence else 'NO'))
           for dependency in legacy_values.get('LEGACY_DEPENDENCY', []):
               print('legacy_dependency=' + dependency)
@@ -139,8 +140,14 @@ jobs:
           print('require_data_match=' + ('YES' if require_match else 'NO'))
           if require_match and not all_equal:
               blockers.append('conversation_data_mismatch')
+
+          bot_cutover_ready = not blockers
+          print('BOT_CUTOVER_READY=' + ('YES' if bot_cutover_ready else 'NO'))
+          if legacy_dependency:
+              print('BOT_CUTOVER_LEGACY_BRIDGE=ALLOWED')
+
           if require_legacy_independence and legacy_dependency:
-              blockers.append('legacy_host_dependency')
+              blockers.append('legacy_host_dependency_for_full_retirement')
 
           if blockers:
               print('CUTOVER_PREFLIGHT_READY=NO')
@@ -155,4 +162,5 @@ jobs:
         shell: bash
         run: |
           echo "Preflight only reads code revision, standalone readiness, legacy-host dependency and conversation-store snapshots."
+          echo "A legacy lead bridge may remain for bot cutover; legacy-host independence is required only when retiring the old host."
           echo "It never freezes traffic, dumps/imports databases, changes webhooks, starts cron, or performs cutover."
