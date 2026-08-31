@@ -79,6 +79,13 @@ if (!in_array($mode, ['--add-new', '--activate-new', '--rollback-old', '--status
 
 if ($mode === '--add-new') {
     if ($newUrl !== $oldUrl) {
+        $before = urlsFromSubscriptions(subscriptions($api, $token));
+        // Shadow cutover is safe only while the legacy endpoint remains the live
+        // processor. Repair a missing legacy subscription before touching the
+        // new observation endpoint.
+        if (!in_array($oldUrl, $before, true)) {
+            createSubscription($api, $token, $oldUrl);
+        }
         deleteSubscription($api, $token, $newUrl);
         createSubscription($api, $token, $newUrl);
     }
