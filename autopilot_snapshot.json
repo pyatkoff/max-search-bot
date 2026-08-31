@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T08:29:52+00:00",
+    "generated_at": "2026-08-31T08:36:20+00:00",
     "production": {
-        "sha": "2b6c7c6687c0b26c249c0537c47e4574d623f003",
+        "sha": "52520ff356da14b4b9e3e0826d91efb19363093b",
         "branch": "main"
     },
     "migrations": {
@@ -141,9 +141,11 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 07:29:42",
+        "since_utc": "2026-08-31 07:36:07",
         "summary": {
             "sessions": 18,
+            "raw_sessions": 18,
+            "explicit_test_sessions": 0,
             "started": 18,
             "needs_collected": 1,
             "tours_opened": 1,
@@ -199,7 +201,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "2b6c7c6687c0b26c249c0537c47e4574d623f003",
+        "sha": "52520ff356da14b4b9e3e0826d91efb19363093b",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -208,7 +210,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T08:29:51Z"
+        "reported_at": "2026-08-31T08:36:20Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -224,6 +226,8 @@
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
             "sessions": 26,
+            "raw_sessions": 26,
+            "explicit_test_sessions": 0,
             "started": 26,
             "needs_collected": 1,
             "tours_opened": 1,
@@ -260,7 +264,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T08:29:51+00:00",
+        "generated_at": "2026-08-31T08:36:20+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -273,9 +277,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 123,
-                "bytes": 472876,
-                "code_lines": 10139
+                "files": 124,
+                "bytes": 473926,
+                "code_lines": 10170
             },
             "integrations": {
                 "files": 8,
@@ -304,13 +308,13 @@
             },
             "tests": {
                 "files": 152,
-                "bytes": 577030,
-                "code_lines": 7321
+                "bytes": 578199,
+                "code_lines": 7327
             },
             "tools": {
-                "files": 23,
-                "bytes": 84271,
-                "code_lines": 1355
+                "files": 24,
+                "bytes": 85487,
+                "code_lines": 1388
             }
         },
         "hotspots": [
@@ -358,8 +362,8 @@
             },
             {
                 "path": "tools/live_session_snapshot.php",
-                "lines": 193,
-                "bytes": 8301,
+                "lines": 196,
+                "bytes": 8588,
                 "severity": "observe"
             },
             {
