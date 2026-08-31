@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/DestinationCatalogRepository.php';
+
 class DestinationResolver
 {
     private static $countryHL = 2;
@@ -213,5 +215,5 @@ class DestinationResolver
     private static function tokens($text){$norm=self::norm($text);$parts=preg_split('/\s+/u',$norm,-1,PREG_SPLIT_NO_EMPTY);$stop=['хочу','хотим','нужен','нужна','нужно','отель','гостиница','тур','путевка','путёвка','поехать','ехать','лететь','вылет','на','в','из','и','или','для','с','со','около','район','курорт'];return array_values(array_filter((array)$parts,static function($p)use($stop){return !in_array($p,$stop,true)&&mb_strlen($p,'UTF-8')>=2;}));}
     private static function norm($text){$s=function_exists('mb_strtolower')?mb_strtolower((string)$text,'UTF-8'):strtolower((string)$text);$s=str_replace('ё','е',$s);$s=preg_replace('/[^a-zа-я0-9]+/ui',' ',$s);return trim(preg_replace('/\s+/u',' ',$s));}
     private static function allRows($hlId,array $select){return self::query($hlId,[],$select,500);}
-    private static function query($hlId,array $filter,array $select,$limit=20){try{\Bitrix\Main\Loader::includeModule('highloadblock');$hlblock=\Bitrix\Highloadblock\HighloadBlockTable::getById((int)$hlId)->fetch();if(!$hlblock)return [];$entity=\Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);$class=$entity->getDataClass();$res=$class::getList(['filter'=>$filter,'select'=>$select,'limit'=>(int)$limit]);$rows=[];while($row=$res->fetch())$rows[]=$row;return $rows;}catch(\Throwable $e){@file_put_contents(dirname(__DIR__).'/destination_errors.log',date('d.m.Y H:i:s').'--- '.$e->getMessage().PHP_EOL,FILE_APPEND|LOCK_EX);return [];}}
+    private static function query($hlId,array $filter,array $select,$limit=20){try{return DestinationCatalogRepository::query((int)$hlId,$filter,$select,(int)$limit);}catch(\Throwable $e){@file_put_contents(dirname(__DIR__).'/destination_errors.log',date('d.m.Y H:i:s').'--- '.$e->getMessage().PHP_EOL,FILE_APPEND|LOCK_EX);return [];}}
 }
