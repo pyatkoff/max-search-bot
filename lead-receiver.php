@@ -19,6 +19,7 @@ function lead_receiver_out(array $data, int $status = 200): void
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/BitrixLeadDeliveryGateway.php';
 require_once __DIR__ . '/services/ProjectMarkerService.php';
+require_once __DIR__ . '/services/LeadBridgeConfig.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     lead_receiver_out(['ok' => true, 'receiver' => 'max-search-hmac-bitrix-lead', 'writes' => true]);
@@ -29,7 +30,7 @@ if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > MAX_SEARCH_LEAD_RECEIVER_MAX_BODY) 
 
 $raw = (string) file_get_contents('php://input');
 if ($raw === '' || strlen($raw) > MAX_SEARCH_LEAD_RECEIVER_MAX_BODY) lead_receiver_out(['ok' => false, 'error' => 'Invalid request body'], 400);
-$secret = defined('MAX_SEARCH_LEAD_BRIDGE_SECRET') ? trim((string) MAX_SEARCH_LEAD_BRIDGE_SECRET) : '';
+$secret = LeadBridgeConfig::secret();
 if ($secret === '') lead_receiver_out(['ok' => false, 'error' => 'Lead receiver is not configured'], 503);
 $signature = trim((string)($_SERVER['HTTP_X_MAX_SEARCH_SIGNATURE'] ?? ''));
 $expected = hash_hmac('sha256', $raw, $secret);
@@ -41,9 +42,6 @@ if (!$element || empty($element['IBLOCK_ID']) || empty($element['PROPERTY_VALUES
     lead_receiver_out(['ok' => false, 'error' => 'Invalid lead payload'], 422);
 }
 
-// The legacy Bitrix host remains authoritative for the existing project marker.
-// This mirrors the proven tour-search bridge pattern and avoids teaching the
-// standalone runtime about a Bitrix/site-specific business setting.
 $currentMarker = $element['PROPERTY_VALUES']['IS_ANYTOUR_ONLINE'] ?? null;
 if ($currentMarker === null || $currentMarker === '') {
     $legacyMarker = ProjectMarkerService::anytourOnline();
@@ -52,7 +50,6 @@ if ($currentMarker === null || $currentMarker === '') {
     }
 }
 
-// Bound replay/transport retries without changing business payload semantics.
 $key = hash('sha256', $raw);
 $dir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'max-search-lead-receiver';
 if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) lead_receiver_out(['ok' => false, 'error' => 'Idempotency storage unavailable'], 500);
