@@ -42,7 +42,7 @@ class ManagerConversationService
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);$isAdmin=ManagerAuthService::isAdmin($manager);
-        $limit=max(1,min(200,$limit));$where=[];$args=[];
+        $limit=max(1,min(200,$limit));$where=['c.is_test=0'];$args=[];
         if($projectKey==='*' || trim($projectKey)===''){
             $projects=ProjectAccessService::projectsForManager($managerId);
             $keys=array_values(array_filter(array_map(static function($p){return (string)($p['project_key']??'');},$projects)));
