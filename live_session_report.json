@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T21:05:01+00:00",
+    "generated_at": "2026-08-31T21:18:08+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 2,
-        "raw_sessions": 2,
+        "sessions": 3,
+        "raw_sessions": 3,
         "explicit_test_sessions": 0,
-        "started": 2,
-        "needs_collected": 2,
-        "tours_opened": 2,
+        "started": 3,
+        "needs_collected": 3,
+        "tours_opened": 3,
         "manager_requested": 1,
         "manager_replied": 1,
         "phone_received": 0,
@@ -25,8 +25,8 @@
             "max_seconds": 52322
         },
         "drop_points": {
-            "manager_replied": 1,
-            "tours_opened": 1
+            "tours_opened": 2,
+            "manager_replied": 1
         },
         "flags": {
             "repeated_callback_input": 1
@@ -236,7 +236,35 @@
                     "created_at": "2026-08-31 22:45:03"
                 }
             ]
+        },
+        {
+            "conversation_id": 656,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 7,
+            "outbound_messages": 3,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 7,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-31 23:12:14",
+            "last_message_at": "2026-08-31 23:14:46"
         }
     ],
-    "since_utc": "2026-08-31 20:05:01"
+    "since_utc": "2026-08-31 20:18:08"
 }

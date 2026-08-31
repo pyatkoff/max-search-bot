@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T21:04:58+00:00",
+    "generated_at": "2026-08-31T21:18:05+00:00",
     "production": {
-        "sha": "a649870b0596f91e9bb4d8a6067b78224d5a4c13",
+        "sha": "d80d0c36484917d9417614310e2239f657cf7fd0",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.29999999999999999
+        "latency_ms": 5.4000000000000004
     },
     "migrations": [
         {
@@ -195,10 +195,10 @@
         }
     ],
     "stats": {
-        "customers": 653,
-        "customer_channels": 653,
-        "conversations": 655,
-        "messages": 16993,
+        "customers": 654,
+        "customer_channels": 654,
+        "conversations": 656,
+        "messages": 17003,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -1158,7 +1158,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 522
+            "count": 523
         },
         {
             "project_key": "anytour",
@@ -1482,6 +1482,96 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 17003,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-08-31 23:14:46"
+        },
+        {
+            "id": 17002,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-08-31 23:14:45"
+        },
+        {
+            "id": 17001,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "21.02.2027",
+            "created_at": "2026-08-31 23:14:23"
+        },
+        {
+            "id": 17000,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "8",
+            "created_at": "2026-08-31 23:13:57"
+        },
+        {
+            "id": 16999,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "4",
+            "created_at": "2026-08-31 23:13:47"
+        },
+        {
+            "id": 16998,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Хотим из Москвы во Вьетнам февраль 2 взрослых все включено",
+            "created_at": "2026-08-31 23:13:28"
+        },
+        {
+            "id": 16997,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-08-31 23:12:38"
+        },
+        {
+            "id": 16996,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-08-31 23:12:37"
+        },
+        {
+            "id": 16995,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-08-31 23:12:14"
+        },
+        {
+            "id": 16994,
+            "conversation_id": 656,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-08-31 23:12:14"
+        },
         {
             "id": 16993,
             "conversation_id": 655,
@@ -1931,96 +2021,6 @@
             "channel": "max",
             "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
             "created_at": "2026-08-31 15:04:09"
-        },
-        {
-            "id": 16943,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "ai_start",
-            "created_at": "2026-08-31 15:04:09"
-        },
-        {
-            "id": 16942,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Китай",
-            "created_at": "2026-08-31 15:03:34"
-        },
-        {
-            "id": 16941,
-            "conversation_id": 653,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
-            "created_at": "2026-08-31 15:03:27"
-        },
-        {
-            "id": 16940,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_other",
-            "created_at": "2026-08-31 15:03:26"
-        },
-        {
-            "id": 16939,
-            "conversation_id": 653,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-31 15:03:17"
-        },
-        {
-            "id": 16938,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "back_pick_country",
-            "created_at": "2026-08-31 15:03:17"
-        },
-        {
-            "id": 16937,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Китай",
-            "created_at": "2026-08-31 15:02:49"
-        },
-        {
-            "id": 16936,
-            "conversation_id": 653,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
-            "created_at": "2026-08-31 15:02:38"
-        },
-        {
-            "id": 16935,
-            "conversation_id": 653,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_other",
-            "created_at": "2026-08-31 15:02:38"
-        },
-        {
-            "id": 16934,
-            "conversation_id": 653,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-08-31 15:02:30"
         }
     ],
     "recent_events": [
