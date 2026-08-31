@@ -4,6 +4,10 @@
   function roundedHour(from){const d=new Date(from.getTime());d.setSeconds(0,0);d.setMinutes(0);d.setHours(d.getHours()+1);return d}
   function todayAt(from,hour){const d=new Date(from.getTime());d.setHours(hour,0,0,0);if(d<=from)d.setDate(d.getDate()+1);return d}
   function tomorrowAt(from,hour){const d=new Date(from.getTime());d.setDate(d.getDate()+1);d.setHours(hour,0,0,0);return d}
+  function sameLocalDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+  function eveningLabel(now=new Date()){
+    return sameLocalDay(todayAt(now,18),now)?'Сегодня 18:00':'Завтра 18:00';
+  }
   function dateForPreset(preset,now=new Date()){
     if(preset==='hour')return roundedHour(now);
     if(preset==='evening')return todayAt(now,18);
@@ -17,8 +21,8 @@
     input.dispatchEvent(new Event('change',{bubbles:true}));
     return true;
   }
-  function markup(){
-    return `<div class="taskDuePresets" role="group" aria-label="Быстро выбрать срок"><button type="button" data-due-preset="hour">Через час</button><button type="button" data-due-preset="evening">Сегодня 18:00</button><button type="button" data-due-preset="tomorrow">Завтра 10:00</button></div>`;
+  function markup(now=new Date()){
+    return `<div class="taskDuePresets" role="group" aria-label="Быстро выбрать срок"><button type="button" data-due-preset="hour">Через час</button><button type="button" data-due-preset="evening">${eveningLabel(now)}</button><button type="button" data-due-preset="tomorrow">Завтра 10:00</button></div>`;
   }
   function enhance(form,input){
     if(!form||!input||form.querySelector('.taskDuePresets'))return;
@@ -40,5 +44,5 @@
   }
   const observer=new MutationObserver(mutations=>mutations.forEach(m=>m.addedNodes.forEach(node=>{if(node.nodeType===1)enhanceAll(node.closest?.('#leadTasksBody')||node)})));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-  window.WorkspaceV2TaskPresets={dateForPreset,localInputValue,apply,enhanceAll};
+  window.WorkspaceV2TaskPresets={dateForPreset,localInputValue,eveningLabel,apply,enhanceAll};
 })();
