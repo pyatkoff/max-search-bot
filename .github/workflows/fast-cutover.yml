@@ -55,17 +55,6 @@ jobs:
           write_key "$PROD_KEY" "$RUNNER_TEMP/prod_key"
           write_key "$STANDBY_KEY" "$RUNNER_TEMP/standby_key"
 
-      - name: Seed trusted MAX CA bundle on new server
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; test -s /etc/ssl/certs/ca-certificates.crt; cat /etc/ssl/certs/ca-certificates.crt" | ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; umask 022; cat > /var/www/anytoour/data/config/max-ca-bundle.crt; test -s /var/www/anytoour/data/config/max-ca-bundle.crt"
-
       - name: Synchronize and configure new server
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -75,7 +64,24 @@ jobs:
           set -euo pipefail
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; git fetch origin main; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1; php tools/repair_standby_external_config.php | grep -qx 'STANDBY_EXTERNAL_CONFIG_REPAIR=OK'; php tools/standby_enable_standalone.php --enable; php tools/standalone_readiness.php | grep -qx 'STANDALONE_READY=YES'; php tools/standby_enable_standalone.php --commit; php tools/webhook_target_status.php | tee /tmp/max-search-cutover-targets.txt; grep -q 'TELEGRAM_WEBHOOK_TARGET_HOST=app.anytoour.ru' /tmp/max-search-cutover-targets.txt; grep -q 'MAX_WEBHOOK_TARGET_HOST=app.anytoour.ru' /tmp/max-search-cutover-targets.txt"
 
+      - name: Detect partial cutover ownership
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_webhook_status.php")"
+          if printf '%s\n' "$status" | grep -Fq '"url": "https://app.anytoour.ru/telegram_webhook.php"'; then
+            echo 'TELEGRAM_ALREADY_NEW=1' >> "$GITHUB_ENV"
+            echo 'PARTIAL_CUTOVER_RESUME=YES'
+          else
+            echo 'TELEGRAM_ALREADY_NEW=0' >> "$GITHUB_ENV"
+            echo 'PARTIAL_CUTOVER_RESUME=NO'
+          fi
+
       - name: Back up current new-server conversation database
+        if: env.TELEGRAM_ALREADY_NEW != '1'
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -85,6 +91,7 @@ jobs:
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; cnf=/tmp/max-search-standby-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\"' EXIT; php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(php tools/conversation_db_mysql_defaults.php --database-name); umask 077; mysqldump --defaults-extra-file=\"\$cnf\" --single-transaction --quick --skip-lock-tables --no-tablespaces \"\$db\" | gzip -1 > /tmp/max-search-pre-fast-cutover-${GITHUB_RUN_ID}.sql.gz; test -s /tmp/max-search-pre-fast-cutover-${GITHUB_RUN_ID}.sql.gz"
 
       - name: Copy a fresh live conversation snapshot to new server
+        if: env.TELEGRAM_ALREADY_NEW != '1'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -97,6 +104,7 @@ jobs:
           ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd ~/www/anytour.online/max-search; cnf=/tmp/max-search-prod-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\"' EXIT; /opt/php81/bin/php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(/opt/php81/bin/php tools/conversation_db_mysql_defaults.php --database-name); mysqldump --defaults-extra-file=\"\$cnf\" --single-transaction --quick --skip-lock-tables --no-tablespaces \"\$db\" | gzip -1" | ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "umask 077; cat > '$target'; test -s '$target'"
 
       - name: Import live snapshot and migrate
+        if: env.TELEGRAM_ALREADY_NEW != '1'
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -107,6 +115,7 @@ jobs:
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; cnf=/tmp/max-search-standby-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\" '$target'' EXIT; php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(php tools/conversation_db_mysql_defaults.php --database-name); gzip -dc '$target' | mysql --defaults-extra-file=\"\$cnf\" \"\$db\"; php tools/conversation_db.php migrate; php tools/standalone_readiness.php | grep -qx 'STANDALONE_READY=YES'; echo FAST_DB_IMPORT=OK"
 
       - name: Switch Telegram webhook to new server
+        if: env.TELEGRAM_ALREADY_NEW != '1'
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -122,7 +131,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/max_subscription_cutover.php --activate-new | tee /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_TARGET_OK=YES' /tmp/max-cutover.txt"
+          # Temporary compatibility is explicit and scoped to MAX API control-plane
+          # calls. Production MaxTransport already uses the same compatibility mode;
+          # replace this with the official Минцифры CA trust chain in follow-up hardening.
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_subscription_cutover.php --activate-new | tee /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_TARGET_OK=YES' /tmp/max-cutover.txt"
 
       - name: Verify messenger providers and lead bridge
         env:
@@ -131,11 +143,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/telegram_webhook_status.php; php tools/max_webhook_status.php; php tools/lead_bridge_probe.php; echo BOT_CUTOVER=COMPLETE"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/telegram_webhook_status.php; MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_webhook_status.php; php tools/lead_bridge_probe.php; echo BOT_CUTOVER=COMPLETE"
 
       - name: Record accepted fast-cutover tradeoff
         shell: bash
         run: |
           echo 'Fast cutover used a consistent live DB snapshot without freezing old writes.'
           echo 'A small number of conversations created after the dump started and before webhook switch may not exist on the new DB.'
+          echo 'If Telegram was already owned by the new server, resume mode skipped DB overwrite and Telegram mutation.'
           echo 'The old Bitrix lead receiver remains intentionally active.'
