@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T10:05:26+00:00",
+    "generated_at": "2026-08-31T10:08:33+00:00",
     "production": {
-        "sha": "d9d60d64084b247d1e85019311b0ca3ee17496dd",
+        "sha": "ddd98bfd0c250c263167bb359ca383c11447a379",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -188,10 +188,10 @@
         }
     ],
     "stats": {
-        "customers": 646,
-        "customer_channels": 646,
-        "conversations": 648,
-        "messages": 16718,
+        "customers": 647,
+        "customer_channels": 647,
+        "conversations": 649,
+        "messages": 16720,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 946,
@@ -300,7 +300,7 @@
             "all": 200,
             "mine": 2,
             "waiting": 7,
-            "assigned_to_others": 19
+            "assigned_to_others": 18
         },
         {
             "manager_id": 3,
@@ -310,7 +310,7 @@
             "all": 200,
             "mine": 0,
             "waiting": 7,
-            "assigned_to_others": 20
+            "assigned_to_others": 19
         },
         {
             "manager_id": 4,
@@ -1124,7 +1124,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 516
+            "count": 517
         },
         {
             "project_key": "anytour",
@@ -1448,6 +1448,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 16720,
+            "conversation_id": 649,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-08-31 12:06:26"
+        },
+        {
+            "id": 16719,
+            "conversation_id": 649,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-08-31 12:06:26"
+        },
         {
             "id": 16718,
             "conversation_id": 648,
@@ -1969,24 +1987,6 @@
             "channel": "max",
             "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
             "created_at": "2026-08-31 11:31:55"
-        },
-        {
-            "id": 16660,
-            "conversation_id": 647,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_12_14",
-            "created_at": "2026-08-31 11:31:54"
-        },
-        {
-            "id": 16659,
-            "conversation_id": 647,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-08-31 11:31:49"
         }
     ],
     "recent_events": [
