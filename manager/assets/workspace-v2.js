@@ -65,11 +65,11 @@ function applyIdentity(me){
 async function loadCatalog(){
   const cat=await pipe('catalog').catch(()=>null);
   if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
-  window.WorkspaceV2Pipeline?.renderFilters();
+  window.WorkspaceV2Filters?.render();
 }
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
-  window.WorkspaceV2Pipeline?.bindFilters();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();
+  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();
   S.workspaceBound=true;
 }
 async function resumeAuthenticated(me){
