@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T12:32:05+00:00",
+    "generated_at": "2026-08-31T12:34:53+00:00",
     "production": {
-        "sha": "8732d82c6cf5b7016748c6bb18ea049f062d9d05",
+        "sha": "4346330680bdb9ee754159e74d713168b55632de",
         "branch": "main"
     },
     "database": {
@@ -191,7 +191,7 @@
         "customers": 650,
         "customer_channels": 650,
         "conversations": 652,
-        "messages": 16902,
+        "messages": 16903,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -1476,6 +1476,15 @@
     ],
     "recent_messages": [
         {
+            "id": 16903,
+            "conversation_id": 648,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_14.09.2026",
+            "created_at": "2026-08-31 14:34:43"
+        },
+        {
             "id": 16902,
             "conversation_id": 652,
             "direction": "outbound",
@@ -2004,15 +2013,6 @@
             "sender_type": "ai",
             "channel": "telegram",
             "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-08-31 13:58:52"
-        },
-        {
-            "id": 16843,
-            "conversation_id": 652,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "telegram",
-            "text": "/start tg_anytour_msk",
             "created_at": "2026-08-31 13:58:52"
         }
     ],
