@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T13:27:25+00:00",
+    "generated_at": "2026-08-31T13:41:47+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 34,
-        "raw_sessions": 34,
+        "sessions": 35,
+        "raw_sessions": 35,
         "explicit_test_sessions": 0,
-        "started": 34,
-        "needs_collected": 2,
-        "tours_opened": 2,
+        "started": 35,
+        "needs_collected": 3,
+        "tours_opened": 3,
         "manager_requested": 2,
         "manager_replied": 2,
         "phone_received": 0,
@@ -27,7 +27,7 @@
         "drop_points": {
             "collecting_needs": 31,
             "manager_replied": 2,
-            "tours_opened": 1
+            "tours_opened": 2
         },
         "flags": {
             "repeated_callback_input": 14,
@@ -3188,6 +3188,34 @@
             "flags": [],
             "started_at": "2026-08-31 15:02:25",
             "last_message_at": "2026-08-31 15:04:51"
+        },
+        {
+            "conversation_id": 298,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 9,
+            "outbound_messages": 9,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 1,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-26 10:35:22",
+            "last_message_at": "2026-08-31 15:40:26"
         }
     ],
     "local_date": "2026-08-31",
