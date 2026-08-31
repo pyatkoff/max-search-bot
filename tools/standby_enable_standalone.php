@@ -67,13 +67,32 @@ foreach ($targets as $name => $value) {
         $definesWithConst = preg_match('/^\s*const\s+' . $namePattern . '\s*=/', $line) === 1;
         return !(($mentionsQuotedTarget && $definesWithFunction) || ($mentionsBareTarget && $definesWithConst));
     }));
-    $lines[] = "define('{$name}', {$value});";
 }
+
+$insertAt = count($lines);
+for ($i = count($lines) - 1; $i >= 0; --$i) {
+    if (trim($lines[$i]) === '?>') {
+        $insertAt = $i;
+        break;
+    }
+}
+$overrideLines = [];
+foreach ($targets as $name => $value) {
+    $overrideLines[] = "define('{$name}', {$value});";
+}
+array_splice($lines, $insertAt, 0, $overrideLines);
 $source = rtrim(implode(PHP_EOL, $lines)) . PHP_EOL;
 
 $tmp = $config . '.standby-tmp-' . getmypid();
 if (file_put_contents($tmp, $source) === false) { @unlink($backup); fwrite(STDERR, "Unable to write standby config temp file\n"); exit(2); }
 @chmod($tmp, fileperms($config) & 0777);
+$lint = [];
+$lintCode = 0;
+exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($tmp) . ' 2>&1', $lint, $lintCode);
+if ($lintCode !== 0) {
+    @unlink($tmp); @unlink($backup);
+    fwrite(STDERR, "Generated standby config failed PHP lint\n" . implode("\n", $lint) . "\n"); exit(2);
+}
 if (!rename($tmp, $config)) { @unlink($tmp); @unlink($backup); fwrite(STDERR, "Unable to atomically replace standby config\n"); exit(2); }
 
 echo "STANDBY_MODE_SWITCH=OK\n";
