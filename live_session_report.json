@@ -1,15 +1,15 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T15:52:06+00:00",
+    "generated_at": "2026-08-31T16:23:32+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 2,
-        "raw_sessions": 2,
+        "sessions": 1,
+        "raw_sessions": 1,
         "explicit_test_sessions": 0,
-        "started": 2,
+        "started": 1,
         "needs_collected": 1,
         "tours_opened": 1,
         "manager_requested": 0,
@@ -25,40 +25,11 @@
             "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 1,
             "tours_opened": 1
         },
         "flags": []
     },
     "sessions": [
-        {
-            "conversation_id": 653,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 9,
-            "outbound_messages": 7,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-08-31 15:02:25",
-            "last_message_at": "2026-08-31 15:04:51"
-        },
         {
             "conversation_id": 298,
             "project_key": "anytour",
@@ -88,5 +59,5 @@
             "last_message_at": "2026-08-31 15:40:26"
         }
     ],
-    "since_utc": "2026-08-31 14:52:06"
+    "since_utc": "2026-08-31 15:23:32"
 }
