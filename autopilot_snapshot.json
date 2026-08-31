@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T12:35:09+00:00",
+    "generated_at": "2026-08-31T13:03:33+00:00",
     "production": {
-        "sha": "4346330680bdb9ee754159e74d713168b55632de",
+        "sha": "bf839b649c92a338bbf1d12b7dd94f77ae34df3f",
         "branch": "main"
     },
     "migrations": {
@@ -141,18 +141,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 11:34:56",
+        "since_utc": "2026-08-31 12:03:25",
         "summary": {
-            "sessions": 5,
-            "raw_sessions": 5,
+            "sessions": 7,
+            "raw_sessions": 7,
             "explicit_test_sessions": 0,
-            "started": 5,
+            "started": 7,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
             "manager_replied": 1,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 0,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 1,
@@ -162,37 +162,19 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 4,
+                "collecting_needs": 6,
                 "manager_replied": 1
             },
-            "flags": {
-                "rapid_date_reselection": 1,
-                "repeated_callback_input": 1,
-                "repeated_same_input": 1,
-                "excessive_turns": 1
-            }
+            "flags": []
         },
-        "flagged_sessions": [
-            {
-                "conversation_id": 651,
-                "flags": [
-                    "rapid_date_reselection",
-                    "repeated_callback_input",
-                    "repeated_same_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "collecting_needs",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            }
-        ]
+        "flagged_sessions": []
     },
     "website": {
         "ok": true,
         "summary": []
     },
     "ops": {
-        "sha": "4346330680bdb9ee754159e74d713168b55632de",
+        "sha": "bf839b649c92a338bbf1d12b7dd94f77ae34df3f",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -201,7 +183,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T12:35:09Z"
+        "reported_at": "2026-08-31T13:03:33Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -216,10 +198,10 @@
         "window_hours": null,
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
-            "sessions": 32,
-            "raw_sessions": 32,
+            "sessions": 34,
+            "raw_sessions": 34,
             "explicit_test_sessions": 0,
-            "started": 32,
+            "started": 34,
             "needs_collected": 2,
             "tours_opened": 2,
             "manager_requested": 2,
@@ -235,7 +217,7 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 29,
+                "collecting_needs": 31,
                 "manager_replied": 2,
                 "tours_opened": 1
             },
@@ -246,7 +228,7 @@
                 "repeated_same_input": 2
             },
             "calendar_day": {
-                "conversations_started": 29,
+                "conversations_started": 30,
                 "needs_collected_from_started": 0,
                 "tours_opened_from_started": 0,
                 "manager_requested": 0,
@@ -255,7 +237,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T12:35:09+00:00",
+        "generated_at": "2026-08-31T13:03:33+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -299,13 +281,13 @@
             },
             "tests": {
                 "files": 159,
-                "bytes": 605935,
-                "code_lines": 7726
+                "bytes": 608287,
+                "code_lines": 7782
             },
             "tools": {
-                "files": 32,
-                "bytes": 95252,
-                "code_lines": 1664
+                "files": 33,
+                "bytes": 100057,
+                "code_lines": 1776
             }
         },
         "hotspots": [
