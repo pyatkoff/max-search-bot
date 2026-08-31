@@ -30,6 +30,10 @@ class CallbackController
             return EditCallbackAction::handle($chatId, $q);
         }
         if (WizardCallbackAction::handles($q)) {
+            if (strpos($q, 'back_') === 0
+                && InteractionGuard::suppressDuplicateCallback($chatId, $q, 'wizard_back')) {
+                return true;
+            }
             return WizardCallbackAction::handle($chatId, $q);
         }
 
