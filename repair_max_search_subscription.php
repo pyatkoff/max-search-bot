@@ -1,12 +1,11 @@
 <?php
 require_once(__DIR__ . '/config.php');
+require_once __DIR__ . '/services/WebhookTargetConfig.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
 $token = defined('MAX_SEARCH_TOKEN') ? MAX_SEARCH_TOKEN : '';
-$webhookUrl = (defined('MAX_SEARCH_WEBHOOK_URL') && MAX_SEARCH_WEBHOOK_URL !== '')
-    ? MAX_SEARCH_WEBHOOK_URL
-    : 'https://anytour.online/max-search/webhook.php';
+$webhookUrl = WebhookTargetConfig::max();
 $api = 'https://platform-api2.max.ru';
 
 if ($token === '') {
