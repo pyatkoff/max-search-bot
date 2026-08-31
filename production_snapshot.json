@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T18:10:54+00:00",
+    "generated_at": "2026-08-31T19:12:01+00:00",
     "production": {
-        "sha": "f3dba537b710b1ad21388cfb34e4fe37cd8f83f0",
+        "sha": "2e067da3d808454aab5665972c047cb1c265477b",
         "branch": "main"
     },
     "database": {
@@ -122,6 +122,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-28 08:09:11"
+        },
+        {
+            "version": "017_lead_task_reminders.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-31 21:11:54"
         },
         {
             "version": "017_website_page_context.sql",
