@@ -30,11 +30,19 @@ class ProjectConfig
 
     public static function baseDomain(): string
     {
+        if (defined('MAX_SEARCH_PUBLIC_BASE_URL')) {
+            $override = trim((string)MAX_SEARCH_PUBLIC_BASE_URL);
+            if ($override !== '') return rtrim($override, '/');
+        }
         return rtrim((string)self::get('search.base_domain', ''), '/');
     }
 
     public static function trackingBaseDomain(): string
     {
+        if (defined('MAX_SEARCH_TRACKING_BASE_URL')) {
+            $override = trim((string)MAX_SEARCH_TRACKING_BASE_URL);
+            if ($override !== '') return rtrim($override, '/');
+        }
         return rtrim((string)self::get('search.tracking_base_domain', self::baseDomain()), '/');
     }
 
