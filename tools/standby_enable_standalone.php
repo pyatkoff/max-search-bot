@@ -58,14 +58,14 @@ $targets = [
 ];
 
 $lines = preg_split('/\R/', $source) ?: [];
-foreach ($targets as $name => $value) {
+foreach ($targets as $name => $_value) {
     $namePattern = preg_quote($name, '/');
-    // Cutover keys are deployment-owned. Remove every pre-existing config line
-    // that mentions the exact key (legacy define/const/guard/assignment forms),
-    // then append one canonical definition. This avoids stale legacy values
-    // winning PHP's first-definition semantics.
+    // Remove only complete direct definitions. Never delete structural guard/if
+    // lines simply because they reference a deployment-owned key.
     $lines = array_values(array_filter($lines, static function (string $line) use ($namePattern): bool {
-        return preg_match('/\b' . $namePattern . '\b/', $line) !== 1;
+        $define = preg_match('/^\s*define\s*\(\s*[\'\"]' . $namePattern . '[\'\"]\s*,.*\)\s*;\s*$/', $line) === 1;
+        $const = preg_match('/^\s*const\s+' . $namePattern . '\s*=.*;\s*$/', $line) === 1;
+        return !($define || $const);
     }));
 }
 
