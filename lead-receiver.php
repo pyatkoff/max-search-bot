@@ -18,6 +18,7 @@ function lead_receiver_out(array $data, int $status = 200): void
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/BitrixLeadDeliveryGateway.php';
+require_once __DIR__ . '/services/ProjectMarkerService.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     lead_receiver_out(['ok' => true, 'receiver' => 'max-search-hmac-bitrix-lead', 'writes' => true]);
@@ -38,6 +39,17 @@ $data = json_decode($raw, true);
 $element = is_array($data) && isset($data['element']) && is_array($data['element']) ? $data['element'] : null;
 if (!$element || empty($element['IBLOCK_ID']) || empty($element['PROPERTY_VALUES']) || !is_array($element['PROPERTY_VALUES'])) {
     lead_receiver_out(['ok' => false, 'error' => 'Invalid lead payload'], 422);
+}
+
+// The legacy Bitrix host remains authoritative for the existing project marker.
+// This mirrors the proven tour-search bridge pattern and avoids teaching the
+// standalone runtime about a Bitrix/site-specific business setting.
+$currentMarker = $element['PROPERTY_VALUES']['IS_ANYTOUR_ONLINE'] ?? null;
+if ($currentMarker === null || $currentMarker === '') {
+    $legacyMarker = ProjectMarkerService::anytourOnline();
+    if ($legacyMarker !== null && $legacyMarker !== '') {
+        $element['PROPERTY_VALUES']['IS_ANYTOUR_ONLINE'] = $legacyMarker;
+    }
 }
 
 // Bound replay/transport retries without changing business payload semantics.
