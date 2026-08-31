@@ -1,6 +1,10 @@
 name: Cutover DB sync readiness
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cutover-db-sync-readiness.yml'
   workflow_dispatch:
 
 permissions:
