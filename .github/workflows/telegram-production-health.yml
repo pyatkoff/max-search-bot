@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Prepare SSH private key
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -25,18 +25,39 @@ jobs:
             if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
           else
             decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
-            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "DEPLOY_SSH_KEY is invalid"; exit 1; }
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "STANDBY_DEPLOY_SSH_KEY is invalid"; exit 1; }
             printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
           fi
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Inspect Telegram bot and webhook without mutation
+      - name: Wait for exact active-server SHA
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+          for attempt in $(seq 1 30); do
+            deployed_sha="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
+            if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              echo "Active server SHA verified: $deployed_sha"
+              exit 0
+            fi
+            echo "Waiting for active-server SHA $EXPECTED_SHA (current: ${deployed_sha:-unavailable}, attempt $attempt/30)"
+            sleep 5
+          done
+          echo "Active server did not reach expected SHA" >&2
+          exit 1
+
+      - name: Inspect Telegram webhook and exercise real controller smoke
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/telegram_webhook_status.php'
+            'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/telegram_webhook_status.php | tee /tmp/telegram-active-health.json; grep -Fq '"url": "https://app.anytoour.ru/telegram_webhook.php"' /tmp/telegram-active-health.json; grep -Fq '"pending_update_count": 0' /tmp/telegram-active-health.json; php tools/telegram_start_smoke.php | tee /tmp/telegram-start-smoke.txt; grep -Fq "TELEGRAM START SMOKE: OK" /tmp/telegram-start-smoke.txt'
