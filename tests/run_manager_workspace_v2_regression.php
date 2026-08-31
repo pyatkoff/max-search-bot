@@ -5,6 +5,7 @@ require_once dirname(__DIR__).'/services/ManagerLeadInboxService.php';
 $root=dirname(__DIR__);
 $workspace=(string)file_get_contents($root.'/manager/index.php');
 $workspaceCss=(string)file_get_contents($root.'/manager/assets/workspace-v2.css');
+$inboxCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
 $coreJs=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $pipelineJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
@@ -13,7 +14,7 @@ $conversationJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-co
 $mediaJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.js');
 $mediaCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.css');
 $workspaceJs=$coreJs."\n".$inboxJs."\n".$pipelineJs."\n".$leadCardJs."\n".$conversationJs;
-$ui=$workspace."\n".$workspaceCss."\n".$workspaceJs."\n".$mediaJs."\n".$mediaCss;
+$ui=$workspace."\n".$workspaceCss."\n".$inboxCss."\n".$workspaceJs."\n".$mediaJs."\n".$mediaCss;
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');$mediaApi=(string)file_get_contents($root.'/manager/media-upload.php');$managerHttp=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');$conversations=(string)file_get_contents($root.'/services/ManagerConversationService.php');$pipeline=(string)file_get_contents($root.'/services/SalesPipelineService.php');$inbox=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');$context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');$passed=0;$failed=0;
 function mw2Check(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 function mw2AssetLoaded(string $html,string $asset):bool{$file=basename($asset);return strpos($html,$asset)!==false||strpos($html,"workspaceAsset('{$file}')")!==false;}
@@ -27,6 +28,7 @@ mw2Check('lead card keeps contact source and handoff outside transcript',strpos(
 mw2Check('workspace exposes sales stage tags and outcome independently',strpos($ui,'id="leadStage"')!==false&&strpos($ui,'id="leadTags"')!==false&&strpos($ui,'id="leadOutcome"')!==false&&strpos($ui,"pipe('set_stage'")!==false&&strpos($ui,"pipe('set_tags'")!==false&&strpos($ui,"pipe('set_outcome'")!==false);
 mw2Check('workspace has lead-centric inbox filters',strpos($ui,'id="leadStageFilter"')!==false&&strpos($ui,'id="leadTagFilter"')!==false&&strpos($ui,'id="leadOutcomeFilter"')!==false&&strpos($ui,'id="leadSearch"')!==false&&strpos($ui,'lead_outcome:S.leadOutcomeFilter')!==false&&strpos($ui,'search:S.leadSearch')!==false);
 mw2Check('workspace list shows prioritized lead-centric metadata',strpos($ui,'c.lead_stage?.display_name')!==false&&strpos($ui,'c.lead_outcome')!==false&&strpos($ui,'c.trip_summary')!==false&&strpos($ui,'c.unread_count')!==false&&strpos($ui,'c.origin_label')!==false&&strpos($ui,'c.awaiting_first_reply')!==false&&strpos($ui,'c.next_task_title')!==false);
+mw2Check('workspace inbox renders projected contact and responsible manager signals',strpos($inboxJs,'c?.contact_phone')!==false&&strpos($inboxJs,'c?.contact_email')!==false&&strpos($inboxJs,'c?.manager_name')!==false&&strpos($inboxJs,'contactOwnerSignals(c)')!==false&&strpos($inboxCss,'.leadContextRow')!==false&&strpos($inboxCss,'.leadContactSignal')!==false&&strpos($inboxCss,'.leadManagerSignal')!==false);
 mw2Check('workspace inbox leads are keyboard operable and expose active state',strpos($inboxJs,"el.setAttribute('role','button')")!==false&&strpos($inboxJs,'el.tabIndex=0')!==false&&strpos($inboxJs,"e.key==='Enter'||e.key===' '")!==false&&strpos($inboxJs,"el.setAttribute('aria-current','true')")!==false&&strpos($inboxJs,"el.removeAttribute('aria-current')")!==false);
 mw2Check('pipeline API uses shared Manager HTTP boundary',strpos($api,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($api,'ManagerHttp::startJson();')!==false&&strpos($api,'ManagerHttp::requireManager();')!==false&&strpos($api,'ManagerHttp::requireCsrf($data);')!==false&&strpos($api,'ManagerRequestContext::')===false&&strpos($managerHttp,'ManagerRequestContext::startSession()')!==false&&strpos($context,"session_name('anytour_manager_panel')")!==false);
 mw2Check('pipeline API gates conversation access through manager visibility',strpos($api,'ManagerConversationService::detail(')!==false&&strpos($api,'pipelineConversation(')!==false);
