@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T08:24:07+00:00",
+    "generated_at": "2026-08-31T08:29:52+00:00",
     "production": {
-        "sha": "ee8723100fc870d2472af16d9db5de68b6584f9b",
+        "sha": "2b6c7c6687c0b26c249c0537c47e4574d623f003",
         "branch": "main"
     },
     "migrations": {
-        "total": 24,
+        "total": 25,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "023_standalone_claims.sql"
+        "latest_version": "024_test_conversation_provenance.sql"
     },
     "health": {
         "manager_visibility_ok": true,
@@ -141,10 +141,10 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 07:23:58",
+        "since_utc": "2026-08-31 07:29:42",
         "summary": {
-            "sessions": 19,
-            "started": 19,
+            "sessions": 18,
+            "started": 18,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 0,
@@ -160,7 +160,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 18,
+                "collecting_needs": 17,
                 "tours_opened": 1
             },
             "flags": {
@@ -199,7 +199,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "ee8723100fc870d2472af16d9db5de68b6584f9b",
+        "sha": "2b6c7c6687c0b26c249c0537c47e4574d623f003",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -208,7 +208,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T08:24:07Z"
+        "reported_at": "2026-08-31T08:29:51Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -260,7 +260,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T08:24:07+00:00",
+        "generated_at": "2026-08-31T08:29:51+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -298,8 +298,8 @@
                 "code_lines": 0
             },
             "migrations": {
-                "files": 24,
-                "bytes": 27714,
+                "files": 25,
+                "bytes": 27973,
                 "code_lines": 0
             },
             "tests": {

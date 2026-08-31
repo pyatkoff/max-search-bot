@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T08:23:56+00:00",
+    "generated_at": "2026-08-31T08:29:40+00:00",
     "production": {
-        "sha": "ee8723100fc870d2472af16d9db5de68b6584f9b",
+        "sha": "2b6c7c6687c0b26c249c0537c47e4574d623f003",
         "branch": "main"
     },
     "database": {
@@ -178,6 +178,13 @@
             "baseline": false,
             "checksum_ok": true,
             "applied_at": "2026-08-31 02:18:23"
+        },
+        {
+            "version": "024_test_conversation_provenance.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-08-31 10:29:34"
         }
     ],
     "stats": {

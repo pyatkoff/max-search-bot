@@ -1,13 +1,13 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T08:23:58+00:00",
+    "generated_at": "2026-08-31T08:29:42+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 19,
-        "started": 19,
+        "sessions": 18,
+        "started": 18,
         "needs_collected": 1,
         "tours_opened": 1,
         "manager_requested": 0,
@@ -23,7 +23,7 @@
             "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 18,
+            "collecting_needs": 17,
             "tours_opened": 1
         },
         "flags": {
@@ -33,31 +33,6 @@
         }
     },
     "sessions": [
-        {
-            "conversation_id": 631,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 4,
-            "outbound_messages": 3,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-08-31 07:27:53",
-            "last_message_at": "2026-08-31 07:28:28"
-        },
         {
             "conversation_id": 632,
             "project_key": "anytour",
@@ -452,7 +427,7 @@
             "inbound_messages": 16,
             "outbound_messages": 11,
             "date_picks": 0,
-            "anomaly_inbound_messages": 5,
+            "anomaly_inbound_messages": 0,
             "drop_point": "collecting_needs",
             "flags": [],
             "started_at": "2026-08-31 09:22:24",
@@ -809,5 +784,5 @@
             ]
         }
     ],
-    "since_utc": "2026-08-31 07:23:58"
+    "since_utc": "2026-08-31 07:29:42"
 }
