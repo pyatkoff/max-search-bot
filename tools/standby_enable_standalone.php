@@ -10,42 +10,31 @@ $backup = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR .
 $mode = (string)($argv[1] ?? '--enable');
 
 if (getenv('MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE') !== '1') {
-    fwrite(STDERR, "Refusing config mutation without explicit standby write guard\n");
-    exit(2);
+    fwrite(STDERR, "Refusing config mutation without explicit standby write guard\n"); exit(2);
 }
 if (strpos(str_replace('\\', '/', $root), '/app.anytoour.ru') === false) {
-    fwrite(STDERR, "Refusing config mutation outside standby checkout\n");
-    exit(2);
+    fwrite(STDERR, "Refusing config mutation outside standby checkout\n"); exit(2);
 }
 if (!is_file($config) || !is_readable($config) || !is_writable($config)) {
-    fwrite(STDERR, "Standby config.php is not readable/writable\n");
-    exit(2);
+    fwrite(STDERR, "Standby config.php is not readable/writable\n"); exit(2);
 }
 
 if ($mode === '--rollback') {
-    if (!is_file($backup)) { fwrite(STDERR, "No standby config backup found\n"); exit(2); }
-    if (!copy($backup, $config)) { fwrite(STDERR, "Unable to restore standby config\n"); exit(2); }
-    @unlink($backup);
-    echo "STANDBY_MODE_ROLLBACK=OK\n";
-    exit(0);
+    if (!is_file($backup) || !copy($backup, $config)) { fwrite(STDERR, "Unable to restore standby config\n"); exit(2); }
+    @unlink($backup); echo "STANDBY_MODE_ROLLBACK=OK\n"; exit(0);
 }
-if ($mode === '--commit') {
-    @unlink($backup);
-    echo "STANDBY_MODE_COMMIT=OK\n";
-    exit(0);
-}
+if ($mode === '--commit') { @unlink($backup); echo "STANDBY_MODE_COMMIT=OK\n"; exit(0); }
 if ($mode !== '--enable') { fwrite(STDERR, "Usage: standby_enable_standalone.php [--enable|--rollback|--commit]\n"); exit(2); }
 
 require $config;
-$required = [
-    'CONVERSATION_DB_NAME', 'ANYTOUR_DATA_DB_NAME',
-    'MAX_SEARCH_LEAD_RECEIVER_URL', 'MAX_SEARCH_LEAD_BRIDGE_SECRET',
-];
-foreach ($required as $name) {
+require_once $root . '/services/LeadBridgeConfig.php';
+foreach (['CONVERSATION_DB_NAME', 'ANYTOUR_DATA_DB_NAME'] as $name) {
     if (!defined($name) || trim((string)constant($name)) === '') {
-        fwrite(STDERR, "Standby prerequisite missing: {$name}\n");
-        exit(2);
+        fwrite(STDERR, "Standby prerequisite missing: {$name}\n"); exit(2);
     }
+}
+if (LeadBridgeConfig::receiverUrl() === '' || LeadBridgeConfig::secret() === '') {
+    fwrite(STDERR, "Standby lead bridge authentication is unavailable\n"); exit(2);
 }
 
 $source = (string)file_get_contents($config);

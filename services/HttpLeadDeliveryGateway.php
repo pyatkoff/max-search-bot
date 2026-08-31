@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/LeadBridgeConfig.php';
+
 /**
  * Standalone-safe lead transport.
  * Sends the already-built canonical Bitrix element to the legacy receiver over
@@ -12,8 +14,8 @@ final class HttpLeadDeliveryGateway
 {
     public static function create(array $element)
     {
-        $url = defined('MAX_SEARCH_LEAD_RECEIVER_URL') ? trim((string) MAX_SEARCH_LEAD_RECEIVER_URL) : '';
-        $secret = defined('MAX_SEARCH_LEAD_BRIDGE_SECRET') ? trim((string) MAX_SEARCH_LEAD_BRIDGE_SECRET) : '';
+        $url = LeadBridgeConfig::receiverUrl();
+        $secret = LeadBridgeConfig::secret();
         if ($url === '' || $secret === '') {
             throw new RuntimeException('Standalone lead bridge is not configured');
         }
