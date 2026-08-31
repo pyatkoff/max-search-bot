@@ -40,7 +40,7 @@ if (is_string($receiverSource) && strpos($receiverSource, '$currentMarker === nu
 }
 
 $serviceSource = file_get_contents(dirname(__DIR__) . '/services/ProjectMarkerService.php');
-if (!is_string($serviceSource) || strpos($serviceSource, "$configured !== null && $configured !== ''") === false) {
+if (!is_string($serviceSource) || strpos($serviceSource, '$configured !== null && $configured !==') === false) {
     $failures[] = 'empty standalone marker config must fall back to the legacy site marker';
 }
 
