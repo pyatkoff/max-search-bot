@@ -19,6 +19,16 @@ class MaxUpdateHandler
             exit;
         }
 
+        if (defined('MAX_SEARCH_MAX_SHADOW_MODE') && MAX_SEARCH_MAX_SHADOW_MODE === true) {
+            if (function_exists('put_log_in')) {
+                $type = is_array($update) ? (string)($update['update_type'] ?? '') : '';
+                put_log_in('SHADOW_UPDATE_RECEIVED type=' . $type);
+            }
+            http_response_code(200);
+            echo 'ok';
+            exit;
+        }
+
         if (!is_array($update)) {
             http_response_code(200);
             echo 'ok';

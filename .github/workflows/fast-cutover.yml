@@ -124,17 +124,14 @@ jobs:
           set -euo pipefail
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php -r 'parse_str(\"action=set\", \$_GET); require \"telegram_webhook_admin.php\";' | tee /tmp/telegram-cutover.txt; grep -q 'https://app.anytoour.ru/telegram_webhook.php' /tmp/telegram-cutover.txt; grep -q '\"ok\": true' /tmp/telegram-cutover.txt"
 
-      - name: Switch MAX subscription to new server
+      - name: Add MAX subscription on new server and preserve legacy
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          # Temporary compatibility is explicit and scoped to MAX API control-plane
-          # calls. Production MaxTransport already uses the same compatibility mode;
-          # replace this with the official Минцифры CA trust chain in follow-up hardening.
-          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_subscription_cutover.php --activate-new | tee /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_TARGET_OK=YES' /tmp/max-cutover.txt"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/max_subscription_cutover.php --add-new | tee /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_TARGET_OK=YES' /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_LEGACY_COUNT=1' /tmp/max-cutover.txt; grep -qx 'MAX_SUBSCRIPTION_NEW_COUNT=1' /tmp/max-cutover.txt"
 
       - name: Verify messenger providers and lead bridge
         env:
@@ -143,7 +140,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/telegram_webhook_status.php; MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_webhook_status.php; php tools/lead_bridge_probe.php; echo BOT_CUTOVER=COMPLETE"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/telegram_webhook_status.php; php tools/max_webhook_status.php | tee /tmp/max-health.txt; grep -q '\"ok\": true' /tmp/max-health.txt; grep -q '\"reason\": \"healthy_cutover_dual\"' /tmp/max-health.txt; php tools/lead_bridge_probe.php; echo BOT_CUTOVER=COMPLETE"
 
       - name: Record accepted fast-cutover tradeoff
         shell: bash
@@ -151,4 +148,5 @@ jobs:
           echo 'Fast cutover used a consistent live DB snapshot without freezing old writes.'
           echo 'A small number of conversations created after the dump started and before webhook switch may not exist on the new DB.'
           echo 'If Telegram was already owned by the new server, resume mode skipped DB overwrite and Telegram mutation.'
+          echo 'MAX keeps both legacy and new verified subscriptions during observation; legacy is not removed by this workflow.'
           echo 'The old Bitrix lead receiver remains intentionally active.'

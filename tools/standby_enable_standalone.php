@@ -55,6 +55,7 @@ $targets = [
     'TELEGRAM_WEBHOOK_URL' => "'https://app.anytoour.ru/telegram_webhook.php'",
     'MAX_SEARCH_PUBLIC_BASE_URL' => "'https://app.anytoour.ru'",
     'MAX_SEARCH_TRACKING_BASE_URL' => "'https://app.anytoour.ru'",
+    'MAX_SEARCH_MAX_SHADOW_MODE' => 'true',
 ];
 
 $lines = preg_split('/\R/', $source) ?: [];
@@ -97,4 +98,4 @@ if (!rename($tmp, $config)) { @unlink($tmp); @unlink($backup); fwrite(STDERR, "U
 
 echo "STANDBY_MODE_SWITCH=OK\n";
 echo 'MUTATED_CONFIG=' . ($config === $externalConfig ? 'external' : 'runtime') . "\n";
-echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls\n";
+echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls,max_shadow_mode\n";

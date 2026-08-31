@@ -73,10 +73,16 @@ function urlsFromSubscriptions(array $data): array
     return array_values(array_unique($urls));
 }
 
-if (!in_array($mode, ['--activate-new', '--rollback-old', '--status'], true)) {
-    fwrite(STDERR, "Usage: max_subscription_cutover.php [--activate-new|--rollback-old|--status]\n"); exit(2);
+if (!in_array($mode, ['--add-new', '--activate-new', '--rollback-old', '--status'], true)) {
+    fwrite(STDERR, "Usage: max_subscription_cutover.php [--add-new|--activate-new|--rollback-old|--status]\n"); exit(2);
 }
 
+if ($mode === '--add-new') {
+    if ($newUrl !== $oldUrl) {
+        deleteSubscription($api, $token, $newUrl);
+        createSubscription($api, $token, $newUrl);
+    }
+}
 if ($mode === '--activate-new') {
     deleteSubscription($api, $token, $oldUrl);
     if ($newUrl !== $oldUrl) deleteSubscription($api, $token, $newUrl);
@@ -99,7 +105,11 @@ echo 'MAX_SUBSCRIPTION_TARGET_COUNT=' . $targetCount . PHP_EOL;
 echo 'MAX_SUBSCRIPTION_LEGACY_COUNT=' . $legacyCount . PHP_EOL;
 echo 'MAX_SUBSCRIPTION_NEW_COUNT=' . $newCount . PHP_EOL;
 if ($mode !== '--status') {
-    $ok = $targetCount === 1 && ($target === $oldUrl ? $newCount === ($newUrl === $oldUrl ? 1 : 0) : $legacyCount === 0);
+    if ($mode === '--add-new') {
+        $ok = $newCount === 1 && ($newUrl === $oldUrl || $legacyCount === 1);
+    } else {
+        $ok = $targetCount === 1 && ($target === $oldUrl ? $newCount === ($newUrl === $oldUrl ? 1 : 0) : $legacyCount === 0);
+    }
     echo 'MAX_SUBSCRIPTION_TARGET_OK=' . ($ok ? 'YES' : 'NO') . PHP_EOL;
     exit($ok ? 0 : 1);
 }
