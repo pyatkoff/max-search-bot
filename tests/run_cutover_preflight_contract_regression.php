@@ -14,11 +14,14 @@ function cutoverPreflightAssert(bool $condition, string $message): void
 
 cutoverPreflightAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'preflight must remain manually dispatched');
 cutoverPreflightAssert(strpos($workflow, 'require_data_match:') !== false, 'preflight must support a strict final data-match gate');
+cutoverPreflightAssert(strpos($workflow, 'require_legacy_host_independence:') !== false, 'preflight must support a strict legacy-host independence gate');
 cutoverPreflightAssert(strpos($workflow, 'standalone_readiness.php') !== false, 'preflight must verify standalone readiness');
+cutoverPreflightAssert(strpos($workflow, 'cutover_legacy_host_dependency.php') !== false, 'preflight must inspect legacy host dependency');
 cutoverPreflightAssert(strpos($workflow, 'cutover_data_snapshot.php') !== false, 'preflight must compare conversation-store snapshots');
 cutoverPreflightAssert(strpos($workflow, 'CUTOVER_PREFLIGHT_READY=YES') !== false, 'preflight must emit an explicit ready result');
 cutoverPreflightAssert(strpos($workflow, 'production_sha_mismatch') !== false, 'preflight must detect stale production code');
 cutoverPreflightAssert(strpos($workflow, 'standby_sha_mismatch') !== false, 'preflight must detect stale standby code');
+cutoverPreflightAssert(strpos($workflow, "blockers.append('legacy_host_dependency')") !== false, 'strict preflight must block retirement while legacy host is still required');
 
 foreach (['mysqldump ', 'mysql ', 'DROP DATABASE', 'DROP TABLE', 'TRUNCATE ', 'INSERT ', 'UPDATE ', 'DELETE ', 'webhook set'] as $forbidden) {
     cutoverPreflightAssert(stripos($workflow, $forbidden) === false, 'preflight must stay read-only: ' . $forbidden);
