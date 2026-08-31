@@ -8,6 +8,11 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/NeedValueResolver.php` — deterministic need interpretation boundary.
 - `services/NeedApplicationService.php` — applying recognized need values.
 - `services/InteractionGuard.php` — callback concurrency/staleness safety.
+- `services/RuntimeBootstrap.php` — canonical runtime bootstrap for MAX webhook, Telegram webhook and followup cron; standalone mode is explicit/opt-in and must not be inferred from hostname.
+- `services/RuntimeStorage.php` plus the MySQL runtime repositories — canonical storage switch for standalone conversation/claim/runtime persistence while legacy production remains available until cutover proof.
+- `services/DestinationCatalogRepository.php` — destination catalog storage boundary; consumers must not read Bitrix HL directly when a repository path exists.
+- `services/LeadDeliveryGateway.php` — canonical lead-delivery boundary. `BitrixLeadDeliveryGateway` preserves current local production delivery; `HttpLeadDeliveryGateway` is the authenticated standalone transport for the already-built canonical element and must not own business fields.
+- `services/StandaloneReadiness.php` + `tools/standalone_readiness.php` — cutover gate. A new host is not standalone-ready until runtime/database/catalog storage and the supported lead bridge configuration are all explicitly green; secret values must never be printed.
 - `services/ManagerRequestContext.php` — manager identity plus conversation authorization/visibility context.
 - `manager/lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/JSON/error boundary for thin PHP endpoints; new endpoint plumbing should converge here instead of recreating local guards.
 - `manager/assets/manager-http-client.js` — shared browser request/auth/error helper for Manager/Admin/Routing and focused feature endpoints where semantics actually match; endpoint selection is a transport concern, while feature-specific state stays in its owning module.
@@ -33,6 +38,9 @@ This is the current incremental refactoring map. It is intentionally conservativ
 
 - Remaining direct field parsing in handlers/actions → `NeedValueResolver`.
 - Remaining direct need mutation / next-field choice → `NeedApplicationService` and canonical progression owner.
+- Remaining direct Bitrix HL/catalog reads in destination/search code → `DestinationCatalogRepository` or the relevant repository boundary.
+- Remaining direct lead persistence/transport calls → `LeadDeliveryGateway`; business payload construction stays in `LeadPayloadService` and transport adapters must not re-map lead semantics.
+- Remaining runtime/bootstrap decisions in webhook/cron entrypoints → `RuntimeBootstrap`; do not create per-transport standalone switches.
 - Remaining Manager endpoint session/auth/CSRF/JSON/error plumbing → `manager/lib/ManagerHttp.php`; conversation edit visibility stays delegated to `ManagerRequestContext` rather than duplicated.
 - Remaining browser fetch/auth/error wrappers with the same semantics → `manager/assets/manager-http-client.js`; do not merge feature-specific request behavior merely for code-count reduction.
 - Repeated admin directory/audit read assembly → `AdminDirectoryService` / `AuditLogService`, leaving `manager/admin.php` as an interface renderer.
@@ -51,6 +59,8 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Admin/routing business logic that grows beyond the current thin pages → focused application services; do not rebuild PHP/CSS/JS monoliths.
 - Structured operational decisions embedded only in text logs → typed diagnostic events/snapshots.
 - Repository-wide technical inventory that currently requires an ad-hoc run → stable diagnostics artifact consumed by autopilot.
+- `CSiteParams::$isAnytourOnline` and any other lead metadata source still read directly from the Bitrix application layer → a small compatibility/config boundary before no-Bitrix cutover. Preserve the current emitted business value; only move ownership.
+- Any remaining legacy `\Bitrix\Main\Type\Date*` use reachable from the forward dialogue/search/lead path → native date services with behavior-locked regressions before standalone activation.
 
 ## DELETE — only after callers are migrated and production verification is complete
 
@@ -60,6 +70,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Duplicate browser HTTP/auth/error wrappers after caller search proves `manager-http-client.js` covers their semantics.
 - Runtime schema-creation/alteration code after equivalent forward migrations exist.
 - Bespoke regression runners when their scenario is represented by the reusable scenario engine without losing coverage.
+- Direct local Bitrix lead insertion from the standalone host after bridge cutover is production-proven; keep the legacy receiver only as long as the compatibility phase requires it.
 
 ## Audit rule
 
