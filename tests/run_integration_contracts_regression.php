@@ -81,8 +81,18 @@ $dualWebhook = MaxWebhookHealth::evaluate([
         ['url'=>'https://anytour.online/max-search/webhook.php'],
     ]]),
 ], $expectedWebhook);
-icCheck('MAX webhook health rejects dual ownership', $dualWebhook['ok'] ?? true, false);
-icCheck('MAX webhook health identifies extra subscription', $dualWebhook['reason'] ?? '', 'extra_subscriptions');
+icCheck('MAX webhook health accepts expected plus legacy during cutover', $dualWebhook['ok'] ?? false, true);
+icCheck('MAX webhook health identifies safe dual cutover', $dualWebhook['reason'] ?? '', 'healthy_cutover_dual');
+$unexpectedWebhook = MaxWebhookHealth::evaluate([
+    'http'=>200,
+    'errno'=>0,
+    'body'=>json_encode(['subscriptions'=>[
+        ['url'=>$expectedWebhook],
+        ['url'=>'https://unexpected.example/webhook.php'],
+    ]]),
+], $expectedWebhook);
+icCheck('MAX webhook health rejects unrelated extra subscription', $unexpectedWebhook['ok'] ?? true, false);
+icCheck('MAX webhook health identifies unrelated extra subscription', $unexpectedWebhook['reason'] ?? '', 'extra_subscriptions');
 $wrongWebhook = MaxWebhookHealth::evaluate([
     'http'=>200,
     'errno'=>0,
