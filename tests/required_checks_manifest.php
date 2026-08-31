@@ -22,6 +22,7 @@ return [
         'php tests/run_standalone_readiness_regression.php',
         'php tests/run_project_marker_boundary_regression.php',
         'php tests/run_standby_deploy_contract_regression.php',
+        'php tests/run_cutover_data_snapshot_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',
