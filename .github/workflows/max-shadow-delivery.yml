@@ -1,4 +1,4 @@
-name: Inspect MAX shadow delivery
+name: Inspect MAX delivery
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
       - '.github/workflows/max-shadow-delivery.yml'
       - 'handlers/MaxUpdateHandler.php'
       - 'tools/standby_enable_standalone.php'
+      - 'tools/max_shadow_mode.php'
   workflow_dispatch:
 
 permissions:
@@ -35,7 +36,7 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Inspect recent shadow markers only
+      - name: Inspect recent privacy-safe MAX markers only
         env:
           STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -46,19 +47,24 @@ jobs:
           ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" '
             set -e
             cd /var/www/anytoour/data/www/app.anytoour.ru
-            echo "SHADOW_DIAGNOSTIC_SHA=$(git rev-parse HEAD)"
+            echo "MAX_DELIVERY_DIAGNOSTIC_SHA=$(git rev-parse HEAD)"
+            php tools/max_shadow_mode.php --status || true
             if [ ! -f tmp_in.txt ]; then
-              echo "SHADOW_DELIVERY_OBSERVED=NO"
               echo "SHADOW_MARKER_COUNT=0"
+              echo "LIVE_MARKER_COUNT=0"
               exit 0
             fi
-            count=$(grep -c "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt || true)
-            echo "SHADOW_MARKER_COUNT=$count"
-            if [ "$count" -eq 0 ]; then
-              echo "SHADOW_DELIVERY_OBSERVED=NO"
-              exit 0
+            shadow=$(grep -c "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt || true)
+            live=$(grep -c "LIVE_UPDATE_RECEIVED type=" tmp_in.txt || true)
+            echo "SHADOW_MARKER_COUNT=$shadow"
+            echo "LIVE_MARKER_COUNT=$live"
+            if [ "$shadow" -gt 0 ]; then
+              grep "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt | tail -n 5 | sed -E "s/^([0-9:. ]+)--- SHADOW_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/SHADOW_RECENT=timestamp:\1,type:\2/"
             fi
-            echo "SHADOW_DELIVERY_OBSERVED=YES"
-            # Emit only timestamp + update type marker. Never print raw webhook payloads.
-            grep "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt | tail -n 10 | sed -E "s/^([0-9:. ]+)--- SHADOW_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/SHADOW_RECENT=timestamp:\1,type:\2/"
+            if [ "$live" -gt 0 ]; then
+              echo "LIVE_DELIVERY_OBSERVED=YES"
+              grep "LIVE_UPDATE_RECEIVED type=" tmp_in.txt | tail -n 10 | sed -E "s/^([0-9:. ]+)--- LIVE_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/LIVE_RECENT=timestamp:\1,type:\2/"
+            else
+              echo "LIVE_DELIVERY_OBSERVED=NO"
+            fi
           '
