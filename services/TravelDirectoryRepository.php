@@ -28,12 +28,25 @@ class TravelDirectoryRepository
 
     public static function cityFromById($hlId, $cityId)
     {
-        $stmt = self::pdo()->prepare('SELECT name, name_genitive FROM catalog_departures WHERE id = :id AND is_active = 1 LIMIT 1');
-        $stmt->execute(['id' => $cityId]);
-        $row = $stmt->fetch();
-        if (!is_array($row)) return false;
-        $genitive = trim((string) ($row['name_genitive'] ?? ''));
-        return $genitive !== '' ? $genitive : ($row['name'] ?? false);
+        $row = self::departureNameRow($cityId);
+        return self::cityFromNameFromRow($row);
+    }
+
+    private static function departureNameRow($cityId)
+    {
+        try {
+            $stmt = self::pdo()->prepare('SELECT name, name_genitive FROM catalog_departures WHERE id = :id AND is_active = 1 LIMIT 1');
+            $stmt->execute(['id' => $cityId]);
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            // name_genitive is being rolled out independently in the catalogue
+            // database. Missing that one optional column must not break live
+            // departure lookup during the rollout window.
+            if ((string) $e->getCode() !== '42S22') throw $e;
+            $stmt = self::pdo()->prepare('SELECT name FROM catalog_departures WHERE id = :id AND is_active = 1 LIMIT 1');
+            $stmt->execute(['id' => $cityId]);
+            return $stmt->fetch();
+        }
     }
 
     public static function cityByName($hlId, $name)
