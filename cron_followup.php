@@ -16,7 +16,9 @@ function cronLog($text) {
 cronLog('START php=' . PHP_VERSION . ' sapi=' . PHP_SAPI . ' root=' . $documentRoot);
 
 try {
-    require_once($documentRoot . '/bitrix/modules/main/include/prolog_before.php');
+    require_once(__DIR__ . '/config.php');
+    require_once(__DIR__ . '/services/RuntimeBootstrap.php');
+    RuntimeBootstrap::boot($documentRoot);
     require_once(__DIR__ . '/maxsearchclass.php');
     require_once(__DIR__ . '/services/FollowupQueueService.php');
     require_once(__DIR__ . '/services/DialogueView.php');
