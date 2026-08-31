@@ -3,13 +3,9 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/BitrixLeadDeliveryGateway.php';
+require_once __DIR__ . '/HttpLeadDeliveryGateway.php';
 
-/**
- * Explicit boundary for lead persistence/delivery.
- *
- * Default remains the existing Bitrix mechanism. No alternative transport is
- * enabled implicitly; standalone cutover must configure and verify one first.
- */
+/** Explicit boundary for lead persistence/delivery. */
 final class LeadDeliveryGateway
 {
     public static function driver(): string
@@ -23,10 +19,9 @@ final class LeadDeliveryGateway
 
     public static function create(array $element)
     {
-        if (self::driver() === 'bitrix') {
-            return BitrixLeadDeliveryGateway::create($element);
-        }
-
-        throw new RuntimeException('Unsupported MAX_SEARCH_LEAD_DELIVERY driver: ' . self::driver());
+        $driver = self::driver();
+        if ($driver === 'bitrix') return BitrixLeadDeliveryGateway::create($element);
+        if ($driver === 'bridge') return HttpLeadDeliveryGateway::create($element);
+        throw new RuntimeException('Unsupported MAX_SEARCH_LEAD_DELIVERY driver: ' . $driver);
     }
 }
