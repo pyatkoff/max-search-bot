@@ -80,8 +80,8 @@ jobs:
             php -r '\''$d=json_decode(file_get_contents("/tmp/max-cron-cutover-health.json"),true); $u=$d["subscription_urls"]??[]; if(empty($d["ok"])||($d["reason"]??"")!=="healthy"||($d["subscription_count"]??0)!==1||($u[0]??"")!=="https://app.anytoour.ru/webhook.php"){exit(1);} echo "MAX_HEALTH=OK\n";'\''
             php tools/lead_bridge_probe.php
           '
-          legacy_count="$(ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$legacy" 'crontab -l 2>/dev/null || true' | grep -E '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' | wc -l | tr -d ' ')"
-          new_count="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$new" 'crontab -l 2>/dev/null || true' | grep -E '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' | wc -l | tr -d ' ')"
+          legacy_count="$(ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$legacy" 'crontab -l 2>/dev/null || true' | grep -Ec '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' || true)"
+          new_count="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$new" 'crontab -l 2>/dev/null || true' | grep -Ec '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' || true)"
           echo "LEGACY_FOLLOWUP_CRON_COUNT=$legacy_count"
           echo "NEW_FOLLOWUP_CRON_COUNT=$new_count"
           [[ "$legacy_count" == "0" ]]
@@ -128,8 +128,8 @@ jobs:
           set -euo pipefail
           legacy="$DEPLOY_USER@$DEPLOY_HOST"
           new="$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST"
-          legacy_count="$(ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$legacy" 'crontab -l 2>/dev/null || true' | grep -E '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' | wc -l | tr -d ' ')"
-          new_count="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$new" 'crontab -l 2>/dev/null || true' | grep -E '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' | wc -l | tr -d ' ')"
+          legacy_count="$(ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$legacy" 'crontab -l 2>/dev/null || true' | grep -Ec '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' || true)"
+          new_count="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$new" 'crontab -l 2>/dev/null || true' | grep -Ec '(^|[[:space:]])([^#[:space:]]*/)?cron_followup\.php([[:space:]]|$)' || true)"
           echo "LEGACY_FOLLOWUP_CRON_COUNT=$legacy_count"
           echo "NEW_FOLLOWUP_CRON_COUNT=$new_count"
           [[ "$legacy_count" == "0" && "$new_count" == "1" ]]
