@@ -26,33 +26,66 @@ $targets = [
     'MAX_SEARCH_TRACKING_BASE_URL' => "'https://app.anytoour.ru'",
 ];
 
+$appendOverrides = static function (array $lines) use ($targets): string {
+    $insertAt = count($lines);
+    for ($i = count($lines) - 1; $i >= 0; --$i) {
+        if (trim((string)$lines[$i]) === '?>') { $insertAt = $i; break; }
+    }
+    $overrides = [];
+    foreach ($targets as $name => $value) { $overrides[] = "define('{$name}', {$value});"; }
+    array_splice($lines, $insertAt, 0, $overrides);
+    return rtrim(implode(PHP_EOL, $lines)) . PHP_EOL;
+};
+
+$lintSource = static function (string $candidate, string $tmp): array {
+    if (file_put_contents($tmp, $candidate) === false) { return [false, ['unable to write temporary candidate']]; }
+    $lint = []; $code = 0;
+    exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($tmp) . ' 2>&1', $lint, $code);
+    return [$code === 0, $lint];
+};
+
+// First try the least-invasive repair. Remove complete one-line definitions only;
+// do not delete guard/if lines merely because they mention a deployment-owned key.
 $lines = preg_split('/\R/', $source) ?: [];
 foreach ($targets as $name => $_value) {
     $namePattern = preg_quote($name, '/');
     $lines = array_values(array_filter($lines, static function (string $line) use ($namePattern): bool {
-        return preg_match('/\b' . $namePattern . '\b/', $line) !== 1;
+        $define = preg_match('/^\s*define\s*\(\s*[\'\"]' . $namePattern . '[\'\"]\s*,.*\)\s*;\s*$/', $line) === 1;
+        $const = preg_match('/^\s*const\s+' . $namePattern . '\s*=.*;\s*$/', $line) === 1;
+        return !($define || $const);
     }));
 }
-
-$insertAt = count($lines);
-for ($i = count($lines) - 1; $i >= 0; --$i) {
-    if (trim($lines[$i]) === '?>') { $insertAt = $i; break; }
-}
-$overrides = [];
-foreach ($targets as $name => $value) { $overrides[] = "define('{$name}', {$value});"; }
-array_splice($lines, $insertAt, 0, $overrides);
-$repaired = rtrim(implode(PHP_EOL, $lines)) . PHP_EOL;
+$repaired = $appendOverrides($lines);
 
 $tmp = $config . '.repair-' . getmypid();
-$backup = $config . '.pre-cutover-repair';
-if (!copy($config, $backup)) { fwrite(STDERR, "Unable to back up broken standby config\n"); exit(2); }
-if (file_put_contents($tmp, $repaired) === false) { @unlink($tmp); fwrite(STDERR, "Unable to write repaired config temp file\n"); exit(2); }
-@chmod($tmp, fileperms($config) & 0777);
-$lint = []; $code = 0;
-exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($tmp) . ' 2>&1', $lint, $code);
-if ($code !== 0) {
-    @unlink($tmp);
-    fwrite(STDERR, "Repaired standby config still fails PHP lint\n"); exit(2);
+[$ok, $lint] = $lintSource($repaired, $tmp);
+
+if (!$ok) {
+    // Previous cutover attempts may already have left unmatched braces after a
+    // broad line deletion. Recover by rebuilding only from complete top-level
+    // constant-definition lines. Standby config is intentionally constant-based;
+    // secrets are preserved verbatim and never emitted to logs.
+    $safeLines = ['<?php'];
+    foreach (preg_split('/\R/', $source) ?: [] as $line) {
+        if (preg_match('/^\s*define\s*\(\s*([\'\"])([A-Z][A-Z0-9_]*)\1\s*,.*\)\s*;\s*$/', $line, $m) === 1) {
+            if (!array_key_exists($m[2], $targets)) { $safeLines[] = $line; }
+            continue;
+        }
+        if (preg_match('/^\s*const\s+([A-Z][A-Z0-9_]*)\s*=.*;\s*$/', $line, $m) === 1) {
+            if (!array_key_exists($m[1], $targets)) { $safeLines[] = $line; }
+        }
+    }
+    $repaired = $appendOverrides($safeLines);
+    [$ok, $lint] = $lintSource($repaired, $tmp);
 }
+
+if (!$ok) {
+    @unlink($tmp);
+    fwrite(STDERR, "Repaired standby config still fails PHP lint\n" . implode("\n", $lint) . "\n"); exit(2);
+}
+
+$backup = $config . '.pre-cutover-repair';
+if (!is_file($backup) && !copy($config, $backup)) { @unlink($tmp); fwrite(STDERR, "Unable to back up broken standby config\n"); exit(2); }
+@chmod($tmp, fileperms($config) & 0777);
 if (!rename($tmp, $config)) { @unlink($tmp); fwrite(STDERR, "Unable to install repaired standby config\n"); exit(2); }
 echo "STANDBY_EXTERNAL_CONFIG_REPAIR=OK\n";
