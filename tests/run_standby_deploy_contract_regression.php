@@ -16,8 +16,11 @@ standbyCheck('standby targets new app checkout',strpos($workflow,'/var/www/anyto
 standbyCheck('standby binds deploy to workflow sha',strpos($workflow,'EXPECTED_SHA: ${{ github.sha }}')!==false&&strpos($workflow,"git cat-file -e '\$EXPECTED_SHA^{commit}'")!==false&&strpos($workflow,"git reset --hard '\$EXPECTED_SHA'")!==false);
 standbyCheck('standby does not race against moving origin main',strpos($workflow,'git reset --hard origin/main')===false);
 standbyCheck('standby verifies resulting exact sha',strpos($workflow,'git rev-parse HEAD')!==false&&strpos($workflow,"= '\$EXPECTED_SHA'")!==false);
-standbyCheck('standby applies forward conversation migrations',strpos($workflow,'php tools/conversation_db.php migrate')!==false);
-standbyCheck('standby cleans legacy runtime overrides before standalone enable',strpos($workflow,'php tools/standby_cleanup_runtime_config.php; php tools/standby_enable_standalone.php --enable')!==false);
+$migrationPos=strpos($workflow,'php tools/conversation_db.php migrate');
+$cleanupPos=strpos($workflow,'php tools/standby_cleanup_runtime_config.php');
+standbyCheck('standby applies forward conversation migrations',$migrationPos!==false);
+standbyCheck('standby cleans legacy runtime overrides before migrations',$cleanupPos!==false&&$migrationPos!==false&&$cleanupPos<$migrationPos);
+standbyCheck('standby cleans runtime overrides exactly once',substr_count($workflow,'php tools/standby_cleanup_runtime_config.php')===1);
 standbyCheck('standby enables standalone only behind explicit write guard',strpos($workflow,'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1')!==false&&strpos($workflow,'standby_enable_standalone.php --enable')!==false);
 standbyCheck('standby retains switch only after green readiness doctor',strpos($workflow,'if php tools/standalone_readiness.php; then')!==false&&strpos($workflow,'standby_enable_standalone.php --commit')!==false);
 standbyCheck('standby rolls config back if readiness fails',strpos($workflow,'standby_enable_standalone.php --rollback')!==false);
