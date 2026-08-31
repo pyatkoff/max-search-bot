@@ -22,6 +22,16 @@ require_once __DIR__ . '/services/ProjectMarkerService.php';
 require_once __DIR__ . '/services/LeadBridgeConfig.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $probe = trim((string)($_GET['probe'] ?? ''));
+    if ($probe !== '') {
+        if (!preg_match('/^[a-f0-9]{32}$/', $probe)) lead_receiver_out(['ok' => false, 'error' => 'Invalid probe'], 400);
+        $secret = LeadBridgeConfig::secret();
+        if ($secret === '') lead_receiver_out(['ok' => false, 'error' => 'Lead receiver is not configured'], 503);
+        $signature = trim((string)($_GET['sig'] ?? ''));
+        $expected = hash_hmac('sha256', 'probe|' . $probe, $secret);
+        if ($signature === '' || !hash_equals($expected, $signature)) lead_receiver_out(['ok' => false, 'error' => 'Unauthorized'], 401);
+        lead_receiver_out(['ok' => true, 'receiver' => 'max-search-hmac-bitrix-lead', 'probe' => true, 'writes' => false]);
+    }
     lead_receiver_out(['ok' => true, 'receiver' => 'max-search-hmac-bitrix-lead', 'writes' => true]);
 }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') lead_receiver_out(['ok' => false, 'error' => 'Method not allowed'], 405);
