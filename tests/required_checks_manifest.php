@@ -80,6 +80,7 @@ return [
         'php tests/run_manager_role_policy_regression.php',
         'php tests/run_manager_phone_fallback_regression.php',
         'php tests/run_manager_visibility_regression.php',
+        'php tests/run_manager_test_conversation_filter_regression.php',
         'php tests/run_manager_admin_audit_regression.php',
         'php tests/run_admin_project_access_backfill_regression.php',
         'php tests/run_admin_project_access_health_regression.php',
