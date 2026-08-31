@@ -41,11 +41,30 @@ foreach (['workflow_dispatch:','tools/webhook_target_status.php','STANDBY_DEPLOY
 foreach (['setWebhook','deleteWebhook','/subscriptions','systemctl','crontab'] as $forbidden) { if (str_contains($workflow,$forbidden)) { fwrite(STDERR,"Standby webhook diagnostic is not read-only: {$forbidden}\n"); exit(1); } }
 
 foreach ([
-    "paths:\n      - '.github/workflows/fast-cutover.yml'",'workflow_dispatch:','MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1','https://app.anytoour.ru/telegram_webhook.php','max-search-pre-fast-cutover-','--single-transaction --quick --skip-lock-tables --no-tablespaces','FAST_DB_IMPORT=OK','action=set','tools/max_subscription_cutover.php --activate-new','MAX_SUBSCRIPTION_TARGET_OK=YES','tools/lead_bridge_probe.php','BOT_CUTOVER=COMPLETE','max-ca-bundle.crt','/etc/ssl/certs/ca-certificates.crt','small number of conversations created after the dump started and before webhook switch may not exist on the new DB'
+    "paths:\n      - '.github/workflows/fast-cutover.yml'",
+    'workflow_dispatch:',
+    'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1',
+    'https://app.anytoour.ru/telegram_webhook.php',
+    'max-search-pre-fast-cutover-',
+    '--single-transaction --quick --skip-lock-tables --no-tablespaces',
+    'FAST_DB_IMPORT=OK',
+    'action=set',
+    'tools/max_subscription_cutover.php --activate-new',
+    'MAX_SUBSCRIPTION_TARGET_OK=YES',
+    'tools/lead_bridge_probe.php',
+    'BOT_CUTOVER=COMPLETE',
+    'Detect partial cutover ownership',
+    'TELEGRAM_ALREADY_NEW=1',
+    "if: env.TELEGRAM_ALREADY_NEW != '1'",
+    'PARTIAL_CUTOVER_RESUME=YES',
+    'MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_subscription_cutover.php --activate-new',
+    'MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_webhook_status.php',
+    'resume mode skipped DB overwrite and Telegram mutation',
+    'small number of conversations created after the dump started and before webhook switch may not exist on the new DB',
 ] as $needle) { if (!str_contains($fastWorkflow,$needle)) { fwrite(STDERR,"Missing fast cutover invariant: {$needle}\n"); exit(1); } }
 foreach (["'MAX_SEARCH_WEBHOOK_URL' => \"'https://app.anytoour.ru/webhook.php'\"","'TELEGRAM_WEBHOOK_URL' => \"'https://app.anytoour.ru/telegram_webhook.php'\"","'MAX_SEARCH_PUBLIC_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_TRACKING_BASE_URL' => \"'https://app.anytoour.ru'\""] as $needle) { if (!str_contains($standbyConfigTool,$needle)) { fwrite(STDERR,"Standby cutover URL not pinned: {$needle}\n"); exit(1); } }
 foreach (['--activate-new','--rollback-old','https://anytour.online/max-search/webhook.php','WebhookTargetConfig::max()',"deleteSubscription(\$api, \$token, \$oldUrl)","createSubscription(\$api, \$token, \$newUrl)",'MAX_SUBSCRIPTION_TARGET_OK=','MaxTlsConfig::curlOptions(false)'] as $needle) { if (!str_contains($maxCutover,$needle)) { fwrite(STDERR,"Missing MAX cutover safety contract: {$needle}\n"); exit(1); } }
-foreach (['CURLOPT_SSL_VERIFYPEER => true','CURLOPT_SSL_VERIFYHOST => 2','CURLOPT_CAINFO','max-ca-bundle.crt'] as $needle) { if (!str_contains($maxTls,$needle)) { fwrite(STDERR,"Missing MAX TLS trust contract: {$needle}\n"); exit(1); } }
+foreach (['CURLOPT_SSL_VERIFYPEER => true','CURLOPT_SSL_VERIFYHOST => 2','CURLOPT_CAINFO','MAX_SEARCH_MAX_API_INSECURE_COMPAT'] as $needle) { if (!str_contains($maxTls,$needle)) { fwrite(STDERR,"Missing MAX TLS policy contract: {$needle}\n"); exit(1); } }
 if (str_contains($fastWorkflow,'lead-receiver.php --disable') || str_contains($fastWorkflow,'rm lead-receiver.php')) { fwrite(STDERR,"Fast cutover may disable intentional Bitrix receiver\n"); exit(1); }
 
 echo "bot cutover runbook contract OK\n";
