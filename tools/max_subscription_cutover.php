@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $root = dirname(__DIR__);
 require_once $root . '/config.php';
 require_once $root . '/services/WebhookTargetConfig.php';
+require_once $root . '/services/MaxTlsConfig.php';
 
 $mode = (string)($argv[1] ?? '--status');
 $oldUrl = 'https://anytour.online/max-search/webhook.php';
@@ -18,21 +19,13 @@ if ($token === '') { fwrite(STDERR, "MAX_SEARCH_TOKEN missing\n"); exit(2); }
 function maxReq(string $method, string $url, string $token, ?array $body = null): array
 {
     $ch = curl_init($url);
-    $headers = ['Authorization: ' . $token, 'Content-Type: application/json'];
-    $insecureCompat = getenv('MAX_SEARCH_MAX_API_INSECURE_COMPAT') === '1';
     $opts = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST => $method,
-        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_HTTPHEADER => ['Authorization: ' . $token, 'Content-Type: application/json'],
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_TIMEOUT => 30,
-        // Secure by default. The guarded cutover workflow may explicitly opt
-        // into the same temporary compatibility behavior already used by the
-        // production MaxTransport until the Minцифры CA is installed on the
-        // new host. Never enable this implicitly from hostname or environment.
-        CURLOPT_SSL_VERIFYPEER => !$insecureCompat,
-        CURLOPT_SSL_VERIFYHOST => $insecureCompat ? 0 : 2,
-    ];
+    ] + MaxTlsConfig::curlOptions(false);
     if ($body !== null) $opts[CURLOPT_POSTFIELDS] = json_encode($body, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
