@@ -29,6 +29,19 @@ define('CONVERSATION_DB_USER', '');
 define('CONVERSATION_DB_PASS', '');
 define('CONVERSATION_DB_CHARSET', 'utf8mb4');
 
+// Separate AnyTour catalog database used by departures/destinations/hotels.
+define('ANYTOUR_DATA_DB_HOST', '');
+define('ANYTOUR_DATA_DB_NAME', '');
+define('ANYTOUR_DATA_DB_USER', '');
+define('ANYTOUR_DATA_DB_PASSWORD', '');
+
+// Standalone migration switches. Keep legacy defaults until the cutover doctor
+// reports no blockers. Never enable these implicitly based on hostname/server.
+define('MAX_SEARCH_STANDALONE_RUNTIME', false);
+define('MAX_SEARCH_RUNTIME_STORAGE', 'legacy');
+define('MAX_SEARCH_DESTINATION_STORAGE', 'bitrix');
+define('MAX_SEARCH_LEAD_DELIVERY', 'bitrix');
+
 // WEBSITE controlled rollout. Keep WEBSITE_ROLLOUT_PERCENT at 0 until the
 // main AnyTour site intentionally embeds website/rollout.php. Increase it in
 // small steps (for example 5 -> 10 -> 25) after production evidence is healthy.
