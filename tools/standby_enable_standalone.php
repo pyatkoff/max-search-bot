@@ -5,7 +5,9 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 $root = realpath(dirname(__DIR__)) ?: dirname(__DIR__);
-$config = $root . '/config.php';
+$runtimeConfig = $root . '/config.php';
+$externalConfig = '/var/www/anytoour/data/config/max-search.php';
+$config = is_file($externalConfig) ? $externalConfig : $runtimeConfig;
 $backup = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'max-search-standby-config.backup';
 $mode = (string)($argv[1] ?? '--enable');
 
@@ -15,8 +17,11 @@ if (getenv('MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE') !== '1') {
 if (strpos(str_replace('\\', '/', $root), '/app.anytoour.ru') === false) {
     fwrite(STDERR, "Refusing config mutation outside standby checkout\n"); exit(2);
 }
+if (!is_file($runtimeConfig) || !is_readable($runtimeConfig)) {
+    fwrite(STDERR, "Standby runtime config.php is not readable\n"); exit(2);
+}
 if (!is_file($config) || !is_readable($config) || !is_writable($config)) {
-    fwrite(STDERR, "Standby config.php is not readable/writable\n"); exit(2);
+    fwrite(STDERR, "Standby mutable config is not readable/writable\n"); exit(2);
 }
 
 if ($mode === '--rollback') {
@@ -26,7 +31,7 @@ if ($mode === '--rollback') {
 if ($mode === '--commit') { @unlink($backup); echo "STANDBY_MODE_COMMIT=OK\n"; exit(0); }
 if ($mode !== '--enable') { fwrite(STDERR, "Usage: standby_enable_standalone.php [--enable|--rollback|--commit]\n"); exit(2); }
 
-require $config;
+require $runtimeConfig;
 require_once $root . '/services/LeadBridgeConfig.php';
 foreach (['CONVERSATION_DB_NAME', 'ANYTOUR_DATA_DB_NAME'] as $name) {
     if (!defined($name) || trim((string)constant($name)) === '') {
@@ -72,4 +77,5 @@ if (file_put_contents($tmp, $source) === false) { @unlink($backup); fwrite(STDER
 if (!rename($tmp, $config)) { @unlink($tmp); @unlink($backup); fwrite(STDERR, "Unable to atomically replace standby config\n"); exit(2); }
 
 echo "STANDBY_MODE_SWITCH=OK\n";
+echo 'MUTATED_CONFIG=' . ($config === $externalConfig ? 'external' : 'runtime') . "\n";
 echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls\n";
