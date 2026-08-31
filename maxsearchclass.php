@@ -9,6 +9,7 @@ require_once(__DIR__ . '/services/FollowupQueueService.php');
 require_once(__DIR__ . '/services/AiSearchContextService.php');
 require_once(__DIR__ . '/services/ConversationStateRepository.php');
 require_once(__DIR__ . '/services/ClaimRepository.php');
+require_once(__DIR__ . '/services/ClaimCodeGenerator.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
 require_once(__DIR__ . '/services/LeadDeliveryGateway.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
@@ -108,7 +109,7 @@ class MaxSearchApi extends MaxSearchBase
     }
 
     public static function saveClaim($chatID,$savedData){
-        $code=randString(10,['abcdefghijklnmopqrstuvwxyz','0123456789']);
+        $code=ClaimCodeGenerator::generate(10);
         ClaimRepository::create((int)ProjectConfig::get('leads.claim_hl',static::$claimHL),$chatID,(array)$savedData,static::statusMap(),$code);
         return ProjectConfig::claimUrl($code,static::getLatestYclid($chatID));
     }

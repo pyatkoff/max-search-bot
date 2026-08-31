@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../services/ClaimRepository.php';
+require_once __DIR__ . '/../services/ClaimCodeGenerator.php';
 require_once __DIR__ . '/../services/LeadPayloadService.php';
 
 $passed = 0;
@@ -17,6 +18,16 @@ function ccheck(string $name, $actual, $expected): void {
 }
 
 echo "MAX Search claim regression suite\n=================================\n\n";
+
+$generated = ClaimCodeGenerator::generate();
+ccheck('native claim code keeps legacy length', strlen($generated), 10);
+ccheck('native claim code keeps legacy alphabet', preg_match('/^[abcdefghijklnmopqrstuvwxyz0-9]{10}$/', $generated) === 1, true);
+$threw = false;
+try { ClaimCodeGenerator::generate(0); } catch (InvalidArgumentException $e) { $threw = true; }
+ccheck('native claim code rejects non-positive length', $threw, true);
+$maxSearchSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
+ccheck('claim creation delegates to native generator', strpos($maxSearchSource, 'ClaimCodeGenerator::generate(10)') !== false, true);
+ccheck('claim creation no longer calls Bitrix randString', strpos($maxSearchSource, 'randString(') === false, true);
 
 $status = [
     'city'=>65,'country'=>66,'adults'=>67,'children'=>68,'child_ages'=>69,
