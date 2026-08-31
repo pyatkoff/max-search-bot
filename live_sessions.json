@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T18:10:58+00:00",
+    "generated_at": "2026-08-31T19:11:54+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -53,7 +53,7 @@
             "inbound_messages": 14,
             "outbound_messages": 25,
             "date_picks": 0,
-            "anomaly_inbound_messages": 1,
+            "anomaly_inbound_messages": 0,
             "drop_point": "collecting_needs",
             "flags": [],
             "started_at": "2026-08-24 19:56:46",
@@ -81,12 +81,12 @@
             "inbound_messages": 9,
             "outbound_messages": 3,
             "date_picks": 0,
-            "anomaly_inbound_messages": 9,
+            "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-31 19:24:37",
             "last_message_at": "2026-08-31 19:39:02"
         }
     ],
-    "since_utc": "2026-08-31 17:10:58"
+    "since_utc": "2026-08-31 18:11:54"
 }
