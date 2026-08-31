@@ -1,5 +1,7 @@
 <?php
-require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
+require_once(__DIR__ . '/config.php');
+require_once(__DIR__ . '/services/RuntimeBootstrap.php');
+RuntimeBootstrap::boot();
 require_once(__DIR__ . '/maxsearchclass.php');
 require_once(__DIR__ . '/services/IntegrationRegistry.php');
 require_once(__DIR__ . '/services/IncomingUpdateDispatcher.php');

@@ -5,6 +5,8 @@ header('X-Content-Type-Options: nosniff');
 
 $root = dirname(__DIR__);
 if (is_file($root . '/config.php')) require_once $root . '/config.php';
+require_once $root . '/services/RuntimeBootstrap.php';
+RuntimeBootstrap::boot();
 require_once $root . '/services/WebsiteOriginPolicy.php';
 
 function webOut(array $data, int $status = 200): void
@@ -21,10 +23,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
-
-$documentRoot = (string)($_SERVER['DOCUMENT_ROOT'] ?? '');
-$prolog = $documentRoot !== '' ? $documentRoot . '/bitrix/modules/main/include/prolog_before.php' : '';
-if ($prolog !== '' && is_file($prolog)) require_once $prolog;
 
 require_once $root . '/maxsearchclass.php';
 require_once $root . '/services/WebsiteSessionService.php';
