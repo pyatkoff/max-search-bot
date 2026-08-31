@@ -35,6 +35,9 @@ class MaxUpdateHandler
             exit;
         }
 
+        $type = (string)($update['update_type'] ?? '');
+        if (function_exists('put_log_in')) put_log_in('LIVE_UPDATE_RECEIVED type=' . $type);
+
         if (!IncomingUpdateDeduplicator::claim($update)) {
             if (function_exists('put_log_in')) put_log_in('DUPLICATE_UPDATE_SKIPPED ' . IncomingUpdateDeduplicator::key($update));
             http_response_code(200);
@@ -42,7 +45,6 @@ class MaxUpdateHandler
             exit;
         }
 
-        $type = (string)($update['update_type'] ?? '');
         $user = MaxIncomingAdapter::user($update);
         $userId = (int)($user['user_id'] ?? $user['id'] ?? 0);
         $internalId = $userId > 0 ? -$userId : $userId;
