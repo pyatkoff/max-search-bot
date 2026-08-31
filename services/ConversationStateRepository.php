@@ -1,10 +1,11 @@
 <?php
 
+require_once __DIR__ . '/RuntimeStorage.php';
+require_once __DIR__ . '/MysqlDialogueStateRepository.php';
+
 /**
- * Bitrix HL repository for conversation state.
- *
- * This class intentionally preserves the existing HL schema and read/write
- * semantics from MaxSearchBase. It contains no MAX transport or UI logic.
+ * Dialogue-state repository with a compatibility bridge from legacy Bitrix HL
+ * storage to standalone MySQL storage.
  */
 class ConversationStateRepository
 {
@@ -21,6 +22,7 @@ class ConversationStateRepository
 
     public static function currentStatus($hlId, $chatId)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::currentStatus($chatId);
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -33,6 +35,7 @@ class ConversationStateRepository
 
     public static function addStatus($hlId, $chatId, $statusId, $messageId = false)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::addStatus($chatId, $statusId, $messageId);
         $class = self::dataClass($hlId);
         return $class::add([
             'UF_DATE'=>new \Bitrix\Main\Type\DateTime(),
@@ -44,6 +47,7 @@ class ConversationStateRepository
 
     public static function latestMessageRow($hlId, $chatId)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::latestMessageRow($chatId);
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -56,12 +60,14 @@ class ConversationStateRepository
 
     public static function deleteRow($hlId, $rowId)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::deleteRow($rowId);
         $class = self::dataClass($hlId);
         return $class::delete($rowId);
     }
 
     public static function deleteAll($hlId, $chatId)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::deleteAll($chatId);
         $class = self::dataClass($hlId);
         $rows = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -76,6 +82,7 @@ class ConversationStateRepository
 
     public static function saveLastValue($hlId, $chatId, $statusId, $value, $startStatusId = 64)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::saveLastValue($chatId, $statusId, $value, $startStatusId);
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -99,6 +106,7 @@ class ConversationStateRepository
 
     public static function lastValue($hlId, $chatId, $statusId, $startStatusId = 64)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::lastValue($chatId, $statusId, $startStatusId);
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -121,6 +129,7 @@ class ConversationStateRepository
 
     public static function upsertValue($hlId, $chatId, $statusId, $value, $startStatusId = 64)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::upsertValue($chatId, $statusId, $value, $startStatusId);
         $class = self::dataClass($hlId);
         $row = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -135,9 +144,6 @@ class ConversationStateRepository
             'filter'=>['UF_CHAT_ID'=>$chatId,'UF_STATUS'=>$startStatusId],
         ])->fetch();
 
-        // savedData() intentionally ignores rows before the latest start marker.
-        // Reusing a pre-start row here would make a successful write immediately
-        // disappear from the current dialogue state and can loop the same question.
         if ($row && self::shouldReuseValueRow($row['ID'] ?? 0, $startRow['ID'] ?? 0)) {
             $class::update($row['ID'], ['UF_VALUE'=>$value]);
             return 'updated';
@@ -161,6 +167,7 @@ class ConversationStateRepository
 
     public static function savedData($hlId, $chatId, $statusStart, $statusCheck)
     {
+        if (RuntimeStorage::usesMysql()) return MysqlDialogueStateRepository::savedData($chatId, $statusStart, $statusCheck);
         $class = self::dataClass($hlId);
         $rows = $class::getList([
             'order'=>['ID'=>'desc'],
@@ -179,9 +186,6 @@ class ConversationStateRepository
         foreach ($rows as $row) {
             $status = $row['UF_STATUS'] ?? null;
             if ($status == $statusStart) break;
-
-            // Preserve legacy MaxSearchBase semantics exactly. Do not replace
-            // empty() with array_key_exists() here as part of infrastructure refactor.
             if ($status != $statusCheck && empty($result[$status])) {
                 $result[$status] = $row['UF_VALUE'] ?? null;
             }
