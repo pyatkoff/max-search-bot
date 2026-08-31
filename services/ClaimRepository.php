@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/RuntimeStorage.php';
+require_once __DIR__ . '/MysqlClaimRepository.php';
+
 class ClaimRepository
 {
     private static function dataClass($hlId)
@@ -31,9 +34,12 @@ class ClaimRepository
 
     public static function create($hlId, $chatID, array $savedData, array $statusMap, $code)
     {
+        $data = self::buildClaimData($chatID, $savedData, $statusMap, $code);
+        if (RuntimeStorage::usesMysql()) {
+            return MysqlClaimRepository::create($chatID, $data);
+        }
         $eclass = self::dataClass($hlId);
         if (!$eclass) return false;
-        $data = self::buildClaimData($chatID, $savedData, $statusMap, $code);
         $data['UF_DATE'] = new \Bitrix\Main\Type\DateTime();
         $result = $eclass::add($data);
         return $result && method_exists($result, 'isSuccess') ? $result->isSuccess() : (bool)$result;
@@ -41,6 +47,9 @@ class ClaimRepository
 
     public static function latestForChat($hlId, $chatID)
     {
+        if (RuntimeStorage::usesMysql()) {
+            return MysqlClaimRepository::latestForChat($chatID);
+        }
         $eclass = self::dataClass($hlId);
         if (!$eclass) return false;
         return $eclass::getList([
@@ -52,6 +61,9 @@ class ClaimRepository
 
     public static function byCode($hlId, $code)
     {
+        if (RuntimeStorage::usesMysql()) {
+            return MysqlClaimRepository::byCode($code);
+        }
         $eclass = self::dataClass($hlId);
         if (!$eclass) return [];
         $row = $eclass::getList([
@@ -64,16 +76,24 @@ class ClaimRepository
 
     public static function setPhone($hlId, $claimId, $phone)
     {
+        if (!$claimId) return false;
+        if (RuntimeStorage::usesMysql()) {
+            return MysqlClaimRepository::setPhone($claimId, $phone);
+        }
         $eclass = self::dataClass($hlId);
-        if (!$eclass || !$claimId) return false;
+        if (!$eclass) return false;
         $result = $eclass::update($claimId, ['UF_PHONE'=>$phone]);
         return $result && method_exists($result, 'isSuccess') ? $result->isSuccess() : (bool)$result;
     }
 
     public static function markPhoneAsked($hlId, $claimId, $value = true)
     {
+        if (!$claimId) return false;
+        if (RuntimeStorage::usesMysql()) {
+            return MysqlClaimRepository::markPhoneAsked($claimId, $value);
+        }
         $eclass = self::dataClass($hlId);
-        if (!$eclass || !$claimId) return false;
+        if (!$eclass) return false;
         $result = $eclass::update($claimId, ['UF_PHONE_ASKED'=>(bool)$value]);
         return $result && method_exists($result, 'isSuccess') ? $result->isSuccess() : (bool)$result;
     }
