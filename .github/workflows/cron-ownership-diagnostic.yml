@@ -1,0 +1,57 @@
+name: Inspect bot cron ownership
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cron-ownership-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare SSH keys
+        env:
+          PROD_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          STANDBY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          write_key() {
+            local raw="$1" out="$2" decoded
+            if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+              if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+            else
+              decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+              printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+            fi
+            chmod 600 "$out"
+            ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$PROD_KEY" "$RUNNER_TEMP/prod_key"
+          write_key "$STANDBY_KEY" "$RUNNER_TEMP/standby_key"
+
+      - name: Inspect legacy and new crontabs read-only
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          inspect() {
+            local key="$1" target="$2" label="$3"
+            raw="$(ssh -i "$key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$target" 'crontab -l 2>/dev/null || true')"
+            matches="$(printf '%s\n' "$raw" | grep -E '(^|[[:space:]])([^#[:space:]]*/)?(cron_followup\.php|metrika_queue\.php)([[:space:]]|$)' || true)"
+            count="$(printf '%s\n' "$matches" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')"
+            echo "${label}_BOT_CRON_COUNT=${count}"
+            # Paths/cadence are operational, but redact shell redirections/args after PHP filename.
+            printf '%s\n' "$matches" | sed -E 's#(cron_followup\.php|metrika_queue\.php).*#\1#' | sed "s/^/${label}_BOT_CRON=/"
+          }
+          inspect "$RUNNER_TEMP/prod_key" "$DEPLOY_USER@$DEPLOY_HOST" LEGACY
+          inspect "$RUNNER_TEMP/standby_key" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" NEW
