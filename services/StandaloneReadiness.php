@@ -12,13 +12,18 @@ final class StandaloneReadiness
 {
     public static function assess(array $facts): array
     {
+        $leadDelivery = (string)($facts['lead_delivery'] ?? 'bitrix');
+        $leadBridgeConfigured = !empty($facts['lead_bridge_url_configured'])
+            && !empty($facts['lead_bridge_secret_configured']);
+
         $checks = [
             'standalone_runtime_enabled' => !empty($facts['standalone_runtime_enabled']),
             'runtime_storage_mysql' => (($facts['runtime_storage'] ?? '') === 'mysql'),
             'destination_storage_mysql' => (($facts['destination_storage'] ?? '') === 'mysql'),
             'conversation_db_configured' => !empty($facts['conversation_db_configured']),
             'catalog_db_configured' => !empty($facts['catalog_db_configured']),
-            'lead_delivery_standalone_safe' => (($facts['lead_delivery'] ?? 'bitrix') !== 'bitrix'),
+            'lead_delivery_standalone_safe' => ($leadDelivery === 'bridge'),
+            'lead_bridge_configured' => ($leadDelivery !== 'bridge') ? true : $leadBridgeConfigured,
         ];
 
         $blockers = [];
