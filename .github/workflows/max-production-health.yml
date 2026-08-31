@@ -59,11 +59,16 @@ jobs:
             exit 0
           fi
 
+          stderr_file="$RUNNER_TEMP/max-health-stderr.txt"
           set +e
           result="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
-            'cd /var/www/anytoour/data/www/app.anytoour.ru && MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_webhook_status.php' 2>&1)"
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/max_webhook_status.php' 2>"$stderr_file")"
           rc=$?
           set -e
+          if [[ -s "$stderr_file" ]]; then
+            echo 'MAX health diagnostic stderr:'
+            cat "$stderr_file"
+          fi
           printf '%s\n' "$result"
 
           if ! printf '%s\n' "$result" | jq -e . >/dev/null 2>&1; then
