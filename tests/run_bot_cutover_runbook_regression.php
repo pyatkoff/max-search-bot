@@ -37,6 +37,7 @@ $telegramAdmin = (string)file_get_contents(__DIR__ . '/../telegram_webhook_admin
 $maxAdmin = (string)file_get_contents(__DIR__ . '/../repair_max_search_subscription.php');
 $template = (string)file_get_contents(__DIR__ . '/../config.example.php');
 $statusTool = (string)file_get_contents(__DIR__ . '/../tools/webhook_target_status.php');
+$workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/standby-webhook-target-diagnostic.yml');
 
 foreach ([
     'TELEGRAM_WEBHOOK_URL',
@@ -72,6 +73,18 @@ foreach (['WebhookTargetConfig::telegram()', 'WebhookTargetConfig::max()', 'TELE
 if (preg_match('/TOKEN|SECRET|PASS|PASSWORD/', $statusTool)) {
     fwrite(STDERR, "Webhook target diagnostic may expose secrets\n");
     exit(1);
+}
+foreach (['workflow_dispatch:', 'tools/webhook_target_status.php', 'STANDBY_DEPLOY_SSH_KEY', 'STANDBY_DEPLOY_HOST', 'STANDBY_DEPLOY_USER'] as $needle) {
+    if (!str_contains($workflow, $needle)) {
+        fwrite(STDERR, "Missing standby webhook diagnostic contract: {$needle}\n");
+        exit(1);
+    }
+}
+foreach (['setWebhook', 'deleteWebhook', '/subscriptions', 'systemctl', 'crontab'] as $forbidden) {
+    if (str_contains($workflow, $forbidden)) {
+        fwrite(STDERR, "Standby webhook diagnostic is not read-only: {$forbidden}\n");
+        exit(1);
+    }
 }
 
 echo "bot cutover runbook contract OK\n";
