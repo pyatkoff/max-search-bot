@@ -53,6 +53,7 @@ return [
         'php tests/run_state_repository_regression.php',
         'php tests/run_claim_regression.php',
         'php tests/run_directory_regression.php',
+        'php tests/run_departure_city_resolver_regression.php',
         'php tests/run_conversation_regression.php',
         'php tests/run_conversation_catalog.php',
         'php tests/run_update_deduplicator_regression.php',
