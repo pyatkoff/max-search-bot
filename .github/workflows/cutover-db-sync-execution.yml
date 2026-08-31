@@ -1,0 +1,155 @@
+name: Cutover DB sync execution
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type SYNC_CONVERSATION_DB to allow replacing the standby conversation database'
+        required: true
+        default: ''
+        type: string
+      writes_frozen:
+        description: 'Confirm production bot writes are already frozen for the final snapshot'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit final-sync confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          WRITES_FROZEN: ${{ inputs.writes_frozen }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CONFIRMATION" = 'SYNC_CONVERSATION_DB'
+          test "$WRITES_FROZEN" = 'true'
+
+      - name: Checkout expected main revision
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Record expected revision
+        shell: bash
+        run: echo "EXPECTED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - name: Prepare SSH keys
+        env:
+          PROD_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          STANDBY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          write_key() {
+            local raw="$1" out="$2" decoded
+            rm -f "$out"
+            if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+              if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+            else
+              decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+              printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+            fi
+            chmod 600 "$out"
+            ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$PROD_KEY" "$RUNNER_TEMP/prod_key"
+          write_key "$STANDBY_KEY" "$RUNNER_TEMP/standby_key"
+
+      - name: Verify exact code and runtime readiness
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          prod_sha="$(ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "cd ~/www/anytour.online/max-search && git rev-parse HEAD")"
+          standby_sha="$(ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD")"
+          test "$prod_sha" = "$EXPECTED_SHA"
+          test "$standby_sha" = "$EXPECTED_SHA"
+          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd ~/www/anytour.online/max-search; /opt/php81/bin/php tools/conversation_db.php check >/dev/null; command -v mysqldump >/dev/null; command -v gzip >/dev/null"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/standalone_readiness.php | grep -qx 'STANDALONE_READY=YES'; php tools/conversation_db.php check >/dev/null; command -v mysql >/dev/null; command -v mysqldump >/dev/null; command -v gzip >/dev/null"
+
+      - name: Capture production snapshot before transfer
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/cutover_data_snapshot.php" > "$RUNNER_TEMP/prod-before.json"
+          python3 -m json.tool "$RUNNER_TEMP/prod-before.json" >/dev/null
+
+      - name: Back up current standby database
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          backup="/tmp/max-search-precutover-${GITHUB_RUN_ID}.sql.gz"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; cnf=/tmp/max-search-standby-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\"' EXIT; php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(php tools/conversation_db_mysql_defaults.php --database-name); umask 077; mysqldump --defaults-extra-file=\"\$cnf\" --single-transaction --quick --skip-lock-tables \"\$db\" | gzip -1 > '$backup'; test -s '$backup'; echo STANDBY_BACKUP='$backup'"
+
+      - name: Transfer final production snapshot to standby
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="/tmp/max-search-production-${GITHUB_RUN_ID}.sql.gz"
+          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd ~/www/anytour.online/max-search; cnf=/tmp/max-search-prod-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\"' EXIT; /opt/php81/bin/php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(/opt/php81/bin/php tools/conversation_db_mysql_defaults.php --database-name); mysqldump --defaults-extra-file=\"\$cnf\" --single-transaction --quick --skip-lock-tables \"\$db\" | gzip -1" | ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "umask 077; cat > '$target'; test -s '$target'; echo PROD_DUMP_READY='$target'"
+
+      - name: Confirm production stayed frozen during snapshot
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/cutover_data_snapshot.php" > "$RUNNER_TEMP/prod-after.json"
+          python3 -m json.tool "$RUNNER_TEMP/prod-after.json" >/dev/null
+          cmp -s "$RUNNER_TEMP/prod-before.json" "$RUNNER_TEMP/prod-after.json" || { echo 'Production conversation data changed while final snapshot was being transferred.' >&2; exit 1; }
+
+      - name: Replace standby conversation database from final snapshot
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="/tmp/max-search-production-${GITHUB_RUN_ID}.sql.gz"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; cnf=/tmp/max-search-standby-${GITHUB_RUN_ID}.cnf; trap 'rm -f \"\$cnf\" '$target'' EXIT; php tools/conversation_db_mysql_defaults.php --write-defaults \"\$cnf\" >/dev/null; db=\$(php tools/conversation_db_mysql_defaults.php --database-name); gzip -dc '$target' | mysql --defaults-extra-file=\"\$cnf\" \"\$db\"; php tools/conversation_db.php migrate; php tools/conversation_db.php migration-status | grep -qv 'PENDING'; php tools/standalone_readiness.php | grep -qx 'STANDALONE_READY=YES'"
+
+      - name: Require exact conversation-store match after import
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/prod_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/cutover_data_snapshot.php" > "$RUNNER_TEMP/prod-final.json"
+          ssh -i "$RUNNER_TEMP/standby_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/cutover_data_snapshot.php" > "$RUNNER_TEMP/standby-final.json"
+          python3 - <<'PY'
+          import json, os
+          root = os.environ['RUNNER_TEMP']
+          prod = json.load(open(root + '/prod-final.json'))['tables']
+          standby = json.load(open(root + '/standby-final.json'))['tables']
+          if prod != standby:
+              raise SystemExit('FINAL_DATA_MATCH=NO')
+          print('FINAL_DATA_MATCH=YES')
+          PY
+          echo 'CUTOVER_DB_SYNC_COMPLETE=YES'
