@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/SearchRequestBuilder.php';
+require_once __DIR__ . '/../services/LeadDeliveryGateway.php';
 
 $passed = 0;
 $failed = 0;
@@ -54,6 +55,14 @@ $lead = IntegrationRegistry::leadDestination()->plan($state, ['chat_id'=>123]);
 icCheck('lead destination selected', $lead['provider'], 'bitrix');
 icCheck('lead destination iblock', $lead['iblock_id'], 4);
 icCheck('lead summary contains route', mb_strpos($lead['summary'], 'Москва') !== false, true);
+
+icCheck('lead delivery defaults to protected Bitrix mechanism', LeadDeliveryGateway::driver(), 'bitrix');
+$leadGatewaySource = file_get_contents(__DIR__ . '/../services/BitrixLeadDeliveryGateway.php');
+$maxSearchSource = file_get_contents(__DIR__ . '/../maxsearchclass.php');
+icCheck('Bitrix adapter preserves iblock module load', strpos($leadGatewaySource, "includeModule('iblock')") !== false, true);
+icCheck('Bitrix adapter preserves CIBlockElement Add', strpos($leadGatewaySource, 'CIBlockElement') !== false && strpos($leadGatewaySource, '->Add($element)') !== false, true);
+icCheck('savePhone delegates lead creation to boundary', strpos($maxSearchSource, 'LeadDeliveryGateway::create($element)') !== false, true);
+icCheck('savePhone no longer owns direct CIBlockElement creation', strpos($maxSearchSource, 'new CIblockElement') === false && strpos($maxSearchSource, 'new CIBlockElement') === false, true);
 
 ProjectConfig::resetForTests(['messenger'=>['provider'=>'telegram']]);
 IntegrationRegistry::resetForTests();
