@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 /**
  * Pure cutover-readiness assessment for running MAX Search without local Bitrix.
- *
- * The checker receives facts instead of reading secrets directly, so it is safe
- * to regression-test and never exposes credential values.
+ * The checker receives facts instead of secret values, so it is safe to log.
  */
 final class StandaloneReadiness
 {
@@ -23,7 +21,9 @@ final class StandaloneReadiness
             'conversation_db_configured' => !empty($facts['conversation_db_configured']),
             'catalog_db_configured' => !empty($facts['catalog_db_configured']),
             'lead_delivery_standalone_safe' => ($leadDelivery === 'bridge'),
-            'lead_bridge_configured' => ($leadDelivery !== 'bridge') ? true : $leadBridgeConfigured,
+            // Cutover targets bridge mode, so its prerequisites must be visible
+            // even while the current passive standby still says driver=bitrix.
+            'lead_bridge_configured' => $leadBridgeConfigured,
         ];
 
         $blockers = [];
