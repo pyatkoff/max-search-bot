@@ -38,6 +38,9 @@ $maxAdmin = (string)file_get_contents(__DIR__ . '/../repair_max_search_subscript
 $template = (string)file_get_contents(__DIR__ . '/../config.example.php');
 $statusTool = (string)file_get_contents(__DIR__ . '/../tools/webhook_target_status.php');
 $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/standby-webhook-target-diagnostic.yml');
+$fastWorkflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/fast-cutover.yml');
+$maxCutover = (string)file_get_contents(__DIR__ . '/../tools/max_subscription_cutover.php');
+$standbyConfigTool = (string)file_get_contents(__DIR__ . '/../tools/standby_enable_standalone.php');
 
 foreach ([
     'TELEGRAM_WEBHOOK_URL',
@@ -85,6 +88,59 @@ foreach (['setWebhook', 'deleteWebhook', '/subscriptions', 'systemctl', 'crontab
         fwrite(STDERR, "Standby webhook diagnostic is not read-only: {$forbidden}\n");
         exit(1);
     }
+}
+
+// Fast cutover is intentionally a separate, explicit speed-over-zero-loss path.
+foreach ([
+    "paths:\n      - '.github/workflows/fast-cutover.yml'",
+    'workflow_dispatch:',
+    'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1',
+    'https://app.anytoour.ru/telegram_webhook.php',
+    'max-search-pre-fast-cutover-',
+    '--single-transaction --quick --skip-lock-tables',
+    'FAST_DB_IMPORT=OK',
+    'action=set',
+    'tools/max_subscription_cutover.php --activate-new',
+    'MAX_SUBSCRIPTION_TARGET_OK=YES',
+    'tools/lead_bridge_probe.php',
+    'BOT_CUTOVER=COMPLETE',
+    'small number of conversations created after the dump started and before webhook switch may not exist on the new DB',
+] as $needle) {
+    if (!str_contains($fastWorkflow, $needle)) {
+        fwrite(STDERR, "Missing fast cutover invariant: {$needle}\n");
+        exit(1);
+    }
+}
+foreach ([
+    "'MAX_SEARCH_WEBHOOK_URL' => \"'https://app.anytoour.ru/webhook.php'\"",
+    "'TELEGRAM_WEBHOOK_URL' => \"'https://app.anytoour.ru/telegram_webhook.php'\"",
+    "'MAX_SEARCH_PUBLIC_BASE_URL' => \"'https://app.anytoour.ru'\"",
+    "'MAX_SEARCH_TRACKING_BASE_URL' => \"'https://app.anytoour.ru'\"",
+] as $needle) {
+    if (!str_contains($standbyConfigTool, $needle)) {
+        fwrite(STDERR, "Standby cutover URL not pinned: {$needle}\n");
+        exit(1);
+    }
+}
+foreach ([
+    '--activate-new',
+    '--rollback-old',
+    'https://anytour.online/max-search/webhook.php',
+    'WebhookTargetConfig::max()',
+    "deleteSubscription(\$api, \$token, \$oldUrl)",
+    "createSubscription(\$api, \$token, \$newUrl)",
+    'MAX_SUBSCRIPTION_TARGET_OK=',
+    'CURLOPT_SSL_VERIFYPEER => true',
+    'CURLOPT_SSL_VERIFYHOST => 2',
+] as $needle) {
+    if (!str_contains($maxCutover, $needle)) {
+        fwrite(STDERR, "Missing MAX cutover safety contract: {$needle}\n");
+        exit(1);
+    }
+}
+if (str_contains($fastWorkflow, 'lead-receiver.php --disable') || str_contains($fastWorkflow, 'rm lead-receiver.php')) {
+    fwrite(STDERR, "Fast cutover may disable intentional Bitrix receiver\n");
+    exit(1);
 }
 
 echo "bot cutover runbook contract OK\n";
