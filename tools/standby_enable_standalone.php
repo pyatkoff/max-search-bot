@@ -29,7 +29,12 @@ if ($mode === '--rollback') {
     echo "STANDBY_MODE_ROLLBACK=OK\n";
     exit(0);
 }
-if ($mode !== '--enable') { fwrite(STDERR, "Usage: standby_enable_standalone.php [--enable|--rollback]\n"); exit(2); }
+if ($mode === '--commit') {
+    @unlink($backup);
+    echo "STANDBY_MODE_COMMIT=OK\n";
+    exit(0);
+}
+if ($mode !== '--enable') { fwrite(STDERR, "Usage: standby_enable_standalone.php [--enable|--rollback|--commit]\n"); exit(2); }
 
 require $config;
 $required = [
