@@ -24,6 +24,12 @@ define('ANYTOUR_DATA_DB_NAME', '');
 define('ANYTOUR_DATA_DB_USER', '');
 define('ANYTOUR_DATA_DB_PASSWORD', '');
 
+// Deployment-specific public hosts. Leave empty to use project.php legacy
+// defaults. Standby/cutover hosts can override these without changing shared
+// project identity or forcing the old production host to move early.
+define('MAX_SEARCH_PUBLIC_BASE_URL', '');
+define('MAX_SEARCH_TRACKING_BASE_URL', '');
+
 // Standalone migration switches. Keep legacy defaults until the cutover doctor
 // reports no blockers. Never enable these implicitly based on hostname/server.
 define('MAX_SEARCH_STANDALONE_RUNTIME', false);
