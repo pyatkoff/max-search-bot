@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/services/WebhookTargetConfig.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
@@ -35,7 +36,7 @@ function tgApi(string $method, array $payload = []): array
 }
 
 $action = strtolower(trim((string)($_GET['action'] ?? 'status')));
-$webhookUrl = 'https://anytour.online/max-search/telegram_webhook.php';
+$webhookUrl = WebhookTargetConfig::telegram();
 
 if ($action === 'set') {
     $payload = [
