@@ -18,7 +18,8 @@ tfCheck('workspace exposes planned task shortcut',strpos($workspace,'data-task-f
 tfCheck('workspace exposes pinned task shortcut',strpos($workspace,'data-task-filter="pinned"')!==false&&strpos($workspace,'📌 В приоритете')!==false);
 tfCheck('workspace exposes no-task shortcut',strpos($workspace,'data-task-filter="none"')!==false&&strpos($workspace,'＋ Без задачи')!==false);
 tfCheck('task filter state and binding exist',strpos($core,"leadTaskFilter:''")!==false&&strpos($filters,"S.leadTaskFilter=$('leadTaskFilter').value")!==false);
-tfCheck('all non-empty task filter entry points switch to manager work queue',strpos($filters,"function ensureTaskQueue(){if(S.leadTaskFilter)window.WorkspaceV2Inbox?.setQueue('mine',{reload:false})}")!==false&&substr_count($filters,'ensureTaskQueue();')>=2&&strpos($filters,"$('leadTaskFilter').onchange=async()=>{S.leadTaskFilter=$('leadTaskFilter').value;ensureTaskQueue();await apply()}")!==false);
+tfCheck('all non-empty task filter entry points switch to manager work queue',strpos($filters,"function ensureTaskQueue(){if(S.leadTaskFilter)window.WorkspaceV2Inbox?.setQueue('mine',{reload:false})}")!==false&&substr_count($filters,'ensureTaskQueue();')>=3&&strpos($filters,"$('leadTaskFilter').onchange=async()=>{S.leadTaskFilter=$('leadTaskFilter').value;ensureTaskQueue();await apply()}")!==false);
+tfCheck('restored task filter also restores manager work queue before first list load',strpos($filters,'if(search)search.value=S.leadSearch;ensureTaskQueue();syncFilterUi()')!==false);
 tfCheck('pipeline module no longer owns inbox filter lifecycle',strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'bindFilters')===false);
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
