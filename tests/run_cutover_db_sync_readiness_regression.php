@@ -12,7 +12,9 @@ function cutoverDbSyncReadinessAssert(bool $condition, string $message): void
     }
 }
 
-cutoverDbSyncReadinessAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'DB sync readiness must remain manual');
+cutoverDbSyncReadinessAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'DB sync readiness must remain manually runnable');
+cutoverDbSyncReadinessAssert(strpos($workflow, 'branches: [main]') !== false, 'DB sync readiness push trigger must only run from main');
+cutoverDbSyncReadinessAssert(strpos($workflow, "- '.github/workflows/cutover-db-sync-readiness.yml'") !== false, 'DB sync readiness push trigger must stay scoped to workflow changes');
 cutoverDbSyncReadinessAssert(strpos($workflow, 'command -v mysqldump') !== false, 'production export tooling must be checked');
 cutoverDbSyncReadinessAssert(strpos($workflow, 'command -v mysql') !== false, 'standby import tooling must be checked');
 cutoverDbSyncReadinessAssert(strpos($workflow, 'conversation_db.php check') !== false, 'both DB connections must be checked');
