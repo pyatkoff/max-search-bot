@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T10:15:23+00:00",
+    "generated_at": "2026-08-31T10:40:11+00:00",
     "production": {
-        "sha": "aad10d36cf108ec30e7dd88fa19059c2c9096928",
+        "sha": "5b8c461a0190734fc5bf8fe7cc48a9d619996866",
         "branch": "main"
     },
     "migrations": {
@@ -141,18 +141,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 09:15:14",
+        "since_utc": "2026-08-31 09:40:02",
         "summary": {
-            "sessions": 9,
-            "raw_sessions": 9,
+            "sessions": 7,
+            "raw_sessions": 7,
             "explicit_test_sessions": 0,
-            "started": 9,
+            "started": 7,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
             "manager_replied": 1,
             "phone_received": 0,
-            "flagged_sessions": 2,
+            "flagged_sessions": 1,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 1,
@@ -162,31 +162,18 @@
                 "max_seconds": 1046
             },
             "drop_points": {
-                "collecting_needs": 8,
+                "collecting_needs": 6,
                 "manager_replied": 1
             },
             "flags": {
-                "rapid_date_reselection": 2,
-                "repeated_callback_input": 2,
-                "excessive_turns": 2
+                "repeated_callback_input": 1,
+                "excessive_turns": 1
             }
         },
         "flagged_sessions": [
             {
-                "conversation_id": 647,
-                "flags": [
-                    "rapid_date_reselection",
-                    "repeated_callback_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "collecting_needs",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            },
-            {
                 "conversation_id": 648,
                 "flags": [
-                    "rapid_date_reselection",
                     "repeated_callback_input",
                     "excessive_turns"
                 ],
@@ -201,7 +188,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "aad10d36cf108ec30e7dd88fa19059c2c9096928",
+        "sha": "5b8c461a0190734fc5bf8fe7cc48a9d619996866",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -210,7 +197,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T10:15:23Z"
+        "reported_at": "2026-08-31T10:40:11Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -264,7 +251,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T10:15:23+00:00",
+        "generated_at": "2026-08-31T10:40:11+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -307,9 +294,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 155,
-                "bytes": 590198,
-                "code_lines": 7473
+                "files": 156,
+                "bytes": 592292,
+                "code_lines": 7507
             },
             "tools": {
                 "files": 27,
