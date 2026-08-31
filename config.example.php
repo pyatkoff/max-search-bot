@@ -29,6 +29,9 @@ define('ANYTOUR_DATA_DB_PASSWORD', '');
 define('MAX_SEARCH_STANDALONE_RUNTIME', false);
 define('MAX_SEARCH_RUNTIME_STORAGE', 'legacy');
 define('MAX_SEARCH_DESTINATION_STORAGE', 'bitrix');
+// Preserve the existing AnyTour lead project marker when Bitrix CSiteParams is
+// not loaded on the standalone host. Set this to the current production value.
+define('MAX_SEARCH_IS_ANYTOUR_ONLINE', '');
 // `bridge` uses the same canonical lead payload but sends it over authenticated
 // server-to-server HTTP to lead-receiver.php on the legacy Bitrix host.
 define('MAX_SEARCH_LEAD_DELIVERY', 'bitrix');
