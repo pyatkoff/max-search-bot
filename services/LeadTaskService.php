@@ -43,7 +43,7 @@ class LeadTaskService
     {
         if($conversationId<=0)return[];
         $order=self::openTaskOrderSql('t');
-        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.is_pinned,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,{$order}");
+        $q=ConversationDb::connection()->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.status,t.is_pinned,t.assigned_manager_id,t.created_by_manager_id,t.completed_at_utc,t.reminder_attempted_at_utc,t.reminder_notified_at_utc,t.created_at,t.updated_at,CASE WHEN t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue,m.display_name AS assigned_manager_name FROM lead_tasks t LEFT JOIN managers m ON m.id=t.assigned_manager_id WHERE t.conversation_id=? ORDER BY CASE WHEN t.status='open' THEN 0 ELSE 1 END,{$order}");
         $q->execute([$conversationId]);$rows=$q->fetchAll()?:[];
         foreach($rows as &$row){$row['is_pinned']=!empty($row['is_pinned']);$row['due_state']=self::dueState($row['due_at_utc']??null,!empty($row['overdue']));}unset($row);
         return$rows;
@@ -66,8 +66,8 @@ class LeadTaskService
         if($conversationId<=0||$taskId<=0)return ['ok'=>false,'error'=>'not_found'];
         $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare("UPDATE lead_tasks SET title=?,due_at_utc=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
-        $q->execute([$input['title'],$input['due_at_utc'],$taskId,$conversationId]);
+        $q=$pdo->prepare("UPDATE lead_tasks SET title=?,reminder_attempted_at_utc=IF(NOT(due_at_utc<=>?),NULL,reminder_attempted_at_utc),reminder_notified_at_utc=IF(NOT(due_at_utc<=>?),NULL,reminder_notified_at_utc),due_at_utc=?,updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status='open'");
+        $q->execute([$input['title'],$input['due_at_utc'],$input['due_at_utc'],$input['due_at_utc'],$taskId,$conversationId]);
         if($q->rowCount()>0)return ['ok'=>true];
         $q=$pdo->prepare("SELECT title,due_at_utc FROM lead_tasks WHERE id=? AND conversation_id=? AND status='open' LIMIT 1");
         $q->execute([$taskId,$conversationId]);$current=$q->fetch();
@@ -81,7 +81,8 @@ class LeadTaskService
     {
         if($conversationId<=0||$taskId<=0)return false;
         $status=$completed?'done':'open';$completedSql=$completed?'UTC_TIMESTAMP()':'NULL';
-        $q=ConversationDb::connection()->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=?");
+        $reminderReset=$completed?'':' ,reminder_attempted_at_utc=NULL,reminder_notified_at_utc=NULL';
+        $q=ConversationDb::connection()->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql}{$reminderReset},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=?");
         $q->execute([$status,$taskId,$conversationId]);return$q->rowCount()>0;
     }
 
