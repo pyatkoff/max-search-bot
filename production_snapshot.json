@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T04:08:44+00:00",
+    "generated_at": "2026-08-31T04:15:40+00:00",
     "production": {
-        "sha": "1a91d16512387ed5b6459d55ccfd2cccff6f1d88",
+        "sha": "239483e4aef350263143f95247eaec115caa7225",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -184,7 +184,7 @@
         "customers": 626,
         "customer_channels": 626,
         "conversations": 628,
-        "messages": 16019,
+        "messages": 16028,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -2089,6 +2089,87 @@
     ],
     "recent_messages": [
         {
+            "id": 16028,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_10.09.2026",
+            "created_at": "2026-08-31 06:09:02"
+        },
+        {
+            "id": 16027,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_10.09.2026",
+            "created_at": "2026-08-31 06:09:01"
+        },
+        {
+            "id": 16026,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_10.09.2026",
+            "created_at": "2026-08-31 06:09:01"
+        },
+        {
+            "id": 16025,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_10.09.2026",
+            "created_at": "2026-08-31 06:09:01"
+        },
+        {
+            "id": 16024,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_07.09.2026",
+            "created_at": "2026-08-31 06:09:00"
+        },
+        {
+            "id": 16023,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_07.09.2026",
+            "created_at": "2026-08-31 06:08:59"
+        },
+        {
+            "id": 16022,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_02.09.2026",
+            "created_at": "2026-08-31 06:08:57"
+        },
+        {
+            "id": 16021,
+            "conversation_id": 628,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-08-31 06:08:55"
+        },
+        {
+            "id": 16020,
+            "conversation_id": 628,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_09.2026",
+            "created_at": "2026-08-31 06:08:54"
+        },
+        {
             "id": 16019,
             "conversation_id": 628,
             "direction": "inbound",
@@ -2546,87 +2627,6 @@
             "channel": "max",
             "text": "pick_date_24.09.2026",
             "created_at": "2026-08-31 06:06:51"
-        },
-        {
-            "id": 15968,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_24.09.2026",
-            "created_at": "2026-08-31 06:06:50"
-        },
-        {
-            "id": 15967,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_24.09.2026",
-            "created_at": "2026-08-31 06:06:49"
-        },
-        {
-            "id": 15966,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_15.09.2026",
-            "created_at": "2026-08-31 06:06:47"
-        },
-        {
-            "id": 15965,
-            "conversation_id": 628,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-08-31 06:06:44"
-        },
-        {
-            "id": 15964,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_09.2026",
-            "created_at": "2026-08-31 06:06:44"
-        },
-        {
-            "id": 15963,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 06:06:44"
-        },
-        {
-            "id": 15962,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 06:06:43"
-        },
-        {
-            "id": 15961,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 06:06:43"
-        },
-        {
-            "id": 15960,
-            "conversation_id": 628,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_31.08.2026",
-            "created_at": "2026-08-31 06:06:42"
         }
     ],
     "recent_events": [

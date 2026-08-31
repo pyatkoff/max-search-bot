@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T04:08:57+00:00",
+    "generated_at": "2026-08-31T04:15:53+00:00",
     "production": {
-        "sha": "1a91d16512387ed5b6459d55ccfd2cccff6f1d88",
+        "sha": "239483e4aef350263143f95247eaec115caa7225",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 03:08:48",
+        "since_utc": "2026-08-31 03:15:43",
         "summary": {
             "sessions": 6,
             "started": 6,
@@ -198,7 +198,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "1a91d16512387ed5b6459d55ccfd2cccff6f1d88",
+        "sha": "239483e4aef350263143f95247eaec115caa7225",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -207,7 +207,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T04:08:57Z"
+        "reported_at": "2026-08-31T04:15:53Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -257,7 +257,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T04:08:56+00:00",
+        "generated_at": "2026-08-31T04:15:52+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -280,9 +280,9 @@
                 "code_lines": 484
             },
             "manager": {
-                "files": 49,
-                "bytes": 242757,
-                "code_lines": 1272
+                "files": 50,
+                "bytes": 243192,
+                "code_lines": 1279
             },
             "website": {
                 "files": 4,
@@ -301,8 +301,8 @@
             },
             "tests": {
                 "files": 150,
-                "bytes": 573156,
-                "code_lines": 7205
+                "bytes": 569624,
+                "code_lines": 7201
             },
             "tools": {
                 "files": 23,
