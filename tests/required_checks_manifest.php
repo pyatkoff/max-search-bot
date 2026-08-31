@@ -17,6 +17,7 @@ return [
         'php tests/run_platform_boundary_regression.php',
         'php tests/run_hotel_database_boundary_regression.php',
         'php tests/run_runtime_bootstrap_regression.php',
+        'php tests/run_destination_catalog_boundary_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',
