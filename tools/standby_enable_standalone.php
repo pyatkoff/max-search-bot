@@ -60,12 +60,12 @@ $targets = [
 $lines = preg_split('/\R/', $source) ?: [];
 foreach ($targets as $name => $value) {
     $namePattern = preg_quote($name, '/');
+    // Cutover keys are deployment-owned. Remove every pre-existing config line
+    // that mentions the exact key (legacy define/const/guard/assignment forms),
+    // then append one canonical definition. This avoids stale legacy values
+    // winning PHP's first-definition semantics.
     $lines = array_values(array_filter($lines, static function (string $line) use ($namePattern): bool {
-        $mentionsQuotedTarget = preg_match('/[\'\"]' . $namePattern . '[\'\"]/', $line) === 1;
-        $mentionsBareTarget = preg_match('/\b' . $namePattern . '\b/', $line) === 1;
-        $definesWithFunction = preg_match('/\bdefine\s*\(/', $line) === 1;
-        $definesWithConst = preg_match('/^\s*const\s+' . $namePattern . '\s*=/', $line) === 1;
-        return !(($mentionsQuotedTarget && $definesWithFunction) || ($mentionsBareTarget && $definesWithConst));
+        return preg_match('/\b' . $namePattern . '\b/', $line) !== 1;
     }));
 }
 
