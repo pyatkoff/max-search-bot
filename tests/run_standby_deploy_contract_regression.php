@@ -20,6 +20,7 @@ standbyCheck('standby retains switch only after green readiness doctor',strpos($
 standbyCheck('standby rolls config back if readiness fails',strpos($workflow,'standby_enable_standalone.php --rollback')!==false);
 standbyCheck('switch is restricted to standby checkout',strpos($switch,"'/app.anytoour.ru'")!==false);
 standbyCheck('switch changes only cutover mode constants',strpos($switch,"'MAX_SEARCH_STANDALONE_RUNTIME'")!==false&&strpos($switch,"'MAX_SEARCH_RUNTIME_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_DESTINATION_STORAGE'")!==false&&strpos($switch,"'MAX_SEARCH_LEAD_DELIVERY'")!==false);
+standbyCheck('switch replaces define and const target forms',strpos($switch,'$definesWithFunction')!==false&&strpos($switch,'$definesWithConst')!==false&&strpos($switch,"MAX_SEARCH_WEBHOOK_URL")!==false);
 standbyCheck('standby does not invoke webhook endpoints',strpos($workflow,'php webhook.php')===false&&strpos($workflow,'curl')===false);
 standbyCheck('standby does not start or restart services',!preg_match('/\b(systemctl|service|supervisorctl)\b/',$workflow));
 standbyCheck('standby does not install cron',!preg_match('/\bcrontab\b/',$workflow));
