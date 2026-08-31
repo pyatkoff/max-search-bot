@@ -10,6 +10,7 @@ require_once(__DIR__ . '/services/AiSearchContextService.php');
 require_once(__DIR__ . '/services/ConversationStateRepository.php');
 require_once(__DIR__ . '/services/ClaimRepository.php');
 require_once(__DIR__ . '/services/LeadPayloadService.php');
+require_once(__DIR__ . '/services/LeadDeliveryGateway.php');
 require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 require_once(__DIR__ . '/services/DialogueView.php');
 require_once(__DIR__ . '/services/TourResultsService.php');
@@ -126,7 +127,7 @@ class MaxSearchApi extends MaxSearchBase
         if(static::$isAnyOnline)$leadData['is_anytour_online']=CSiteParams::$isAnytourOnline;
         $props=LeadPayloadService::properties($leadData);
         $element=LeadPayloadService::iblockElement(['iblock_id'=>(int)ProjectConfig::get('leads.iblock_id',static::$claimIB),'section_id'=>(int)ProjectConfig::get('leads.section_id',static::$botSearchSection),'properties'=>$props,'created_at'=>$createdAt]);
-        \Bitrix\Main\Loader::includeModule('iblock');$el=new CIblockElement();$leadId=$el->Add($element);
+        $leadId=LeadDeliveryGateway::create($element);
         static::phoneSentYclid($chatID); if($leadId){static::queueMetrikaGoal($chatID,'max_phone');static::funnelLog($chatID,'phone_received',['lead_id'=>(int)$leadId]);}
         return $leadId?true:false;
     }
