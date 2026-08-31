@@ -20,6 +20,7 @@ final class StandaloneReadiness
             'destination_storage_mysql' => (($facts['destination_storage'] ?? '') === 'mysql'),
             'conversation_db_configured' => !empty($facts['conversation_db_configured']),
             'catalog_db_configured' => !empty($facts['catalog_db_configured']),
+            'catalog_id_compatibility' => !empty($facts['catalog_id_compatibility']),
             'lead_delivery_standalone_safe' => ($leadDelivery === 'bridge'),
             // Cutover targets bridge mode, so its prerequisites must be visible
             // even while the current passive standby still says driver=bitrix.
