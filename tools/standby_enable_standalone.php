@@ -46,6 +46,10 @@ $targets = [
     'MAX_SEARCH_RUNTIME_STORAGE' => "'mysql'",
     'MAX_SEARCH_DESTINATION_STORAGE' => "'mysql'",
     'MAX_SEARCH_LEAD_DELIVERY' => "'bridge'",
+    'MAX_SEARCH_WEBHOOK_URL' => "'https://app.anytoour.ru/webhook.php'",
+    'TELEGRAM_WEBHOOK_URL' => "'https://app.anytoour.ru/telegram_webhook.php'",
+    'MAX_SEARCH_PUBLIC_BASE_URL' => "'https://app.anytoour.ru'",
+    'MAX_SEARCH_TRACKING_BASE_URL' => "'https://app.anytoour.ru'",
 ];
 foreach ($targets as $name => $value) {
     $replacement = "define('{$name}', {$value});";
@@ -61,4 +65,4 @@ if (file_put_contents($tmp, $source) === false) { @unlink($backup); fwrite(STDER
 if (!rename($tmp, $config)) { @unlink($tmp); @unlink($backup); fwrite(STDERR, "Unable to atomically replace standby config\n"); exit(2); }
 
 echo "STANDBY_MODE_SWITCH=OK\n";
-echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead\n";
+echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls\n";
