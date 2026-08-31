@@ -107,9 +107,23 @@ jobs:
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
           ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php -l manager/index.php; php -l manager/api.php; php -l webhook.php; php -l telegram_webhook.php; echo 'standby_smoke=success'"
 
+      - name: Report standalone cutover readiness
+        if: steps.config.outputs.enabled == 'true'
+        continue-on-error: true
+        env:
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/standby_deploy_key"
+          ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/standalone_readiness.php"
+
       - name: Confirm passive standby policy
         if: steps.config.outputs.enabled == 'true'
         shell: bash
         run: |
           echo "Standby code and migrations are synchronized."
+          echo "Standalone readiness is reported above without activating traffic."
           echo "This workflow intentionally does not install, start, restart or invoke webhook/cron workers."
