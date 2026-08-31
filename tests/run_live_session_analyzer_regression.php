@@ -19,6 +19,7 @@ lsCheck('detects completed needs',!empty($r['needs_collected']));
 lsCheck('detects tours opened',!empty($r['tours_opened']));
 lsCheck('detects truly rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
 lsCheck('drop point is tours opened',$r['drop_point']==='tours_opened');
+lsCheck('ordinary short flow remains real-like',($r['traffic_class']??'')==='real_like');
 
 $phoneMessages=[['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837','created_at'=>'2026-08-24 20:03:10']];
 $phoneResult=LiveSessionAnalyzer::analyze($c,$phoneMessages,[]);
@@ -86,6 +87,14 @@ $busyWindow=[];
 for($i=0;$i<18;$i++)$busyWindow[]=['direction'=>'inbound','sender_type'=>'customer','text'=>'Ответ '.$i,'created_at'=>sprintf('2026-08-24 20:%02d:00',$i)];
 $busyResult=LiveSessionAnalyzer::analyze($c,$busyWindow,[],$windowSince);
 lsCheck('genuinely long current-window customer flow remains flagged',in_array('excessive_turns',$busyResult['flags'],true));
+lsCheck('long free-text conversation is not assumed to be a test',($busyResult['traffic_class']??'')==='real_like');
+
+$machineLike=[];
+for($i=0;$i<20;$i++)$machineLike[]=['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_'.sprintf('%02d.09.2026',($i%20)+1),'created_at'=>sprintf('2026-08-24 20:20:%02d',$i)];
+$machineResult=LiveSessionAnalyzer::analyze($c,$machineLike,[],strtotime('2026-08-24 20:20:00'));
+lsCheck('callback-heavy high-turn session is only suspected test',($machineResult['traffic_class']??'')==='suspected_test');
+lsCheck('suspected test classification explains its heuristic',in_array('callback_heavy_high_turn_session',(array)($machineResult['traffic_class_reasons']??[]),true));
+lsCheck('suspected test exposes callback ratio',($machineResult['callback_ratio']??0)>=0.8);
 
 $c['status']='waiting_manager';
 $events=[['event_type'=>'waiting_manager','actor_type'=>'customer','created_at'=>'2026-08-24 20:04:00']];
