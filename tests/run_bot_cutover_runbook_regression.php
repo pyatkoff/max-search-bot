@@ -30,6 +30,7 @@ $fastWorkflow=(string)file_get_contents(__DIR__.'/../.github/workflows/fast-cuto
 $maxCutover=(string)file_get_contents(__DIR__.'/../tools/max_subscription_cutover.php');
 $maxTls=(string)file_get_contents(__DIR__.'/../services/MaxTlsConfig.php');
 $standbyConfigTool=(string)file_get_contents(__DIR__.'/../tools/standby_enable_standalone.php');
+$maxHandler=(string)file_get_contents(__DIR__.'/../handlers/MaxUpdateHandler.php');
 
 foreach (['TELEGRAM_WEBHOOK_URL','MAX_SEARCH_WEBHOOK_URL','https://anytour.online/max-search/telegram_webhook.php','https://anytour.online/max-search/webhook.php','invalid_webhook_target:'] as $needle) { if (!str_contains($service.$template,$needle)) { fwrite(STDERR,"Missing webhook cutover contract: {$needle}\n"); exit(1); } }
 if (!str_contains($telegramAdmin,'WebhookTargetConfig::telegram()')) { fwrite(STDERR,"Telegram webhook admin bypasses configurable target\n"); exit(1); }
@@ -49,22 +50,26 @@ foreach ([
     '--single-transaction --quick --skip-lock-tables --no-tablespaces',
     'FAST_DB_IMPORT=OK',
     'action=set',
-    'tools/max_subscription_cutover.php --activate-new',
+    'tools/max_subscription_cutover.php --add-new',
     'MAX_SUBSCRIPTION_TARGET_OK=YES',
+    'MAX_SUBSCRIPTION_LEGACY_COUNT=1',
+    'MAX_SUBSCRIPTION_NEW_COUNT=1',
     'tools/lead_bridge_probe.php',
     'BOT_CUTOVER=COMPLETE',
     'Detect partial cutover ownership',
     'TELEGRAM_ALREADY_NEW=1',
     "if: env.TELEGRAM_ALREADY_NEW != '1'",
     'PARTIAL_CUTOVER_RESUME=YES',
-    'MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_subscription_cutover.php --activate-new',
-    'MAX_SEARCH_MAX_API_INSECURE_COMPAT=1 php tools/max_webhook_status.php',
+    'healthy_cutover_dual',
+    'legacy is not removed by this workflow',
     'resume mode skipped DB overwrite and Telegram mutation',
     'small number of conversations created after the dump started and before webhook switch may not exist on the new DB',
 ] as $needle) { if (!str_contains($fastWorkflow,$needle)) { fwrite(STDERR,"Missing fast cutover invariant: {$needle}\n"); exit(1); } }
-foreach (["'MAX_SEARCH_WEBHOOK_URL' => \"'https://app.anytoour.ru/webhook.php'\"","'TELEGRAM_WEBHOOK_URL' => \"'https://app.anytoour.ru/telegram_webhook.php'\"","'MAX_SEARCH_PUBLIC_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_TRACKING_BASE_URL' => \"'https://app.anytoour.ru'\""] as $needle) { if (!str_contains($standbyConfigTool,$needle)) { fwrite(STDERR,"Standby cutover URL not pinned: {$needle}\n"); exit(1); } }
-foreach (['--activate-new','--rollback-old','https://anytour.online/max-search/webhook.php','WebhookTargetConfig::max()',"deleteSubscription(\$api, \$token, \$oldUrl)","createSubscription(\$api, \$token, \$newUrl)",'MAX_SUBSCRIPTION_TARGET_OK=','MaxTlsConfig::curlOptions(false)'] as $needle) { if (!str_contains($maxCutover,$needle)) { fwrite(STDERR,"Missing MAX cutover safety contract: {$needle}\n"); exit(1); } }
+foreach (["'MAX_SEARCH_WEBHOOK_URL' => \"'https://app.anytoour.ru/webhook.php'\"","'TELEGRAM_WEBHOOK_URL' => \"'https://app.anytoour.ru/telegram_webhook.php'\"","'MAX_SEARCH_PUBLIC_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_TRACKING_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_MAX_SHADOW_MODE' => 'true'"] as $needle) { if (!str_contains($standbyConfigTool,$needle)) { fwrite(STDERR,"Standby cutover URL/mode not pinned: {$needle}\n"); exit(1); } }
+foreach (['--add-new','--activate-new','--rollback-old','https://anytour.online/max-search/webhook.php','WebhookTargetConfig::max()',"createSubscription(\$api, \$token, \$newUrl)",'MAX_SUBSCRIPTION_TARGET_OK=','MaxTlsConfig::curlOptions(false)'] as $needle) { if (!str_contains($maxCutover,$needle)) { fwrite(STDERR,"Missing MAX cutover safety contract: {$needle}\n"); exit(1); } }
 foreach (['CURLOPT_SSL_VERIFYPEER => true','CURLOPT_SSL_VERIFYHOST => 2','CURLOPT_CAINFO','MAX_SEARCH_MAX_API_INSECURE_COMPAT'] as $needle) { if (!str_contains($maxTls,$needle)) { fwrite(STDERR,"Missing MAX TLS policy contract: {$needle}\n"); exit(1); } }
+foreach (['MAX_SEARCH_MAX_SHADOW_MODE','SHADOW_UPDATE_RECEIVED'] as $needle) { if (!str_contains($maxHandler,$needle)) { fwrite(STDERR,"Missing MAX shadow-processing guard: {$needle}\n"); exit(1); } }
+if (str_contains($fastWorkflow,'MAX_SEARCH_MAX_API_INSECURE_COMPAT=1')) { fwrite(STDERR,"Fast cutover must not disable MAX TLS verification\n"); exit(1); }
 if (str_contains($fastWorkflow,'lead-receiver.php --disable') || str_contains($fastWorkflow,'rm lead-receiver.php')) { fwrite(STDERR,"Fast cutover may disable intentional Bitrix receiver\n"); exit(1); }
 
 echo "bot cutover runbook contract OK\n";
