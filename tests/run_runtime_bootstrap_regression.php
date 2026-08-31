@@ -37,6 +37,7 @@ $sourceFiles = [
     __DIR__ . '/../web-consultant/api.php',
     __DIR__ . '/../open_tours.php',
     __DIR__ . '/../metrika_queue.php',
+    __DIR__ . '/../tools/telegram_start_smoke.php',
 ];
 foreach ($sourceFiles as $file) {
     $source = (string)file_get_contents($file);
