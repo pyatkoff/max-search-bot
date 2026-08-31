@@ -80,8 +80,6 @@ final class LiveSessionAnalyzer
         if(!$managerRequested){
             foreach($eventTypes as $type){if(stripos($type,'manager')!==false&&stripos($type,'request')!==false){$managerRequested=true;break;}}
         }
-        // A request remains part of funnel history after the conversation leaves the
-        // technical handoff states, but it is no longer an active unanswered wait.
         $managerRequestActive=$managerRequested&&in_array($status,['waiting_manager','manager'],true);
 
         $managerRequestAt=$requestTimes?max($requestTimes):null;
@@ -124,6 +122,9 @@ final class LiveSessionAnalyzer
             'project_key'=>(string)($conversation['project_key']??''),
             'channel'=>(string)($conversation['channel']??''),
             'status'=>$status,
+            'is_test'=>!empty($conversation['is_test']),
+            'test_source'=>(string)($conversation['test_source']??''),
+            'test_reason'=>(string)($conversation['test_reason']??''),
             'started'=>$started,
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
