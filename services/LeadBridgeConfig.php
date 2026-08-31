@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/integrations/MaxCredentialProvider.php';
+
 /**
  * Shared sender/receiver bridge configuration.
  * A dedicated configured secret wins. During cutover, installations that
@@ -28,10 +30,7 @@ final class LeadBridgeConfig
             $secret = trim((string) MAX_SEARCH_LEAD_BRIDGE_SECRET);
             if ($secret !== '') return $secret;
         }
-        if (defined('MAX_SEARCH_TOKEN')) {
-            $token = trim((string) MAX_SEARCH_TOKEN);
-            if ($token !== '') return hash_hmac('sha256', self::KEY_CONTEXT, $token);
-        }
-        return '';
+        $token = MaxCredentialProvider::token();
+        return $token !== '' ? hash_hmac('sha256', self::KEY_CONTEXT, $token) : '';
     }
 }
