@@ -96,7 +96,6 @@ foreach ([
     'workflow_dispatch:',
     'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1',
     'https://app.anytoour.ru/telegram_webhook.php',
-    'https://app.anytoour.ru/webhook.php',
     'max-search-pre-fast-cutover-',
     '--single-transaction --quick --skip-lock-tables',
     'FAST_DB_IMPORT=OK',
