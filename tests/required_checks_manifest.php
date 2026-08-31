@@ -20,6 +20,7 @@ return [
         'php tests/run_destination_catalog_boundary_regression.php',
         'php tests/run_destination_resolver_catalog_boundary_regression.php',
         'php tests/run_standalone_readiness_regression.php',
+        'php tests/run_standby_deploy_contract_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',
