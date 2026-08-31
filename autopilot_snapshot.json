@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T00:49:24+00:00",
+    "generated_at": "2026-08-31T00:58:50+00:00",
     "production": {
-        "sha": "79c8b3e68b505d78e9f677602dfd8b7f6c797d13",
+        "sha": "011edd83ac7c74fdc336604dd8bd1de38ff32885",
         "branch": "main"
     },
     "migrations": {
@@ -141,25 +141,27 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-30 23:49:13",
+        "since_utc": "2026-08-30 23:58:42",
         "summary": {
-            "sessions": 0,
-            "started": 0,
+            "sessions": 1,
+            "started": 1,
             "needs_collected": 0,
             "tours_opened": 0,
-            "manager_requested": 0,
-            "manager_replied": 0,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
-                "answered_in_90s": 0,
+                "answered_in_90s": 1,
                 "answered_after_90s": 0,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 22,
+                "max_seconds": 22
             },
-            "drop_points": [],
+            "drop_points": {
+                "manager_replied": 1
+            },
             "flags": []
         },
         "flagged_sessions": []
@@ -169,7 +171,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "79c8b3e68b505d78e9f677602dfd8b7f6c797d13",
+        "sha": "011edd83ac7c74fdc336604dd8bd1de38ff32885",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -178,7 +180,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T00:49:23Z"
+        "reported_at": "2026-08-31T00:58:50Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -193,23 +195,25 @@
         "window_hours": null,
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
-            "sessions": 0,
-            "started": 0,
+            "sessions": 1,
+            "started": 1,
             "needs_collected": 0,
             "tours_opened": 0,
-            "manager_requested": 0,
-            "manager_replied": 0,
+            "manager_requested": 1,
+            "manager_replied": 1,
             "phone_received": 0,
             "flagged_sessions": 0,
             "manager_response": {
-                "answered_in_90s": 0,
+                "answered_in_90s": 1,
                 "answered_after_90s": 0,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 22,
+                "max_seconds": 22
             },
-            "drop_points": [],
+            "drop_points": {
+                "manager_replied": 1
+            },
             "flags": [],
             "calendar_day": {
                 "conversations_started": 0,
@@ -221,7 +225,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T00:49:23+00:00",
+        "generated_at": "2026-08-31T00:58:49+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -235,8 +239,8 @@
             },
             "services": {
                 "files": 120,
-                "bytes": 466764,
-                "code_lines": 9972
+                "bytes": 466507,
+                "code_lines": 9974
             },
             "integrations": {
                 "files": 8,
@@ -264,9 +268,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 148,
-                "bytes": 564859,
-                "code_lines": 7102
+                "files": 149,
+                "bytes": 565865,
+                "code_lines": 7130
             },
             "tools": {
                 "files": 22,
@@ -289,8 +293,8 @@
             },
             {
                 "path": "services/DestinationResolver.php",
-                "lines": 218,
-                "bytes": 14398,
+                "lines": 220,
+                "bytes": 14141,
                 "severity": "observe"
             },
             {

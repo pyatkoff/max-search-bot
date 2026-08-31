@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-08-31T00:49:09+00:00",
+    "generated_at": "2026-08-31T00:58:39+00:00",
     "production": {
-        "sha": "79c8b3e68b505d78e9f677602dfd8b7f6c797d13",
+        "sha": "011edd83ac7c74fdc336604dd8bd1de38ff32885",
         "branch": "main"
     },
     "database": {
@@ -184,7 +184,7 @@
         "customers": 620,
         "customer_channels": 620,
         "conversations": 622,
-        "messages": 15783,
+        "messages": 15784,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 945,
@@ -2160,6 +2160,15 @@
     ],
     "recent_messages": [
         {
+            "id": 15784,
+            "conversation_id": 2,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-08-31 02:56:50"
+        },
+        {
             "id": 15783,
             "conversation_id": 542,
             "direction": "outbound",
@@ -2689,15 +2698,6 @@
             "channel": "max",
             "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
             "created_at": "2026-08-30 10:25:07"
-        },
-        {
-            "id": 15724,
-            "conversation_id": 419,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
-            "created_at": "2026-08-30 09:12:04"
         }
     ],
     "recent_events": [
