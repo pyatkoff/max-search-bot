@@ -64,6 +64,10 @@ foreach ([
     'legacy is not removed by this workflow',
     'resume mode skipped DB overwrite and Telegram mutation',
     'small number of conversations created after the dump started and before webhook switch may not exist on the new DB',
+    'Provision MAX CA bundle on new server',
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/var/www/anytoour/data/config/max-ca-bundle.crt',
+    'MAX_CA_BUNDLE=OK',
 ] as $needle) { if (!str_contains($fastWorkflow,$needle)) { fwrite(STDERR,"Missing fast cutover invariant: {$needle}\n"); exit(1); } }
 foreach (["'MAX_SEARCH_WEBHOOK_URL' => \"'https://app.anytoour.ru/webhook.php'\"","'TELEGRAM_WEBHOOK_URL' => \"'https://app.anytoour.ru/telegram_webhook.php'\"","'MAX_SEARCH_PUBLIC_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_TRACKING_BASE_URL' => \"'https://app.anytoour.ru'\"","'MAX_SEARCH_MAX_SHADOW_MODE' => 'true'"] as $needle) { if (!str_contains($standbyConfigTool,$needle)) { fwrite(STDERR,"Standby cutover URL/mode not pinned: {$needle}\n"); exit(1); } }
 foreach (['--add-new','--activate-new','--rollback-old','https://anytour.online/max-search/webhook.php','WebhookTargetConfig::max()',"createSubscription(\$api, \$token, \$newUrl)",'MAX_SUBSCRIPTION_TARGET_OK=','MaxTlsConfig::curlOptions(false)'] as $needle) { if (!str_contains($maxCutover,$needle)) { fwrite(STDERR,"Missing MAX cutover safety contract: {$needle}\n"); exit(1); } }
