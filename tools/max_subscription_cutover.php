@@ -106,7 +106,9 @@ echo 'MAX_SUBSCRIPTION_LEGACY_COUNT=' . $legacyCount . PHP_EOL;
 echo 'MAX_SUBSCRIPTION_NEW_COUNT=' . $newCount . PHP_EOL;
 if ($mode !== '--status') {
     if ($mode === '--add-new') {
-        $ok = $newCount === 1 && ($newUrl === $oldUrl || $legacyCount === 1);
+        // MAX may replace the existing subscription instead of retaining both.
+        // Both observed outcomes are safe as long as the new target is unique.
+        $ok = $newCount === 1 && ($newUrl === $oldUrl || in_array($legacyCount, [0, 1], true));
     } else {
         $ok = $targetCount === 1 && ($target === $oldUrl ? $newCount === ($newUrl === $oldUrl ? 1 : 0) : $legacyCount === 0);
     }
