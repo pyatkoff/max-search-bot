@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-08-31T07:11:53+00:00",
+    "generated_at": "2026-08-31T08:03:44+00:00",
     "production": {
-        "sha": "80f0a1bf4b57731b62f8fb5cbbdb0fbc43a528e7",
+        "sha": "c4a1d4cb3e31d1a2593f1456c2c979bc224a168a",
         "branch": "main"
     },
     "migrations": {
@@ -141,10 +141,10 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-08-31 06:11:42",
+        "since_utc": "2026-08-31 07:03:35",
         "summary": {
-            "sessions": 17,
-            "started": 17,
+            "sessions": 19,
+            "started": 19,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 0,
@@ -160,28 +160,27 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 16,
+                "collecting_needs": 18,
                 "tours_opened": 1
             },
             "flags": {
-                "rapid_date_reselection": 3,
                 "repeated_callback_input": 3,
+                "rapid_date_reselection": 2,
                 "excessive_turns": 2
             }
         },
         "flagged_sessions": [
             {
-                "conversation_id": 454,
+                "conversation_id": 644,
                 "flags": [
-                    "rapid_date_reselection",
                     "repeated_callback_input"
                 ],
-                "drop_point": "tours_opened",
+                "drop_point": "collecting_needs",
                 "manager_response_bucket": null,
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 639,
+                "conversation_id": 645,
                 "flags": [
                     "rapid_date_reselection",
                     "repeated_callback_input",
@@ -192,7 +191,7 @@
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 640,
+                "conversation_id": 646,
                 "flags": [
                     "rapid_date_reselection",
                     "repeated_callback_input",
@@ -209,7 +208,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "80f0a1bf4b57731b62f8fb5cbbdb0fbc43a528e7",
+        "sha": "c4a1d4cb3e31d1a2593f1456c2c979bc224a168a",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -218,7 +217,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-08-31T07:11:53Z"
+        "reported_at": "2026-08-31T08:03:44Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -233,14 +232,14 @@
         "window_hours": null,
         "since_utc": "2026-08-30 22:00:00",
         "summary": {
-            "sessions": 23,
-            "started": 23,
+            "sessions": 26,
+            "started": 26,
             "needs_collected": 1,
             "tours_opened": 1,
             "manager_requested": 1,
             "manager_replied": 1,
             "phone_received": 0,
-            "flagged_sessions": 9,
+            "flagged_sessions": 12,
             "manager_response": {
                 "answered_in_90s": 1,
                 "answered_after_90s": 0,
@@ -250,18 +249,18 @@
                 "max_seconds": 22
             },
             "drop_points": {
-                "collecting_needs": 21,
+                "collecting_needs": 24,
                 "manager_replied": 1,
                 "tours_opened": 1
             },
             "flags": {
-                "rapid_date_reselection": 8,
-                "repeated_callback_input": 8,
-                "excessive_turns": 8,
+                "repeated_callback_input": 11,
+                "rapid_date_reselection": 10,
+                "excessive_turns": 10,
                 "repeated_same_input": 1
             },
             "calendar_day": {
-                "conversations_started": 21,
+                "conversations_started": 24,
                 "needs_collected_from_started": 0,
                 "tours_opened_from_started": 0,
                 "manager_requested": 0,
@@ -270,7 +269,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-08-31T07:11:52+00:00",
+        "generated_at": "2026-08-31T08:03:44+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -283,9 +282,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 122,
-                "bytes": 470317,
-                "code_lines": 10085
+                "files": 123,
+                "bytes": 472586,
+                "code_lines": 10134
             },
             "integrations": {
                 "files": 8,
