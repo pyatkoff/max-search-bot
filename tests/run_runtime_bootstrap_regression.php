@@ -35,6 +35,7 @@ $sourceFiles = [
     __DIR__ . '/../cron_followup.php',
     __DIR__ . '/../website_consultant_api.php',
     __DIR__ . '/../web-consultant/api.php',
+    __DIR__ . '/../open_tours.php',
 ];
 foreach ($sourceFiles as $file) {
     $source = (string)file_get_contents($file);
@@ -42,6 +43,10 @@ foreach ($sourceFiles as $file) {
     rbCheck($label . ' uses runtime bootstrap', str_contains($source, 'RuntimeBootstrap::boot('), true);
     rbCheck($label . ' has no direct Bitrix prolog dependency', str_contains($source, '/bitrix/modules/main/include/prolog_before.php'), false);
 }
+
+$openTours = (string)file_get_contents(__DIR__ . '/../open_tours.php');
+rbCheck('open_tours uses configured public base', str_contains($openTours, 'ProjectConfig::baseDomain()'), true);
+rbCheck('open_tours has no hardcoded legacy host', str_contains($openTours, 'anytour.online'), false);
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
