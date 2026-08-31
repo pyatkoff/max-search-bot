@@ -46,6 +46,8 @@ $source = (string)file_get_contents($config);
 if ($source === '') { fwrite(STDERR, "Unable to read standby config\n"); exit(2); }
 if (!copy($config, $backup)) { fwrite(STDERR, "Unable to create standby config backup\n"); exit(2); }
 
+// This tool owns standalone/runtime/storage/URL configuration only. MAX live-vs-shadow
+// processing state is owned by max_shadow_mode.php and must survive ordinary deploys.
 $targets = [
     'MAX_SEARCH_STANDALONE_RUNTIME' => 'true',
     'MAX_SEARCH_RUNTIME_STORAGE' => "'mysql'",
@@ -55,7 +57,6 @@ $targets = [
     'TELEGRAM_WEBHOOK_URL' => "'https://app.anytoour.ru/telegram_webhook.php'",
     'MAX_SEARCH_PUBLIC_BASE_URL' => "'https://app.anytoour.ru'",
     'MAX_SEARCH_TRACKING_BASE_URL' => "'https://app.anytoour.ru'",
-    'MAX_SEARCH_MAX_SHADOW_MODE' => 'true',
 ];
 
 $lines = preg_split('/\R/', $source) ?: [];
@@ -98,4 +99,5 @@ if (!rename($tmp, $config)) { @unlink($tmp); @unlink($backup); fwrite(STDERR, "U
 
 echo "STANDBY_MODE_SWITCH=OK\n";
 echo 'MUTATED_CONFIG=' . ($config === $externalConfig ? 'external' : 'runtime') . "\n";
-echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls,max_shadow_mode\n";
+echo "ENABLED=standalone,mysql_runtime,mysql_destination,bridge_lead,new_public_urls,new_webhook_urls\n";
+echo "PRESERVED=max_shadow_mode\n";
