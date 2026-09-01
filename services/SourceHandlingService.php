@@ -45,11 +45,13 @@ class SourceHandlingService
             if($mode===self::ASK){
                 if($callback===self::CHOICE_AI){
                     self::recordChoice($platform,$chatId,self::AI,'customer_choice');
-                    return self::sendSelfServiceStart($chatId);
+                    self::sendSelfServiceStart($chatId);
+                    return true;
                 }
                 if($callback===self::CHOICE_MANAGER){
                     self::recordChoice($platform,$chatId,self::MANAGER,'customer_choice');
-                    return self::handoff($incoming,$platform,$chatId,'source_choice');
+                    self::handoff($incoming,$platform,$chatId,'source_choice');
+                    return true;
                 }
                 if(self::wasPrompted((int)$row['id']))return true;
                 if($type!=='message'&&$type!=='contact')return false;
@@ -63,7 +65,8 @@ class SourceHandlingService
             if($mode===self::MANAGER){
                 if($type==='callback')return false;
                 self::recordChoice($platform,$chatId,self::MANAGER,'source_policy');
-                return self::handoff($incoming,$platform,$chatId,'source_policy');
+                self::handoff($incoming,$platform,$chatId,'source_policy');
+                return true;
             }
             return false;
         }catch(Throwable $e){
@@ -71,7 +74,7 @@ class SourceHandlingService
         }
     }
 
-    private static function handoff(array $incoming,string $platform,$chatId,string $reason): bool
+    private static function handoff(array $incoming,string $platform,$chatId,string $reason): void
     {
         $user=(array)($incoming['user']??[]);
         $name=trim(trim((string)($user['first_name']??'')).' '.trim((string)($user['last_name']??'')));
@@ -87,7 +90,6 @@ class SourceHandlingService
             'manager_available'=>$handoff['manager_available'],
             'within_working_hours'=>$handoff['within_working_hours'],
         ]);
-        return (bool)$handoff['sent'];
     }
 
     private static function sendChoicePrompt($chatId): bool
