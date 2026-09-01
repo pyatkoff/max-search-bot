@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T02:07:32+00:00",
+    "generated_at": "2026-09-01T02:32:53+00:00",
     "production": {
-        "sha": "693cdaa84a1b162e672c715034b1b84ede3c2315",
+        "sha": "6ab4696a632e73747d0fb2a4a2cb72d697f08d82",
         "branch": "main"
     },
     "database": {
@@ -198,7 +198,7 @@
         "customers": 656,
         "customer_channels": 656,
         "conversations": 658,
-        "messages": 17108,
+        "messages": 17121,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -1456,6 +1456,123 @@
     ],
     "recent_messages": [
         {
+            "id": 17121,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-09-01 04:31:05"
+        },
+        {
+            "id": 17120,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-01 04:31:05"
+        },
+        {
+            "id": 17119,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "8-9",
+            "created_at": "2026-09-01 04:31:02"
+        },
+        {
+            "id": 17118,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
+            "created_at": "2026-09-01 04:30:59"
+        },
+        {
+            "id": 17117,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "nights_other",
+            "created_at": "2026-09-01 04:30:59"
+        },
+        {
+            "id": 17116,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+            "created_at": "2026-09-01 04:30:56"
+        },
+        {
+            "id": 17115,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_nights",
+            "created_at": "2026-09-01 04:30:56"
+        },
+        {
+            "id": 17114,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-09-01 04:30:53"
+        },
+        {
+            "id": 17113,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-09-01 04:30:53"
+        },
+        {
+            "id": 17112,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Удалось найти подходящий тур?</b> Если вариантов слишком много или сложно определиться — менеджер может посмотреть ваш запрос и помочь с выбором.",
+            "created_at": "2026-09-01 04:30:51"
+        },
+        {
+            "id": 17111,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "tours_checked",
+            "created_at": "2026-09-01 04:30:49"
+        },
+        {
+            "id": 17110,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
+            "created_at": "2026-09-01 04:25:17"
+        },
+        {
+            "id": 17109,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-09-01 04:25:17"
+        },
+        {
             "id": 17108,
             "conversation_id": 658,
             "direction": "outbound",
@@ -1877,123 +1994,6 @@
             "channel": "max",
             "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
             "created_at": "2026-09-01 02:56:40"
-        },
-        {
-            "id": 17061,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-09-01 02:56:40"
-        },
-        {
-            "id": 17060,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-01 02:47:48"
-        },
-        {
-            "id": 17059,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-01 02:47:47"
-        },
-        {
-            "id": 17058,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-01 02:47:47"
-        },
-        {
-            "id": 17057,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "9-10",
-            "created_at": "2026-09-01 02:47:44"
-        },
-        {
-            "id": 17056,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
-            "created_at": "2026-09-01 02:47:41"
-        },
-        {
-            "id": 17055,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_other",
-            "created_at": "2026-09-01 02:47:40"
-        },
-        {
-            "id": 17054,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-09-01 02:47:38"
-        },
-        {
-            "id": 17053,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_nights",
-            "created_at": "2026-09-01 02:47:38"
-        },
-        {
-            "id": 17052,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-09-01 02:47:34"
-        },
-        {
-            "id": 17051,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
-            "created_at": "2026-09-01 02:47:34"
-        },
-        {
-            "id": 17050,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_3",
-            "created_at": "2026-09-01 02:47:29"
-        },
-        {
-            "id": 17049,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-09-01 02:47:27"
         }
     ],
     "recent_events": [
