@@ -33,6 +33,8 @@ maaCheck('shared admin form feedback has success error and busy styles',strpos($
 maaCheck('new active projects grant access to every active admin',strpos($directory,'if($active)self::grantProjectToActiveAdmins($pdo,$id);')!==false&&strpos($directory,"WHERE role='admin' AND is_active=1")!==false);
 maaCheck('project creation and admin ACL update are atomic',strpos($directory,'public static function saveProject')!==false&&strpos($directory,'$pdo->beginTransaction();')!==false&&strpos($directory,'if($pdo->inTransaction())$pdo->rollBack();')!==false);
 maaCheck('existing active admins are backfilled to every active project',strpos($accessBackfill,'INSERT IGNORE INTO manager_projects')!==false&&strpos($accessBackfill,'CROSS JOIN projects p')!==false&&strpos($accessBackfill,"m.role = 'admin'")!==false&&strpos($accessBackfill,'m.is_active = 1')!==false&&strpos($accessBackfill,'p.is_active = 1')!==false);
+maaCheck('manager save validates every submitted project before mutation',strpos($directory,"SELECT id FROM projects WHERE id IN (")!==false&&strpos($directory,"'error'=>'invalid_project_selection'")!==false&&strpos($directory,'$existingProjectIds!==$submittedProjectIds')!==false);
+maaCheck('manager project links no longer silently skip stale ids',strpos($directory,'foreach($projectIds as $projectId)$ins->execute([$id,$projectId]);')!==false&&strpos($directory,'if(self::projectExists($projectId))$ins->execute')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
