@@ -27,6 +27,25 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $this->request('sendMessage', $payload);
     }
 
+    public function sendMedia($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text = '', string $previewUrl = ''): bool
+    {
+        if (!is_file($filePath)) return false;
+        $methodMap = ['image'=>'sendPhoto','video'=>'sendVideo','audio'=>'sendAudio','file'=>'sendDocument'];
+        $fieldMap = ['image'=>'photo','video'=>'video','audio'=>'audio','file'=>'document'];
+        if (!isset($methodMap[$type], $fieldMap[$type])) return false;
+        $payload = ['chat_id'=>$chatId,$fieldMap[$type]=>new CURLFile($filePath,$mimeType,$fileName)];
+        if (trim($text) !== '') {
+            $payload['caption']=$text;
+            $payload['parse_mode']='HTML';
+        }
+        if (!$this->multipartRequest($methodMap[$type], $payload)) return false;
+        $preview = trim($text) !== '' ? $text : ConversationRecorder::attachmentPreview([['type'=>$type]]);
+        $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
+        if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
+        ConversationRecorder::outbound('telegram',$chatId,$preview,$this->senderType,['attachments'=>[$attachment]]);
+        return true;
+    }
+
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
     {
         $contactPayload = [
@@ -80,6 +99,17 @@ class TelegramMessengerAdapter implements MessengerInterface
             }
             return $ok;
         }
+        return $this->curlRequest($method,$payload,false);
+    }
+
+    private function multipartRequest(string $method,array $payload): bool
+    {
+        if ($this->sendCallable) return (bool)call_user_func($this->sendCallable,$method,$payload);
+        return $this->curlRequest($method,$payload,true);
+    }
+
+    private function curlRequest(string $method,array $payload,bool $multipart): bool
+    {
         $chatId = $payload['chat_id'] ?? null;
         if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') {
             DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$chatId);
@@ -88,7 +118,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         $ch = curl_init('https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/' . $method);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $multipart ? $payload : http_build_query($payload));
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         $response = curl_exec($ch);
@@ -100,7 +130,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         if ($error !== '') $details['curl_error']=$error;
         if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
         DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
-        if ($ok && $method === 'sendMessage' && $chatId !== null) {
+        if ($ok && !$multipart && $method === 'sendMessage' && $chatId !== null) {
             ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
         }
         return $ok;
