@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $mobile=(string)file_get_contents($root.'/manager/assets/workspace-v2-mobile.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.css');
@@ -38,10 +39,10 @@ lcCheck('lost outcome validation is inline and focuses reason',strpos($pipeline,
 lcCheck('outcome save status has success and error presentation',strpos($css,'.outcomeSaveStatus.success')!==false&&strpos($css,'.outcomeSaveStatus.error')!==false);
 lcCheck('technical state is collapsed into details',strpos($js,'Источник и служебная информация')!==false&&strpos($js,'<details class="leadDetails">')!==false&&strpos($js,"statusText(handoff.technical_status)")!==false);
 lcCheck('technical status remains read only',strpos($pipeline,"pipe('set_stage'")!==false&&strpos($pipeline,"pipe('set_status'")===false&&strpos($js,"pipe('set_status'")===false&&strpos($js,'technical_status=')===false);
-lcCheck('lead card mutations keep target-pinned stability refresh boundary',substr_count($js,'refreshLeadData({refreshInbox:true,conversationId:target})')>=4&&strpos($js,'WorkspaceV2Conversation?.open')===false);
+lcCheck('lead card delegates task mutations while task owner keeps target-pinned stability refresh boundary',strpos($js,'WorkspaceV2Tasks.render(root,{tasks,canEdit,conversationId})')!==false&&strpos($js,"pipe('create_task'")===false&&substr_count($tasks,'refreshLead(target)')>=4&&strpos($tasks,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($tasks,'WorkspaceV2Conversation?.open')===false);
 lcCheck('mobile lead card is a full screen surface',strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.leadZone{inset:0!important')!==false);
-lcCheck('redesign does not mutate manager shift or routing',stripos($js.' '.$pipeline.' '.$css,'set_working')===false&&stripos($js.' '.$pipeline.' '.$css,'routing_bonus')===false);
-lcCheck('redesign does not touch metrika or lead delivery',stripos($js.' '.$pipeline.' '.$css,'metrika')===false&&strpos($js.$pipeline,'LeadDestination')===false);
+lcCheck('redesign does not mutate manager shift or routing',stripos($js.' '.$tasks.' '.$pipeline.' '.$css,'set_working')===false&&stripos($js.' '.$tasks.' '.$pipeline.' '.$css,'routing_bonus')===false);
+lcCheck('redesign does not touch metrika or lead delivery',stripos($js.' '.$tasks.' '.$pipeline.' '.$css,'metrika')===false&&strpos($js.$tasks.$pipeline,'LeadDestination')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
