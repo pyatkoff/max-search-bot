@@ -6,6 +6,7 @@ require_once __DIR__ . '/ConversationAttributionService.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
+require_once __DIR__ . '/SourceHandlingService.php';
 
 class IncomingUpdateDispatcher
 {
@@ -29,6 +30,10 @@ class IncomingUpdateDispatcher
 
         ConversationRecorder::inbound($incoming);
         ConversationAttributionService::syncByChat($platform,$chatId);
+        if (SourceHandlingService::handle($incoming)) {
+            DiagnosticLogger::log('incoming_dispatch','source_handling',['platform'=>$platform,'type'=>$type],$chatId);
+            return true;
+        }
         $ownership = ConversationControlService::statusByChat($platform, $chatId);
         if ($ownership && in_array((string)$ownership['status'], ['waiting_manager','manager'], true)) {
             $status = (string)$ownership['status'];
