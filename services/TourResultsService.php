@@ -14,6 +14,16 @@ class TourResultsService
         $savedData['NAME'] = $name;
         $claimUrl = (string)MaxSearchApi::saveClaim($chatId, $savedData);
 
+        // The claim remains persisted for lead/manager continuity, but the customer-facing
+        // destination is always the canonical search page. Preserve the route when available.
+        $claim = MaxSearchApi::getLastClaimForChat($chatId);
+        if (is_array($claim) && $claim) {
+            $claimUrl = ProjectConfig::searchUrlFromClaim(
+                $claim,
+                (string)MaxSearchApi::getLatestYclid($chatId)
+            );
+        }
+
         $openToursUrl = self::trackedUrl(
             (string)ProjectConfig::get('search.open_tours_path', '/max-search/open_tours.php'),
             $chatId,

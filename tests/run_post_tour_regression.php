@@ -6,7 +6,7 @@ require_once __DIR__ . '/../services/ProjectConfig.php';
 
 class MaxSearchApi {
     public static string $channel = 'https://max.ru/join/test';
-    public static array $claim = ['UF_CODE'=>'abc123'];
+    public static array $claim = ['UF_CODE'=>'abc123','UF_CITY'=>1,'UF_COUNTRY'=>4];
     public static string $yclid = 'yclid-test';
     public static function buildChannelMiniappUrl($chatId){ return self::$channel; }
     public static function getLastClaimForChat($chatId){ return self::$claim; }
@@ -25,7 +25,7 @@ ProjectConfig::resetForTests([
     ],
     'search'=>[
         'base_domain'=>'https://example.test',
-        'claim_path'=>'/search/{code}/',
+        'search_path'=>'/poisk-turov/',
     ],
 ]);
 
@@ -41,7 +41,7 @@ ptCheck('after tours manager payload',$after['buttons'][1][0]['callback_data']??
 $offer=PostTourService::channelOfferModel(55,false);
 ptCheck('max channel name',PostTourService::channelName(),'MAX-канал');
 ptCheck('channel tracked url contains chat',strpos($offer['buttons'][0][0]['url']??'','chat=55')!==false,true);
-ptCheck('return tours claim url',$offer['claim_url'],'https://example.test/search/abc123/?yclid=yclid-test');
+ptCheck('return tours canonical url',$offer['claim_url'],'https://example.test/poisk-turov/?from=1&country=4&yclid=yclid-test');
 ptCheck('return tours button',$offer['buttons'][1][0]['text']??null,'🔥 Вернуться к турам');
 ptCheck('non-lead copy mentions max',strpos($offer['text'],'MAX-канал')!==false,true);
 
@@ -50,7 +50,7 @@ ptCheck('lead copy confirmation',strpos($leadOffer['text'],'Заявка отп�
 
 ProjectConfig::resetForTests([
     'messenger'=>['provider'=>'telegram'],
-    'search'=>['base_domain'=>'https://example.test','claim_path'=>'/search/{code}/'],
+    'search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/'],
 ]);
 ptCheck('telegram channel name',PostTourService::channelName(),'Telegram-канал');
 $tg=PostTourService::channelOfferModel(55,false);

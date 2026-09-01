@@ -19,7 +19,9 @@ function trCheck(string $name, $actual, $expected): void {
 if (!class_exists('MaxSearchApi')) {
     class MaxSearchApi {
         public static function getSavedData($chatId): array { return ['city'=>1]; }
-        public static function saveClaim($chatId, $savedData): string { return 'https://agency.test/search/abc/?yclid=777'; }
+        public static function saveClaim($chatId, $savedData): string { return 'https://legacy.test/search/abc/?yclid=777'; }
+        public static function getLastClaimForChat($chatId): array { return ['UF_CITY'=>1,'UF_COUNTRY'=>4,'UF_CODE'=>'abc']; }
+        public static function getLatestYclid($chatId): string { return '777'; }
         public static function buildChannelMiniappUrl($chatId): string { return 'https://max.ru/test?startapp=777'; }
     }
 }
@@ -32,18 +34,20 @@ ProjectConfig::resetForTests([
     ],
     'search'=>[
         'base_domain'=>'https://public-search.test',
+        'search_path'=>'/poisk-turov/',
         'tracking_base_domain'=>'https://tracker.test',
         'open_tours_path'=>'/track/tours.php',
     ],
 ]);
 
 $model = TourResultsService::build(-123, 'Pavel');
-trCheck('claim url preserved', $model['claim_url'], 'https://agency.test/search/abc/?yclid=777');
+$canonical = 'https://public-search.test/poisk-turov/?from=1&country=4&yclid=777';
+trCheck('claim url canonicalized', $model['claim_url'], $canonical);
 trCheck('channel url preserved', $model['channel_url'], 'https://max.ru/test?startapp=777');
 trCheck('MAX button label', $model['buttons'][1][0]['text'], '🔥 Горящие туры в MAX');
 trCheck('manager callback', $model['buttons'][2][0]['callback_data'], 'manager_after_tours');
 trCheck('edit callback', $model['buttons'][3][0]['callback_data'], 'edit_params');
-trCheck('tour tracking url uses tracking origin', $model['buttons'][0][0]['url'], 'https://tracker.test/track/tours.php?chat=-123&url='.rawurlencode('https://agency.test/search/abc/?yclid=777'));
+trCheck('tour tracking keeps canonical target', $model['buttons'][0][0]['url'], 'https://tracker.test/track/tours.php?chat=-123&url='.rawurlencode($canonical));
 trCheck('channel tracking url uses tracking origin', $model['buttons'][1][0]['url'], 'https://tracker.test/track/channel.php?chat=-123&url='.rawurlencode('https://max.ru/test?startapp=777'));
 trCheck('public and tracking origins stay independent', ProjectConfig::baseDomain(), 'https://public-search.test');
 trCheck('MAX message wording', strpos($model['text'], 'MAX-канал') !== false, true);

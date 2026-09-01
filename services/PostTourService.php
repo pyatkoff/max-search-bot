@@ -47,8 +47,11 @@ class PostTourService
 
         $claimUrl = '';
         $claim = MaxSearchApi::getLastClaimForChat($chatId);
-        if ($claim && !empty($claim['UF_CODE'])) {
-            $claimUrl = ProjectConfig::claimUrl((string)$claim['UF_CODE'], (string)MaxSearchApi::getLatestYclid($chatId));
+        if (is_array($claim) && $claim) {
+            $claimUrl = ProjectConfig::searchUrlFromClaim(
+                $claim,
+                (string)MaxSearchApi::getLatestYclid($chatId)
+            );
             $buttons[] = ButtonFactory::row(ButtonFactory::url('🔥 Вернуться к турам', $claimUrl));
         }
 

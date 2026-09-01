@@ -9,24 +9,25 @@ require_once __DIR__ . '/../services/ActionRouter.php';
 $pass=0;$fail=0;
 function v2check(string $name,$actual,$expected):void{global$pass,$fail;if($actual===$expected){echo"PASS  $name\n";$pass++;}else{echo"FAIL  $name\n expected: ".json_encode($expected,JSON_UNESCAPED_UNICODE)."\n actual: ".json_encode($actual,JSON_UNESCAPED_UNICODE)."\n";$fail++;}}
 
-ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','claim_base_domain'=>'https://claim.example.test','tracking_base_domain'=>'https://tracking.example.test','claim_path'=>'/search/{code}/'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
+ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','claim_base_domain'=>'https://example.test','tracking_base_domain'=>'https://tracking.example.test','claim_path'=>'/poisk-turov/'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
 v2check('project id',ProjectConfig::projectId(),'test');
 v2check('public base',ProjectConfig::baseDomain(),'https://example.test');
-v2check('claim base is independent',ProjectConfig::claimBaseDomain(),'https://claim.example.test');
-v2check('claim url',ProjectConfig::claimUrl('abc','123'),'https://claim.example.test/search/abc/?yclid=123');
+v2check('canonical search url',ProjectConfig::searchUrl(['from'=>1,'country'=>4,'yclid'=>'123']),'https://example.test/poisk-turov/?from=1&country=4&yclid=123');
+v2check('claim fallback stays canonical',ProjectConfig::claimUrl('abc','123'),'https://example.test/poisk-turov/?claim=abc&yclid=123');
+v2check('claim row preserves route',ProjectConfig::searchUrlFromClaim(['UF_CITY'=>1,'UF_COUNTRY'=>4],'123'),'https://example.test/poisk-turov/?from=1&country=4&yclid=123');
+v2check('saved data preserves route',ProjectConfig::searchUrlFromSavedData([65=>1,66=>4],['city'=>65,'country'=>66],'123'),'https://example.test/poisk-turov/?from=1&country=4&yclid=123');
 v2check('tracking base independent',ProjectConfig::trackingBaseDomain(),'https://tracking.example.test');
 
-ProjectConfig::resetForTests(['id'=>'fallback','search'=>['base_domain'=>'https://fallback.test','claim_path'=>'/search/{code}/']]);
+ProjectConfig::resetForTests(['id'=>'fallback','search'=>['base_domain'=>'https://fallback.test','search_path'=>'/poisk-turov/']]);
 v2check('claim base falls back to public base',ProjectConfig::claimBaseDomain(),'https://fallback.test');
-v2check('claim url fallback remains backward compatible',ProjectConfig::claimUrl('abc','123'),'https://fallback.test/search/abc/?yclid=123');
+v2check('search url fallback remains canonical',ProjectConfig::searchUrl(),'https://fallback.test/poisk-turov/');
 
-ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','claim_base_domain'=>'https://claim.example.test','tracking_base_domain'=>'https://tracking.example.test','claim_path'=>'/search/{code}/'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
+ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','claim_base_domain'=>'https://example.test','tracking_base_domain'=>'https://tracking.example.test'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
 define('MAX_SEARCH_PUBLIC_BASE_URL','https://public.override.test/');
 define('MAX_SEARCH_TRACKING_BASE_URL','https://tracking.override.test/');
 v2check('public base override',ProjectConfig::baseDomain(),'https://public.override.test');
 v2check('tracking base override',ProjectConfig::trackingBaseDomain(),'https://tracking.override.test');
-v2check('configured claim base is not moved by public override',ProjectConfig::claimBaseDomain(),'https://claim.example.test');
-v2check('claim url keeps configured claim origin',ProjectConfig::claimUrl('abc','123'),'https://claim.example.test/search/abc/?yclid=123');
+v2check('canonical search follows public override',ProjectConfig::searchUrl(['from'=>1]),'https://public.override.test/poisk-turov/?from=1');
 
 $base=sys_get_temp_dir().'/max-search-v2-'.uniqid();@mkdir($base,0755,true);
 $state=['departure'=>['city_id'=>1,'city'=>'Москва'],'destination'=>['country_id'=>4,'country'=>'Турция'],'dates'=>['from'=>'10.09.2026','to'=>'12.09.2026'],'nights'=>['min'=>7,'max'=>10],'tourists'=>['adults'=>2,'children'=>1,'children_ages'=>[6]],'budget'=>['max'=>180000,'currency'=>'RUB'],'hotel'=>['stars_min'=>5,'meal'=>'all_inclusive'],'preferences'=>['первая линия','детский клуб'],'negative_preferences'=>['шумный отель'],'meta'=>[]];
