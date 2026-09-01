@@ -174,6 +174,7 @@ class ManagerConversationService
             if($previous===$targetManagerId&&(string)$row['status']==='manager'){$pdo->commit();return true;}
             $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);
             $pdo->prepare('UPDATE conversations SET status=?,manager_id=? WHERE id=?')->execute(['manager',$targetManagerId,$conversationId]);
+            $pdo->prepare("UPDATE lead_tasks SET assigned_manager_id=?,updated_at=UTC_TIMESTAMP() WHERE conversation_id=? AND status='open'")->execute([$targetManagerId,$conversationId]);
             $pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$targetManagerId,'admin_reassign']);
             ConversationControlService::event($conversationId,'manager_reassigned','manager',$adminId,['from_manager_id'=>$previous?:null,'to_manager_id'=>$targetManagerId]);
             $pdo->commit();return true;
