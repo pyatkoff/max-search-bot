@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T19:21:49+00:00",
+    "generated_at": "2026-09-01T19:36:08+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -2200,13 +2200,13 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 17,
-            "outbound_messages": 11,
+            "outbound_messages": 12,
             "date_picks": 2,
             "anomaly_inbound_messages": 17,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-09-01 21:14:47",
-            "last_message_at": "2026-09-01 21:16:17"
+            "last_message_at": "2026-09-01 21:27:02"
         }
     ],
     "local_date": "2026-09-01",

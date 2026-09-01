@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T19:21:43+00:00",
+    "generated_at": "2026-09-01T19:36:03+00:00",
     "production": {
-        "sha": "9fc02aacd0390abfed3be4916ef87a79fb701972",
+        "sha": "a8062be8f6c6a1afe5f176cf15845aec3e0e95ce",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 670,
         "customer_channels": 670,
         "conversations": 672,
-        "messages": 17579,
+        "messages": 17580,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1132,112 +1132,7 @@
     ],
     "recent_entry_attribution": [],
     "recent_manager_priority_events": [],
-    "recent_manager_push_events": [
-        {
-            "ts": "2026-09-01T07:55:53+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "4a5a92032937a1ba",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:53+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "4a5a92032937a1ba",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:41+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "eaa2887b6e1b4031",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:41+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "eaa2887b6e1b4031",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:39+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "05fe65bbd8ee8033",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:39+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "05fe65bbd8ee8033",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:38+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "4dddb2b77aeca911",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T07:55:38+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "4dddb2b77aeca911",
-                "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        }
-    ],
+    "recent_manager_push_events": [],
     "conversation_status": [
         {
             "project_key": "anytour",
@@ -1567,6 +1462,15 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 17580,
+            "conversation_id": 672,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 21:27:02"
+        },
         {
             "id": 17579,
             "conversation_id": 672,
@@ -2097,15 +2001,6 @@
             "channel": "max",
             "text": "month_change_10.2026",
             "created_at": "2026-09-01 21:10:19"
-        },
-        {
-            "id": 17520,
-            "conversation_id": 671,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-09-01 21:10:17"
         }
     ],
     "recent_events": [
