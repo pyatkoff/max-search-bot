@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T16:30:43+00:00",
+    "generated_at": "2026-09-01T16:35:42+00:00",
     "production": {
-        "sha": "627a2cfb6fb3cab64421209718c6b077553cf534",
+        "sha": "4ae6d61dbc019eea1a1f1e1c1f02965699da2939",
         "branch": "main"
     },
     "migrations": {
@@ -141,19 +141,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 15:30:34",
+        "since_utc": "2026-09-01 15:35:33",
         "summary": {
-            "sessions": 5,
-            "raw_sessions": 5,
+            "sessions": 4,
+            "raw_sessions": 4,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 5,
+                "resolved": 4,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 5,
-            "needs_collected": 4,
-            "tours_opened": 4,
+            "started": 4,
+            "needs_collected": 3,
+            "tours_opened": 3,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -168,7 +168,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 4,
+                "tours_opened": 3,
                 "collecting_needs": 1
             },
             "flags": []
@@ -180,7 +180,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "627a2cfb6fb3cab64421209718c6b077553cf534",
+        "sha": "4ae6d61dbc019eea1a1f1e1c1f02965699da2939",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -189,7 +189,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T16:30:43Z"
+        "reported_at": "2026-09-01T16:35:42Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -251,7 +251,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T16:30:42+00:00",
+        "generated_at": "2026-09-01T16:35:41+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -265,7 +265,7 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 507416,
+                "bytes": 507738,
                 "code_lines": 10896
             },
             "integrations": {
@@ -275,8 +275,8 @@
             },
             "manager": {
                 "files": 53,
-                "bytes": 277052,
-                "code_lines": 1372
+                "bytes": 277556,
+                "code_lines": 1373
             },
             "website": {
                 "files": 4,
@@ -295,8 +295,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 667869,
-                "code_lines": 8083
+                "bytes": 668862,
+                "code_lines": 8086
             },
             "tools": {
                 "files": 37,
