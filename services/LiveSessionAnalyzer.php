@@ -71,14 +71,15 @@ final class LiveSessionAnalyzer
             }
         }
 
-        $eventTypes=[];$requestTimes=[];$managerTaken=false;
+        $eventTypes=[];$requestTimes=[];$managerTaken=false;$siteOpenAt=null;
         foreach($events as $e){
             $type=(string)($e['event_type']??'');
             $eventTypes[]=$type;
             $typeNorm=strtolower($type);
+            $eventTs=self::ts($e['created_at']??null);
+            if($typeNorm==='site_open'&&$eventTs!==null)$siteOpenAt=$siteOpenAt===null?$eventTs:max($siteOpenAt,$eventTs);
             if($typeNorm==='waiting_manager' || (strpos($typeNorm,'manager')!==false&&strpos($typeNorm,'request')!==false)){
-                $ts=self::ts($e['created_at']??null);
-                if($ts!==null)$requestTimes[]=$ts;
+                if($eventTs!==null)$requestTimes[]=$eventTs;
             }
             if($typeNorm==='manager_taken')$managerTaken=true;
         }
@@ -129,6 +130,7 @@ final class LiveSessionAnalyzer
         if($started)$drop='collecting_needs';
         if($needsCollected)$drop='needs_collected';
         if($showTours)$drop='tours_opened';
+        if($siteOpenAt!==null)$drop='site_open';
         if($managerRequested)$drop='manager_requested';
         if($managerReplied)$drop='manager_replied';
         if($customerRepliedAfterManager)$drop='customer_replied_after_manager';
@@ -145,6 +147,8 @@ final class LiveSessionAnalyzer
             'started'=>$started,
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
+            'site_opened'=>$siteOpenAt!==null,
+            'site_opened_at'=>$siteOpenAt!==null?gmdate('Y-m-d H:i:s',$siteOpenAt):null,
             'post_tour_manager_cta_shown'=>$postTourManagerCtaAt!==null,
             'post_tour_manager_cta_at'=>$postTourManagerCtaAt!==null?gmdate('Y-m-d H:i:s',$postTourManagerCtaAt):null,
             'manager_requested'=>$managerRequested,
