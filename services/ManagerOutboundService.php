@@ -73,22 +73,24 @@ class ManagerOutboundService
         $c=$detail['conversation'];
         if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return false;
         $channel=strtolower((string)$c['channel']);
-        if($channel!=='max'){
-            self::$lastFailure=['category'=>'unsupported','http_code'=>0,'message'=>'Медиа сейчас поддерживается только для MAX','channel'=>$channel,'project_key'=>(string)$c['project_key']];
+        if(!in_array($channel,['max','telegram'],true)){
+            self::$lastFailure=['category'=>'unsupported','http_code'=>0,'message'=>'Медиа для этого канала пока не поддерживается','channel'=>$channel,'project_key'=>(string)$c['project_key']];
             return false;
         }
-        $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
-        if($suspended){self::$lastFailure=$suspended;return false;}
+        if($channel==='max'){
+            $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
+            if($suspended){self::$lastFailure=$suspended;return false;}
+        }
         $type=self::attachmentTypeForMime($mimeType);
-        $adapter=new MaxMessengerAdapter(null,null,'manager');
+        $adapter=$channel==='max'?new MaxMessengerAdapter(null,null,'manager'):new TelegramMessengerAdapter(null,'manager');
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
-            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>'max','project_key'=>(string)$c['project_key'],'media_type'=>$type]);
+            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key'],'media_type'=>$type]);
             MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
-        return self::recordFailure($conversationId,$managerId,'max',(string)$c['project_key'],['media_type'=>$type]);
+        return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],['media_type'=>$type]);
     }
 
     private static function recordFailure(int $conversationId,int $managerId,string $channel,string $projectKey,array $extra=[]): bool
@@ -124,9 +126,9 @@ class ManagerOutboundService
             case 'suspended': return '🔴 Сообщение не доставлено: пользователь остановил или заблокировал бота MAX. Написать снова можно только после запуска/разблокировки бота пользователем.';
             case 'blocked': return '🔴 Сообщение не доставлено: пользователь заблокировал бота';
             case 'unavailable': return '🔴 Сообщение не доставлено: пользователь недоступен в MAX';
-            case 'temporary': return '⚠️ Сообщение не доставлено: временная ошибка MAX, попробуйте ещё раз';
+            case 'temporary': return '⚠️ Сообщение не доставлено: временная ошибка, попробуйте ещё раз';
             case 'unsupported': return '⚠️ Отправка медиа для этого канала пока не поддерживается';
-            default: return '⚠️ Сообщение не доставлено: ошибка MAX';
+            default: return '⚠️ Сообщение не доставлено';
         }
     }
 }
