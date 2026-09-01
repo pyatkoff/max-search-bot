@@ -37,6 +37,15 @@ class ProjectConfig
         return rtrim((string)self::get('search.base_domain', ''), '/');
     }
 
+    public static function claimBaseDomain(): string
+    {
+        if (defined('MAX_SEARCH_CLAIM_BASE_URL')) {
+            $override = trim((string)MAX_SEARCH_CLAIM_BASE_URL);
+            if ($override !== '') return rtrim($override, '/');
+        }
+        return rtrim((string)self::get('search.claim_base_domain', self::baseDomain()), '/');
+    }
+
     public static function trackingBaseDomain(): string
     {
         if (defined('MAX_SEARCH_TRACKING_BASE_URL')) {
@@ -50,7 +59,7 @@ class ProjectConfig
     {
         $path = (string)self::get('search.claim_path', '/poisk-turov-tg/{code}/');
         $path = str_replace('{code}', rawurlencode($code), $path);
-        $url = self::baseDomain() . '/' . ltrim($path, '/');
+        $url = self::claimBaseDomain() . '/' . ltrim($path, '/');
         if ($yclid !== '') $url .= (strpos($url, '?') === false ? '?' : '&') . 'yclid=' . rawurlencode($yclid);
         return $url;
     }
