@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T03:08:14+00:00",
+    "generated_at": "2026-09-01T03:33:02+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -3125,7 +3125,7 @@
                 "excessive_turns"
             ],
             "started_at": "2026-08-31 11:39:04",
-            "last_message_at": "2026-09-01 04:59:06",
+            "last_message_at": "2026-09-01 05:11:03",
             "message_tail": [
                 {
                     "direction": "inbound",

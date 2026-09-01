@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T03:08:08+00:00",
+    "generated_at": "2026-09-01T03:32:55+00:00",
     "production": {
-        "sha": "5ef6cd0863878c7d410debaaa74535fe7b43257a",
+        "sha": "0ef1c6367fd5d4c569139d46a0b406f5e339666f",
         "branch": "main"
     },
     "database": {
@@ -198,7 +198,7 @@
         "customers": 656,
         "customer_channels": 656,
         "conversations": 658,
-        "messages": 17145,
+        "messages": 17146,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -1456,6 +1456,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17146,
+            "conversation_id": 648,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 05:11:03"
+        },
+        {
             "id": 17145,
             "conversation_id": 648,
             "direction": "outbound",
@@ -1984,15 +1993,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-09-01 03:07:45"
-        },
-        {
-            "id": 17086,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_params",
             "created_at": "2026-09-01 03:07:45"
         }
     ],
