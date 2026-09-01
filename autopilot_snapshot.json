@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T14:03:50+00:00",
+    "generated_at": "2026-09-01T14:08:48+00:00",
     "production": {
-        "sha": "cc45358588ccc8822e223f2a60d507418eebcd1e",
+        "sha": "3ab992f0105293044e13bce35a5dc893d011ed33",
         "branch": "main"
     },
     "migrations": {
@@ -141,14 +141,14 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 13:03:38",
+        "since_utc": "2026-09-01 13:08:38",
         "summary": {
-            "sessions": 5,
-            "raw_sessions": 5,
+            "sessions": 4,
+            "raw_sessions": 4,
             "explicit_test_sessions": 0,
-            "started": 5,
-            "needs_collected": 3,
-            "tours_opened": 3,
+            "started": 4,
+            "needs_collected": 2,
+            "tours_opened": 2,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -163,8 +163,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 3,
-                "collecting_needs": 2
+                "collecting_needs": 2,
+                "tours_opened": 2
             },
             "flags": {
                 "repeated_callback_input": 1,
@@ -189,7 +189,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "cc45358588ccc8822e223f2a60d507418eebcd1e",
+        "sha": "3ab992f0105293044e13bce35a5dc893d011ed33",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -198,7 +198,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T14:03:50Z"
+        "reported_at": "2026-09-01T14:08:48Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -255,7 +255,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T14:03:50+00:00",
+        "generated_at": "2026-09-01T14:08:48+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -269,8 +269,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 505063,
-                "code_lines": 10859
+                "bytes": 505328,
+                "code_lines": 10866
             },
             "integrations": {
                 "files": 10,
@@ -279,8 +279,8 @@
             },
             "manager": {
                 "files": 52,
-                "bytes": 270417,
-                "code_lines": 1354
+                "bytes": 270858,
+                "code_lines": 1353
             },
             "website": {
                 "files": 4,
@@ -299,8 +299,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 658460,
-                "code_lines": 8045
+                "bytes": 659619,
+                "code_lines": 8052
             },
             "tools": {
                 "files": 37,
