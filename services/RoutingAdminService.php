@@ -26,13 +26,20 @@ class RoutingAdminService
         if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
         RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$groupKey=trim($groupKey);$displayName=trim($displayName);
         if($projectId<=0||$groupKey===''||$displayName==='')return false;
+        $memberIds=array_values(array_unique(array_filter(array_map('intval',$memberIds),static function($v){return $v>0;})));
+        if($memberIds){
+            $q=$pdo->prepare('SELECT DISTINCT m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.id IN ('.implode(',',array_fill(0,count($memberIds),'?')).') AND mp.project_id=? AND m.is_active=1');
+            $q->execute(array_merge($memberIds,[$projectId]));
+            $eligibleIds=array_map('intval',array_column($q->fetchAll(),'id'));sort($eligibleIds);$submittedIds=$memberIds;sort($submittedIds);
+            if($eligibleIds!==$submittedIds)return false;
+        }
         $before=$groupId>0?self::groupRow($groupId):null;
         $pdo->beginTransaction();try{
             if($groupId>0){$q=$pdo->prepare('UPDATE manager_groups SET group_key=?,display_name=? WHERE id=? AND project_id=?');$q->execute([$groupKey,$displayName,$groupId,$projectId]);if(!$q->rowCount()){ $check=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=?');$check->execute([$groupId,$projectId]);if(!$check->fetchColumn())throw new RuntimeException('group_not_found');}}
             else{$q=$pdo->prepare('INSERT INTO manager_groups (project_id,group_key,display_name) VALUES (?,?,?)');$q->execute([$projectId,$groupKey,$displayName]);$groupId=(int)$pdo->lastInsertId();}
             $pdo->prepare('DELETE FROM manager_group_members WHERE group_id=?')->execute([$groupId]);
-            $ins=$pdo->prepare('INSERT IGNORE INTO manager_group_members (group_id,manager_id) SELECT ?,m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.id=? AND mp.project_id=? AND m.is_active=1');
-            foreach(array_unique(array_map('intval',$memberIds)) as $mid)if($mid>0)$ins->execute([$groupId,$mid,$projectId]);
+            $ins=$pdo->prepare('INSERT IGNORE INTO manager_group_members (group_id,manager_id) VALUES (?,?)');
+            foreach($memberIds as $mid)$ins->execute([$groupId,$mid]);
             $pdo->commit();AuditLogService::record($managerId,$before?'routing_group_updated':'routing_group_created','manager_group',(string)$groupId,$projectKey,$before,self::groupRow($groupId));return true;
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return false;}
     }
