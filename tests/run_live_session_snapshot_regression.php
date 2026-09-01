@@ -23,6 +23,8 @@ lssCheck('snapshot reads source id from canonical conversation row',strpos($sour
 lssCheck('business summary exposes unresolved source volume and bounded ids',strpos($source,"'source_resolution'=>[")!==false&&strpos($source,"'unresolved_conversation_ids'=>[]")!==false&&strpos($source,"count(\$summary['source_resolution']['unresolved_conversation_ids'])<20")!==false);
 lssCheck('business summary excludes only explicit test sessions',strpos($source,"\$businessSessions=array_values(array_filter(\$sessions,static fn(array \$session):bool=>empty(\$session['is_test'])))")!==false&&strpos($source,"'explicit_test_sessions'=>count(\$sessions)-count(\$businessSessions)")!==false);
 lssCheck('raw sessions remain visible for diagnostics',strpos($source,"'raw_sessions'=>count(\$sessions)")!==false&&strpos($source,"\$result['sessions']=\$sessions")!==false);
+lssCheck('post-tour manager CTA delivery is summarized from actual outbound evidence',strpos($analyzer,'isPostTourManagerCta')!==false&&strpos($analyzer,"'post_tour_manager_cta_shown'=>\$postTourManagerCtaAt!==null")!==false&&strpos($source,"'post_tour_manager_cta_shown'=>0")!==false&&strpos($source,"'post_tour_manager_cta_at'")!==false);
+lssCheck('calendar-day summary counts CTA delivery by delivery timestamp',strpos($source,"\$postTourCtaAt=liveDiagnosticTs(\$session['post_tour_manager_cta_at']??null)")!==false&&strpos($source,"\$summary['calendar_day']['post_tour_manager_cta_shown']++")!==false);
 
 $tmp=tempnam(sys_get_temp_dir(),'live-anomaly-');
 $fixture=[

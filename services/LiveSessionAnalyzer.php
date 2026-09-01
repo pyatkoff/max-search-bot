@@ -31,10 +31,16 @@ final class LiveSessionAnalyzer
         return (bool)preg_match('/(?<!\d)(?:\+7|7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u',$text);
     }
 
+    private static function isPostTourManagerCta(string $text): bool
+    {
+        return stripos($text,'Могу помочь с выбором')!==false
+            || stripos($text,'Удалось найти подходящий тур?')!==false;
+    }
+
     public static function analyze(array $conversation,array $messages,array $events=[],?int $anomalySinceTs=null):array
     {
         $inbound=[];$outbound=[];$datePicks=0;$anomalyDatePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
-        $managerMessageTimes=[];$customerMessageTimes=[];$anomalyInboundTurns=0;
+        $managerMessageTimes=[];$customerMessageTimes=[];$anomalyInboundTurns=0;$postTourManagerCtaAt=null;
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
             $messageTs=self::ts($m['created_at']??null);
@@ -61,6 +67,7 @@ final class LiveSessionAnalyzer
             } else {
                 $outbound[]=$text;
                 if(($m['sender_type']??'')==='manager'&&$messageTs!==null)$managerMessageTimes[]=$messageTs;
+                if(($m['sender_type']??'')==='ai'&&self::isPostTourManagerCta($text)&&$messageTs!==null)$postTourManagerCtaAt=$messageTs;
             }
         }
 
@@ -138,6 +145,8 @@ final class LiveSessionAnalyzer
             'started'=>$started,
             'needs_collected'=>$needsCollected,
             'tours_opened'=>$showTours,
+            'post_tour_manager_cta_shown'=>$postTourManagerCtaAt!==null,
+            'post_tour_manager_cta_at'=>$postTourManagerCtaAt!==null?gmdate('Y-m-d H:i:s',$postTourManagerCtaAt):null,
             'manager_requested'=>$managerRequested,
             'manager_request_active'=>$managerRequestActive,
             'manager_replied'=>$managerReplied,

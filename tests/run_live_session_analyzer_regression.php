@@ -17,8 +17,18 @@ $m=[
 $r=LiveSessionAnalyzer::analyze($c,$m,[]);
 lsCheck('detects completed needs',!empty($r['needs_collected']));
 lsCheck('detects tours opened',!empty($r['tours_opened']));
+lsCheck('does not invent post-tour manager CTA before actual delivery',empty($r['post_tour_manager_cta_shown'])&&($r['post_tour_manager_cta_at']??null)===null);
 lsCheck('detects truly rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
 lsCheck('drop point is tours opened',$r['drop_point']==='tours_opened');
+
+$postTour=$m;
+$postTour[]=['direction'=>'outbound','sender_type'=>'ai','text'=>'🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены.','created_at'=>'2026-08-24 20:13:00'];
+$postTourResult=LiveSessionAnalyzer::analyze($c,$postTour,[]);
+lsCheck('actual outbound post-tour manager CTA is detected',!empty($postTourResult['post_tour_manager_cta_shown']));
+lsCheck('post-tour manager CTA delivery time is exposed',($postTourResult['post_tour_manager_cta_at']??null)==='2026-08-24 20:13:00');
+$postTour[count($postTour)-1]['text']='🙂 <b>Удалось найти подходящий тур?</b> Если сложно определиться — менеджер может помочь.';
+$postTourResult=LiveSessionAnalyzer::analyze($c,$postTour,[]);
+lsCheck('alternate after-tours manager CTA is detected',!empty($postTourResult['post_tour_manager_cta_shown']));
 
 $phoneMessages=[['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837','created_at'=>'2026-08-24 20:03:10']];
 $phoneResult=LiveSessionAnalyzer::analyze($c,$phoneMessages,[]);
