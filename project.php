@@ -25,8 +25,10 @@ return [
     ],
     'search' => [
         'provider' => 'tourvisor',
-        // Public search/claim destination. Keep independent from repo-local tracking endpoints.
-        'base_domain' => 'https://anytour.online',
+        // Public tour-search destination. Keep independent from claim/tracking endpoints.
+        'base_domain' => 'https://anytoour.ru',
+        // Existing saved-search claim pages still live on the legacy application origin.
+        'claim_base_domain' => 'https://anytour.online',
         // Origin that owns /max-search/open_tours.php and other tracking routes.
         'tracking_base_domain' => 'https://anytour.online',
         'claim_path' => '/poisk-turov-tg/{code}/',
