@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T16:39:57+00:00",
+    "generated_at": "2026-09-01T17:10:02+00:00",
     "production": {
-        "sha": "c6069c7b2827500ede299f8609f117c68cdc345f",
+        "sha": "59de23191770b22ae2096b53da83bc7ce7d1b6f5",
         "branch": "main"
     },
     "migrations": {
@@ -86,7 +86,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 7,
-                "assigned_to_others": 17
+                "assigned_to_others": 16
             },
             {
                 "manager_id": 3,
@@ -96,7 +96,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 7,
-                "assigned_to_others": 18
+                "assigned_to_others": 17
             },
             {
                 "manager_id": 4,
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 15:39:47",
+        "since_utc": "2026-09-01 16:09:53",
         "summary": {
             "sessions": 4,
             "raw_sessions": 4,
@@ -180,7 +180,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "c6069c7b2827500ede299f8609f117c68cdc345f",
+        "sha": "59de23191770b22ae2096b53da83bc7ce7d1b6f5",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -189,7 +189,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T16:39:57Z"
+        "reported_at": "2026-09-01T17:10:02Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -204,17 +204,17 @@
         "window_hours": null,
         "since_utc": "2026-08-31 22:00:00",
         "summary": {
-            "sessions": 19,
-            "raw_sessions": 19,
+            "sessions": 20,
+            "raw_sessions": 20,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 19,
+                "resolved": 20,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 19,
-            "needs_collected": 14,
-            "tours_opened": 14,
+            "started": 20,
+            "needs_collected": 15,
+            "tours_opened": 15,
             "manager_requested": 2,
             "manager_replied": 2,
             "customer_replied_after_manager": 1,
@@ -229,7 +229,7 @@
                 "max_seconds": 52322
             },
             "drop_points": {
-                "tours_opened": 12,
+                "tours_opened": 13,
                 "collecting_needs": 5,
                 "manager_replied": 1,
                 "customer_replied_after_manager": 1
@@ -241,9 +241,9 @@
                 "repeated_same_input": 2
             },
             "calendar_day": {
-                "conversations_started": 12,
-                "needs_collected_from_started": 7,
-                "tours_opened_from_started": 7,
+                "conversations_started": 13,
+                "needs_collected_from_started": 8,
+                "tours_opened_from_started": 8,
                 "manager_requested": 0,
                 "manager_replied": 0,
                 "customer_replied_after_manager": 0
@@ -251,7 +251,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T16:39:56+00:00",
+        "generated_at": "2026-09-01T17:10:02+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -265,7 +265,7 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 508330,
+                "bytes": 508410,
                 "code_lines": 10901
             },
             "integrations": {
@@ -295,8 +295,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 669902,
-                "code_lines": 8095
+                "bytes": 671324,
+                "code_lines": 8101
             },
             "tools": {
                 "files": 37,
