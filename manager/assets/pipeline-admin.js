@@ -1,4 +1,4 @@
-const S={csrf:'',catalog:{stages:[],tags:[]}};
+const S={csrf:'',catalog:{stages:[],tags:[]},saving:{stage:false,tag:false}};
 const $=id=>document.getElementById(id);
 const api=(action,data={})=>ManagerHttpClient.request(action,data,S.csrf,'pipeline-api.php');
 const esc=v=>{const d=document.createElement('div');d.textContent=v??'';return d.innerHTML};
@@ -13,6 +13,13 @@ function gateMessage(msg){
     const el=$('denied');
     el.textContent=msg;
     el.classList.remove('hidden');
+}
+
+function setFormSaving(kind,saving){
+    S.saving[kind]=Boolean(saving);
+    const form=$(kind==='stage'?'stageForm':'tagForm');
+    const submit=form.querySelector('button[type="submit"]');
+    if(submit)submit.disabled=Boolean(saving);
 }
 
 async function safeApi(action,data={},failureMessage='Не удалось выполнить запрос. Проверьте соединение и повторите попытку.'){
@@ -73,12 +80,16 @@ function bind(){
     $('stageWon').onchange=()=>{if($('stageWon').checked)$('stageTerminal').checked=true};
 
     $('stageForm').onsubmit=async e=>{
-        e.preventDefault();status('');
+        e.preventDefault();
+        if(S.saving.stage)return;
+        status('');
         const usage=Number($('stageForm').dataset.usageCount||0);
         if(!$('stageActive').checked&&usage>0){status(`Нельзя отключить этап: в нём ${leadCountLabel(usage)}. Сначала перенесите лиды в другой этап.`);return}
+        setFormSaving('stage',true);
         const r=await safeApi('save_stage',{
             stage_key:$('stageKey').value.trim(),display_name:$('stageName').value.trim(),color:$('stageColor').value,sort_order:Number($('stageSort').value||0),is_active:$('stageActive').checked,is_terminal:$('stageTerminal').checked,is_won:$('stageWon').checked
         },'Этап не сохранён. Проверьте соединение и повторите попытку.');
+        setFormSaving('stage',false);
         if(!r)return;
         if(!r.ok){
             if(r.error==='stage_in_use'){status(`Нельзя отключить этап: в нём ${leadCountLabel(r.usage_count)}. Сначала перенесите лиды в другой этап.`);return}
@@ -88,12 +99,16 @@ function bind(){
     };
 
     $('tagForm').onsubmit=async e=>{
-        e.preventDefault();status('');
+        e.preventDefault();
+        if(S.saving.tag)return;
+        status('');
         const usage=Number($('tagForm').dataset.usageCount||0);
         if(!$('tagActive').checked&&usage>0){status(`Нельзя отключить тег: он назначен ${leadCountLabel(usage)}. Сначала снимите тег с этих лидов.`);return}
+        setFormSaving('tag',true);
         const r=await safeApi('save_tag',{
             id:Number($('tagId').value||0),tag_key:$('tagKey').value.trim(),display_name:$('tagName').value.trim(),color:$('tagColor').value,sort_order:Number($('tagSort').value||0),is_active:$('tagActive').checked
         },'Тег не сохранён. Проверьте соединение и повторите попытку.');
+        setFormSaving('tag',false);
         if(!r)return;
         if(!r.ok){
             if(r.error==='tag_in_use'){status(`Нельзя отключить тег: он назначен ${leadCountLabel(r.usage_count)}. Сначала снимите тег с этих лидов.`);return}
