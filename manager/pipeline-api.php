@@ -6,6 +6,7 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/ManagerLeadInboxService.php';
+require_once $baseDir.'/services/ManagerWorkspaceFilterService.php';
 require_once $baseDir.'/services/SalesPipelineService.php';
 require_once $baseDir.'/services/SalesPipelineCatalogAdminService.php';
 require_once $baseDir.'/services/LeadTaskService.php';
@@ -19,14 +20,19 @@ $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
 $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
+$isAdmin=ManagerHttp::isAdmin($m);
 
 if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions()]);
+if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
 if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
 if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),'',(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
+    $managerFilter=$isAdmin?(string)($data['manager_filter']??''):'';
+    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),$managerFilter,(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
+    $sourceId=max(0,(int)($data['source_id']??0));
+    if($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
     if(in_array($queue,['waiting','attention'],true))$rows=array_values(array_filter($rows,fn($r)=>empty($r['delivery_failure_category'])));
     $rows=ManagerLeadInboxService::decorate($rows);
     $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),(string)($data['lead_task_filter']??''));
