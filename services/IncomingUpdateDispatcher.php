@@ -5,6 +5,7 @@ require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/ConversationAttributionService.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ManagerPushService.php';
+require_once __DIR__ . '/MetrikaConversionGoalService.php';
 
 class IncomingUpdateDispatcher
 {
@@ -32,6 +33,10 @@ class IncomingUpdateDispatcher
         if ($ownership && in_array((string)$ownership['status'], ['waiting_manager','manager'], true)) {
             $status = (string)$ownership['status'];
             $allow = false;
+
+            if ($status === 'manager' && $type !== 'callback') {
+                MetrikaConversionGoalService::customerReplyAfterManager((int)$ownership['id']);
+            }
 
             if ($status === 'waiting_manager') {
                 if ($type === 'contact') {

@@ -7,6 +7,12 @@ $migration012=(string)file_get_contents(dirname(__DIR__).'/migrations/012_repair
 $migration015=(string)file_get_contents(dirname(__DIR__).'/migrations/015_lead_stage_history.sql');
 $runner=(string)file_get_contents(dirname(__DIR__).'/services/MigrationRunner.php');
 $service=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineService.php');
+$metrikaGoals=(string)file_get_contents(dirname(__DIR__).'/services/MetrikaConversionGoalService.php');
+$managerOutbound=(string)file_get_contents(dirname(__DIR__).'/services/ManagerOutboundService.php');
+$incoming=(string)file_get_contents(dirname(__DIR__).'/services/IncomingUpdateDispatcher.php');
+$maxSearch=(string)file_get_contents(dirname(__DIR__).'/maxsearchclass.php');
+$managerAction=(string)file_get_contents(dirname(__DIR__).'/actions/ManagerAction.php');
+$managerCallback=(string)file_get_contents(dirname(__DIR__).'/actions/callbacks/ManagerCallbackAction.php');
 $catalogAdmin=(string)file_get_contents(dirname(__DIR__).'/services/SalesPipelineCatalogAdminService.php');
 $pipelineApi=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-api.php');
 $pipelineAdmin=(string)file_get_contents(dirname(__DIR__).'/manager/pipeline-admin.php');
@@ -58,6 +64,44 @@ spCheck('pipeline admin uses focused assets',strpos($pipelineAdmin,'pipeline-adm
 spCheck('pipeline admin reuses shared HTTP client',strpos($pipelineAdminJs,"ManagerHttpClient.request(action,data,S.csrf,'pipeline-api.php')")!==false && strpos($managerHttpClient,"endpoint='api.php'")!==false && strpos($managerHttpClient,'fetch(endpoint')!==false);
 spCheck('pipeline admin has mobile responsive rules',strpos($pipelineAdminCss,'@media(max-width:760px)')!==false && strpos($pipelineAdminCss,'@media(max-width:460px)')!==false);
 spCheck('existing stage key is immutable in editor',strpos($pipelineAdminJs,"$('stageKey').readOnly=true")!==false);
+
+spCheck('Metrika business milestones use the approved goal names',
+    strpos($metrikaGoals,"'working' => 'max_lead_working'")!==false
+    && strpos($metrikaGoals,"'offer_sent' => 'max_offer_sent'")!==false
+    && strpos($metrikaGoals,"'booking' => 'max_booking'")!==false
+    && strpos($metrikaGoals,"'won' => 'max_sale'")!==false
+    && strpos($metrikaGoals,"'max_manager_reply'")!==false
+    && strpos($metrikaGoals,"'max_customer_reply_after_manager'")!==false
+);
+spCheck('Metrika conversion owner requires real handoff evidence and dedupes by conversation event',
+    strpos($metrikaGoals,"hasEvent(\$conversationId, 'waiting_manager')")!==false
+    && strpos($metrikaGoals,"hasEvent(\$conversationId, 'manager_message')")!==false
+    && strpos($metrikaGoals,"'metrika_' . \$target")!==false
+    && strpos($metrikaGoals,'SELECT 1 FROM conversation_events WHERE conversation_id=? AND event_type=? LIMIT 1')!==false
+);
+spCheck('successful manager text and media sends trigger manager-reply goal after delivery',
+    substr_count($managerOutbound,'MetrikaConversionGoalService::managerReply($conversationId);')===2
+    && strpos($managerOutbound,"ConversationControlService::event(\$conversationId,'manager_message'")!==false
+);
+spCheck('tourist reply goal is evaluated after attribution sync only for manager-owned non-callback inbound',
+    strpos($incoming,'ConversationAttributionService::syncByChat($platform,$chatId);')!==false
+    && strpos($incoming,"\$status === 'manager' && \$type !== 'callback'")!==false
+    && strpos($incoming,'MetrikaConversionGoalService::customerReplyAfterManager((int)$ownership[\'id\']);')!==false
+    && strpos($incoming,'ConversationAttributionService::syncByChat($platform,$chatId);') < strpos($incoming,'MetrikaConversionGoalService::customerReplyAfterManager')
+);
+spCheck('sales stage and won outcome trigger Metrika milestones without repurposing technical status',
+    strpos($service,'MetrikaConversionGoalService::salesStage($id,$key);')!==false
+    && strpos($service,"if(\$ok&&\$outcome==='won')MetrikaConversionGoalService::saleOutcome(\$id,\$outcome);")!==false
+    && strpos($service,'UPDATE conversations SET status')===false
+);
+spCheck('existing canonical Metrika transport and manager-request goal remain unchanged',
+    strpos($metrikaGoals,'MaxSearchApi::queueMetrikaGoal')!==false
+    && strpos($maxSearch,'public static function queueMetrikaGoal')!==false
+    && strpos($maxSearch,"hash('sha256',\$yclid.'|'.\$target)")!==false
+    && strpos($maxSearch,"['россия','абхазия']")!==false
+    && strpos($managerAction,"queueMetrikaGoal(\$chatId, 'max_manager_request')")!==false
+    && strpos($managerCallback,"'max_manager_request'")!==false
+);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
