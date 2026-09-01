@@ -31,8 +31,9 @@ if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     $managerFilter=$isAdmin?(string)($data['manager_filter']??''):'';
     $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),$managerFilter,(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
-    $sourceId=max(0,(int)($data['source_id']??0));
-    if($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
+    $sourceId=(int)($data['source_id']??0);
+    if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));
+    elseif($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
     if(in_array($queue,['waiting','attention'],true))$rows=array_values(array_filter($rows,fn($r)=>empty($r['delivery_failure_category'])));
     $rows=ManagerLeadInboxService::decorate($rows);
     $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),(string)($data['lead_task_filter']??''));
