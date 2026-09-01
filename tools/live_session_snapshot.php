@@ -127,6 +127,7 @@ try{
         'tours_opened'=>0,
         'manager_requested'=>0,
         'manager_replied'=>0,
+        'customer_replied_after_manager'=>0,
         'phone_received'=>0,
         'flagged_sessions'=>0,
         'manager_response'=>[
@@ -147,11 +148,12 @@ try{
             'tours_opened_from_started'=>0,
             'manager_requested'=>0,
             'manager_replied'=>0,
+            'customer_replied_after_manager'=>0,
         ];
     }
     $responseSeconds=[];
     foreach($businessSessions as $session){
-        foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
+        foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','customer_replied_after_manager','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
         if(!empty($session['flags']))$summary['flagged_sessions']++;
         $bucket=(string)($session['manager_response_bucket']??'');
         if($bucket!==''&&array_key_exists($bucket,$summary['manager_response']))$summary['manager_response'][$bucket]++;
@@ -172,6 +174,8 @@ try{
             if($requestAt!==null&&$requestAt>=$sinceTs&&($untilTs===null||$requestAt<$untilTs))$summary['calendar_day']['manager_requested']++;
             $replyAt=liveDiagnosticTs($session['manager_first_reply_at']??null);
             if($replyAt!==null&&$replyAt>=$sinceTs&&($untilTs===null||$replyAt<$untilTs))$summary['calendar_day']['manager_replied']++;
+            $customerReplyAt=liveDiagnosticTs($session['customer_first_reply_after_manager_at']??null);
+            if($customerReplyAt!==null&&$customerReplyAt>=$sinceTs&&($untilTs===null||$customerReplyAt<$untilTs))$summary['calendar_day']['customer_replied_after_manager']++;
         }
     }
     if($responseSeconds){

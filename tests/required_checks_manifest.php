@@ -146,6 +146,7 @@ return [
         'php tests/run_deploy_diagnostics_contract_regression.php',
         'php tests/run_production_snapshot_encoding_regression.php',
         'php tests/run_live_session_analyzer_regression.php',
+        'php tests/run_live_customer_reply_after_manager_regression.php',
         'php tests/run_live_inactive_manager_request_regression.php',
         'php tests/run_live_calendar_callback_noise_regression.php',
         'php tests/run_live_successful_date_reselection_regression.php',
