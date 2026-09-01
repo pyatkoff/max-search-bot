@@ -73,7 +73,7 @@ class ManagerOutboundService
         $c=$detail['conversation'];
         if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return false;
         $channel=strtolower((string)$c['channel']);
-        if(!in_array($channel,['max','telegram'],true)){
+        if($channel!=='max'&&$channel!=='telegram'){
             self::$lastFailure=['category'=>'unsupported','http_code'=>0,'message'=>'Медиа для этого канала пока не поддерживается','channel'=>$channel,'project_key'=>(string)$c['project_key']];
             return false;
         }
