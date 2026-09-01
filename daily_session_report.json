@@ -1,17 +1,17 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T02:32:58+00:00",
+    "generated_at": "2026-09-01T03:08:12+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 4,
-        "raw_sessions": 4,
+        "sessions": 5,
+        "raw_sessions": 5,
         "explicit_test_sessions": 0,
-        "started": 4,
-        "needs_collected": 3,
-        "tours_opened": 3,
+        "started": 5,
+        "needs_collected": 4,
+        "tours_opened": 4,
         "manager_requested": 0,
         "manager_replied": 0,
         "phone_received": 0,
@@ -25,7 +25,7 @@
             "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 3,
+            "tours_opened": 4,
             "collecting_needs": 1
         },
         "flags": {
@@ -221,7 +221,7 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 58,
-            "outbound_messages": 47,
+            "outbound_messages": 48,
             "date_picks": 1,
             "anomaly_inbound_messages": 58,
             "drop_point": "tours_opened",
@@ -230,14 +230,8 @@
                 "excessive_turns"
             ],
             "started_at": "2026-09-01 02:37:50",
-            "last_message_at": "2026-09-01 04:31:05",
+            "last_message_at": "2026-09-01 04:42:04",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_5",
-                    "created_at": "2026-09-01 03:12:45"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -375,8 +369,42 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-09-01 04:31:05"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-09-01 04:42:04"
                 }
             ]
+        },
+        {
+            "conversation_id": 648,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "manager_response_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 59,
+            "outbound_messages": 38,
+            "date_picks": 12,
+            "anomaly_inbound_messages": 12,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-08-31 11:39:04",
+            "last_message_at": "2026-09-01 04:59:06"
         }
     ],
     "local_date": "2026-09-01",
