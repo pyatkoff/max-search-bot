@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T11:13:14+00:00",
+    "generated_at": "2026-09-01T12:02:03+00:00",
     "production": {
-        "sha": "2edb28530cfa1b6d79056cdd535c4bf3f0c181f3",
+        "sha": "f7354284501047036577061c07ac95cbf50fe4ca",
         "branch": "main"
     },
     "database": {
@@ -173,6 +173,13 @@
             "applied_at": "2026-08-30 16:09:43"
         },
         {
+            "version": "022_source_handling_mode.sql",
+            "applied": true,
+            "baseline": false,
+            "checksum_ok": true,
+            "applied_at": "2026-09-01 14:01:58"
+        },
+        {
             "version": "022_standalone_dialogue_state.sql",
             "applied": true,
             "baseline": false,
@@ -195,10 +202,10 @@
         }
     ],
     "stats": {
-        "customers": 659,
-        "customer_channels": 659,
-        "conversations": 661,
-        "messages": 17296,
+        "customers": 660,
+        "customer_channels": 660,
+        "conversations": 662,
+        "messages": 17302,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1366,7 +1373,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 528
+            "count": 529
         },
         {
             "project_key": "anytour",
@@ -1690,6 +1697,60 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 17302,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Завтрак",
+            "created_at": "2026-09-01 13:43:50"
+        },
+        {
+            "id": 17301,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "5",
+            "created_at": "2026-09-01 13:43:33"
+        },
+        {
+            "id": 17300,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Нет",
+            "created_at": "2026-09-01 13:43:16"
+        },
+        {
+            "id": 17299,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "2",
+            "created_at": "2026-09-01 13:43:05"
+        },
+        {
+            "id": 17298,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Хайнань 12.09 на 10 ночей вилла, можно узнать подробности",
+            "created_at": "2026-09-01 13:42:53"
+        },
+        {
+            "id": 17297,
+            "conversation_id": 662,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Добрый день!",
+            "created_at": "2026-09-01 13:42:09"
+        },
         {
             "id": 17296,
             "conversation_id": 432,
@@ -2175,60 +2236,6 @@
             "channel": "max",
             "text": "pick_date_17.10.2026",
             "created_at": "2026-09-01 07:23:32"
-        },
-        {
-            "id": 17242,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_07.10.2026",
-            "created_at": "2026-09-01 07:23:27"
-        },
-        {
-            "id": 17241,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_07.10.2026",
-            "created_at": "2026-09-01 07:23:06"
-        },
-        {
-            "id": 17240,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_30.09.2026",
-            "created_at": "2026-09-01 07:22:56"
-        },
-        {
-            "id": 17239,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_30.09.2026",
-            "created_at": "2026-09-01 07:22:53"
-        },
-        {
-            "id": 17238,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_10.2026",
-            "created_at": "2026-09-01 07:22:48"
-        },
-        {
-            "id": 17237,
-            "conversation_id": 660,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_30.09.2026",
-            "created_at": "2026-09-01 07:22:48"
         }
     ],
     "recent_events": [
