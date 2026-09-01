@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T18:21:45+00:00",
+    "generated_at": "2026-09-01T18:26:11+00:00",
     "production": {
-        "sha": "ecdb1f50b40f9dbac56526eab8e8205d6325892d",
+        "sha": "84c0549af73739d70602f9ee95040f88c50852a8",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -205,7 +205,7 @@
         "customers": 667,
         "customer_channels": 667,
         "conversations": 669,
-        "messages": 17468,
+        "messages": 17472,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1646,6 +1646,42 @@
     ],
     "recent_messages": [
         {
+            "id": 17472,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Удалось найти подходящий тур?</b> Если вариантов слишком много или сложно определиться — менеджер может посмотреть ваш запрос и помочь с выбором.",
+            "created_at": "2026-09-01 20:22:16"
+        },
+        {
+            "id": 17471,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "tours_checked",
+            "created_at": "2026-09-01 20:22:16"
+        },
+        {
+            "id": 17470,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>Сейчас менеджеры не на связи</b> Можно вернуться к вариантам туров и продолжить выбор самостоятельно. Если оставите номер телефона, менеджер свяжется с вами в следующий рабочий период.",
+            "created_at": "2026-09-01 20:22:09"
+        },
+        {
+            "id": 17469,
+            "conversation_id": 658,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-09-01 20:22:09"
+        },
+        {
             "id": 17468,
             "conversation_id": 658,
             "direction": "outbound",
@@ -2148,42 +2184,6 @@
             "channel": "max",
             "text": "star_4",
             "created_at": "2026-09-01 16:37:28"
-        },
-        {
-            "id": 17412,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_2",
-            "created_at": "2026-09-01 16:37:27"
-        },
-        {
-            "id": 17411,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_2",
-            "created_at": "2026-09-01 16:37:27"
-        },
-        {
-            "id": 17410,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_2",
-            "created_at": "2026-09-01 16:37:26"
-        },
-        {
-            "id": 17409,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_2",
-            "created_at": "2026-09-01 16:37:24"
         }
     ],
     "recent_events": [
