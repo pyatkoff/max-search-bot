@@ -18,7 +18,10 @@ $remove = [
     'saveLastValue', 'getLastValue', 'getSavedData', 'upsertStatusValue',
 
     // Claims / leads.
-    'saveClaim', 'getLastClaimForChat', 'getClaimByCode', 'savePhone',
+    'saveClaim', 'getLatestClaimLink', 'getLastClaimForChat', 'getClaimByCode', 'savePhone',
+
+    // Post-tour compatibility.
+    'showChannelOffer',
 
     // AI context.
     'getAiSearchContext', 'getAiMissingFields', 'applyAiParameters',

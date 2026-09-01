@@ -446,25 +446,6 @@ class MaxSearchBase
 		return static::saveClaim($chatID,$savedData);
 	}
 
-	public static function getLatestClaimLink($chatID)
-	{
-		\Bitrix\Main\Loader::includeModule('highloadblock');
-		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$claimHL)->fetch();
-		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);
-		$eclass = $entity->getDataClass();
-		$dbData = $eclass::getList([
-			"filter"=>["UF_CHAT_ID"=>$chatID],
-			"order"=>["ID"=>"desc"],
-			"limit"=>1,
-			"select"=>["UF_CODE"]
-		]);
-		if($claim = $dbData->fetch())
-		{
-			if(!empty($claim["UF_CODE"]))
-				return static::$baseDomain."/poisk-turov-tg/".$claim["UF_CODE"]."/";
-		}
-		return "";
-	}
 
 
 	public static function editModeFile($chatID)
@@ -827,30 +808,6 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		static::MaxSendWithButtons($text,$chatID,$buttons);
 	}
 
-	public static function showChannelOffer($chatID,$afterLead=false)
-	{
-		$buttons = [];
-		$channelLink = static::buildChannelMiniappUrl($chatID);
-		if($channelLink!="") {
-			$trackedChannelLink = static::$baseDomain.'/max-search/open_channel.php?chat='.
-				rawurlencode($chatID).'&url='.rawurlencode($channelLink);
-			$buttons[] = [
-				['text'=>'📢 Подписаться на канал','url'=>$trackedChannelLink],
-			];
-		}
-		$claim = static::getLastClaimForChat($chatID);
-		if($claim && !empty($claim["UF_CODE"])) {
-			$yclid = static::getLatestYclid($chatID);
-			$link = static::$baseDomain."/poisk-turov-tg/".$claim["UF_CODE"]."/?yclid=".rawurlencode($yclid);
-			$buttons[] = [
-				['text'=>'🔥 Вернуться к турам','url'=>$link],
-			];
-		}
-		$text = $afterLead
-			? "✅ <b>Заявка отправлена</b>\n\nМенеджер получил параметры вашего отдыха и свяжется с вами.\n\nА пока можно заглянуть в наш MAX-канал — там публикуем хорошие цены и горящие предложения."
-			: "🌴 <b>Отлично!</b>\n\nЕсли хотите следить за хорошими ценами и горящими предложениями, подписывайтесь на наш канал в MAX.";
-		static::MaxSendWithButtons($text,$chatID,$buttons);
-	}
 
 
 	public static function phoneAskAgent()
