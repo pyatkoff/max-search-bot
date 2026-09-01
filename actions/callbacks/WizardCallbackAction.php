@@ -58,6 +58,13 @@ class WizardCallbackAction
         return InteractionGuard::isDuplicate($previousPayload, $previousAt, $payload, $now, $windowSeconds);
     }
 
+    public static function isRapidDifferentMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 0.75): bool
+    {
+        return $previousPayload !== ''
+            && $previousPayload !== $payload
+            && InteractionGuard::isRecent($previousAt, $now, $windowSeconds);
+    }
+
     public static function expectedStatusForForwardCallback(string $q): ?int
     {
         return InteractionGuard::expectedWizardStatus($q);
@@ -93,6 +100,11 @@ class WizardCallbackAction
             if (self::isDuplicateMonthChange($previousPayload, $previousAt, $q, $now)) {
                 InteractionGuard::reportSuppressed($chatId, $q, 'duplicate', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
                 if (function_exists('put_log_in')) put_log_in('DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q);
+                return true;
+            }
+            if (self::isRapidDifferentMonthChange($previousPayload, $previousAt, $q, $now)) {
+                InteractionGuard::reportSuppressed($chatId, $q, 'rapid_replacement', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
+                if (function_exists('put_log_in')) put_log_in('RAPID_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' previous=' . $previousPayload . ' payload=' . $q);
                 return true;
             }
 

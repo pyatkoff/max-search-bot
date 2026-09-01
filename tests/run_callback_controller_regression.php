@@ -85,10 +85,14 @@ ccCheck('date callback routes through guarded handler', strpos($wizardSource, "s
 ccCheck('month change routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'month_change_') === 0) return self::handleMonthChange") !== false, true);
 ccCheck('stale month change requires active date step', strpos($wizardSource, 'STALE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('duplicate month change is explicitly suppressed', strpos($wizardSource, 'DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
+ccCheck('rapid different month replacement is explicitly suppressed', strpos($wizardSource, 'RAPID_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('same month callback inside extended live debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 104.0), true);
 ccCheck('same month callback near end of debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 109.9), true);
 ccCheck('same month callback after debounce window is allowed', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 110.1), false);
-ccCheck('different month callback remains allowed immediately', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1), false);
+ccCheck('different month remains non-duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1), false);
+ccCheck('live-style stale keyboard month replacement burst is suppressed', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_10.2026', 100.2), true);
+ccCheck('same payload stays owned by duplicate guard, not rapid replacement', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_08.2026', 100.2), false);
+ccCheck('different month after rendered-keyboard grace window is allowed', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_09.2026', 100.8), false);
 
 ccCheck('city choice is valid only on city step', WizardCallbackAction::expectedStatusForForwardCallback('pick_city_1'), (int)MaxSearchApi::$statusCityChoose);
 ccCheck('country choice is valid only on country step', WizardCallbackAction::expectedStatusForForwardCallback('pick_country_4'), (int)MaxSearchApi::$statusContryChoose);
