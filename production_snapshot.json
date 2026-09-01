@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T04:07:17+00:00",
+    "generated_at": "2026-09-01T04:33:54+00:00",
     "production": {
-        "sha": "24eccf19fac1442511a42ae1bda3df84b0afb071",
+        "sha": "ca497a212ff248936d931720082191b67e65951f",
         "branch": "main"
     },
     "database": {
@@ -198,7 +198,7 @@
         "customers": 656,
         "customer_channels": 656,
         "conversations": 658,
-        "messages": 17146,
+        "messages": 17148,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 947,
@@ -390,7 +390,7 @@
                 "healthy_subscription_count": 2,
                 "notification_path_usable": true,
                 "notification_path_reason": "healthy_subscription",
-                "last_success_at": "2026-08-31 13:16:35",
+                "last_success_at": "2026-09-01 06:30:14",
                 "last_error_at": null,
                 "last_error": null
             }
@@ -1125,7 +1125,60 @@
     ],
     "recent_entry_attribution": [],
     "recent_manager_priority_events": [],
-    "recent_manager_push_events": [],
+    "recent_manager_push_events": [
+        {
+            "ts": "2026-09-01T06:30:14+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "75b82a52e5c6d2ea",
+                "conversation_id": 128,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-09-01T06:30:14+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "75b82a52e5c6d2ea",
+                "conversation_id": 128,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-09-01T06:30:08+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "52092212d4006c15",
+                "conversation_id": 128,
+                "manager_id": 5,
+                "subscription_id": 85,
+                "http_code": 201
+            }
+        },
+        {
+            "ts": "2026-09-01T06:30:08+02:00",
+            "level": "info",
+            "component": "manager_push",
+            "event": "delivery_success",
+            "data": {
+                "dispatch_id": "52092212d4006c15",
+                "conversation_id": 128,
+                "manager_id": 5,
+                "subscription_id": 3,
+                "http_code": 201
+            }
+        }
+    ],
     "conversation_status": [
         {
             "project_key": "anytour",
@@ -1455,6 +1508,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 17148,
+            "conversation_id": 128,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-09-01 06:30:14"
+        },
+        {
+            "id": 17147,
+            "conversation_id": 128,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "manager_after_tours",
+            "created_at": "2026-09-01 06:30:07"
+        },
         {
             "id": 17146,
             "conversation_id": 648,
@@ -1976,24 +2047,6 @@
             "channel": "max",
             "text": "nights_other",
             "created_at": "2026-09-01 03:07:51"
-        },
-        {
-            "id": 17088,
-            "conversation_id": 658,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "edit_nights",
-            "created_at": "2026-09-01 03:07:49"
-        },
-        {
-            "id": 17087,
-            "conversation_id": 658,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-09-01 03:07:45"
         }
     ],
     "recent_events": [
