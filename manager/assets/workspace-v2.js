@@ -6,7 +6,7 @@ function canonicalizeManagerUrl(){
   if(history?.replaceState)history.replaceState(history.state,'',canonical);
 }
 canonicalizeManagerUrl();
-const S={csrf:'',manager:null,current:0,queue:'waiting',viewMode:'list',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,workspaceBound:false,booting:false};
+const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,workspaceBound:false,booting:false};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -58,13 +58,14 @@ function formatWait(seconds){const s=Math.max(0,Number(seconds||0));if(s<60)retu
 function val(v){return(v===null||v===undefined||v==='')?'—':String(v)}
 function tripField(label,value){return`<div class="field"><span class="label">${esc(label)}</span><span class="value">${esc(val(value))}</span></div>`}
 function applyIdentity(me){
-  S.csrf=me.csrf||'';S.manager=me.manager||null;
+  S.csrf=me.csrf||'';S.manager=me.manager||null;S.projects=Array.isArray(me.projects)?me.projects:[];
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
 async function loadCatalog(){
-  const cat=await pipe('catalog').catch(()=>null);
+  const [cat,filterOptions]=await Promise.all([pipe('catalog').catch(()=>null),pipe('filter_options').catch(()=>null)]);
   if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
+  if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
   window.WorkspaceV2Filters?.render();
 }
 function bindWorkspaceOnce(){
