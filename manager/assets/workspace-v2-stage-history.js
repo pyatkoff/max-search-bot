@@ -1,5 +1,16 @@
 (function(){
 const W=window.WorkspaceV2,{esc}=W;
+function formatStageSince(value){
+    const raw=String(value||'').trim();
+    if(!raw)return'';
+    const match=raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    return match?`${match[3]}.${match[2]} ${match[4]}:${match[5]}`:raw.slice(0,16);
+}
+function currentSinceMarkup(history){
+    history=Array.isArray(history)?history:[];
+    const since=formatStageSince(history[0]?.created_at);
+    return since?`<div class="leadStageHistoryEmpty">На текущем этапе с ${esc(since)}</div>`:'';
+}
 function markup(history){
     history=Array.isArray(history)?history:[];
     if(!history.length)return '<div class="leadStageHistoryEmpty">История появится после следующей смены этапа.</div>';
@@ -10,7 +21,7 @@ function markup(history){
         const at=String(x.created_at||'').trim().slice(0,16);
         return `<div class="leadStageHistoryRow"><span class="leadStageHistoryFlow">${esc(from)} <b>→</b> ${esc(to)}</span><span class="leadStageHistoryMeta">${manager?esc(manager)+(at?' · ':''):''}${esc(at)}</span></div>`;
     }).join('');
-    return `<details class="leadStageHistoryDetails"><summary>История этапов <span>${history.length}</span></summary><div class="leadStageHistoryList">${rows}</div></details>`;
+    return `${currentSinceMarkup(history)}<details class="leadStageHistoryDetails"><summary>История этапов <span>${history.length}</span></summary><div class="leadStageHistoryList">${rows}</div></details>`;
 }
-window.WorkspaceV2StageHistory={markup};
+window.WorkspaceV2StageHistory={markup,formatStageSince,currentSinceMarkup};
 })();
