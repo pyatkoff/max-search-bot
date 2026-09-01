@@ -14,6 +14,7 @@ $taskCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $projection=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
+$taskService=(string)file_get_contents($root.'/services/LeadTaskService.php');
 $passed=0;$failed=0;
 function kbCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 function kbAssetLoaded(string $html,string $file):bool{return strpos($html,"workspaceAsset('{$file}')")!==false||strpos($html,'assets/'.$file)!==false;}
@@ -33,7 +34,7 @@ kbCheck('task module renders canonical projected urgency',strpos($tasks,'next_ta
 kbCheck('open kanban leads without a task show the same follow-up gap as inbox',strpos($tasks,"outcome=String(c.lead_outcome||'open')")!==false&&strpos($tasks,"outcome==='open'?")!==false&&strpos($tasks,'Без задачи')!==false&&strpos($tasks,'Следующее действие не назначено')!==false);
 kbCheck('closed kanban outcomes do not get a false missing-task signal',strpos($tasks,"outcome==='open'?")!==false);
 kbCheck('lead projection exposes canonical next open task id',strpos($projection,'SELECT t.id,t.conversation_id,t.title')!==false&&strpos($projection,"\$row['next_task_id']=\$task['id']??null")!==false);
-kbCheck('lead projection exposes all-task operational urgency for kanban consistency',strpos($projection,"operational_task_state")!==false&&strpos($projection,"operational_task_rank")!==false&&strpos($projection,'operationalTaskState')!==false);
+kbCheck('lead projection exposes all-task operational urgency for kanban consistency',strpos($projection,"operational_task_state")!==false&&strpos($projection,"operational_task_rank")!==false&&strpos($taskService,'public static function operationalState')!==false&&strpos($projection,'LeadTaskService::operationalState')!==false);
 kbCheck('lead projection counts every open task without another query',strpos($projection,'$openTaskCounts=[]')!==false&&strpos($projection,"\$openTaskCounts[\$id]=(int)(\$openTaskCounts[\$id]??0)+1")!==false&&strpos($projection,"\$row['open_task_count']=(int)(\$openTaskCounts[\$id]??0)")!==false);
 kbCheck('operational projection retains earliest due task inside equal urgency rank',strpos($projection,"\$due=trim((string)(\$task['due_at_utc']??''))")!==false&&strpos($projection,"strcmp(\$due,(string)\$current['due_at_utc'])<0")!==false&&strpos($projection,"\$row['operational_task_due_at_utc']=\$operational['due_at_utc']??null")!==false);
 kbCheck('kanban action priority prefers all-task operational urgency',strpos($kanban,'function operationalTaskState(c)')!==false&&strpos($kanban,"String(c.operational_task_state||'')")!==false&&strpos($kanban,"if(taskState==='overdue')return 350")!==false&&strpos($kanban,"if(taskState==='today')return 300")!==false&&strpos($kanban,"if(taskState==='none')return 250")!==false);

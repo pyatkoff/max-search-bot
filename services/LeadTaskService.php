@@ -32,6 +32,23 @@ class LeadTaskService
         }catch(Throwable $ignored){return'upcoming';}
     }
 
+    /** Canonical operational work buckets: overdue → today → soon/planned → no next action. */
+    public static function operationalRank(string $dueState,bool $hasTask=true): int
+    {
+        if(!$hasTask)return 3;
+        if($dueState==='overdue')return 0;
+        if($dueState==='today')return 1;
+        return 2;
+    }
+
+    public static function operationalState(string $dueState,bool $hasTask=true): string
+    {
+        if(!$hasTask)return 'none';
+        if($dueState==='overdue')return 'overdue';
+        if($dueState==='today')return 'today';
+        return 'soon';
+    }
+
     /** Canonical priority order for open-task projections: pinned first, then nearest deadline. */
     public static function openTaskOrderSql(string $alias='t'): string
     {

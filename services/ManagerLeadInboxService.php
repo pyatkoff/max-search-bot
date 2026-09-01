@@ -15,8 +15,8 @@ class ManagerLeadInboxService
         $summaries=[];$q=$pdo->prepare("SELECT conversation_id,text FROM messages WHERE conversation_id IN ({$in}) AND sender_type='ai' AND direction='outbound' AND text LIKE '%Готово! Проверьте параметры%' ORDER BY id DESC");$q->execute($ids);
         foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summaries[$id]=self::cleanTripSummary((string)($message['text']??''));}
         $tasks=[];$operationalStates=[];$openTaskCounts=[];$taskOrder=LeadTaskService::openTaskOrderSql('t');$q=$pdo->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.is_pinned,CASE WHEN t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue FROM lead_tasks t WHERE t.conversation_id IN ({$in}) AND t.status='open' ORDER BY t.conversation_id ASC,{$taskOrder}");$q->execute($ids);
-        foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0)continue;$openTaskCounts[$id]=(int)($openTaskCounts[$id]??0)+1;if(!array_key_exists($id,$tasks))$tasks[$id]=$task;$state=LeadTaskService::dueState($task['due_at_utc']??null,!empty($task['overdue']));$rank=self::operationalTaskRank($state,true);$due=trim((string)($task['due_at_utc']??''));$current=$operationalStates[$id]??null;$replace=$current===null||$rank<(int)$current['rank']||($rank===(int)$current['rank']&&$due!==''&&(empty($current['due_at_utc'])||strcmp($due,(string)$current['due_at_utc'])<0));if($replace)$operationalStates[$id]=['rank'=>$rank,'state'=>self::operationalTaskState($state,true),'due_at_utc'=>$due!==''?$due:null];}
-        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$operational=$operationalStates[$id]??['rank'=>self::operationalTaskRank('none',false),'state'=>'none','due_at_utc'=>null];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['lead_sale_amount']=$meta['lead_sale_amount']??null;$row['lead_sale_date']=$meta['lead_sale_date']??null;$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_id']=$task['id']??null;$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_pinned']=!empty($task['is_pinned']);$row['next_task_overdue']=!empty($task['overdue']);$row['next_task_due_state']=LeadTaskService::dueState($row['next_task_due_at_utc'],$row['next_task_overdue']);$row['open_task_count']=(int)($openTaskCounts[$id]??0);$row['operational_task_state']=$operational['state'];$row['operational_task_rank']=$operational['rank'];$row['operational_task_due_at_utc']=$operational['due_at_utc']??null;$row['project_label']=self::projectLabel($row);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
+        foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0)continue;$openTaskCounts[$id]=(int)($openTaskCounts[$id]??0)+1;if(!array_key_exists($id,$tasks))$tasks[$id]=$task;$state=LeadTaskService::dueState($task['due_at_utc']??null,!empty($task['overdue']));$rank=LeadTaskService::operationalRank($state,true);$due=trim((string)($task['due_at_utc']??''));$current=$operationalStates[$id]??null;$replace=$current===null||$rank<(int)$current['rank']||($rank===(int)$current['rank']&&$due!==''&&(empty($current['due_at_utc'])||strcmp($due,(string)$current['due_at_utc'])<0));if($replace)$operationalStates[$id]=['rank'=>$rank,'state'=>LeadTaskService::operationalState($state,true),'due_at_utc'=>$due!==''?$due:null];}
+        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$operational=$operationalStates[$id]??['rank'=>LeadTaskService::operationalRank('none',false),'state'=>LeadTaskService::operationalState('none',false),'due_at_utc'=>null];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['lead_sale_amount']=$meta['lead_sale_amount']??null;$row['lead_sale_date']=$meta['lead_sale_date']??null;$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_id']=$task['id']??null;$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_pinned']=!empty($task['is_pinned']);$row['next_task_overdue']=!empty($task['overdue']);$row['next_task_due_state']=LeadTaskService::dueState($row['next_task_due_at_utc'],$row['next_task_overdue']);$row['open_task_count']=(int)($openTaskCounts[$id]??0);$row['operational_task_state']=$operational['state'];$row['operational_task_rank']=$operational['rank'];$row['operational_task_due_at_utc']=$operational['due_at_utc']??null;$row['project_label']=self::projectLabel($row);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
     }
 
     /** Compatibility projection; LeadTaskService owns task urgency semantics. */
@@ -25,31 +25,14 @@ class ManagerLeadInboxService
         return LeadTaskService::dueState($dueAtUtc,$overdue,$nowUtc);
     }
 
-    /** Operational work order: overdue → today → soon/planned → no next action. */
-    public static function operationalTaskRank(string $dueState,bool $hasTask=true): int
-    {
-        if(!$hasTask)return 3;
-        if($dueState==='overdue')return 0;
-        if($dueState==='today')return 1;
-        return 2;
-    }
-
-    public static function operationalTaskState(string $dueState,bool $hasTask=true): string
-    {
-        if(!$hasTask)return 'none';
-        if($dueState==='overdue')return 'overdue';
-        if($dueState==='today')return 'today';
-        return 'soon';
-    }
-
     public static function sortOperational(array $rows): array
     {
         if(count($rows)<2)return$rows;
         $indexed=[];foreach($rows as $index=>$row)$indexed[]=['row'=>$row,'index'=>$index];
         usort($indexed,static function(array $a,array $b):int{
             $aRow=$a['row'];$bRow=$b['row'];
-            $aRank=isset($aRow['operational_task_rank'])?(int)$aRow['operational_task_rank']:self::operationalTaskRank((string)($aRow['next_task_due_state']??''),trim((string)($aRow['next_task_title']??''))!=='');
-            $bRank=isset($bRow['operational_task_rank'])?(int)$bRow['operational_task_rank']:self::operationalTaskRank((string)($bRow['next_task_due_state']??''),trim((string)($bRow['next_task_title']??''))!=='');
+            $aRank=isset($aRow['operational_task_rank'])?(int)$aRow['operational_task_rank']:LeadTaskService::operationalRank((string)($aRow['next_task_due_state']??''),trim((string)($aRow['next_task_title']??''))!=='');
+            $bRank=isset($bRow['operational_task_rank'])?(int)$bRow['operational_task_rank']:LeadTaskService::operationalRank((string)($bRow['next_task_due_state']??''),trim((string)($bRow['next_task_title']??''))!=='');
             if($aRank!==$bRank)return $aRank<=>$bRank;
             $aDue=trim((string)($aRow['operational_task_due_at_utc']??$aRow['next_task_due_at_utc']??''));$bDue=trim((string)($bRow['operational_task_due_at_utc']??$bRow['next_task_due_at_utc']??''));
             if($aDue!==$bDue){if($aDue==='')return 1;if($bDue==='')return -1;return strcmp($aDue,$bDue);}
