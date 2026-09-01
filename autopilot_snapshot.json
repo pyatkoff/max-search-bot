@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T22:00:10+00:00",
+    "generated_at": "2026-09-01T22:05:43+00:00",
     "production": {
-        "sha": "74f844c6019083edcdcda845ce533b21b352c1fe",
+        "sha": "0efc40f411d12757abc66ed82c2779ecf438cfb8",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 20:59:58",
+        "since_utc": "2026-09-01 21:05:31",
         "summary": {
             "sessions": 4,
             "raw_sessions": 4,
@@ -181,7 +181,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "74f844c6019083edcdcda845ce533b21b352c1fe",
+        "sha": "0efc40f411d12757abc66ed82c2779ecf438cfb8",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -190,7 +190,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T22:00:10Z"
+        "reported_at": "2026-09-01T22:05:43Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -248,7 +248,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T22:00:09+00:00",
+        "generated_at": "2026-09-01T22:05:43+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -262,8 +262,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 513471,
-                "code_lines": 10996
+                "bytes": 513659,
+                "code_lines": 10997
             },
             "integrations": {
                 "files": 10,
@@ -292,8 +292,8 @@
             },
             "tests": {
                 "files": 166,
-                "bytes": 689842,
-                "code_lines": 8235
+                "bytes": 690333,
+                "code_lines": 8237
             },
             "tools": {
                 "files": 37,
@@ -345,15 +345,15 @@
                 "severity": "observe"
             },
             {
-                "path": "services/ConversationStateRepository.php",
-                "lines": 196,
-                "bytes": 7098,
+                "path": "services/ManagerConversationService.php",
+                "lines": 197,
+                "bytes": 16376,
                 "severity": "observe"
             },
             {
-                "path": "services/ManagerConversationService.php",
+                "path": "services/ConversationStateRepository.php",
                 "lines": 196,
-                "bytes": 16188,
+                "bytes": 7098,
                 "severity": "observe"
             },
             {
