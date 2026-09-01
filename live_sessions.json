@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T18:21:27+00:00",
+    "generated_at": "2026-09-01T18:26:06+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -126,15 +126,15 @@
             "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 58,
-            "outbound_messages": 49,
+            "inbound_messages": 60,
+            "outbound_messages": 51,
             "date_picks": 1,
-            "anomaly_inbound_messages": 0,
+            "anomaly_inbound_messages": 2,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-09-01 02:37:50",
-            "last_message_at": "2026-09-01 19:32:01"
+            "last_message_at": "2026-09-01 20:22:16"
         }
     ],
-    "since_utc": "2026-09-01 17:21:27"
+    "since_utc": "2026-09-01 17:26:06"
 }
