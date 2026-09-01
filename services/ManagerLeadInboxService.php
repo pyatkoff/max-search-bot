@@ -45,7 +45,7 @@ class ManagerLeadInboxService
     public static function filter(array $rows,string $outcome='',string $search='',string $taskFilter=''): array
     {
         $outcome=trim($outcome);if(!in_array($outcome,['','open','won','lost'],true))$outcome='';$search=trim($search);$taskFilter=trim($taskFilter);if(!in_array($taskFilter,['','action','overdue','today','planned','pinned','none'],true))$taskFilter='';
-        return array_values(array_filter($rows,static function(array $row)use($outcome,$search,$taskFilter):bool{
+        $filtered=array_values(array_filter($rows,static function(array $row)use($outcome,$search,$taskFilter):bool{
             if($outcome!==''&&(string)($row['lead_outcome']??'open')!==$outcome)return false;
             $hasTask=(int)($row['open_task_count']??0)>0||trim((string)($row['next_task_title']??''))!=='';$overdue=!empty($row['next_task_overdue']);$pinned=!empty($row['next_task_pinned']);$dueState=(string)($row['next_task_due_state']??LeadTaskService::dueState($row['next_task_due_at_utc']??null,$overdue));$operationalDueState=(string)($row['operational_task_due_state']??$dueState);
             if($taskFilter==='action'&&(!$hasTask||!in_array($operationalDueState,['overdue','today'],true)))return false;if($taskFilter==='overdue'&&(!$hasTask||$operationalDueState!=='overdue'))return false;if($taskFilter==='today'&&(!$hasTask||$operationalDueState!=='today'))return false;if($taskFilter==='planned'&&(!$hasTask||$operationalDueState!=='upcoming'))return false;if($taskFilter==='pinned'&&(!$hasTask||!$pinned))return false;if($taskFilter==='none'&&$hasTask)return false;
@@ -53,6 +53,7 @@ class ManagerLeadInboxService
             $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['project_label']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??'',$row['next_task_title']??'',$row['lead_sale_amount']??'',$row['lead_sale_date']??''],static fn($v)=>$v!==null&&$v!==''));
             return function_exists('mb_stripos')?mb_stripos($haystack,$search,0,'UTF-8')!==false:stripos($haystack,$search)!==false;
         }));
+        return $taskFilter===''?$filtered:self::sortOperational($filtered);
     }
 
     private static function cleanTripSummary(string $text): string
