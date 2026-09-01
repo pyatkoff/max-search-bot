@@ -1,38 +1,39 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T05:32:29+00:00",
+    "generated_at": "2026-09-01T06:07:32+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 9,
-        "raw_sessions": 9,
+        "sessions": 10,
+        "raw_sessions": 10,
         "explicit_test_sessions": 0,
-        "started": 9,
-        "needs_collected": 8,
-        "tours_opened": 8,
-        "manager_requested": 1,
-        "manager_replied": 1,
-        "phone_received": 0,
-        "flagged_sessions": 4,
+        "started": 10,
+        "needs_collected": 9,
+        "tours_opened": 9,
+        "manager_requested": 2,
+        "manager_replied": 2,
+        "phone_received": 1,
+        "flagged_sessions": 5,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 1,
+            "answered_after_90s": 2,
             "still_unanswered": 0,
-            "measured_responses": 1,
-            "avg_seconds": 52322,
+            "measured_responses": 2,
+            "avg_seconds": 46552,
             "max_seconds": 52322
         },
         "drop_points": {
             "tours_opened": 7,
-            "collecting_needs": 1,
-            "manager_replied": 1
+            "manager_replied": 2,
+            "collecting_needs": 1
         },
         "flags": {
-            "repeated_callback_input": 4,
+            "repeated_callback_input": 5,
             "excessive_turns": 3,
-            "rapid_date_reselection": 2
+            "rapid_date_reselection": 2,
+            "repeated_same_input": 1
         },
         "calendar_day": {
             "conversations_started": 4,
@@ -662,7 +663,7 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 32,
-            "outbound_messages": 11,
+            "outbound_messages": 12,
             "date_picks": 7,
             "anomaly_inbound_messages": 32,
             "drop_point": "tours_opened",
@@ -672,14 +673,8 @@
                 "excessive_turns"
             ],
             "started_at": "2026-09-01 07:20:53",
-            "last_message_at": "2026-09-01 07:23:56",
+            "last_message_at": "2026-09-01 07:35:02",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_7",
-                    "created_at": "2026-09-01 07:22:09"
-                },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
@@ -817,6 +812,93 @@
                     "sender_type": "ai",
                     "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
                     "created_at": "2026-09-01 07:23:56"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+                    "created_at": "2026-09-01 07:35:02"
+                }
+            ]
+        },
+        {
+            "conversation_id": 480,
+            "project_key": "anytour",
+            "channel": "max",
+            "status": "manager",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "manager_requested": true,
+            "manager_request_active": true,
+            "manager_replied": true,
+            "manager_request_at": "2026-08-27 20:48:34",
+            "manager_first_reply_at": "2026-08-28 08:08:15",
+            "manager_response_seconds": 40781,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": true,
+            "inbound_messages": 36,
+            "outbound_messages": 19,
+            "date_picks": 1,
+            "anomaly_inbound_messages": 7,
+            "drop_point": "manager_replied",
+            "flags": [
+                "repeated_callback_input",
+                "repeated_same_input"
+            ],
+            "started_at": "2026-08-27 22:36:06",
+            "last_message_at": "2026-09-01 07:55:52",
+            "message_tail": [
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+                    "created_at": "2026-09-01 07:55:26"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-01 07:55:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-01 07:55:33"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-09-01 07:55:36"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-09-01 07:55:38"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-01 07:55:39"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "ai_start",
+                    "created_at": "2026-09-01 07:55:41"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Здраствуите",
+                    "created_at": "2026-09-01 07:55:52"
                 }
             ]
         }
