@@ -8,6 +8,7 @@ $kanbanTasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanba
 $bootstrap=(string)file_get_contents($root.'/manager/assets/workspace-v2-bootstrap.js');
 $index=(string)file_get_contents($root.'/manager/index.php');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');
+$kanbanCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban.css');
 $passed=0;$failed=0;
 function dsCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -27,6 +28,9 @@ dsCheck('late today preset advances instead of creating a past deadline',strpos(
 dsCheck('open task rows expose fast fifteen-minute one-hour and tomorrow snooze actions',strpos($tasks,'data-task-snooze="quarter"')!==false&&strpos($tasks,'data-task-snooze="hour"')!==false&&strpos($tasks,'data-task-snooze="tomorrow"')!==false&&strpos($tasks,'+15м')!==false&&strpos($tasks,'Быстро перенести задачу')!==false);
 dsCheck('existing task snooze reuses canonical preset dates and update mutation',strpos($tasks,'WorkspaceV2TaskPresets?.dateForPreset?.')!==false&&strpos($tasks,'return updateTask(target,Number(task.id),String(task.title||\'\'),date.toISOString())')!==false);
 dsCheck('snooze respects dirty task editor guard and shared mutation recovery',strpos($tasks,"root.querySelectorAll('[data-task-snooze]')")!==false&&strpos($tasks,'if(blockForDirtyDraft())return')!==false&&strpos($tasks,'runMutation(el,row,()=>onSnooze(task,preset))')!==false);
-dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'.taskQuickActions')!==false&&strpos($css,'@media(max-width:520px)')!==false);
+dsCheck('kanban existing task exposes the same fast snooze presets',strpos($kanbanTasks,'data-task-snooze="quarter"')!==false&&strpos($kanbanTasks,'data-task-snooze="hour"')!==false&&strpos($kanbanTasks,'data-task-snooze="tomorrow"')!==false&&strpos($kanbanTasks,'+15м')!==false&&strpos($kanbanTasks,'Быстро перенести задачу')!==false);
+dsCheck('kanban snooze reuses canonical preset and authorized update_task mutation',strpos($kanbanTasks,'WorkspaceV2TaskPresets?.dateForPreset?.')!==false&&strpos($kanbanTasks,"pipe('update_task',{conversation_id:id,task_id:taskId,title,due_at:date.toISOString()})")!==false&&strpos($kanbanTasks,'UPDATE lead_tasks')===false);
+dsCheck('kanban snooze has retryable failure state and refreshes board after success',strpos($kanbanTasks,'Не удалось перенести задачу')!==false&&strpos($kanbanTasks,"feedback('Задача не перенесена','error')")!==false&&strpos($kanbanTasks,"feedback('Задача перенесена')")!==false&&strpos($kanbanTasks,'await window.WorkspaceV2Inbox.load()')!==false);
+dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'.taskQuickActions')!==false&&strpos($css,'@media(max-width:520px)')!==false&&strpos($kanbanTasks,'role="group" aria-label="Быстро перенести задачу"')!==false&&strpos($kanbanCss,'.kanbanTaskSnooze')!==false&&strpos($kanbanCss,'.kanbanTaskSnoozeBtn')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
