@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T19:54:26+00:00",
+    "generated_at": "2026-09-01T20:03:20+00:00",
     "production": {
-        "sha": "b96c4f63afce268435b2fb67e181c2ccaaecedb1",
+        "sha": "32af5869f13651862ad64f472d13e95f88fb726f",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 18:54:13",
+        "since_utc": "2026-09-01 19:03:09",
         "summary": {
             "sessions": 5,
             "raw_sessions": 5,
@@ -193,7 +193,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "b96c4f63afce268435b2fb67e181c2ccaaecedb1",
+        "sha": "32af5869f13651862ad64f472d13e95f88fb726f",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -202,7 +202,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T19:54:26Z"
+        "reported_at": "2026-09-01T20:03:20Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -264,7 +264,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T19:54:25+00:00",
+        "generated_at": "2026-09-01T20:03:19+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -278,8 +278,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 510945,
-                "code_lines": 10964
+                "bytes": 512520,
+                "code_lines": 10983
             },
             "integrations": {
                 "files": 10,
@@ -288,8 +288,8 @@
             },
             "manager": {
                 "files": 53,
-                "bytes": 283751,
-                "code_lines": 1385
+                "bytes": 286636,
+                "code_lines": 1389
             },
             "website": {
                 "files": 4,
@@ -307,9 +307,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 164,
-                "bytes": 682268,
-                "code_lines": 8164
+                "files": 165,
+                "bytes": 685193,
+                "code_lines": 8186
             },
             "tools": {
                 "files": 37,
@@ -367,15 +367,15 @@
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 191,
-                "bytes": 9308,
+                "path": "services/ManagerConversationService.php",
+                "lines": 196,
+                "bytes": 16188,
                 "severity": "observe"
             },
             {
-                "path": "tools/production_snapshot.php",
+                "path": "handlers/StateMessageHandler.php",
                 "lines": 191,
-                "bytes": 11891,
+                "bytes": 9308,
                 "severity": "observe"
             }
         ],
