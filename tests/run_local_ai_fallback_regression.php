@@ -55,6 +55,16 @@ localCheck('two adults recognized', $params['adults'] ?? null, 2);
 localCheck('no children recognized', $params['children'] ?? null, 0);
 localCheck('week recognized as seven nights', $params['nights'] ?? null, '7');
 
+$liveRich = 'Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет';
+$params = LocalAiFallbackService::parameters($liveRich, []);
+localCheck('live rich request deterministically keeps explicit country', $params['country'] ?? null, 'Турция');
+localCheck('live rich request deterministically keeps explicit adults', $params['adults'] ?? null, 2);
+localCheck('live rich request deterministically infers singular child', $params['children'] ?? null, 1);
+localCheck('live rich request deterministically keeps child age next to child wording', $params['child_ages'] ?? null, [6]);
+
+$params = LocalAiFallbackService::parameters('1 взрослый и 2 ребенка', ['city'=>'Москва']);
+localCheck('explicit numeric child count in sentence is retained', $params['children'] ?? null, 2);
+
 $params = LocalAiFallbackService::applyDestinationDefaults(['date'=>'15.09.2026'], ['country'=>'Египет']);
 localCheck('current Egypt still supplies defaults for date-only local correction', $params['meal'] ?? null, 'all_inclusive');
 localCheck('current Egypt still supplies star default for date-only local correction', $params['stars'] ?? null, 4);
@@ -69,6 +79,12 @@ localCheck(
     LocalAiFallbackService::unresolvedDestination(['country','adults'], ['adults']),
     false
 );
+
+$handler = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
+localCheck('rich request resolves explicit departure before external AI', strpos($handler, 'DepartureCityResolver::resolveAndStore($chat_id, $userText)') !== false, true);
+localCheck('rich request pre-applies deterministic local parameters before external AI', strpos($handler, 'NeedApplicationService::applyParameters($chat_id, $richLocalParams)') !== false, true);
+localCheck('rich preseed never applies legacy Moscow default unless departure was explicit', strpos($handler, "unset(\$richLocalParams['city'])") !== false, true);
+localCheck('rich AI receives refreshed deterministic context', strpos($handler, "AiInvocationService::invoke('RICH_AI', \$chat_id, \$userText, \$current)") !== false, true);
 
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
