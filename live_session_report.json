@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T07:39:29+00:00",
+    "generated_at": "2026-09-01T08:00:06+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -135,14 +135,14 @@
             "manager_response_bucket": "answered_after_90s",
             "phone_received": true,
             "inbound_messages": 36,
-            "outbound_messages": 19,
+            "outbound_messages": 20,
             "date_picks": 1,
             "anomaly_inbound_messages": 0,
             "drop_point": "manager_replied",
             "flags": [],
             "started_at": "2026-08-27 22:36:06",
-            "last_message_at": "2026-09-01 07:55:52"
+            "last_message_at": "2026-09-01 09:45:42"
         }
     ],
-    "since_utc": "2026-09-01 06:39:29"
+    "since_utc": "2026-09-01 07:00:06"
 }

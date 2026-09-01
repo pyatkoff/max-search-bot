@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T07:39:30+00:00",
+    "generated_at": "2026-09-01T08:00:08+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -841,7 +841,7 @@
             "manager_response_bucket": "answered_after_90s",
             "phone_received": true,
             "inbound_messages": 36,
-            "outbound_messages": 19,
+            "outbound_messages": 20,
             "date_picks": 1,
             "anomaly_inbound_messages": 7,
             "drop_point": "manager_replied",
@@ -850,7 +850,7 @@
                 "repeated_same_input"
             ],
             "started_at": "2026-08-27 22:36:06",
-            "last_message_at": "2026-09-01 07:55:52",
+            "last_message_at": "2026-09-01 09:45:42",
             "message_tail": [
                 {
                     "direction": "outbound",
@@ -899,6 +899,12 @@
                     "sender_type": "customer",
                     "text": "Здраствуите",
                     "created_at": "2026-09-01 07:55:52"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Здравствуйте, удалось ознакомиться с вариантами туров? Что-то понравилось?",
+                    "created_at": "2026-09-01 09:45:42"
                 }
             ]
         }
