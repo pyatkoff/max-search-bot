@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T16:10:53+00:00",
+    "generated_at": "2026-09-01T16:30:43+00:00",
     "production": {
-        "sha": "57ad40b59ae6ffb4b9bb022afe9e00d40abd7207",
+        "sha": "627a2cfb6fb3cab64421209718c6b077553cf534",
         "branch": "main"
     },
     "migrations": {
@@ -141,19 +141,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 15:10:43",
+        "since_utc": "2026-09-01 15:30:34",
         "summary": {
-            "sessions": 4,
-            "raw_sessions": 4,
+            "sessions": 5,
+            "raw_sessions": 5,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 4,
+                "resolved": 5,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 4,
-            "needs_collected": 3,
-            "tours_opened": 3,
+            "started": 5,
+            "needs_collected": 4,
+            "tours_opened": 4,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -168,7 +168,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 3,
+                "tours_opened": 4,
                 "collecting_needs": 1
             },
             "flags": []
@@ -180,7 +180,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "57ad40b59ae6ffb4b9bb022afe9e00d40abd7207",
+        "sha": "627a2cfb6fb3cab64421209718c6b077553cf534",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -189,7 +189,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T16:10:52Z"
+        "reported_at": "2026-09-01T16:30:43Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -204,17 +204,17 @@
         "window_hours": null,
         "since_utc": "2026-08-31 22:00:00",
         "summary": {
-            "sessions": 18,
-            "raw_sessions": 18,
+            "sessions": 19,
+            "raw_sessions": 19,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 18,
+                "resolved": 19,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 18,
-            "needs_collected": 13,
-            "tours_opened": 13,
+            "started": 19,
+            "needs_collected": 14,
+            "tours_opened": 14,
             "manager_requested": 2,
             "manager_replied": 2,
             "customer_replied_after_manager": 1,
@@ -229,7 +229,7 @@
                 "max_seconds": 52322
             },
             "drop_points": {
-                "tours_opened": 11,
+                "tours_opened": 12,
                 "collecting_needs": 5,
                 "manager_replied": 1,
                 "customer_replied_after_manager": 1
@@ -241,9 +241,9 @@
                 "repeated_same_input": 2
             },
             "calendar_day": {
-                "conversations_started": 11,
-                "needs_collected_from_started": 6,
-                "tours_opened_from_started": 6,
+                "conversations_started": 12,
+                "needs_collected_from_started": 7,
+                "tours_opened_from_started": 7,
                 "manager_requested": 0,
                 "manager_replied": 0,
                 "customer_replied_after_manager": 0
@@ -251,7 +251,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T16:10:52+00:00",
+        "generated_at": "2026-09-01T16:30:42+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -275,8 +275,8 @@
             },
             "manager": {
                 "files": 53,
-                "bytes": 276708,
-                "code_lines": 1369
+                "bytes": 277052,
+                "code_lines": 1372
             },
             "website": {
                 "files": 4,

@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T16:10:39+00:00",
+    "generated_at": "2026-09-01T16:30:31+00:00",
     "production": {
-        "sha": "57ad40b59ae6ffb4b9bb022afe9e00d40abd7207",
+        "sha": "627a2cfb6fb3cab64421209718c6b077553cf534",
         "branch": "main"
     },
     "database": {
@@ -202,10 +202,10 @@
         }
     ],
     "stats": {
-        "customers": 665,
-        "customer_channels": 665,
-        "conversations": 667,
-        "messages": 17435,
+        "customers": 666,
+        "customer_channels": 666,
+        "conversations": 668,
+        "messages": 17443,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1373,7 +1373,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 534
+            "count": 535
         },
         {
             "project_key": "anytour",
@@ -1697,6 +1697,78 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 17443,
+            "conversation_id": 668,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-09-01 18:22:59"
+        },
+        {
+            "id": 17442,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-01 18:22:59"
+        },
+        {
+            "id": 17441,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "5 октября",
+            "created_at": "2026-09-01 18:22:42"
+        },
+        {
+            "id": 17440,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "4 ночи",
+            "created_at": "2026-09-01 18:22:26"
+        },
+        {
+            "id": 17439,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "5 дней 4 ночи",
+            "created_at": "2026-09-01 18:22:06"
+        },
+        {
+            "id": 17438,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Тур в Египет в октябре, 3 взрослых и ребёнок 11 лет все включено 3 звёзд",
+            "created_at": "2026-09-01 18:21:42"
+        },
+        {
+            "id": 17437,
+            "conversation_id": 668,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-09-01 18:20:31"
+        },
+        {
+            "id": 17436,
+            "conversation_id": 668,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-09-01 18:20:30"
+        },
         {
             "id": 17435,
             "conversation_id": 667,
@@ -2164,78 +2236,6 @@
             "channel": "max",
             "text": "month_change_01.2027",
             "created_at": "2026-09-01 15:50:01"
-        },
-        {
-            "id": 17383,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_12.2026",
-            "created_at": "2026-09-01 15:49:57"
-        },
-        {
-            "id": 17382,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_11.2026",
-            "created_at": "2026-09-01 15:49:53"
-        },
-        {
-            "id": 17381,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_10.2026",
-            "created_at": "2026-09-01 15:49:35"
-        },
-        {
-            "id": 17380,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_9_11",
-            "created_at": "2026-09-01 15:48:54"
-        },
-        {
-            "id": 17379,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_4",
-            "created_at": "2026-09-01 15:48:51"
-        },
-        {
-            "id": 17378,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-09-01 15:48:46"
-        },
-        {
-            "id": 17377,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "7",
-            "created_at": "2026-09-01 15:48:40"
-        },
-        {
-            "id": 17376,
-            "conversation_id": 665,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_1",
-            "created_at": "2026-09-01 15:48:31"
         }
     ],
     "recent_events": [
