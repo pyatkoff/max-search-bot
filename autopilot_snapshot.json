@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T13:05:45+00:00",
+    "generated_at": "2026-09-01T13:22:39+00:00",
     "production": {
-        "sha": "736bb5b0f92e1f940ca88cb3adbc3ad47cda03a7",
+        "sha": "11625d351232f09d616be791686f8476915dbb13",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 12:05:37",
+        "since_utc": "2026-09-01 12:22:29",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -187,7 +187,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "736bb5b0f92e1f940ca88cb3adbc3ad47cda03a7",
+        "sha": "11625d351232f09d616be791686f8476915dbb13",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -196,7 +196,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T13:05:45Z"
+        "reported_at": "2026-09-01T13:22:39Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -253,7 +253,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T13:05:45+00:00",
+        "generated_at": "2026-09-01T13:22:39+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -267,8 +267,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 503566,
-                "code_lines": 10832
+                "bytes": 503851,
+                "code_lines": 10836
             },
             "integrations": {
                 "files": 10,
@@ -277,8 +277,8 @@
             },
             "manager": {
                 "files": 52,
-                "bytes": 270144,
-                "code_lines": 1353
+                "bytes": 270417,
+                "code_lines": 1354
             },
             "website": {
                 "files": 4,
@@ -297,8 +297,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 655080,
-                "code_lines": 8018
+                "bytes": 656079,
+                "code_lines": 8025
             },
             "tools": {
                 "files": 37,
