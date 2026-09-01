@@ -38,6 +38,9 @@ standbyCheck('standby does not start or restart services',!preg_match('/\b(syste
 standbyCheck('standby does not install cron',!preg_match('/\bcrontab\b/',$workflow));
 standbyCheck('legacy production target remains unchanged',strpos($production,'cd ~/www/anytour.online/max-search')!==false);
 standbyCheck('legacy deploy does not consume standby credentials',strpos($production,'STANDBY_DEPLOY_')===false);
+standbyCheck('production deploy binds sync to workflow sha',strpos($production,'EXPECTED_SHA: ${{ github.sha }}')!==false&&strpos($production,'envs: EXPECTED_SHA')!==false&&strpos($production,'git cat-file -e "$EXPECTED_SHA^{commit}"')!==false&&strpos($production,'git reset --hard "$EXPECTED_SHA"')!==false);
+standbyCheck('production deploy does not race against moving origin main',strpos($production,'git reset --hard origin/main')===false);
+standbyCheck('production deploy verifies resulting exact sha',strpos($production,'test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
