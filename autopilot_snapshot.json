@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T21:41:10+00:00",
+    "generated_at": "2026-09-01T21:52:53+00:00",
     "production": {
-        "sha": "609d1dd58de2367e150ddac56afc83b78576a20f",
+        "sha": "3caff02dda42f066674cb53abff289a174e15a1f",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 20:40:58",
+        "since_utc": "2026-09-01 20:52:40",
         "summary": {
             "sessions": 4,
             "raw_sessions": 4,
@@ -154,6 +154,7 @@
             "started": 4,
             "needs_collected": 4,
             "tours_opened": 4,
+            "site_opened": 0,
             "post_tour_manager_cta_shown": 3,
             "manager_requested": 0,
             "manager_replied": 0,
@@ -180,7 +181,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "609d1dd58de2367e150ddac56afc83b78576a20f",
+        "sha": "3caff02dda42f066674cb53abff289a174e15a1f",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -189,7 +190,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T21:41:10Z"
+        "reported_at": "2026-09-01T21:52:53Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -215,6 +216,7 @@
             "started": 24,
             "needs_collected": 19,
             "tours_opened": 19,
+            "site_opened": 0,
             "post_tour_manager_cta_shown": 11,
             "manager_requested": 2,
             "manager_replied": 2,
@@ -245,6 +247,7 @@
                 "conversations_started": 16,
                 "needs_collected_from_started": 11,
                 "tours_opened_from_started": 11,
+                "site_opened": 0,
                 "post_tour_manager_cta_shown": 7,
                 "manager_requested": 0,
                 "manager_replied": 0,
@@ -253,7 +256,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T21:41:09+00:00",
+        "generated_at": "2026-09-01T21:52:52+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -267,8 +270,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 513135,
-                "code_lines": 10992
+                "bytes": 513471,
+                "code_lines": 10996
             },
             "integrations": {
                 "files": 10,
@@ -296,14 +299,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 165,
-                "bytes": 688688,
-                "code_lines": 8205
+                "files": 166,
+                "bytes": 690546,
+                "code_lines": 8237
             },
             "tools": {
                 "files": 37,
-                "bytes": 117496,
-                "code_lines": 2192
+                "bytes": 117783,
+                "code_lines": 2196
             }
         },
         "hotspots": [
@@ -327,8 +330,8 @@
             },
             {
                 "path": "tools/live_session_snapshot.php",
-                "lines": 214,
-                "bytes": 9885,
+                "lines": 218,
+                "bytes": 10172,
                 "severity": "observe"
             },
             {
