@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T09:33:18+00:00",
+    "generated_at": "2026-09-01T09:48:43+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -109,35 +109,17 @@
             "manager_response_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 39,
-            "outbound_messages": 34,
-            "date_picks": 1,
-            "anomaly_inbound_messages": 18,
+            "inbound_messages": 41,
+            "outbound_messages": 35,
+            "date_picks": 2,
+            "anomaly_inbound_messages": 20,
             "drop_point": "tours_opened",
             "flags": [
                 "excessive_turns"
             ],
             "started_at": "2026-08-27 13:57:45",
-            "last_message_at": "2026-09-01 11:33:08",
+            "last_message_at": "2026-09-01 11:33:40",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_10.2026",
-                    "created_at": "2026-09-01 11:32:12"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_10.2026",
-                    "created_at": "2026-09-01 11:32:15"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "month_change_10.2026",
-                    "created_at": "2026-09-01 11:32:18"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -263,9 +245,27 @@
                     "sender_type": "ai",
                     "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
                     "created_at": "2026-09-01 11:33:08"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_01.06.2027",
+                    "created_at": "2026-09-01 11:33:23"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-01 11:33:39"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+                    "created_at": "2026-09-01 11:33:40"
                 }
             ]
         }
     ],
-    "since_utc": "2026-09-01 08:33:18"
+    "since_utc": "2026-09-01 08:48:43"
 }

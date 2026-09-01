@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T09:33:31+00:00",
+    "generated_at": "2026-09-01T09:48:52+00:00",
     "production": {
-        "sha": "30f0ab86e8b6ad3cf74e46b1d281f55ef46b7a45",
+        "sha": "360d9890268ea21a290f038bda95edebd1e5faf1",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 08:33:18",
+        "since_utc": "2026-09-01 08:48:43",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -187,7 +187,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "30f0ab86e8b6ad3cf74e46b1d281f55ef46b7a45",
+        "sha": "360d9890268ea21a290f038bda95edebd1e5faf1",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -196,7 +196,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T09:33:31Z"
+        "reported_at": "2026-09-01T09:48:52Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -250,7 +250,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T09:33:31+00:00",
+        "generated_at": "2026-09-01T09:48:52+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -263,9 +263,9 @@
                 "code_lines": 599
             },
             "services": {
-                "files": 131,
-                "bytes": 488298,
-                "code_lines": 10515
+                "files": 132,
+                "bytes": 494025,
+                "code_lines": 10646
             },
             "integrations": {
                 "files": 10,
@@ -294,8 +294,8 @@
             },
             "tests": {
                 "files": 162,
-                "bytes": 639916,
-                "code_lines": 7887
+                "bytes": 643208,
+                "code_lines": 7931
             },
             "tools": {
                 "files": 37,
@@ -368,7 +368,7 @@
         "signal_counts": {
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
-            "direct_sql_writes": 20,
+            "direct_sql_writes": 21,
             "authorization_mentions": 14,
             "validation_mentions": 3
         },
@@ -388,6 +388,7 @@
                 "services/ManagerPriorityService.php",
                 "services/ManagerPushService.php",
                 "services/ManagerReadService.php",
+                "services/MetrikaConversionGoalService.php",
                 "services/MigrationRunner.php",
                 "services/MysqlClaimRepository.php",
                 "services/MysqlDialogueStateRepository.php",
