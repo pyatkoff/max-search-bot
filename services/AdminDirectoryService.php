@@ -120,7 +120,19 @@ class AdminDirectoryService
             $pdo->commit();
             AuditLogService::record($actorManagerId,$before?'manager_updated':'manager_created','manager',(string)$id,'',$before,self::managerRow($id));
             return ['ok'=>true,'manager_id'=>$id];
-        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return ['ok'=>false,'error'=>'duplicate_login'];}
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            return ['ok'=>false,'error'=>self::isDuplicateKeyError($e)?'duplicate_login':'manager_save_failed'];
+        }
+    }
+
+    private static function isDuplicateKeyError(Throwable $e): bool
+    {
+        if($e instanceof PDOException){
+            $info=$e->errorInfo??null;
+            if(is_array($info) && ((string)($info[0]??'')==='23000' || (int)($info[1]??0)===1062))return true;
+        }
+        return (string)$e->getCode()==='23000';
     }
 
     private static function grantProjectToActiveAdmins(PDO $pdo,int $projectId): void
