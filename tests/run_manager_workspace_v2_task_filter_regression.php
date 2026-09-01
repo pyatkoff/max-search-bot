@@ -9,6 +9,8 @@ $filters=(string)file_get_contents($root.'/manager/assets/workspace-v2-filters.j
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $inbox=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $api=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$projection=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
+$taskService=(string)file_get_contents($root.'/services/LeadTaskService.php');
 $passed=0;$failed=0;
 function tfCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
 tfCheck('workspace exposes task filter',strpos($workspace,'id="leadTaskFilter"')!==false&&strpos($workspace,'Просроченные')!==false&&strpos($workspace,'Сегодня')!==false&&strpos($workspace,'Запланированные')!==false&&strpos($workspace,'В приоритете')!==false&&strpos($workspace,'Без задачи')!==false);
@@ -24,6 +26,8 @@ tfCheck('pipeline module no longer owns inbox filter lifecycle',strpos($pipeline
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
 tfCheck('manager work queue gets operational task ordering only without explicit task filter',strpos($api,"if(\$queue==='mine'&&trim(\$taskFilter)==='')\$rows=ManagerLeadInboxService::sortOperational(\$rows)")!==false);
+tfCheck('LeadTaskService owns operational rank and state business rule',strpos($taskService,'public static function operationalRank')!==false&&strpos($taskService,'public static function operationalState')!==false&&strpos($projection,'public static function operationalTaskRank')===false&&strpos($projection,'public static function operationalTaskState')===false);
+tfCheck('inbox projection delegates operational task semantics to LeadTaskService',strpos($projection,'LeadTaskService::operationalRank($state,true)')!==false&&strpos($projection,'LeadTaskService::operationalState($state,true)')!==false&&strpos($projection,"LeadTaskService::operationalRank('none',false)")!==false);
 tfCheck('inbox filters and search persist for current browser session',strpos($filters,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($filters,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($filters,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($filters,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
 tfCheck('restored search is reflected in visible input',strpos($filters,"if(search)search.value=S.leadSearch")!==false);
 tfCheck('pipeline catalog outage is explicit instead of looking like an empty catalog',strpos($filters,"setCatalogSelectState(stage,false,'Этапы временно недоступны')")!==false&&strpos($filters,"setCatalogSelectState(tag,false,'Теги временно недоступны')")!==false&&strpos($filters,"setCatalogSelectState(outcome,false,'Исходы временно недоступны')")!==false);
@@ -47,9 +51,10 @@ tfCheck('planned filter excludes overdue',array_column(ManagerLeadInboxService::
 tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[2]);
 tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
 tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===4);
-tfCheck('operational state maps overdue today soon and no-action buckets',ManagerLeadInboxService::operationalTaskState('overdue',true)==='overdue'&&ManagerLeadInboxService::operationalTaskState('today',true)==='today'&&ManagerLeadInboxService::operationalTaskState('upcoming',true)==='soon'&&ManagerLeadInboxService::operationalTaskState('unscheduled',true)==='soon'&&ManagerLeadInboxService::operationalTaskState('none',false)==='none');
+tfCheck('canonical operational state maps overdue today soon and no-action buckets',LeadTaskService::operationalState('overdue',true)==='overdue'&&LeadTaskService::operationalState('today',true)==='today'&&LeadTaskService::operationalState('upcoming',true)==='soon'&&LeadTaskService::operationalState('unscheduled',true)==='soon'&&LeadTaskService::operationalState('none',false)==='none');
+tfCheck('canonical operational rank maps overdue today soon and no-action buckets',LeadTaskService::operationalRank('overdue',true)===0&&LeadTaskService::operationalRank('today',true)===1&&LeadTaskService::operationalRank('upcoming',true)===2&&LeadTaskService::operationalRank('unscheduled',true)===2&&LeadTaskService::operationalRank('none',false)===3);
 tfCheck('manager work queue sorts overdue today soon then no next action',array_column(ManagerLeadInboxService::sortOperational([$rows[2],$rows[1],$rows[3],$rows[0]]),'id')===[1,4,2,3]);
-tfCheck('operational sort fallback derives rank without projection metadata',array_column(ManagerLeadInboxService::sortOperational([['id'=>3,'next_task_title'=>null],['id'=>2,'next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],['id'=>1,'next_task_title'=>'Сейчас','next_task_due_state'=>'overdue']]),'id')===[1,2,3]);
+tfCheck('operational sort fallback delegates rank to canonical task owner',strpos($projection,"LeadTaskService::operationalRank((string)(\$aRow['next_task_due_state']??'')")!==false&&array_column(ManagerLeadInboxService::sortOperational([['id'=>3,'next_task_title'=>null],['id'=>2,'next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],['id'=>1,'next_task_title'=>'Сейчас','next_task_due_state'=>'overdue']]),'id')===[1,2,3]);
 $dueRows=[
  ['id'=>1,'next_task_title'=>'Позже просрочено','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 08:00:00'],
  ['id'=>2,'next_task_title'=>'Раньше просрочено','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 07:00:00'],
