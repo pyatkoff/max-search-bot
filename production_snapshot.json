@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T20:42:27+00:00",
+    "generated_at": "2026-09-01T21:10:18+00:00",
     "production": {
-        "sha": "bca2dcecb0f6eb74559dcb540c3a5f7ec5a9e2e4",
+        "sha": "5b5ddefa35c05e25aae5b9a3d2f957c1a68a282b",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 671,
         "customer_channels": 671,
         "conversations": 673,
-        "messages": 17609,
+        "messages": 17610,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1463,6 +1463,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17610,
+            "conversation_id": 673,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-01 22:45:51"
+        },
+        {
             "id": 17609,
             "conversation_id": 673,
             "direction": "outbound",
@@ -1991,15 +2000,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-01 21:13:37"
-        },
-        {
-            "id": 17550,
-            "conversation_id": 671,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
             "created_at": "2026-09-01 21:13:37"
         }
     ],
