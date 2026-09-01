@@ -1,0 +1,49 @@
+name: Temporary kanban owner label patch
+
+on:
+  push:
+    branches:
+      - autopilot/kanban-owner-label
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[kanban-owner-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: autopilot/kanban-owner-label
+          fetch-depth: 0
+      - name: Patch kanban owner context
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path=Path('manager/assets/workspace-v2-kanban.js')
+          text=path.read_text()
+          needle="project=String(c.project_label||c.project_name||'').trim(),name=String(c.display_name||'Турист');return"
+          replacement="project=String(c.project_label||c.project_name||'').trim(),name=String(c.display_name||'Турист'),manager=String(c.manager_name||'').trim(),owner=manager?`👤 ${manager}`:'👤 Не назначен';return"
+          if text.count(needle)!=1: raise SystemExit(f'kanban variable insertion point count={text.count(needle)}')
+          text=text.replace(needle,replacement,1)
+          needle2="<div class=\"kanbanOrigin\">${esc(c.origin_label||'')}</div>"
+          replacement2="<div class=\"kanbanOrigin\">${esc(c.origin_label||'')}${c.origin_label?' · ':''}${esc(owner)}</div>"
+          if text.count(needle2)!=1: raise SystemExit(f'kanban origin insertion point count={text.count(needle2)}')
+          path.write_text(text.replace(needle2,replacement2,1))
+
+          test=Path('tests/run_manager_workspace_v2_kanban_regression.php')
+          t=test.read_text()
+          anchor="kbCheck('board card keeps lead context and delegates task UI',strpos($kanban,'origin_label')!==false&&strpos($kanban,'trip_summary')!==false&&strpos($kanban,'lead_tags')!==false&&strpos($kanban,'WorkspaceV2KanbanTasks')!==false&&strpos($kanban,'tasks?.signal(c)')!==false&&strpos($kanban,'tasks?.controls(c)')!==false);"
+          extra="\nkbCheck('board cards show the responsible manager or explicit unassigned state',strpos($kanban,'c.manager_name')!==false&&strpos($kanban,\"'👤 Не назначен'\")!==false&&strpos($kanban,'${esc(owner)}')!==false);"
+          if t.count(anchor)!=1: raise SystemExit(f'kanban test insertion point count={t.count(anchor)}')
+          test.write_text(t.replace(anchor,anchor+extra,1))
+
+          Path('.github/workflows/autopilot-kanban-owner-label.yml').unlink()
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add manager/assets/workspace-v2-kanban.js tests/run_manager_workspace_v2_kanban_regression.php .github/workflows/autopilot-kanban-owner-label.yml
+          git commit -m "Show responsible manager on Kanban cards [kanban-owner-patched]"
+          git push origin HEAD:autopilot/kanban-owner-label
