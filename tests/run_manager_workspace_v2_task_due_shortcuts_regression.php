@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 $root=dirname(__DIR__);
+require_once $root.'/services/ManagerLeadInboxService.php';
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-task-presets.js');
 $tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
 $kanbanTasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban-tasks.js');
@@ -32,5 +33,12 @@ dsCheck('kanban existing task exposes the same fast snooze presets',strpos($kanb
 dsCheck('kanban snooze reuses canonical preset and authorized update_task mutation',strpos($kanbanTasks,'WorkspaceV2TaskPresets?.dateForPreset?.')!==false&&strpos($kanbanTasks,"pipe('update_task',{conversation_id:id,task_id:taskId,title,due_at:date.toISOString()})")!==false&&strpos($kanbanTasks,'UPDATE lead_tasks')===false);
 dsCheck('kanban snooze has retryable failure state and refreshes board after success',strpos($kanbanTasks,'Не удалось перенести задачу')!==false&&strpos($kanbanTasks,"feedback('Задача не перенесена','error')")!==false&&strpos($kanbanTasks,"feedback('Задача перенесена')")!==false&&strpos($kanbanTasks,'await window.WorkspaceV2Inbox.load()')!==false);
 dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'.taskQuickActions')!==false&&strpos($css,'@media(max-width:520px)')!==false&&strpos($kanbanTasks,'role="group" aria-label="Быстро перенести задачу"')!==false&&strpos($kanbanCss,'.kanbanTaskSnooze')!==false&&strpos($kanbanCss,'.kanbanTaskSnoozeBtn')!==false);
+$filteredRows=[
+ ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позже','open_task_count'=>1,'operational_task_due_state'=>'overdue','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 10:00:00'],
+ ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Раньше','open_task_count'=>1,'operational_task_due_state'=>'overdue','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 08:00:00'],
+ ['id'=>3,'lead_outcome'=>'open','next_task_title'=>'Сегодня','open_task_count'=>1,'operational_task_due_state'=>'today','operational_task_rank'=>1,'operational_task_due_at_utc'=>'2026-09-02 12:00:00'],
+];
+dsCheck('explicit overdue queue is ordered by earliest operational deadline',array_column(ManagerLeadInboxService::filter($filteredRows,'','','overdue'),'id')===[2,1]);
+dsCheck('action queue keeps overdue before today and due-time order within urgency',array_column(ManagerLeadInboxService::filter($filteredRows,'','','action'),'id')===[2,1,3]);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);

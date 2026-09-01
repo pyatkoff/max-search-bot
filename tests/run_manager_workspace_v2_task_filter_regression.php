@@ -25,7 +25,8 @@ tfCheck('restored task filter also restores manager work queue before first list
 tfCheck('pipeline module no longer owns inbox filter lifecycle',strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'bindFilters')===false);
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
-tfCheck('manager work queue gets operational task ordering only without explicit task filter',strpos($api,"if(\$queue==='mine'&&trim(\$taskFilter)==='')\$rows=ManagerLeadInboxService::sortOperational(\$rows)")!==false);
+tfCheck('unfiltered manager work queue keeps canonical operational ordering at API boundary',strpos($api,"if(\$queue==='mine'&&trim(\$taskFilter)==='')\$rows=ManagerLeadInboxService::sortOperational(\$rows)")!==false);
+tfCheck('explicit task filters reuse canonical operational ordering',strpos($projection,"return \$taskFilter===''?\$filtered:self::sortOperational(\$filtered);")!==false);
 tfCheck('LeadTaskService owns operational rank and state business rule',strpos($taskService,'public static function operationalRank')!==false&&strpos($taskService,'public static function operationalState')!==false&&strpos($projection,'public static function operationalTaskRank')===false&&strpos($projection,'public static function operationalTaskState')===false);
 tfCheck('inbox projection delegates operational task semantics to LeadTaskService',strpos($taskService,'public static function operationalProjection')!==false&&strpos($taskService,'self::operationalRank($state,true)')!==false&&strpos($taskService,'self::operationalState($state,true)')!==false&&strpos($projection,'LeadTaskService::operationalProjection($rowsForLead)')!==false&&strpos($projection,'LeadTaskService::operationalProjection([])')!==false&&strpos($projection,'LeadTaskService::operationalRank($state,true)')===false);
 tfCheck('inbox projection exposes the concrete most-urgent due state for filters',strpos($taskService,"'due_state'=>\$state")!==false&&strpos($projection,"\$row['operational_task_due_state']=\$operational['due_state']")!==false);
@@ -48,9 +49,9 @@ $rows=[
 ];
 tfCheck('overdue filter follows most-urgent open task even when pinned projection is future',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1,5]);
 tfCheck('today filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','today'),'id')===[4]);
-tfCheck('action filter follows operational urgency across all open tasks',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,4,5]);
+tfCheck('action filter follows operational urgency across all open tasks',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,5,4]);
 tfCheck('planned filter includes future scheduled work only when it is the operational next action',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
-tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[2,5]);
+tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[5,2]);
 tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
 tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===5);
 tfCheck('canonical operational state maps overdue today soon and no-action buckets',LeadTaskService::operationalState('overdue',true)==='overdue'&&LeadTaskService::operationalState('today',true)==='today'&&LeadTaskService::operationalState('upcoming',true)==='soon'&&LeadTaskService::operationalState('unscheduled',true)==='soon'&&LeadTaskService::operationalState('none',false)==='none');
