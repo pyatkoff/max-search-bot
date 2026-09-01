@@ -45,12 +45,17 @@ class ManagerLeadInboxService
     public static function sortOperational(array $rows): array
     {
         if(count($rows)<2)return$rows;
-        usort($rows,static function(array $a,array $b):int{
-            $aRank=isset($a['operational_task_rank'])?(int)$a['operational_task_rank']:self::operationalTaskRank((string)($a['next_task_due_state']??''),trim((string)($a['next_task_title']??''))!=='');
-            $bRank=isset($b['operational_task_rank'])?(int)$b['operational_task_rank']:self::operationalTaskRank((string)($b['next_task_due_state']??''),trim((string)($b['next_task_title']??''))!=='');
-            return $aRank<=>$bRank;
+        $indexed=[];foreach($rows as $index=>$row)$indexed[]=['row'=>$row,'index'=>$index];
+        usort($indexed,static function(array $a,array $b):int{
+            $aRow=$a['row'];$bRow=$b['row'];
+            $aRank=isset($aRow['operational_task_rank'])?(int)$aRow['operational_task_rank']:self::operationalTaskRank((string)($aRow['next_task_due_state']??''),trim((string)($aRow['next_task_title']??''))!=='');
+            $bRank=isset($bRow['operational_task_rank'])?(int)$bRow['operational_task_rank']:self::operationalTaskRank((string)($bRow['next_task_due_state']??''),trim((string)($bRow['next_task_title']??''))!=='');
+            if($aRank!==$bRank)return $aRank<=>$bRank;
+            $aDue=trim((string)($aRow['operational_task_due_at_utc']??$aRow['next_task_due_at_utc']??''));$bDue=trim((string)($bRow['operational_task_due_at_utc']??$bRow['next_task_due_at_utc']??''));
+            if($aDue!==$bDue){if($aDue==='')return 1;if($bDue==='')return -1;return strcmp($aDue,$bDue);}
+            return (int)$a['index']<=>(int)$b['index'];
         });
-        return$rows;
+        return array_map(static fn($item)=>$item['row'],$indexed);
     }
 
     public static function filter(array $rows,string $outcome='',string $search='',string $taskFilter=''): array
