@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T12:44:37+00:00",
+    "generated_at": "2026-09-01T13:05:45+00:00",
     "production": {
-        "sha": "5b6f9bc92391e082b3749dab3c0a32deffce54f3",
+        "sha": "736bb5b0f92e1f940ca88cb3adbc3ad47cda03a7",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 11:44:26",
+        "since_utc": "2026-09-01 12:05:37",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -151,6 +151,7 @@
             "tours_opened": 1,
             "manager_requested": 0,
             "manager_replied": 0,
+            "customer_replied_after_manager": 0,
             "phone_received": 0,
             "flagged_sessions": 1,
             "manager_response": {
@@ -186,7 +187,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "5b6f9bc92391e082b3749dab3c0a32deffce54f3",
+        "sha": "736bb5b0f92e1f940ca88cb3adbc3ad47cda03a7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -195,7 +196,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T12:44:37Z"
+        "reported_at": "2026-09-01T13:05:45Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -218,6 +219,7 @@
             "tours_opened": 10,
             "manager_requested": 2,
             "manager_replied": 2,
+            "customer_replied_after_manager": 1,
             "phone_received": 1,
             "flagged_sessions": 7,
             "manager_response": {
@@ -231,7 +233,8 @@
             "drop_points": {
                 "tours_opened": 8,
                 "collecting_needs": 4,
-                "manager_replied": 2
+                "manager_replied": 1,
+                "customer_replied_after_manager": 1
             },
             "flags": {
                 "repeated_callback_input": 5,
@@ -244,12 +247,13 @@
                 "needs_collected_from_started": 3,
                 "tours_opened_from_started": 3,
                 "manager_requested": 0,
-                "manager_replied": 0
+                "manager_replied": 0,
+                "customer_replied_after_manager": 0
             }
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T12:44:36+00:00",
+        "generated_at": "2026-09-01T13:05:45+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -263,8 +267,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 502497,
-                "code_lines": 10821
+                "bytes": 503566,
+                "code_lines": 10832
             },
             "integrations": {
                 "files": 10,
@@ -292,14 +296,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 162,
-                "bytes": 651965,
-                "code_lines": 7974
+                "files": 163,
+                "bytes": 655080,
+                "code_lines": 8018
             },
             "tools": {
                 "files": 37,
-                "bytes": 116120,
-                "code_lines": 2171
+                "bytes": 116526,
+                "code_lines": 2175
             }
         },
         "hotspots": [
@@ -328,6 +332,12 @@
                 "severity": "observe"
             },
             {
+                "path": "tools/live_session_snapshot.php",
+                "lines": 200,
+                "bytes": 8994,
+                "severity": "observe"
+            },
+            {
                 "path": "services/ProjectHealth.php",
                 "lines": 199,
                 "bytes": 6868,
@@ -343,12 +353,6 @@
                 "path": "services/ConversationStateRepository.php",
                 "lines": 196,
                 "bytes": 7098,
-                "severity": "observe"
-            },
-            {
-                "path": "tools/live_session_snapshot.php",
-                "lines": 196,
-                "bytes": 8588,
                 "severity": "observe"
             },
             {
