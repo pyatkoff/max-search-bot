@@ -30,6 +30,28 @@ $r = AiBusinessDefaultsService::apply(['parameters'=>['adults'=>3,'children'=>1]
 abdCheck('explicit AI adults preserved', $r['parameters']['adults'] ?? null, 3);
 abdCheck('explicit AI children preserved', $r['parameters']['children'] ?? null, 1);
 
+$r = AiBusinessDefaultsService::apply(
+    ['parameters'=>['city'=>'Москва','country'=>'Турция','adults'=>2,'children'=>1,'child_ages'=>null]],
+    'Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет',
+    []
+);
+abdCheck('live rich single child age recovered', $r['parameters']['child_ages'] ?? null, [6]);
+abdCheck('live rich child count remains one', $r['parameters']['children'] ?? null, 1);
+
+$r = AiBusinessDefaultsService::apply(
+    ['parameters'=>['children'=>1,'child_ages'=>[8]]],
+    '2 взрослых и ребёнок 6 лет',
+    []
+);
+abdCheck('explicit AI child age is never overridden', $r['parameters']['child_ages'] ?? null, [8]);
+
+$r = AiBusinessDefaultsService::apply(
+    ['parameters'=>['children'=>2,'child_ages'=>null]],
+    '2 взрослых и ребёнок 6 лет',
+    []
+);
+abdCheck('single child phrase does not override multi-child composition', $r['parameters']['child_ages'] ?? null, null);
+
 $r = AiBusinessDefaultsService::apply(['parameters'=>['country'=>'Египет']], 'Египет', ['city'=>'Москва']);
 abdCheck('Egypt defaults all inclusive', $r['parameters']['meal'] ?? null, 'all_inclusive');
 abdCheck('Egypt defaults four stars', $r['parameters']['stars'] ?? null, 4);
