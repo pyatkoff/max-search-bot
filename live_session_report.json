@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T03:32:58+00:00",
+    "generated_at": "2026-09-01T04:07:20+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -80,12 +80,12 @@
             "inbound_messages": 59,
             "outbound_messages": 39,
             "date_picks": 12,
-            "anomaly_inbound_messages": 12,
+            "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-31 11:39:04",
             "last_message_at": "2026-09-01 05:11:03"
         }
     ],
-    "since_utc": "2026-09-01 02:32:58"
+    "since_utc": "2026-09-01 03:07:20"
 }
