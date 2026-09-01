@@ -126,8 +126,17 @@ class WizardCallbackAction
 
     public static function handle(int $chatId, string $q): bool
     {
-        if (self::staleForwardCallback($chatId, $q)) return true;
+        if (self::expectedStatusForForwardCallback($q) !== null) {
+            return InteractionGuard::synchronized($chatId, 'wizard.forward', static function() use ($chatId, $q): bool {
+                if (self::staleForwardCallback($chatId, $q)) return true;
+                return self::handleUnlocked($chatId, $q);
+            });
+        }
+        return self::handleUnlocked($chatId, $q);
+    }
 
+    private static function handleUnlocked(int $chatId, string $q): bool
+    {
         if ($q === 'ai_start') {
             MaxSearchApi::funnelLog($chatId, 'ai_start');
             MaxSearchApi::deletePrevMessage($chatId);
