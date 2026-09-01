@@ -13,7 +13,7 @@ sfCheck('lead card delegates sales editor binding to pipeline module',strpos($le
 sfCheck('stage mutation catches rejected async requests',strpos($pipelineJs,"catch(e){if(stage.isConnected)stage.value=previousStage;if(sameLead(target))setSalesSaveState('Не удалось изменить этап','error');return false}")!==false);
 sfCheck('stage mutation restores previous value for explicit API failure',substr_count($pipelineJs,'stage.value=previousStage')>=2);
 sfCheck('stage mutation reports failure for both false result and rejection',substr_count($pipelineJs,"setSalesSaveState('Не удалось изменить этап','error')")>=2);
-sfCheck('stage mutation always restores control availability',strpos($pipelineJs,'finally{if(stage.isConnected)stage.disabled=false}')!==false);
+sfCheck('stage mutation restores only the captured connected control availability',strpos($pipelineJs,'finally{stageSavingLeads.delete(target);if(stage.isConnected)stage.disabled=false}')!==false&&strpos($pipelineJs,"document.querySelector('#leadStage')")===false);
 sfCheck('stage mutation refreshes lead data only after successful write',strpos($pipelineJs,"await refreshAfterSave(target);if(sameLead(target))setSalesSaveState('Этап сохранён','success')")!==false);
 sfCheck('sales editor tracks the last confirmed stage instead of the initial render forever',strpos($pipelineJs,"let confirmedStage=String(pipeline.stage?.stage_key||stage.value)")!==false&&strpos($pipelineJs,'if(await saveStage(stage,confirmedStage))confirmedStage=wanted')!==false);
 sfCheck('stage rollback state advances only after a successful write',strpos($pipelineJs,'const wanted=stage.value;if(await saveStage(stage,confirmedStage))confirmedStage=wanted')!==false);
