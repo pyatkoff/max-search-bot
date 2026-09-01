@@ -23,25 +23,35 @@ class RoutingAdminService
 
     public static function saveGroup(int $managerId,string $projectKey,int $groupId,string $groupKey,string $displayName,array $memberIds): bool
     {
-        if(!self::requireAdmin($managerId)||!ProjectAccessService::canAccess($managerId,$projectKey))return false;
+        return !empty(self::saveGroupResult($managerId,$projectKey,$groupId,$groupKey,$displayName,$memberIds)['ok']);
+    }
+
+    public static function saveGroupResult(int $managerId,string $projectKey,int $groupId,string $groupKey,string $displayName,array $memberIds): array
+    {
+        if(!self::requireAdmin($managerId))return['ok'=>false,'error'=>'admin_required'];
+        if(!ProjectAccessService::canAccess($managerId,$projectKey))return['ok'=>false,'error'=>'project_access_denied'];
         RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);$groupKey=trim($groupKey);$displayName=trim($displayName);
-        if($projectId<=0||$groupKey===''||$displayName==='')return false;
+        if($projectId<=0)return['ok'=>false,'error'=>'project_not_found'];
+        if($groupKey==='')return['ok'=>false,'error'=>'missing_group_key'];
+        if($displayName==='')return['ok'=>false,'error'=>'missing_display_name'];
         $memberIds=array_values(array_unique(array_filter(array_map('intval',$memberIds),static function($v){return $v>0;})));
         if($memberIds){
             $q=$pdo->prepare('SELECT DISTINCT m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE m.id IN ('.implode(',',array_fill(0,count($memberIds),'?')).') AND mp.project_id=? AND m.is_active=1');
             $q->execute(array_merge($memberIds,[$projectId]));
             $eligibleIds=array_map('intval',array_column($q->fetchAll(),'id'));sort($eligibleIds);$submittedIds=$memberIds;sort($submittedIds);
-            if($eligibleIds!==$submittedIds)return false;
+            if($eligibleIds!==$submittedIds)return['ok'=>false,'error'=>'invalid_group_members'];
         }
         $before=$groupId>0?self::groupRow($groupId):null;
+        if($groupId>0&&!$before)return['ok'=>false,'error'=>'group_not_found'];
+        if($groupId>0&&(int)($before['project_id']??0)!==$projectId)return['ok'=>false,'error'=>'group_project_mismatch'];
         $pdo->beginTransaction();try{
-            if($groupId>0){$q=$pdo->prepare('UPDATE manager_groups SET group_key=?,display_name=? WHERE id=? AND project_id=?');$q->execute([$groupKey,$displayName,$groupId,$projectId]);if(!$q->rowCount()){ $check=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=?');$check->execute([$groupId,$projectId]);if(!$check->fetchColumn())throw new RuntimeException('group_not_found');}}
+            if($groupId>0){$q=$pdo->prepare('UPDATE manager_groups SET group_key=?,display_name=? WHERE id=? AND project_id=?');$q->execute([$groupKey,$displayName,$groupId,$projectId]);}
             else{$q=$pdo->prepare('INSERT INTO manager_groups (project_id,group_key,display_name) VALUES (?,?,?)');$q->execute([$projectId,$groupKey,$displayName]);$groupId=(int)$pdo->lastInsertId();}
             $pdo->prepare('DELETE FROM manager_group_members WHERE group_id=?')->execute([$groupId]);
             $ins=$pdo->prepare('INSERT IGNORE INTO manager_group_members (group_id,manager_id) VALUES (?,?)');
             foreach($memberIds as $mid)$ins->execute([$groupId,$mid]);
-            $pdo->commit();AuditLogService::record($managerId,$before?'routing_group_updated':'routing_group_created','manager_group',(string)$groupId,$projectKey,$before,self::groupRow($groupId));return true;
-        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();return false;}
+            $pdo->commit();AuditLogService::record($managerId,$before?'routing_group_updated':'routing_group_created','manager_group',(string)$groupId,$projectKey,$before,self::groupRow($groupId));return['ok'=>true,'group_id'=>$groupId];
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();if(self::isDuplicateKeyFailure($e))return['ok'=>false,'error'=>'duplicate_group_key'];return['ok'=>false,'error'=>'save_failed'];}
     }
 
     public static function saveSource(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter,string $handlingMode='ai'): bool
