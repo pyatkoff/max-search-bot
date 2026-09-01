@@ -118,6 +118,7 @@ return [
         'php tests/run_manager_workspace_v2_action_shortcuts_regression.php',
         'php tests/run_manager_workspace_v2_pinned_projection_regression.php',
         'php tests/run_manager_workspace_v2_kanban_regression.php',
+        'php tests/run_manager_workspace_v2_stage_age_regression.php',
         'php tests/run_manager_workspace_v2_kanban_drag_regression.php',
         'php tests/run_manager_workspace_v2_reassign_regression.php',
         'php tests/run_manager_workspace_v2_origin_regression.php',
