@@ -3,6 +3,7 @@
 declare(strict_types=1);
 $root=dirname(__DIR__);
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-task-presets.js');
+$tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
 $kanbanTasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-kanban-tasks.js');
 $bootstrap=(string)file_get_contents($root.'/manager/assets/workspace-v2-bootstrap.js');
 $index=(string)file_get_contents($root.'/manager/index.php');
@@ -22,6 +23,9 @@ dsCheck('presets offer one hour evening and tomorrow morning',strpos($js,"preset
 dsCheck('evening shortcut label follows the actual local day after 18:00',strpos($js,'function eveningLabel')!==false&&strpos($js,"sameLocalDay(todayAt(now,18),now)?'Сегодня 18:00':'Завтра 18:00'")!==false&&strpos($js,'>${eveningLabel(now)}</button>')!==false);
 dsCheck('preset application reuses existing task change flow',strpos($js,"dispatchEvent(new Event('change'")!==false&&strpos($js,'input.value=localInputValue')!==false);
 dsCheck('late today preset advances instead of creating a past deadline',strpos($js,'if(d<=from)d.setDate(d.getDate()+1)')!==false);
-dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'@media(max-width:520px)')!==false);
+dsCheck('open task rows expose fast one-hour and tomorrow snooze actions',strpos($tasks,'data-task-snooze="hour"')!==false&&strpos($tasks,'data-task-snooze="tomorrow"')!==false&&strpos($tasks,'Быстро перенести задачу')!==false);
+dsCheck('existing task snooze reuses canonical preset dates and update mutation',strpos($tasks,'WorkspaceV2TaskPresets?.dateForPreset?.')!==false&&strpos($tasks,'return updateTask(target,Number(task.id),String(task.title||\'\'),date.toISOString())')!==false);
+dsCheck('snooze respects dirty task editor guard and shared mutation recovery',strpos($tasks,"root.querySelectorAll('[data-task-snooze]')")!==false&&strpos($tasks,'if(blockForDirtyDraft())return')!==false&&strpos($tasks,'runMutation(el,row,()=>onSnooze(task,preset))')!==false);
+dsCheck('shortcut controls are accessible and responsive',strpos($js,'role="group" aria-label="Быстро выбрать срок"')!==false&&strpos($css,'.taskDuePresets')!==false&&strpos($css,'.taskQuickActions')!==false&&strpos($css,'@media(max-width:520px)')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
