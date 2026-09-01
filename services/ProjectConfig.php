@@ -55,13 +55,43 @@ class ProjectConfig
         return rtrim((string)self::get('search.tracking_base_domain', self::baseDomain()), '/');
     }
 
+    public static function searchUrl(array $query = []): string
+    {
+        $path = '/' . trim((string)self::get('search.search_path', '/poisk-turov/'), '/') . '/';
+        $url = self::baseDomain() . $path;
+        $query = array_filter($query, static function ($value): bool {
+            return $value !== null && $value !== '' && $value !== 0 && $value !== '0';
+        });
+        if ($query) $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        return $url;
+    }
+
+    public static function searchUrlFromSavedData(array $savedData, array $statusMap, string $yclid = ''): string
+    {
+        return self::searchUrl([
+            'from' => (int)($savedData[$statusMap['city']] ?? 0),
+            'country' => (int)($savedData[$statusMap['country']] ?? 0),
+            'yclid' => $yclid,
+        ]);
+    }
+
+    public static function searchUrlFromClaim(array $claim, string $yclid = ''): string
+    {
+        return self::searchUrl([
+            'from' => (int)($claim['UF_CITY'] ?? 0),
+            'country' => (int)($claim['UF_COUNTRY'] ?? 0),
+            'yclid' => $yclid,
+        ]);
+    }
+
     public static function claimUrl(string $code, string $yclid = ''): string
     {
-        $path = (string)self::get('search.claim_path', '/poisk-turov-tg/{code}/');
-        $path = str_replace('{code}', rawurlencode($code), $path);
-        $url = self::claimBaseDomain() . '/' . ltrim($path, '/');
-        if ($yclid !== '') $url .= (strpos($url, '?') === false ? '?' : '&') . 'yclid=' . rawurlencode($yclid);
-        return $url;
+        // Backward-compatible fallback for callers that only have a claim code.
+        // The customer still lands on the canonical search page; the code is kept as context only.
+        return self::searchUrl([
+            'claim' => $code,
+            'yclid' => $yclid,
+        ]);
     }
 
     public static function v2StoreDir(string $baseDir): string
