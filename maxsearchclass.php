@@ -74,6 +74,7 @@ class MaxSearchApi extends MaxSearchBase
         return (string)($model['claim_url'] ?? '');
     }
     public static function showFinishButtons($chatID,$name=''){ return static::showToursChoice($chatID,$name); }
+    public static function showChannelOffer($chatID,$afterLead=false){ return DialogueView::channelOffer($chatID,(bool)$afterLead); }
 
     public static function getCityByID($city){ return TravelDirectoryRepository::cityById(static::$depHL,$city); }
     public static function getCityFromByID($city){ return TravelDirectoryRepository::cityFromById(static::$depHL,$city); }
@@ -113,6 +114,11 @@ class MaxSearchApi extends MaxSearchBase
         $code=ClaimCodeGenerator::generate(10);
         ClaimRepository::create((int)ProjectConfig::get('leads.claim_hl',static::$claimHL),$chatID,(array)$savedData,static::statusMap(),$code);
         return ProjectConfig::claimUrl($code,static::getLatestYclid($chatID));
+    }
+    public static function getLatestClaimLink($chatID){
+        $claim=static::getLastClaimForChat($chatID);
+        if(!is_array($claim)||!$claim)return '';
+        return ProjectConfig::searchUrlFromClaim($claim,(string)static::getLatestYclid($chatID));
     }
     public static function getLastClaimForChat($chatID){ return ClaimRepository::latestForChat((int)ProjectConfig::get('leads.claim_hl',static::$claimHL),$chatID); }
     public static function getClaimByCode($code){ return ClaimRepository::byCode((int)ProjectConfig::get('leads.claim_hl',static::$claimHL),$code); }
