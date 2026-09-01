@@ -28,6 +28,7 @@ tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$
 tfCheck('manager work queue gets operational task ordering only without explicit task filter',strpos($api,"if(\$queue==='mine'&&trim(\$taskFilter)==='')\$rows=ManagerLeadInboxService::sortOperational(\$rows)")!==false);
 tfCheck('LeadTaskService owns operational rank and state business rule',strpos($taskService,'public static function operationalRank')!==false&&strpos($taskService,'public static function operationalState')!==false&&strpos($projection,'public static function operationalTaskRank')===false&&strpos($projection,'public static function operationalTaskState')===false);
 tfCheck('inbox projection delegates operational task semantics to LeadTaskService',strpos($projection,'LeadTaskService::operationalRank($state,true)')!==false&&strpos($projection,'LeadTaskService::operationalState($state,true)')!==false&&strpos($projection,"LeadTaskService::operationalRank('none',false)")!==false);
+tfCheck('inbox projection exposes the concrete most-urgent due state for filters',strpos($projection,"'due_state'=>\$state")!==false&&strpos($projection,"\$row['operational_task_due_state']=\$operational['due_state']")!==false);
 tfCheck('inbox filters and search persist for current browser session',strpos($filters,"FILTER_STORAGE_KEY='anytour.manager.workspace.filters.v1'")!==false&&strpos($filters,'sessionStorage.getItem(FILTER_STORAGE_KEY)')!==false&&strpos($filters,'sessionStorage.setItem(FILTER_STORAGE_KEY')!==false&&strpos($filters,"S.leadSearch=String(saved.search||'').slice(0,200)")!==false);
 tfCheck('restored search is reflected in visible input',strpos($filters,"if(search)search.value=S.leadSearch")!==false);
 tfCheck('pipeline catalog outage is explicit instead of looking like an empty catalog',strpos($filters,"setCatalogSelectState(stage,false,'Этапы временно недоступны')")!==false&&strpos($filters,"setCatalogSelectState(tag,false,'Теги временно недоступны')")!==false&&strpos($filters,"setCatalogSelectState(outcome,false,'Исходы временно недоступны')")!==false);
@@ -39,18 +40,19 @@ tfCheck('clear filters also clears restored search state',strpos($filters,"S.lea
 tfCheck('open leads without a task are visible in the inbox row',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false&&strpos($inbox,'Следующее действие не назначено')!==false&&strpos($inbox,'＋ Без задачи')!==false);
 tfCheck('closed outcomes do not get a false missing-task signal',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false);
 $rows=[
- ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue','operational_task_rank'=>0],
- ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','operational_task_rank'=>2],
- ['id'=>3,'lead_outcome'=>'open','next_task_title'=>null,'next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'none','operational_task_rank'=>3],
- ['id'=>4,'lead_outcome'=>'open','next_task_title'=>'Написать сегодня','next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'today','operational_task_rank'=>1],
+ ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue','open_task_count'=>1,'operational_task_due_state'=>'overdue','operational_task_rank'=>0],
+ ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','open_task_count'=>1,'operational_task_due_state'=>'upcoming','operational_task_rank'=>2],
+ ['id'=>3,'lead_outcome'=>'open','next_task_title'=>null,'next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'none','open_task_count'=>0,'operational_task_due_state'=>'none','operational_task_rank'=>3],
+ ['id'=>4,'lead_outcome'=>'open','next_task_title'=>'Написать сегодня','next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'today','open_task_count'=>1,'operational_task_due_state'=>'today','operational_task_rank'=>1],
+ ['id'=>5,'lead_outcome'=>'open','next_task_title'=>'Закреплённая будущая','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','open_task_count'=>2,'operational_task_due_state'=>'overdue','operational_task_rank'=>0],
 ];
-tfCheck('overdue filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1]);
+tfCheck('overdue filter follows most-urgent open task even when pinned projection is future',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1,5]);
 tfCheck('today filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','today'),'id')===[4]);
-tfCheck('action filter includes overdue and today only',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,4]);
-tfCheck('planned filter includes future scheduled work only',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
-tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[2]);
+tfCheck('action filter follows operational urgency across all open tasks',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,4,5]);
+tfCheck('planned filter includes future scheduled work only when it is the operational next action',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
+tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[2,5]);
 tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
-tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===4);
+tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===5);
 tfCheck('canonical operational state maps overdue today soon and no-action buckets',LeadTaskService::operationalState('overdue',true)==='overdue'&&LeadTaskService::operationalState('today',true)==='today'&&LeadTaskService::operationalState('upcoming',true)==='soon'&&LeadTaskService::operationalState('unscheduled',true)==='soon'&&LeadTaskService::operationalState('none',false)==='none');
 tfCheck('canonical operational rank maps overdue today soon and no-action buckets',LeadTaskService::operationalRank('overdue',true)===0&&LeadTaskService::operationalRank('today',true)===1&&LeadTaskService::operationalRank('upcoming',true)===2&&LeadTaskService::operationalRank('unscheduled',true)===2&&LeadTaskService::operationalRank('none',false)===3);
 tfCheck('manager work queue sorts overdue today soon then no next action',array_column(ManagerLeadInboxService::sortOperational([$rows[2],$rows[1],$rows[3],$rows[0]]),'id')===[1,4,2,3]);
