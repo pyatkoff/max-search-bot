@@ -15,6 +15,7 @@ function convValue($value): string { if (is_bool($value)) return $value?'true':'
 function convCheck(string $scenario,string $name,$actual,$expected):void { global $passed,$failed; if($actual===$expected){echo "PASS  [{$scenario}] {$name}\n";$passed++;return;} echo "FAIL  [{$scenario}] {$name}\n      expected: ".convValue($expected)."\n      actual:   ".convValue($actual)."\n";$failed++; }
 function convPrivateStatic(string $class,string $method,array $args=[]){$ref=new ReflectionMethod($class,$method);$ref->setAccessible(true);return $ref->invokeArgs(null,$args);}
 function cleanupPending($chatId):void{AiDateHandler::clear($chatId);}
+function convFutureDate(int $day,int $month):string{$today=new DateTimeImmutable('today');$year=(int)$today->format('Y');$candidate=DateTimeImmutable::createFromFormat('!d.m.Y',sprintf('%02d.%02d.%04d',$day,$month,$year));if(!$candidate)throw new RuntimeException('Failed to build regression date');if($candidate<$today)$candidate=$candidate->modify('+1 year');return $candidate->format('d.m.Y');}
 
 echo "MAX Search conversation regression suite\n========================================\n\n";
 $routesFile=__DIR__.'/fixtures/tourvisor_routes.json'; $fallbacksFile=__DIR__.'/fixtures/departure_fallbacks.json';
@@ -37,10 +38,10 @@ convCheck($scenario,'fallback has destinations',count($advice['destinations']??[
 
 $scenario='August -> 28-31'; $chat=-990001; cleanupPending($chat); $month=AiDateHandler::rememberMonthFromText($chat,'в августе');
 convCheck($scenario,'month remembered',$month['month']??null,8); convCheck($scenario,'month-only has no exact date',$month['date']??null,null); $date=AiDateHandler::resolvePendingShortDate($chat,'28-31');
-convCheck($scenario,'range resolves without asking month again',$date,'30.08.2026'); convCheck($scenario,'pending month cleared after range',PendingMonthStore::get($chat),[]); cleanupPending($chat);
+convCheck($scenario,'range resolves without asking month again',$date,convFutureDate(30,8)); convCheck($scenario,'pending month cleared after range',PendingMonthStore::get($chat),[]); cleanupPending($chat);
 
 $scenario='September -> end of month'; $chat=-990002; cleanupPending($chat); $month=AiDateHandler::rememberMonthFromText($chat,'в сентябре');
-convCheck($scenario,'month remembered',$month['month']??null,9); $date=AiDateHandler::resolvePendingShortDate($chat,'в конце месяца'); convCheck($scenario,'end of month resolves',$date,'27.09.2026'); convCheck($scenario,'pending month cleared',PendingMonthStore::get($chat),[]); cleanupPending($chat);
+convCheck($scenario,'month remembered',$month['month']??null,9); $date=AiDateHandler::resolvePendingShortDate($chat,'в конце месяца'); convCheck($scenario,'end of month resolves',$date,convFutureDate(27,9)); convCheck($scenario,'pending month cleared',PendingMonthStore::get($chat),[]); cleanupPending($chat);
 
 $scenario='Vietnam -> 15 April'; convCheck($scenario,'date follow-up has no destination tokens',convPrivateStatic(DestinationAreaResolver::class,'tokens',['15 апреля']),[]); $date=DateParser::resolveDate('15 апреля'); convCheck($scenario,'date itself is parsed',!empty($date['date']),true);
 $scenario='Meal follow-up'; convCheck($scenario,'breakfast and dinner have no area tokens',convPrivateStatic(DestinationAreaResolver::class,'tokens',['завтрак и ужин']),[]); convCheck($scenario,'all inclusive has no area tokens',convPrivateStatic(DestinationAreaResolver::class,'tokens',['все включено']),[]);
