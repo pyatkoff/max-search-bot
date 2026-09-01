@@ -89,11 +89,14 @@ jobs:
         id: sync
         if: steps.ssh_probe.outcome == 'success'
         continue-on-error: true
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key_path: ${{ runner.temp }}/deploy_key
+          envs: EXPECTED_SHA
           script: |
             set -e
             cd ~/www/anytour.online/max-search
@@ -105,7 +108,9 @@ jobs:
               exit 1
             fi
 
-            git reset --hard origin/main
+            git cat-file -e "$EXPECTED_SHA^{commit}"
+            git reset --hard "$EXPECTED_SHA"
+            test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
             echo "Deployed commit: $(git rev-parse HEAD)"
 
       - name: Apply database migrations
