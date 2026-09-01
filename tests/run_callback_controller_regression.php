@@ -104,6 +104,11 @@ ccCheck('nights choice is valid only on nights step', WizardCallbackAction::expe
 ccCheck('date choice remains under dedicated guarded handler', WizardCallbackAction::expectedStatusForForwardCallback('pick_date_17.10.2026'), null);
 ccCheck('back navigation is not blocked by forward-step guard', WizardCallbackAction::expectedStatusForForwardCallback('back_nights'), null);
 ccCheck('forward wizard callbacks delegate stale-step guard', strpos($wizardSource, 'InteractionGuard::isStaleWizardForward($chatId, $q)') !== false, true);
+$forwardLockPos=strpos($wizardSource,"InteractionGuard::synchronized(\$chatId, 'wizard.forward'");
+$forwardStalePos=strpos($wizardSource,'self::staleForwardCallback($chatId, $q)', $forwardLockPos===false?0:$forwardLockPos);
+$forwardMutationPos=strpos($wizardSource,'self::handleUnlocked($chatId, $q)', $forwardLockPos===false?0:$forwardLockPos);
+ccCheck('forward wizard callback check and mutation share one per-chat lock',$forwardLockPos!==false&&$forwardStalePos!==false&&$forwardMutationPos!==false&&$forwardLockPos<$forwardStalePos&&$forwardStalePos<$forwardMutationPos,true);
+ccCheck('non-forward callbacks stay outside forward lock',strpos($wizardSource,'return self::handleUnlocked($chatId, $q);')!==false,true);
 
 ccCheck('generic duplicate helper matches same payload', InteractionGuard::isDuplicate('meal_7', 100.0, 'meal_7', 101.0, 2.0), true);
 ccCheck('generic duplicate helper allows different payload', InteractionGuard::isDuplicate('meal_7', 100.0, 'meal_5', 101.0, 2.0), false);
