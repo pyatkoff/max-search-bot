@@ -18,6 +18,7 @@ function lcAssetLoaded(string $html,string $file):bool{return strpos($html,'asse
 lcCheck('workspace loads dedicated lead card stylesheet',lcAssetLoaded($page,'workspace-v2-lead-card.css'));
 lcCheck('mobile lead card has explicit close control',strpos($page,'id="mobileLeadClose"')!==false&&strpos($mobile,"$('mobileLeadClose')")!==false&&strpos($mobile,'back()')!==false);
 lcCheck('lead card prioritizes identity contact and trip',strpos($js,'leadHeroName')!==false&&strpos($js,'leadContactActions')!==false&&strpos($js,'leadRouteMain')!==false);
+lcCheck('collected child ages stay visible in structured trip summary and full details',substr_count($js,"compactValue('Возраст детей',trip.child_ages)")===1&&substr_count($js,"tripField('Возраст детей',trip.child_ages)")===1);
 lcCheck('phone action is safely normalized',strpos($js,'function phoneHref')!==false&&strpos($js,"/^\\+?\\d{5,20}$/")!==false&&strpos($js,"'tel:'")!==false);
 lcCheck('email action is validated before mailto',strpos($js,'function emailHref')!==false&&strpos($js,"'mailto:'")!==false);
 lcCheck('next action appears before sales controls',($taskPos=strpos($js,'Следующее действие'))!==false&&($salesPos=strpos($js,'<div class="leadPanelTitle">Продажа</div>'))!==false&&$taskPos<$salesPos);
