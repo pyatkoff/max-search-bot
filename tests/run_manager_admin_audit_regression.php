@@ -35,6 +35,8 @@ maaCheck('project creation and admin ACL update are atomic',strpos($directory,'p
 maaCheck('existing active admins are backfilled to every active project',strpos($accessBackfill,'INSERT IGNORE INTO manager_projects')!==false&&strpos($accessBackfill,'CROSS JOIN projects p')!==false&&strpos($accessBackfill,"m.role = 'admin'")!==false&&strpos($accessBackfill,'m.is_active = 1')!==false&&strpos($accessBackfill,'p.is_active = 1')!==false);
 maaCheck('manager save validates every submitted project before mutation',strpos($directory,"SELECT id FROM projects WHERE id IN (")!==false&&strpos($directory,"'error'=>'invalid_project_selection'")!==false&&strpos($directory,'$existingProjectIds!==$submittedProjectIds')!==false);
 maaCheck('manager project links no longer silently skip stale ids',strpos($directory,'foreach($projectIds as $projectId)$ins->execute([$id,$projectId]);')!==false&&strpos($directory,'if(self::projectExists($projectId))$ins->execute')===false);
+maaCheck('manager save classifies duplicate login separately from generic database failure',strpos($directory,'self::isDuplicateKeyError($e)')!==false&&strpos($directory,"?'duplicate_login':'manager_save_failed'")!==false);
+maaCheck('manager duplicate classifier checks SQLSTATE integrity and MySQL duplicate code',strpos($directory,"(string)($info[0]??'')==='23000'")!==false&&strpos($directory,"(int)($info[1]??0)===1062")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
