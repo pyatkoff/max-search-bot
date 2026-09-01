@@ -3,6 +3,7 @@ require_once __DIR__ . '/ManagerConversationService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
@@ -55,6 +56,7 @@ class ManagerOutboundService
             $ok = $adapter->send($chatId, htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
             if ($ok) {
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
+                MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
             }
             return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
@@ -83,6 +85,7 @@ class ManagerOutboundService
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>'max','project_key'=>(string)$c['project_key'],'media_type'=>$type]);
+            MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
         return self::recordFailure($conversationId,$managerId,'max',(string)$c['project_key'],['media_type'=>$type]);
