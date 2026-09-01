@@ -36,6 +36,12 @@ class AiBusinessDefaultsService
             }
         }
 
+        // Rich AI requests can occasionally preserve children=1 while dropping an
+        // explicitly stated singleton age (live: "2 взрослых и ребёнок 6 лет").
+        // Recover only that unambiguous shape; never override an AI/current age or
+        // infer ages for multi-child composition.
+        self::recoverExplicitSingleChildAge($p, $userText, $current);
+
         // Rich requests bypass the short local fallback. Seed a country only from
         // conservative resort hints when neither AI nor current state supplied one.
         $p = DestinationHintService::seedCountry($p, $userText, $current);
@@ -52,6 +58,32 @@ class AiBusinessDefaultsService
         }
 
         return $ai;
+    }
+
+    private static function recoverExplicitSingleChildAge(array &$params, string $userText, array $current): void
+    {
+        if (!empty($params['child_ages']) || !empty($current['child_ages'])) {
+            return;
+        }
+
+        $effectiveChildren = $params['children'] ?? ($current['children'] ?? null);
+        if ($effectiveChildren !== null && (int)$effectiveChildren !== 1) {
+            return;
+        }
+
+        if (!preg_match('/\bреб[её]н(?:ок|ка)\s+(\d{1,2})\s*(?:лет|год(?:а)?)\b/ui', $userText, $m)) {
+            return;
+        }
+
+        $age = (int)$m[1];
+        if ($age < 0 || $age > 17) {
+            return;
+        }
+
+        if ($effectiveChildren === null) {
+            $params['children'] = 1;
+        }
+        $params['child_ages'] = [$age];
     }
 
     private static function lower(string $value): string
