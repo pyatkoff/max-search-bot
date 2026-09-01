@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T14:38:03+00:00",
+    "generated_at": "2026-09-01T14:42:53+00:00",
     "production": {
-        "sha": "54358de0ce9177101d3eac2b11cae591d4566e65",
+        "sha": "bc5688aab4d2808247f21b170d9414a0fb2180d4",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 13:37:54",
+        "since_utc": "2026-09-01 13:42:41",
         "summary": {
             "sessions": 5,
             "raw_sessions": 5,
@@ -152,8 +152,8 @@
                 "unresolved_conversation_ids": []
             },
             "started": 5,
-            "needs_collected": 2,
-            "tours_opened": 2,
+            "needs_collected": 3,
+            "tours_opened": 3,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -168,8 +168,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "collecting_needs": 3,
-                "tours_opened": 2
+                "tours_opened": 3,
+                "collecting_needs": 2
             },
             "flags": {
                 "repeated_callback_input": 1,
@@ -183,7 +183,7 @@
                     "repeated_callback_input",
                     "excessive_turns"
                 ],
-                "drop_point": "collecting_needs",
+                "drop_point": "tours_opened",
                 "manager_response_bucket": null,
                 "manager_response_seconds": null
             }
@@ -194,7 +194,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "54358de0ce9177101d3eac2b11cae591d4566e65",
+        "sha": "bc5688aab4d2808247f21b170d9414a0fb2180d4",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -203,7 +203,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T14:38:03Z"
+        "reported_at": "2026-09-01T14:42:53Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -227,8 +227,8 @@
                 "unresolved_conversation_ids": []
             },
             "started": 17,
-            "needs_collected": 12,
-            "tours_opened": 12,
+            "needs_collected": 13,
+            "tours_opened": 13,
             "manager_requested": 2,
             "manager_replied": 2,
             "customer_replied_after_manager": 1,
@@ -243,8 +243,8 @@
                 "max_seconds": 52322
             },
             "drop_points": {
-                "tours_opened": 10,
-                "collecting_needs": 5,
+                "tours_opened": 11,
+                "collecting_needs": 4,
                 "manager_replied": 1,
                 "customer_replied_after_manager": 1
             },
@@ -256,8 +256,8 @@
             },
             "calendar_day": {
                 "conversations_started": 10,
-                "needs_collected_from_started": 5,
-                "tours_opened_from_started": 5,
+                "needs_collected_from_started": 6,
+                "tours_opened_from_started": 6,
                 "manager_requested": 0,
                 "manager_replied": 0,
                 "customer_replied_after_manager": 0
@@ -265,7 +265,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T14:38:03+00:00",
+        "generated_at": "2026-09-01T14:42:52+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -274,8 +274,8 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 24993,
-                "code_lines": 611
+                "bytes": 25408,
+                "code_lines": 620
             },
             "services": {
                 "files": 134,
@@ -309,8 +309,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 660356,
-                "code_lines": 8055
+                "bytes": 661076,
+                "code_lines": 8060
             },
             "tools": {
                 "files": 37,
@@ -321,8 +321,8 @@
         "hotspots": [
             {
                 "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 247,
-                "bytes": 11307,
+                "lines": 256,
+                "bytes": 11722,
                 "severity": "observe"
             },
             {
