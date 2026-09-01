@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T17:10:02+00:00",
+    "generated_at": "2026-09-01T17:35:36+00:00",
     "production": {
-        "sha": "59de23191770b22ae2096b53da83bc7ce7d1b6f5",
+        "sha": "cafb71272c0cb9d4e1a518e45909e9e232fbcc99",
         "branch": "main"
     },
     "migrations": {
@@ -141,19 +141,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 16:09:53",
+        "since_utc": "2026-09-01 16:35:23",
         "summary": {
-            "sessions": 4,
-            "raw_sessions": 4,
+            "sessions": 5,
+            "raw_sessions": 5,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 4,
+                "resolved": 5,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 4,
-            "needs_collected": 3,
-            "tours_opened": 3,
+            "started": 5,
+            "needs_collected": 4,
+            "tours_opened": 4,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -168,7 +168,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 3,
+                "tours_opened": 4,
                 "collecting_needs": 1
             },
             "flags": []
@@ -180,7 +180,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "59de23191770b22ae2096b53da83bc7ce7d1b6f5",
+        "sha": "cafb71272c0cb9d4e1a518e45909e9e232fbcc99",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -189,7 +189,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T17:10:02Z"
+        "reported_at": "2026-09-01T17:35:36Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -251,7 +251,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T17:10:02+00:00",
+        "generated_at": "2026-09-01T17:35:35+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -265,7 +265,7 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 508410,
+                "bytes": 508424,
                 "code_lines": 10901
             },
             "integrations": {
@@ -295,8 +295,8 @@
             },
             "tests": {
                 "files": 163,
-                "bytes": 671324,
-                "code_lines": 8101
+                "bytes": 672128,
+                "code_lines": 8108
             },
             "tools": {
                 "files": 37,

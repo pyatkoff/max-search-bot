@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T17:09:50+00:00",
+    "generated_at": "2026-09-01T17:35:20+00:00",
     "production": {
-        "sha": "59de23191770b22ae2096b53da83bc7ce7d1b6f5",
+        "sha": "cafb71272c0cb9d4e1a518e45909e9e232fbcc99",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -205,7 +205,7 @@
         "customers": 667,
         "customer_channels": 667,
         "conversations": 669,
-        "messages": 17466,
+        "messages": 17468,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1698,6 +1698,24 @@
     ],
     "recent_messages": [
         {
+            "id": 17468,
+            "conversation_id": 658,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 19:32:01"
+        },
+        {
+            "id": 17467,
+            "conversation_id": 669,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 19:17:02"
+        },
+        {
             "id": 17466,
             "conversation_id": 669,
             "direction": "outbound",
@@ -2218,24 +2236,6 @@
             "channel": "max",
             "text": "star_2",
             "created_at": "2026-09-01 16:37:24"
-        },
-        {
-            "id": 17408,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_1",
-            "created_at": "2026-09-01 16:37:24"
-        },
-        {
-            "id": 17407,
-            "conversation_id": 666,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_2",
-            "created_at": "2026-09-01 16:37:22"
         }
     ],
     "recent_events": [
