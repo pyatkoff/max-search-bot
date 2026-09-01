@@ -50,4 +50,13 @@ tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($
 tfCheck('operational state maps overdue today soon and no-action buckets',ManagerLeadInboxService::operationalTaskState('overdue',true)==='overdue'&&ManagerLeadInboxService::operationalTaskState('today',true)==='today'&&ManagerLeadInboxService::operationalTaskState('upcoming',true)==='soon'&&ManagerLeadInboxService::operationalTaskState('unscheduled',true)==='soon'&&ManagerLeadInboxService::operationalTaskState('none',false)==='none');
 tfCheck('manager work queue sorts overdue today soon then no next action',array_column(ManagerLeadInboxService::sortOperational([$rows[2],$rows[1],$rows[3],$rows[0]]),'id')===[1,4,2,3]);
 tfCheck('operational sort fallback derives rank without projection metadata',array_column(ManagerLeadInboxService::sortOperational([['id'=>3,'next_task_title'=>null],['id'=>2,'next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],['id'=>1,'next_task_title'=>'Сейчас','next_task_due_state'=>'overdue']]),'id')===[1,2,3]);
+$dueRows=[
+ ['id'=>1,'next_task_title'=>'Позже просрочено','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 08:00:00'],
+ ['id'=>2,'next_task_title'=>'Раньше просрочено','operational_task_rank'=>0,'operational_task_due_at_utc'=>'2026-09-01 07:00:00'],
+ ['id'=>3,'next_task_title'=>'Сегодня позже','operational_task_rank'=>1,'operational_task_due_at_utc'=>'2026-09-01 15:00:00'],
+ ['id'=>4,'next_task_title'=>'Сегодня раньше','operational_task_rank'=>1,'operational_task_due_at_utc'=>'2026-09-01 12:00:00'],
+ ['id'=>5,'next_task_title'=>'Без срока','operational_task_rank'=>2,'operational_task_due_at_utc'=>null],
+ ['id'=>6,'next_task_title'=>'Со сроком','operational_task_rank'=>2,'operational_task_due_at_utc'=>'2026-09-03 09:00:00'],
+];
+tfCheck('manager work queue orders equal urgency by earliest operational due time and leaves unscheduled last in bucket',array_column(ManagerLeadInboxService::sortOperational($dueRows),'id')===[2,1,4,3,6,5]);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
