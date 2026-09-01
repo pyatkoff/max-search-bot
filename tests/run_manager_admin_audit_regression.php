@@ -36,7 +36,7 @@ maaCheck('existing active admins are backfilled to every active project',strpos(
 maaCheck('manager save validates every submitted project before mutation',strpos($directory,"SELECT id FROM projects WHERE id IN (")!==false&&strpos($directory,"'error'=>'invalid_project_selection'")!==false&&strpos($directory,'$existingProjectIds!==$submittedProjectIds')!==false);
 maaCheck('manager project links no longer silently skip stale ids',strpos($directory,'foreach($projectIds as $projectId)$ins->execute([$id,$projectId]);')!==false&&strpos($directory,'if(self::projectExists($projectId))$ins->execute')===false);
 maaCheck('manager save classifies duplicate login separately from generic database failure',strpos($directory,'self::isDuplicateKeyError($e)')!==false&&strpos($directory,"?'duplicate_login':'manager_save_failed'")!==false);
-maaCheck('manager duplicate classifier checks SQLSTATE integrity and MySQL duplicate code',strpos($directory,"(string)($info[0]??'')==='23000'")!==false&&strpos($directory,"(int)($info[1]??0)===1062")!==false);
+maaCheck('manager duplicate classifier checks SQLSTATE integrity and MySQL duplicate code',strpos($directory,'(string)($info[0]??\'\')===\'23000\'')!==false&&strpos($directory,'(int)($info[1]??0)===1062')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
