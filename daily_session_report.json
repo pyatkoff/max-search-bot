@@ -1,22 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T14:33:17+00:00",
+    "generated_at": "2026-09-01T14:37:56+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 16,
-        "raw_sessions": 16,
+        "sessions": 17,
+        "raw_sessions": 17,
         "explicit_test_sessions": 0,
-        "started": 16,
+        "source_resolution": {
+            "resolved": 17,
+            "unresolved": 0,
+            "unresolved_conversation_ids": []
+        },
+        "started": 17,
         "needs_collected": 12,
         "tours_opened": 12,
         "manager_requested": 2,
         "manager_replied": 2,
         "customer_replied_after_manager": 1,
         "phone_received": 1,
-        "flagged_sessions": 8,
+        "flagged_sessions": 9,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 2,
@@ -27,18 +32,18 @@
         },
         "drop_points": {
             "tours_opened": 10,
-            "collecting_needs": 4,
+            "collecting_needs": 5,
             "manager_replied": 1,
             "customer_replied_after_manager": 1
         },
         "flags": {
-            "repeated_callback_input": 6,
-            "excessive_turns": 5,
+            "repeated_callback_input": 7,
+            "excessive_turns": 6,
             "rapid_date_reselection": 2,
             "repeated_same_input": 2
         },
         "calendar_day": {
-            "conversations_started": 9,
+            "conversations_started": 10,
             "needs_collected_from_started": 5,
             "tours_opened_from_started": 5,
             "manager_requested": 0,
@@ -50,6 +55,8 @@
         {
             "conversation_id": 655,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -81,6 +88,8 @@
         {
             "conversation_id": 656,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -112,6 +121,8 @@
         {
             "conversation_id": 657,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -219,6 +230,8 @@
         {
             "conversation_id": 658,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -399,6 +412,8 @@
         {
             "conversation_id": 648,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -430,6 +445,8 @@
         {
             "conversation_id": 128,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -461,6 +478,8 @@
         {
             "conversation_id": 459,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -492,6 +511,8 @@
         {
             "conversation_id": 659,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -673,6 +694,8 @@
         {
             "conversation_id": 660,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -854,6 +877,8 @@
         {
             "conversation_id": 480,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -944,6 +969,8 @@
         {
             "conversation_id": 661,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -975,6 +1002,8 @@
         {
             "conversation_id": 432,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1154,6 +1183,8 @@
         {
             "conversation_id": 662,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1185,6 +1216,8 @@
         {
             "conversation_id": 663,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1304,6 +1337,8 @@
         {
             "conversation_id": 664,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1484,6 +1519,8 @@
         {
             "conversation_id": 665,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1511,6 +1548,188 @@
             "flags": [],
             "started_at": "2026-09-01 15:48:13",
             "last_message_at": "2026-09-01 15:50:16"
+        },
+        {
+            "conversation_id": 666,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 28,
+            "outbound_messages": 9,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 28,
+            "drop_point": "collecting_needs",
+            "flags": [
+                "repeated_callback_input",
+                "excessive_turns"
+            ],
+            "started_at": "2026-09-01 16:36:36",
+            "last_message_at": "2026-09-01 16:37:55",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "child_0",
+                    "created_at": "2026-09-01 16:37:11"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
+                    "created_at": "2026-09-01 16:37:11"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:17"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
+                    "created_at": "2026-09-01 16:37:17"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:20"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:22"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_1",
+                    "created_at": "2026-09-01 16:37:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:26"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:27"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:27"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_4",
+                    "created_at": "2026-09-01 16:37:28"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_3",
+                    "created_at": "2026-09-01 16:37:30"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_3",
+                    "created_at": "2026-09-01 16:37:32"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_1",
+                    "created_at": "2026-09-01 16:37:34"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:38"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:40"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "star_2",
+                    "created_at": "2026-09-01 16:37:41"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "meal_4",
+                    "created_at": "2026-09-01 16:37:48"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+                    "created_at": "2026-09-01 16:37:48"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "meal_4",
+                    "created_at": "2026-09-01 16:37:52"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "meal_4",
+                    "created_at": "2026-09-01 16:37:53"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "meal_4",
+                    "created_at": "2026-09-01 16:37:53"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "meal_4",
+                    "created_at": "2026-09-01 16:37:55"
+                }
+            ]
         }
     ],
     "local_date": "2026-09-01",

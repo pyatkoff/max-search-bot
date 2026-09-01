@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T14:33:19+00:00",
+    "generated_at": "2026-09-01T14:37:58+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -9,6 +9,11 @@
         "sessions": 40,
         "raw_sessions": 40,
         "explicit_test_sessions": 0,
+        "source_resolution": {
+            "resolved": 40,
+            "unresolved": 0,
+            "unresolved_conversation_ids": []
+        },
         "started": 40,
         "needs_collected": 8,
         "tours_opened": 8,
@@ -50,6 +55,8 @@
         {
             "conversation_id": 2,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -81,6 +88,8 @@
         {
             "conversation_id": 623,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -112,6 +121,8 @@
         {
             "conversation_id": 624,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -293,6 +304,8 @@
         {
             "conversation_id": 626,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -324,6 +337,8 @@
         {
             "conversation_id": 625,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -355,6 +370,8 @@
         {
             "conversation_id": 628,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -536,6 +553,8 @@
         {
             "conversation_id": 630,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -717,6 +736,8 @@
         {
             "conversation_id": 631,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -748,6 +769,8 @@
         {
             "conversation_id": 632,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -779,6 +802,8 @@
         {
             "conversation_id": 633,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -960,6 +985,8 @@
         {
             "conversation_id": 634,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -991,6 +1018,8 @@
         {
             "conversation_id": 627,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1172,6 +1201,8 @@
         {
             "conversation_id": 635,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1203,6 +1234,8 @@
         {
             "conversation_id": 636,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1234,6 +1267,8 @@
         {
             "conversation_id": 638,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1265,6 +1300,8 @@
         {
             "conversation_id": 454,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1446,6 +1483,8 @@
         {
             "conversation_id": 639,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1627,6 +1666,8 @@
         {
             "conversation_id": 640,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1808,6 +1849,8 @@
         {
             "conversation_id": 641,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1839,6 +1882,8 @@
         {
             "conversation_id": 642,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1870,6 +1915,8 @@
         {
             "conversation_id": 629,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -1995,6 +2042,8 @@
         {
             "conversation_id": 644,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2174,6 +2223,8 @@
         {
             "conversation_id": 645,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2355,6 +2406,8 @@
         {
             "conversation_id": 646,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2536,6 +2589,8 @@
         {
             "conversation_id": 643,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2567,6 +2622,8 @@
         {
             "conversation_id": 637,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2598,6 +2655,8 @@
         {
             "conversation_id": 647,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2779,6 +2838,8 @@
         {
             "conversation_id": 649,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2810,6 +2871,8 @@
         {
             "conversation_id": 650,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -2841,6 +2904,8 @@
         {
             "conversation_id": 334,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -2872,6 +2937,8 @@
         {
             "conversation_id": 651,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3054,6 +3121,8 @@
         {
             "conversation_id": 653,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3085,6 +3154,8 @@
         {
             "conversation_id": 298,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3116,6 +3187,8 @@
         {
             "conversation_id": 115,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3147,6 +3220,8 @@
         {
             "conversation_id": 654,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3178,6 +3253,8 @@
         {
             "conversation_id": 648,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3359,6 +3436,8 @@
         {
             "conversation_id": 128,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -3390,6 +3469,8 @@
         {
             "conversation_id": 459,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
@@ -3421,6 +3502,8 @@
         {
             "conversation_id": 480,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "manager",
             "is_test": false,
@@ -3452,6 +3535,8 @@
         {
             "conversation_id": 432,
             "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
             "channel": "max",
             "status": "ai",
             "is_test": false,
