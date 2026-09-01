@@ -46,6 +46,9 @@ class ManagerLeadInboxService
     /** Canonical human-readable origin used across Manager Workspace V2 surfaces. */
     public static function originLabel(array $row): string
     {
-        $channel=strtoupper(trim((string)($row['channel']??'')));$source=trim((string)($row['source_name']??''));if($source!==''&&strpos($source,':')!==false){[, $short]=explode(':',$source,2);if(trim($short)!=='')$source=trim($short);}if($source==='')$source=trim((string)($row['project_name']??$row['project_key']??''));return trim($channel.($channel!==''&&$source!==''?' · ':'').$source);
+        $channel=strtoupper(trim((string)($row['channel']??'')));
+        $sourceId=(int)($row['source_id']??0);
+        if($sourceId<=0){$unknown='⚠ Источник не определён';return trim($channel.($channel!==''?' · ':'').$unknown);}
+        $source=trim((string)($row['source_name']??''));if($source!==''&&strpos($source,':')!==false){[, $short]=explode(':',$source,2);if(trim($short)!=='')$source=trim($short);}if($source==='')$source=trim((string)($row['project_name']??$row['project_key']??''));return trim($channel.($channel!==''&&$source!==''?' · ':'').$source);
     }
 }
