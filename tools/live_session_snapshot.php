@@ -88,7 +88,7 @@ try{
     $untilTs=$until!==null?strtotime($until.' UTC'):null;
     if($sinceTs===false)throw new RuntimeException('invalid_diagnostic_window');
 
-    $sql="SELECT id,project_key,channel,status,is_test,test_source,test_reason,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=?";
+    $sql="SELECT id,project_key,source_id,channel,status,is_test,test_source,test_reason,manager_id,started_at,last_message_at FROM conversations WHERE channel='max' AND COALESCE(last_message_at,started_at)>=?";
     $params=[$since];
     if($until!==null){$sql.=' AND started_at<?';$params[]=$until;}
     $sql.=' ORDER BY COALESCE(last_message_at,started_at) ASC';
@@ -122,6 +122,11 @@ try{
         'sessions'=>count($businessSessions),
         'raw_sessions'=>count($sessions),
         'explicit_test_sessions'=>count($sessions)-count($businessSessions),
+        'source_resolution'=>[
+            'resolved'=>0,
+            'unresolved'=>0,
+            'unresolved_conversation_ids'=>[],
+        ],
         'started'=>0,
         'needs_collected'=>0,
         'tours_opened'=>0,
@@ -153,6 +158,11 @@ try{
     }
     $responseSeconds=[];
     foreach($businessSessions as $session){
+        if(!empty($session['source_resolved']))$summary['source_resolution']['resolved']++;
+        else{
+            $summary['source_resolution']['unresolved']++;
+            if(count($summary['source_resolution']['unresolved_conversation_ids'])<20)$summary['source_resolution']['unresolved_conversation_ids'][]=(int)($session['conversation_id']??0);
+        }
         foreach(['started','needs_collected','tours_opened','manager_requested','manager_replied','customer_replied_after_manager','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
         if(!empty($session['flags']))$summary['flagged_sessions']++;
         $bucket=(string)($session['manager_response_bucket']??'');

@@ -128,6 +128,8 @@ final class LiveSessionAnalyzer
         return [
             'conversation_id'=>(int)($conversation['id']??0),
             'project_key'=>(string)($conversation['project_key']??''),
+            'source_id'=>isset($conversation['source_id'])?(int)$conversation['source_id']:null,
+            'source_resolved'=>isset($conversation['source_id'])&&(int)$conversation['source_id']>0,
             'channel'=>(string)($conversation['channel']??''),
             'status'=>$status,
             'is_test'=>!empty($conversation['is_test']),
