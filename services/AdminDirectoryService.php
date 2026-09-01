@@ -92,7 +92,15 @@ class AdminDirectoryService
         if($password!=='' && strlen($password)<8)return ['ok'=>false,'error'=>'password_too_short'];
         if($id===$actorManagerId && (!$active || $role!=='admin'))return ['ok'=>false,'error'=>'cannot_remove_own_admin_access'];
         if($active && $role==='manager' && !$projectIds)return ['ok'=>false,'error'=>'manager_requires_project'];
-        $pdo=ConversationDb::connection();$before=$id>0?self::managerRow($id):null;$pdo->beginTransaction();
+        $pdo=ConversationDb::connection();
+        if($projectIds){
+            $q=$pdo->prepare('SELECT id FROM projects WHERE id IN ('.implode(',',array_fill(0,count($projectIds),'?')).')');
+            $q->execute($projectIds);
+            $existingProjectIds=array_map('intval',array_column($q->fetchAll(),'id'));
+            sort($existingProjectIds);$submittedProjectIds=$projectIds;sort($submittedProjectIds);
+            if($existingProjectIds!==$submittedProjectIds)return ['ok'=>false,'error'=>'invalid_project_selection'];
+        }
+        $before=$id>0?self::managerRow($id):null;$pdo->beginTransaction();
         try{
             if($id>0){
                 if(!self::managerExists($id)){ $pdo->rollBack(); return ['ok'=>false,'error'=>'not_found']; }
@@ -107,7 +115,7 @@ class AdminDirectoryService
             }
             $pdo->prepare('DELETE FROM manager_projects WHERE manager_id=?')->execute([$id]);
             $ins=$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) VALUES (?,?)');
-            foreach($projectIds as $projectId){if(self::projectExists($projectId))$ins->execute([$id,$projectId]);}
+            foreach($projectIds as $projectId)$ins->execute([$id,$projectId]);
             if($role==='admin')$pdo->prepare('INSERT IGNORE INTO manager_projects (manager_id,project_id) SELECT ?,id FROM projects WHERE is_active=1')->execute([$id]);
             $pdo->commit();
             AuditLogService::record($actorManagerId,$before?'manager_updated':'manager_created','manager',(string)$id,'',$before,self::managerRow($id));
