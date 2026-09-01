@@ -42,7 +42,13 @@ $readsShift=strpos($panel,"hasOwnProperty.call(status,'is_working')")!==false&&s
 $separatesReachability=strpos($panel,"usable=!!status?.notification_path_usable")!==false&&strpos($panel,"workingWithoutPush=working===true&&!usable")!==false&&strpos($panel,"root.className='notificationHealth '+(usable?'ok':workingWithoutPush?'critical':'warn')")!==false;
 $honestUnknown=strpos($panel,"working===null?'Статус смены неизвестен':working?'Смена включена':'Вне смены'")!==false&&strpos($panel,"notification_path_reason:'health_check_failed',is_working:false")===false&&strpos($panel,"notification_path_reason:'session_expired',is_working:false")===false;
 mphCheck('Manager workspace keeps shift and push reachability independent',$readsShift&&$separatesReachability&&$honestUnknown);
-mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'data-enable-push')!==false && strpos($panel,"fetch('push.php?action=key'")!==false && strpos($panel,"fetch('push.php',{method:'POST'")!==false && strpos($panel,"workingWithoutPush?'Включить':'Настроить'")!==false && strpos($panel,'href="push-enable.php"')===false);
+$inlineRepair=strpos($panel,'data-enable-push')!==false
+    && strpos($panel,"push.php?action=key")!==false
+    && strpos($panel,"action:'subscribe'")!==false
+    && strpos($panel,"Notification.requestPermission()")!==false
+    && strpos($panel,"workingWithoutPush?'Включить':'Настроить'")!==false
+    && strpos($panel,'href="push-enable.php"')===false;
+mphCheck('Manager workspace offers explicit inline push repair path',$inlineRepair);
 $healthyLabel=strpos($panel,"healthy_subscription:'Уведомления включены'")!==false;
 $healthyPath=strpos($panel,"usable=!!status?.notification_path_usable")!==false;
 $criticalOverride=strpos($panel,"label=workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
