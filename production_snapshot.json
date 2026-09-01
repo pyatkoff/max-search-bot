@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T11:01:23+00:00",
+    "generated_at": "2026-09-01T11:13:14+00:00",
     "production": {
-        "sha": "667a8b92231919adaf9ba2ff16bd27cd9196f39c",
+        "sha": "2edb28530cfa1b6d79056cdd535c4bf3f0c181f3",
         "branch": "main"
     },
     "database": {
@@ -198,7 +198,7 @@
         "customers": 659,
         "customer_channels": 659,
         "conversations": 661,
-        "messages": 17295,
+        "messages": 17296,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1691,6 +1691,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17296,
+            "conversation_id": 432,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 13:05:02"
+        },
+        {
             "id": 17295,
             "conversation_id": 432,
             "direction": "outbound",
@@ -2220,15 +2229,6 @@
             "channel": "max",
             "text": "pick_date_30.09.2026",
             "created_at": "2026-09-01 07:22:48"
-        },
-        {
-            "id": 17236,
-            "conversation_id": 660,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-09-01 07:22:47"
         }
     ],
     "recent_events": [

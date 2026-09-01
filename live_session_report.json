@@ -1,15 +1,15 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T11:01:26+00:00",
+    "generated_at": "2026-09-01T11:13:17+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 2,
-        "raw_sessions": 2,
+        "sessions": 1,
+        "raw_sessions": 1,
         "explicit_test_sessions": 0,
-        "started": 2,
+        "started": 1,
         "needs_collected": 1,
         "tours_opened": 1,
         "manager_requested": 0,
@@ -25,40 +25,11 @@
             "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 1,
             "tours_opened": 1
         },
         "flags": []
     },
     "sessions": [
-        {
-            "conversation_id": 661,
-            "project_key": "anytour",
-            "channel": "max",
-            "status": "ai",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "manager_response_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 3,
-            "outbound_messages": 3,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 0,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-09-01 10:12:42",
-            "last_message_at": "2026-09-01 10:12:54"
-        },
         {
             "conversation_id": 432,
             "project_key": "anytour",
@@ -79,14 +50,14 @@
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 41,
-            "outbound_messages": 35,
+            "outbound_messages": 36,
             "date_picks": 2,
             "anomaly_inbound_messages": 0,
             "drop_point": "tours_opened",
             "flags": [],
             "started_at": "2026-08-27 13:57:45",
-            "last_message_at": "2026-09-01 11:33:40"
+            "last_message_at": "2026-09-01 13:05:02"
         }
     ],
-    "since_utc": "2026-09-01 10:01:26"
+    "since_utc": "2026-09-01 10:13:17"
 }
