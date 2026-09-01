@@ -11,6 +11,7 @@ $admin=(string)file_get_contents($base.'/services/AdminDirectoryService.php');
 $routing=(string)file_get_contents($base.'/services/RoutingAdminService.php');
 $workspace=(string)file_get_contents($base.'/manager/index.php');
 $workspaceJs=(string)file_get_contents($base.'/manager/assets/workspace-v2.js');
+$adminJs=(string)file_get_contents($base.'/manager/assets/admin.js');
 $workspaceNotifications=(string)file_get_contents($base.'/manager/assets/workspace-v2-notifications.js');
 $managerPush=(string)file_get_contents($base.'/services/ManagerPushService.php');
 $serviceWorker=(string)file_get_contents($base.'/manager/sw.js');
@@ -42,6 +43,8 @@ mvCheck('working status writes audit',strpos($availability,'AuditLogService::rec
 mvCheck('manager and project admin writes audit',substr_count($admin,'AuditLogService::record')>=2);
 mvCheck('routing writes audit',substr_count($routing,'AuditLogService::record')>=2);
 mvCheck('admin snapshot keeps directory when priority surface fails',strpos($api,"try{\n        \$admin['priority']=ManagerPriorityService::snapshot()")!==false && strpos($api,"\$admin['priority_available']=false")!==false && strpos($api,"\$admin['priority']=['rules'=>[],'rule_types'=>[]]")!==false);
+mvCheck('admin UI disables only priority controls when priority snapshot is unavailable',strpos($adminJs,'priorityAvailable:false')!==false && strpos($adminJs,'S.priorityAvailable=S.data.priority_available===true')!==false && strpos($adminJs,"['ruleManager','ruleType','ruleValue','ruleBonus','ruleComment','ruleActive','saveRule']")!==false && strpos($adminJs,'el.disabled=!priorityAvailable')!==false);
+mvCheck('admin UI explains priority outage while keeping manager directory rendering independent',strpos($adminJs,'Правила приоритета временно недоступны. Менеджеры и проекты продолжают работать.')!==false && strpos($adminJs,"$('managers').innerHTML=(d.managers||[])")!==false && strpos($adminJs,"if(!S.priorityAvailable||$('saveRule').disabled)return")!==false);
 mvCheck('canonical manager entrypoint owns workspace markup',strpos($workspace,'id="workspaceRoot"')!==false && !is_file($base.'/manager/workspace-v2.php'));
 mvCheck('explicit index URL canonicalizes to root without network redirect',strpos($workspaceJs,'history.replaceState')!==false && strpos($workspaceJs,'/\\/index\\.php$/')!==false && strpos($workspaceJs,'workspace-v2')===false && strpos($workspaceJs,'location.replace(')===false);
 mvCheck('Workspace contains admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,'href="admin.php"')!==false && strpos($workspace,'Настройки и менеджеры')!==false);
