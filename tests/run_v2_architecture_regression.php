@@ -18,6 +18,14 @@ v2check('claim row preserves route',ProjectConfig::searchUrlFromClaim(['UF_CITY'
 v2check('saved data preserves route',ProjectConfig::searchUrlFromSavedData([65=>1,66=>4],['city'=>65,'country'=>66],'123'),'https://example.test/poisk-turov/?from=1&country=4&yclid=123');
 v2check('tracking base independent',ProjectConfig::trackingBaseDomain(),'https://tracking.example.test');
 
+$legacyBase=(string)file_get_contents(__DIR__.'/../maxsearchbaseclass.php');
+$activeApi=(string)file_get_contents(__DIR__.'/../maxsearchclass.php');
+v2check('legacy base no retired tour route',strpos($legacyBase,'/poisk-turov-tg/')===false,true);
+v2check('legacy base no latest claim link owner',strpos($legacyBase,'function getLatestClaimLink')===false,true);
+v2check('legacy base no channel offer owner',strpos($legacyBase,'function showChannelOffer')===false,true);
+v2check('active api owns latest claim link compatibility',strpos($activeApi,'function getLatestClaimLink')!==false,true);
+v2check('active api delegates channel offer to dialogue view',strpos($activeApi,'DialogueView::channelOffer')!==false,true);
+
 ProjectConfig::resetForTests(['id'=>'fallback','search'=>['base_domain'=>'https://fallback.test','search_path'=>'/poisk-turov/']]);
 v2check('search url fallback remains canonical',ProjectConfig::searchUrl(),'https://fallback.test/poisk-turov/');
 v2check('claim helper shares canonical owner',ProjectConfig::claimUrl('abc','123'),'https://fallback.test/poisk-turov/?claim=abc&yclid=123');
