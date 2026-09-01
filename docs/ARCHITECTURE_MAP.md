@@ -18,7 +18,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `manager/assets/manager-http-client.js` — shared browser request/auth/error helper for Manager/Admin/Routing and focused feature endpoints where semantics actually match; endpoint selection is a transport concern, while feature-specific state stays in its owning module.
 - `services/AdminDirectoryService.php` — bounded admin directory/read snapshot composition.
 - `services/AuditLogService.php` — admin audit persistence plus bounded data-minimized read projection; UI must not expose raw before/after payloads.
-- `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, and canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day).
+- `services/LeadTaskService.php` — lead task/reminder mutations, explicit pin/priority state, ordering, canonical urgency semantics (`overdue` / `today` / `upcoming` / `unscheduled`, Europe/Kaliningrad business day), and the operational work buckets/rank consumed by Manager read models.
 - `services/SalesPipelineService.php` — canonical per-lead business sales state, stage history, tags, outcome and sale facts; independent from technical conversation status.
 - `services/SalesPipelineCatalogAdminService.php` — admin-only stage/tag catalog mutations, lifecycle validation and usage-aware safety; audit every catalog change, prevent active stages or assigned tags from being silently deactivated while leads still depend on them, and never mutate technical dialogue state.
 - `manager/pipeline-api.php` — thin authorized Sales Pipeline interface; ordinary lead mutations and role-gated catalog administration delegate to their application owners.
