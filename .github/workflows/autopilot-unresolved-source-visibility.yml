@@ -1,0 +1,71 @@
+name: Temporary unresolved source visibility patch
+
+on:
+  push:
+    branches:
+      - autopilot/unresolved-source-visibility
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[source-visibility-patched]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: autopilot/unresolved-source-visibility
+          fetch-depth: 0
+      - name: Patch Workspace source visibility
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          inbox=Path('manager/assets/workspace-v2-inbox.js')
+          s=inbox.read_text()
+          needle="function initials(name){const parts=String(name||'Турист').trim().split(/\\s+/).filter(Boolean);return parts.slice(0,2).map(x=>x.charAt(0).toUpperCase()).join('')||'Т'}"
+          addition=needle+"\nfunction originText(c){const origin=String(c?.origin_label||'').trim(),hasSourceId=Object.prototype.hasOwnProperty.call(c||{},'source_id'),unresolved=hasSourceId&&Number(c.source_id||0)<=0;if(unresolved&&!origin.includes('Источник не определён'))return[origin,'⚠ Источник не определён'].filter(Boolean).join(' · ');return origin}"
+          if s.count(needle)!=1: raise SystemExit(f'inbox helper anchor count={s.count(needle)}')
+          s=s.replace(needle,addition,1)
+          old="source=c.origin_label||statusText(c.status)"
+          new="source=originText(c)||statusText(c.status)"
+          if s.count(old)!=1: raise SystemExit(f'inbox source expression count={s.count(old)}')
+          s=s.replace(old,new,1)
+          old_export="initials,contactOwnerSignals,setLoadStatus};"
+          new_export="initials,originText,contactOwnerSignals,setLoadStatus};"
+          if s.count(old_export)!=1: raise SystemExit(f'inbox export count={s.count(old_export)}')
+          s=s.replace(old_export,new_export,1)
+          inbox.write_text(s)
+
+          kanban=Path('manager/assets/workspace-v2-kanban.js')
+          k=kanban.read_text()
+          old="<div class=\"kanbanOrigin\">${esc(c.origin_label||'')}${c.origin_label?' · ':''}${esc(owner)}</div>"
+          new="<div class=\"kanbanOrigin\">${esc(window.WorkspaceV2Inbox?.originText(c)||'')}${window.WorkspaceV2Inbox?.originText(c)?' · ':''}${esc(owner)}</div>"
+          if k.count(old)!=1: raise SystemExit(f'kanban origin expression count={k.count(old)}')
+          k=k.replace(old,new,1)
+          kanban.write_text(k)
+
+          test=Path('tests/run_manager_workspace_v2_origin_regression.php')
+          t=test.read_text()
+          anchor="originCheck('origin label uses short TG platform label for entry attribution',ManagerLeadInboxService::originLabel(['channel'=>'telegram','entry_channel'=>'tg_1','source_name'=>'project:legacy'])==='TG · tg_1');"
+          extra=anchor+"\noriginCheck('backend still exposes entry channel even when source id is unresolved',ManagerLeadInboxService::originLabel(['channel'=>'max','entry_channel'=>'max_2','source_id'=>0])==='MAX · max_2');"
+          if t.count(anchor)!=1: raise SystemExit(f'origin test anchor count={t.count(anchor)}')
+          t=t.replace(anchor,extra,1)
+          old_inbox="originCheck('inbox card renders customer plus project and separate origin',strpos($inbox,'c.project_label||c.project_name')!==false&&strpos($inbox,'${esc(name)}${project?` · ${esc(project)}`')!==false&&strpos($inbox,'c.origin_label||statusText(c.status)')!==false);"
+          new_inbox="originCheck('inbox card renders customer plus project and separate origin',strpos($inbox,'c.project_label||c.project_name')!==false&&strpos($inbox,'${esc(name)}${project?` · ${esc(project)}`')!==false&&strpos($inbox,'originText(c)||statusText(c.status)')!==false);\noriginCheck('inbox keeps unresolved source warning visible even with entry attribution',strpos($inbox,\"function originText(c)\")!==false&&strpos($inbox,\"unresolved&&!origin.includes('Источник не определён')\")!==false&&strpos($inbox,\"'⚠ Источник не определён'\")!==false);"
+          if t.count(old_inbox)!=1: raise SystemExit('old inbox origin assertion not found')
+          t=t.replace(old_inbox,new_inbox,1)
+          old_kanban="originCheck('kanban card renders customer plus project and separate origin',strpos($kanban,'c.project_label||c.project_name')!==false&&strpos($kanban,'${esc(name)}${project?` · ${esc(project)}`')!==false&&strpos($kanban,'c.origin_label||')!==false);"
+          new_kanban="originCheck('kanban card renders customer plus project and separate origin',strpos($kanban,'c.project_label||c.project_name')!==false&&strpos($kanban,'${esc(name)}${project?` · ${esc(project)}`')!==false&&strpos($kanban,'WorkspaceV2Inbox?.originText(c)')!==false);\noriginCheck('kanban reuses inbox unresolved-source projection',strpos($kanban,'WorkspaceV2Inbox?.originText(c)')!==false);"
+          if t.count(old_kanban)!=1: raise SystemExit('old kanban origin assertion not found')
+          t=t.replace(old_kanban,new_kanban,1)
+          test.write_text(t)
+
+          Path('.github/workflows/autopilot-unresolved-source-visibility.yml').unlink()
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add manager/assets/workspace-v2-inbox.js manager/assets/workspace-v2-kanban.js tests/run_manager_workspace_v2_origin_regression.php .github/workflows/autopilot-unresolved-source-visibility.yml
+          git commit -m "Keep unresolved source visible in Workspace [source-visibility-patched]"
+          git push origin HEAD:autopilot/unresolved-source-visibility
