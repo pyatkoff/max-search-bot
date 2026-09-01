@@ -25,12 +25,9 @@ return [
     ],
     'search' => [
         'provider' => 'tourvisor',
-        // Every customer-facing tour-search link belongs to the canonical search page.
+        // One customer-facing owner for tour-search destinations.
         'base_domain' => 'https://anytoour.ru',
         'search_path' => '/poisk-turov/',
-        // Backward-compatible claim helper resolves to the same public origin/path.
-        'claim_base_domain' => 'https://anytoour.ru',
-        'claim_path' => '/poisk-turov/',
         // Tracking endpoints remain repository-owned infrastructure on the legacy app origin.
         'tracking_base_domain' => 'https://anytour.online',
         'open_tours_path' => '/max-search/open_tours.php',

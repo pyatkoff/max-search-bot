@@ -37,15 +37,6 @@ class ProjectConfig
         return rtrim((string)self::get('search.base_domain', ''), '/');
     }
 
-    public static function claimBaseDomain(): string
-    {
-        if (defined('MAX_SEARCH_CLAIM_BASE_URL')) {
-            $override = trim((string)MAX_SEARCH_CLAIM_BASE_URL);
-            if ($override !== '') return rtrim($override, '/');
-        }
-        return rtrim((string)self::get('search.claim_base_domain', self::baseDomain()), '/');
-    }
-
     public static function trackingBaseDomain(): string
     {
         if (defined('MAX_SEARCH_TRACKING_BASE_URL')) {
@@ -86,8 +77,8 @@ class ProjectConfig
 
     public static function claimUrl(string $code, string $yclid = ''): string
     {
-        // Backward-compatible fallback for callers that only have a claim code.
-        // The customer still lands on the canonical search page; the code is kept as context only.
+        // Backward-compatible helper for callers that only have a claim code.
+        // There is one public search owner: searchUrl().
         return self::searchUrl([
             'claim' => $code,
             'yclid' => $yclid,

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../services/ActionRouter.php';
 $pass=0;$fail=0;
 function v2check(string $name,$actual,$expected):void{global$pass,$fail;if($actual===$expected){echo"PASS  $name\n";$pass++;}else{echo"FAIL  $name\n expected: ".json_encode($expected,JSON_UNESCAPED_UNICODE)."\n actual: ".json_encode($actual,JSON_UNESCAPED_UNICODE)."\n";$fail++;}}
 
-ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','claim_base_domain'=>'https://example.test','tracking_base_domain'=>'https://tracking.example.test','claim_path'=>'/poisk-turov/'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
+ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','tracking_base_domain'=>'https://tracking.example.test'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
 v2check('project id',ProjectConfig::projectId(),'test');
 v2check('public base',ProjectConfig::baseDomain(),'https://example.test');
 v2check('canonical search url',ProjectConfig::searchUrl(['from'=>1,'country'=>4,'yclid'=>'123']),'https://example.test/poisk-turov/?from=1&country=4&yclid=123');
@@ -19,10 +19,10 @@ v2check('saved data preserves route',ProjectConfig::searchUrlFromSavedData([65=>
 v2check('tracking base independent',ProjectConfig::trackingBaseDomain(),'https://tracking.example.test');
 
 ProjectConfig::resetForTests(['id'=>'fallback','search'=>['base_domain'=>'https://fallback.test','search_path'=>'/poisk-turov/']]);
-v2check('claim base falls back to public base',ProjectConfig::claimBaseDomain(),'https://fallback.test');
 v2check('search url fallback remains canonical',ProjectConfig::searchUrl(),'https://fallback.test/poisk-turov/');
+v2check('claim helper shares canonical owner',ProjectConfig::claimUrl('abc','123'),'https://fallback.test/poisk-turov/?claim=abc&yclid=123');
 
-ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','claim_base_domain'=>'https://example.test','tracking_base_domain'=>'https://tracking.example.test'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
+ProjectConfig::resetForTests(['id'=>'test','search'=>['base_domain'=>'https://example.test','search_path'=>'/poisk-turov/','tracking_base_domain'=>'https://tracking.example.test'],'state'=>['v2_store_dir'=>'runtime/test_trip_state']]);
 define('MAX_SEARCH_PUBLIC_BASE_URL','https://public.override.test/');
 define('MAX_SEARCH_TRACKING_BASE_URL','https://tracking.override.test/');
 v2check('public base override',ProjectConfig::baseDomain(),'https://public.override.test');
