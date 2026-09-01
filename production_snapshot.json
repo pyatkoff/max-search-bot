@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T18:07:10+00:00",
+    "generated_at": "2026-09-01T18:21:45+00:00",
     "production": {
-        "sha": "57e7624242648fd2e43e2a597bb63fd59d25ec7d",
+        "sha": "ecdb1f50b40f9dbac56526eab8e8205d6325892d",
         "branch": "main"
     },
     "database": {
@@ -1310,58 +1310,6 @@
             "data": {
                 "dispatch_id": "9190a6749084f8a0",
                 "conversation_id": 480,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T06:30:14+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "75b82a52e5c6d2ea",
-                "conversation_id": 128,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T06:30:14+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "75b82a52e5c6d2ea",
-                "conversation_id": 128,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T06:30:08+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "52092212d4006c15",
-                "conversation_id": 128,
-                "manager_id": 5,
-                "subscription_id": 85,
-                "http_code": 201
-            }
-        },
-        {
-            "ts": "2026-09-01T06:30:08+02:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "52092212d4006c15",
-                "conversation_id": 128,
                 "manager_id": 5,
                 "subscription_id": 3,
                 "http_code": 201
