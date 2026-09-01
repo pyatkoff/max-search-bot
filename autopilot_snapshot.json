@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T22:42:58+00:00",
+    "generated_at": "2026-09-01T22:47:07+00:00",
     "production": {
-        "sha": "4f080714c37add2b2a143e44d0ee19c0c9fa0338",
+        "sha": "6a5b5284eb460d50d6c8d7ed9e6a02a251dc7657",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 21:42:47",
+        "since_utc": "2026-09-01 21:46:58",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -181,7 +181,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "4f080714c37add2b2a143e44d0ee19c0c9fa0338",
+        "sha": "6a5b5284eb460d50d6c8d7ed9e6a02a251dc7657",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -190,7 +190,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T22:42:58Z"
+        "reported_at": "2026-09-01T22:47:07Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -248,7 +248,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T22:42:58+00:00",
+        "generated_at": "2026-09-01T22:47:07+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -262,8 +262,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 514823,
-                "code_lines": 11008
+                "bytes": 515303,
+                "code_lines": 11015
             },
             "integrations": {
                 "files": 10,
@@ -292,8 +292,8 @@
             },
             "tests": {
                 "files": 168,
-                "bytes": 697743,
-                "code_lines": 8292
+                "bytes": 698437,
+                "code_lines": 8294
             },
             "tools": {
                 "files": 37,
