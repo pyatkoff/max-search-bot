@@ -130,6 +130,7 @@ try{
         'started'=>0,
         'needs_collected'=>0,
         'tours_opened'=>0,
+        'site_opened'=>0,
         'post_tour_manager_cta_shown'=>0,
         'manager_requested'=>0,
         'manager_replied'=>0,
@@ -152,6 +153,7 @@ try{
             'conversations_started'=>0,
             'needs_collected_from_started'=>0,
             'tours_opened_from_started'=>0,
+            'site_opened'=>0,
             'post_tour_manager_cta_shown'=>0,
             'manager_requested'=>0,
             'manager_replied'=>0,
@@ -165,7 +167,7 @@ try{
             $summary['source_resolution']['unresolved']++;
             if(count($summary['source_resolution']['unresolved_conversation_ids'])<20)$summary['source_resolution']['unresolved_conversation_ids'][]=(int)($session['conversation_id']??0);
         }
-        foreach(['started','needs_collected','tours_opened','post_tour_manager_cta_shown','manager_requested','manager_replied','customer_replied_after_manager','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
+        foreach(['started','needs_collected','tours_opened','site_opened','post_tour_manager_cta_shown','manager_requested','manager_replied','customer_replied_after_manager','phone_received'] as $key){if(!empty($session[$key]))$summary[$key]++;}
         if(!empty($session['flags']))$summary['flagged_sessions']++;
         $bucket=(string)($session['manager_response_bucket']??'');
         if($bucket!==''&&array_key_exists($bucket,$summary['manager_response']))$summary['manager_response'][$bucket]++;
@@ -182,6 +184,8 @@ try{
                 if(!empty($session['needs_collected']))$summary['calendar_day']['needs_collected_from_started']++;
                 if(!empty($session['tours_opened']))$summary['calendar_day']['tours_opened_from_started']++;
             }
+            $siteOpenAt=liveDiagnosticTs($session['site_opened_at']??null);
+            if($siteOpenAt!==null&&$siteOpenAt>=$sinceTs&&($untilTs===null||$siteOpenAt<$untilTs))$summary['calendar_day']['site_opened']++;
             $postTourCtaAt=liveDiagnosticTs($session['post_tour_manager_cta_at']??null);
             if($postTourCtaAt!==null&&$postTourCtaAt>=$sinceTs&&($untilTs===null||$postTourCtaAt<$untilTs))$summary['calendar_day']['post_tour_manager_cta_shown']++;
             $requestAt=liveDiagnosticTs($session['manager_request_at']??null);
