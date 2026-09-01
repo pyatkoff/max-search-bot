@@ -1,0 +1,9 @@
+(function(){
+const W=window.WorkspaceV2,{S,esc,pipe}=W;
+function feedback(text,state='success'){window.WorkspaceV2Kanban?.showFeedback?.(text,state)}
+function control(c,currentStage){if(!c.can_edit_pipeline)return'';const options=(S.pipeline.stages||[]).map(s=>`<option value="${esc(s.stage_key)}" ${String(s.stage_key)===currentStage?'selected':''}>${esc(s.display_name)}</option>`).join('');return `<div class="kanbanStageBlock"><label class="kanbanStageControl"><span>Этап</span><select class="kanbanStageSelect" data-id="${Number(c.id)}" data-current="${esc(currentStage)}" aria-label="Этап продажи ${esc(c.display_name||'туриста')}">${options}</select></label><div class="kanbanStageStatus" role="status" aria-live="polite"></div></div>`}
+function status(select,text,state=''){const el=select.closest('.kanbanStageBlock')?.querySelector('.kanbanStageStatus');if(!el)return;el.textContent=text;el.classList.toggle('error',state==='error');el.classList.toggle('saving',state==='saving')}
+async function change(select){const id=Number(select.dataset.id),previous=String(select.dataset.current||'');select.disabled=true;status(select,'Сохраняем…','saving');let j;try{j=await pipe('set_stage',{conversation_id:id,stage_key:select.value})}catch(e){select.value=previous;select.disabled=false;status(select,'Не удалось изменить этап. Повторите.','error');feedback('Этап не сохранён','error');return}if(!j.ok){select.value=previous;select.disabled=false;status(select,'Не удалось изменить этап. Повторите.','error');feedback('Этап не сохранён','error');return}select.dataset.current=select.value;status(select,'Сохранено');feedback('Этап сохранён');await window.WorkspaceV2Inbox.load()}
+function bind(root){root.querySelectorAll('.kanbanStageSelect').forEach(el=>el.onchange=()=>change(el))}
+window.WorkspaceV2KanbanStage={control,status,change,bind};
+})();
