@@ -17,7 +17,9 @@ sourceCheck('source service keeps explicit validation errors',strpos($service,"'
 sourceCheck('source service distinguishes duplicate key from other database failures',strpos($service,'isDuplicateKeyFailure($e)')!==false&&strpos($service,"'error'=>'duplicate_source_key'")!==false&&strpos($service,"'error'=>'save_failed'")!==false&&strpos($service,'$driverCode===1062')!==false);
 sourceCheck('routing UI renders an inline live status region',strpos($routing,'id="sourceStatus"')!==false&&strpos($routing,'aria-live="polite"')!==false&&strpos($routingJs,'function sourceStatus(')!==false);
 sourceCheck('routing UI maps backend source failures to specific messages',strpos($routingJs,"duplicate_source_key:'Источник с таким кодом уже существует")!==false&&strpos($routingJs,"invalid_primary_group:'Основная группа недоступна")!==false&&strpos($routingJs,"save_failed:'Источник не сохранён из-за ошибки сервера")!==false);
-sourceCheck('failed source save preserves form instead of clearing it',preg_match('/if\(j\.ok\)\{[^}]*sourceId[^}]*sourceKey[^}]*sourceName/s',$routingJs)===1&&strpos($routingJs,'else{sourceStatus(sourceErrorText(j.error))')!==false);
+$sourceResetOwnsFields=strpos($routingJs,'function resetSourceForm()')!==false&&strpos($routingJs,"$('sourceId').value='';$('sourceKey').value='';$('sourceName').value='';")!==false;
+$successUsesReset=preg_match('/if\(j\.ok\)\{resetSourceForm\(\);sourceStatus\(\'Источник сохранён\.\',\'success\'\);await load\(\)\}/s',$routingJs)===1;
+sourceCheck('failed source save preserves form instead of clearing it',$sourceResetOwnsFields&&$successUsesReset&&strpos($routingJs,'else{sourceStatus(sourceErrorText(j.error))')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
