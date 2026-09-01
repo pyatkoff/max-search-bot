@@ -49,6 +49,20 @@ class LeadTaskService
         return 'soon';
     }
 
+    /** Canonical read-only projection of the most urgent task across an open-task set. */
+    public static function operationalProjection(array $tasks): array
+    {
+        $best=null;
+        foreach($tasks as $task){
+            $state=self::dueState($task['due_at_utc']??null,!empty($task['overdue']));
+            $rank=self::operationalRank($state,true);
+            $due=trim((string)($task['due_at_utc']??''));
+            $replace=$best===null||$rank<(int)$best['rank']||($rank===(int)$best['rank']&&$due!==''&&(empty($best['due_at_utc'])||strcmp($due,(string)$best['due_at_utc'])<0));
+            if($replace)$best=['rank'=>$rank,'state'=>self::operationalState($state,true),'due_state'=>$state,'due_at_utc'=>$due!==''?$due:null];
+        }
+        return$best??['rank'=>self::operationalRank('none',false),'state'=>self::operationalState('none',false),'due_state'=>'none','due_at_utc'=>null];
+    }
+
     /** Canonical priority order for open-task projections: pinned first, then nearest deadline. */
     public static function openTaskOrderSql(string $alias='t'): string
     {
