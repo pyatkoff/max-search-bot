@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T22:25:06+00:00",
+    "generated_at": "2026-09-01T22:33:08+00:00",
     "production": {
-        "sha": "41265559b75656f2884211370c8dd8c2d35c794d",
+        "sha": "122f9849f1e62bc1852ee04a7b21f6f903e1994e",
         "branch": "main"
     },
     "migrations": {
@@ -141,21 +141,21 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 21:24:58",
+        "since_utc": "2026-09-01 21:32:57",
         "summary": {
-            "sessions": 4,
-            "raw_sessions": 4,
+            "sessions": 3,
+            "raw_sessions": 3,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 4,
+                "resolved": 3,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 4,
-            "needs_collected": 4,
-            "tours_opened": 4,
+            "started": 3,
+            "needs_collected": 3,
+            "tours_opened": 3,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 3,
+            "post_tour_manager_cta_shown": 2,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -170,7 +170,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 4
+                "tours_opened": 3
             },
             "flags": []
         },
@@ -181,7 +181,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "41265559b75656f2884211370c8dd8c2d35c794d",
+        "sha": "122f9849f1e62bc1852ee04a7b21f6f903e1994e",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -190,7 +190,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T22:25:06Z"
+        "reported_at": "2026-09-01T22:33:08Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -248,7 +248,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T22:25:05+00:00",
+        "generated_at": "2026-09-01T22:33:08+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -262,17 +262,17 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 514100,
-                "code_lines": 10997
+                "bytes": 514350,
+                "code_lines": 11000
             },
             "integrations": {
                 "files": 10,
-                "bytes": 26084,
-                "code_lines": 608
+                "bytes": 27725,
+                "code_lines": 638
             },
             "manager": {
                 "files": 53,
-                "bytes": 287909,
+                "bytes": 288086,
                 "code_lines": 1401
             },
             "website": {
@@ -291,9 +291,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 167,
-                "bytes": 692964,
-                "code_lines": 8258
+                "files": 168,
+                "bytes": 696630,
+                "code_lines": 8287
             },
             "tools": {
                 "files": 37,
