@@ -104,6 +104,7 @@ return [
         'php tests/run_handoff_integrity_health_regression.php',
         'php tests/run_manager_assignment_integrity_regression.php',
         'php tests/run_manager_media_regression.php',
+        'php tests/run_manager_telegram_media_regression.php',
         'php tests/run_manager_send_guard_regression.php',
         'php tests/run_sales_pipeline_foundation_regression.php',
         'php tests/run_pipeline_admin_transport_regression.php',
