@@ -5,6 +5,11 @@ $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/routing.php');
 $js=(string)file_get_contents($root.'/manager/assets/routing.js');
 $css=(string)file_get_contents($root.'/manager/assets/routing.css');
+$migration=(string)file_get_contents($root.'/migrations/022_source_handling_mode.sql');
+$routingService=(string)file_get_contents($root.'/services/RoutingAdminService.php');
+$api=(string)file_get_contents($root.'/manager/api.php');
+$sourceHandling=(string)file_get_contents($root.'/services/SourceHandlingService.php');
+$dispatcher=(string)file_get_contents($root.'/services/IncomingUpdateDispatcher.php');
 $passed=0;$failed=0;
 function checkRouting(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  $name\n";$passed++;}else{echo "FAIL  $name\n";$failed++;}}
 checkRouting('routing shell loads extracted css',strpos($page,'assets/routing.css?v=')!==false&&strpos($page,'<style>')===false);
@@ -23,5 +28,15 @@ checkRouting('routing project switch clears stale edit forms',strpos($js,'const 
 checkRouting('routing saves are pinned to initiating project',substr_count($js,"const project_key=$('project').value")>=2&&substr_count($js,"if($('project').value!==project_key)return")>=2&&strpos($js,"api('save_group',{project_key,")!==false&&strpos($js,"api('save_source',{project_key,")!==false);
 checkRouting('routing boot handles empty project access',strpos($js,'if(!S.projects.length)')!==false&&strpos($js,'Нет доступных проектов для настройки маршрутизации.')!==false);
 checkRouting('responsive routing styles remain extracted',strpos($css,'grid-template-columns:1fr 1fr')!==false&&strpos($css,'@media(max-width:700px){.grid{grid-template-columns:1fr}')!==false&&strpos($css,'.wrap{padding:12px}')!==false);
+checkRouting('source handling schema defaults safely to AI',strpos($migration,"handling_mode ENUM('ai','manager','ask')")!==false&&strpos($migration,"DEFAULT 'ai'")!==false);
+checkRouting('source admin exposes all three start modes',strpos($page,'id="handlingMode"')!==false&&strpos($page,'Сначала AI')!==false&&strpos($page,'Сразу менеджеру')!==false&&strpos($page,'Спросить клиента')!==false);
+checkRouting('source admin persists and restores start mode',strpos($js,"$('handlingMode').value=s.handling_mode||'ai'")!==false&&strpos($js,'handling_mode')!==false&&strpos($api,"(string)(\$data['handling_mode']??'ai')")!==false);
+checkRouting('source service validates explicit handling modes',strpos($routingService,"['ai','manager','ask']")!==false&&strpos($routingService,'invalid_handling_mode')!==false);
+checkRouting('ask mode offers manager or self service',strpos($sourceHandling,'source_choice_manager')!==false&&strpos($sourceHandling,'source_choice_ai')!==false&&strpos($sourceHandling,'Позвать менеджера')!==false&&strpos($sourceHandling,'Подобрать тур самостоятельно')!==false);
+checkRouting('manager-first reuses handoff without metrika mutation',strpos($sourceHandling,'ManagerHandoffDispatchService::dispatch')!==false&&strpos($sourceHandling,'ConversationControlService::markWaitingByChat')!==false&&strpos($sourceHandling,'queueMetrikaGoal')===false&&strpos($sourceHandling,'MetrikaConversionGoalService')===false);
+checkRouting('source policy does not own shift priority or routing mutations',strpos($sourceHandling,'setWorking')===false&&strpos($sourceHandling,'ManagerPriorityService')===false&&strpos($sourceHandling,'RoutingAdminService')===false);
+checkRouting('source policy runs before normal AI application',strpos($dispatcher,'SourceHandlingService::handle($incoming)')!==false&&strpos($dispatcher,'SourceHandlingService::handle($incoming)')<strpos($dispatcher,'$this->application->dispatch($incoming)'));
+checkRouting('manager choice suppresses AI even when transport fails',strpos($sourceHandling,"self::handoff(\$incoming,\$platform,\$chatId,'source_policy');\n                return true;")!==false&&strpos($sourceHandling,"self::handoff(\$incoming,\$platform,\$chatId,'source_choice');\n                    return true;")!==false);
+checkRouting('handoff back restores self service',strpos($sourceHandling,"self::recordChoice(\$platform,\$chatId,self::AI,'handoff_back')")!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS $passed | FAIL $failed\n";
 exit($failed?1:0);
