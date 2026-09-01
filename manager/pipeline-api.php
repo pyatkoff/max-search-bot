@@ -47,7 +47,7 @@ $c=pipelineConversation($id,(int)$m['id']);
 if(!$c)ManagerHttp::respond(['ok'=>false,'error'=>'not_found'],404);
 $can=ManagerHttp::canEditConversation($c,$m);
 
-if($action==='detail')ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can,'pipeline'=>SalesPipelineService::conversationSnapshot($id),'tasks'=>LeadTaskService::listForConversation($id),'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>ManagerDeliveryStateService::activeFailure($id)]]);
+if($action==='detail')ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can,'pipeline'=>SalesPipelineService::conversationSnapshot($id),'tasks'=>LeadTaskService::listForConversation($id),'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>ManagerDeliveryStateService::activeFailure($id)]]);
 if($action==='set_stage'){
     ManagerHttp::requireConversationEdit($c,$m);
     $ok=SalesPipelineService::setStage($id,(string)($data['stage_key']??''),(int)$m['id']);
