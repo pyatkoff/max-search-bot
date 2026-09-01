@@ -70,7 +70,10 @@ class ManagerLeadInboxService
     /** Canonical human-readable origin used across Manager Workspace V2 surfaces. */
     public static function originLabel(array $row): string
     {
-        $channel=strtoupper(trim((string)($row['channel']??'')));
+        $channelRaw=strtolower(trim((string)($row['channel']??'')));
+        $channel=$channelRaw==='telegram'?'TG':strtoupper($channelRaw);
+        $entry=trim((string)($row['entry_channel']??''));
+        if($entry!=='')return trim($channel.($channel!==''?' · ':'').$entry);
         $hasSourceId=array_key_exists('source_id',$row);
         $sourceId=$hasSourceId?(int)($row['source_id']??0):null;
         if($hasSourceId&&$sourceId<=0){$unknown='⚠ Источник не определён';return trim($channel.($channel!==''?' · ':'').$unknown);}
