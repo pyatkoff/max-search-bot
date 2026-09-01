@@ -34,13 +34,14 @@ final class LiveSessionAnalyzer
     public static function analyze(array $conversation,array $messages,array $events=[],?int $anomalySinceTs=null):array
     {
         $inbound=[];$outbound=[];$datePicks=0;$anomalyDatePickTimes=[];$showTours=false;$phone=false;$repeatedFreeText=[];$repeatedCallbacks=[];$flags=[];
-        $managerMessageTimes=[];$anomalyInboundTurns=0;
+        $managerMessageTimes=[];$customerMessageTimes=[];$anomalyInboundTurns=0;
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
             $messageTs=self::ts($m['created_at']??null);
             $inAnomalyWindow=$anomalySinceTs===null||$messageTs===null||$messageTs>=$anomalySinceTs;
             if(($m['direction']??'')==='inbound'){
                 $inbound[]=$text;
+                if(($m['sender_type']??'')==='customer'&&$messageTs!==null&&!self::isCallbackInput($text))$customerMessageTimes[]=$messageTs;
                 if(strpos($text,'pick_date_')===0){
                     $datePicks++;
                     if($inAnomalyWindow&&$messageTs!==null)$anomalyDatePickTimes[]=$messageTs;
@@ -90,6 +91,12 @@ final class LiveSessionAnalyzer
             $managerFirstReplyAt=$managerMessageTimes[0];
         }
         $managerReplied=$managerRequested && $managerFirstReplyAt!==null;
+        $customerFirstReplyAfterManagerAt=null;
+        if($managerFirstReplyAt!==null){
+            foreach($customerMessageTimes as $ts){if($ts>$managerFirstReplyAt){$customerFirstReplyAfterManagerAt=$ts;break;}}
+        }
+        $customerRepliedAfterManager=$managerReplied&&$customerFirstReplyAfterManagerAt!==null;
+        $customerReplyAfterManagerSeconds=($managerFirstReplyAt!==null&&$customerFirstReplyAfterManagerAt!==null)?max(0,$customerFirstReplyAfterManagerAt-$managerFirstReplyAt):null;
         $managerResponseSeconds=($managerRequestAt!==null&&$managerFirstReplyAt!==null)?max(0,$managerFirstReplyAt-$managerRequestAt):null;
         $managerResponseBucket=null;
         if($managerResponseSeconds!==null)$managerResponseBucket=$managerResponseSeconds<=90?'answered_in_90s':'answered_after_90s';
@@ -117,6 +124,7 @@ final class LiveSessionAnalyzer
         if($showTours)$drop='tours_opened';
         if($managerRequested)$drop='manager_requested';
         if($managerReplied)$drop='manager_replied';
+        if($customerRepliedAfterManager)$drop='customer_replied_after_manager';
         return [
             'conversation_id'=>(int)($conversation['id']??0),
             'project_key'=>(string)($conversation['project_key']??''),
@@ -131,9 +139,12 @@ final class LiveSessionAnalyzer
             'manager_requested'=>$managerRequested,
             'manager_request_active'=>$managerRequestActive,
             'manager_replied'=>$managerReplied,
+            'customer_replied_after_manager'=>$customerRepliedAfterManager,
             'manager_request_at'=>$managerRequestAt!==null?gmdate('Y-m-d H:i:s',$managerRequestAt):null,
             'manager_first_reply_at'=>$managerFirstReplyAt!==null?gmdate('Y-m-d H:i:s',$managerFirstReplyAt):null,
+            'customer_first_reply_after_manager_at'=>$customerFirstReplyAfterManagerAt!==null?gmdate('Y-m-d H:i:s',$customerFirstReplyAfterManagerAt):null,
             'manager_response_seconds'=>$managerResponseSeconds,
+            'customer_reply_after_manager_seconds'=>$customerReplyAfterManagerSeconds,
             'manager_response_bucket'=>$managerResponseBucket,
             'phone_received'=>$phone,
             'inbound_messages'=>count($inbound),
