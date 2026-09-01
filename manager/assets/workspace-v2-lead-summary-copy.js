@@ -6,7 +6,7 @@
     const card=$('leadCard');
     if(!card?.querySelector('.leadHero'))return '';
     const lines=[];
-    const push=(text)=>{text=clean(text);if(text)lines.push(text)};
+    const push=text=>{text=clean(text);if(text)lines.push(text)};
     push(card.querySelector('.leadHeroName')?.textContent);
     push(card.querySelector('.leadHeroSource')?.textContent);
     push(card.querySelector('.leadContactActions')?.textContent);
@@ -28,9 +28,15 @@
     if(!ok)throw new Error('copy_failed');
     return true;
   }
+  function ensureButton(){
+    let button=$('copyLeadSummary');if(button)return button;
+    const actions=document.querySelector('.leadHeaderActions');if(!actions)return null;
+    button=document.createElement('button');button.id='copyLeadSummary';button.className='actionBtn';button.type='button';button.textContent='⧉ Сводка';button.title='Копировать сводку лида';button.setAttribute('aria-live','polite');
+    actions.prepend(button);return button;
+  }
   function bind(){
     if(bound)return;bound=true;
-    const button=$('copyLeadSummary'),card=$('leadCard');
+    const button=ensureButton(),card=$('leadCard');
     if(!button||!card)return;
     const update=()=>{button.disabled=!card.querySelector('.leadHero')};
     button.onclick=async()=>{
