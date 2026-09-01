@@ -58,6 +58,7 @@ class RoutingAdminService
         if(!in_array($handlingMode,['ai','manager','ask'],true))return['ok'=>false,'error'=>'invalid_handling_mode'];
         $before=$sourceId>0?self::sourceRow($sourceId):null;
         if($sourceId>0&&!$before)return['ok'=>false,'error'=>'source_not_found'];
+        if($sourceId>0&&(int)($before['project_id']??0)!==$projectId)return['ok'=>false,'error'=>'source_project_mismatch'];
         $validGroup=function(int $id)use($pdo,$projectId):?int{if($id<=0)return null;$q=$pdo->prepare('SELECT id FROM manager_groups WHERE id=? AND project_id=? AND is_active=1');$q->execute([$id,$projectId]);return$q->fetchColumn()?(int)$id:null;};
         $primary=$validGroup($primaryGroupId);$fallback=$validGroup($fallbackGroupId);
         if($primaryGroupId>0&&$primary===null)return['ok'=>false,'error'=>'invalid_primary_group'];
