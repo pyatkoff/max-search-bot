@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/AdultsParser.php';
 
 class LocalAiFallbackService
 {
@@ -54,6 +55,14 @@ class LocalAiFallbackService
             }
         }
 
+        // Rich free-text requests must not depend solely on the external AI call
+        // for explicit party composition. Preserve the same canonical bounds as
+        // the deterministic adults/children pipeline.
+        $explicitAdults = AdultsParser::parse($userText);
+        if ($explicitAdults !== null) {
+            $params['adults'] = $explicitAdults;
+        }
+
         if (
             strpos($localText, 'на двоих') !== false ||
             strpos($localText, 'вдвоем') !== false ||
@@ -68,6 +77,20 @@ class LocalAiFallbackService
             strpos($localText, 'детей нет') !== false
         ) {
             $params['children'] = 0;
+        } elseif (preg_match('/(?:^|[\s,+])([0-3])\s*(?:реб[её]нок|реб[её]нка|реб[её]нков|дет(?:ей|и))\b/ui', $userText, $m)) {
+            $params['children'] = (int)$m[1];
+        } elseif (preg_match('/\b(?:реб[её]нок|реб[её]нка)\b/ui', $userText)) {
+            $params['children'] = 1;
+        }
+
+        $children = array_key_exists('children', $params)
+            ? (int)$params['children']
+            : (int)($current['children'] ?? 0);
+        if ($children === 1 && preg_match('/\b(?:реб[её]нок|реб[её]нка)\b[^\d]{0,24}(\d{1,2})\s*(?:лет|год(?:а)?)\b/ui', $userText, $m)) {
+            $age = (int)$m[1];
+            if ($age >= 0 && $age <= 17) {
+                $params['child_ages'] = [$age];
+            }
         }
 
         if (preg_match('/(?:на\s+)?недел(?:ю|ьку)/ui', $userText)) {

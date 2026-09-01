@@ -9,6 +9,7 @@ require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
 require_once(__DIR__ . '/../services/AiInvocationService.php');
 require_once(__DIR__ . '/../services/AiDateContextService.php');
 require_once(__DIR__ . '/../services/AiNeedCompletionService.php');
+require_once(__DIR__ . '/../services/DepartureCityResolver.php');
 
 class AiMessageHandler
 {
@@ -56,13 +57,36 @@ class AiMessageHandler
                     }
                 }
 
-                // Сначала классифицируем сообщение. Полноценный запрос сразу отдаём AI;
-                // только короткие сообщения и простые коррекции идут в local fallback.
+                // Сначала классифицируем сообщение. Полноценные запросы по-прежнему
+                // проходят через AI, но явные факты из текста применяем до внешнего вызова.
+                // Это сохраняет прогресс и позволяет задать следующий вопрос даже при timeout/error AI.
                 $route = LocalAiFallbackService::classify($userText);
                 $richTourRequest = !empty($route['rich']);
                 $ai = null;
 
                 if ($richTourRequest) {
+                    $departure = DepartureCityResolver::resolveAndStore($chat_id, $userText);
+                    if ($departure) {
+                        $current = MaxSearchApi::getAiSearchContext($chat_id);
+                    }
+
+                    $richLocalParams = LocalAiFallbackService::parameters($userText, $current);
+                    // The local helper historically defaults an absent departure to Moscow.
+                    // For rich pre-seeding only explicit departure is allowed; AI/business defaults
+                    // may still choose Moscow later under the existing policy.
+                    if (empty($current['city']) && !$departure) {
+                        unset($richLocalParams['city']);
+                    }
+                    $richLocalDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    if (!empty($richLocalDate['date'])) {
+                        $richLocalParams['date'] = $richLocalDate['date'];
+                    }
+                    $richLocalParams = LocalAiFallbackService::applyDestinationDefaults($richLocalParams, $current);
+                    if (!empty($richLocalParams)) {
+                        NeedApplicationService::applyParameters($chat_id, $richLocalParams);
+                        $current = MaxSearchApi::getAiSearchContext($chat_id);
+                    }
+
                     $ai = AiInvocationService::invoke('RICH_AI', $chat_id, $userText, $current);
                 } else {
                     $localParams = LocalAiFallbackService::parameters($userText, $current);
