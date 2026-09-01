@@ -40,14 +40,14 @@ tfCheck('open leads without a task are visible in the inbox row',strpos($inbox,"
 tfCheck('closed outcomes do not get a false missing-task signal',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false);
 $rows=[
  ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue','operational_task_rank'=>0],
- ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'future','operational_task_rank'=>2],
+ ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','operational_task_rank'=>2],
  ['id'=>3,'lead_outcome'=>'open','next_task_title'=>null,'next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'none','operational_task_rank'=>3],
  ['id'=>4,'lead_outcome'=>'open','next_task_title'=>'Написать сегодня','next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'today','operational_task_rank'=>1],
 ];
 tfCheck('overdue filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1]);
 tfCheck('today filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','today'),'id')===[4]);
 tfCheck('action filter includes overdue and today only',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,4]);
-tfCheck('planned filter excludes overdue',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2,4]);
+tfCheck('planned filter includes future scheduled work only',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
 tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[2]);
 tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
 tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===4);
