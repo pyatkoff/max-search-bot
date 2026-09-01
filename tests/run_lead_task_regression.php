@@ -26,6 +26,13 @@ $actionRows=ManagerLeadInboxService::filter([
     ['id'=>4,'lead_outcome'=>'open','next_task_title'=>null,'next_task_due_state'=>'unscheduled'],
 ],'','','action');
 ltCheck('action-required filter means due today or overdue only',array_column($actionRows,'id')===[1,2]);
+$plannedRows=ManagerLeadInboxService::filter([
+    ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Сегодня','next_task_due_state'=>'today'],
+    ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Просрочено','next_task_due_state'=>'overdue','next_task_overdue'=>1],
+    ['id'=>3,'lead_outcome'=>'open','next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],
+    ['id'=>4,'lead_outcome'=>'open','next_task_title'=>'Без срока','next_task_due_state'=>'unscheduled'],
+],'','','planned');
+ltCheck('planned filter means future scheduled work only',array_column($plannedRows,'id')===[3]);
 
 $root=dirname(__DIR__);$migration=(string)file_get_contents($root.'/migrations/014_lead_tasks.sql');$pinMigration=(string)file_get_contents($root.'/migrations/016_lead_task_pinning.sql');$api=(string)file_get_contents($root.'/manager/pipeline-api.php');$http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');$shell=(string)file_get_contents($root.'/manager/index.php');$leadCardJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');$taskService=(string)file_get_contents($root.'/services/LeadTaskService.php');$taskJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');$taskCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');$inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');$inboxJs=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');$inboxCss=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
 ltCheck('migration is forward-only and indexed',strpos($migration,'CREATE TABLE IF NOT EXISTS lead_tasks')!==false&&strpos($migration,'idx_lead_tasks_due')!==false&&strpos($migration,'due_at_utc')!==false&&stripos($migration,'DROP TABLE')===false);
@@ -57,6 +64,7 @@ ltCheck('task edit is responsive in dedicated task stylesheet',strpos($taskCss,'
 ltCheck('V2 inbox batch-projects one next open task without N+1',strpos($inboxService,"FROM lead_tasks t WHERE t.conversation_id IN ({\$in}) AND t.status='open'")!==false&&strpos($inboxService,"array_key_exists(\$id,\$tasks)")!==false&&substr_count($inboxService,'lead_tasks')===1);
 ltCheck('V2 inbox exposes overdue task signal and due time',strpos($inboxService,'next_task_title')!==false&&strpos($inboxService,'next_task_due_at_utc')!==false&&strpos($inboxService,'next_task_overdue')!==false&&strpos($inboxService,'UTC_TIMESTAMP()')!==false);
 ltCheck('V2 inbox action-required is deadline-derived through canonical task owner',strpos($inboxService,"'action'")!==false&&strpos($inboxService,'LeadTaskService::dueState')!==false&&strpos($inboxService,"['overdue','today']")!==false&&strpos($shell,'Нужно действие')!==false);
+ltCheck('V2 inbox planned filter is future scheduled work only',strpos($inboxService,"\$taskFilter==='planned'&&(!\$hasTask||\$dueState!=='upcoming')")!==false);
 ltCheck('V2 inbox renders task title due and urgency states',strpos($inboxJs,'c.next_task_title')!==false&&strpos($inboxJs,'c.next_task_due_at_utc')!==false&&strpos($inboxJs,'c.next_task_overdue')!==false&&strpos($inboxJs,'c.next_task_due_state')!==false&&strpos($inboxJs,'leadTaskCompact')!==false&&strpos($inboxCss,'.leadTaskCompact.today')!==false&&strpos($inboxCss,'.leadTaskCompact.overdue')!==false);
 ltCheck('V2 inbox search includes task title',strpos($inboxService,"\$row['next_task_title']??''")!==false);
 ltCheck('task signal stays read-only in inbox',strpos($inboxJs,"pipe('create_task'")===false&&strpos($inboxJs,"pipe('update_task'")===false&&strpos($inboxJs,"pipe('set_task_completed'")===false&&strpos($inboxJs,"pipe('set_task_pinned'")===false);
