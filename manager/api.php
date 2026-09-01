@@ -45,7 +45,19 @@ if($action==='set_working'){
 if($action==='projects') out(['ok'=>true,'projects'=>ProjectAccessService::projectsForManager((int)$m['id'])]);
 if($action==='manager_filters'){ ManagerHttp::requireAdmin($m); out(['ok'=>true,'managers'=>ManagerConversationService::filterManagers((int)$m['id'])]); }
 if($action==='admin_snapshot'){
-    ManagerHttp::requireAdmin($m);$admin=AdminDirectoryService::snapshot();$admin['priority']=ManagerPriorityService::snapshot();out(['ok'=>true,'admin'=>$admin]);
+    ManagerHttp::requireAdmin($m);
+    $admin=AdminDirectoryService::snapshot();
+    try{
+        $admin['priority']=ManagerPriorityService::snapshot();
+        $admin['priority_available']=true;
+    }catch(Throwable $e){
+        // Priority rules are an optional admin surface. A broken/missing priority
+        // table must never hide the manager directory or make manager editing
+        // impossible. Keep the directory usable and disable only this section.
+        $admin['priority']=['rules'=>[],'rule_types'=>[]];
+        $admin['priority_available']=false;
+    }
+    out(['ok'=>true,'admin'=>$admin]);
 }
 if($action==='save_project'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='save_manager'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
@@ -82,25 +94,13 @@ if($action==='detail'){
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
     $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
 
-    // Before the first human reply, put a panel-only summary and explicit reply
-    // guidance at the bottom of the transcript. This is never sent to the tourist.
     if (!ManagerHandoffContextService::hasManagerReply($d['messages'])) {
         $chatId=$d['conversation']['external_chat_id']??null;
         if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
             try{
-                $summary=ManagerHandoffContextService::build(
-                    (array)MaxSearchApi::getAiSearchContext($chatId),
-                    $d['messages']
-                );
+                $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages']);
                 if($summary!==''){
-                    $d['messages'][]=[
-                        'id'=>0,
-                        'direction'=>'outbound',
-                        'sender_type'=>'ai',
-                        'text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),
-                        'created_at'=>(string)($d['conversation']['last_message_at']??''),
-                        'attachments'=>[],
-                    ];
+                    $d['messages'][]=['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),'created_at'=>(string)($d['conversation']['last_message_at']??''),'attachments'=>[]];
                 }
             }catch(Throwable $ignored){}
         }
