@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $page=(string)file_get_contents($root.'/manager/index.php');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$stageHistory=(string)file_get_contents($root.'/manager/assets/workspace-v2-stage-history.js');
 $tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $outcome=(string)file_get_contents($root.'/manager/assets/workspace-v2-outcome.js');
@@ -23,7 +24,9 @@ lcCheck('canonical meal values render as human-readable manager labels',strpos($
 lcCheck('phone action is safely normalized',strpos($js,'function phoneHref')!==false&&strpos($js,"/^\\+?\\d{5,20}$/")!==false&&strpos($js,"'tel:'")!==false);
 lcCheck('email action is validated before mailto',strpos($js,'function emailHref')!==false&&strpos($js,"'mailto:'")!==false);
 lcCheck('next action appears before sales controls',($taskPos=strpos($js,'Следующее действие'))!==false&&($salesPos=strpos($js,'<div class="leadPanelTitle">Продажа</div>'))!==false&&$taskPos<$salesPos);
-lcCheck('sales stage history is read-only lead context',strpos($js,'function stageHistoryMarkup')!==false&&strpos($js,'pipeline.stage_history')!==false&&strpos($js,'История этапов')!==false&&strpos($js,"pipe('set_stage_history'")===false);
+lcCheck('sales stage history is read-only lead context',strpos($js,'function stageHistoryMarkup')!==false&&strpos($js,'pipeline.stage_history')!==false&&strpos($stageHistory,'История этапов')!==false&&strpos($js,"pipe('set_stage_history'")===false);
+lcCheck('current sales stage exposes latest transition time without another mutation owner',strpos($stageHistory,'function formatStageSince')!==false&&strpos($stageHistory,'function currentSinceMarkup')!==false&&strpos($stageHistory,'history[0]?.created_at')!==false&&strpos($stageHistory,'На текущем этапе с')!==false&&strpos($stageHistory,"pipe('")===false);
+lcCheck('current stage since time is compact manager-local display text',strpos($stageHistory,'`${match[3]}.${match[2]} ${match[4]}:${match[5]}`')!==false&&strpos($stageHistory,'raw.slice(0,16)')!==false);
 lcCheck('stage history projection exposes manager display name',strpos($service,'changed_by_manager_name')!==false&&strpos($service,'LEFT JOIN managers m ON m.id=h.changed_by_manager_id')!==false);
 lcCheck('stage history layout stays compact and responsive',strpos($css,'.leadStageHistoryDetails')!==false&&strpos($css,'.leadStageHistoryRow')!==false&&strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.leadStageHistoryDetails summary{min-height:40px}')!==false);
 lcCheck('sales stage and tag saves expose one accessible inline status',strpos($js,'id="salesSaveStatus"')!==false&&strpos($js,'aria-live="polite"')!==false&&strpos($pipeline,'function setSalesSaveState')!==false);
@@ -45,7 +48,7 @@ lcCheck('technical state is collapsed into details',strpos($js,'Источник
 lcCheck('technical status remains read only',strpos($pipeline,"pipe('set_stage'")!==false&&strpos($pipeline,"pipe('set_status'")===false&&strpos($js,"pipe('set_status'")===false&&strpos($js,'technical_status=')===false);
 lcCheck('lead card delegates task mutations while task owner keeps target-pinned stability refresh boundary',strpos($js,'WorkspaceV2Tasks.render(root,{tasks,canEdit,conversationId})')!==false&&strpos($js,"pipe('create_task'")===false&&substr_count($tasks,'refreshLead(target)')>=4&&strpos($tasks,'refreshLeadData({refreshInbox:true,conversationId:target})')!==false&&strpos($tasks,'WorkspaceV2Conversation?.open')===false);
 lcCheck('mobile lead card is a full screen surface',strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.leadZone{inset:0!important')!==false);
-$all=$js.' '.$tasks.' '.$pipeline.' '.$outcome.' '.$css;
+$all=$js.' '.$stageHistory.' '.$tasks.' '.$pipeline.' '.$outcome.' '.$css;
 lcCheck('redesign does not mutate manager shift or routing',stripos($all,'set_working')===false&&stripos($all,'routing_bonus')===false);
 lcCheck('redesign does not touch metrika or lead delivery',stripos($all,'metrika')===false&&strpos($all,'LeadDestination')===false);
 
