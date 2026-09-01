@@ -25,7 +25,7 @@ $actionRows=ManagerLeadInboxService::filter([
     ['id'=>3,'lead_outcome'=>'open','next_task_title'=>'Позже','next_task_due_state'=>'upcoming'],
     ['id'=>4,'lead_outcome'=>'open','next_task_title'=>null,'next_task_due_state'=>'unscheduled'],
 ],'','','action');
-ltCheck('action-required filter means due today or overdue only',array_column($actionRows,'id')===[1,2]);
+ltCheck('action-required filter orders overdue before due today',array_column($actionRows,'id')===[2,1]);
 $plannedRows=ManagerLeadInboxService::filter([
     ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Сегодня','next_task_due_state'=>'today'],
     ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Просрочено','next_task_due_state'=>'overdue','next_task_overdue'=>1],
