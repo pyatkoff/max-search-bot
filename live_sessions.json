@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T12:44:16+00:00",
+    "generated_at": "2026-09-01T13:05:31+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -14,6 +14,7 @@
         "tours_opened": 1,
         "manager_requested": 0,
         "manager_replied": 0,
+        "customer_replied_after_manager": 0,
         "phone_received": 0,
         "flagged_sessions": 1,
         "manager_response": {
@@ -47,9 +48,12 @@
             "manager_requested": false,
             "manager_request_active": false,
             "manager_replied": false,
+            "customer_replied_after_manager": false,
             "manager_request_at": null,
             "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
             "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 41,
@@ -75,9 +79,12 @@
             "manager_requested": false,
             "manager_request_active": false,
             "manager_replied": false,
+            "customer_replied_after_manager": false,
             "manager_request_at": null,
             "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
             "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 6,
@@ -103,9 +110,12 @@
             "manager_requested": false,
             "manager_request_active": false,
             "manager_replied": false,
+            "customer_replied_after_manager": false,
             "manager_request_at": null,
             "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
             "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
             "inbound_messages": 10,
@@ -206,5 +216,5 @@
             ]
         }
     ],
-    "since_utc": "2026-09-01 11:44:16"
+    "since_utc": "2026-09-01 12:05:31"
 }
