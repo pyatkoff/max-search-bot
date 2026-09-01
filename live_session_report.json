@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T01:31:24+00:00",
+    "generated_at": "2026-09-01T02:07:35+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -29,8 +29,7 @@
             "tours_opened": 1
         },
         "flags": {
-            "repeated_callback_input": 1,
-            "excessive_turns": 1
+            "repeated_callback_input": 1
         }
     },
     "sessions": [
@@ -84,21 +83,14 @@
             "inbound_messages": 51,
             "outbound_messages": 41,
             "date_picks": 1,
-            "anomaly_inbound_messages": 51,
+            "anomaly_inbound_messages": 13,
             "drop_point": "tours_opened",
             "flags": [
-                "repeated_callback_input",
-                "excessive_turns"
+                "repeated_callback_input"
             ],
             "started_at": "2026-09-01 02:37:50",
             "last_message_at": "2026-09-01 03:24:01",
             "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-09-01 03:05:29"
-                },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
@@ -240,5 +232,5 @@
             ]
         }
     ],
-    "since_utc": "2026-09-01 00:31:24"
+    "since_utc": "2026-09-01 01:07:35"
 }

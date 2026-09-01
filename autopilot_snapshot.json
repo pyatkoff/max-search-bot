@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-01T01:31:33+00:00",
+    "generated_at": "2026-09-01T02:07:43+00:00",
     "production": {
-        "sha": "d15747aa854646142160559c31a286ff2ef44423",
+        "sha": "693cdaa84a1b162e672c715034b1b84ede3c2315",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 00:31:24",
+        "since_utc": "2026-09-01 01:07:35",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -166,16 +166,14 @@
                 "tours_opened": 1
             },
             "flags": {
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
+                "repeated_callback_input": 1
             }
         },
         "flagged_sessions": [
             {
                 "conversation_id": 658,
                 "flags": [
-                    "repeated_callback_input",
-                    "excessive_turns"
+                    "repeated_callback_input"
                 ],
                 "drop_point": "tours_opened",
                 "manager_response_bucket": null,
@@ -188,7 +186,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "d15747aa854646142160559c31a286ff2ef44423",
+        "sha": "693cdaa84a1b162e672c715034b1b84ede3c2315",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -197,7 +195,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-01T01:31:33Z"
+        "reported_at": "2026-09-01T02:07:43Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -248,7 +246,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-01T01:31:32+00:00",
+        "generated_at": "2026-09-01T02:07:43+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -272,8 +270,8 @@
             },
             "manager": {
                 "files": 51,
-                "bytes": 250200,
-                "code_lines": 1293
+                "bytes": 250634,
+                "code_lines": 1295
             },
             "website": {
                 "files": 4,
@@ -292,8 +290,8 @@
             },
             "tests": {
                 "files": 162,
-                "bytes": 627316,
-                "code_lines": 7845
+                "bytes": 628598,
+                "code_lines": 7848
             },
             "tools": {
                 "files": 37,
