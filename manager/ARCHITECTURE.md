@@ -20,6 +20,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-filters.js` — inbox search/filter state, persistence, filter controls and task-filter shortcut orchestration. It may invoke the inbox reload/queue boundary but must not own sales-stage or task business semantics.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
 - `assets/workspace-v2-lead-card.*` — structured lead information/composition owner; delegate feature-specific subviews rather than growing another monolith.
+- `assets/workspace-v2-tasks.*` — lead-task presentation and task mutation orchestration owner. It captures the source conversation for create/update/toggle/pin requests and keeps per-lead/task in-flight guards outside rerendered DOM; task persistence/business semantics remain server-owned.
 - `assets/workspace-v2-stage-history.js` — sales-stage history presentation owner; stage-history persistence and semantics remain in `SalesPipelineService`.
 - `assets/workspace-v2-pipeline.*` and `workspace-v2-kanban.*` — sales pipeline editor/board UI owner. Pipeline code owns sales mutations and editor state, not inbox filters.
 - `assets/workspace-v2-media.*` — outbound media UI owner.
@@ -44,6 +45,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - **Completed:** inline CSS/JS from `routing.php` → `assets/routing.css` + `assets/routing.js`; keep routing business rules/server authorization outside these assets.
 - **Completed:** sales-stage history renderer moved out of `workspace-v2-lead-card.js` → `assets/workspace-v2-stage-history.js`; lead card composes it, while `SalesPipelineService` remains the single business owner of stage history.
 - **Completed:** inbox search/filter persistence and task-filter shortcut orchestration moved out of `workspace-v2-pipeline.js` → `assets/workspace-v2-filters.js`; pipeline stays focused on sales mutations while `ManagerLeadInboxService` / task services retain server-side semantics.
+- **Completed:** lead-task mutation transport, source-lead capture and in-flight guards moved out of `workspace-v2-lead-card.js` → `assets/workspace-v2-tasks.js`; Lead Card now only composes the task subview while task services remain the server-side business owner.
 - Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
 - Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
 
@@ -71,6 +73,6 @@ This directory is the owned interface boundary for the manager product. Changes 
 2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview, Sales Pipeline API, main Manager API, and admin/routing shell session bootstrap are migrated; continue with narrow slices rather than widening `ManagerHttp` into a business layer.
 3. **Done:** split admin and routing monolith assets. Admin and routing CSS/JS are extracted; PHP files remain markup shells.
 4. **Done for admin/routing frontend transport:** one small JSON client owns duplicated fetch/network/invalid-response behavior while page modules retain role gates, CSRF state and domain-specific errors.
-5. **In progress for Workspace frontend ownership:** `workspace-v2.js` remains feature-neutral; stage history and inbox filters are split into focused modules. Continue extracting only where ownership is clear and behavior regressions can lock the boundary.
+5. **In progress for Workspace frontend ownership:** `workspace-v2.js` remains feature-neutral; stage history, inbox filters and task mutation orchestration are split into focused modules. Continue extracting only where ownership is clear and behavior regressions can lock the boundary.
 6. Consolidate remaining endpoint validation and structured errors in narrow slices.
 7. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
