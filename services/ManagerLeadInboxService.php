@@ -16,7 +16,7 @@ class ManagerLeadInboxService
         foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summaries[$id]=self::cleanTripSummary((string)($message['text']??''));}
         $tasks=[];$taskOrder=LeadTaskService::openTaskOrderSql('t');$q=$pdo->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.is_pinned,CASE WHEN t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue FROM lead_tasks t WHERE t.conversation_id IN ({$in}) AND t.status='open' ORDER BY t.conversation_id ASC,{$taskOrder}");$q->execute($ids);
         foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0||array_key_exists($id,$tasks))continue;$tasks[$id]=$task;}
-        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['lead_sale_amount']=$meta['lead_sale_amount']??null;$row['lead_sale_date']=$meta['lead_sale_date']??null;$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_id']=$task['id']??null;$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_pinned']=!empty($task['is_pinned']);$row['next_task_overdue']=!empty($task['overdue']);$row['next_task_due_state']=LeadTaskService::dueState($row['next_task_due_at_utc'],$row['next_task_overdue']);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
+        foreach($rows as &$row){$id=(int)($row['id']??0);$meta=$lead[$id]??[];$task=$tasks[$id]??[];$row['lead_outcome']=(string)($meta['lead_outcome']?:'open');$row['lead_sale_amount']=$meta['lead_sale_amount']??null;$row['lead_sale_date']=$meta['lead_sale_date']??null;$row['contact_phone']=$meta['phone']??null;$row['contact_email']=$meta['email']??null;$row['trip_summary']=$summaries[$id]??'';$row['next_task_id']=$task['id']??null;$row['next_task_title']=$task['title']??null;$row['next_task_due_at_utc']=$task['due_at_utc']??null;$row['next_task_pinned']=!empty($task['is_pinned']);$row['next_task_overdue']=!empty($task['overdue']);$row['next_task_due_state']=LeadTaskService::dueState($row['next_task_due_at_utc'],$row['next_task_overdue']);$row['project_label']=self::projectLabel($row);$row['origin_label']=self::originLabel($row);}unset($row);return$rows;
     }
 
     /** Compatibility projection; LeadTaskService owns task urgency semantics. */
@@ -33,7 +33,7 @@ class ManagerLeadInboxService
             $hasTask=trim((string)($row['next_task_title']??''))!=='';$overdue=!empty($row['next_task_overdue']);$pinned=!empty($row['next_task_pinned']);$dueState=(string)($row['next_task_due_state']??LeadTaskService::dueState($row['next_task_due_at_utc']??null,$overdue));
             if($taskFilter==='action'&&(!$hasTask||!in_array($dueState,['overdue','today'],true)))return false;if($taskFilter==='overdue'&&(!$hasTask||!$overdue))return false;if($taskFilter==='today'&&(!$hasTask||$dueState!=='today'))return false;if($taskFilter==='planned'&&(!$hasTask||$overdue))return false;if($taskFilter==='pinned'&&(!$hasTask||!$pinned))return false;if($taskFilter==='none'&&$hasTask)return false;
             if($search==='')return true;
-            $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??'',$row['next_task_title']??'',$row['lead_sale_amount']??'',$row['lead_sale_date']??''],static fn($v)=>$v!==null&&$v!==''));
+            $haystack=implode(' ',array_filter([$row['display_name']??'',$row['contact_phone']??'',$row['contact_email']??'',$row['project_label']??'',$row['origin_label']??'',$row['manager_name']??'',$row['last_text']??'',$row['trip_summary']??'',$row['next_task_title']??'',$row['lead_sale_amount']??'',$row['lead_sale_date']??''],static fn($v)=>$v!==null&&$v!==''));
             return function_exists('mb_stripos')?mb_stripos($haystack,$search,0,'UTF-8')!==false:stripos($haystack,$search)!==false;
         }));
     }
@@ -43,6 +43,13 @@ class ManagerLeadInboxService
         $text=html_entity_decode(strip_tags($text),ENT_QUOTES|ENT_HTML5,'UTF-8');$text=preg_replace('/^\s*✅\s*Готово!\s*Проверьте параметры\s*/ui','',$text)??$text;$text=preg_replace('/\s*Что удобнее дальше\?\s*$/ui','',$text)??$text;$text=preg_replace('/\s+/u',' ',$text)??$text;return trim($text);
     }
 
+    public static function projectLabel(array $row): string
+    {
+        $project=trim((string)($row['project_name']??''));
+        if($project!=='')return$project;
+        return trim((string)($row['project_key']??''));
+    }
+
     /** Canonical human-readable origin used across Manager Workspace V2 surfaces. */
     public static function originLabel(array $row): string
     {
@@ -50,6 +57,6 @@ class ManagerLeadInboxService
         $hasSourceId=array_key_exists('source_id',$row);
         $sourceId=$hasSourceId?(int)($row['source_id']??0):null;
         if($hasSourceId&&$sourceId<=0){$unknown='⚠ Источник не определён';return trim($channel.($channel!==''?' · ':'').$unknown);}
-        $source=trim((string)($row['source_name']??''));if($source!==''&&strpos($source,':')!==false){[, $short]=explode(':',$source,2);if(trim($short)!=='')$source=trim($short);}if($source==='')$source=trim((string)($row['project_name']??$row['project_key']??''));return trim($channel.($channel!==''&&$source!==''?' · ':'').$source);
+        $source=trim((string)($row['source_name']??''));if($source!==''&&strpos($source,':')!==false){[, $short]=explode(':',$source,2);if(trim($short)!=='')$source=trim($short);}if($source==='')$source=self::projectLabel($row);return trim($channel.($channel!==''&&$source!==''?' · ':'').$source);
     }
 }
