@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T19:36:03+00:00",
+    "generated_at": "2026-09-01T19:48:07+00:00",
     "production": {
-        "sha": "a8062be8f6c6a1afe5f176cf15845aec3e0e95ce",
+        "sha": "12525cf91f448c80bd881a16ee18a13fad20313d",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 670,
         "customer_channels": 670,
         "conversations": 672,
-        "messages": 17580,
+        "messages": 17587,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1463,6 +1463,69 @@
     ],
     "recent_messages": [
         {
+            "id": 17587,
+            "conversation_id": 671,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-09-01 21:40:03"
+        },
+        {
+            "id": 17586,
+            "conversation_id": 671,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-01 21:40:02"
+        },
+        {
+            "id": 17585,
+            "conversation_id": 671,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_5",
+            "created_at": "2026-09-01 21:39:58"
+        },
+        {
+            "id": 17584,
+            "conversation_id": 671,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-09-01 21:39:51"
+        },
+        {
+            "id": 17583,
+            "conversation_id": 671,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_city",
+            "created_at": "2026-09-01 21:39:51"
+        },
+        {
+            "id": 17582,
+            "conversation_id": 671,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
+            "created_at": "2026-09-01 21:39:44"
+        },
+        {
+            "id": 17581,
+            "conversation_id": 671,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "edit_params",
+            "created_at": "2026-09-01 21:39:44"
+        },
+        {
             "id": 17580,
             "conversation_id": 672,
             "direction": "outbound",
@@ -1938,69 +2001,6 @@
             "channel": "max",
             "text": "pick_city_5",
             "created_at": "2026-09-01 21:12:20"
-        },
-        {
-            "id": 17527,
-            "conversation_id": 671,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-09-01 21:12:17"
-        },
-        {
-            "id": 17526,
-            "conversation_id": 671,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-09-01 21:12:16"
-        },
-        {
-            "id": 17525,
-            "conversation_id": 671,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-09-01 21:11:50"
-        },
-        {
-            "id": 17524,
-            "conversation_id": 671,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-01 21:10:55"
-        },
-        {
-            "id": 17523,
-            "conversation_id": 671,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-01 21:10:55"
-        },
-        {
-            "id": 17522,
-            "conversation_id": 671,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_16.10.2026",
-            "created_at": "2026-09-01 21:10:26"
-        },
-        {
-            "id": 17521,
-            "conversation_id": 671,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "month_change_10.2026",
-            "created_at": "2026-09-01 21:10:19"
         }
     ],
     "recent_events": [
