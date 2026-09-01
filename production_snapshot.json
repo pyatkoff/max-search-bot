@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-01T21:10:18+00:00",
+    "generated_at": "2026-09-01T21:40:55+00:00",
     "production": {
-        "sha": "5b5ddefa35c05e25aae5b9a3d2f957c1a68a282b",
+        "sha": "609d1dd58de2367e150ddac56afc83b78576a20f",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 671,
         "customer_channels": 671,
         "conversations": 673,
-        "messages": 17610,
+        "messages": 17611,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1463,6 +1463,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17611,
+            "conversation_id": 203,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-01 23:25:01"
+        },
+        {
             "id": 17610,
             "conversation_id": 673,
             "direction": "outbound",
@@ -1992,15 +2001,6 @@
             "channel": "max",
             "text": "start_search",
             "created_at": "2026-09-01 21:14:47"
-        },
-        {
-            "id": 17551,
-            "conversation_id": 671,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-01 21:13:37"
         }
     ],
     "recent_events": [
