@@ -15,6 +15,10 @@ checkRouting('group save has inline status surface',strpos($page,'id="groupStatu
 checkRouting('group save preserves form on transport failure',strpos($js,"try{j=await api('save_group'")!==false&&strpos($js,"j={ok:false,error:'network_error'}")!==false&&strpos($js,'Данные формы сохранены — повторите попытку.')!==false);
 checkRouting('source save recovers button after transport failure',strpos($js,"try{j=await api('save_source'")!==false&&substr_count($js,'btn.disabled=false;btn.textContent=oldText')>=2&&strpos($js,'sourceErrorText(j.error)')!==false);
 checkRouting('routing save buttons reject duplicate submits',substr_count($js,'if(btn.disabled)return')>=2);
+checkRouting('routing load has inline status surface',strpos($page,'id="routingStatus"')!==false&&strpos($js,"routingStatus('Загружаем маршрутизацию…','')")!==false);
+checkRouting('routing load rejects stale project responses',strpos($js,'loadSeq:0')!==false&&strpos($js,'const seq=++S.loadSeq')!==false&&strpos($js,'if(seq!==S.loadSeq)return')!==false&&strpos($js,"if($('project').value!==key)return")!==false);
+checkRouting('routing load preserves current data on transport failure',strpos($js,"try{j=await api('routing_snapshot'")!==false&&strpos($js,'Текущие данные не изменены')!==false);
+checkRouting('routing boot handles empty project access',strpos($js,'if(!S.projects.length)')!==false&&strpos($js,'Нет доступных проектов для настройки маршрутизации.')!==false);
 checkRouting('responsive routing styles remain extracted',strpos($css,'grid-template-columns:1fr 1fr')!==false&&strpos($css,'@media(max-width:700px){.grid{grid-template-columns:1fr}')!==false&&strpos($css,'.wrap{padding:12px}')!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS $passed | FAIL $failed\n";
 exit($failed?1:0);
