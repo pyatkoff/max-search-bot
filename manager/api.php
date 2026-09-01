@@ -51,9 +51,6 @@ if($action==='admin_snapshot'){
         $admin['priority']=ManagerPriorityService::snapshot();
         $admin['priority_available']=true;
     }catch(Throwable $e){
-        // Priority rules are an optional admin surface. A broken/missing priority
-        // table must never hide the manager directory or make manager editing
-        // impossible. Keep the directory usable and disable only this section.
         $admin['priority']=['rules'=>[],'rule_types'=>[]];
         $admin['priority_available']=false;
     }
@@ -112,6 +109,11 @@ if($action==='detail'){
 if($action==='take'){
     if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
     out(['ok'=>ManagerConversationService::take((int)($data['conversation_id']??0),(int)$m['id'])]);
+}
+if($action==='reassign_manager'){
+    ManagerHttp::requireAdmin($m);
+    $ok=ManagerConversationService::reassign((int)($data['conversation_id']??0),(int)$m['id'],(int)($data['manager_id']??0));
+    out(['ok'=>$ok],$ok?200:409);
 }
 if($action==='release') out(['ok'=>ManagerConversationService::release((int)($data['conversation_id']??0),(int)$m['id'])]);
 if($action==='close') out(['ok'=>ManagerConversationService::close((int)($data['conversation_id']??0),(int)$m['id'])]);

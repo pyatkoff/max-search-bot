@@ -119,6 +119,7 @@ return [
         'php tests/run_manager_workspace_v2_pinned_projection_regression.php',
         'php tests/run_manager_workspace_v2_kanban_regression.php',
         'php tests/run_manager_workspace_v2_kanban_drag_regression.php',
+        'php tests/run_manager_workspace_v2_reassign_regression.php',
         'php tests/run_manager_workspace_v2_origin_regression.php',
         'php tests/run_manager_workspace_v2_wait_urgency_regression.php',
         'php tests/run_manager_workspace_v2_module_split_regression.php',

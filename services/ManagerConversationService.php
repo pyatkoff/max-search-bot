@@ -161,6 +161,25 @@ class ManagerConversationService
             return true;
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
     }
+
+    public static function reassign(int $conversationId,int $adminId,int $targetManagerId): bool
+    {
+        $admin=ManagerAuthService::byId($adminId);if(!ManagerAuthService::isAdmin($admin)||$targetManagerId<=0)return false;
+        $target=ManagerAuthService::byId($targetManagerId);if(!$target)return false;
+        $pdo=ConversationDb::connection();$pdo->beginTransaction();
+        try{
+            $row=self::accessibleConversation($conversationId,$adminId,true);
+            if(!$row||(string)$row['status']==='closed'||!RoutingAccessService::canSeeConversation($targetManagerId,$row)){$pdo->rollBack();return false;}
+            $previous=(int)($row['manager_id']??0);
+            if($previous===$targetManagerId&&(string)$row['status']==='manager'){$pdo->commit();return true;}
+            $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);
+            $pdo->prepare('UPDATE conversations SET status=?,manager_id=? WHERE id=?')->execute(['manager',$targetManagerId,$conversationId]);
+            $pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$targetManagerId,'admin_reassign']);
+            ConversationControlService::event($conversationId,'manager_reassigned','manager',$adminId,['from_manager_id'=>$previous?:null,'to_manager_id'=>$targetManagerId]);
+            $pdo->commit();return true;
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
+    }
+
     public static function release(int $conversationId,int $managerId): bool
     {
         $pdo=ConversationDb::connection();$row=self::accessibleConversation($conversationId,$managerId);if(!$row||(int)($row['manager_id']??0)!==$managerId||(string)$row['status']!=='manager')return false;$chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?')->execute(['ai',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'manager_released','manager',$managerId);return true;
