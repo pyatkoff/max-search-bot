@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/actions/callbacks/ManagerCallbackAction.php';
 require_once dirname(__DIR__) . '/actions/callbacks/ToursCallbackAction.php';
 require_once dirname(__DIR__) . '/handlers/AiDateHandler.php';
 require_once __DIR__ . '/InteractionGuard.php';
+require_once __DIR__ . '/CallbackGeneration.php';
 
 /**
  * Shared callback controller for MAX/Telegram normalized callbacks.
@@ -14,12 +15,46 @@ require_once __DIR__ . '/InteractionGuard.php';
  */
 class CallbackController
 {
+    private const GENERATED_SURFACE_ACTIONS = ['show_tours','manager_request','edit_params'];
+
     public function handle(array $query): bool
     {
         $chatId = (int)($query['from']['id'] ?? 0);
-        $q = (string)($query['data'] ?? '');
-        if (!$chatId || $q === '') return false;
+        $raw = (string)($query['data'] ?? '');
+        if (!$chatId || $raw === '') return false;
 
+        $generated = CallbackGeneration::parse($raw);
+        if ($generated !== null) {
+            $q = (string)$generated['payload'];
+            if (!in_array($q, self::GENERATED_SURFACE_ACTIONS, true)) {
+                InteractionGuard::reportSuppressed(
+                    $chatId,
+                    $raw,
+                    'unknown_generated_action',
+                    null,
+                    null,
+                    'callback_generation',
+                    ['generation'=>(string)$generated['generation'], 'base_payload'=>$q]
+                );
+                return true;
+            }
+
+            return InteractionGuard::runGeneratedCallback(
+                $chatId,
+                $raw,
+                (string)$generated['generation'],
+                (int)MaxSearchApi::$statusCheck,
+                function () use ($chatId, $q, $query): bool {
+                    return $this->dispatch($chatId, $q, $query);
+                }
+            );
+        }
+
+        return $this->dispatch($chatId, $raw, $query);
+    }
+
+    private function dispatch(int $chatId, string $q, array $query): bool
+    {
         if (ManagerCallbackAction::handles($q)) {
             return ManagerCallbackAction::handle($chatId, $q, $query);
         }
@@ -67,6 +102,7 @@ class CallbackController
 
     public static function family(string $payload): string
     {
+        $payload = CallbackGeneration::base($payload);
         if ($payload === 'restart') return 'restart';
         if ($payload === 'back_phone') return 'phone';
         if (ManagerCallbackAction::handles($payload)) return 'manager';
