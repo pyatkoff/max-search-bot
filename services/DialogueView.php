@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ButtonFactory.php';
+require_once __DIR__ . '/CallbackGeneration.php';
 require_once __DIR__ . '/CalendarViewModel.php';
 require_once __DIR__ . '/ManagerRequestService.php';
 require_once __DIR__ . '/PostTourService.php';
@@ -135,13 +136,16 @@ class DialogueView
         $summaryData[MaxSearchApi::$statusDate] = null;
         $summary = MaxSearchApi::formatSavedData($summaryData);
         $summary = SearchDateSummary::replaceDateLine($summary, $selectedDate);
+        $generation = CallbackGeneration::token();
         $buttons = ButtonFactory::rows(
-            ButtonFactory::row(ButtonFactory::callback('🔥 Показать туры','show_tours')),
-            ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать с менеджером','manager_request')),
-            ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры','edit_params'))
+            ButtonFactory::row(ButtonFactory::callback('🔥 Показать туры',CallbackGeneration::wrap('show_tours',$generation))),
+            ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать с менеджером',CallbackGeneration::wrap('manager_request',$generation))),
+            ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры',CallbackGeneration::wrap('edit_params',$generation)))
         );
         $text = "✅ <b>Готово! Проверьте параметры</b>\n\n" . implode("\n", $summary) . "\n\nЧто удобнее дальше?";
-        return self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false);
+        $ok = self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false);
+        if ($ok) MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCheck, $generation);
+        return $ok;
     }
 
     public static function tourResults($chatId, array $model): bool

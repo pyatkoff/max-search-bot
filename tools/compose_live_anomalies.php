@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
+require_once dirname(__DIR__).'/services/CallbackGeneration.php';
+
 $inputPath=$argv[1]??'';
 if($inputPath===''||!is_file($inputPath)){
     fwrite(STDERR,"Usage: php tools/compose_live_anomalies.php <live_session_snapshot.json>\n");
@@ -19,6 +21,7 @@ function anomalyText(array $m):string{return mb_strtolower(trim((string)($m['tex
 function anomalyCustomer(array $m):bool{return ($m['direction']??'')==='inbound'&&($m['sender_type']??'customer')!=='manager';}
 function anomalyBot(array $m):bool{return ($m['direction']??'')==='outbound'&&($m['sender_type']??'')!=='manager';}
 function anomalyCallbackInput(string $text):bool{
+    $text=CallbackGeneration::base($text);
     if($text==='')return false;
     if(in_array($text,['start_search','show_tours','restart','month_click','day_click'],true))return true;
     return (bool)preg_match('/^(?:pick_|month_change_|adult_|adults_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);

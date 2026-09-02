@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/ButtonFactory.php';
 require_once __DIR__ . '/../contracts/MessengerInterface.php';
 require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
+require_once __DIR__ . '/../services/CallbackGeneration.php';
 
 class ViewTestMessenger implements MessengerInterface {
     public array $sent = [];
@@ -17,13 +18,17 @@ class ViewTestMessenger implements MessengerInterface {
     }
 }
 class MaxSearchApi {
-    public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusNights=72,$statusPhone=75,$statusAi=76;
+    public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusNights=72,$statusDate=73,$statusCheck=74,$statusPhone=75,$statusAi=76;
     public static array $statuses=[];
+    public static array $statusValues=[];
     public static int $deletes=0;
     public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
     public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];}
+    public static function saveLastValue($chatId,$status,$value){self::$statusValues[(int)$status]=(string)$value;}
     public static function getLastClaimForChat($chatId){return ['ID'=>1];}
-    public static function getSavedData($chatId){return [];}
+    public static function getSavedData($chatId){return [self::$statusDate=>'05.10.2026'];}
+    public static function formatSavedData($saved){return ['👥 Туристы: 2 взрослых','🌙 Ночей: 7'];}
+    public static function funnelLog($chatId,$event,$details=[]){return true;}
     public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}
 }
 require_once __DIR__ . '/../services/DialogueView.php';
@@ -65,6 +70,23 @@ dvCheck('manager status',MaxSearchApi::$statuses[4],[14,75]);
 
 DialogueView::managerRequest(15,'Pavel',true);
 dvCheck('manager after tours back',$m->sent[5]['back']??null,'tours_checked');
+
+DialogueView::check(16);
+$checkButtons=$m->sent[6]['buttons']??[];
+$checkPayloads=[
+    $checkButtons[0][0]['callback_data']??'',
+    $checkButtons[1][0]['callback_data']??'',
+    $checkButtons[2][0]['callback_data']??'',
+];
+$parsed=array_map(static fn(string $payload)=>CallbackGeneration::parse($payload),$checkPayloads);
+$generations=array_values(array_unique(array_map(static fn($item)=>(string)($item['generation']??''),$parsed)));
+dvCheck('final check emits three versioned callbacks',count(array_filter($parsed))===3,true);
+dvCheck('final check show tours keeps normalized action',$parsed[0]['payload']??null,'show_tours');
+dvCheck('final check manager request keeps normalized action',$parsed[1]['payload']??null,'manager_request');
+dvCheck('final check edit keeps normalized action',$parsed[2]['payload']??null,'edit_params');
+dvCheck('final check buttons share one generation',count($generations),1);
+dvCheck('final check generation is persisted on check state',MaxSearchApi::$statusValues[74]??null,$generations[0]??null);
+dvCheck('final check status remains canonical',MaxSearchApi::$statuses[count(MaxSearchApi::$statuses)-1]??null,[16,74]);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);

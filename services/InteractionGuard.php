@@ -6,8 +6,9 @@ require_once __DIR__ . '/DiagnosticLogger.php';
  * Shared callback interaction guard helpers.
  *
  * This service deliberately contains only generic interaction-safety mechanics:
- * per-chat serialization, duplicate-window checks and wizard forward-step
- * expectations. Dialogue actions keep ownership of business behavior.
+ * per-chat serialization, duplicate-window checks, one-shot callback generations
+ * and wizard forward-step expectations. Dialogue actions keep ownership of
+ * business behavior.
  */
 class InteractionGuard
 {
@@ -102,6 +103,64 @@ class InteractionGuard
         }
     }
 
+    /**
+     * Run a versioned callback exactly once for the currently rendered surface.
+     *
+     * The generation claim is persisted before the business callback executes,
+     * under the same per-chat lock. A concurrent or late retry therefore sees
+     * `used:<generation>` and is consumed as obsolete instead of repeating side
+     * effects. If a handler rejects the action before changing dialogue state,
+     * the claim is restored so the user can retry.
+     */
+    public static function runGeneratedCallback(
+        int $chatId,
+        string $rawPayload,
+        string $generation,
+        int $generationStatus,
+        callable $callback
+    ): bool {
+        return self::synchronized($chatId, 'callback_generation', function () use ($chatId, $rawPayload, $generation, $generationStatus, $callback): bool {
+            $currentGeneration = (string)MaxSearchApi::getLastValue($chatId, $generationStatus);
+            if ($currentGeneration !== $generation) {
+                self::reportSuppressed(
+                    $chatId,
+                    $rawPayload,
+                    'obsolete_generation',
+                    null,
+                    null,
+                    'callback_generation',
+                    ['generation'=>$generation, 'current_generation'=>$currentGeneration]
+                );
+                return true;
+            }
+
+            $claimedValue = 'used:' . $generation;
+            MaxSearchApi::saveLastValue($chatId, $generationStatus, $claimedValue);
+            $claimed = (string)MaxSearchApi::getLastValue($chatId, $generationStatus) === $claimedValue;
+            if (!$claimed) {
+                self::reportSuppressed(
+                    $chatId,
+                    $rawPayload,
+                    'generation_claim_failed',
+                    null,
+                    null,
+                    'callback_generation',
+                    ['generation'=>$generation]
+                );
+                return true;
+            }
+
+            $handled = (bool)$callback();
+            if (!$handled) {
+                $latest = (string)MaxSearchApi::getLastValue($chatId, $generationStatus);
+                if ($latest === $claimedValue) {
+                    MaxSearchApi::saveLastValue($chatId, $generationStatus, $generation);
+                }
+            }
+            return $handled;
+        });
+    }
+
     public static function expectedWizardStatus(string $payload): ?int
     {
         return DialogueStateMachine::expectedStatusForForwardCallback($payload);
@@ -113,12 +172,12 @@ class InteractionGuard
         string $reason,
         ?int $currentStatus = null,
         ?int $expectedStatus = null,
-        string $scope = 'wizard'
+        string $scope = 'wizard',
+        array $details = []
     ): bool {
-        $data = [
-            'reason' => $reason,
-            'scope' => $scope,
-        ];
+        $data = $details;
+        $data['reason'] = $reason;
+        $data['scope'] = $scope;
         if ($payload !== '') $data['payload'] = $payload;
         if ($currentStatus !== null) {
             $data['current_status'] = $currentStatus;
