@@ -16,8 +16,12 @@ maiCheck('migration releases assignments inconsistent with canonical conversatio
 maiCheck('migration deduplicates remaining active rows',strpos($migration,'HAVING COUNT(*)>1')!==false && strpos($migration,'a.id<>duplicates.keep_id')!==false);
 maiCheck('migration preserves one active assignment instead of deleting history',strpos($migration,'SET a.released_at=NOW()')!==false && stripos($migration,'DELETE FROM manager_assignments')===false);
 maiCheck('forward migration cleans inconsistent active assignments before adding invariant',strpos($uniqueMigration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false && strpos($uniqueMigration,'HAVING COUNT(*)>1')!==false);
-maiCheck('forward migration models only unreleased rows as active uniqueness key',strpos($uniqueMigration,'CASE WHEN released_at IS NULL THEN conversation_id ELSE NULL END')!==false);
-maiCheck('database enforces one active assignment per conversation',strpos($uniqueMigration,'UNIQUE KEY uq_manager_assignments_one_active (active_conversation_id)')!==false);
+maiCheck('compatibility guard avoids rebuilding legacy manager assignments table',strpos($uniqueMigration,'ALTER TABLE manager_assignments')===false && strpos($uniqueMigration,'CREATE TABLE IF NOT EXISTS active_manager_assignment_guards')!==false);
+maiCheck('guard primary key enforces one active assignment per conversation',strpos($uniqueMigration,'PRIMARY KEY (conversation_id)')!==false);
+maiCheck('active insert reserves guard key',strpos($uniqueMigration,'BEFORE INSERT ON manager_assignments')!==false && strpos($uniqueMigration,'WHERE NEW.released_at IS NULL')!==false);
+maiCheck('release removes guard key',strpos($uniqueMigration,'AFTER UPDATE ON manager_assignments')!==false && strpos($uniqueMigration,'NEW.released_at IS NOT NULL')!==false);
+maiCheck('delete removes guard key',strpos($uniqueMigration,'AFTER DELETE ON manager_assignments')!==false);
+maiCheck('failed migration retry is trigger-idempotent',substr_count($uniqueMigration,'DROP TRIGGER IF EXISTS')===4);
 maiCheck('forward repair preserves assignment history',stripos($uniqueMigration,'DELETE FROM manager_assignments')===false && strpos($uniqueMigration,'SET a.released_at=NOW()')!==false);
 
 $total=$passed+$failed;
