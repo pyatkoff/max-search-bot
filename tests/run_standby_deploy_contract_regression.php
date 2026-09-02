@@ -13,8 +13,9 @@ function standbyCheck(string $name,bool $ok):void{global $passed,$failed;if($ok)
 
 standbyCheck('standby has independent secrets',strpos($workflow,'STANDBY_DEPLOY_HOST')!==false&&strpos($workflow,'STANDBY_DEPLOY_USER')!==false&&strpos($workflow,'STANDBY_DEPLOY_SSH_KEY')!==false);
 standbyCheck('standby targets new app checkout',strpos($workflow,'/var/www/anytoour/data/www/app.anytoour.ru')!==false);
-standbyCheck('standby fetches github with server deploy key',strpos($workflow,'github_anytoour_deploy')!==false&&strpos($workflow,"GIT_SSH_COMMAND='ssh -i")!==false&&strpos($workflow,'git fetch git@github.com:pyatkoff/max-search-bot.git main')!==false);
-standbyCheck('standby does not depend on unauthenticated https origin fetch',strpos($workflow,'git fetch origin main')===false);
+standbyCheck('standby packages exact checkout into git bundle',strpos($workflow,'Checkout exact deployment SHA')!==false&&strpos($workflow,'git bundle create "$RUNNER_TEMP/canonical-deploy.bundle" HEAD')!==false&&strpos($workflow,'git bundle verify "$RUNNER_TEMP/canonical-deploy.bundle"')!==false);
+standbyCheck('standby transfers bundle over deployment ssh',strpos($workflow,'scp "${ssh_opts[@]}" "$bundle_file"')!==false&&strpos($workflow,'git fetch \'$remote_bundle\' HEAD')!==false);
+standbyCheck('standby does not depend on server github credentials',strpos($workflow,'git@github.com')===false&&strpos($workflow,'github_anytoour_deploy')===false&&strpos($workflow,'git fetch origin main')===false);
 standbyCheck('standby binds deploy to workflow sha',strpos($workflow,'EXPECTED_SHA: ${{ github.sha }}')!==false&&strpos($workflow,"git cat-file -e '\$EXPECTED_SHA^{commit}'")!==false&&strpos($workflow,"git reset --hard '\$EXPECTED_SHA'")!==false);
 standbyCheck('standby does not race against moving origin main',strpos($workflow,'git reset --hard origin/main')===false);
 standbyCheck('standby verifies resulting exact sha',strpos($workflow,'git rev-parse HEAD')!==false&&strpos($workflow,"= '\$EXPECTED_SHA'")!==false);
