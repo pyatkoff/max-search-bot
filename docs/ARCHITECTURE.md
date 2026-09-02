@@ -176,6 +176,55 @@ Prefer structured events with stable correlation identifiers:
 
 Diagnostics should explain lifecycle and failures without requiring reconstruction from multiple unrelated text logs. Keep live evidence bounded and avoid unnecessary personal data/secrets.
 
+## Explicit repository convergence map
+
+This map is intentionally conservative. It describes the expected destination of current repository areas; it is not permission for a bulk move or deletion. Every move/delete still requires behavior coverage, switched callers and production verification.
+
+### Keep
+
+- `handlers/`: keep as transport/interface normalization boundaries; business/state rules should continue moving inward.
+- `actions/` and `actions/callbacks/`: keep as thin application entry/use-case orchestration while extracting reusable business rules to services/domain owners.
+- `services/`: keep as the main incremental application/domain boundary; split only when an owner becomes clearer, not to satisfy folder aesthetics.
+- `contracts/` and `integrations/`: keep as explicit external-system boundaries.
+- `migrations/`: keep as the only production schema mutation path; applied migrations remain immutable.
+- `tests/` and `tests/live_regressions/`: keep; favor behavior/scenario coverage over source-format assertions.
+- `manager/assets/workspace-v2-*.js` and `workspace-v2-*.css`: keep the module split and continue assigning one UI responsibility per module.
+- `tools/` and production diagnostic workflows: keep as bounded operational interfaces, with structured/redacted evidence.
+- `services/TourSearchHandoffService.php`: keep as the single normalization owner for MAX/dialogue/claim → canonical tour-search query handoff.
+
+### Merge / consolidate ownership
+
+- callback validity, debounce, stale-interaction and future generation checks → `InteractionGuard` + `DialogueStateMachine`; do not add new per-callback guard implementations.
+- deterministic field parsing → `NeedValueResolver`; value mutation/next-field choice → `NeedApplicationService`.
+- manager endpoint auth, CSRF, visibility and JSON error semantics → shared manager HTTP/auth helpers rather than endpoint-local copies.
+- handoff availability/presentation/fallback rules → one handoff application policy/service path shared by AI, callbacks and manager-facing diagnostics.
+- sales-stage/tag/outcome/task mutations → their existing pipeline/task services; UI modules remain transport/presentation clients only.
+- tour-search URL field normalization → `TourSearchHandoffService`; `ProjectConfig` may expose compatibility methods but must not regain mapping/business logic.
+
+### Move incrementally when touched
+
+- business/state decisions still embedded in `handlers/` → application services/actions after regression coverage.
+- direct SQL writes in mixed orchestration/services → focused repositories/infrastructure adapters, one business owner per mutation.
+- authorization/validation repeated in `manager/*.php` endpoints → centralized manager request guard/validator helpers.
+- remaining large Workspace V2 rendering/network/task/pipeline concerns in PHP or broad JS modules → focused inbox/conversation/lead-card/pipeline/media/notification modules.
+- legacy orchestration methods in `maxsearchbaseclass.php` / `maxsearchclass.php` → canonical services only when a concrete responsibility has a tested replacement.
+- root/cron diagnostic assembly that duplicates lifecycle rules → read-only diagnostic/application services with root scripts left as thin interfaces.
+
+### Delete only after callers are proven gone
+
+- duplicate parser/state/handoff implementations superseded by canonical owners.
+- dead compatibility methods after repository-wide caller search plus required regression confirms no remaining use.
+- obsolete Workspace V2 inline CSS/JS after equivalent asset modules are loaded and visual QA is green.
+- legacy manager workspace surfaces only after V2 feature parity, production usage and rollback confidence are established; `manager/index.php` is not a current deletion candidate.
+- old transport/domain-specific branches only after messenger-neutral adapters and production evidence cover the same behavior.
+
+### Never merge conceptually
+
+- technical conversation state (`ai`, `waiting_manager`, `manager`, `closed`) with business sales stage/outcome.
+- operator-controlled `is_working` with technical reachability/push subscription health.
+- UI presentation state with routing eligibility or handoff policy.
+- analytics/diagnostic observations with mutation logic.
+
 ## Refactoring rule
 
 No big-bang rewrite. When touching an area for product work:
