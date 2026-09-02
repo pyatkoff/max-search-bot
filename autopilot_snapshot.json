@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T22:19:09+00:00",
+    "generated_at": "2026-09-02T22:26:03+00:00",
     "production": {
-        "sha": "c07c435d5ae3a2244c7bf761337ba763d8cf9822",
+        "sha": "58873f6f7d3526dde0d486a56ee6397f67673c26",
         "branch": "main"
     },
     "migrations": {
@@ -158,7 +158,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 21:18:57",
+        "since_utc": "2026-09-02 21:25:52",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -213,7 +213,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "c07c435d5ae3a2244c7bf761337ba763d8cf9822",
+        "sha": "58873f6f7d3526dde0d486a56ee6397f67673c26",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -222,7 +222,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T22:19:09Z"
+        "reported_at": "2026-09-02T22:26:03Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -278,7 +278,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T22:19:08+00:00",
+        "generated_at": "2026-09-02T22:26:03+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -287,13 +287,13 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 24601,
-                "code_lines": 593
+                "bytes": 24218,
+                "code_lines": 584
             },
             "services": {
                 "files": 137,
-                "bytes": 540571,
-                "code_lines": 11543
+                "bytes": 542723,
+                "code_lines": 11596
             },
             "integrations": {
                 "files": 11,
@@ -322,8 +322,8 @@
             },
             "tests": {
                 "files": 173,
-                "bytes": 758063,
-                "code_lines": 8689
+                "bytes": 761316,
+                "code_lines": 8728
             },
             "tools": {
                 "files": 36,
@@ -333,15 +333,27 @@
         },
         "hotspots": [
             {
+                "path": "services/InteractionGuard.php",
+                "lines": 262,
+                "bytes": 9988,
+                "severity": "observe"
+            },
+            {
                 "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 256,
-                "bytes": 11722,
+                "lines": 247,
+                "bytes": 11339,
                 "severity": "observe"
             },
             {
                 "path": "services/DialogueView.php",
                 "lines": 237,
                 "bytes": 13468,
+                "severity": "observe"
+            },
+            {
+                "path": "tests/run_callback_controller_regression.php",
+                "lines": 230,
+                "bytes": 17411,
                 "severity": "observe"
             },
             {
@@ -363,12 +375,6 @@
                 "severity": "observe"
             },
             {
-                "path": "services/InteractionGuard.php",
-                "lines": 209,
-                "bytes": 7836,
-                "severity": "observe"
-            },
-            {
                 "path": "handlers/StateMessageHandler.php",
                 "lines": 199,
                 "bytes": 9673,
@@ -384,12 +390,6 @@
                 "path": "manager/assets/pipeline-admin.js",
                 "lines": 198,
                 "bytes": 13682,
-                "severity": "observe"
-            },
-            {
-                "path": "services/TripStateService.php",
-                "lines": 198,
-                "bytes": 8447,
                 "severity": "observe"
             }
         ],
