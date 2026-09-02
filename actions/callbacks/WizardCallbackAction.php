@@ -27,30 +27,21 @@ class WizardCallbackAction
 
     private static function handleDateSelection(int $chatId, string $q): bool
     {
-        $fp = @fopen(self::callbackLockPath($chatId), 'c+');
-
-        if (!$fp || !flock($fp, LOCK_EX)) {
-            if ($fp) fclose($fp);
-            InteractionGuard::reportSuppressed($chatId, $q, 'concurrent', null, (int)MaxSearchApi::$statusDate, 'date_selection');
-            return true;
-        }
-
-        try {
-            $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
-            if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
-                InteractionGuard::reportSuppressed($chatId, $q, 'stale_state', $currentStatus, (int)MaxSearchApi::$statusDate, 'date_selection');
-                if (function_exists('put_log_in')) put_log_in('STALE_DATE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
+        return InteractionGuard::runExpectedStatusCallback(
+            $chatId,
+            $q,
+            'date_selection',
+            (int)MaxSearchApi::$statusDate,
+            static function () use ($chatId, $q): bool {
+                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
+                if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
+                DialogueView::check($chatId);
                 return true;
+            },
+            static function (int $currentStatus) use ($chatId, $q): void {
+                if (function_exists('put_log_in')) put_log_in('STALE_DATE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
             }
-
-            MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
-            if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
-            DialogueView::check($chatId);
-            return true;
-        } finally {
-            flock($fp, LOCK_UN);
-            fclose($fp);
-        }
+        );
     }
 
     public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 10.0): bool
