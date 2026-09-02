@@ -1,20 +1,20 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T14:31:58+00:00",
+    "generated_at": "2026-09-02T14:33:58+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 6,
-        "raw_sessions": 6,
+        "sessions": 7,
+        "raw_sessions": 7,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 6,
+            "resolved": 7,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 6,
+        "started": 7,
         "needs_collected": 5,
         "tours_opened": 5,
         "site_opened": 0,
@@ -34,7 +34,7 @@
         },
         "drop_points": {
             "manager_replied": 3,
-            "collecting_needs": 1,
+            "collecting_needs": 2,
             "tours_opened": 1,
             "customer_replied_after_manager": 1
         },
@@ -394,7 +394,44 @@
                     "created_at": "2026-09-02 14:28:25"
                 }
             ]
+        },
+        {
+            "conversation_id": 740,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 6,
+            "outbound_messages": 6,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 6,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-09-02 14:32:31",
+            "last_message_at": "2026-09-02 14:33:51"
         }
     ],
-    "since_utc": "2026-09-02 13:31:58"
+    "since_utc": "2026-09-02 13:33:58"
 }
