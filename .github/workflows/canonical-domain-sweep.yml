@@ -1,0 +1,81 @@
+name: Canonical domain sweep
+
+on:
+  push:
+    branches: [fix/remove-anytour-online-v2]
+    paths:
+      - '.github/workflows/canonical-domain-sweep.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/remove-anytour-online-v2
+          fetch-depth: 0
+
+      - name: Replace retired host references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          old = 'anytour' + '.online'
+          replacements = [
+              (f'/var/www/545v0023442/data/www/{old}/max-search', '/var/www/anytoour/data/www/app.anytoour.ru'),
+              (f'~/www/{old}/max-search', '/var/www/anytoour/data/www/app.anytoour.ru'),
+              (f'www/{old}/max-search', '/var/www/anytoour/data/www/app.anytoour.ru'),
+              (f'https://www.{old}/max-search/', 'https://app.anytoour.ru/'),
+              (f'https://{old}/max-search/', 'https://app.anytoour.ru/'),
+              (f'https://www.{old}', 'https://www.anytoour.ru'),
+              (f'admin@{old}', 'admin@anytoour.ru'),
+              (f'https://{old}', 'https://app.anytoour.ru'),
+              (old, 'app.anytoour.ru'),
+          ]
+          files = subprocess.check_output(['git','ls-files','-z']).split(b'\0')
+          changed = []
+          for raw in files:
+              if not raw:
+                  continue
+              path = Path(raw.decode())
+              try:
+                  data = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  continue
+              new = data
+              for before, after in replacements:
+                  new = new.replace(before, after)
+              if new != data:
+                  path.write_text(new, encoding='utf-8')
+                  changed.append(str(path))
+          print(f'CHANGED_FILES={len(changed)}')
+          for path in changed:
+              print(path)
+          PY
+
+          retired="anytour.online"
+          if git grep -n -F "$retired" -- .; then
+            echo 'Retired host remains in tracked source' >&2
+            exit 1
+          fi
+
+      - name: Commit sweep
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'No domain replacements required'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Remove retired domain references'
+          git push origin HEAD:fix/remove-anytour-online-v2
