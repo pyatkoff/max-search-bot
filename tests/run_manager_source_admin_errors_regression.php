@@ -31,6 +31,9 @@ sourceCheck('routing UI maps backend source failures to specific messages',strpo
 $sourceResetOwnsFields=strpos($routingJs,'function resetSourceForm()')!==false&&strpos($routingJs,"$('sourceId').value='';$('sourceKey').value='';$('sourceName').value='';")!==false;
 $successUsesReset=preg_match('/if\(j\.ok\)\{resetSourceForm\(\);sourceStatus\(\'Источник сохранён\.\',\'success\'\);await load\(\)\}/s',$routingJs)===1;
 sourceCheck('failed source save preserves form instead of clearing it',$sourceResetOwnsFields&&$successUsesReset&&strpos($routingJs,'else{sourceStatus(sourceErrorText(j.error))')!==false);
+sourceCheck('routing editors track independent in-flight saves',strpos($routingJs,"saving:{group:false,source:false}")!==false&&strpos($routingJs,'function editorBusy(kind)')!==false&&strpos($routingJs,'function setFormSaving(kind,saving)')!==false);
+sourceCheck('group editor cannot switch or cancel while its save is in flight',strpos($routingJs,"window.editGroup=id=>{if(editorBusy('group'))return;")!==false&&strpos($routingJs,"cancelGroupEdit').onclick=()=>{if(editorBusy('group'))return;resetGroupForm()}")!==false&&strpos($routingJs,"setFormSaving('group',true)")!==false&&strpos($routingJs,"setFormSaving('group',false)")!==false);
+sourceCheck('source editor cannot switch or cancel while its save is in flight',strpos($routingJs,"window.editSource=id=>{if(editorBusy('source'))return;")!==false&&strpos($routingJs,"cancelSourceEdit').onclick=()=>{if(editorBusy('source'))return;resetSourceForm()}")!==false&&strpos($routingJs,"setFormSaving('source',true)")!==false&&strpos($routingJs,"setFormSaving('source',false)")!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
