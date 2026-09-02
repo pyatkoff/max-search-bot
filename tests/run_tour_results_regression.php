@@ -44,19 +44,19 @@ ProjectConfig::resetForTests(['messenger'=>['channel_offer'=>[
     'telegram_url'=>'https://t.me/Any_tour_bot?startapp={yclid}',
     'max_url'=>'https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}',
 ]]]);
-$external=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'']);
-trCheck('external source sees both channels',count($external['buttons']),2);
-trCheck('MAX offer preserves yclid and region',$external['buttons'][0][0]['url'],'https://max.ru/id9704048781_2_bot?startapp=123456_region_7');
-trCheck('Telegram offer preserves yclid',$external['buttons'][1][0]['url'],'https://t.me/Any_tour_bot?startapp=123456');
-$fromMax=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'max_1']);
-trCheck('MAX source is not offered MAX again',count($fromMax['buttons']),1);
-trCheck('MAX source gets Telegram',$fromMax['buttons'][0][0]['text'],'Подписаться в Telegram');
-$fromTg=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'telegram_anytour']);
-trCheck('Telegram source is not offered Telegram again',count($fromTg['buttons']),1);
-trCheck('Telegram source gets MAX',$fromTg['buttons'][0][0]['text'],'Подписаться в MAX');
-trCheck('TG short source recognized',ChannelOfferService::entryFamily('tg_main'),'telegram');
-trCheck('unknown source remains external',ChannelOfferService::entryFamily('yandex_direct'),'');
-trCheck('offer copy',$external['text'],'А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥');
+$unknown=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'']);
+trCheck('unknown source sees both channels',count($unknown['buttons']),2);
+trCheck('MAX offer preserves yclid and region',$unknown['buttons'][0][0]['url'],'https://max.ru/id9704048781_2_bot?startapp=123456_region_7');
+trCheck('Telegram offer preserves yclid',$unknown['buttons'][1][0]['url'],'https://t.me/Any_tour_bot?startapp=123456');
+$maxTransport=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'max_paid_yandex']);
+trCheck('MAX transport alone does not suppress promo',count($maxTransport['buttons']),2);
+$tgTransport=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'telegram_paid_yandex']);
+trCheck('Telegram transport alone does not suppress promo',count($tgTransport['buttons']),2);
+$suppressed=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'max_anytour_msk'],'',true);
+trCheck('explicit source policy suppresses all channel buttons',count($suppressed['buttons']),0);
+trCheck('suppressed model records source key',$suppressed['source_key'],'max_anytour_msk');
+trCheck('suppressed model records policy',$suppressed['suppressed'],true);
+trCheck('offer copy',$unknown['text'],'А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥');
 
 ProjectConfig::resetForTests(['search'=>['base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/']]);
 $savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6',17=>5,18=>3],[
