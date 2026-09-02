@@ -29,11 +29,15 @@ tmCheck('opening another task editor cannot discard an existing dirty draft',str
 tmCheck('task dirty state is retained as an explicit form-owned draft flag',strpos($tasks,'form._taskEditDirty=dirty')!==false&&strpos($tasks,'form._taskEditIsDirty=()=>!!form._taskEditDirty')!==false);
 tmCheck('task completion cannot discard an unsaved editor draft',strpos($tasks,'function blockForDirtyDraft(root=document)')!==false&&strpos($tasks,'if(blockForDirtyDraft(root)){el.checked=!wanted;return}')!==false);
 tmCheck('task pinning cannot discard an unsaved editor draft',strpos($tasks,"root.querySelectorAll('[data-task-pin]')")!==false&&strpos($tasks,'if(blockForDirtyDraft(root))return;const wanted=el.dataset.pinned')!==false);
-tmCheck('dirty mutation guard reuses the task editor warning and focus path',strpos($tasks,'form._taskEditWarn?.();form.querySelector(\'[data-task-edit-title]\')?.focus();return true')!==false);
-tmCheck('task module exposes one navigation guard for dirty task drafts',strpos($tasks,'blockNavigationForDirtyDraft(){return blockForDirtyDraft(document)}')!==false&&strpos($tasks,'function dirtyTaskEditDraft(root=document)')!==false);
+tmCheck('dirty mutation guard reuses the task editor warning and focus path',strpos($tasks,"form._taskEditWarn?.();form.querySelector('[data-task-edit-title]')?.focus();return true")!==false);
+tmCheck('new task title or deadline is treated as a dirty task draft',strpos($tasks,'function dirtyTaskCreateDraft(root=document)')!==false&&strpos($tasks,"String(title?.value||'').trim()!==''||String(due?.value||'')!==''")!==false);
+tmCheck('dirty new task draft warns instead of disappearing',strpos($tasks,'Добавьте задачу или очистите черновик')!==false&&strpos($tasks,"status.className='taskCreateStatus dirty'")!==false&&strpos($css,'.taskCreateStatus.dirty')!==false);
+tmCheck('dirty new task draft focuses the task title for recovery',strpos($tasks,"create.querySelector('#leadTaskTitle')?.focus();return true")!==false);
+tmCheck('task module exposes one navigation guard for dirty task drafts',strpos($tasks,'blockNavigationForDirtyDraft(){return blockForDirtyDraft(document)}')!==false&&strpos($tasks,'function dirtyTaskEditDraft(root=document)')!==false&&strpos($tasks,'function dirtyTaskCreateDraft(root=document)')!==false);
 tmCheck('lead switching asks task owner before changing conversation',strpos($conversation,'if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;')!==false);
 tmCheck('same-lead refresh does not trigger dirty task navigation guard',strpos($conversation,"const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;")!==false&&strpos($conversation,'if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;')!==false);
 tmCheck('dirty task navigation guard runs before open generation changes',strpos($conversation,'blockNavigationForDirtyDraft?.())return false;')<strpos($conversation,'const seq=++openSeq;'));
+tmCheck('new task draft warning clears when the draft is edited',strpos($tasks,"titleEl.addEventListener('input',()=>setStatus())")!==false&&strpos($tasks,"dueEl.addEventListener('change',()=>setStatus())")!==false);
 tmCheck('task mutation UX does not alter technical conversation state',strpos($tasks,'set_status')===false&&strpos($lead,"pipe('set_status'")===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
