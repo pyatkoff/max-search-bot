@@ -64,7 +64,7 @@ Every fixed conversational bug should ideally become a regression case so the sa
 Production checkout:
 
 ```text
-/var/www/545v0023442/data/www/anytour.online/max-search
+/var/www/anytoour/data/www/app.anytoour.ru
 ```
 
 `.github/workflows/deploy.yml` connects to production over a dedicated SSH key after pushes to `main`, updates the checkout, performs a syntax check, runs conversation regression and refreshes diagnostics.

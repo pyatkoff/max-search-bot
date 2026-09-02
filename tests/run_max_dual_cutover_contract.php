@@ -5,7 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../integrations/MaxWebhookHealth.php';
 
 $expected = 'https://app.anytoour.ru/webhook.php';
-$legacy = 'https://anytour.online/max-search/webhook.php';
+$legacy = 'https://app.anytoour.ru/webhook.php';
 
 $result = MaxWebhookHealth::evaluate([
     'http' => 200,

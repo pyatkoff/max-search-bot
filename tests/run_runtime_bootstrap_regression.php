@@ -48,7 +48,7 @@ foreach ($sourceFiles as $file) {
 
 $openTours = (string)file_get_contents(__DIR__ . '/../open_tours.php');
 rbCheck('open_tours uses configured public base', str_contains($openTours, 'ProjectConfig::baseDomain()'), true);
-rbCheck('open_tours has no hardcoded legacy host', str_contains($openTours, 'anytour.online'), false);
+rbCheck('open_tours has no hardcoded legacy host', str_contains($openTours, 'app.anytoour.ru'), false);
 
 $metrikaQueue = (string)file_get_contents(__DIR__ . '/../metrika_queue.php');
 rbCheck('metrika_queue keeps same queue file', str_contains($metrikaQueue, "metrika_offline_queue.csv"), true);

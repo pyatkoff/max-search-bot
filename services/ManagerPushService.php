@@ -29,7 +29,7 @@ class ManagerPushService
         $d=openssl_pkey_get_details($key); $ec=(array)($d['ec']??[]);
         $x=(string)($ec['x']??''); $y=(string)($ec['y']??'');
         if(strlen($x)!==32||strlen($y)!==32) throw new RuntimeException('invalid_vapid_key');
-        $cfg=['private_pem'=>$pem,'public_key'=>self::b64u("\x04".$x.$y),'subject'=>'mailto:admin@anytour.online'];
+        $cfg=['private_pem'=>$pem,'public_key'=>self::b64u("\x04".$x.$y),'subject'=>'mailto:admin@anytoour.ru'];
         $tmp=$path.'.tmp.'.bin2hex(random_bytes(4));
         file_put_contents($tmp,"<?php\nreturn ".var_export($cfg,true).";\n",LOCK_EX); @chmod($tmp,0600); rename($tmp,$path);
         return $cfg;

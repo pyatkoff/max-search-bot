@@ -14,14 +14,14 @@ $check = function (bool $ok, string $message) use (&$failures): void {
 $policy = new WebsiteOriginPolicy([
     'https://anytour.com',
     'https://www.anytour.com',
-    'https://anytour.online',
+    'https://app.anytoour.ru',
     'https://anytoour.ru',
     'https://www.anytoour.ru',
 ]);
 
 $check($policy->isAllowed('https://anytour.com'), 'main AnyTour origin is allowed');
 $check($policy->isAllowed('https://www.anytour.com/'), 'allowed origin normalization removes trailing slash');
-$check($policy->isAllowed('https://anytour.online'), 'production host origin is allowed');
+$check($policy->isAllowed('https://app.anytoour.ru'), 'production host origin is allowed');
 $check($policy->isAllowed('https://anytoour.ru'), 'Anytoour origin is allowed');
 $check($policy->isAllowed('https://www.anytoour.ru/'), 'Anytoour www origin is allowed');
 $check($policy->isAllowed('') && $policy->isAllowed(null), 'same-origin requests without Origin remain allowed');

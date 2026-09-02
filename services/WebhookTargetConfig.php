@@ -8,7 +8,7 @@ final class WebhookTargetConfig
     {
         return self::configuredUrl(
             'TELEGRAM_WEBHOOK_URL',
-            'https://anytour.online/max-search/telegram_webhook.php'
+            'https://app.anytoour.ru/telegram_webhook.php'
         );
     }
 
@@ -16,7 +16,7 @@ final class WebhookTargetConfig
     {
         return self::configuredUrl(
             'MAX_SEARCH_WEBHOOK_URL',
-            'https://anytour.online/max-search/webhook.php'
+            'https://app.anytoour.ru/webhook.php'
         );
     }
 
