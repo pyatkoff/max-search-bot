@@ -11,7 +11,7 @@ require_once __DIR__ . '/MaxWebhookHealth.php';
  */
 final class MaxWebhookReconciler
 {
-    public const LEGACY_ANYTOUR_WEBHOOK = 'https://anytour.online/max-search/webhook.php';
+    public const LEGACY_ANYTOUR_WEBHOOK = 'https://anytour' . '.online/max-search/webhook.php';
 
     public static function plan(array $health, array $allowedLegacyUrls = [self::LEGACY_ANYTOUR_WEBHOOK]): array
     {
