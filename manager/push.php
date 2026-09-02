@@ -3,6 +3,8 @@ $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerPushService.php';
+require_once $baseDir.'/services/ConversationDb.php';
+require_once $baseDir.'/services/ManagerPushHealth.php';
 
 ManagerHttp::startJson();
 ManagerHttp::requireManager();
@@ -20,7 +22,11 @@ try{
             (array)($data['subscription']??[]),
             (string)($_SERVER['HTTP_USER_AGENT']??'')
         );
-        ManagerHttp::respond(['ok'=>$ok]);
+        if(!$ok){
+            ManagerHttp::respond(['ok'=>false],409);
+        }
+        $pushStatus=ManagerPushHealth::statusForManager(ConversationDb::connection(),$managerId);
+        ManagerHttp::respond(['ok'=>true,'push_status'=>$pushStatus]);
     }
     ManagerHttp::respond(['ok'=>false,'error'=>'unknown_action'],400);
 }catch(Throwable $e){
