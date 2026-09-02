@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T18:13:30+00:00",
+    "generated_at": "2026-09-02T18:23:11+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -19,23 +19,23 @@
         "tours_opened": 70,
         "site_opened": 1,
         "post_tour_manager_cta_shown": 22,
-        "manager_requested": 15,
-        "manager_replied": 15,
+        "manager_requested": 16,
+        "manager_replied": 16,
         "customer_replied_after_manager": 5,
         "phone_received": 2,
         "flagged_sessions": 34,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 4,
-            "still_unanswered": 11,
+            "still_unanswered": 12,
             "measured_responses": 4,
             "avg_seconds": 20472,
             "max_seconds": 40781
         },
         "drop_points": {
-            "tours_opened": 54,
+            "tours_opened": 53,
             "collecting_needs": 17,
-            "manager_replied": 10,
+            "manager_replied": 11,
             "customer_replied_after_manager": 5,
             "needs_collected": 3,
             "site_open": 1
@@ -52,7 +52,7 @@
             "site_opened": 1,
             "post_tour_manager_cta_shown": 19,
             "manager_requested": 1,
-            "manager_replied": 12,
+            "manager_replied": 13,
             "customer_replied_after_manager": 4
         }
     },
@@ -7509,7 +7509,7 @@
             "source_id": 1,
             "source_resolved": true,
             "channel": "max",
-            "status": "ai",
+            "status": "manager",
             "is_test": false,
             "test_source": "",
             "test_reason": "",
@@ -7520,53 +7520,29 @@
             "site_opened_at": null,
             "post_tour_manager_cta_shown": false,
             "post_tour_manager_cta_at": null,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
+            "manager_requested": true,
+            "manager_request_active": true,
+            "manager_replied": true,
             "customer_replied_after_manager": false,
             "manager_request_at": null,
-            "manager_first_reply_at": null,
+            "manager_first_reply_at": "2026-09-02 18:16:41",
             "customer_first_reply_after_manager_at": null,
             "manager_response_seconds": null,
             "customer_reply_after_manager_seconds": null,
-            "manager_response_bucket": null,
+            "manager_response_bucket": "still_unanswered",
             "phone_received": false,
-            "inbound_messages": 22,
-            "outbound_messages": 23,
+            "inbound_messages": 23,
+            "outbound_messages": 26,
             "date_picks": 1,
-            "anomaly_inbound_messages": 22,
-            "drop_point": "tours_opened",
+            "anomaly_inbound_messages": 23,
+            "drop_point": "manager_replied",
             "flags": [
                 "repeated_callback_input",
                 "excessive_turns"
             ],
             "started_at": "2026-09-02 18:06:20",
-            "last_message_at": "2026-09-02 18:11:58",
+            "last_message_at": "2026-09-02 18:16:41",
             "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-                    "created_at": "2026-09-02 18:09:16"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-                    "created_at": "2026-09-02 18:09:20"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-09-02 18:10:11"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "start_search",
-                    "created_at": "2026-09-02 18:10:34"
-                },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
@@ -7686,6 +7662,30 @@
                     "sender_type": "ai",
                     "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
                     "created_at": "2026-09-02 18:11:58"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 18:14:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
+                    "created_at": "2026-09-02 18:14:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
+                    "created_at": "2026-09-02 18:14:07"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Добрый вечер! 🤍 Меня зовут Светлана, я менеджер туристического агентства AnyTour. Получила Ваш запрос на подбор тура и подготовила варианты, которые можем предложить вам уже сейчас. Отправляю их ниже 👇 23.09, 10н, Lemon &amp; Soul Makadi Garden 3*, AI - Все Включено, 178 004 R...",
+                    "created_at": "2026-09-02 18:16:41"
                 }
             ]
         }
