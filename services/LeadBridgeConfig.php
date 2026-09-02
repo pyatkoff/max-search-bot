@@ -12,7 +12,7 @@ require_once dirname(__DIR__) . '/integrations/MaxCredentialProvider.php';
  */
 final class LeadBridgeConfig
 {
-    private const DEFAULT_RECEIVER_URL = 'https://anytour.online/max-search/lead-receiver.php';
+    private const DEFAULT_RECEIVER_URL = 'https://app.anytoour.ru/lead-receiver.php';
     private const KEY_CONTEXT = 'max-search-lead-bridge-v1';
 
     public static function receiverUrl(): string

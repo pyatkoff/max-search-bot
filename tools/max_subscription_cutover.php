@@ -10,7 +10,7 @@ require_once $root . '/services/WebhookTargetConfig.php';
 require_once $root . '/services/MaxTlsConfig.php';
 
 $mode = (string)($argv[1] ?? '--status');
-$oldUrl = 'https://anytour.online/max-search/webhook.php';
+$oldUrl = 'https://app.anytoour.ru/webhook.php';
 $newUrl = WebhookTargetConfig::max();
 $api = 'https://platform-api2.max.ru';
 $token = defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '';
