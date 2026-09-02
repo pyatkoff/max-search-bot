@@ -8,9 +8,11 @@ $core=(string)file_get_contents($root.'/manager/assets/workspace-v2.js');
 $js=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.js');
 $filters=(string)file_get_contents($root.'/manager/assets/workspace-v2-filters.js');
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
+$bootstrap=(string)file_get_contents($root.'/manager/assets/workspace-v2-bootstrap.js');
 $pipelineApi=(string)file_get_contents($root.'/manager/pipeline-api.php');
 $filterService=(string)file_get_contents($root.'/services/ManagerWorkspaceFilterService.php');
 $leadInbox=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
+$conversationService=(string)file_get_contents($root.'/services/ManagerConversationService.php');
 $sourceHandling=(string)file_get_contents($root.'/services/SourceHandlingService.php');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-inbox.css');
 $passed=0;$failed=0;
@@ -47,8 +49,11 @@ inboxCheck('ordinary open outcome is not rendered as permanent visual noise',str
 inboxCheck('inbox refresh still preserves scroll after stability fix',strpos($js,'scrollTop=box.scrollTop')!==false&&strpos($js,'if(preserveScroll)box.scrollTop=scrollTop')!==false);
 inboxCheck('waiting leads auto-refresh while workspace stays open',strpos($js,'const AUTO_REFRESH_MS=15000')!==false&&strpos($js,'setInterval(()=>autoRefresh(false),AUTO_REFRESH_MS)')!==false&&strpos($js,'load({preserveScroll:true})')!==false);
 inboxCheck('auto-refresh resumes immediately after returning to workspace without polling hidden tabs',strpos($js,"document.visibilityState==='hidden'")!==false&&strpos($js,"document.addEventListener('visibilitychange'")!==false&&strpos($js,"window.addEventListener('focus'")!==false&&strpos($js,"document.visibilityState==='visible'")!==false);
+inboxCheck('manager-request queue is exposed before inbox binding',strpos($bootstrap,'ensureManagerRequestQueue')!==false&&strpos($bootstrap,'data-q="requested"')===false&&strpos($bootstrap,"button.dataset.q='requested'")!==false&&strpos($bootstrap,"button.textContent='Запросили менеджера'")!==false&&strpos($bootstrap,'ensureManagerRequestQueue();window.WorkspaceV2?.boot()')!==false);
+inboxCheck('manager-request queue reuses canonical waiting_manager lifecycle event',strpos($conversationService,"elseif(\$queue==='requested')")!==false&&strpos($conversationService,"self::latestManagerRequestSql('c').' IS NOT NULL'")!==false&&strpos($conversationService,"event_type='waiting_manager'")!==false);
+inboxCheck('manager-request queue preserves non-admin ownership visibility and newest-request ordering',strpos($conversationService,"if(!\$isAdmin){\$where[]='(c.manager_id IS NULL OR c.manager_id=?)';\$args[]=\$managerId;}")!==false&&strpos($conversationService,"\$queue==='requested'?'manager_request_at DESC'")!==false);
 inboxCheck('mobile inbox has dedicated compact treatment',strpos($css,'@media(max-width:520px)')!==false&&strpos($css,'.inboxSearchRow')!==false&&strpos($css,'.filtersToggle:before')!==false&&strpos($css,'.leadPrimary')!==false);
-inboxCheck('redesign does not mutate shifts metrika or routing bonuses',stripos($js.$filters.$pipeline.$pipelineApi.$filterService.$leadInbox.$css,'set_working')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$css,'metrika')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$css,'yclid')===false&&stripos($filterService.$leadInbox,'bonus')===false);
+inboxCheck('redesign does not mutate shifts metrika or routing bonuses',stripos($js.$filters.$pipeline.$pipelineApi.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'set_working')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'metrika')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'yclid')===false&&stripos($filterService.$leadInbox.$conversationService,'bonus')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

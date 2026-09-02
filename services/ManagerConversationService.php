@@ -54,6 +54,10 @@ class ManagerConversationService
             $where[]="((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')';
             if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
         }
+        elseif($queue==='requested'){
+            $where[]=self::latestManagerRequestSql('c').' IS NOT NULL';
+            if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+        }
         elseif($queue==='mine'){$where[]='c.status=?';$args[]='manager';$where[]='c.manager_id=?';$args[]=$managerId;}
         elseif($queue==='closed'){$where[]='c.status=?';$args[]='closed';}
         else{
@@ -83,7 +87,7 @@ class ManagerConversationService
             .'(SELECT mm.direction FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_direction,'
             .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
             .'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE '.implode(' AND ',$where)
-            .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':'COALESCE(c.last_message_at,c.started_at) DESC').' LIMIT 200';
+            .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':'COALESCE(c.last_message_at,c.started_at) DESC')).' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
         $rows=SalesPipelineService::decorateConversationRows($rows);
