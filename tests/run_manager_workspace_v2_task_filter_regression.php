@@ -45,20 +45,22 @@ tfCheck('catalog reconciliation does not clear task or search filters',strpos($f
 tfCheck('clear filters also clears restored search state',strpos($filters,"S.leadTaskFilter='';S.leadSearch='';render();saveFilterState()")!==false);
 tfCheck('open leads without a task are visible in the inbox row',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false&&strpos($inbox,'Следующее действие не назначено')!==false&&strpos($inbox,'＋ Без задачи')!==false);
 tfCheck('closed outcomes do not get a false missing-task signal',strpos($inbox,"taskMissing=!taskTitle&&outcome==='open'")!==false);
+tfCheck('no-task projection filter rejects closed outcomes',strpos($projection,"if(\$taskFilter==='none'&&(\$hasTask||(string)(\$row['lead_outcome']??'open')!=='open'))return false")!==false);
 $rows=[
  ['id'=>1,'lead_outcome'=>'open','next_task_title'=>'Позвонить','next_task_overdue'=>1,'next_task_pinned'=>0,'next_task_due_state'=>'overdue','open_task_count'=>1,'operational_task_due_state'=>'overdue','operational_task_rank'=>0],
  ['id'=>2,'lead_outcome'=>'open','next_task_title'=>'Отправить варианты','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','open_task_count'=>1,'operational_task_due_state'=>'upcoming','operational_task_rank'=>2],
  ['id'=>3,'lead_outcome'=>'open','next_task_title'=>null,'next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'none','open_task_count'=>0,'operational_task_due_state'=>'none','operational_task_rank'=>3],
  ['id'=>4,'lead_outcome'=>'open','next_task_title'=>'Написать сегодня','next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'today','open_task_count'=>1,'operational_task_due_state'=>'today','operational_task_rank'=>1],
  ['id'=>5,'lead_outcome'=>'open','next_task_title'=>'Закреплённая будущая','next_task_overdue'=>0,'next_task_pinned'=>1,'next_task_due_state'=>'upcoming','open_task_count'=>2,'operational_task_due_state'=>'overdue','operational_task_rank'=>0],
+ ['id'=>6,'lead_outcome'=>'won','next_task_title'=>null,'next_task_overdue'=>0,'next_task_pinned'=>0,'next_task_due_state'=>'none','open_task_count'=>0,'operational_task_due_state'=>'none','operational_task_rank'=>3],
 ];
 tfCheck('overdue filter follows most-urgent open task even when pinned projection is future',array_column(ManagerLeadInboxService::filter($rows,'','','overdue'),'id')===[1,5]);
 tfCheck('today filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','today'),'id')===[4]);
 tfCheck('action filter follows operational urgency across all open tasks',array_column(ManagerLeadInboxService::filter($rows,'','','action'),'id')===[1,5,4]);
 tfCheck('planned filter includes future scheduled work only when it is the operational next action',array_column(ManagerLeadInboxService::filter($rows,'','','planned'),'id')===[2]);
 tfCheck('pinned filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','pinned'),'id')===[5,2]);
-tfCheck('no-task filter is deterministic',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
-tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===5);
+tfCheck('no-task filter returns only open leads missing follow-up work',array_column(ManagerLeadInboxService::filter($rows,'','','none'),'id')===[3]);
+tfCheck('unknown task filter fails open',count(ManagerLeadInboxService::filter($rows,'','','unexpected'))===6);
 tfCheck('canonical operational state maps overdue today soon and no-action buckets',LeadTaskService::operationalState('overdue',true)==='overdue'&&LeadTaskService::operationalState('today',true)==='today'&&LeadTaskService::operationalState('upcoming',true)==='soon'&&LeadTaskService::operationalState('unscheduled',true)==='soon'&&LeadTaskService::operationalState('none',false)==='none');
 tfCheck('canonical operational rank maps overdue today soon and no-action buckets',LeadTaskService::operationalRank('overdue',true)===0&&LeadTaskService::operationalRank('today',true)===1&&LeadTaskService::operationalRank('upcoming',true)===2&&LeadTaskService::operationalRank('unscheduled',true)===2&&LeadTaskService::operationalRank('none',false)===3);
 $operational=LeadTaskService::operationalProjection([
