@@ -16,9 +16,10 @@ function boot(){
  if(typeof originalEditManager==='function')window.editManager=id=>{originalEditManager(id);syncManagerMode();managerMode?.scrollIntoView({block:'nearest'})};
  cancelProject?.addEventListener('click',()=>{if($('saveProject')?.disabled)return;$('projectId').value='';$('projectKey').value='';$('projectName').value='';$('projectActive').checked=true;$('projectFormStatus').textContent='';$('projectFormStatus').className='formStatus';syncProjectMode();$('projectKey')?.focus()});
  cancelManager?.addEventListener('click',()=>{if($('saveManager')?.disabled)return;$('managerId').value='';$('managerLogin').value='';$('managerName').value='';$('managerEmail').value='';$('managerRole').value='manager';$('managerPassword').value='';$('managerPriority').value=0;$('managerActive').checked=true;document.querySelectorAll('#managerProjects input').forEach(x=>x.checked=false);$('managerFormStatus').textContent='';$('managerFormStatus').className='formStatus';syncManagerMode();$('managerLogin')?.focus()});
- const observer=new MutationObserver(()=>{syncProjectMode();syncManagerMode()});
- observer.observe($('projectId'),{attributes:true,attributeFilter:['value']});observer.observe($('managerId'),{attributes:true,attributeFilter:['value']});
- ['projectId','projectName'].forEach(id=>$(id)?.addEventListener('input',syncProjectMode));['managerId','managerName','managerLogin'].forEach(id=>$(id)?.addEventListener('input',syncManagerMode));
+ const projectStatus=$('projectFormStatus'),managerStatus=$('managerFormStatus');
+ if(projectStatus)new MutationObserver(syncProjectMode).observe(projectStatus,{childList:true,characterData:true,subtree:true});
+ if(managerStatus)new MutationObserver(syncManagerMode).observe(managerStatus,{childList:true,characterData:true,subtree:true});
+ $('projectName')?.addEventListener('input',syncProjectMode);$('managerName')?.addEventListener('input',syncManagerMode);$('managerLogin')?.addEventListener('input',syncManagerMode);
  syncProjectMode();syncManagerMode();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
