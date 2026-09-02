@@ -11,11 +11,16 @@ if (!class_exists('MaxSearchApi')) {
         public static $statusStars = 15;
         public static $statusMeal = 16;
         public static $statusNights = 17;
+        public static $statusCheck = 18;
+        public static string $generationValue = '';
+        public static function getLastValue($chatId,$status){ return self::$generationValue; }
+        public static function saveLastValue($chatId,$status,$value){ self::$generationValue=(string)$value; }
     }
 }
 
 require_once __DIR__ . '/../services/CallbackController.php';
 require_once __DIR__ . '/../services/InteractionGuard.php';
+require_once __DIR__ . '/../services/CallbackGeneration.php';
 
 $passed = 0;
 $failed = 0;
@@ -116,6 +121,47 @@ ccCheck('generic recent helper suppresses burst', InteractionGuard::isRecent(100
 ccCheck('generic recent helper allows later action', InteractionGuard::isRecent(100.0, 102.1, 2.0), false);
 ccCheck('lock scope is sanitized', strpos(InteractionGuard::lockPath(123, 'edit menu/test'), 'edit_menu_test.lock') !== false, true);
 ccCheck('callback controller reports unknown actions through shared guard', strpos($controllerSource, "InteractionGuard::reportSuppressed(\$chatId, \$q, 'unknown_action'") !== false, true);
+
+$generation='deadbeef';
+$generatedShowTours=CallbackGeneration::wrap('show_tours',$generation);
+ccCheck('generation wrapper keeps compact versioned payload',$generatedShowTours,'g1_deadbeef_show_tours');
+ccCheck('generation parser extracts base payload',CallbackGeneration::parse($generatedShowTours)['payload']??null,'show_tours');
+ccCheck('generation parser extracts token',CallbackGeneration::parse($generatedShowTours)['generation']??null,$generation);
+ccCheck('unversioned back remains outside generation parser',CallbackGeneration::parse('back_check'),null);
+ccCheck('unversioned edit remains outside generation parser',CallbackGeneration::parse('edit_country'),null);
+ccCheck('family normalizes generated show tours',CallbackController::family($generatedShowTours),'tours');
+ccCheck('controller routes generated callbacks through one-shot guard',strpos($controllerSource,'CallbackGeneration::parse($raw)')!==false&&strpos($controllerSource,'InteractionGuard::runGeneratedCallback')!==false,true);
+ccCheck('generation protection is limited to final-check actions',strpos($controllerSource,"['show_tours','manager_request','edit_params']")!==false,true);
+
+$generationDiagnosticFile = sys_get_temp_dir() . '/max-search-generation-regression-' . bin2hex(random_bytes(4)) . '.log';
+DiagnosticLogger::setFile($generationDiagnosticFile);
+$generationCalls=0;
+try {
+    MaxSearchApi::$generationValue=$generation;
+    $first=InteractionGuard::runGeneratedCallback(987654,$generatedShowTours,$generation,(int)MaxSearchApi::$statusCheck,function()use(&$generationCalls):bool{$generationCalls++;return true;});
+    ccCheck('current generation executes first action',$first,true);
+    ccCheck('current generation executes business action once',$generationCalls,1);
+    ccCheck('successful generation is persisted as used',MaxSearchApi::$generationValue,'used:deadbeef');
+
+    $second=InteractionGuard::runGeneratedCallback(987654,$generatedShowTours,$generation,(int)MaxSearchApi::$statusCheck,function()use(&$generationCalls):bool{$generationCalls++;return true;});
+    ccCheck('obsolete generation delivery is consumed',$second,true);
+    ccCheck('obsolete generation does not repeat business action',$generationCalls,1);
+    $lines=is_file($generationDiagnosticFile)?file($generationDiagnosticFile,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[];
+    $last=$lines?json_decode((string)end($lines),true):null;
+    ccCheck('obsolete generation diagnostic reason',$last['data']['reason']??null,'obsolete_generation');
+    ccCheck('obsolete generation diagnostic scope',$last['data']['scope']??null,'callback_generation');
+    ccCheck('obsolete generation diagnostic token',$last['data']['generation']??null,$generation);
+
+    $newGeneration='cafebabe';
+    MaxSearchApi::$generationValue=$newGeneration;
+    $newPayload=CallbackGeneration::wrap('edit_params',$newGeneration);
+    $third=InteractionGuard::runGeneratedCallback(987654,$newPayload,$newGeneration,(int)MaxSearchApi::$statusCheck,function()use(&$generationCalls):bool{$generationCalls++;return true;});
+    ccCheck('newly rendered generation is accepted',$third,true);
+    ccCheck('new generation executes next business action',$generationCalls,2);
+} finally {
+    @unlink($generationDiagnosticFile);
+    DiagnosticLogger::setFile('');
+}
 
 $controller = new CallbackController();
 ccCheck('empty callback rejected', $controller->handle(['from'=>['id'=>1],'data'=>'']), false);
