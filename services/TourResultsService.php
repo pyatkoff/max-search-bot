@@ -14,8 +14,6 @@ class TourResultsService
         $savedData['NAME'] = $name;
         $claimUrl = (string)MaxSearchApi::saveClaim($chatId, $savedData);
 
-        // The claim remains persisted for lead/manager continuity, but the customer-facing
-        // destination is always the canonical search page. Preserve the route when available.
         $claim = MaxSearchApi::getLastClaimForChat($chatId);
         if (is_array($claim) && $claim) {
             $claimUrl = ProjectConfig::searchUrlFromClaim(
@@ -30,28 +28,14 @@ class TourResultsService
             $claimUrl
         );
 
-        $buttons = [
-            ButtonFactory::row(ButtonFactory::url('🔥 Открыть туры на сайте', $openToursUrl)),
-        ];
-
-        $channelUrl = (string)MaxSearchApi::buildChannelMiniappUrl($chatId);
-        if ($channelUrl !== '') {
-            $trackedChannelUrl = self::trackedUrl(
-                (string)ProjectConfig::get('messenger.open_channel_path', '/max-search/open_channel.php'),
-                $chatId,
-                $channelUrl
-            );
-            $buttons[] = ButtonFactory::row(ButtonFactory::url(self::channelButtonText(), $trackedChannelUrl));
-        }
-
-        $buttons[] = ButtonFactory::row(ButtonFactory::callback('👩‍💼 Нужна помощь менеджера', 'manager_after_tours'));
-        $buttons[] = ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры', 'edit_params'));
-
         return [
             'claim_url' => $claimUrl,
-            'channel_url' => $channelUrl,
             'text' => self::messageText(),
-            'buttons' => $buttons,
+            'buttons' => [
+                ButtonFactory::row(ButtonFactory::url('🔥 Посмотреть на сайте', $openToursUrl)),
+                ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать тур с менеджером', 'manager_after_tours')),
+                ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры', 'edit_params')),
+            ],
         ];
     }
 
@@ -65,21 +49,9 @@ class TourResultsService
         return $url . $separator . 'chat=' . rawurlencode((string)$chatId) . '&url=' . rawurlencode($targetUrl);
     }
 
-    public static function channelButtonText(): string
-    {
-        $provider = strtolower((string)ProjectConfig::get('messenger.provider', 'max'));
-        if ($provider === 'telegram') return '🔥 Горящие туры в Telegram';
-        if ($provider === 'max') return '🔥 Горящие туры в MAX';
-        return '🔥 Горящие туры в канале';
-    }
-
     public static function messageText(): string
     {
-        $provider = strtolower((string)ProjectConfig::get('messenger.provider', 'max'));
-        $channelName = $provider === 'telegram' ? 'Telegram-канал' : ($provider === 'max' ? 'MAX-канал' : 'канал');
-
         return "🔥 <b>Подходящие туры готовы</b>\n\n"
-            . "Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам.\n\n"
-            . "Хотите следить за снижением цен и горящими предложениями — загляните в наш {$channelName}.";
+            . "Можно посмотреть варианты самостоятельно или продолжить подбор с менеджером.";
     }
 }

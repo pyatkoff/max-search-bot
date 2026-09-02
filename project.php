@@ -17,6 +17,10 @@ return [
         'channel_url' => 'https://max.ru/anytour',
         'miniapp_bot_url' => 'https://max.ru/id9704048781_2_bot',
         'open_channel_path' => '/open_channel.php',
+        'channel_offer' => [
+            'telegram_url' => 'https://t.me/Any_tour_bot?startapp={yclid}',
+            'max_url' => 'https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}',
+        ],
         'telegram' => [
             'bot_url' => 'https://t.me/Any_tour_bot',
             'source_key' => 'telegram:anytour-main',

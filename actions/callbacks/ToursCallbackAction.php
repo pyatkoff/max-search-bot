@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
+require_once dirname(__DIR__, 2) . '/services/ChannelOfferService.php';
 
 class ToursCallbackAction
 {
@@ -37,6 +38,7 @@ class ToursCallbackAction
             fwrite($fp, json_encode(['payload'=>$q, 'at'=>$now], JSON_UNESCAPED_SLASHES));
             fflush($fp);
 
+            ChannelOfferService::runBeforeResults($chatId);
             MaxSearchApi::showToursChoice($chatId, self::userName($query));
             return true;
         });
@@ -49,6 +51,7 @@ class ToursCallbackAction
         }
 
         if (strpos($q, 'finish') === 0) {
+            ChannelOfferService::runBeforeResults($chatId);
             MaxSearchApi::showToursChoice($chatId, self::userName($query));
             return true;
         }
