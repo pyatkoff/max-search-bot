@@ -22,6 +22,14 @@ class ChildrenParser
             return ($n >= 0 && $n <= 3) ? $n : null;
         }
 
+        // Natural labeled answers to an explicit child-count question, e.g. "Дети, 1 человек".
+        // Keep this narrow: require an explicit child label plus a people noun so age phrases such
+        // as "дети, 2 года" are not consumed as a child count.
+        if (preg_match('/^(?:дети|детей|реб[её]нок|реб[её]нка)\s*[,;:\-]?\s*(\d)\s*(?:человек|человека|чел\.?|реб[её]нок|реб[её]нка|реб[её]нков)$/ui', $lower, $m)) {
+            $n = (int)$m[1];
+            return ($n >= 0 && $n <= 3) ? $n : null;
+        }
+
         $words = [
             'ноль'=>0,
             'один'=>1, 'одна'=>1, 'одного'=>1,
