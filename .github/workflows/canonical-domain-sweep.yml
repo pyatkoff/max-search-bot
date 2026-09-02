@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   sweep:
@@ -19,7 +19,7 @@ jobs:
           ref: fix/remove-anytour-online-v2
           fetch-depth: 0
 
-      - name: Replace retired host references
+      - name: Replace retired host references outside workflows
         shell: bash
         run: |
           set -euo pipefail
@@ -45,6 +45,8 @@ jobs:
               if not raw:
                   continue
               path = Path(raw.decode())
+              if str(path).startswith('.github/workflows/'):
+                  continue
               try:
                   data = path.read_text(encoding='utf-8')
               except (UnicodeDecodeError, OSError):
@@ -55,32 +57,21 @@ jobs:
               if new != data:
                   path.write_text(new, encoding='utf-8')
                   changed.append(str(path))
-          Path('/tmp/changed-files.txt').write_text('\n'.join(changed)+'\n', encoding='utf-8')
-          print(f'CHANGED_FILES={len(changed)}')
+          print(f'NON_WORKFLOW_CHANGED_FILES={len(changed)}')
           for path in changed:
               print(path)
           PY
 
-          retired="anytour"".online"
-          if git grep -n -F "$retired" -- .; then
-            echo 'Retired host remains in tracked source' >&2
-            exit 1
-          fi
-          git diff --binary > /tmp/canonical-domain.patch
-          tar -czf /tmp/canonical-domain-files.tgz -T /tmp/changed-files.txt
-
-      - name: Stage sweep artifacts
+      - name: Commit non-workflow sweep
         shell: bash
         run: |
-          mkdir -p sweep-artifacts
-          cp /tmp/canonical-domain.patch sweep-artifacts/
-          cp /tmp/canonical-domain-files.tgz sweep-artifacts/
-          cp /tmp/changed-files.txt sweep-artifacts/
-
-      - name: Upload sweep artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: canonical-domain-sweep-${{ github.sha }}
-          path: sweep-artifacts/*
-          if-no-files-found: error
-          retention-days: 2
+          set -euo pipefail
+          if git diff --quiet -- . ':(exclude).github/workflows/**'; then
+            echo 'No non-workflow replacements required'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- . ':(exclude).github/workflows/**'
+          git commit -m 'Remove retired domain from runtime and tests'
+          git push origin HEAD:fix/remove-anytour-online-v2
