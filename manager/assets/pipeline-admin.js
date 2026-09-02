@@ -22,6 +22,29 @@ function setFormSaving(kind,saving){
     if(submit)submit.disabled=Boolean(saving);
 }
 
+function stageErrorText(error,usageCount=0){
+    const messages={
+        duplicate_stage_key:'Этап с таким кодом уже существует.',
+        invalid_stage_key:'Код этапа должен содержать только латинские буквы, цифры, дефис или подчёркивание.',
+        invalid_display_name:'Укажите название этапа до 96 символов.',
+        save_failed:'Этап не сохранён из-за ошибки сервера. Повторите попытку.'
+    };
+    if(error==='stage_in_use')return `Нельзя отключить этап: в нём ${leadCountLabel(usageCount)}. Сначала перенесите лиды в другой этап.`;
+    return messages[error]||'Этап не сохранён. Повторите попытку.';
+}
+
+function tagErrorText(error,usageCount=0){
+    const messages={
+        duplicate_tag_key:'Тег с таким кодом уже существует.',
+        invalid_tag_key:'Код тега должен содержать только латинские буквы, цифры, дефис или подчёркивание.',
+        invalid_display_name:'Укажите название тега до 96 символов.',
+        not_found:'Тег больше не существует. Обновите список и повторите действие.',
+        save_failed:'Тег не сохранён из-за ошибки сервера. Повторите попытку.'
+    };
+    if(error==='tag_in_use')return `Нельзя отключить тег: он назначен ${leadCountLabel(usageCount)}. Сначала снимите тег с этих лидов.`;
+    return messages[error]||'Тег не сохранён. Повторите попытку.';
+}
+
 async function safeApi(action,data={},failureMessage='Не удалось выполнить запрос. Проверьте соединение и повторите попытку.'){
     try{return await api(action,data)}catch(e){status(failureMessage);return null}
 }
@@ -84,17 +107,14 @@ function bind(){
         if(S.saving.stage)return;
         status('');
         const usage=Number($('stageForm').dataset.usageCount||0);
-        if(!$('stageActive').checked&&usage>0){status(`Нельзя отключить этап: в нём ${leadCountLabel(usage)}. Сначала перенесите лиды в другой этап.`);return}
+        if(!$('stageActive').checked&&usage>0){status(stageErrorText('stage_in_use',usage));return}
         setFormSaving('stage',true);
         const r=await safeApi('save_stage',{
             stage_key:$('stageKey').value.trim(),display_name:$('stageName').value.trim(),color:$('stageColor').value,sort_order:Number($('stageSort').value||0),is_active:$('stageActive').checked,is_terminal:$('stageTerminal').checked,is_won:$('stageWon').checked
         },'Этап не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('stage',false);
         if(!r)return;
-        if(!r.ok){
-            if(r.error==='stage_in_use'){status(`Нельзя отключить этап: в нём ${leadCountLabel(r.usage_count)}. Сначала перенесите лиды в другой этап.`);return}
-            status('Этап не сохранён. Проверьте код и название.');return;
-        }
+        if(!r.ok){status(stageErrorText(r.error,r.usage_count));return}
         status('Этап сохранён.',true);clearStage();await load();
     };
 
@@ -103,17 +123,14 @@ function bind(){
         if(S.saving.tag)return;
         status('');
         const usage=Number($('tagForm').dataset.usageCount||0);
-        if(!$('tagActive').checked&&usage>0){status(`Нельзя отключить тег: он назначен ${leadCountLabel(usage)}. Сначала снимите тег с этих лидов.`);return}
+        if(!$('tagActive').checked&&usage>0){status(tagErrorText('tag_in_use',usage));return}
         setFormSaving('tag',true);
         const r=await safeApi('save_tag',{
             id:Number($('tagId').value||0),tag_key:$('tagKey').value.trim(),display_name:$('tagName').value.trim(),color:$('tagColor').value,sort_order:Number($('tagSort').value||0),is_active:$('tagActive').checked
         },'Тег не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('tag',false);
         if(!r)return;
-        if(!r.ok){
-            if(r.error==='tag_in_use'){status(`Нельзя отключить тег: он назначен ${leadCountLabel(r.usage_count)}. Сначала снимите тег с этих лидов.`);return}
-            status('Тег не сохранён. Проверьте код и название.');return;
-        }
+        if(!r.ok){status(tagErrorText(r.error,r.usage_count));return}
         status('Тег сохранён.',true);clearTag();await load();
     };
 }
