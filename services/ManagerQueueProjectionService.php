@@ -13,6 +13,7 @@ class ManagerQueueProjectionService
     public static function counts(int $managerId,string $projectKey='*'): array
     {
         $rawWaiting=ManagerConversationService::list($managerId,'waiting',200,$projectKey);
+        $requested=ManagerConversationService::list($managerId,'requested',200,$projectKey);
         $mine=ManagerConversationService::list($managerId,'mine',200,$projectKey);
         $waiting=self::actionableRows('waiting',$rawWaiting);
 
@@ -22,6 +23,10 @@ class ManagerQueueProjectionService
                 'count'=>count($waiting),
                 'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$waitingUnread)),
             ],
+            'requested'=>[
+                'count'=>count($requested),
+                'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$requested)),
+            ],
             'mine'=>[
                 'count'=>count($mine),
                 'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$mine)),
@@ -30,7 +35,9 @@ class ManagerQueueProjectionService
 
         // Preserve the existing notification badge contract: it is the unique
         // unread-message total across the raw waiting + mine projections. The
-        // actionable waiting counter itself still excludes suspended recipients.
+        // requested queue overlaps those lifecycle projections and must not be
+        // added again, while the actionable waiting counter still excludes
+        // suspended recipients.
         $unique=[];
         foreach(array_merge($rawWaiting,$mine) as $row){
             $id=(int)($row['id']??0);if($id<=0)continue;
