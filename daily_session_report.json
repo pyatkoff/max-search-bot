@@ -1,29 +1,29 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T12:05:19+00:00",
+    "generated_at": "2026-09-02T12:38:44+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 58,
-        "raw_sessions": 58,
+        "sessions": 59,
+        "raw_sessions": 59,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 58,
+            "resolved": 59,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 58,
-        "needs_collected": 45,
-        "tours_opened": 42,
+        "started": 59,
+        "needs_collected": 46,
+        "tours_opened": 43,
         "site_opened": 1,
         "post_tour_manager_cta_shown": 22,
         "manager_requested": 8,
         "manager_replied": 8,
         "customer_replied_after_manager": 3,
         "phone_received": 2,
-        "flagged_sessions": 22,
+        "flagged_sessions": 23,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 3,
@@ -33,7 +33,7 @@
             "max_seconds": 40781
         },
         "drop_points": {
-            "tours_opened": 33,
+            "tours_opened": 34,
             "collecting_needs": 13,
             "manager_replied": 5,
             "needs_collected": 3,
@@ -41,14 +41,14 @@
             "site_open": 1
         },
         "flags": {
-            "repeated_callback_input": 21,
+            "repeated_callback_input": 22,
             "excessive_turns": 12,
             "rapid_date_reselection": 4
         },
         "calendar_day": {
-            "conversations_started": 51,
-            "needs_collected_from_started": 38,
-            "tours_opened_from_started": 35,
+            "conversations_started": 52,
+            "needs_collected_from_started": 39,
+            "tours_opened_from_started": 36,
             "site_opened": 1,
             "post_tour_manager_cta_shown": 19,
             "manager_requested": 0,
@@ -4901,6 +4901,161 @@
                     "sender_type": "customer",
                     "text": "pick_city_1",
                     "created_at": "2026-09-02 11:59:22"
+                }
+            ]
+        },
+        {
+            "conversation_id": 733,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 11,
+            "outbound_messages": 8,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 11,
+            "drop_point": "tours_opened",
+            "flags": [
+                "repeated_callback_input"
+            ],
+            "started_at": "2026-09-02 12:13:29",
+            "last_message_at": "2026-09-02 12:15:27",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Тайланд",
+                    "created_at": "2026-09-02 12:13:29"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько будет взрослых туристов?",
+                    "created_at": "2026-09-02 12:13:32"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "2 взрослых",
+                    "created_at": "2026-09-02 12:13:42"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-09-02 12:13:44"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Нет",
+                    "created_at": "2026-09-02 12:13:51"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
+                    "created_at": "2026-09-02 12:13:55"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "4",
+                    "created_at": "2026-09-02 12:14:03"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-09-02 12:14:05"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Шведский стол",
+                    "created_at": "2026-09-02 12:14:19"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какое питание предпочитаете?",
+                    "created_at": "2026-09-02 12:14:22"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3 разовое",
+                    "created_at": "2026-09-02 12:14:34"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-09-02 12:14:37"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "5",
+                    "created_at": "2026-09-02 12:14:42"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая ориентировочная дата вылета?",
+                    "created_at": "2026-09-02 12:14:46"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "30 октября",
+                    "created_at": "2026-09-02 12:15:01"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Таиланд 👥 2 взр., без детей 🏨 от 4★ 🍽 Полный Пансион 🌙 5 ночей 📅 Вылет 30.10.2026 · ищем 27.10–02.11.2026 Что удобнее дальше?",
+                    "created_at": "2026-09-02 12:15:05"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 12:15:18"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 12:15:25"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 12:15:27"
                 }
             ]
         }
