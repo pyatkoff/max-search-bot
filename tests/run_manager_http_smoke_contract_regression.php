@@ -10,7 +10,8 @@ $workspaceAlias=$root.'/manager/workspace-v2.php';
 $passed=0;$failed=0;
 function checkManagerHttp(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
-checkManagerHttp('smoke checks canonical manager root',strpos($smoke,'request manager_root "$BASE_URL/"')!==false);
+checkManagerHttp('smoke checks legacy manager redirect boundary',strpos($smoke,'LEGACY_MANAGER_BASE_URL="${LEGACY_MANAGER_BASE_URL:-https://anytour.online/max-search/manager}"')!==false&&strpos($smoke,'assert_status legacy_manager_root 308')!==false&&strpos($smoke,"assert_location legacy_manager_root 'https://app.anytoour.ru/manager/'")!==false);
+checkManagerHttp('smoke checks canonical manager root',strpos($smoke,'BASE_URL="${MANAGER_BASE_URL:-https://app.anytoour.ru/manager}"')!==false&&strpos($smoke,'request manager_root "$BASE_URL/"')!==false&&strpos($smoke,'assert_status manager_root 200')!==false);
 checkManagerHttp('smoke checks explicit index without redirects',strpos($smoke,'request manager_index "$BASE_URL/index.php"')!==false&&strpos($smoke,'--max-redirs 0')!==false);
 checkManagerHttp('legacy workspace PHP entrypoint is removed',!is_file($workspaceAlias)&&strpos($smoke,'workspace-v2.php')===false);
 checkManagerHttp('smoke verifies unauthenticated main API boundary',strpos($smoke,'request manager_api_me "$BASE_URL/api.php" POST')!==false&&strpos($smoke,'assert_status manager_api_me 401')!==false&&strpos($smoke,'assert_body_contains manager_api_me \'"error":"unauthorized"\'')!==false);
