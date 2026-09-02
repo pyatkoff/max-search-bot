@@ -10,8 +10,7 @@ require_once $root . '/services/WebhookTargetConfig.php';
 require_once $root . '/services/MaxTlsConfig.php';
 
 $mode = (string)($argv[1] ?? '--status');
-$oldUrl = 'https://app.anytoour.ru/webhook.php';
-$newUrl = WebhookTargetConfig::max();
+$targetUrl = WebhookTargetConfig::max();
 $api = 'https://platform-api2.max.ru';
 $token = defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '';
 if ($token === '') { fwrite(STDERR, "MAX_SEARCH_TOKEN missing\n"); exit(2); }
@@ -73,50 +72,34 @@ function urlsFromSubscriptions(array $data): array
     return array_values(array_unique($urls));
 }
 
-if (!in_array($mode, ['--add-new', '--activate-new', '--rollback-old', '--status'], true)) {
-    fwrite(STDERR, "Usage: max_subscription_cutover.php [--add-new|--activate-new|--rollback-old|--status]\n"); exit(2);
+if (!in_array($mode, ['--add-new', '--activate-new', '--status'], true)) {
+    fwrite(STDERR, "Usage: max_subscription_cutover.php [--add-new|--activate-new|--status]\n"); exit(2);
 }
 
 if ($mode === '--add-new') {
-    if ($newUrl !== $oldUrl) {
-        $before = urlsFromSubscriptions(subscriptions($api, $token));
-        // Shadow cutover is safe only while the legacy endpoint remains the live
-        // processor. Repair a missing legacy subscription before touching the
-        // new observation endpoint.
-        if (!in_array($oldUrl, $before, true)) {
-            createSubscription($api, $token, $oldUrl);
-        }
-        deleteSubscription($api, $token, $newUrl);
-        createSubscription($api, $token, $newUrl);
-    }
+    $before = urlsFromSubscriptions(subscriptions($api, $token));
+    if (!in_array($targetUrl, $before, true)) createSubscription($api, $token, $targetUrl);
 }
+
 if ($mode === '--activate-new') {
-    deleteSubscription($api, $token, $oldUrl);
-    if ($newUrl !== $oldUrl) deleteSubscription($api, $token, $newUrl);
-    createSubscription($api, $token, $newUrl);
-}
-if ($mode === '--rollback-old') {
-    deleteSubscription($api, $token, $newUrl);
-    if ($newUrl !== $oldUrl) deleteSubscription($api, $token, $oldUrl);
-    createSubscription($api, $token, $oldUrl);
+    $before = urlsFromSubscriptions(subscriptions($api, $token));
+    foreach ($before as $url) {
+        if ($url !== $targetUrl) deleteSubscription($api, $token, $url);
+    }
+    deleteSubscription($api, $token, $targetUrl);
+    createSubscription($api, $token, $targetUrl);
 }
 
 $urls = urlsFromSubscriptions(subscriptions($api, $token));
-$target = $mode === '--rollback-old' ? $oldUrl : $newUrl;
-$targetCount = count(array_filter($urls, static fn(string $url): bool => $url === $target));
-$legacyCount = count(array_filter($urls, static fn(string $url): bool => $url === $oldUrl));
-$newCount = count(array_filter($urls, static fn(string $url): bool => $url === $newUrl));
+$targetCount = count(array_filter($urls, static fn(string $url): bool => $url === $targetUrl));
+$extraCount = count(array_filter($urls, static fn(string $url): bool => $url !== $targetUrl));
 
-echo 'MAX_SUBSCRIPTION_TARGET=' . $target . PHP_EOL;
+echo 'MAX_SUBSCRIPTION_TARGET=' . $targetUrl . PHP_EOL;
 echo 'MAX_SUBSCRIPTION_TARGET_COUNT=' . $targetCount . PHP_EOL;
-echo 'MAX_SUBSCRIPTION_LEGACY_COUNT=' . $legacyCount . PHP_EOL;
-echo 'MAX_SUBSCRIPTION_NEW_COUNT=' . $newCount . PHP_EOL;
+echo 'MAX_SUBSCRIPTION_LEGACY_COUNT=' . $extraCount . PHP_EOL;
+echo 'MAX_SUBSCRIPTION_NEW_COUNT=' . $targetCount . PHP_EOL;
 if ($mode !== '--status') {
-    if ($mode === '--add-new') {
-        $ok = $newCount === 1 && ($newUrl === $oldUrl || $legacyCount === 1);
-    } else {
-        $ok = $targetCount === 1 && ($target === $oldUrl ? $newCount === ($newUrl === $oldUrl ? 1 : 0) : $legacyCount === 0);
-    }
+    $ok = $mode === '--add-new' ? $targetCount === 1 : ($targetCount === 1 && $extraCount === 0);
     echo 'MAX_SUBSCRIPTION_TARGET_OK=' . ($ok ? 'YES' : 'NO') . PHP_EOL;
     exit($ok ? 0 : 1);
 }
