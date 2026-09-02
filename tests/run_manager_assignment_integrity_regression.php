@@ -7,22 +7,22 @@ function maiCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){ech
 
 $service=(string)file_get_contents(__DIR__.'/../services/ManagerConversationService.php');
 $migration=(string)file_get_contents(__DIR__.'/../migrations/010_manager_assignment_integrity.sql');
-$uniqueMigration=(string)file_get_contents(__DIR__.'/../migrations/026_unique_active_manager_assignment.sql');
+$repairMigration=(string)file_get_contents(__DIR__.'/../migrations/026_repair_active_manager_assignments.sql');
 
 maiCheck('take locks conversation before mutation',strpos($service,"accessibleConversation(\$conversationId,\$managerId,true)")!==false);
 maiCheck('repeat take by same assigned manager is idempotent',strpos($service,"(string)\$row['status']==='manager' && (int)(\$row['manager_id']??0)===\$managerId")!==false);
 maiCheck('idempotent repeat exits before assignment insert',preg_match("/if\(\(string\)\\\$row\['status'\]===\'manager\'.*?return true;.*?INSERT INTO manager_assignments/s",$service)===1);
-maiCheck('migration releases assignments inconsistent with canonical conversation state',strpos($migration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false);
-maiCheck('migration deduplicates remaining active rows',strpos($migration,'HAVING COUNT(*)>1')!==false && strpos($migration,'a.id<>duplicates.keep_id')!==false);
-maiCheck('migration preserves one active assignment instead of deleting history',strpos($migration,'SET a.released_at=NOW()')!==false && stripos($migration,'DELETE FROM manager_assignments')===false);
-maiCheck('forward migration cleans inconsistent active assignments before adding invariant',strpos($uniqueMigration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false && strpos($uniqueMigration,'HAVING COUNT(*)>1')!==false);
-maiCheck('compatibility guard avoids rebuilding legacy manager assignments table',strpos($uniqueMigration,'ALTER TABLE manager_assignments')===false && strpos($uniqueMigration,'CREATE TABLE IF NOT EXISTS active_manager_assignment_guards')!==false);
-maiCheck('guard primary key enforces one active assignment per conversation',strpos($uniqueMigration,'PRIMARY KEY (conversation_id)')!==false);
-maiCheck('active insert reserves guard key',strpos($uniqueMigration,'BEFORE INSERT ON manager_assignments')!==false && strpos($uniqueMigration,'WHERE NEW.released_at IS NULL')!==false);
-maiCheck('release removes guard key',strpos($uniqueMigration,'AFTER UPDATE ON manager_assignments')!==false && strpos($uniqueMigration,'NEW.released_at IS NOT NULL')!==false);
-maiCheck('delete removes guard key',strpos($uniqueMigration,'AFTER DELETE ON manager_assignments')!==false);
-maiCheck('failed migration retry is trigger-idempotent',substr_count($uniqueMigration,'DROP TRIGGER IF EXISTS')===4);
-maiCheck('forward repair preserves assignment history',stripos($uniqueMigration,'DELETE FROM manager_assignments')===false && strpos($uniqueMigration,'SET a.released_at=NOW()')!==false);
+maiCheck('reassign serializes on canonical conversation row',preg_match('/function reassign.*?accessibleConversation\(\$conversationId,\$adminId,true\)/s',$service)===1);
+maiCheck('reassign releases prior active assignment before insert',preg_match('/UPDATE manager_assignments SET released_at=NOW\(\).*?INSERT INTO manager_assignments.*?admin_reassign/s',$service)===1);
+maiCheck('reopen serializes on canonical conversation row',preg_match('/function reopen.*?accessibleConversation\(\$conversationId,\$managerId,true\)/s',$service)===1);
+maiCheck('manager assignment writes remain centralized in conversation owner',substr_count($service,'INSERT INTO manager_assignments')===3);
+maiCheck('legacy migration releases assignments inconsistent with canonical conversation state',strpos($migration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false);
+maiCheck('legacy migration deduplicates remaining active rows',strpos($migration,'HAVING COUNT(*)>1')!==false && strpos($migration,'a.id<>duplicates.keep_id')!==false);
+maiCheck('repair migration re-applies canonical-state cleanup',strpos($repairMigration,"c.status<>'manager' OR c.manager_id IS NULL OR a.manager_id<>c.manager_id")!==false);
+maiCheck('repair migration deduplicates active rows while preserving history',strpos($repairMigration,'HAVING COUNT(*)>1')!==false && strpos($repairMigration,'a.id<>duplicates.keep_id')!==false && stripos($repairMigration,'DELETE FROM manager_assignments')===false);
+maiCheck('repair avoids privileged trigger creation',stripos($repairMigration,'CREATE TRIGGER')===false && stripos($repairMigration,'DROP TRIGGER')===false);
+maiCheck('repair avoids rebuilding legacy assignment table',stripos($repairMigration,'ALTER TABLE manager_assignments')===false);
+maiCheck('repair removes partial guard artifact from failed deploy attempt',strpos($repairMigration,'DROP TABLE IF EXISTS active_manager_assignment_guards')!==false);
 
 $total=$passed+$failed;
 echo "\n---------------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
