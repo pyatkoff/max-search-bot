@@ -1,22 +1,22 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T14:11:10+00:00",
+    "generated_at": "2026-09-02T14:32:07+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 64,
-        "raw_sessions": 64,
+        "sessions": 65,
+        "raw_sessions": 65,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 64,
+            "resolved": 65,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 64,
-        "needs_collected": 50,
-        "tours_opened": 47,
+        "started": 65,
+        "needs_collected": 51,
+        "tours_opened": 48,
         "site_opened": 1,
         "post_tour_manager_cta_shown": 22,
         "manager_requested": 12,
@@ -33,7 +33,7 @@
             "max_seconds": 40781
         },
         "drop_points": {
-            "tours_opened": 34,
+            "tours_opened": 35,
             "collecting_needs": 14,
             "manager_replied": 8,
             "customer_replied_after_manager": 4,
@@ -46,9 +46,9 @@
             "rapid_date_reselection": 4
         },
         "calendar_day": {
-            "conversations_started": 57,
-            "needs_collected_from_started": 43,
-            "tours_opened_from_started": 40,
+            "conversations_started": 58,
+            "needs_collected_from_started": 44,
+            "tours_opened_from_started": 41,
             "site_opened": 1,
             "post_tour_manager_cta_shown": 19,
             "manager_requested": 0,
@@ -5407,167 +5407,6 @@
             ]
         },
         {
-            "conversation_id": 737,
-            "project_key": "anytour",
-            "source_id": 1,
-            "source_resolved": true,
-            "channel": "max",
-            "status": "manager",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": true,
-            "tours_opened": true,
-            "site_opened": false,
-            "site_opened_at": null,
-            "post_tour_manager_cta_shown": false,
-            "post_tour_manager_cta_at": null,
-            "manager_requested": true,
-            "manager_request_active": true,
-            "manager_replied": true,
-            "customer_replied_after_manager": true,
-            "manager_request_at": null,
-            "manager_first_reply_at": "2026-09-02 13:45:49",
-            "customer_first_reply_after_manager_at": "2026-09-02 13:46:15",
-            "manager_response_seconds": null,
-            "customer_reply_after_manager_seconds": 26,
-            "manager_response_bucket": "still_unanswered",
-            "phone_received": false,
-            "inbound_messages": 13,
-            "outbound_messages": 7,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 13,
-            "drop_point": "customer_replied_after_manager",
-            "flags": [
-                "repeated_callback_input"
-            ],
-            "started_at": "2026-09-02 13:43:55",
-            "last_message_at": "2026-09-02 13:48:02",
-            "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Тур турция конаклы",
-                    "created_at": "2026-09-02 13:43:55"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Сколько будет взрослых туристов?",
-                    "created_at": "2026-09-02 13:43:59"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "3",
-                    "created_at": "2026-09-02 13:44:04"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Будут дети? Если да — сколько?",
-                    "created_at": "2026-09-02 13:44:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Нет",
-                    "created_at": "2026-09-02 13:44:13"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "На сколько ночей планируете поездку?",
-                    "created_at": "2026-09-02 13:44:15"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "12-14",
-                    "created_at": "2026-09-02 13:44:28"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "Какая ориентировочная дата вылета?",
-                    "created_at": "2026-09-02 13:44:31"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "23-24 сентября",
-                    "created_at": "2026-09-02 13:44:52"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 3 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 12-14 ночей 📅 Вылет 24.09.2026 · ищем 21.09–27.09.2026 Что удобнее дальше?",
-                    "created_at": "2026-09-02 13:44:55"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 13:45:06"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 13:45:18"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Всё вено",
-                    "created_at": "2026-09-02 13:45:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 13:45:39"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 13:45:41"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 13:45:42"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 13:45:42"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Елена, добрый день! Меня зовут Светлана, я буду Вашим персональным менеджером. Увидела Ваш запрос, сориентируйте какой бюджет был бы комфортен?",
-                    "created_at": "2026-09-02 13:45:49"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "До 200т рублей",
-                    "created_at": "2026-09-02 13:46:15"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "manager",
-                    "text": "Елена, в ближайшее время напоавлю варианты отдыха.",
-                    "created_at": "2026-09-02 13:48:02"
-                }
-            ]
-        },
-        {
             "conversation_id": 734,
             "project_key": "anytour",
             "source_id": 1,
@@ -5758,6 +5597,210 @@
             "flags": [],
             "started_at": "2026-09-02 13:52:21",
             "last_message_at": "2026-09-02 13:53:51"
+        },
+        {
+            "conversation_id": 739,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 15,
+            "outbound_messages": 15,
+            "date_picks": 1,
+            "anomaly_inbound_messages": 15,
+            "drop_point": "tours_opened",
+            "flags": [],
+            "started_at": "2026-09-02 14:16:54",
+            "last_message_at": "2026-09-02 14:19:27"
+        },
+        {
+            "conversation_id": 737,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "manager",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": true,
+            "manager_request_active": true,
+            "manager_replied": true,
+            "customer_replied_after_manager": true,
+            "manager_request_at": null,
+            "manager_first_reply_at": "2026-09-02 13:45:49",
+            "customer_first_reply_after_manager_at": "2026-09-02 13:46:15",
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": 26,
+            "manager_response_bucket": "still_unanswered",
+            "phone_received": false,
+            "inbound_messages": 13,
+            "outbound_messages": 8,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 13,
+            "drop_point": "customer_replied_after_manager",
+            "flags": [
+                "repeated_callback_input"
+            ],
+            "started_at": "2026-09-02 13:43:55",
+            "last_message_at": "2026-09-02 14:28:25",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Тур турция конаклы",
+                    "created_at": "2026-09-02 13:43:55"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Сколько будет взрослых туристов?",
+                    "created_at": "2026-09-02 13:43:59"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "3",
+                    "created_at": "2026-09-02 13:44:04"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Будут дети? Если да — сколько?",
+                    "created_at": "2026-09-02 13:44:06"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Нет",
+                    "created_at": "2026-09-02 13:44:13"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "На сколько ночей планируете поездку?",
+                    "created_at": "2026-09-02 13:44:15"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "12-14",
+                    "created_at": "2026-09-02 13:44:28"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "Какая ориентировочная дата вылета?",
+                    "created_at": "2026-09-02 13:44:31"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "23-24 сентября",
+                    "created_at": "2026-09-02 13:44:52"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 3 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 12-14 ночей 📅 Вылет 24.09.2026 · ищем 21.09–27.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-09-02 13:44:55"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 13:45:06"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 13:45:18"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "Всё вено",
+                    "created_at": "2026-09-02 13:45:26"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "show_tours",
+                    "created_at": "2026-09-02 13:45:39"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-09-02 13:45:41"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-09-02 13:45:42"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "edit_params",
+                    "created_at": "2026-09-02 13:45:42"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Елена, добрый день! Меня зовут Светлана, я буду Вашим персональным менеджером. Увидела Ваш запрос, сориентируйте какой бюджет был бы комфортен?",
+                    "created_at": "2026-09-02 13:45:49"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "До 200т рублей",
+                    "created_at": "2026-09-02 13:46:15"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Елена, в ближайшее время напоавлю варианты отдыха.",
+                    "created_at": "2026-09-02 13:48:02"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "manager",
+                    "text": "Елена, направляю варианты туров. Максимально приблизиться к бюджету сможем в случае если сократим количество ночей. В стоимость тура включено: перелет, проживание, указанный тип питания, страховой полис и трансфер. По ссылке в конце письма Вы можете ознакомиться с более подроб...",
+                    "created_at": "2026-09-02 14:28:25"
+                }
+            ]
         }
     ],
     "local_date": "2026-09-02",
