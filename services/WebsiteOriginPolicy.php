@@ -14,10 +14,9 @@ class WebsiteOriginPolicy
         $origins = [
             'https://anytour.com',
             'https://www.anytour.com',
-            'https://anytour.online',
-            'https://www.anytour.online',
             'https://anytoour.ru',
             'https://www.anytoour.ru',
+            'https://app.anytoour.ru',
         ];
 
         if (defined('WEBSITE_ALLOWED_ORIGINS')) {
