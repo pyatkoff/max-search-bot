@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $tasks=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.js');
 $lead=(string)file_get_contents($root.'/manager/assets/workspace-v2-lead-card.js');
+$conversation=(string)file_get_contents($root.'/manager/assets/workspace-v2-conversation.js');
 $css=(string)file_get_contents($root.'/manager/assets/workspace-v2-tasks.css');
 $passed=0;$failed=0;
 function tmCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -26,9 +27,13 @@ tmCheck('task save refuses unchanged payloads',strpos($tasks,'!form._taskEditSyn
 tmCheck('dirty task editor cannot be hidden by its edit toggle',strpos($tasks,'if(form._taskEditIsDirty?.())')!==false&&strpos($tasks,"form._taskEditWarn?.()")!==false&&strpos($tasks,"Сохраните или отмените изменения")!==false);
 tmCheck('opening another task editor cannot discard an existing dirty draft',strpos($tasks,"const otherDirty=[...root.querySelectorAll('.taskEditForm:not(.hidden)')]")!==false&&strpos($tasks,'x!==form&&x._taskEditIsDirty?.()')!==false&&strpos($tasks,'otherDirty._taskEditWarn?.()')!==false);
 tmCheck('task dirty state is retained as an explicit form-owned draft flag',strpos($tasks,'form._taskEditDirty=dirty')!==false&&strpos($tasks,'form._taskEditIsDirty=()=>!!form._taskEditDirty')!==false);
-tmCheck('task completion cannot discard an unsaved editor draft',strpos($tasks,'const blockForDirtyDraft=()=>')!==false&&strpos($tasks,'if(blockForDirtyDraft()){el.checked=!wanted;return}')!==false);
-tmCheck('task pinning cannot discard an unsaved editor draft',strpos($tasks,"root.querySelectorAll('[data-task-pin]')")!==false&&strpos($tasks,'if(blockForDirtyDraft())return;const wanted=el.dataset.pinned')!==false);
+tmCheck('task completion cannot discard an unsaved editor draft',strpos($tasks,'function blockForDirtyDraft(root=document)')!==false&&strpos($tasks,'if(blockForDirtyDraft(root)){el.checked=!wanted;return}')!==false);
+tmCheck('task pinning cannot discard an unsaved editor draft',strpos($tasks,"root.querySelectorAll('[data-task-pin]')")!==false&&strpos($tasks,'if(blockForDirtyDraft(root))return;const wanted=el.dataset.pinned')!==false);
 tmCheck('dirty mutation guard reuses the task editor warning and focus path',strpos($tasks,'form._taskEditWarn?.();form.querySelector(\'[data-task-edit-title]\')?.focus();return true')!==false);
+tmCheck('task module exposes one navigation guard for dirty task drafts',strpos($tasks,'blockNavigationForDirtyDraft(){return blockForDirtyDraft(document)}')!==false&&strpos($tasks,'function dirtyTaskEditDraft(root=document)')!==false);
+tmCheck('lead switching asks task owner before changing conversation',strpos($conversation,'if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;')!==false);
+tmCheck('same-lead refresh does not trigger dirty task navigation guard',strpos($conversation,"const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;")!==false&&strpos($conversation,'if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;')!==false);
+tmCheck('dirty task navigation guard runs before open generation changes',strpos($conversation,'blockNavigationForDirtyDraft?.())return false;')<strpos($conversation,'const seq=++openSeq;'));
 tmCheck('task mutation UX does not alter technical conversation state',strpos($tasks,'set_status')===false&&strpos($lead,"pipe('set_status'")===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
