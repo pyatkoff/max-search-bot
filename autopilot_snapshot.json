@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T13:05:03+00:00",
+    "generated_at": "2026-09-02T13:12:07+00:00",
     "production": {
-        "sha": "faeca34a5dea73c740f8e0839604e5e026d5a2da",
+        "sha": "4cf262351522bae8dbde722404ac028171df7d21",
         "branch": "main"
     },
     "migrations": {
@@ -155,7 +155,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 12:04:52",
+        "since_utc": "2026-09-02 12:11:54",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -174,7 +174,7 @@
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
             "phone_received": 0,
-            "flagged_sessions": 2,
+            "flagged_sessions": 3,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -187,7 +187,8 @@
                 "tours_opened": 3
             },
             "flags": {
-                "repeated_callback_input": 2
+                "repeated_callback_input": 3,
+                "excessive_turns": 1
             }
         },
         "flagged_sessions": [
@@ -208,6 +209,16 @@
                 "drop_point": "tours_opened",
                 "manager_response_bucket": null,
                 "manager_response_seconds": null
+            },
+            {
+                "conversation_id": 735,
+                "flags": [
+                    "repeated_callback_input",
+                    "excessive_turns"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
             }
         ]
     },
@@ -216,7 +227,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "faeca34a5dea73c740f8e0839604e5e026d5a2da",
+        "sha": "4cf262351522bae8dbde722404ac028171df7d21",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -225,7 +236,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T13:05:03Z"
+        "reported_at": "2026-09-02T13:12:07Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -257,7 +268,7 @@
             "manager_replied": 8,
             "customer_replied_after_manager": 3,
             "phone_received": 2,
-            "flagged_sessions": 24,
+            "flagged_sessions": 25,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 3,
@@ -275,8 +286,8 @@
                 "site_open": 1
             },
             "flags": {
-                "repeated_callback_input": 23,
-                "excessive_turns": 12,
+                "repeated_callback_input": 24,
+                "excessive_turns": 13,
                 "rapid_date_reselection": 4
             },
             "calendar_day": {
@@ -292,7 +303,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T13:05:03+00:00",
+        "generated_at": "2026-09-02T13:12:07+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -306,8 +317,8 @@
             },
             "services": {
                 "files": 135,
-                "bytes": 527865,
-                "code_lines": 11287
+                "bytes": 527930,
+                "code_lines": 11288
             },
             "integrations": {
                 "files": 11,
@@ -316,8 +327,8 @@
             },
             "manager": {
                 "files": 54,
-                "bytes": 310159,
-                "code_lines": 1552
+                "bytes": 310392,
+                "code_lines": 1551
             },
             "website": {
                 "files": 4,
@@ -336,8 +347,8 @@
             },
             "tests": {
                 "files": 171,
-                "bytes": 729859,
-                "code_lines": 8464
+                "bytes": 730521,
+                "code_lines": 8466
             },
             "tools": {
                 "files": 36,
