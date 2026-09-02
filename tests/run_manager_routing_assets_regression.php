@@ -6,9 +6,11 @@ $page=(string)file_get_contents($root.'/manager/routing.php');
 $js=(string)file_get_contents($root.'/manager/assets/routing.js');
 $css=(string)file_get_contents($root.'/manager/assets/routing.css');
 $migration=(string)file_get_contents($root.'/migrations/022_source_handling_mode.sql');
+$promoMigration=(string)file_get_contents($root.'/migrations/025_source_channel_promo.sql');
 $routingService=(string)file_get_contents($root.'/services/RoutingAdminService.php');
 $api=(string)file_get_contents($root.'/manager/api.php');
 $sourceHandling=(string)file_get_contents($root.'/services/SourceHandlingService.php');
+$channelOffer=(string)file_get_contents($root.'/services/ChannelOfferService.php');
 $dispatcher=(string)file_get_contents($root.'/services/IncomingUpdateDispatcher.php');
 $passed=0;$failed=0;
 function checkRouting(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  $name\n";$passed++;}else{echo "FAIL  $name\n";$failed++;}}
@@ -37,6 +39,12 @@ checkRouting('source handling schema defaults safely to AI',strpos($migration,"h
 checkRouting('source admin exposes all three start modes',strpos($page,'id="handlingMode"')!==false&&strpos($page,'Сначала AI')!==false&&strpos($page,'Сразу менеджеру')!==false&&strpos($page,'Спросить клиента')!==false);
 checkRouting('source admin persists and restores start mode',strpos($js,"$('handlingMode').value=s.handling_mode||'ai'")!==false&&strpos($js,'handling_mode')!==false&&strpos($api,"(string)(\$data['handling_mode']??'ai')")!==false);
 checkRouting('source service validates explicit handling modes',strpos($routingService,"['ai','manager','ask']")!==false&&strpos($routingService,'invalid_handling_mode')!==false);
+checkRouting('source promo schema defaults to showing channels',strpos($promoMigration,'suppress_channel_offer TINYINT(1) NOT NULL DEFAULT 0')!==false);
+checkRouting('source promo migration targets only known own-channel markers',strpos($promoMigration,"'max_anytour_msk'")!==false&&strpos($promoMigration,"'tg_anytour_msk'")!==false&&strpos($promoMigration,"max:anytour-main")!==false);
+checkRouting('source admin exposes explicit no-channel-promo flag',strpos($page,'id="suppressChannelOffer"')!==false&&strpos($page,'Не предлагать каналы')!==false);
+checkRouting('source admin restores and persists promo flag',strpos($js,"$('suppressChannelOffer').checked=Number(s.suppress_channel_offer)===1")!==false&&strpos($js,'suppress_channel_offer')!==false&&strpos($api,"!empty(\$data['suppress_channel_offer'])")!==false);
+checkRouting('source service stores promo flag in snapshot and mutations',substr_count($routingService,'suppress_channel_offer')>=5&&strpos($routingService,'bool $suppressChannelOffer=false')!==false);
+checkRouting('channel promo suppression is explicit source lookup and fails open',strpos($channelOffer,'sourceSuppressesOffer')!==false&&strpos($channelOffer,'s.source_key=?')!==false&&strpos($channelOffer,'return false;')!==false&&strpos($channelOffer,'entryFamily')===false);
 checkRouting('ask mode offers manager or self service',strpos($sourceHandling,'source_choice_manager')!==false&&strpos($sourceHandling,'source_choice_ai')!==false&&strpos($sourceHandling,'Позвать менеджера')!==false&&strpos($sourceHandling,'Подобрать тур самостоятельно')!==false);
 checkRouting('manager-first reuses handoff without metrika mutation',strpos($sourceHandling,'ManagerHandoffDispatchService::dispatch')!==false&&strpos($sourceHandling,'ConversationControlService::markWaitingByChat')!==false&&strpos($sourceHandling,'queueMetrikaGoal')===false&&strpos($sourceHandling,'MetrikaConversionGoalService')===false);
 checkRouting('source policy does not own shift priority or routing mutations',strpos($sourceHandling,'setWorking')===false&&strpos($sourceHandling,'ManagerPriorityService')===false&&strpos($sourceHandling,'RoutingAdminService')===false);
