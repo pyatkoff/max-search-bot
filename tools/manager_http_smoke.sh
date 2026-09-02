@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${MANAGER_BASE_URL:-https://anytour.online/max-search/manager}"
+LEGACY_MANAGER_BASE_URL="${LEGACY_MANAGER_BASE_URL:-https://anytour.online/max-search/manager}"
+BASE_URL="${MANAGER_BASE_URL:-https://app.anytoour.ru/manager}"
 CONSULTANT_BASE_URL="${CONSULTANT_BASE_URL:-https://anytour.online/max-search/web-consultant}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -38,6 +39,17 @@ assert_status() {
   fi
 }
 
+assert_location() {
+  local name="$1" expected="$2"
+  local actual
+  actual="$(awk 'BEGIN{IGNORECASE=1} /^location:/ {sub(/^[^:]+:[[:space:]]*/,""); sub(/\r$/,""); print; exit}' "$TMP_DIR/${name}.headers")"
+  if [[ "$actual" != "$expected" ]]; then
+    echo "FAIL $name: expected Location $expected, got ${actual:-<missing>}"
+    cat "$TMP_DIR/${name}.headers" || true
+    exit 1
+  fi
+}
+
 assert_body_contains() {
   local name="$1" needle="$2"
   if ! grep -Fq "$needle" "$TMP_DIR/${name}.body"; then
@@ -47,6 +59,20 @@ assert_body_contains() {
     exit 1
   fi
 }
+
+request legacy_manager_root "$LEGACY_MANAGER_BASE_URL/"
+request legacy_manager_index "$LEGACY_MANAGER_BASE_URL/index.php"
+request legacy_manager_api "$LEGACY_MANAGER_BASE_URL/api.php" POST
+request legacy_manager_pipeline_api "$LEGACY_MANAGER_BASE_URL/pipeline-api.php" POST
+
+assert_status legacy_manager_root 308
+assert_status legacy_manager_index 308
+assert_status legacy_manager_api 308
+assert_status legacy_manager_pipeline_api 308
+assert_location legacy_manager_root 'https://app.anytoour.ru/manager/'
+assert_location legacy_manager_index 'https://app.anytoour.ru/manager/index.php'
+assert_location legacy_manager_api 'https://app.anytoour.ru/manager/api.php'
+assert_location legacy_manager_pipeline_api 'https://app.anytoour.ru/manager/pipeline-api.php'
 
 request manager_root "$BASE_URL/"
 request manager_index "$BASE_URL/index.php"
