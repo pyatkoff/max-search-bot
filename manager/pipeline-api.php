@@ -15,6 +15,15 @@ ManagerHttp::startJson();
 
 function pipelineConversation(int $id,int $mid):?array{$d=ManagerConversationService::detail($id,$mid);return$d?(array)($d['conversation']??[]):null;}
 function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat==='')return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
+function pipelineCatalogSaveStatus(array $result):int
+{
+    if(!empty($result['ok']))return 200;
+    $error=(string)($result['error']??'save_failed');
+    if(in_array($error,['duplicate_stage_key','duplicate_tag_key'],true))return 409;
+    if($error==='save_failed')return 500;
+    if($error==='not_found')return 404;
+    return 422;
+}
 
 $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
@@ -25,8 +34,8 @@ $isAdmin=ManagerHttp::isAdmin($m);
 if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions()]);
 if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
-if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
-if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,!empty($r['ok'])?200:422);}
+if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
+if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     $managerFilter=$isAdmin?(string)($data['manager_filter']??''):'';

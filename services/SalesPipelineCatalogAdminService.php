@@ -39,7 +39,7 @@ final class SalesPipelineCatalogAdminService
         try{
             if($before){$q=$pdo->prepare('UPDATE lead_stages SET display_name=?,color=?,sort_order=?,is_active=?,is_terminal=?,is_won=? WHERE stage_key=?');$q->execute([$name,$color,$sort,$active,$terminal,$won,$key]);}
             else{$q=$pdo->prepare('INSERT INTO lead_stages(stage_key,display_name,color,sort_order,is_active,is_terminal,is_won) VALUES(?,?,?,?,?,?,?)');$q->execute([$key,$name,$color,$sort,$active,$terminal,$won]);}
-        }catch(Throwable $e){return['ok'=>false,'error'=>'save_failed'];}
+        }catch(Throwable $e){return['ok'=>false,'error'=>self::isDuplicateKeyFailure($e)?'duplicate_stage_key':'save_failed'];}
         $after=self::stage($key);AuditLogService::record($actor,$before?'lead_stage_updated':'lead_stage_created','lead_stage',$key,null,$before,$after);
         return['ok'=>true,'stage'=>$after];
     }
@@ -59,7 +59,7 @@ final class SalesPipelineCatalogAdminService
         try{
             if($before){$q=$pdo->prepare('UPDATE lead_tags SET tag_key=?,display_name=?,color=?,sort_order=?,is_active=? WHERE id=?');$q->execute([$key,$name,$color,$sort,$active,$id]);}
             else{$q=$pdo->prepare('INSERT INTO lead_tags(tag_key,display_name,color,sort_order,is_active) VALUES(?,?,?,?,?)');$q->execute([$key,$name,$color,$sort,$active]);$id=(int)$pdo->lastInsertId();}
-        }catch(Throwable $e){return['ok'=>false,'error'=>'duplicate_or_save_failed'];}
+        }catch(Throwable $e){return['ok'=>false,'error'=>self::isDuplicateKeyFailure($e)?'duplicate_tag_key':'save_failed'];}
         $after=self::tag($id);AuditLogService::record($actor,$before?'lead_tag_updated':'lead_tag_created','lead_tag',(string)$id,null,$before,$after);
         return['ok'=>true,'tag'=>$after];
     }
@@ -76,6 +76,14 @@ final class SalesPipelineCatalogAdminService
     }
     private static function stageUsageCount(string $key): int{$q=ConversationDb::connection()->prepare('SELECT COUNT(*) FROM conversations WHERE lead_stage_key=?');$q->execute([$key]);return(int)$q->fetchColumn();}
     private static function tagUsageCount(int $id): int{$q=ConversationDb::connection()->prepare('SELECT COUNT(*) FROM conversation_lead_tags WHERE tag_id=?');$q->execute([$id]);return(int)$q->fetchColumn();}
+    private static function isDuplicateKeyFailure(Throwable $e): bool
+    {
+        if(!$e instanceof PDOException)return false;
+        $info=is_array($e->errorInfo??null)?$e->errorInfo:[];
+        $state=(string)($info[0]??$e->getCode());
+        $driverCode=(int)($info[1]??0);
+        return $driverCode===1062||in_array($driverCode,[19,1555,2067],true)||in_array($state,['23000','23505'],true);
+    }
     private static function color(string $v): string{return preg_match('/^#[0-9a-fA-F]{6}$/',$v)?strtolower($v):'#64748b';}
     private static function stage(string $key): ?array{$q=ConversationDb::connection()->prepare('SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages WHERE stage_key=?');$q->execute([$key]);return$q->fetch()?:null;}
     private static function tag(int $id): ?array{$q=ConversationDb::connection()->prepare('SELECT id,tag_key,display_name,color,sort_order,is_active FROM lead_tags WHERE id=?');$q->execute([$id]);return$q->fetch()?:null;}
