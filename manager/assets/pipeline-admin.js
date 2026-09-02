@@ -114,7 +114,10 @@ function bind(){
         },'Этап не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('stage',false);
         if(!r)return;
-        if(!r.ok){status(stageErrorText(r.error,r.usage_count));return}
+        if(!r.ok){
+            if(r.error==='stage_in_use'){status(stageErrorText(r.error,r.usage_count));return}
+            status(stageErrorText(r.error,r.usage_count));return;
+        }
         status('Этап сохранён.',true);clearStage();await load();
     };
 
@@ -130,7 +133,10 @@ function bind(){
         },'Тег не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('tag',false);
         if(!r)return;
-        if(!r.ok){status(tagErrorText(r.error,r.usage_count));return}
+        if(!r.ok){
+            if(r.error==='tag_in_use'){status(tagErrorText(r.error,r.usage_count));return}
+            status(tagErrorText(r.error,r.usage_count));return;
+        }
         status('Тег сохранён.',true);clearTag();await load();
     };
 }
