@@ -3,25 +3,17 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/services/MaxTlsConfig.php';
+require_once dirname(__DIR__) . '/services/WebhookTargetConfig.php';
 
-/**
- * Read-only MAX webhook/subscription health boundary.
- *
- * This integration never creates or deletes subscriptions. It intentionally
- * returns only non-secret operational facts safe for diagnostics.
- */
+/** Read-only MAX webhook/subscription health boundary. */
 final class MaxWebhookHealth
 {
     private const API = 'https://platform-api2.max.ru';
-    private const LEGACY_WEBHOOK = 'https://app.anytoour.ru/webhook.php';
 
     public static function collect(?callable $request = null): array
     {
         $token = defined('MAX_SEARCH_TOKEN') ? trim((string) MAX_SEARCH_TOKEN) : '';
-        $expected = defined('MAX_SEARCH_WEBHOOK_URL') && trim((string) MAX_SEARCH_WEBHOOK_URL) !== ''
-            ? trim((string) MAX_SEARCH_WEBHOOK_URL)
-            : self::LEGACY_WEBHOOK;
-
+        $expected = WebhookTargetConfig::max();
         if ($token === '') {
             return ['ok'=>false,'configured'=>false,'reason'=>'missing_token','expected_url'=>$expected];
         }
@@ -74,24 +66,9 @@ final class MaxWebhookHealth
         }
         $urls = array_values(array_unique($urls));
         $expectedPresent = in_array($expectedUrl, $urls, true);
-        $legacyPresent = in_array(self::LEGACY_WEBHOOK, $urls, true);
         $extra = array_values(array_filter($urls, static fn(string $url): bool => $url !== $expectedUrl));
-        $unexpected = array_values(array_filter(
-            $urls,
-            static fn(string $url): bool => $url !== $expectedUrl && $url !== self::LEGACY_WEBHOOK
-        ));
-
-        $dualCutover = $expectedUrl !== self::LEGACY_WEBHOOK
-            && $expectedPresent
-            && $legacyPresent
-            && count($unexpected) === 0;
-        $singleExpected = $expectedPresent && count($urls) === 1;
-        $ok = $singleExpected || $dualCutover;
-        $reason = $singleExpected
-            ? 'healthy'
-            : ($dualCutover
-                ? 'healthy_cutover_dual'
-                : ($expectedPresent ? 'extra_subscriptions' : 'expected_subscription_missing'));
+        $ok = $expectedPresent && count($urls) === 1;
+        $reason = $ok ? 'healthy' : ($expectedPresent ? 'extra_subscriptions' : 'expected_subscription_missing');
 
         return [
             'ok'=>$ok,
@@ -100,11 +77,10 @@ final class MaxWebhookHealth
             'http_status'=>$http,
             'expected_url'=>$expectedUrl,
             'expected_present'=>$expectedPresent,
-            'legacy_present'=>$legacyPresent,
             'subscription_count'=>count($urls),
             'subscription_urls'=>$urls,
             'extra_subscription_urls'=>$extra,
-            'unexpected_subscription_urls'=>$unexpected,
+            'unexpected_subscription_urls'=>$extra,
         ];
     }
 }
