@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T11:27:30+00:00",
+    "generated_at": "2026-09-02T11:31:21+00:00",
     "production": {
-        "sha": "acdcc12a5a5e38fcc2abd3ed4fb5d6ab6e2915ed",
+        "sha": "27bdbca128d586156e0259290cb1cce86691b2af",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 724,
         "customer_channels": 724,
         "conversations": 726,
-        "messages": 18999,
+        "messages": 19000,
         "managers": 6,
         "manager_assignments": 122,
         "conversation_events": 978,
@@ -1324,33 +1324,6 @@
                 "http_code": 403,
                 "error": ""
             }
-        },
-        {
-            "ts": "2026-09-02T09:38:12+00:00",
-            "level": "warning",
-            "component": "manager_push",
-            "event": "delivery_failed",
-            "data": {
-                "dispatch_id": "8b5c3eaf339715e3",
-                "conversation_id": 674,
-                "manager_id": 5,
-                "subscription_id": 3,
-                "http_code": 403,
-                "error": ""
-            }
-        },
-        {
-            "ts": "2026-09-02T09:38:12+00:00",
-            "level": "info",
-            "component": "manager_push",
-            "event": "delivery_success",
-            "data": {
-                "dispatch_id": "8b5c3eaf339715e3",
-                "conversation_id": 674,
-                "manager_id": 5,
-                "subscription_id": 86,
-                "http_code": 201
-            }
         }
     ],
     "conversation_status": [
@@ -1823,6 +1796,24 @@
         }
     ],
     "recent_messages": [
+        {
+            "id": 19001,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 11:31:23"
+        },
+        {
+            "id": 19000,
+            "conversation_id": 726,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-02 11:31:01"
+        },
         {
             "id": 18999,
             "conversation_id": 656,
@@ -2344,24 +2335,6 @@
             "channel": "max",
             "text": "Не нашла такой город вылета. Проверьте название или выберите один из предложенных вариантов.",
             "created_at": "2026-09-02 11:15:12"
-        },
-        {
-            "id": 18941,
-            "conversation_id": 724,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Минеральные воды",
-            "created_at": "2026-09-02 11:15:12"
-        },
-        {
-            "id": 18940,
-            "conversation_id": 724,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Не нашла такой город вылета. Проверьте название или выберите один из предложенных вариантов.",
-            "created_at": "2026-09-02 11:14:56"
         }
     ],
     "recent_events": [
