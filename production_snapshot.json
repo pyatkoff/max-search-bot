@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T22:14:38+00:00",
+    "generated_at": "2026-09-02T22:18:52+00:00",
     "production": {
-        "sha": "45f02630a762134128dddbb220e2bb21300f6011",
+        "sha": "c07c435d5ae3a2244c7bf761337ba763d8cf9822",
         "branch": "main"
     },
     "database": {
         "name": "anytour_max_search",
         "host": "localhost",
-        "latency_ms": 0.2
+        "latency_ms": 0.3
     },
     "migrations": [
         {
@@ -226,7 +226,7 @@
         "customers": 775,
         "customer_channels": 775,
         "conversations": 777,
-        "messages": 20166,
+        "messages": 20168,
         "managers": 6,
         "manager_assignments": 131,
         "conversation_events": 1008,
@@ -1705,6 +1705,15 @@
     ],
     "recent_messages": [
         {
+            "id": 20168,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 22:18:50"
+        },
+        {
             "id": 20167,
             "conversation_id": 656,
             "direction": "outbound",
@@ -2234,15 +2243,6 @@
             "channel": "max",
             "text": "Г ДЭНФЭН",
             "created_at": "2026-09-02 21:28:48"
-        },
-        {
-            "id": 20108,
-            "conversation_id": 656,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "telegram",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-09-02 21:06:48"
         }
     ],
     "recent_events": [

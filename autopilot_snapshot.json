@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T22:14:56+00:00",
+    "generated_at": "2026-09-02T22:19:09+00:00",
     "production": {
-        "sha": "45f02630a762134128dddbb220e2bb21300f6011",
+        "sha": "c07c435d5ae3a2244c7bf761337ba763d8cf9822",
         "branch": "main"
     },
     "migrations": {
@@ -158,7 +158,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 21:14:43",
+        "since_utc": "2026-09-02 21:18:57",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -213,7 +213,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "45f02630a762134128dddbb220e2bb21300f6011",
+        "sha": "c07c435d5ae3a2244c7bf761337ba763d8cf9822",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -222,7 +222,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T22:14:55Z"
+        "reported_at": "2026-09-02T22:19:09Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -278,7 +278,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T22:14:55+00:00",
+        "generated_at": "2026-09-02T22:19:08+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -287,8 +287,8 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 25600,
-                "code_lines": 623
+                "bytes": 24601,
+                "code_lines": 593
             },
             "services": {
                 "files": 137,
@@ -322,8 +322,8 @@
             },
             "tests": {
                 "files": 173,
-                "bytes": 756054,
-                "code_lines": 8675
+                "bytes": 758063,
+                "code_lines": 8689
             },
             "tools": {
                 "files": 36,
