@@ -207,6 +207,18 @@ class InteractionGuard
         return DialogueStateMachine::expectedStatusForForwardCallback($payload);
     }
 
+    private static function stateNameForDiagnostic(int $status): ?string
+    {
+        try {
+            return DialogueStateMachine::stateForStatus($status);
+        } catch (Throwable $ignored) {
+            // Diagnostics must never be able to break callback handling. Numeric
+            // status evidence remains authoritative when state-name enrichment
+            // is unavailable in a partial runtime/test fixture.
+            return null;
+        }
+    }
+
     public static function reportSuppressed(
         int $chatId,
         string $payload,
@@ -222,11 +234,11 @@ class InteractionGuard
         if ($payload !== '') $data['payload'] = $payload;
         if ($currentStatus !== null) {
             $data['current_status'] = $currentStatus;
-            $data['current_state'] = DialogueStateMachine::stateForStatus($currentStatus);
+            $data['current_state'] = self::stateNameForDiagnostic($currentStatus);
         }
         if ($expectedStatus !== null) {
             $data['expected_status'] = $expectedStatus;
-            $data['expected_state'] = DialogueStateMachine::stateForStatus($expectedStatus);
+            $data['expected_state'] = self::stateNameForDiagnostic($expectedStatus);
         }
 
         return DiagnosticLogger::warning('interaction_guard', 'callback_suppressed', $data, $chatId);
