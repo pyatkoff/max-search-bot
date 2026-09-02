@@ -26,6 +26,8 @@ pipelineAdminCheck('tag duplicate submit is ignored while save is in flight',str
 pipelineAdminCheck('submit buttons are disabled only during their own save',strpos($js,"const form=$(kind==='stage'?'stageForm':'tagForm');")!==false&&strpos($js,"submit.disabled=Boolean(saving)")!==false);
 pipelineAdminCheck('stage editor explicitly distinguishes edit from new mode',strpos($js,"setEditorTitle('stage',s.display_name||s.stage_key)")!==false&&strpos($js,"setEditorTitle('stage');$('stageForm').classList.add('hidden')")!==false&&strpos($js,'Редактируется ${kind===\'stage\'?\'этап\':\'тег\'}')!==false);
 pipelineAdminCheck('tag editor explicitly distinguishes edit from new mode',strpos($js,"setEditorTitle('tag',t.display_name||t.tag_key)")!==false&&strpos($js,"setEditorTitle('tag');$('tagForm').classList.add('hidden')")!==false&&strpos($js,"form?.querySelector('h3')")!==false);
+pipelineAdminCheck('stage editor cannot switch or clear while stage save is in flight',strpos($js,"window.editStage=key=>{\n    if(editorBusy('stage'))return;")!==false&&strpos($js,"$('newStage').onclick=()=>{if(editorBusy('stage'))return;")!==false&&strpos($js,"$('cancelStage').onclick=()=>{if(editorBusy('stage'))return;clearStage()}")!==false);
+pipelineAdminCheck('tag editor cannot switch or clear while tag save is in flight',strpos($js,"window.editTag=id=>{\n    if(editorBusy('tag'))return;")!==false&&strpos($js,"$('newTag').onclick=()=>{if(editorBusy('tag'))return;")!==false&&strpos($js,"$('cancelTag').onclick=()=>{if(editorBusy('tag'))return;clearTag()}")!==false&&strpos($js,'Дождитесь завершения сохранения')!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
