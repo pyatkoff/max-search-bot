@@ -103,9 +103,21 @@ jobs:
           set -euo pipefail
           ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/conversation_db.php migrate'
 
+      - name: Reconcile canonical MAX webhook ownership
+        id: max_webhook_reconcile
+        if: steps.migration.outcome == 'success'
+        continue-on-error: true
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/max_webhook_reconcile.php --apply'
+
       - name: Production smoke checks
         id: smoke
-        if: steps.migration.outcome == 'success'
+        if: steps.max_webhook_reconcile.outcome == 'success'
         continue-on-error: true
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -140,6 +152,7 @@ jobs:
           BUNDLE_OUTCOME: ${{ steps.bundle.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
+          MAX_WEBHOOK_OUTCOME: ${{ steps.max_webhook_reconcile.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
           DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
@@ -152,7 +165,7 @@ jobs:
           if [ -d ../production-diagnostics ]; then
             find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp {} . \;
           fi
-          printf '{"sha":"%s","run_id":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
+          printf '{"sha":"%s","run_id":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
           git add deploy_status.json *.json
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
           for attempt in 1 2 3; do
@@ -168,6 +181,7 @@ jobs:
           BUNDLE_OUTCOME: ${{ steps.bundle.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
+          MAX_WEBHOOK_OUTCOME: ${{ steps.max_webhook_reconcile.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
           DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
@@ -177,5 +191,6 @@ jobs:
           test "$BUNDLE_OUTCOME" = "success"
           test "$SYNC_OUTCOME" = "success"
           test "$MIGRATION_OUTCOME" = "success"
+          test "$MAX_WEBHOOK_OUTCOME" = "success"
           test "$SMOKE_OUTCOME" = "success"
           test "$DOWNLOAD_OUTCOME" = "success"
