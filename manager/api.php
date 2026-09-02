@@ -16,6 +16,14 @@ require_once $baseDir . '/services/ManagerPriorityService.php';
 ManagerHttp::startJson();
 
 function out(array $data, int $status=200): void { ManagerHttp::respond($data,$status); }
+function adminDirectorySaveStatus(array $result): int {
+    if(!empty($result['ok']))return 200;
+    $error=(string)($result['error']??'save_failed');
+    if(in_array($error,['duplicate_project_key','duplicate_login'],true))return 409;
+    if(in_array($error,['project_save_failed','manager_save_failed'],true))return 500;
+    if($error==='not_found')return 404;
+    return 422;
+}
 function withoutSuspendedWaiting(array $rows): array {
     if(!$rows)return[];
     $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
@@ -56,8 +64,8 @@ if($action==='admin_snapshot'){
     }
     out(['ok'=>true,'admin'=>$admin]);
 }
-if($action==='save_project'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,$r['ok']?200:409); }
-if($action==='save_manager'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,$r['ok']?200:409); }
+if($action==='save_project'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveProject($data,(int)$m['id']); out($r,adminDirectorySaveStatus($r)); }
+if($action==='save_manager'){ ManagerHttp::requireAdmin($m); $r=AdminDirectoryService::saveManager($data,(int)$m['id']); out($r,adminDirectorySaveStatus($r)); }
 if($action==='save_priority_rule'){ ManagerHttp::requireAdmin($m); $r=ManagerPriorityService::saveRule($data,(int)$m['id']); out($r,$r['ok']?200:409); }
 if($action==='routing_snapshot') out(['ok'=>true,'routing'=>RoutingAdminService::snapshot((int)$m['id'],(string)($data['project_key']??''))]);
 if($action==='save_group'){
