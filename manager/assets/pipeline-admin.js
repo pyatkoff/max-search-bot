@@ -23,6 +23,12 @@ function setEditorTitle(kind,label=''){
     title.textContent=editing?`Редактируется ${kind==='stage'?'этап':'тег'}: ${editing}`:`Новый ${kind==='stage'?'этап':'тег'}`;
 }
 
+function editorBusy(kind){
+    if(!S.saving[kind])return false;
+    status(`Дождитесь завершения сохранения ${kind==='stage'?'этапа':'тега'}.`);
+    return true;
+}
+
 function setFormSaving(kind,saving){
     S.saving[kind]=Boolean(saving);
     const form=$(kind==='stage'?'stageForm':'tagForm');
@@ -94,20 +100,22 @@ function clearTag(){
 }
 
 window.editStage=key=>{
+    if(editorBusy('stage'))return;
     const s=S.catalog.stages.find(x=>x.stage_key===key);if(!s)return;
     $('stageKey').value=s.stage_key;$('stageKey').readOnly=true;$('stageName').value=s.display_name;$('stageColor').value=s.color||'#64748b';$('stageSort').value=s.sort_order||0;$('stageActive').checked=Number(s.is_active)===1;$('stageTerminal').checked=Number(s.is_terminal)===1;$('stageWon').checked=Number(s.is_won)===1;$('stageForm').dataset.usageCount=String(Number(s.usage_count)||0);setEditorTitle('stage',s.display_name||s.stage_key);$('stageForm').classList.remove('hidden');$('stageForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 window.editTag=id=>{
+    if(editorBusy('tag'))return;
     const t=S.catalog.tags.find(x=>Number(x.id)===Number(id));if(!t)return;
     $('tagId').value=t.id;$('tagKey').value=t.tag_key;$('tagName').value=t.display_name;$('tagColor').value=t.color||'#64748b';$('tagSort').value=t.sort_order||0;$('tagActive').checked=Number(t.is_active)===1;$('tagForm').dataset.usageCount=String(Number(t.usage_count)||0);setEditorTitle('tag',t.display_name||t.tag_key);$('tagForm').classList.remove('hidden');$('tagForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 function bind(){
-    $('newStage').onclick=()=>{clearStage();$('stageForm').dataset.usageCount='0';$('stageForm').classList.remove('hidden')};
-    $('cancelStage').onclick=clearStage;
-    $('newTag').onclick=()=>{clearTag();$('tagForm').dataset.usageCount='0';$('tagForm').classList.remove('hidden')};
-    $('cancelTag').onclick=clearTag;
+    $('newStage').onclick=()=>{if(editorBusy('stage'))return;clearStage();$('stageForm').dataset.usageCount='0';$('stageForm').classList.remove('hidden')};
+    $('cancelStage').onclick=()=>{if(editorBusy('stage'))return;clearStage()};
+    $('newTag').onclick=()=>{if(editorBusy('tag'))return;clearTag();$('tagForm').dataset.usageCount='0';$('tagForm').classList.remove('hidden')};
+    $('cancelTag').onclick=()=>{if(editorBusy('tag'))return;clearTag()};
     $('stageWon').onchange=()=>{if($('stageWon').checked)$('stageTerminal').checked=true};
 
     $('stageForm').onsubmit=async e=>{
