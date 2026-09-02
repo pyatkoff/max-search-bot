@@ -2,35 +2,14 @@
 $configFile = __DIR__ . '/../config.php';
 if (is_file($configFile)) require_once $configFile;
 require_once __DIR__ . '/../handlers/TelegramWebhookHandler.php';
+require_once __DIR__ . '/../integrations/TelegramIncomingAdapter.php';
+require_once __DIR__ . '/../services/TelegramStartSourceResolver.php';
 require_once __DIR__ . '/../services/DialogueApplication.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/TelegramWebhookHealth.php';
 require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
-$captured = [];
 $sent = [];
-
-$application = new DialogueApplication(
-    static function (array $legacyMessage, array $incoming) use (&$captured): void {
-        $text = trim((string)($legacyMessage['text'] ?? ''));
-        $captured = [
-            'platform' => (string)($incoming['platform'] ?? ''),
-            'type' => (string)($incoming['type'] ?? ''),
-            'chat_id' => $legacyMessage['chat']['id'] ?? 0,
-            'text' => $text,
-            'source_key' => (string)($incoming['source_key'] ?? ''),
-            'routes_to_ai' => StateMessageHandler::shouldRouteFreeTextToAi($text),
-        ];
-    }
-);
-
-$dispatcher = new IncomingUpdateDispatcher($application);
-$messenger = new TelegramMessengerAdapter(
-    static function (string $method, array $payload) use (&$sent): bool {
-        $sent[] = ['method'=>$method, 'payload'=>$payload];
-        return true;
-    }
-);
 
 $update = [
     'update_id' => 990000001,
@@ -53,16 +32,31 @@ $update = [
     ],
 ];
 
+// Validate the transport normalization contract directly. Production source handling
+// is configurable (ai / ask / manager), so controller dispatch may intentionally
+// consume the normalized message before DialogueApplication is reached.
+$normalized = TelegramIncomingAdapter::fromUpdate($update) ?: [];
+$normalized['source_key'] = TelegramStartSourceResolver::resolve($normalized);
+$text = trim((string)($normalized['text'] ?? ''));
+
+$application = new DialogueApplication(static function (): void {});
+$dispatcher = new IncomingUpdateDispatcher($application);
+$messenger = new TelegramMessengerAdapter(
+    static function (string $method, array $payload) use (&$sent): bool {
+        $sent[] = ['method'=>$method, 'payload'=>$payload];
+        return true;
+    }
+);
 $handled = TelegramWebhookHandler::dispatchUpdate($update, $dispatcher, $messenger);
 
 $checks = [
     'webhook update handled' => $handled === true,
-    'platform normalized as telegram' => ($captured['platform'] ?? '') === 'telegram',
-    'message type preserved' => ($captured['type'] ?? '') === 'message',
-    'chat id preserved' => (int)($captured['chat_id'] ?? 0) === 990000003,
-    'text preserved exactly' => ($captured['text'] ?? '') === 'Хочу в Турцию в сентябре',
-    'AnyTour Telegram source preserved' => ($captured['source_key'] ?? '') === 'telegram:anytour-main',
-    'free text routes to AI instead of exact-country wizard lookup' => ($captured['routes_to_ai'] ?? false) === true,
+    'platform normalized as telegram' => ($normalized['platform'] ?? '') === 'telegram',
+    'message type preserved' => ($normalized['type'] ?? '') === 'message',
+    'chat id preserved' => (int)($normalized['user']['chat_id'] ?? 0) === 990000003,
+    'text preserved exactly' => $text === 'Хочу в Турцию в сентябре',
+    'AnyTour Telegram source preserved' => ($normalized['source_key'] ?? '') === 'telegram:anytour-main',
+    'free text is AI-compatible independent of configurable source policy' => StateMessageHandler::shouldRouteFreeTextToAi($text) === true,
 ];
 
 $failed = 0;
