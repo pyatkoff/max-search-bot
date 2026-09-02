@@ -125,4 +125,17 @@ $m[count($m)-1]['created_at']='2026-08-24 20:06:00';
 $r=LiveSessionAnalyzer::analyze($c,$m,$events);
 lsCheck('response after 90 seconds bucket',($r['manager_response_bucket']??'')==='answered_after_90s');
 
+$unmeasuredReplyConversation=[
+    'id'=>765,'project_key'=>'anytour','channel'=>'max','status'=>'manager',
+    'started_at'=>'2026-09-02 18:06:20','last_message_at'=>'2026-09-02 18:16:41',
+];
+$unmeasuredReplyMessages=[
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'show_tours','created_at'=>'2026-09-02 18:14:04'],
+    ['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте','created_at'=>'2026-09-02 18:16:41'],
+];
+$unmeasuredReplyResult=LiveSessionAnalyzer::analyze($unmeasuredReplyConversation,$unmeasuredReplyMessages,[]);
+lsCheck('manager reply without request timestamp remains recognized',!empty($unmeasuredReplyResult['manager_replied']));
+lsCheck('manager reply without request timestamp keeps latency unmeasured',($unmeasuredReplyResult['manager_response_seconds']??null)===null);
+lsCheck('manager reply without request timestamp is not mislabeled unanswered',($unmeasuredReplyResult['manager_response_bucket']??null)===null);
+
 echo "\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
