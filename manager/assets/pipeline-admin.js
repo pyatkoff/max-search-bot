@@ -15,6 +15,13 @@ function gateMessage(msg){
     el.classList.remove('hidden');
 }
 
+function setEditorTitle(kind,label=''){
+    const title=$(kind==='stage'?'stageTitle':'tagTitle');
+    if(!title)return;
+    const editing=String(label||'').trim();
+    title.textContent=editing?`Редактируется ${kind==='stage'?'этап':'тег'}: ${editing}`:`Новый ${kind==='stage'?'этап':'тег'}`;
+}
+
 function setFormSaving(kind,saving){
     S.saving[kind]=Boolean(saving);
     const form=$(kind==='stage'?'stageForm':'tagForm');
@@ -78,21 +85,21 @@ function render(){
 }
 
 function clearStage(){
-    $('stageKey').value='';$('stageKey').readOnly=false;$('stageName').value='';$('stageColor').value='#64748b';$('stageSort').value='0';$('stageActive').checked=true;$('stageTerminal').checked=false;$('stageWon').checked=false;$('stageForm').classList.add('hidden');
+    $('stageKey').value='';$('stageKey').readOnly=false;$('stageName').value='';$('stageColor').value='#64748b';$('stageSort').value='0';$('stageActive').checked=true;$('stageTerminal').checked=false;$('stageWon').checked=false;setEditorTitle('stage');$('stageForm').classList.add('hidden');
 }
 
 function clearTag(){
-    $('tagId').value='';$('tagKey').value='';$('tagName').value='';$('tagColor').value='#64748b';$('tagSort').value='0';$('tagActive').checked=true;$('tagForm').classList.add('hidden');
+    $('tagId').value='';$('tagKey').value='';$('tagName').value='';$('tagColor').value='#64748b';$('tagSort').value='0';$('tagActive').checked=true;setEditorTitle('tag');$('tagForm').classList.add('hidden');
 }
 
 window.editStage=key=>{
     const s=S.catalog.stages.find(x=>x.stage_key===key);if(!s)return;
-    $('stageKey').value=s.stage_key;$('stageKey').readOnly=true;$('stageName').value=s.display_name;$('stageColor').value=s.color||'#64748b';$('stageSort').value=s.sort_order||0;$('stageActive').checked=Number(s.is_active)===1;$('stageTerminal').checked=Number(s.is_terminal)===1;$('stageWon').checked=Number(s.is_won)===1;$('stageForm').dataset.usageCount=String(Number(s.usage_count)||0);$('stageForm').classList.remove('hidden');$('stageForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+    $('stageKey').value=s.stage_key;$('stageKey').readOnly=true;$('stageName').value=s.display_name;$('stageColor').value=s.color||'#64748b';$('stageSort').value=s.sort_order||0;$('stageActive').checked=Number(s.is_active)===1;$('stageTerminal').checked=Number(s.is_terminal)===1;$('stageWon').checked=Number(s.is_won)===1;$('stageForm').dataset.usageCount=String(Number(s.usage_count)||0);setEditorTitle('stage',s.display_name||s.stage_key);$('stageForm').classList.remove('hidden');$('stageForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 window.editTag=id=>{
     const t=S.catalog.tags.find(x=>Number(x.id)===Number(id));if(!t)return;
-    $('tagId').value=t.id;$('tagKey').value=t.tag_key;$('tagName').value=t.display_name;$('tagColor').value=t.color||'#64748b';$('tagSort').value=t.sort_order||0;$('tagActive').checked=Number(t.is_active)===1;$('tagForm').dataset.usageCount=String(Number(t.usage_count)||0);$('tagForm').classList.remove('hidden');$('tagForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+    $('tagId').value=t.id;$('tagKey').value=t.tag_key;$('tagName').value=t.display_name;$('tagColor').value=t.color||'#64748b';$('tagSort').value=t.sort_order||0;$('tagActive').checked=Number(t.is_active)===1;$('tagForm').dataset.usageCount=String(Number(t.usage_count)||0);setEditorTitle('tag',t.display_name||t.tag_key);$('tagForm').classList.remove('hidden');$('tagForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
 function bind(){
