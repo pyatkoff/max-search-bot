@@ -1,0 +1,25 @@
+name: Retired domain workflow inventory
+
+on:
+  push:
+    branches: [cleanup/remove-retired-domain-workflows]
+    paths:
+      - '.github/workflows/retired-domain-workflow-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: List workflow references
+        shell: bash
+        run: |
+          set -euo pipefail
+          retired="anytour"".""online"
+          echo 'RETIRED_WORKFLOW_MATCHES_BEGIN'
+          grep -RIlF -- "$retired" .github/workflows || true
+          echo 'RETIRED_WORKFLOW_MATCHES_END'
