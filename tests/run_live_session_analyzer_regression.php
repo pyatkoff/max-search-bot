@@ -21,6 +21,27 @@ lsCheck('does not invent post-tour manager CTA before actual delivery',empty($r[
 lsCheck('detects truly rapid date reselection',in_array('rapid_date_reselection',$r['flags'],true));
 lsCheck('drop point is tours opened',$r['drop_point']==='tours_opened');
 
+$generatedTourMessages=[
+ ['direction'=>'outbound','sender_type'=>'ai','text'=>'✅ Готово! Проверьте параметры','created_at'=>'2026-08-24 20:20:00'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_deadbeef_show_tours','created_at'=>'2026-08-24 20:20:01'],
+];
+$generatedTourResult=LiveSessionAnalyzer::analyze($c,$generatedTourMessages,[]);
+lsCheck('generated show-tours callback still counts funnel progress',!empty($generatedTourResult['tours_opened'])&&!empty($generatedTourResult['needs_collected']));
+lsCheck('generated show-tours callback keeps tours drop point',($generatedTourResult['drop_point']??'')==='tours_opened');
+
+$differentGenerations=[
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_11111111_show_tours','created_at'=>'2026-08-24 20:21:01'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_22222222_show_tours','created_at'=>'2026-08-24 20:21:02'],
+ ['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_33333333_show_tours','created_at'=>'2026-08-24 20:21:03'],
+];
+$differentGenerationResult=LiveSessionAnalyzer::analyze($c,$differentGenerations,[]);
+lsCheck('different valid generations are not mislabeled repeated callback',!in_array('repeated_callback_input',$differentGenerationResult['flags'],true));
+$sameGeneration=array_fill(0,3,['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_44444444_show_tours','created_at'=>'2026-08-24 20:22:01']);
+$sameGeneration[1]['created_at']='2026-08-24 20:22:02';$sameGeneration[2]['created_at']='2026-08-24 20:22:03';
+$sameGenerationResult=LiveSessionAnalyzer::analyze($c,$sameGeneration,[]);
+lsCheck('same generated callback retries remain visible as callback noise',in_array('repeated_callback_input',$sameGenerationResult['flags'],true));
+lsCheck('generated callback retries are not mislabeled free text',!in_array('repeated_same_input',$sameGenerationResult['flags'],true));
+
 $postTour=$m;
 $postTour[]=['direction'=>'outbound','sender_type'=>'ai','text'=>'🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены.','created_at'=>'2026-08-24 20:13:00'];
 $postTourResult=LiveSessionAnalyzer::analyze($c,$postTour,[]);
