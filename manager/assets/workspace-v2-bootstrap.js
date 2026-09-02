@@ -1,7 +1,7 @@
 (function(){
   function ensureManagerRequestQueue(){
     const tabs=document.querySelector('.queueTabs');
-    if(!tabs||tabs.querySelector('button[data-q="requested"]'))return;
+    if(!tabs||Array.from(tabs.querySelectorAll('button')).some(button=>button.dataset.q==='requested'))return;
     const button=document.createElement('button');
     button.type='button';
     button.dataset.q='requested';
