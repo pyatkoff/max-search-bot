@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T21:07:04+00:00",
+    "generated_at": "2026-09-02T21:41:05+00:00",
     "production": {
-        "sha": "239e55d2767f50b7d4e40676e4e3861902c612af",
+        "sha": "4db4a10f8524ba1d803230b0aee24018b65d29fd",
         "branch": "main"
     },
     "migrations": {
-        "total": 29,
+        "total": 30,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "026_repair_active_manager_assignments.sql"
+        "latest_version": "027_lead_close_reasons.sql"
     },
     "health": {
         "manager_visibility_ok": true,
@@ -158,19 +158,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 20:06:53",
+        "since_utc": "2026-09-02 20:40:51",
         "summary": {
-            "sessions": 4,
-            "raw_sessions": 4,
+            "sessions": 3,
+            "raw_sessions": 3,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 4,
+                "resolved": 3,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 4,
-            "needs_collected": 4,
-            "tours_opened": 4,
+            "started": 3,
+            "needs_collected": 2,
+            "tours_opened": 2,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
@@ -187,7 +187,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 4
+                "tours_opened": 2,
+                "collecting_needs": 1
             },
             "flags": {
                 "repeated_callback_input": 1
@@ -210,7 +211,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "239e55d2767f50b7d4e40676e4e3861902c612af",
+        "sha": "4db4a10f8524ba1d803230b0aee24018b65d29fd",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -219,7 +220,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T21:07:04Z"
+        "reported_at": "2026-09-02T21:41:05Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -234,17 +235,17 @@
         "window_hours": null,
         "since_utc": "2026-09-01 22:00:00",
         "summary": {
-            "sessions": 102,
-            "raw_sessions": 102,
+            "sessions": 104,
+            "raw_sessions": 104,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 102,
+                "resolved": 104,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 102,
-            "needs_collected": 85,
-            "tours_opened": 82,
+            "started": 104,
+            "needs_collected": 86,
+            "tours_opened": 83,
             "site_opened": 1,
             "post_tour_manager_cta_shown": 23,
             "manager_requested": 17,
@@ -261,8 +262,8 @@
                 "max_seconds": 40781
             },
             "drop_points": {
-                "tours_opened": 64,
-                "collecting_needs": 17,
+                "tours_opened": 65,
+                "collecting_needs": 18,
                 "manager_replied": 11,
                 "customer_replied_after_manager": 6,
                 "needs_collected": 3,
@@ -274,9 +275,9 @@
                 "rapid_date_reselection": 4
             },
             "calendar_day": {
-                "conversations_started": 93,
-                "needs_collected_from_started": 76,
-                "tours_opened_from_started": 73,
+                "conversations_started": 95,
+                "needs_collected_from_started": 77,
+                "tours_opened_from_started": 74,
                 "site_opened": 1,
                 "post_tour_manager_cta_shown": 19,
                 "manager_requested": 1,
@@ -286,11 +287,11 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T21:07:04+00:00",
+        "generated_at": "2026-09-02T21:41:04+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 85069,
+                "bytes": 86774,
                 "code_lines": 964
             },
             "actions": {
@@ -300,8 +301,8 @@
             },
             "services": {
                 "files": 136,
-                "bytes": 530723,
-                "code_lines": 11342
+                "bytes": 533954,
+                "code_lines": 11372
             },
             "integrations": {
                 "files": 11,
@@ -310,8 +311,8 @@
             },
             "manager": {
                 "files": 54,
-                "bytes": 314357,
-                "code_lines": 1558
+                "bytes": 319553,
+                "code_lines": 1598
             },
             "website": {
                 "files": 4,
@@ -324,14 +325,14 @@
                 "code_lines": 0
             },
             "migrations": {
-                "files": 29,
-                "bytes": 29641,
+                "files": 30,
+                "bytes": 30694,
                 "code_lines": 0
             },
             "tests": {
                 "files": 173,
-                "bytes": 744116,
-                "code_lines": 8575
+                "bytes": 747524,
+                "code_lines": 8584
             },
             "tools": {
                 "files": 36,
@@ -383,6 +384,12 @@
                 "severity": "observe"
             },
             {
+                "path": "manager/assets/pipeline-admin.js",
+                "lines": 198,
+                "bytes": 13682,
+                "severity": "observe"
+            },
+            {
                 "path": "services/TripStateService.php",
                 "lines": 198,
                 "bytes": 8447,
@@ -392,12 +399,6 @@
                 "path": "services/ConversationStateRepository.php",
                 "lines": 196,
                 "bytes": 7098,
-                "severity": "observe"
-            },
-            {
-                "path": "tools/production_snapshot.php",
-                "lines": 191,
-                "bytes": 11891,
                 "severity": "observe"
             }
         ],
