@@ -6,6 +6,7 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/ManagerLeadInboxService.php';
+require_once $baseDir.'/services/ManagerQueueProjectionService.php';
 require_once $baseDir.'/services/ManagerWorkspaceFilterService.php';
 require_once $baseDir.'/services/SalesPipelineService.php';
 require_once $baseDir.'/services/SalesPipelineCatalogAdminService.php';
@@ -43,7 +44,7 @@ if($action==='list'){
     $sourceId=(int)($data['source_id']??0);
     if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));
     elseif($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
-    if(in_array($queue,['waiting','attention'],true))$rows=array_values(array_filter($rows,fn($r)=>empty($r['delivery_failure_category'])));
+    $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
     $rows=ManagerLeadInboxService::decorate($rows);
     $taskFilter=(string)($data['lead_task_filter']??'');
     $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),$taskFilter);
