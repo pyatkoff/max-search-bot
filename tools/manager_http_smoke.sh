@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${MANAGER_BASE_URL:-https://anytour.online/max-search/manager}"
-CONSULTANT_BASE_URL="${CONSULTANT_BASE_URL:-https://anytour.online/max-search/web-consultant}"
+BASE_URL="${MANAGER_BASE_URL:-https://app.anytoour.ru/manager}"
+CONSULTANT_BASE_URL="${CONSULTANT_BASE_URL:-https://app.anytoour.ru/web-consultant}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
