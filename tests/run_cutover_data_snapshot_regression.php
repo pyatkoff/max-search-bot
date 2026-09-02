@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-$source = (string)file_get_contents(dirname(__DIR__) . '/tools/cutover_data_snapshot.php');
-$workflow = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/cutover-data-audit.yml');
+$root = dirname(__DIR__);
+$source = (string)file_get_contents($root . '/tools/cutover_data_snapshot.php');
+$auditWorkflow = $root . '/.github/workflows/cutover-data-audit.yml';
 
 function cutoverSnapshotAssert(bool $condition, string $message): void
 {
@@ -23,9 +24,6 @@ cutoverSnapshotAssert(strpos($source, "'customers'") !== false, 'snapshot must i
 cutoverSnapshotAssert(strpos($source, "'messages'") !== false, 'snapshot must include messages');
 cutoverSnapshotAssert(strpos($source, "'conversation_events'") !== false, 'snapshot must include events');
 cutoverSnapshotAssert(strpos($source, 'CONVERSATION_DB_PASS') === false, 'snapshot must never emit DB password');
-cutoverSnapshotAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'cutover audit must remain manually runnable');
-cutoverSnapshotAssert(strpos($workflow, "branches: [main]") !== false, 'audit workflow change must trigger one main audit run');
-cutoverSnapshotAssert(strpos($workflow, "- 'tools/cutover_data_snapshot.php'") !== false, 'push trigger must stay scoped to snapshot tool changes');
-cutoverSnapshotAssert(strpos($workflow, "- '.github/workflows/cutover-data-audit.yml'") !== false, 'push trigger must stay scoped to audit workflow changes');
+cutoverSnapshotAssert(!is_file($auditWorkflow), 'completed cross-host cutover audit workflow must stay retired');
 
 echo "OK cutover data snapshot regression\n";

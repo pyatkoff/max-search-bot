@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-$workflow = (string) file_get_contents(dirname(__DIR__) . '/.github/workflows/cutover-db-sync-readiness.yml');
+$root = dirname(__DIR__);
+$deploy = (string)file_get_contents($root . '/.github/workflows/deploy.yml');
 
 function cutoverDbSyncReadinessAssert(bool $condition, string $message): void
 {
@@ -12,20 +13,14 @@ function cutoverDbSyncReadinessAssert(bool $condition, string $message): void
     }
 }
 
-cutoverDbSyncReadinessAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'DB sync readiness must remain manually runnable');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'branches: [main]') !== false, 'DB sync readiness push trigger must only run from main');
-cutoverDbSyncReadinessAssert(strpos($workflow, "- '.github/workflows/cutover-db-sync-readiness.yml'") !== false, 'DB sync readiness push trigger must stay scoped to workflow changes');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'command -v mysqldump') !== false, 'production export tooling must be checked');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'command -v mysql') !== false, 'standby import tooling must be checked');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'conversation_db.php check') !== false, 'both DB connections must be checked');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'standalone_readiness.php') !== false, 'standby standalone readiness must be checked');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'CUTOVER_DB_SYNC_READINESS=YES') !== false, 'workflow must emit explicit ready marker');
+cutoverDbSyncReadinessAssert(!is_file($root . '/.github/workflows/cutover-db-sync-readiness.yml'), 'completed cross-host DB readiness workflow must stay retired');
+cutoverDbSyncReadinessAssert(strpos($deploy, '/var/www/anytoour/data/www/app.anytoour.ru') !== false, 'production deploy targets canonical checkout');
+cutoverDbSyncReadinessAssert(strpos($deploy, 'conversation_db.php migrate') !== false, 'production deploy keeps forward migrations');
+cutoverDbSyncReadinessAssert(strpos($deploy, 'EXPECTED_SHA') !== false, 'production deploy remains exact-SHA bound');
+cutoverDbSyncReadinessAssert(strpos($deploy, 'STANDBY_DEPLOY_SSH_KEY') !== false, 'canonical server SSH credentials are used');
 
-foreach (['--all-databases', 'DROP DATABASE', 'DROP TABLE', 'TRUNCATE ', 'INSERT ', 'UPDATE ', 'DELETE ', 'crontab ', 'systemctl '] as $forbidden) {
-    cutoverDbSyncReadinessAssert(stripos($workflow, $forbidden) === false, 'DB sync readiness must stay non-mutating: ' . $forbidden);
+foreach (['mysqldump ', '--all-databases', 'DROP DATABASE', 'DROP TABLE', 'TRUNCATE '] as $forbidden) {
+    cutoverDbSyncReadinessAssert(stripos($deploy, $forbidden) === false, 'normal production deploy must not contain old DB cutover operation: ' . $forbidden);
 }
 
-cutoverDbSyncReadinessAssert(strpos($workflow, 'secrets.DEPLOY_SSH_KEY') !== false, 'production SSH secret must be reused');
-cutoverDbSyncReadinessAssert(strpos($workflow, 'secrets.STANDBY_DEPLOY_SSH_KEY') !== false, 'standby SSH secret must be reused');
-
-echo "OK cutover DB sync readiness regression\n";
+echo "OK retired cutover DB sync readiness regression\n";

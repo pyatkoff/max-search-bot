@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$workflow = (string) file_get_contents($root . '/.github/workflows/cutover-db-sync-execution.yml');
-$helper = (string) file_get_contents($root . '/tools/conversation_db_mysql_defaults.php');
+$deploy = (string)file_get_contents($root . '/.github/workflows/deploy.yml');
+$helper = (string)file_get_contents($root . '/tools/conversation_db_mysql_defaults.php');
 
 function cutoverDbSyncExecutionAssert(bool $condition, string $message): void
 {
@@ -14,25 +14,19 @@ function cutoverDbSyncExecutionAssert(bool $condition, string $message): void
     }
 }
 
-cutoverDbSyncExecutionAssert(strpos($workflow, 'workflow_dispatch:') !== false, 'final DB sync must remain manual-only');
-cutoverDbSyncExecutionAssert(strpos($workflow, "SYNC_CONVERSATION_DB") !== false, 'final DB sync must require typed confirmation');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'writes_frozen:') !== false, 'final DB sync must require an explicit write-freeze acknowledgement');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'prod_sha') !== false && strpos($workflow, 'standby_sha') !== false, 'final DB sync must verify exact code revisions');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'max-search-precutover-') !== false, 'standby DB must be backed up before replacement');
-cutoverDbSyncExecutionAssert(strpos($workflow, '--single-transaction') !== false, 'production dump must use a consistent transactional snapshot');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'Production conversation data changed while final snapshot was being transferred.') !== false, 'sync must abort if production writes continue');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'conversation_db.php migrate') !== false, 'migrations must run after import');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'FINAL_DATA_MATCH=YES') !== false, 'sync must require exact post-import data match');
-cutoverDbSyncExecutionAssert(strpos($workflow, 'CUTOVER_DB_SYNC_COMPLETE=YES') !== false, 'sync must emit an explicit completion marker');
+cutoverDbSyncExecutionAssert(!is_file($root . '/.github/workflows/cutover-db-sync-execution.yml'), 'completed final DB-copy workflow must stay retired');
+cutoverDbSyncExecutionAssert(strpos($deploy, '/var/www/anytoour/data/www/app.anytoour.ru') !== false, 'normal production deploy targets canonical checkout');
+cutoverDbSyncExecutionAssert(strpos($deploy, 'conversation_db.php migrate') !== false, 'normal production deploy applies forward migrations');
+cutoverDbSyncExecutionAssert(strpos($deploy, 'git bundle') !== false, 'normal production deploy transfers exact repository state without server GitHub credentials');
+cutoverDbSyncExecutionAssert(strpos($deploy, 'EXPECTED_SHA') !== false, 'normal production deploy remains exact-SHA bound');
 
-foreach (['webhook set', 'crontab ', 'systemctl ', 'service '] as $forbidden) {
-    cutoverDbSyncExecutionAssert(stripos($workflow, $forbidden) === false, 'DB sync must not switch processing while copying data: ' . $forbidden);
+foreach (['SYNC_CONVERSATION_DB', 'writes_frozen:', 'mysqldump ', '--single-transaction', 'max-search-precutover-', 'DROP DATABASE', 'DROP TABLE'] as $retiredOperation) {
+    cutoverDbSyncExecutionAssert(strpos($deploy, $retiredOperation) === false, 'normal deploy must not retain final cross-host DB-copy operation: ' . $retiredOperation);
 }
 
-cutoverDbSyncExecutionAssert(strpos($helper, "PHP_SAPI !== 'cli'") !== false, 'MySQL defaults helper must remain CLI-only');
-cutoverDbSyncExecutionAssert(strpos($helper, 'CONVERSATION_DB_PASS') !== false, 'helper must source credentials from existing external config');
-cutoverDbSyncExecutionAssert(strpos($helper, 'chmod($path, 0600)') !== false, 'credential file must be mode 0600');
-cutoverDbSyncExecutionAssert(strpos($helper, 'echo (string)CONVERSATION_DB_PASS') === false, 'helper must never print the DB password');
-cutoverDbSyncExecutionAssert(strpos($helper, 'MYSQL_DEFAULTS_READY=YES') !== false, 'helper should emit only a non-secret readiness marker after writing credentials');
+cutoverDbSyncExecutionAssert(strpos($helper, "PHP_SAPI !== 'cli'") !== false, 'MySQL defaults helper remains CLI-only');
+cutoverDbSyncExecutionAssert(strpos($helper, 'CONVERSATION_DB_PASS') !== false, 'helper still sources credentials from external config');
+cutoverDbSyncExecutionAssert(strpos($helper, 'chmod($path, 0600)') !== false, 'credential file remains mode 0600');
+cutoverDbSyncExecutionAssert(strpos($helper, 'echo (string)CONVERSATION_DB_PASS') === false, 'helper never prints the DB password');
 
-echo "OK cutover DB sync execution regression\n";
+echo "OK retired cutover DB sync execution regression\n";
