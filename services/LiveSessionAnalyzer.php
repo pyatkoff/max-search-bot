@@ -108,7 +108,7 @@ final class LiveSessionAnalyzer
         $managerResponseSeconds=($managerRequestAt!==null&&$managerFirstReplyAt!==null)?max(0,$managerFirstReplyAt-$managerRequestAt):null;
         $managerResponseBucket=null;
         if($managerResponseSeconds!==null)$managerResponseBucket=$managerResponseSeconds<=90?'answered_in_90s':'answered_after_90s';
-        elseif($managerRequestActive)$managerResponseBucket='still_unanswered';
+        elseif($managerRequestActive&&!$managerReplied)$managerResponseBucket='still_unanswered';
 
         $needsCollected=$showTours;
         foreach($outbound as $text){if(stripos($text,'Готово! Проверьте параметры')!==false)$needsCollected=true;}
