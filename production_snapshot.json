@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T19:01:22+00:00",
+    "generated_at": "2026-09-02T19:12:15+00:00",
     "production": {
-        "sha": "3b65206a00f1363199f6536bdd241ae759b85d86",
+        "sha": "329cb402234a0bf03aa4fab729d827aa41651bd7",
         "branch": "main"
     },
     "database": {
@@ -216,10 +216,10 @@
         }
     ],
     "stats": {
-        "customers": 766,
-        "customer_channels": 766,
-        "conversations": 768,
-        "messages": 19953,
+        "customers": 767,
+        "customer_channels": 767,
+        "conversations": 769,
+        "messages": 19969,
         "managers": 6,
         "manager_assignments": 131,
         "conversation_events": 1008,
@@ -1289,7 +1289,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 615
+            "count": 616
         },
         {
             "project_key": "anytour",
@@ -1764,6 +1764,159 @@
     ],
     "recent_messages": [
         {
+            "id": 19970,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 19:12:16"
+        },
+        {
+            "id": 19969,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
+            "created_at": "2026-09-02 19:05:38"
+        },
+        {
+            "id": 19968,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
+            "created_at": "2026-09-02 19:05:35"
+        },
+        {
+            "id": 19967,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-02 19:05:35"
+        },
+        {
+            "id": 19966,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Египет 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 10 ночей 📅 Вылет 05.11.2026 · ищем 02.11–08.11.2026 Что удобнее дальше?",
+            "created_at": "2026-09-02 19:05:22"
+        },
+        {
+            "id": 19965,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Начало",
+            "created_at": "2026-09-02 19:05:19"
+        },
+        {
+            "id": 19964,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Подскажите ориентировочную дату вылета в этом месяце — например, в начале, середине или конце.",
+            "created_at": "2026-09-02 19:05:13"
+        },
+        {
+            "id": 19963,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Ноябрь",
+            "created_at": "2026-09-02 19:05:11"
+        },
+        {
+            "id": 19962,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Какая ориентировочная дата вылета?",
+            "created_at": "2026-09-02 19:04:55"
+        },
+        {
+            "id": 19961,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "10",
+            "created_at": "2026-09-02 19:04:52"
+        },
+        {
+            "id": 19960,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "На сколько ночей планируете поездку?",
+            "created_at": "2026-09-02 19:04:49"
+        },
+        {
+            "id": 19959,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Нет",
+            "created_at": "2026-09-02 19:04:46"
+        },
+        {
+            "id": 19958,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Будут дети? Если да — сколько?",
+            "created_at": "2026-09-02 19:04:42"
+        },
+        {
+            "id": 19957,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "2",
+            "created_at": "2026-09-02 19:04:38"
+        },
+        {
+            "id": 19956,
+            "conversation_id": 769,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Сколько будет взрослых туристов?",
+            "created_at": "2026-09-02 19:04:34"
+        },
+        {
+            "id": 19955,
+            "conversation_id": 769,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Путевка в Хургаду из спб",
+            "created_at": "2026-09-02 19:04:26"
+        },
+        {
+            "id": 19954,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 19:01:26"
+        },
+        {
             "id": 19953,
             "conversation_id": 768,
             "direction": "outbound",
@@ -2149,159 +2302,6 @@
             "channel": "max",
             "text": "Какое питание предпочитаете?",
             "created_at": "2026-09-02 18:26:28"
-        },
-        {
-            "id": 19910,
-            "conversation_id": 766,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "4-5",
-            "created_at": "2026-09-02 18:26:24"
-        },
-        {
-            "id": 19909,
-            "conversation_id": 766,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?",
-            "created_at": "2026-09-02 18:26:17"
-        },
-        {
-            "id": 19908,
-            "conversation_id": 766,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Нет",
-            "created_at": "2026-09-02 18:26:14"
-        },
-        {
-            "id": 19907,
-            "conversation_id": 766,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Будут дети? Если да — сколько?",
-            "created_at": "2026-09-02 18:26:09"
-        },
-        {
-            "id": 19906,
-            "conversation_id": 766,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "2",
-            "created_at": "2026-09-02 18:26:06"
-        },
-        {
-            "id": 19905,
-            "conversation_id": 766,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Сколько будет взрослых туристов?",
-            "created_at": "2026-09-02 18:26:02"
-        },
-        {
-            "id": 19904,
-            "conversation_id": 766,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "Тур в Таиланд",
-            "created_at": "2026-09-02 18:25:59"
-        },
-        {
-            "id": 19903,
-            "conversation_id": 656,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "telegram",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-09-02 18:19:00"
-        },
-        {
-            "id": 19902,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "manager",
-            "channel": "max",
-            "text": "Добрый вечер! 🤍 Меня зовут Светлана, я менеджер туристического агентства AnyTour. Получила Ваш запрос на подбор тура и подготовила варианты, которые можем предложить вам уже сейчас. Отправляю их ниже 👇 23.09, 10н, Lemon &amp; Soul Makadi Garden 3*, AI - Все Включено, 178 004 RUB 23.09, 10н, Bliss Nada Beach (Ex. Jolie Beach Resort; Aurora Nada Resort) 4*, AI - Все Включено, 185 981 RUB 23.09, 10н, Sunny Days Mirette Family Aquapark 3*, AI - Все Включено, 187 182 RUB Подробнее здесь: https://q...",
-            "created_at": "2026-09-02 18:16:41"
-        },
-        {
-            "id": 19901,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-            "created_at": "2026-09-02 18:14:07"
-        },
-        {
-            "id": 19900,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-            "created_at": "2026-09-02 18:14:04"
-        },
-        {
-            "id": 19899,
-            "conversation_id": 765,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-02 18:14:04"
-        },
-        {
-            "id": 19898,
-            "conversation_id": 656,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "telegram",
-            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-            "created_at": "2026-09-02 18:13:31"
-        },
-        {
-            "id": 19897,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-            "created_at": "2026-09-02 18:11:58"
-        },
-        {
-            "id": 19896,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-            "created_at": "2026-09-02 18:11:55"
-        },
-        {
-            "id": 19895,
-            "conversation_id": 765,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-02 18:11:55"
-        },
-        {
-            "id": 19894,
-            "conversation_id": 765,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Египет 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9-11 ночей 📅 Вылет 20.09.2026 · ищем 17.09–23.09.2026 Что удобнее дальше?",
-            "created_at": "2026-09-02 18:11:43"
         }
     ],
     "recent_events": [
