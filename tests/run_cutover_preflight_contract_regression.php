@@ -40,7 +40,7 @@ cutoverPreflightAssert(strpos($workflow, 'secrets.DEPLOY_SSH_KEY') !== false, 'p
 cutoverPreflightAssert(strpos($workflow, 'secrets.STANDBY_DEPLOY_SSH_KEY') !== false, 'preflight should reuse standby deploy SSH connection');
 
 cutoverPreflightAssert(strpos($legacyService, 'LeadBridgeConfig::receiverUrl()') !== false, 'legacy-host detector must inspect configured lead receiver');
-cutoverPreflightAssert(strpos($legacyService, "'anytour.online'") !== false, 'legacy-host detector must recognize canonical legacy host');
+cutoverPreflightAssert(strpos($legacyService, "'app.anytoour.ru'") !== false, 'legacy-host detector must recognize canonical legacy host');
 cutoverPreflightAssert(strpos($legacyService, "'lead_bridge'") !== false, 'legacy-host detector must identify lead bridge dependency');
 cutoverPreflightAssert(strpos($legacyTool, "PHP_SAPI !== 'cli'") !== false, 'legacy-host diagnostic must remain CLI-only');
 cutoverPreflightAssert(strpos($legacyTool, 'LEGACY_HOST_DEPENDENCY=') !== false, 'legacy-host diagnostic must expose dependency result');

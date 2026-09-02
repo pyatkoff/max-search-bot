@@ -12,7 +12,7 @@ function sr_assert(bool $condition, string $message): void
     if (!$condition) { fwrite(STDERR, "FAIL: {$message}\n"); exit(1); }
 }
 
-sr_assert(LeadBridgeConfig::receiverUrl() === 'https://anytour.online/max-search/lead-receiver.php', 'bridge must have canonical legacy receiver fallback');
+sr_assert(LeadBridgeConfig::receiverUrl() === 'https://app.anytoour.ru/lead-receiver.php', 'bridge must have canonical legacy receiver fallback');
 sr_assert(LeadBridgeConfig::secret() !== '', 'bridge must derive a domain-separated HMAC key from the existing shared MAX token when no dedicated secret is configured');
 sr_assert(LeadBridgeConfig::secret() !== MAX_SEARCH_TOKEN, 'derived bridge key must not equal the raw MAX token');
 sr_assert(CatalogIdCompatibility::requiredDepartureIds() === [1,5,10,12], 'canonical departure IDs must match the dialogue contract');
