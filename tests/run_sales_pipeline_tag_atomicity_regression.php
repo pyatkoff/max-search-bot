@@ -20,7 +20,7 @@ ptaCheck('setTags remains the single per-lead tag mutation owner',$method!==''&&
 ptaCheck('invalid or inactive requested tags fail closed before deleting current tags',$validate!==false&&$rollback!==false&&$delete!==false&&$validate<$delete&&$rollback<$delete);
 ptaCheck('valid complete tag sets still replace atomically',$delete!==false&&$insert!==false&&$commit!==false&&$delete<$insert&&$insert<$commit);
 ptaCheck('empty tag selection can still intentionally clear tags',strpos($method,'if($tagIds){')!==false&&$delete!==false);
-ptaCheck('pipeline API surfaces rejected tag mutation as conflict without a false snapshot',strpos($api,"$action==='set_tags'")!==false&&strpos($api,"'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null")!==false&&strpos($api,'$ok?200:409')!==false);
+ptaCheck('pipeline API surfaces rejected tag mutation as conflict without a false snapshot',strpos($api,"\$action==='set_tags'")!==false&&strpos($api,"'pipeline'=>\$ok?SalesPipelineService::conversationSnapshot(\$id):null")!==false&&strpos($api,'$ok?200:409')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
