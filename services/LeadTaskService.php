@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/SalesPipelineService.php';
 
 /**
  * Sales-workspace task/reminder foundation.
@@ -17,6 +18,14 @@ class LeadTaskService
             catch(Throwable $e){return ['ok'=>false,'error'=>'invalid_due_at'];}
         }
         return ['ok'=>true,'title'=>$title,'due_at_utc'=>$dueUtc];
+    }
+
+    /** Canonical business policy: closed sales leads may clean up existing tasks but cannot create new ones. */
+    public static function canCreateForConversation(int $conversationId): bool
+    {
+        if($conversationId<=0)return false;
+        $outcome=SalesPipelineService::outcomeForConversation($conversationId);
+        return (string)($outcome['outcome']??'open')==='open';
     }
 
     /** Canonical business classification for task urgency in Europe/Kaliningrad. */
@@ -83,6 +92,7 @@ class LeadTaskService
     public static function create(int $conversationId,string $title,?string $dueIso,int $createdByManagerId,?int $assignedManagerId=null): array
     {
         if($conversationId<=0||$createdByManagerId<=0)return ['ok'=>false,'error'=>'invalid_owner'];
+        if(!self::canCreateForConversation($conversationId))return ['ok'=>false,'error'=>'lead_closed'];
         $input=self::normalizeCreateInput($title,$dueIso);if(empty($input['ok']))return$input;
         $assignedManagerId=(int)($assignedManagerId??0);if($assignedManagerId<=0)$assignedManagerId=$createdByManagerId;
         $pdo=ConversationDb::connection();
