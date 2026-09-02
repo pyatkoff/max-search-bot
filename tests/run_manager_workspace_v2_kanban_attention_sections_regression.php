@@ -16,6 +16,7 @@ checkAttention('steady leads stay separated only when actionable leads exist',st
 checkAttention('attention section headings are accessible',strpos($kanban,'role="heading" aria-level="4"')!==false);
 checkAttention('empty stages retain canonical empty state',strpos($kanban,"if(!ordered.length)return'<div class=\"kanbanEmpty\">Нет лидов</div>'")!==false);
 checkAttention('render path delegates stage card content to section renderer',substr_count($kanban,'renderCardSections(stageRows)')===1&&substr_count($kanban,'renderCardSections(groups.__other)')===1);
+checkAttention('column summary surfaces today workload from canonical operational task state',strpos($kanban,'overdue=0,today=0,missing=0')!==false&&strpos($kanban,"else if(taskState==='today')today+=1")!==false&&strpos($kanban,'if(today)parts.push(`${today} сегодня`)')!==false);
 checkAttention('section labels remain presentation only and responsive',strpos($css,'.kanbanSectionLabel')!==false&&strpos($css,'.kanbanSectionLabel.attention')!==false&&strpos($css,'.kanbanSectionLabel.steady')!==false&&strpos($css,'@media(max-width:900px)')!==false&&strpos($css,'.kanbanSectionLabel{font-size:11px;min-height:28px}')!==false);
 checkAttention('kanban core still owns no task or stage mutation persistence',strpos($kanban,"pipe('set_task_")===false&&strpos($kanban,"pipe('set_stage'")===false&&strpos($kanban,'UPDATE lead_')===false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
