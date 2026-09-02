@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T16:12:05+00:00",
+    "generated_at": "2026-09-02T16:15:45+00:00",
     "production": {
-        "sha": "4d981dc5487ea5c7fad9085ac786e1969971ec1c",
+        "sha": "b30f0b5ba47d5ee2a4c6d31b6738ae96410da7b9",
         "branch": "main"
     },
     "migrations": {
@@ -158,19 +158,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 15:11:55",
+        "since_utc": "2026-09-02 15:15:31",
         "summary": {
-            "sessions": 13,
-            "raw_sessions": 13,
+            "sessions": 12,
+            "raw_sessions": 12,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 13,
+                "resolved": 12,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 13,
-            "needs_collected": 12,
-            "tours_opened": 12,
+            "started": 12,
+            "needs_collected": 11,
+            "tours_opened": 11,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 1,
@@ -187,7 +187,7 @@
                 "max_seconds": 422
             },
             "drop_points": {
-                "tours_opened": 11,
+                "tours_opened": 10,
                 "collecting_needs": 1,
                 "customer_replied_after_manager": 1
             },
@@ -230,7 +230,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "4d981dc5487ea5c7fad9085ac786e1969971ec1c",
+        "sha": "b30f0b5ba47d5ee2a4c6d31b6738ae96410da7b9",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -239,7 +239,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T16:12:05Z"
+        "reported_at": "2026-09-02T16:15:45Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -306,7 +306,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T16:12:04+00:00",
+        "generated_at": "2026-09-02T16:15:44+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
