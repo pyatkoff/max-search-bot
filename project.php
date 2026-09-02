@@ -16,11 +16,11 @@ return [
         'provider' => 'max',
         'channel_url' => 'https://max.ru/anytour',
         'miniapp_bot_url' => 'https://max.ru/id9704048781_2_bot',
-        'open_channel_path' => '/max-search/open_channel.php',
+        'open_channel_path' => '/open_channel.php',
         'telegram' => [
             'bot_url' => 'https://t.me/Any_tour_bot',
             'source_key' => 'telegram:anytour-main',
-            'webhook_path' => '/max-search/telegram_webhook.php',
+            'webhook_path' => '/telegram_webhook.php',
         ],
     ],
     'search' => [
@@ -28,9 +28,9 @@ return [
         // One customer-facing owner for tour-search destinations.
         'base_domain' => 'https://anytoour.ru',
         'search_path' => '/poisk-turov/',
-        // Tracking endpoints remain repository-owned infrastructure on the legacy app origin.
-        'tracking_base_domain' => 'https://anytour.online',
-        'open_tours_path' => '/max-search/open_tours.php',
+        // Tracking endpoints live on the migrated application origin.
+        'tracking_base_domain' => 'https://app.anytoour.ru',
+        'open_tours_path' => '/open_tours.php',
     ],
     'leads' => [
         'provider' => 'bitrix',
