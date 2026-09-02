@@ -15,6 +15,7 @@ ManagerHttp::startJson();
 
 function pipelineConversation(int $id,int $mid):?array{$d=ManagerConversationService::detail($id,$mid);return$d?(array)($d['conversation']??[]):null;}
 function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat==='')return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
+function pipelineOutcome(int $id):string{$outcome=SalesPipelineService::outcomeForConversation($id);return(string)($outcome['outcome']??'open');}
 function pipelineCatalogSaveStatus(array $result):int
 {
     if(!empty($result['ok']))return 200;
@@ -76,6 +77,7 @@ if($action==='set_outcome'){
 }
 if($action==='create_task'){
     ManagerHttp::requireConversationEdit($c,$m);
+    if(pipelineOutcome($id)!=='open')ManagerHttp::respond(['ok'=>false,'error'=>'lead_closed'],409);
     $assigned=(int)($c['manager_id']??0);
     $result=LeadTaskService::create($id,(string)($data['title']??''),isset($data['due_at'])?(string)$data['due_at']:null,(int)$m['id'],$assigned>0?$assigned:(int)$m['id']);
     ManagerHttp::respond($result+['tasks'=>!empty($result['ok'])?LeadTaskService::listForConversation($id):null],!empty($result['ok'])?200:422);
