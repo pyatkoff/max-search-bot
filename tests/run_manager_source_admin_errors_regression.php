@@ -7,6 +7,7 @@ $api=(string)file_get_contents($root.'/manager/api.php');
 $routing=(string)file_get_contents($root.'/manager/routing.php');
 $routingJs=(string)file_get_contents($root.'/manager/assets/routing.js');
 $service=(string)file_get_contents($root.'/services/RoutingAdminService.php');
+$directoryService=(string)file_get_contents($root.'/services/AdminDirectoryService.php');
 
 $passed=0;$failed=0;
 function sourceCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -21,6 +22,8 @@ sourceCheck('routing group inserts only the already validated member set',strpos
 sourceCheck('routing group keeps bool compatibility wrapper over structured result',strpos($service,'public static function saveGroup(')!==false&&strpos($service,'self::saveGroupResult(')!==false);
 sourceCheck('routing group exposes stale member group and duplicate errors',strpos($service,"'error'=>'invalid_group_members'")!==false&&strpos($service,"'error'=>'group_not_found'")!==false&&strpos($service,"'error'=>'group_project_mismatch'")!==false&&strpos($service,"'error'=>'duplicate_group_key'")!==false);
 sourceCheck('manager API returns structured routing group result with statuses',strpos($api,'RoutingAdminService::saveGroupResult(')!==false&&strpos($api,"$error==='duplicate_group_key'?409")!==false&&strpos($api,"['project_not_found','group_not_found']")!==false);
+sourceCheck('admin directory project save distinguishes duplicate key from other database failures',strpos($directoryService,"self::isDuplicateKeyError(\$e)?'duplicate_project_key':'project_save_failed'")!==false);
+sourceCheck('manager API maps admin directory validation conflict not-found and server errors separately',strpos($api,'function adminDirectorySaveStatus(array $result): int')!==false&&strpos($api,"['duplicate_project_key','duplicate_login']")!==false&&strpos($api,"['project_save_failed','manager_save_failed']")!==false&&strpos($api,"if(\$error==='not_found')return 404")!==false&&substr_count($api,'adminDirectorySaveStatus($r)')===2);
 sourceCheck('routing UI explains structured group failures',strpos($routingJs,'function groupErrorText(')!==false&&strpos($routingJs,"invalid_group_members:'Состав менеджеров изменился")!==false&&strpos($routingJs,"duplicate_group_key:'Группа с таким кодом уже существует")!==false&&strpos($routingJs,"group_project_mismatch:'Группа относится к другому проекту")!==false);
 sourceCheck('failed group save preserves form and uses structured message',strpos($routingJs,'groupStatus(groupErrorText(j.error))')!==false&&strpos($routingJs,"if(j.ok){resetGroupForm();")!==false);
 sourceCheck('routing UI renders an inline live status region',strpos($routing,'id="sourceStatus"')!==false&&strpos($routing,'aria-live="polite"')!==false&&strpos($routingJs,'function sourceStatus(')!==false);

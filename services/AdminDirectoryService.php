@@ -68,7 +68,7 @@ class AdminDirectoryService
             $pdo->commit();
         }catch(Throwable $e){
             if($pdo->inTransaction())$pdo->rollBack();
-            return ['ok'=>false,'error'=>'duplicate_project_key'];
+            return ['ok'=>false,'error'=>self::isDuplicateKeyError($e)?'duplicate_project_key':'project_save_failed'];
         }
         AuditLogService::record($actorManagerId,$before?'project_updated':'project_created','project',(string)$id,$key,$before,self::projectRow($id));
         return ['ok'=>true,'project_id'=>$id];
