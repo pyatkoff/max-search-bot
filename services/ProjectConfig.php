@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/TourSearchHandoffService.php';
+
 class ProjectConfig
 {
     private static $config;
@@ -68,102 +70,12 @@ class ProjectConfig
 
     public static function searchUrlFromSavedData(array $savedData, array $statusMap, string $yclid = ''): string
     {
-        [$nightsFrom, $nightsTill] = self::rangeQueryValues($savedData[$statusMap['nights']] ?? '');
-        $children = self::positiveInt($savedData[$statusMap['children']] ?? 0);
-        $date = self::dateQueryValue($savedData[$statusMap['date']] ?? '');
-
-        return self::searchUrl([
-            'from' => (int)($savedData[$statusMap['city']] ?? 0),
-            'country' => (int)($savedData[$statusMap['country']] ?? 0),
-            'dateFrom' => $date,
-            'dateTo' => $date,
-            'daysFrom' => $nightsFrom,
-            'daysTill' => $nightsTill,
-            'count_people' => self::positiveInt($savedData[$statusMap['adults']] ?? 0),
-            'child_count' => $children,
-            'child_age' => self::childAgeQueryValues($savedData[$statusMap['child_ages']] ?? '', $children),
-            'stars' => self::positiveInt($savedData[$statusMap['stars']] ?? 0),
-            'food' => self::positiveInt($savedData[$statusMap['meal']] ?? 0),
-            'yclid' => $yclid,
-        ]);
+        return self::searchUrl(TourSearchHandoffService::queryFromSavedData($savedData, $statusMap, $yclid));
     }
 
     public static function searchUrlFromClaim(array $claim, string $yclid = ''): string
     {
-        [$nightsFrom, $nightsTill] = self::rangeQueryValues($claim['UF_NIGHTS'] ?? '');
-        $children = self::positiveInt($claim['UF_CHILD'] ?? 0);
-        $date = self::dateQueryValue($claim['UF_DATE_DEPART'] ?? '');
-
-        return self::searchUrl([
-            'from' => (int)($claim['UF_CITY'] ?? 0),
-            'country' => (int)($claim['UF_COUNTRY'] ?? 0),
-            'dateFrom' => $date,
-            'dateTo' => $date,
-            'daysFrom' => $nightsFrom,
-            'daysTill' => $nightsTill,
-            'count_people' => self::positiveInt($claim['UF_ADULTS'] ?? 0),
-            'child_count' => $children,
-            'child_age' => self::childAgeQueryValues($claim['UF_AGE'] ?? '', $children),
-            'stars' => self::positiveInt($claim['UF_STARS'] ?? 0),
-            'food' => self::positiveInt($claim['UF_MEAL'] ?? 0),
-            'yclid' => $yclid,
-        ]);
-    }
-
-    private static function positiveInt($value): int
-    {
-        $value = (int)$value;
-        return $value > 0 ? $value : 0;
-    }
-
-    private static function rangeQueryValues($value): array
-    {
-        $raw = trim((string)$value);
-        if ($raw === '') return [0, 0];
-        if (preg_match('/^(\d{1,2})\s*[-–—]\s*(\d{1,2})$/u', $raw, $m)) {
-            $from = self::positiveInt($m[1]);
-            $till = self::positiveInt($m[2]);
-            return [$from, $till >= $from ? $till : $from];
-        }
-        $single = self::positiveInt($raw);
-        return [$single, $single];
-    }
-
-    private static function childAgeQueryValues($value, int $children): array
-    {
-        if ($children < 1) return [];
-        if (is_array($value)) $parts = $value;
-        else $parts = preg_split('/\s*[,;]\s*/u', trim((string)$value), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        $ages = [];
-        foreach ($parts as $part) {
-            $raw = trim((string)$part);
-            if ($raw === '' || !preg_match('/^\d{1,2}$/', $raw)) continue;
-            $age = (int)$raw;
-            if ($age >= 0 && $age <= 17) $ages[] = $age;
-            if (count($ages) >= $children) break;
-        }
-        return $ages;
-    }
-
-    private static function dateQueryValue($value): string
-    {
-        if ($value instanceof DateTimeInterface) return $value->format('Y-m-d');
-        $raw = trim((string)$value);
-        if ($raw === '') return '';
-
-        foreach (['!Y-m-d', '!d.m.Y', '!d.m.Y H:i:s', '!Y-m-d H:i:s'] as $format) {
-            $date = DateTimeImmutable::createFromFormat($format, $raw);
-            $errors = DateTimeImmutable::getLastErrors();
-            if ($date && ($errors === false || (($errors['warning_count'] ?? 0) === 0 && ($errors['error_count'] ?? 0) === 0))) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        try {
-            return (new DateTimeImmutable($raw))->format('Y-m-d');
-        } catch (Throwable $e) {
-            return '';
-        }
+        return self::searchUrl(TourSearchHandoffService::queryFromClaim($claim, $yclid));
     }
 
     public static function claimUrl(string $code, string $yclid = ''): string
