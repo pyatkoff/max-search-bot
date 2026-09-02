@@ -24,6 +24,8 @@ pipelineAdminCheck('validation errors remain distinct from server and transport 
 pipelineAdminCheck('stage duplicate submit is ignored while save is in flight',strpos($js,'if(S.saving.stage)return;')!==false&&preg_match("/setFormSaving\('stage',true\);[\\s\\S]*?safeApi\('save_stage'[\\s\\S]*?setFormSaving\('stage',false\);/",$js)===1);
 pipelineAdminCheck('tag duplicate submit is ignored while save is in flight',strpos($js,'if(S.saving.tag)return;')!==false&&preg_match("/setFormSaving\('tag',true\);[\\s\\S]*?safeApi\('save_tag'[\\s\\S]*?setFormSaving\('tag',false\);/",$js)===1);
 pipelineAdminCheck('submit buttons are disabled only during their own save',strpos($js,"const form=$(kind==='stage'?'stageForm':'tagForm');")!==false&&strpos($js,"submit.disabled=Boolean(saving)")!==false);
+pipelineAdminCheck('stage editor explicitly distinguishes edit from new mode',strpos($js,"setEditorTitle('stage',s.display_name||s.stage_key)")!==false&&strpos($js,"setEditorTitle('stage');$('stageForm').classList.add('hidden')")!==false&&strpos($js,'Редактируется ${kind===\'stage\'?\'этап\':\'тег\'}')!==false);
+pipelineAdminCheck('tag editor explicitly distinguishes edit from new mode',strpos($js,"setEditorTitle('tag',t.display_name||t.tag_key)")!==false&&strpos($js,"setEditorTitle('tag');$('tagForm').classList.add('hidden')")!==false&&strpos($js,"form?.querySelector('h3')")!==false);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
