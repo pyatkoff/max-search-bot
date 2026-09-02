@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__.'/CallbackGeneration.php';
+
 final class LiveSessionAnalyzer
 {
     private const EXCESSIVE_INBOUND_TURNS = 18;
@@ -16,6 +18,7 @@ final class LiveSessionAnalyzer
 
     private static function isCallbackInput(string $text): bool
     {
+        $text=CallbackGeneration::base($text);
         if($text==='')return false;
         if(in_array($text,['start_search','show_tours','restart','month_click','day_click'],true))return true;
         return (bool)preg_match('/^(?:pick_|month_change_|adult_|adults_|child_|star_|meal_|nights_|city_|country_|edit_|manager_|search_|back_)/',$text);
@@ -23,6 +26,7 @@ final class LiveSessionAnalyzer
 
     private static function isPassiveCallback(string $text): bool
     {
+        $text=CallbackGeneration::base($text);
         return $text==='month_click'||$text==='day_click'||strpos($text,'month_change_')===0;
     }
 
@@ -43,21 +47,25 @@ final class LiveSessionAnalyzer
         $managerMessageTimes=[];$customerMessageTimes=[];$anomalyInboundTurns=0;$postTourManagerCtaAt=null;
         foreach($messages as $m){
             $text=trim((string)($m['text']??''));
+            $callbackText=CallbackGeneration::base($text);
             $messageTs=self::ts($m['created_at']??null);
             $inAnomalyWindow=$anomalySinceTs===null||$messageTs===null||$messageTs>=$anomalySinceTs;
             if(($m['direction']??'')==='inbound'){
                 $inbound[]=$text;
                 if(($m['sender_type']??'')==='customer'&&$messageTs!==null&&!self::isCallbackInput($text))$customerMessageTimes[]=$messageTs;
-                if(strpos($text,'pick_date_')===0){
+                if(strpos($callbackText,'pick_date_')===0){
                     $datePicks++;
                     if($inAnomalyWindow&&$messageTs!==null)$anomalyDatePickTimes[]=$messageTs;
                 }
-                if($text==='show_tours')$showTours=true;
+                if($callbackText==='show_tours')$showTours=true;
                 if(self::containsPhone($text))$phone=true;
                 if($inAnomalyWindow){
                     $anomalyInboundTurns++;
                     if($text!==''){
                         if(self::isCallbackInput($text)){
+                            // Keep the raw generated payload as the repetition key:
+                            // a genuinely new surface generation must not look like
+                            // a repeat of an older valid generation.
                             if(!self::isPassiveCallback($text))$repeatedCallbacks[$text]=($repeatedCallbacks[$text]??0)+1;
                         } else {
                             $repeatedFreeText[$text]=($repeatedFreeText[$text]??0)+1;
