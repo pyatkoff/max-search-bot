@@ -20,7 +20,16 @@ if (!class_exists('MaxSearchApi')) {
     class MaxSearchApi {
         public static function getSavedData($chatId): array { return ['city'=>1]; }
         public static function saveClaim($chatId, $savedData): string { return 'https://legacy.test/search/abc/?yclid=777'; }
-        public static function getLastClaimForChat($chatId): array { return ['UF_CITY'=>1,'UF_COUNTRY'=>4,'UF_CODE'=>'abc']; }
+        public static function getLastClaimForChat($chatId): array {
+            return [
+                'UF_CITY'=>1,
+                'UF_COUNTRY'=>4,
+                'UF_ADULTS'=>3,
+                'UF_NIGHTS'=>9,
+                'UF_DATE_DEPART'=>'15.09.2026',
+                'UF_CODE'=>'abc',
+            ];
+        }
         public static function getLatestYclid($chatId): string { return '777'; }
         public static function buildChannelMiniappUrl($chatId): string { return 'https://max.ru/test?startapp=777'; }
     }
@@ -41,8 +50,8 @@ ProjectConfig::resetForTests([
 ]);
 
 $model = TourResultsService::build(-123, 'Pavel');
-$canonical = 'https://public-search.test/poisk-turov/?from=1&country=4&yclid=777';
-trCheck('claim url canonicalized', $model['claim_url'], $canonical);
+$canonical = 'https://public-search.test/poisk-turov/?from=1&country=4&dateFrom=2026-09-15&dateTo=2026-09-15&daysFrom=9&daysTill=9&count_people=3&yclid=777';
+trCheck('claim url canonicalized with collected search fields', $model['claim_url'], $canonical);
 trCheck('channel url preserved', $model['channel_url'], 'https://max.ru/test?startapp=777');
 trCheck('MAX button label', $model['buttons'][1][0]['text'], '🔥 Горящие туры в MAX');
 trCheck('manager callback', $model['buttons'][2][0]['callback_data'], 'manager_after_tours');
@@ -60,6 +69,28 @@ trCheck('tracking origin falls back to base domain', ProjectConfig::trackingBase
 trCheck('Telegram button label', TourResultsService::channelButtonText(), '🔥 Горящие туры в Telegram');
 trCheck('Telegram message wording', strpos(TourResultsService::messageText(), 'Telegram-канал') !== false, true);
 trCheck('absolute tracking path supported', TourResultsService::trackedUrl('https://tracker.test/open', 5, 'https://target.test/a'), 'https://tracker.test/open?chat=5&url='.rawurlencode('https://target.test/a'));
+
+ProjectConfig::resetForTests([
+    'search'=>['base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/'],
+]);
+$savedUrl = ProjectConfig::searchUrlFromSavedData([
+    10=>2,
+    11=>8,
+    12=>'2026-10-03',
+    13=>7,
+    14=>2,
+], [
+    'city'=>10,
+    'country'=>11,
+    'date'=>12,
+    'nights'=>13,
+    'adults'=>14,
+], 'yclid-test');
+trCheck(
+    'saved dialogue data preserves route date nights and adults',
+    $savedUrl,
+    'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=7&count_people=2&yclid=yclid-test'
+);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
