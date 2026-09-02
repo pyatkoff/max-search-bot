@@ -16,7 +16,8 @@ function gateMessage(msg){
 }
 
 function setEditorTitle(kind,label=''){
-    const title=$(kind==='stage'?'stageTitle':'tagTitle');
+    const form=$(kind==='stage'?'stageForm':'tagForm');
+    const title=$(kind==='stage'?'stageTitle':'tagTitle')||form?.querySelector('h3');
     if(!title)return;
     const editing=String(label||'').trim();
     title.textContent=editing?`Редактируется ${kind==='stage'?'этап':'тег'}: ${editing}`:`Новый ${kind==='stage'?'этап':'тег'}`;
