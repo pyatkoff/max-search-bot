@@ -129,6 +129,7 @@ return [
         'php tests/run_manager_workspace_v2_notifications_regression.php',
         'php tests/run_manager_workspace_v2_outcome_regression.php',
         'php tests/run_lead_task_regression.php',
+        'php tests/run_manager_closed_lead_task_creation_regression.php',
         'php tests/run_lead_task_reminder_regression.php',
         'php tests/run_manager_workspace_v2_task_due_shortcuts_regression.php',
         'php tests/run_manager_workspace_v2_task_create_failure_regression.php',
