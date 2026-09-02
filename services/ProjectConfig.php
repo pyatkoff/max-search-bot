@@ -50,10 +50,19 @@ class ProjectConfig
     {
         $path = '/' . trim((string)self::get('search.search_path', '/poisk-turov/'), '/') . '/';
         $url = self::baseDomain() . $path;
-        $query = array_filter($query, static function ($value): bool {
-            return $value !== null && $value !== '' && $value !== 0 && $value !== '0' && $value !== [];
-        });
-        if ($query) $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+        $pairs = [];
+        foreach ($query as $key => $value) {
+            if ($value === null || $value === '' || $value === 0 || $value === '0' || $value === []) continue;
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    if ($item === null || $item === '') continue;
+                    $pairs[] = rawurlencode((string)$key) . '%5B%5D=' . rawurlencode((string)$item);
+                }
+                continue;
+            }
+            $pairs[] = rawurlencode((string)$key) . '=' . rawurlencode((string)$value);
+        }
+        if ($pairs) $url .= '?' . implode('&', $pairs);
         return $url;
     }
 
@@ -61,12 +70,13 @@ class ProjectConfig
     {
         [$nightsFrom, $nightsTill] = self::rangeQueryValues($savedData[$statusMap['nights']] ?? '');
         $children = self::positiveInt($savedData[$statusMap['children']] ?? 0);
+        $date = self::dateQueryValue($savedData[$statusMap['date']] ?? '');
 
         return self::searchUrl([
             'from' => (int)($savedData[$statusMap['city']] ?? 0),
             'country' => (int)($savedData[$statusMap['country']] ?? 0),
-            'dateFrom' => self::dateQueryValue($savedData[$statusMap['date']] ?? ''),
-            'dateTo' => self::dateQueryValue($savedData[$statusMap['date']] ?? ''),
+            'dateFrom' => $date,
+            'dateTo' => $date,
             'daysFrom' => $nightsFrom,
             'daysTill' => $nightsTill,
             'count_people' => self::positiveInt($savedData[$statusMap['adults']] ?? 0),
@@ -82,12 +92,13 @@ class ProjectConfig
     {
         [$nightsFrom, $nightsTill] = self::rangeQueryValues($claim['UF_NIGHTS'] ?? '');
         $children = self::positiveInt($claim['UF_CHILD'] ?? 0);
+        $date = self::dateQueryValue($claim['UF_DATE_DEPART'] ?? '');
 
         return self::searchUrl([
             'from' => (int)($claim['UF_CITY'] ?? 0),
             'country' => (int)($claim['UF_COUNTRY'] ?? 0),
-            'dateFrom' => self::dateQueryValue($claim['UF_DATE_DEPART'] ?? ''),
-            'dateTo' => self::dateQueryValue($claim['UF_DATE_DEPART'] ?? ''),
+            'dateFrom' => $date,
+            'dateTo' => $date,
             'daysFrom' => $nightsFrom,
             'daysTill' => $nightsTill,
             'count_people' => self::positiveInt($claim['UF_ADULTS'] ?? 0),
