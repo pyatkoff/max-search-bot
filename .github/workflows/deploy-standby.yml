@@ -80,7 +80,7 @@ jobs:
           set -euo pipefail
           key_file="$RUNNER_TEMP/standby_deploy_key"
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
-          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; git fetch origin main; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked standby drift detected'; git status --short; exit 1; fi; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; echo standby_sha=\$(git rev-parse HEAD)"
+          ssh "${ssh_opts[@]}" "$STANDBY_DEPLOY_USER@$STANDBY_DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked standby drift detected'; git status --short; exit 1; fi; export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_anytoour_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new'; git fetch git@github.com:pyatkoff/max-search-bot.git main:refs/remotes/origin/main; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; echo standby_sha=\$(git rev-parse HEAD)"
 
       - name: Normalize standby runtime configuration
         if: steps.config.outputs.enabled == 'true'
