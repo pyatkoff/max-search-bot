@@ -108,6 +108,7 @@ return [
         'php tests/run_manager_send_guard_regression.php',
         'php tests/run_sales_pipeline_foundation_regression.php',
         'php tests/run_sales_pipeline_tag_atomicity_regression.php',
+        'php tests/run_sales_pipeline_inactive_tag_regression.php',
         'php tests/run_pipeline_admin_transport_regression.php',
         'php tests/run_manager_workspace_v2_regression.php',
         'php tests/run_manager_workspace_v2_stability_regression.php',
