@@ -59,20 +59,65 @@ class ProjectConfig
 
     public static function searchUrlFromSavedData(array $savedData, array $statusMap, string $yclid = ''): string
     {
+        $date = self::dateQueryValue($savedData[$statusMap['date']] ?? '');
+        $nights = self::positiveInt($savedData[$statusMap['nights']] ?? 0);
+        $adults = self::positiveInt($savedData[$statusMap['adults']] ?? 0);
+
         return self::searchUrl([
             'from' => (int)($savedData[$statusMap['city']] ?? 0),
             'country' => (int)($savedData[$statusMap['country']] ?? 0),
+            'dateFrom' => $date,
+            'dateTo' => $date,
+            'daysFrom' => $nights,
+            'daysTill' => $nights,
+            'count_people' => $adults,
             'yclid' => $yclid,
         ]);
     }
 
     public static function searchUrlFromClaim(array $claim, string $yclid = ''): string
     {
+        $date = self::dateQueryValue($claim['UF_DATE_DEPART'] ?? '');
+        $nights = self::positiveInt($claim['UF_NIGHTS'] ?? 0);
+        $adults = self::positiveInt($claim['UF_ADULTS'] ?? 0);
+
         return self::searchUrl([
             'from' => (int)($claim['UF_CITY'] ?? 0),
             'country' => (int)($claim['UF_COUNTRY'] ?? 0),
+            'dateFrom' => $date,
+            'dateTo' => $date,
+            'daysFrom' => $nights,
+            'daysTill' => $nights,
+            'count_people' => $adults,
             'yclid' => $yclid,
         ]);
+    }
+
+    private static function positiveInt($value): int
+    {
+        $value = (int)$value;
+        return $value > 0 ? $value : 0;
+    }
+
+    private static function dateQueryValue($value): string
+    {
+        if ($value instanceof DateTimeInterface) return $value->format('Y-m-d');
+        $raw = trim((string)$value);
+        if ($raw === '') return '';
+
+        foreach (['!Y-m-d', '!d.m.Y', '!d.m.Y H:i:s', '!Y-m-d H:i:s'] as $format) {
+            $date = DateTimeImmutable::createFromFormat($format, $raw);
+            $errors = DateTimeImmutable::getLastErrors();
+            if ($date && ($errors === false || (($errors['warning_count'] ?? 0) === 0 && ($errors['error_count'] ?? 0) === 0))) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        try {
+            return (new DateTimeImmutable($raw))->format('Y-m-d');
+        } catch (Throwable $e) {
+            return '';
+        }
     }
 
     public static function claimUrl(string $code, string $yclid = ''): string
