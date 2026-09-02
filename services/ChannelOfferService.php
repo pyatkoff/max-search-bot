@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
+require_once __DIR__ . '/ConversationDb.php';
 
 /**
  * Owns the pre-results channel offer policy.
@@ -9,15 +10,6 @@ require_once __DIR__ . '/IntegrationRegistry.php';
  */
 class ChannelOfferService
 {
-    public static function entryFamily(string $entryChannel): string
-    {
-        $entry = strtolower(trim($entryChannel));
-        if ($entry === '') return '';
-        if (strpos($entry, 'telegram') !== false || preg_match('/(^|[_:-])tg([_:-]|$)/', $entry)) return 'telegram';
-        if (strpos($entry, 'max') !== false) return 'max';
-        return '';
-    }
-
     public static function channelUrl(string $provider, array $meta, string $latestYclid = ''): string
     {
         $provider = strtolower(trim($provider));
@@ -35,16 +27,34 @@ class ChannelOfferService
         ]);
     }
 
-    public static function model(array $meta, string $latestYclid = ''): array
+    /**
+     * Promotion is suppressed only by an explicit source policy.
+     * Transport alone is never enough: paid Yandex traffic may legitimately land in MAX/TG.
+     * Missing source, unknown source or unavailable DB fail open and keep both offers visible.
+     */
+    public static function sourceSuppressesOffer(array $meta): bool
     {
-        $entryFamily = self::entryFamily((string)($meta['entry_channel'] ?? ''));
-        $buttons = [];
+        $sourceKey = trim((string)($meta['entry_channel'] ?? ''));
+        if ($sourceKey === '' || !ConversationDb::isConfigured()) return false;
 
-        if ($entryFamily !== 'max') {
+        try {
+            $pdo = ConversationDb::connection();
+            $q = $pdo->prepare('SELECT s.suppress_channel_offer FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE p.project_key=? AND s.source_key=? AND s.is_active=1 LIMIT 1');
+            $q->execute([ProjectConfig::projectId(), $sourceKey]);
+            $value = $q->fetchColumn();
+            return $value !== false && (int)$value === 1;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    public static function model(array $meta, string $latestYclid = '', bool $suppressed = false): array
+    {
+        $buttons = [];
+        if (!$suppressed) {
             $maxUrl = self::channelUrl('max', $meta, $latestYclid);
             if ($maxUrl !== '') $buttons[] = ButtonFactory::row(ButtonFactory::url('Подписаться в MAX', $maxUrl));
-        }
-        if ($entryFamily !== 'telegram') {
+
             $tgUrl = self::channelUrl('telegram', $meta, $latestYclid);
             if ($tgUrl !== '') $buttons[] = ButtonFactory::row(ButtonFactory::url('Подписаться в Telegram', $tgUrl));
         }
@@ -52,7 +62,8 @@ class ChannelOfferService
         return [
             'text' => "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
             'buttons' => $buttons,
-            'entry_family' => $entryFamily,
+            'source_key' => trim((string)($meta['entry_channel'] ?? '')),
+            'suppressed' => $suppressed,
         ];
     }
 
@@ -71,11 +82,16 @@ class ChannelOfferService
         $yclid = '';
         try { $meta = (array)MaxSearchApi::getTrafficMeta($chatId); } catch (Throwable $e) {}
         try { $yclid = (string)MaxSearchApi::getLatestYclid($chatId); } catch (Throwable $e) {}
-        $model = self::model($meta, $yclid);
+        $suppressed = self::sourceSuppressesOffer($meta);
+        $model = self::model($meta, $yclid, $suppressed);
+        if ($suppressed) {
+            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_suppressed', ['source_key'=>$model['source_key']]); } catch (Throwable $e) {}
+            return true;
+        }
         if (empty($model['buttons'])) return true;
         $ok = (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
         if ($ok) {
-            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_pre_results', ['entry_family'=>$model['entry_family']]); } catch (Throwable $e) {}
+            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_pre_results', ['source_key'=>$model['source_key']]); } catch (Throwable $e) {}
         }
         return $ok;
     }
