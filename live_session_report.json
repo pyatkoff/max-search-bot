@@ -1,35 +1,35 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T08:57:38+00:00",
+    "generated_at": "2026-09-02T09:04:19+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 24,
-        "raw_sessions": 24,
+        "sessions": 25,
+        "raw_sessions": 25,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 24,
+            "resolved": 25,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 24,
-        "needs_collected": 21,
-        "tours_opened": 21,
+        "started": 25,
+        "needs_collected": 22,
+        "tours_opened": 22,
         "site_opened": 14,
-        "post_tour_manager_cta_shown": 14,
-        "manager_requested": 3,
-        "manager_replied": 1,
+        "post_tour_manager_cta_shown": 15,
+        "manager_requested": 4,
+        "manager_replied": 2,
         "customer_replied_after_manager": 1,
-        "phone_received": 1,
-        "flagged_sessions": 5,
+        "phone_received": 2,
+        "flagged_sessions": 6,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 1,
+            "answered_after_90s": 2,
             "still_unanswered": 2,
-            "measured_responses": 1,
-            "avg_seconds": 40781,
+            "measured_responses": 2,
+            "avg_seconds": 38964,
             "max_seconds": 40781
         },
         "drop_points": {
@@ -37,10 +37,11 @@
             "tours_opened": 6,
             "collecting_needs": 3,
             "manager_requested": 2,
-            "customer_replied_after_manager": 1
+            "customer_replied_after_manager": 1,
+            "manager_replied": 1
         },
         "flags": {
-            "repeated_callback_input": 3,
+            "repeated_callback_input": 4,
             "excessive_turns": 3,
             "manager_requested_no_reply": 2
         }
@@ -336,7 +337,7 @@
             "inbound_messages": 7,
             "outbound_messages": 2,
             "date_picks": 0,
-            "anomaly_inbound_messages": 1,
+            "anomaly_inbound_messages": 0,
             "drop_point": "site_open",
             "flags": [],
             "started_at": "2026-09-02 09:48:36",
@@ -1433,7 +1434,7 @@
             "inbound_messages": 9,
             "outbound_messages": 3,
             "date_picks": 0,
-            "anomaly_inbound_messages": 8,
+            "anomaly_inbound_messages": 1,
             "drop_point": "manager_requested",
             "flags": [
                 "manager_requested_no_reply"
@@ -1441,54 +1442,6 @@
             "started_at": "2026-09-02 09:57:29",
             "last_message_at": "2026-09-02 10:55:47",
             "message_tail": [
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Египет",
-                    "created_at": "2026-09-02 09:57:51"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "2",
-                    "created_at": "2026-09-02 09:57:59"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Нет",
-                    "created_at": "2026-09-02 09:58:14"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "6",
-                    "created_at": "2026-09-02 09:58:21"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "28 10 2026",
-                    "created_at": "2026-09-02 09:59:07"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "28.10.2026",
-                    "created_at": "2026-09-02 09:59:34"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 10:00:00"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-                    "created_at": "2026-09-02 10:00:00"
-                },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
@@ -1508,7 +1461,72 @@
                     "created_at": "2026-09-02 10:55:47"
                 }
             ]
+        },
+        {
+            "conversation_id": 227,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "manager",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": true,
+            "post_tour_manager_cta_at": "2026-08-25 17:01:02",
+            "manager_requested": true,
+            "manager_request_active": true,
+            "manager_replied": true,
+            "customer_replied_after_manager": false,
+            "manager_request_at": "2026-08-25 22:00:24",
+            "manager_first_reply_at": "2026-08-26 08:19:31",
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": 37147,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": "answered_after_90s",
+            "phone_received": true,
+            "inbound_messages": 14,
+            "outbound_messages": 14,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 3,
+            "drop_point": "manager_replied",
+            "flags": [
+                "repeated_callback_input"
+            ],
+            "started_at": "2026-08-25 18:43:05",
+            "last_message_at": "2026-09-02 11:02:17",
+            "message_tail": [
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+                    "created_at": "2026-09-02 11:01:45"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-02 11:01:49"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-02 11:01:54"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "start_search",
+                    "created_at": "2026-09-02 11:02:17"
+                }
+            ]
         }
     ],
-    "since_utc": "2026-09-02 07:57:38"
+    "since_utc": "2026-09-02 08:04:19"
 }
