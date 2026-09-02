@@ -47,6 +47,11 @@ nvrCheck('live affirmative numeric child count value', $childrenAffirmativeNumer
 $childrenAffirmativeWord = NeedValueResolver::resolve('children', 'Да, трое');
 nvrCheck('live affirmative word child count recognized', $childrenAffirmativeWord['recognized'], true);
 nvrCheck('live affirmative word child count value', $childrenAffirmativeWord['value'], 3);
+$childrenLabeledPerson = NeedValueResolver::resolve('children', 'Дети, 1 человек');
+nvrCheck('live 734 labeled child count recognized', $childrenLabeledPerson['recognized'], true);
+nvrCheck('live 734 labeled child count value', $childrenLabeledPerson['value'], 1);
+$childrenLabeledAge = NeedValueResolver::resolve('children', 'Дети, 2 года');
+nvrCheck('labeled age phrase is not consumed as child count', $childrenLabeledAge['recognized'], false);
 $childrenBareYes = NeedValueResolver::resolve('children', 'Да');
 nvrCheck('bare affirmative does not invent child count', $childrenBareYes['recognized'], false);
 $childrenTooMany = NeedValueResolver::resolve('children', '4');
