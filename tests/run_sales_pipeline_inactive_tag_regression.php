@@ -23,7 +23,7 @@ pitCheck('list projection retains assigned inactive tag facts',strpos($service,'
 pitCheck('tag replacement mutates active assignments only',$delete!==false&&strpos($setMethod,"DELETE FROM conversation_lead_tags WHERE conversation_id=?')->execute")===false);
 pitCheck('invalid requested tag set still fails before any mutation',$validate!==false&&$delete!==false&&$validate<$delete);
 pitCheck('lead card exposes current inactive tags as checked read-only facts',strpos($leadCard,'function tagChoicesMarkup')!==false&&strpos($leadCard,"(неактивен)")!==false&&strpos($leadCard,'checked disabled')!==false&&strpos($leadCard,'t.is_active')!==false);
-pitCheck('browser mutation payload excludes disabled inactive tag facts',strpos($pipelineJs,'mutableInputs=inputs.filter(x=>!x.disabled)')!==false&&strpos($pipelineJs,'ids=mutableInputs.filter(x=>x.checked)')!==false&&strpos($pipelineJs,"#leadTags input:not(:disabled)")!==false);
+pitCheck('browser mutation payload captures only editable tags',strpos($pipelineJs,"document.querySelectorAll('#leadTags input:not(:disabled)')")!==false&&strpos($pipelineJs,'ids=inputs.filter(x=>x.checked)')!==false&&strpos($pipelineJs,'inputs.forEach(x=>x.disabled=true)')!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
