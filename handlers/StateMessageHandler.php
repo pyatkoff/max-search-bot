@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/services/WizardStepView.php';
 require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NightsParser.php';
+require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -15,6 +16,12 @@ class StateMessageHandler
             {
                 $city = trim($message['text']);
                 $cityRes =  MaxSearchApi::getCityByName($city);
+                if(!$cityRes)
+                {
+                    $resolvedCity = DepartureCityResolver::resolveFieldValue($city);
+                    if($resolvedCity)
+                        $cityRes = ['ID' => $resolvedCity['city_id'], 'NAME' => $resolvedCity['city']];
+                }
                 if($cityRes)
                 {
                     MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusCityChoose,$cityRes["ID"]);
