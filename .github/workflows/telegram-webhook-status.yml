@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Prepare SSH private key
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -31,10 +31,10 @@ jobs:
 
       - name: Read current Telegram webhook without changing it
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
-            'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/telegram_webhook_status.php'
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_webhook_status.php'
