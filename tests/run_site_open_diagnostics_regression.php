@@ -22,9 +22,14 @@ soCheck('site_open timestamp is exposed',($with['site_opened_at']??null)==='2026
 soCheck('site_open becomes funnel drop point',($with['drop_point']??'')==='site_open');
 
 $openTours=(string)file_get_contents(dirname(__DIR__).'/open_tours.php');
+$openChannel=(string)file_get_contents(dirname(__DIR__).'/open_channel.php');
+$bridge=(string)file_get_contents(dirname(__DIR__).'/services/MetrikaRedirectPage.php');
 $snapshot=(string)file_get_contents(dirname(__DIR__).'/tools/live_session_snapshot.php');
 soCheck('open_tours mirrors site_open into conversation DB',strpos($openTours,"ConversationRecorder::eventByChat('max', \$chatID, 'site_open'")!==false);
 soCheck('snapshot exposes site_open summary',strpos($snapshot,"'site_opened'=>0")!==false&&strpos($snapshot,"'site_opened_at'")!==false&&strpos($snapshot,"\$summary['calendar_day']['site_opened']++")!==false);
+soCheck('tracking bridge uses configured Metrika counter',strpos($bridge,'METRIKA_COUNTER_ID')!==false&&strpos($bridge,'https://mc.yandex.ru/metrika/tag.js')!==false);
+soCheck('tracking bridge remains navigation fail-open',strpos($bridge,'window.setTimeout(go,650)')!==false&&strpos($bridge,'window.location.replace(target)')!==false);
+soCheck('tour and channel redirects use browser Metrika bridge',strpos($openTours,'MetrikaRedirectPage::send')!==false&&strpos($openChannel,'MetrikaRedirectPage::send')!==false);
 
-echo "TOTAL ".(7-$failed)." PASS / {$failed} FAIL\n";
+echo "TOTAL ".(10-$failed)." PASS / {$failed} FAIL\n";
 exit($failed?1:0);
