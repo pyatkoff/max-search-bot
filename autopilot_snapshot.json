@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T06:54:01+00:00",
+    "generated_at": "2026-09-02T07:00:18+00:00",
     "production": {
-        "sha": "fa1ac84e761dcfc2db34c3c252e570d9958d0760",
+        "sha": "69f79ad7840eef44ae3f392c8fd457c508642bb7",
         "branch": "main"
     },
     "migrations": {
@@ -141,7 +141,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 05:53:52",
+        "since_utc": "2026-09-02 06:00:06",
         "summary": {
             "sessions": 4,
             "raw_sessions": 4,
@@ -155,7 +155,7 @@
             "needs_collected": 4,
             "tours_opened": 4,
             "site_opened": 3,
-            "post_tour_manager_cta_shown": 2,
+            "post_tour_manager_cta_shown": 3,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -196,7 +196,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "fa1ac84e761dcfc2db34c3c252e570d9958d0760",
+        "sha": "69f79ad7840eef44ae3f392c8fd457c508642bb7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -205,7 +205,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T06:54:01Z"
+        "reported_at": "2026-09-02T07:00:18Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -232,7 +232,7 @@
             "needs_collected": 6,
             "tours_opened": 6,
             "site_opened": 3,
-            "post_tour_manager_cta_shown": 4,
+            "post_tour_manager_cta_shown": 5,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -259,7 +259,7 @@
                 "needs_collected_from_started": 4,
                 "tours_opened_from_started": 4,
                 "site_opened": 3,
-                "post_tour_manager_cta_shown": 2,
+                "post_tour_manager_cta_shown": 3,
                 "manager_requested": 0,
                 "manager_replied": 0,
                 "customer_replied_after_manager": 0
@@ -267,7 +267,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T06:54:01+00:00",
+        "generated_at": "2026-09-02T07:00:18+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -291,7 +291,7 @@
             },
             "manager": {
                 "files": 54,
-                "bytes": 305538,
+                "bytes": 305573,
                 "code_lines": 1502
             },
             "website": {
@@ -311,8 +311,8 @@
             },
             "tests": {
                 "files": 170,
-                "bytes": 722899,
-                "code_lines": 8406
+                "bytes": 723139,
+                "code_lines": 8407
             },
             "tools": {
                 "files": 37,

@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T06:53:49+00:00",
+    "generated_at": "2026-09-02T07:00:01+00:00",
     "production": {
-        "sha": "fa1ac84e761dcfc2db34c3c252e570d9958d0760",
+        "sha": "69f79ad7840eef44ae3f392c8fd457c508642bb7",
         "branch": "main"
     },
     "database": {
         "name": "anytour_conversations",
         "host": "localhost",
-        "latency_ms": 0.20000000000000001
+        "latency_ms": 0.29999999999999999
     },
     "migrations": [
         {
@@ -1487,6 +1487,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17704,
+            "conversation_id": 678,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🙂 <b>Могу помочь с выбором</b> Могу передать ваш подбор менеджеру — он проверит актуальные цены и пришлёт <b>3–5 лучших вариантов</b>. Параметры поездки уже сохранены, повторно ничего заполнять не придётся.",
+            "created_at": "2026-09-02 09:00:04"
+        },
+        {
             "id": 17703,
             "conversation_id": 679,
             "direction": "outbound",
@@ -2016,15 +2025,6 @@
             "channel": "max",
             "text": "nights_6_8",
             "created_at": "2026-09-02 08:21:09"
-        },
-        {
-            "id": 17644,
-            "conversation_id": 675,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-09-02 08:21:05"
         }
     ],
     "recent_events": [
