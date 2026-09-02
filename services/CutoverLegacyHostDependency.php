@@ -15,7 +15,7 @@ final class CutoverLegacyHostDependency
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
         $dependencies = [];
 
-        if ($host === 'anytour.online' || str_ends_with($host, '.anytour.online')) {
+        if ($host === 'app.anytoour.ru' || str_ends_with($host, '.app.anytoour.ru')) {
             $dependencies[] = 'lead_bridge';
         }
 

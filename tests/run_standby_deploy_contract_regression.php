@@ -36,7 +36,7 @@ standbyCheck('repair preserves existing recovery backup',strpos($repair,'!is_fil
 standbyCheck('standby does not invoke webhook endpoints',strpos($workflow,'php webhook.php')===false&&strpos($workflow,'curl')===false);
 standbyCheck('standby does not start or restart services',!preg_match('/\b(systemctl|service|supervisorctl)\b/',$workflow));
 standbyCheck('standby does not install cron',!preg_match('/\bcrontab\b/',$workflow));
-standbyCheck('legacy production target remains unchanged',strpos($production,'cd ~/www/anytour.online/max-search')!==false);
+standbyCheck('legacy production target remains unchanged',strpos($production,'cd /var/www/anytoour/data/www/app.anytoour.ru')!==false);
 standbyCheck('legacy deploy does not consume standby credentials',strpos($production,'STANDBY_DEPLOY_')===false);
 standbyCheck('production deploy binds sync to workflow sha',strpos($production,'EXPECTED_SHA: ${{ github.sha }}')!==false&&strpos($production,'envs: EXPECTED_SHA')!==false&&strpos($production,'git cat-file -e "$EXPECTED_SHA^{commit}"')!==false&&strpos($production,'git reset --hard "$EXPECTED_SHA"')!==false);
 standbyCheck('production deploy does not race against moving origin main',strpos($production,'git reset --hard origin/main')===false);

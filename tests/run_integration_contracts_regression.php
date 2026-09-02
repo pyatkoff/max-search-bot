@@ -78,7 +78,7 @@ $dualWebhook = MaxWebhookHealth::evaluate([
     'errno'=>0,
     'body'=>json_encode(['subscriptions'=>[
         ['url'=>$expectedWebhook],
-        ['url'=>'https://anytour.online/max-search/webhook.php'],
+        ['url'=>'https://app.anytoour.ru/webhook.php'],
     ]]),
 ], $expectedWebhook);
 icCheck('MAX webhook health accepts expected plus legacy during cutover', $dualWebhook['ok'] ?? false, true);
@@ -96,7 +96,7 @@ icCheck('MAX webhook health identifies unrelated extra subscription', $unexpecte
 $wrongWebhook = MaxWebhookHealth::evaluate([
     'http'=>200,
     'errno'=>0,
-    'body'=>json_encode(['subscriptions'=>[['url'=>'https://anytour.online/max-search/webhook.php']]]),
+    'body'=>json_encode(['subscriptions'=>[['url'=>'https://app.anytoour.ru/webhook.php']]]),
 ], $expectedWebhook);
 icCheck('MAX webhook health rejects wrong owner', $wrongWebhook['ok'] ?? true, false);
 icCheck('MAX webhook health fails closed on transport error', MaxWebhookHealth::evaluate(['http'=>0,'errno'=>7,'body'=>''], $expectedWebhook)['reason'] ?? '', 'transport_error');

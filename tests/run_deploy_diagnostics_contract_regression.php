@@ -8,7 +8,7 @@ $checks = [
     'diagnostics download uses remote scp rather than upload action' =>
         strpos($workflow, 'appleboy/scp-action@') === false
         && strpos($workflow, 'scp \\') !== false
-        && strpos($workflow, '"${DEPLOY_USER}@${DEPLOY_HOST}:www/anytour.online/max-search/diagnostics/*.json"') !== false,
+        && strpos($workflow, '"${DEPLOY_USER}@${DEPLOY_HOST}:/var/www/anytoour/data/www/app.anytoour.ru/diagnostics/*.json"') !== false,
     'diagnostics directory is populated during smoke' =>
         strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') !== false,
     'download requires at least one json file' =>

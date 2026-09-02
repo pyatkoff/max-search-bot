@@ -41,7 +41,7 @@ class MaxSearchApi extends MaxSearchBase
     static $statusPhone = 75;
     static $statusAi = 76;
 
-    static $baseDomain = 'https://anytour.online';
+    static $baseDomain = 'https://app.anytoour.ru';
     static $chanelUrl = 'https://max.ru/anytour';
     static $channelMiniappBotUrl = 'https://max.ru/id9704048781_2_bot';
     static $isAnyOnline = true;

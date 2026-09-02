@@ -13,7 +13,7 @@ require_once dirname(__DIR__) . '/services/MaxTlsConfig.php';
 final class MaxWebhookHealth
 {
     private const API = 'https://platform-api2.max.ru';
-    private const LEGACY_WEBHOOK = 'https://anytour.online/max-search/webhook.php';
+    private const LEGACY_WEBHOOK = 'https://app.anytoour.ru/webhook.php';
 
     public static function collect(?callable $request = null): array
     {

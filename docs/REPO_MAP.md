@@ -70,7 +70,7 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 
 ## Explicitly out of scope
 
-This repository does **not** grant permission to edit neighbouring projects or server folders. In particular, `anytour.com`, `anytour.online` website/search projects outside this repository, `poisk-turov-test`, and other MAX/TG project folders are separate projects unless the user explicitly authorizes that exact repository/folder for the current task.
+This repository does **not** grant permission to edit neighbouring projects or server folders. In particular, `anytour.com`, `app.anytoour.ru` website/search projects outside this repository, `poisk-turov-test`, and other MAX/TG project folders are separate projects unless the user explicitly authorizes that exact repository/folder for the current task.
 
 Do not infer permission from a shared domain, hosting account, parent directory or brand name.
 
