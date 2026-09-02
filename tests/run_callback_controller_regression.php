@@ -12,9 +12,12 @@ if (!class_exists('MaxSearchApi')) {
         public static $statusMeal = 16;
         public static $statusNights = 17;
         public static $statusCheck = 18;
+        public static $statusDate = 19;
         public static string $generationValue = '';
+        public static int $currentStatus = 19;
         public static function getLastValue($chatId,$status){ return self::$generationValue; }
         public static function saveLastValue($chatId,$status,$value){ self::$generationValue=(string)$value; }
+        public static function getCurentStatus($chatId){ return self::$currentStatus; }
     }
 }
 
@@ -84,8 +87,13 @@ $controllerSource = (string)file_get_contents(__DIR__ . '/../services/CallbackCo
 ccCheck('wizard loads shared interaction guard', strpos($wizardSource, 'InteractionGuard.php') !== false, true);
 ccCheck('edit loads shared interaction guard', strpos($editSource, 'InteractionGuard.php') !== false, true);
 ccCheck('shared guard owns interaction lock directory', strpos($guardSource, 'max-search-interaction-locks') !== false, true);
-ccCheck('date callback still has per-chat serialization lock', strpos($wizardSource, 'InteractionGuard::lockPath') !== false && strpos($wizardSource, 'flock($fp, LOCK_EX)') !== false, true);
-ccCheck('stale date callback requires active date step', strpos($wizardSource, 'getCurentStatus($chatId)') !== false && strpos($wizardSource, '$statusDate') !== false && strpos($wizardSource, 'STALE_DATE_CALLBACK_SKIPPED') !== false, true);
+$dateStart=strpos($wizardSource,'private static function handleDateSelection');
+$dateEnd=strpos($wizardSource,'public static function isDuplicateMonthChange',$dateStart===false?0:$dateStart);
+$dateSource=$dateStart!==false&&$dateEnd!==false?substr($wizardSource,$dateStart,$dateEnd-$dateStart):'';
+ccCheck('date callback delegates serialization and expected-status safety to shared guard',strpos($dateSource,'InteractionGuard::runExpectedStatusCallback(')!==false,true);
+ccCheck('date callback no longer owns fopen or flock',strpos($dateSource,'fopen(')===false&&strpos($dateSource,'flock(')===false,true);
+ccCheck('stale date callback expected-status policy lives in shared guard',strpos($guardSource,'function runExpectedStatusCallback(')!==false&&strpos($guardSource,"'stale_state'")!==false&&strpos($guardSource,'MaxSearchApi::getCurentStatus($chatId)')!==false&&strpos($dateSource,'$statusDate')!==false,true);
+ccCheck('date stale legacy text log remains for operational continuity',strpos($dateSource,'STALE_DATE_CALLBACK_SKIPPED')!==false,true);
 ccCheck('date callback routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'pick_date_') === 0) return self::handleDateSelection") !== false, true);
 ccCheck('month change routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'month_change_') === 0) return self::handleMonthChange") !== false, true);
 ccCheck('stale month change requires active date step', strpos($wizardSource, 'STALE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
@@ -121,6 +129,37 @@ ccCheck('generic recent helper suppresses burst', InteractionGuard::isRecent(100
 ccCheck('generic recent helper allows later action', InteractionGuard::isRecent(100.0, 102.1, 2.0), false);
 ccCheck('lock scope is sanitized', strpos(InteractionGuard::lockPath(123, 'edit menu/test'), 'edit_menu_test.lock') !== false, true);
 ccCheck('callback controller reports unknown actions through shared guard', strpos($controllerSource, "InteractionGuard::reportSuppressed(\$chatId, \$q, 'unknown_action'") !== false, true);
+
+$expectedStatusDiagnosticFile=sys_get_temp_dir().'/max-search-expected-status-'.bin2hex(random_bytes(4)).'.log';
+DiagnosticLogger::setFile($expectedStatusDiagnosticFile);
+$expectedStatusChat=random_int(1000000,9999999);
+$expectedStatusScope='date_selection_regression';
+$expectedStatusLock=InteractionGuard::lockPath($expectedStatusChat,$expectedStatusScope);
+$expectedCalls=0;$staleCalls=0;
+try{
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusDate;
+    $valid=InteractionGuard::runExpectedStatusCallback($expectedStatusChat,'pick_date_17.10.2026',$expectedStatusScope,(int)MaxSearchApi::$statusDate,function($fp)use(&$expectedCalls):bool{$expectedCalls++;return is_resource($fp);});
+    ccCheck('expected-status guard executes callback on current state',$valid,true);
+    ccCheck('expected-status guard executes valid mutation once',$expectedCalls,1);
+
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusCheck;
+    $stale=InteractionGuard::runExpectedStatusCallback($expectedStatusChat,'pick_date_17.10.2026',$expectedStatusScope,(int)MaxSearchApi::$statusDate,function()use(&$expectedCalls):bool{$expectedCalls++;return true;},function(int $current,int $expected)use(&$staleCalls):void{if($current!==$expected)$staleCalls++;});
+    ccCheck('expected-status guard consumes stale callback',$stale,true);
+    ccCheck('expected-status guard blocks stale mutation',$expectedCalls,1);
+    ccCheck('expected-status guard invokes stale compatibility hook',$staleCalls,1);
+    $lines=is_file($expectedStatusDiagnosticFile)?file($expectedStatusDiagnosticFile,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[];
+    $last=$lines?json_decode((string)end($lines),true):null;
+    ccCheck('expected-status stale diagnostic reason',$last['data']['reason']??null,'stale_state');
+    ccCheck('expected-status stale diagnostic scope',$last['data']['scope']??null,$expectedStatusScope);
+    ccCheck('expected-status stale diagnostic payload',$last['data']['payload']??null,'pick_date_17.10.2026');
+    ccCheck('expected-status stale diagnostic current status',$last['data']['current_status']??null,(int)MaxSearchApi::$statusCheck);
+    ccCheck('expected-status stale diagnostic expected status',$last['data']['expected_status']??null,(int)MaxSearchApi::$statusDate);
+}finally{
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusDate;
+    @unlink($expectedStatusDiagnosticFile);
+    @unlink($expectedStatusLock);
+    DiagnosticLogger::setFile('');
+}
 
 $generation='deadbeef';
 $generatedShowTours=CallbackGeneration::wrap('show_tours',$generation);
