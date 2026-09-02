@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T13:31:05+00:00",
+    "generated_at": "2026-09-02T13:35:38+00:00",
     "production": {
-        "sha": "c9cf276c44f237ba1d070089e58f4ad84467d2cf",
+        "sha": "42a0e1051b97eed250940ea22b3320dfc0f979e0",
         "branch": "main"
     },
     "migrations": {
@@ -155,7 +155,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 12:30:52",
+        "since_utc": "2026-09-02 12:35:27",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -227,7 +227,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "c9cf276c44f237ba1d070089e58f4ad84467d2cf",
+        "sha": "42a0e1051b97eed250940ea22b3320dfc0f979e0",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -236,7 +236,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T13:31:05Z"
+        "reported_at": "2026-09-02T13:35:38Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -303,7 +303,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T13:31:05+00:00",
+        "generated_at": "2026-09-02T13:35:38+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -317,8 +317,8 @@
             },
             "services": {
                 "files": 135,
-                "bytes": 529083,
-                "code_lines": 11305
+                "bytes": 529368,
+                "code_lines": 11309
             },
             "integrations": {
                 "files": 11,
@@ -347,8 +347,8 @@
             },
             "tests": {
                 "files": 171,
-                "bytes": 732192,
-                "code_lines": 8476
+                "bytes": 732459,
+                "code_lines": 8477
             },
             "tools": {
                 "files": 36,

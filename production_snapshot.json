@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T13:30:48+00:00",
+    "generated_at": "2026-09-02T13:35:23+00:00",
     "production": {
-        "sha": "c9cf276c44f237ba1d070089e58f4ad84467d2cf",
+        "sha": "42a0e1051b97eed250940ea22b3320dfc0f979e0",
         "branch": "main"
     },
     "database": {
         "name": "anytour_max_search",
         "host": "localhost",
-        "latency_ms": 0.4
+        "latency_ms": 0.3
     },
     "migrations": [
         {
@@ -1708,6 +1708,15 @@
     ],
     "recent_messages": [
         {
+            "id": 19220,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 13:35:23"
+        },
+        {
             "id": 19219,
             "conversation_id": 656,
             "direction": "outbound",
@@ -2237,15 +2246,6 @@
             "channel": "max",
             "text": "edit_meal",
             "created_at": "2026-09-02 13:07:11"
-        },
-        {
-            "id": 19160,
-            "conversation_id": 735,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-            "created_at": "2026-09-02 13:06:57"
         }
     ],
     "recent_events": [
