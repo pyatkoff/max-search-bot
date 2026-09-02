@@ -16,13 +16,17 @@ $service=(string)file_get_contents($root.'/services/SalesPipelineService.php');
 $inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
 $context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
 $migration=(string)file_get_contents($root.'/migrations/021_lead_sale_tracking.sql');
+$closeReasonMigration=(string)file_get_contents($root.'/migrations/027_lead_close_reasons.sql');
 $passed=0;$failed=0;
 function outcomeCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
-outcomeCheck('catalog exposes outcomes and close reasons',strpos($api,"'outcomes'=>SalesPipelineService::outcomeOptions()")!==false&&strpos($api,"'close_reasons'=>SalesPipelineService::closeReasonOptions()")!==false);
-outcomeCheck('detail snapshot includes outcome',strpos($service,"'outcome'=>self::outcomeForConversation")!==false);
+outcomeCheck('catalog exposes active outcomes and close reasons',strpos($api,"'outcomes'=>SalesPipelineService::outcomeOptions()")!==false&&strpos($api,"'close_reasons'=>SalesPipelineService::closeReasonOptions(true)")!==false);
+outcomeCheck('close reasons have a forward-only configurable catalog',strpos($closeReasonMigration,'CREATE TABLE IF NOT EXISTS lead_close_reasons')!==false&&strpos($closeReasonMigration,"('price', 'Цена'")!==false&&strpos($closeReasonMigration,'UPDATE conversations')===false&&strpos($closeReasonMigration,'ALTER TABLE conversations')===false);
+outcomeCheck('detail snapshot includes outcome and close reason catalog state',strpos($service,"'outcome'=>self::outcomeForConversation")!==false&&strpos($service,'close_reason_label')!==false&&strpos($service,'close_reason_active')!==false&&strpos($service,'LEFT JOIN lead_close_reasons')!==false);
 outcomeCheck('workspace renders outcome controls',strpos($js,'id="leadOutcome"')!==false&&strpos($js,'id="leadCloseReason"')!==false&&strpos($js,'id="leadOutcomeNote"')!==false);
 outcomeCheck('lost outcome requires structured reason',strpos($outcomeJs,"outcome==='lost'&&!closeReason")!==false&&strpos($service,"\$outcome==='lost'")!==false);
+outcomeCheck('new refusal can only use active reason while existing inactive historical reason stays preservable',strpos($service,'function closeReasonAllowedForConversation')!==false&&strpos($service,"r.is_active AS requested_active")!==false&&strpos($service,"(int)(\$row['requested_active']??0)===1")!==false&&strpos($service,"(string)(\$row['current_reason']??'')===\$reason")!==false);
+outcomeCheck('inactive current close reason remains visible but cannot be newly selected',strpos($leadCardJs,'function closeReasonOptionsMarkup(outcome)')!==false&&strpos($leadCardJs,'Object.prototype.hasOwnProperty.call(catalog,current)')!==false&&strpos($leadCardJs,'selected disabled')!==false&&strpos($leadCardJs,'(неактивна)')!==false);
 outcomeCheck('workspace persists outcome through pipeline API',strpos($outcomeJs,"pipe('set_outcome'")!==false&&strpos($api,"\$action==='set_outcome'")!==false&&strpos($api,'SalesPipelineService::setOutcome')!==false);
 outcomeCheck('outcome controls respect shared pipeline ownership',strpos($leadCardJs,"canEdit?'':'disabled'")!==false&&strpos($leadCardJs,'WorkspaceV2Pipeline?.bindSalesEditor({canEdit,pipeline})')!==false&&strpos($pipelineJs,'WorkspaceV2Outcome?.bind({canEdit,pipeline})')!==false&&strpos($api,'ManagerHttp::requireConversationEdit($c,$m);')!==false&&strpos($http,'ManagerRequestContext::canEditAssignedConversation')!==false&&strpos($context,'canEditAssignedConversation')!==false);
 outcomeCheck('outcome UI has dedicated styling',strpos($css,'.outcomeBox')!==false&&strpos($css,'.outcomeNote')!==false&&strpos($css,'.outcomeSave')!==false);

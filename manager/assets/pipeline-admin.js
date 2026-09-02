@@ -1,4 +1,4 @@
-const S={csrf:'',catalog:{stages:[],tags:[]},saving:{stage:false,tag:false}};
+const S={csrf:'',catalog:{stages:[],tags:[],close_reasons:[]},saving:{stage:false,tag:false,closeReason:false}};
 const $=id=>document.getElementById(id);
 const api=(action,data={})=>ManagerHttpClient.request(action,data,S.csrf,'pipeline-api.php');
 const esc=v=>{const d=document.createElement('div');d.textContent=v??'';return d.innerHTML};
@@ -15,24 +15,26 @@ function gateMessage(msg){
     el.classList.remove('hidden');
 }
 
+function kindLabel(kind){return kind==='stage'?'этапа':kind==='tag'?'тега':'причины отказа'}
+function formFor(kind){return $(kind==='stage'?'stageForm':kind==='tag'?'tagForm':'closeReasonForm')}
+function titleFor(kind){return $(kind==='stage'?'stageTitle':kind==='tag'?'tagTitle':'closeReasonTitle')||formFor(kind)?.querySelector('h3')}
+
 function setEditorTitle(kind,label=''){
-    const form=$(kind==='stage'?'stageForm':'tagForm');
-    const title=$(kind==='stage'?'stageTitle':'tagTitle')||form?.querySelector('h3');
-    if(!title)return;
+    const title=titleFor(kind);if(!title)return;
     const editing=String(label||'').trim();
-    title.textContent=editing?`Редактируется ${kind==='stage'?'этап':'тег'}: ${editing}`:`Новый ${kind==='stage'?'этап':'тег'}`;
+    const noun=kind==='stage'?'этап':kind==='tag'?'тег':'причина отказа';
+    title.textContent=editing?`Редактируется ${noun}: ${editing}`:`Новый ${noun}`;
 }
 
 function editorBusy(kind){
     if(!S.saving[kind])return false;
-    status(`Дождитесь завершения сохранения ${kind==='stage'?'этапа':'тега'}.`);
+    status(`Дождитесь завершения сохранения ${kindLabel(kind)}.`);
     return true;
 }
 
 function setFormSaving(kind,saving){
     S.saving[kind]=Boolean(saving);
-    const form=$(kind==='stage'?'stageForm':'tagForm');
-    const submit=form.querySelector('button[type="submit"]');
+    const form=formFor(kind);const submit=form?.querySelector('button[type="submit"]');
     if(submit)submit.disabled=Boolean(saving);
 }
 
@@ -59,6 +61,16 @@ function tagErrorText(error,usageCount=0){
     return messages[error]||'Тег не сохранён. Повторите попытку.';
 }
 
+function closeReasonErrorText(error){
+    const messages={
+        duplicate_close_reason_key:'Причина с таким кодом уже существует.',
+        invalid_close_reason_key:'Код причины должен содержать только латинские буквы, цифры, дефис или подчёркивание.',
+        invalid_display_name:'Укажите название причины до 96 символов.',
+        save_failed:'Причина отказа не сохранена из-за ошибки сервера. Повторите попытку.'
+    };
+    return messages[error]||'Причина отказа не сохранена. Повторите попытку.';
+}
+
 async function safeApi(action,data={},failureMessage='Не удалось выполнить запрос. Проверьте соединение и повторите попытку.'){
     try{return await api(action,data)}catch(e){status(failureMessage);return null}
 }
@@ -74,10 +86,10 @@ async function boot(){
 }
 
 async function load(){
-    const r=await safeApi('admin_catalog',{},'Не удалось загрузить этапы и теги. Проверьте соединение и повторите попытку.');
+    const r=await safeApi('admin_catalog',{},'Не удалось загрузить справочники воронки. Проверьте соединение и повторите попытку.');
     if(!r)return;
-    if(!r.ok){status('Не удалось загрузить этапы и теги.');return}
-    S.catalog=r.catalog||{stages:[],tags:[]};
+    if(!r.ok){status('Не удалось загрузить справочники воронки.');return}
+    S.catalog=r.catalog||{stages:[],tags:[],close_reasons:[]};
     render();
 }
 
@@ -89,6 +101,7 @@ function leadCountLabel(v){
 function render(){
     $('stages').innerHTML=(S.catalog.stages||[]).map(s=>`<div class="item ${Number(s.is_active)?'':'inactive'}"><div class="chip"><span class="dot" style="background:${esc(s.color)}"></span><b>${esc(s.display_name)}</b></div><span class="muted">${esc(s.stage_key)}</span><span class="meta muted">${Number(s.sort_order)||0} · ${leadCountLabel(s.usage_count)}${Number(s.is_terminal)?' · финальный':''}${Number(s.is_won)?' · продажа':''}</span><button class="secondary edit" onclick="editStage('${esc(s.stage_key)}')">Изменить</button></div>`).join('')||'<p>Этапов нет</p>';
     $('tags').innerHTML=(S.catalog.tags||[]).map(t=>`<div class="item ${Number(t.is_active)?'':'inactive'}"><div class="chip"><span class="dot" style="background:${esc(t.color)}"></span><b>${esc(t.display_name)}</b></div><span class="muted">${esc(t.tag_key)}</span><span class="meta muted">${Number(t.sort_order)||0} · ${leadCountLabel(t.usage_count)}</span><button class="secondary edit" onclick="editTag(${Number(t.id)})">Изменить</button></div>`).join('')||'<p>Тегов пока нет</p>';
+    $('closeReasons').innerHTML=(S.catalog.close_reasons||[]).map(r=>`<div class="item ${Number(r.is_active)?'':'inactive'}"><div class="chip"><b>${esc(r.display_name)}</b></div><span class="muted">${esc(r.reason_key)}</span><span class="meta muted">${Number(r.sort_order)||0} · ${leadCountLabel(r.usage_count)}${Number(r.is_active)?'':' · неактивна'}</span><button class="secondary edit" onclick="editCloseReason('${esc(r.reason_key)}')">Изменить</button></div>`).join('')||'<p>Причин отказа пока нет</p>';
 }
 
 function clearStage(){
@@ -97,6 +110,10 @@ function clearStage(){
 
 function clearTag(){
     $('tagId').value='';$('tagKey').value='';$('tagName').value='';$('tagColor').value='#64748b';$('tagSort').value='0';$('tagActive').checked=true;setEditorTitle('tag');$('tagForm').classList.add('hidden');
+}
+
+function clearCloseReason(){
+    $('closeReasonKey').value='';$('closeReasonKey').readOnly=false;$('closeReasonName').value='';$('closeReasonSort').value='0';$('closeReasonActive').checked=true;setEditorTitle('closeReason');$('closeReasonForm').classList.add('hidden');
 }
 
 window.editStage=key=>{
@@ -111,11 +128,19 @@ window.editTag=id=>{
     $('tagId').value=t.id;$('tagKey').value=t.tag_key;$('tagName').value=t.display_name;$('tagColor').value=t.color||'#64748b';$('tagSort').value=t.sort_order||0;$('tagActive').checked=Number(t.is_active)===1;$('tagForm').dataset.usageCount=String(Number(t.usage_count)||0);setEditorTitle('tag',t.display_name||t.tag_key);$('tagForm').classList.remove('hidden');$('tagForm').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 
+window.editCloseReason=key=>{
+    if(editorBusy('closeReason'))return;
+    const r=(S.catalog.close_reasons||[]).find(x=>x.reason_key===key);if(!r)return;
+    $('closeReasonKey').value=r.reason_key;$('closeReasonKey').readOnly=true;$('closeReasonName').value=r.display_name;$('closeReasonSort').value=r.sort_order||0;$('closeReasonActive').checked=Number(r.is_active)===1;setEditorTitle('closeReason',r.display_name||r.reason_key);$('closeReasonForm').classList.remove('hidden');$('closeReasonForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+
 function bind(){
     $('newStage').onclick=()=>{if(editorBusy('stage'))return;clearStage();$('stageForm').dataset.usageCount='0';$('stageForm').classList.remove('hidden')};
     $('cancelStage').onclick=()=>{if(editorBusy('stage'))return;clearStage()};
     $('newTag').onclick=()=>{if(editorBusy('tag'))return;clearTag();$('tagForm').dataset.usageCount='0';$('tagForm').classList.remove('hidden')};
     $('cancelTag').onclick=()=>{if(editorBusy('tag'))return;clearTag()};
+    $('newCloseReason').onclick=()=>{if(editorBusy('closeReason'))return;clearCloseReason();$('closeReasonForm').classList.remove('hidden')};
+    $('cancelCloseReason').onclick=()=>{if(editorBusy('closeReason'))return;clearCloseReason()};
     $('stageWon').onchange=()=>{if($('stageWon').checked)$('stageTerminal').checked=true};
 
     $('stageForm').onsubmit=async e=>{
@@ -130,10 +155,7 @@ function bind(){
         },'Этап не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('stage',false);
         if(!r)return;
-        if(!r.ok){
-            if(r.error==='stage_in_use'){status(stageErrorText(r.error,r.usage_count));return}
-            status(stageErrorText(r.error,r.usage_count));return;
-        }
+        if(!r.ok){status(stageErrorText(r.error,r.usage_count));return}
         status('Этап сохранён.',true);clearStage();await load();
     };
 
@@ -149,11 +171,21 @@ function bind(){
         },'Тег не сохранён. Проверьте соединение и повторите попытку.');
         setFormSaving('tag',false);
         if(!r)return;
-        if(!r.ok){
-            if(r.error==='tag_in_use'){status(tagErrorText(r.error,r.usage_count));return}
-            status(tagErrorText(r.error,r.usage_count));return;
-        }
+        if(!r.ok){status(tagErrorText(r.error,r.usage_count));return}
         status('Тег сохранён.',true);clearTag();await load();
+    };
+
+    $('closeReasonForm').onsubmit=async e=>{
+        e.preventDefault();
+        if(S.saving.closeReason)return;
+        status('');setFormSaving('closeReason',true);
+        const r=await safeApi('save_close_reason',{
+            reason_key:$('closeReasonKey').value.trim(),display_name:$('closeReasonName').value.trim(),sort_order:Number($('closeReasonSort').value||0),is_active:$('closeReasonActive').checked
+        },'Причина отказа не сохранена. Проверьте соединение и повторите попытку.');
+        setFormSaving('closeReason',false);
+        if(!r)return;
+        if(!r.ok){status(closeReasonErrorText(r.error));return}
+        status('Причина отказа сохранена.',true);clearCloseReason();await load();
     };
 }
 

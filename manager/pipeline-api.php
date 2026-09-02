@@ -20,7 +20,7 @@ function pipelineCatalogSaveStatus(array $result):int
 {
     if(!empty($result['ok']))return 200;
     $error=(string)($result['error']??'save_failed');
-    if(in_array($error,['duplicate_stage_key','duplicate_tag_key'],true))return 409;
+    if(in_array($error,['duplicate_stage_key','duplicate_tag_key','duplicate_close_reason_key'],true))return 409;
     if($error==='save_failed')return 500;
     if($error==='not_found')return 404;
     return 422;
@@ -32,11 +32,12 @@ $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
 $isAdmin=ManagerHttp::isAdmin($m);
 
-if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions()]);
+if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions(true)]);
 if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
 if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
 if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
+if($action==='save_close_reason'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveCloseReason($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
 if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     $managerFilter=$isAdmin?(string)($data['manager_filter']??''):'';

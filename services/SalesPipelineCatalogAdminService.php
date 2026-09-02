@@ -15,7 +15,11 @@ final class SalesPipelineCatalogAdminService
         $tagUsage=self::tagUsageCounts();
         foreach($tags as &$tag)$tag['usage_count']=$tagUsage[(int)$tag['id']]??0;
         unset($tag);
-        return ['stages'=>$stages,'tags'=>$tags];
+        $closeReasons=SalesPipelineService::closeReasons(false);
+        $reasonUsage=self::closeReasonUsageCounts();
+        foreach($closeReasons as &$reason)$reason['usage_count']=$reasonUsage[(string)$reason['reason_key']]??0;
+        unset($reason);
+        return ['stages'=>$stages,'tags'=>$tags,'close_reasons'=>$closeReasons];
     }
 
     public static function saveStage(array $data,int $actor): array
@@ -64,6 +68,24 @@ final class SalesPipelineCatalogAdminService
         return['ok'=>true,'tag'=>$after];
     }
 
+    public static function saveCloseReason(array $data,int $actor): array
+    {
+        $key=trim((string)($data['reason_key']??''));
+        $name=trim((string)($data['display_name']??''));
+        $sort=(int)($data['sort_order']??0);
+        $active=!empty($data['is_active'])?1:0;
+        if(!preg_match('/^[a-z0-9_-]{1,64}$/',$key))return['ok'=>false,'error'=>'invalid_close_reason_key'];
+        if($name===''||mb_strlen($name)>96)return['ok'=>false,'error'=>'invalid_display_name'];
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare('SELECT * FROM lead_close_reasons WHERE reason_key=? LIMIT 1');$q->execute([$key]);$before=$q->fetch()?:null;
+        try{
+            if($before){$q=$pdo->prepare('UPDATE lead_close_reasons SET display_name=?,sort_order=?,is_active=? WHERE reason_key=?');$q->execute([$name,$sort,$active,$key]);}
+            else{$q=$pdo->prepare('INSERT INTO lead_close_reasons(reason_key,display_name,sort_order,is_active) VALUES(?,?,?,?)');$q->execute([$key,$name,$sort,$active]);}
+        }catch(Throwable $e){return['ok'=>false,'error'=>self::isDuplicateKeyFailure($e)?'duplicate_close_reason_key':'save_failed'];}
+        $after=self::closeReason($key);AuditLogService::record($actor,$before?'lead_close_reason_updated':'lead_close_reason_created','lead_close_reason',$key,null,$before,$after);
+        return['ok'=>true,'close_reason'=>$after];
+    }
+
     private static function stageUsageCounts(): array
     {
         $rows=ConversationDb::connection()->query("SELECT lead_stage_key,COUNT(*) AS usage_count FROM conversations WHERE lead_stage_key IS NOT NULL AND lead_stage_key<>'' GROUP BY lead_stage_key")->fetchAll();
@@ -73,6 +95,11 @@ final class SalesPipelineCatalogAdminService
     {
         $rows=ConversationDb::connection()->query('SELECT tag_id,COUNT(*) AS usage_count FROM conversation_lead_tags GROUP BY tag_id')->fetchAll();
         $out=[];foreach($rows as $row)$out[(int)$row['tag_id']]=(int)$row['usage_count'];return$out;
+    }
+    private static function closeReasonUsageCounts(): array
+    {
+        $rows=ConversationDb::connection()->query("SELECT lead_close_reason,COUNT(*) AS usage_count FROM conversations WHERE lead_close_reason IS NOT NULL AND lead_close_reason<>'' GROUP BY lead_close_reason")->fetchAll();
+        $out=[];foreach($rows as $row)$out[(string)$row['lead_close_reason']]=(int)$row['usage_count'];return$out;
     }
     private static function stageUsageCount(string $key): int{$q=ConversationDb::connection()->prepare('SELECT COUNT(*) FROM conversations WHERE lead_stage_key=?');$q->execute([$key]);return(int)$q->fetchColumn();}
     private static function tagUsageCount(int $id): int{$q=ConversationDb::connection()->prepare('SELECT COUNT(*) FROM conversation_lead_tags WHERE tag_id=?');$q->execute([$id]);return(int)$q->fetchColumn();}
@@ -87,4 +114,5 @@ final class SalesPipelineCatalogAdminService
     private static function color(string $v): string{return preg_match('/^#[0-9a-fA-F]{6}$/',$v)?strtolower($v):'#64748b';}
     private static function stage(string $key): ?array{$q=ConversationDb::connection()->prepare('SELECT stage_key,display_name,color,sort_order,is_active,is_terminal,is_won FROM lead_stages WHERE stage_key=?');$q->execute([$key]);return$q->fetch()?:null;}
     private static function tag(int $id): ?array{$q=ConversationDb::connection()->prepare('SELECT id,tag_key,display_name,color,sort_order,is_active FROM lead_tags WHERE id=?');$q->execute([$id]);return$q->fetch()?:null;}
+    private static function closeReason(string $key): ?array{$q=ConversationDb::connection()->prepare('SELECT reason_key,display_name,sort_order,is_active FROM lead_close_reasons WHERE reason_key=?');$q->execute([$key]);return$q->fetch()?:null;}
 }
