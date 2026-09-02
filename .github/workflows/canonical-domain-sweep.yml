@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   sweep:
@@ -55,27 +55,32 @@ jobs:
               if new != data:
                   path.write_text(new, encoding='utf-8')
                   changed.append(str(path))
+          Path('/tmp/changed-files.txt').write_text('\n'.join(changed)+'\n', encoding='utf-8')
           print(f'CHANGED_FILES={len(changed)}')
           for path in changed:
               print(path)
           PY
 
-          retired="anytour.online"
+          retired="anytour"".online"
           if git grep -n -F "$retired" -- .; then
             echo 'Retired host remains in tracked source' >&2
             exit 1
           fi
+          git diff --binary > /tmp/canonical-domain.patch
+          tar -czf /tmp/canonical-domain-files.tgz -T /tmp/changed-files.txt
 
-      - name: Commit sweep
+      - name: Stage sweep artifacts
         shell: bash
         run: |
-          set -euo pipefail
-          if git diff --quiet; then
-            echo 'No domain replacements required'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Remove retired domain references'
-          git push origin HEAD:fix/remove-anytour-online-v2
+          mkdir -p sweep-artifacts
+          cp /tmp/canonical-domain.patch sweep-artifacts/
+          cp /tmp/canonical-domain-files.tgz sweep-artifacts/
+          cp /tmp/changed-files.txt sweep-artifacts/
+
+      - name: Upload sweep artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-domain-sweep-${{ github.sha }}
+          path: sweep-artifacts/*
+          if-no-files-found: error
+          retention-days: 2
