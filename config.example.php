@@ -15,6 +15,10 @@ define('TELEGRAM_BOT_TOKEN', '');
 define('TELEGRAM_WEBHOOK_SECRET', '');
 define('TELEGRAM_WEBHOOK_URL', '');
 
+// Public Yandex Metrika counter id. OAuth credentials remain private and are
+// intentionally not exposed by browser-facing tracking pages.
+define('METRIKA_COUNTER_ID', '');
+
 define('CONVERSATION_DB_HOST', '');
 define('CONVERSATION_DB_NAME', '');
 define('CONVERSATION_DB_USER', '');
