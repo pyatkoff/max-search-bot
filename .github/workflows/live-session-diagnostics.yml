@@ -72,8 +72,27 @@ jobs:
           key_file="$RUNNER_TEMP/deploy_key"
           ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
           root='/var/www/anytoour/data/www/app.anytoour.ru'
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php 1" > live_sessions.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php today" > daily_sessions.json
+
+          capture_remote() {
+            local remote_command="$1"
+            local output_file="$2"
+            local tmp_file="${output_file}.tmp"
+            for attempt in 1 2 3; do
+              rm -f "$tmp_file"
+              if ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && $remote_command" > "$tmp_file"; then
+                mv "$tmp_file" "$output_file"
+                return 0
+              fi
+              echo "diagnostic_ssh_retry file=$output_file attempt=$attempt/3" >&2
+              sleep $((attempt * 2))
+            done
+            rm -f "$tmp_file"
+            echo "diagnostic_ssh_failed file=$output_file" >&2
+            return 1
+          }
+
+          capture_remote 'php tools/live_session_snapshot.php 1' live_sessions.json
+          capture_remote 'php tools/live_session_snapshot.php today' daily_sessions.json
           php -r '$j=json_decode(file_get_contents("live_sessions.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"live_session_snapshot_not_ok\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("daily_sessions.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["needs_collected_from_started"],$j["summary"]["calendar_day"]["tours_opened_from_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"daily_session_snapshot_not_ok\n");exit(1);}'
           php tools/compose_live_anomalies.php live_sessions.json > live_anomalies.json
