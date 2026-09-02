@@ -8,7 +8,32 @@ final class ManagerHttp
 {
     public static function start(): void
     {
+        self::redirectLegacyPath();
         ManagerRequestContext::startSession();
+    }
+
+    private static function redirectLegacyPath(): void
+    {
+        if (PHP_SAPI === 'cli') {
+            return;
+        }
+
+        $uri=(string)($_SERVER['REQUEST_URI']??'');
+        $path=(string)(parse_url($uri,PHP_URL_PATH)??'');
+        $legacyPrefix='/max-search/manager';
+        if ($path!==$legacyPrefix && !str_starts_with($path,$legacyPrefix.'/')) {
+            return;
+        }
+
+        $targetPath=substr($path,strlen('/max-search'));
+        if ($targetPath==='') {
+            $targetPath='/manager/';
+        }
+        $query=(string)(parse_url($uri,PHP_URL_QUERY)??'');
+        $target='https://app.anytoour.ru'.$targetPath.($query!==''?'?'.$query:'');
+        header('Location: '.$target,true,308);
+        header('Cache-Control: no-store');
+        exit;
     }
 
     public static function startJson(): void
