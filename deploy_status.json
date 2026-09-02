@@ -1,1 +1,1 @@
-{"sha":"856f87efe9281161dbb4ccb1b3e1b70e1c44b060","run_id":"33623294247","key":"success","bundle":"success","sync":"success","migration":"success","smoke":"success","diagnostics":"success","reported_at":"2026-09-02T11:12:36Z"}
+{"sha":"f32abb68ec0f86e023fa9cedbe0f71394155b217","run_id":"33623509044","key":"success","bundle":"success","sync":"success","migration":"success","smoke":"failure","diagnostics":"skipped","reported_at":"2026-09-02T11:14:51Z"}
