@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T00:42:36+00:00",
+    "generated_at": "2026-09-02T01:37:54+00:00",
     "production": {
-        "sha": "ee876c6a07cb6aab0e422d47a3996a0847757d86",
+        "sha": "6d3f334ff3482fad805e062ac2e1ea51726e55f4",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 671,
         "customer_channels": 671,
         "conversations": 673,
-        "messages": 17611,
+        "messages": 17612,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 948,
@@ -1463,6 +1463,15 @@
     ],
     "recent_messages": [
         {
+            "id": 17612,
+            "conversation_id": 673,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 03:35:58"
+        },
+        {
             "id": 17611,
             "conversation_id": 203,
             "direction": "outbound",
@@ -1991,15 +2000,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-09-01 21:14:47"
-        },
-        {
-            "id": 17552,
-            "conversation_id": 672,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
             "created_at": "2026-09-01 21:14:47"
         }
     ],

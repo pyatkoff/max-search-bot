@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T00:42:51+00:00",
+    "generated_at": "2026-09-02T01:38:09+00:00",
     "production": {
-        "sha": "ee876c6a07cb6aab0e422d47a3996a0847757d86",
+        "sha": "6d3f334ff3482fad805e062ac2e1ea51726e55f4",
         "branch": "main"
     },
     "migrations": {
@@ -141,21 +141,21 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-01 23:42:39",
+        "since_utc": "2026-09-02 00:37:57",
         "summary": {
-            "sessions": 0,
-            "raw_sessions": 0,
+            "sessions": 1,
+            "raw_sessions": 1,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 0,
+                "resolved": 1,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 0,
-            "needs_collected": 0,
-            "tours_opened": 0,
+            "started": 1,
+            "needs_collected": 1,
+            "tours_opened": 1,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 0,
+            "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -169,7 +169,9 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": [],
+            "drop_points": {
+                "tours_opened": 1
+            },
             "flags": []
         },
         "flagged_sessions": []
@@ -179,7 +181,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "ee876c6a07cb6aab0e422d47a3996a0847757d86",
+        "sha": "6d3f334ff3482fad805e062ac2e1ea51726e55f4",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -188,7 +190,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T00:42:51Z"
+        "reported_at": "2026-09-02T01:38:09Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -246,7 +248,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T00:42:51+00:00",
+        "generated_at": "2026-09-02T01:38:09+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -270,8 +272,8 @@
             },
             "manager": {
                 "files": 53,
-                "bytes": 296288,
-                "code_lines": 1444
+                "bytes": 296481,
+                "code_lines": 1446
             },
             "website": {
                 "files": 4,
@@ -290,8 +292,8 @@
             },
             "tests": {
                 "files": 169,
-                "bytes": 711338,
-                "code_lines": 8353
+                "bytes": 712044,
+                "code_lines": 8355
             },
             "tools": {
                 "files": 37,
