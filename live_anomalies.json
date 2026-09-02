@@ -1,11 +1,11 @@
 {
     "ok": true,
     "schema_version": 2,
-    "generated_at": "2026-09-02T06:35:00+00:00",
-    "source_generated_at": "2026-09-02T06:35:00+00:00",
+    "generated_at": "2026-09-02T06:53:52+00:00",
+    "source_generated_at": "2026-09-02T06:53:52+00:00",
     "window_hours": 1,
     "summary": {
-        "sessions": 3,
+        "sessions": 4,
         "ranked": 1,
         "high": 1,
         "medium": 0
@@ -22,7 +22,7 @@
             ],
             "status": "ai",
             "drop_point": "site_open",
-            "last_message_at": "2026-09-02 08:27:49"
+            "last_message_at": "2026-09-02 08:39:01"
         }
     ]
 }
