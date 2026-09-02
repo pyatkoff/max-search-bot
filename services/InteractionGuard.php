@@ -6,9 +6,9 @@ require_once __DIR__ . '/DiagnosticLogger.php';
  * Shared callback interaction guard helpers.
  *
  * This service deliberately contains only generic interaction-safety mechanics:
- * per-chat serialization, duplicate-window checks, one-shot callback generations
- * and wizard forward-step expectations. Dialogue actions keep ownership of
- * business behavior.
+ * per-chat serialization, expected-status checks, duplicate-window checks,
+ * one-shot callback generations and wizard forward-step expectations. Dialogue
+ * actions keep ownership of business behavior.
  */
 class InteractionGuard
 {
@@ -24,12 +24,23 @@ class InteractionGuard
      * Failure to acquire the lock is treated as a consumed interaction so a
      * concurrent delivery cannot fall through into duplicate behavior.
      */
-    public static function synchronized(int $chatId, string $scope, callable $callback): bool
-    {
+    public static function synchronized(
+        int $chatId,
+        string $scope,
+        callable $callback,
+        array $suppressionContext = []
+    ): bool {
         $fp = @fopen(self::lockPath($chatId, $scope), 'c+');
         if (!$fp || !flock($fp, LOCK_EX)) {
             if ($fp) fclose($fp);
-            self::reportSuppressed($chatId, '', 'concurrent', null, null, $scope);
+            self::reportSuppressed(
+                $chatId,
+                (string)($suppressionContext['payload'] ?? ''),
+                'concurrent',
+                isset($suppressionContext['current_status']) ? (int)$suppressionContext['current_status'] : null,
+                isset($suppressionContext['expected_status']) ? (int)$suppressionContext['expected_status'] : null,
+                $scope
+            );
             return true;
         }
 
@@ -39,6 +50,36 @@ class InteractionGuard
             flock($fp, LOCK_UN);
             fclose($fp);
         }
+    }
+
+    /**
+     * Serialize a callback and require one exact dialogue status before handing
+     * control to the business action. Stale/concurrent decisions and structured
+     * diagnostics stay owned by the shared guard; optional onStale keeps legacy
+     * operational text logs outside the safety policy itself.
+     */
+    public static function runExpectedStatusCallback(
+        int $chatId,
+        string $payload,
+        string $scope,
+        int $expectedStatus,
+        callable $callback,
+        ?callable $onStale = null
+    ): bool {
+        return self::synchronized(
+            $chatId,
+            $scope,
+            function ($fp) use ($chatId, $payload, $scope, $expectedStatus, $callback, $onStale): bool {
+                $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
+                if ($currentStatus !== $expectedStatus) {
+                    self::reportSuppressed($chatId, $payload, 'stale_state', $currentStatus, $expectedStatus, $scope);
+                    if ($onStale !== null) $onStale($currentStatus, $expectedStatus);
+                    return true;
+                }
+                return (bool)$callback($fp);
+            },
+            ['payload'=>$payload, 'expected_status'=>$expectedStatus]
+        );
     }
 
     public static function isDuplicate(
@@ -166,6 +207,18 @@ class InteractionGuard
         return DialogueStateMachine::expectedStatusForForwardCallback($payload);
     }
 
+    private static function stateNameForDiagnostic(int $status): ?string
+    {
+        try {
+            return DialogueStateMachine::stateForStatus($status);
+        } catch (Throwable $ignored) {
+            // Diagnostics must never be able to break callback handling. Numeric
+            // status evidence remains authoritative when state-name enrichment
+            // is unavailable in a partial runtime/test fixture.
+            return null;
+        }
+    }
+
     public static function reportSuppressed(
         int $chatId,
         string $payload,
@@ -181,11 +234,11 @@ class InteractionGuard
         if ($payload !== '') $data['payload'] = $payload;
         if ($currentStatus !== null) {
             $data['current_status'] = $currentStatus;
-            $data['current_state'] = DialogueStateMachine::stateForStatus($currentStatus);
+            $data['current_state'] = self::stateNameForDiagnostic($currentStatus);
         }
         if ($expectedStatus !== null) {
             $data['expected_status'] = $expectedStatus;
-            $data['expected_state'] = DialogueStateMachine::stateForStatus($expectedStatus);
+            $data['expected_state'] = self::stateNameForDiagnostic($expectedStatus);
         }
 
         return DiagnosticLogger::warning('interaction_guard', 'callback_suppressed', $data, $chatId);
