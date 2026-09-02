@@ -22,89 +22,42 @@ if (!class_exists('MaxSearchApi')) {
         public static function saveClaim($chatId, $savedData): string { return 'https://legacy.test/search/abc/?yclid=777'; }
         public static function getLastClaimForChat($chatId): array {
             return [
-                'UF_CITY'=>1,
-                'UF_COUNTRY'=>4,
-                'UF_ADULTS'=>3,
-                'UF_CHILD'=>2,
-                'UF_AGE'=>'5, 8',
-                'UF_STARS'=>4,
-                'UF_MEAL'=>7,
-                'UF_NIGHTS'=>'9-11',
-                'UF_DATE_DEPART'=>'15.09.2026',
-                'UF_CODE'=>'abc',
+                'UF_CITY'=>1,'UF_COUNTRY'=>4,'UF_ADULTS'=>3,'UF_CHILD'=>2,'UF_AGE'=>'5, 8',
+                'UF_STARS'=>4,'UF_MEAL'=>7,'UF_NIGHTS'=>'9-11','UF_DATE_DEPART'=>'15.09.2026','UF_CODE'=>'abc',
             ];
         }
         public static function getLatestYclid($chatId): string { return '777'; }
-        public static function buildChannelMiniappUrl($chatId): string { return 'https://max.ru/test?startapp=777'; }
     }
 }
 
 ProjectConfig::resetForTests([
     'id'=>'test',
-    'messenger'=>[
-        'provider'=>'max',
-        'open_channel_path'=>'/track/channel.php',
-    ],
     'search'=>[
-        'base_domain'=>'https://public-search.test',
-        'search_path'=>'/poisk-turov/',
-        'tracking_base_domain'=>'https://tracker.test',
-        'open_tours_path'=>'/track/tours.php',
+        'base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/',
+        'tracking_base_domain'=>'https://tracker.test','open_tours_path'=>'/track/tours.php',
     ],
 ]);
 
 $model = TourResultsService::build(-123, 'Pavel');
 $canonical = 'https://public-search.test/poisk-turov/?from=1&country=4&dateFrom=2026-09-15&dateTo=2026-09-15&daysFrom=9&daysTill=11&count_people=3&child_count=2&child_age%5B%5D=5&child_age%5B%5D=8&stars=4&food=7&yclid=777';
 trCheck('claim url canonicalized with full collected search fields', $model['claim_url'], $canonical);
-trCheck('channel url preserved', $model['channel_url'], 'https://max.ru/test?startapp=777');
-trCheck('MAX button label', $model['buttons'][1][0]['text'], '🔥 Горящие туры в MAX');
-trCheck('manager callback', $model['buttons'][2][0]['callback_data'], 'manager_after_tours');
-trCheck('edit callback', $model['buttons'][3][0]['callback_data'], 'edit_params');
+trCheck('site button label', $model['buttons'][0][0]['text'], '🔥 Посмотреть на сайте');
+trCheck('manager button label', $model['buttons'][1][0]['text'], '👩‍💼 Подобрать тур с менеджером');
+trCheck('manager callback', $model['buttons'][1][0]['callback_data'], 'manager_after_tours');
+trCheck('edit callback', $model['buttons'][2][0]['callback_data'], 'edit_params');
+trCheck('final results do not duplicate channel offer', count($model['buttons']), 3);
 trCheck('tour tracking keeps canonical target', $model['buttons'][0][0]['url'], 'https://tracker.test/track/tours.php?chat=-123&url='.rawurlencode($canonical));
-trCheck('channel tracking url uses tracking origin', $model['buttons'][1][0]['url'], 'https://tracker.test/track/channel.php?chat=-123&url='.rawurlencode('https://max.ru/test?startapp=777'));
-trCheck('public and tracking origins stay independent', ProjectConfig::baseDomain(), 'https://public-search.test');
-trCheck('MAX message wording', strpos($model['text'], 'MAX-канал') !== false, true);
-
-ProjectConfig::resetForTests([
-    'messenger'=>['provider'=>'telegram'],
-    'search'=>['base_domain'=>'https://other.test'],
-]);
-trCheck('tracking origin falls back to base domain', ProjectConfig::trackingBaseDomain(), 'https://other.test');
-trCheck('Telegram button label', TourResultsService::channelButtonText(), '🔥 Горящие туры в Telegram');
-trCheck('Telegram message wording', strpos(TourResultsService::messageText(), 'Telegram-канал') !== false, true);
+trCheck('final message wording', $model['text'], "🔥 <b>Подходящие туры готовы</b>\n\nМожно посмотреть варианты самостоятельно или продолжить подбор с менеджером.");
 trCheck('absolute tracking path supported', TourResultsService::trackedUrl('https://tracker.test/open', 5, 'https://target.test/a'), 'https://tracker.test/open?chat=5&url='.rawurlencode('https://target.test/a'));
 
-ProjectConfig::resetForTests([
-    'search'=>['base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/'],
-]);
+ProjectConfig::resetForTests(['search'=>['base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/']]);
 $savedUrl = ProjectConfig::searchUrlFromSavedData([
-    10=>2,
-    11=>8,
-    12=>'2026-10-03',
-    13=>'7-9',
-    14=>2,
-    15=>1,
-    16=>'6',
-    17=>5,
-    18=>3,
+    10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6',17=>5,18=>3,
 ], [
-    'city'=>10,
-    'country'=>11,
-    'date'=>12,
-    'nights'=>13,
-    'adults'=>14,
-    'children'=>15,
-    'child_ages'=>16,
-    'stars'=>17,
-    'meal'=>18,
+    'city'=>10,'country'=>11,'date'=>12,'nights'=>13,'adults'=>14,'children'=>15,'child_ages'=>16,'stars'=>17,'meal'=>18,
 ], 'yclid-test');
-trCheck(
-    'saved dialogue data preserves full supported search context',
-    $savedUrl,
-    'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test'
-);
+trCheck('saved dialogue data preserves full supported search context',$savedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test');
 
 $total = $passed + $failed;
-echo "\n--------------------------\n";
-echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
+echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);
