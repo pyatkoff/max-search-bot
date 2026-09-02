@@ -4,6 +4,7 @@ require_once __DIR__ . '/services/RuntimeBootstrap.php';
 RuntimeBootstrap::boot();
 require_once __DIR__ . '/services/ProjectConfig.php';
 require_once __DIR__ . '/services/ConversationRecorder.php';
+require_once __DIR__ . '/services/MetrikaRedirectPage.php';
 require_once __DIR__ . '/maxsearchclass.php';
 
 $chatID = trim((string)($_GET['chat'] ?? ''));
@@ -22,5 +23,5 @@ if ($url === '' || $publicBase === '/' || !str_starts_with(strtolower($url), str
     exit('Bad URL');
 }
 
-header('Location: ' . $url, true, 302);
+MetrikaRedirectPage::send($url, 'Открываем туры…');
 exit;
