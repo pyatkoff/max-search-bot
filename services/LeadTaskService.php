@@ -123,8 +123,12 @@ class LeadTaskService
         if($conversationId<=0||$taskId<=0)return false;
         $status=$completed?'done':'open';$completedSql=$completed?'UTC_TIMESTAMP()':'NULL';
         $reminderReset=$completed?'':' ,reminder_attempted_at_utc=NULL,reminder_notified_at_utc=NULL';
-        $q=ConversationDb::connection()->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql}{$reminderReset},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=?");
-        $q->execute([$status,$taskId,$conversationId]);return$q->rowCount()>0;
+        $pdo=ConversationDb::connection();
+        $q=$pdo->prepare("UPDATE lead_tasks SET status=?,completed_at_utc={$completedSql}{$reminderReset},updated_at=UTC_TIMESTAMP() WHERE id=? AND conversation_id=? AND status<>?");
+        $q->execute([$status,$taskId,$conversationId,$status]);if($q->rowCount()>0)return true;
+        $q=$pdo->prepare("SELECT status FROM lead_tasks WHERE id=? AND conversation_id=? LIMIT 1");
+        $q->execute([$taskId,$conversationId]);$current=$q->fetchColumn();
+        return$current!==false&&(string)$current===$status;
     }
 
     public static function setPinned(int $conversationId,int $taskId,bool $pinned): bool
