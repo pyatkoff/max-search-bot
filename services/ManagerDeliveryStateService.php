@@ -36,6 +36,14 @@ class ManagerDeliveryStateService
         return$out;
     }
 
+    public static function withoutSuspendedRecipients(array $rows): array
+    {
+        if(!$rows)return[];
+        return array_values(array_filter($rows,static function($row){
+            return (string)($row['delivery_failure_category']??'')!=='suspended';
+        }));
+    }
+
     public static function activeFailure(int $conversationId): ?array
     {
         if($conversationId<=0)return null;
