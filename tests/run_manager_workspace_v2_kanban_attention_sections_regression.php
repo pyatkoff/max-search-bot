@@ -13,6 +13,7 @@ checkAttention('closed outcomes never receive false attention reasons',strpos($k
 checkAttention('render groups keep fixed manager-facing urgency order',strpos($kanban,"const reasons=['Без ответа','Просрочено','Сегодня','Без задачи','Непрочитано']")!==false&&strpos($kanban,'ordered.forEach(row=>{const reason=actionReason(row)')!==false);
 checkAttention('each non-empty attention reason shows a count before its cards',strpos($kanban,'<span>${esc(reason)}</span><strong>${items.length}</strong>')!==false&&strpos($kanban,"items.map(card).join('')")!==false);
 checkAttention('steady leads stay separated only when actionable leads exist',strpos($kanban,"if(!actionable)return ordered.map(card).join('')")!==false&&strpos($kanban,'Остальные')!==false&&strpos($kanban,'if(steady.length)')!==false);
+checkAttention('steady section shows its lead count when attention sections are present',strpos($kanban,'<span>Остальные</span><strong>${steady.length}</strong>')!==false&&strpos($kanban,'${steady.map(card).join(\'\')}')!==false);
 checkAttention('attention section headings are accessible',strpos($kanban,'role="heading" aria-level="4"')!==false);
 checkAttention('empty stages retain canonical empty state',strpos($kanban,"if(!ordered.length)return'<div class=\"kanbanEmpty\">Нет лидов</div>'")!==false);
 checkAttention('render path delegates stage card content to section renderer',substr_count($kanban,'renderCardSections(stageRows)')===1&&substr_count($kanban,'renderCardSections(groups.__other)')===1);
