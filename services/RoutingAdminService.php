@@ -16,7 +16,7 @@ class RoutingAdminService
         RoutingAccessService::ensureSchema();$pdo=ConversationDb::connection();$projectId=ProjectAccessService::projectIdByKey($projectKey);
         $q=$pdo->prepare('SELECT id,group_key,display_name,is_active FROM manager_groups WHERE project_id=? ORDER BY display_name');$q->execute([$projectId]);$groups=$q->fetchAll();
         foreach($groups as &$g){$m=$pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_group_members gm ON gm.manager_id=m.id WHERE gm.group_id=? AND m.is_active=1 ORDER BY COALESCE(m.display_name,m.login)');$m->execute([(int)$g['id']]);$g['members']=$m->fetchAll();}unset($g);
-        $q=$pdo->prepare('SELECT s.id,s.source_key,s.display_name,s.channel,s.handling_mode,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes,s.is_active FROM conversation_sources s WHERE s.project_id=? ORDER BY s.display_name');$q->execute([$projectId]);
+        $q=$pdo->prepare('SELECT s.id,s.source_key,s.display_name,s.channel,s.handling_mode,s.suppress_channel_offer,s.primary_group_id,s.fallback_mode,s.fallback_group_id,s.fallback_after_minutes,s.is_active FROM conversation_sources s WHERE s.project_id=? ORDER BY s.display_name');$q->execute([$projectId]);
         $managers=$pdo->prepare('SELECT m.id,m.login,m.display_name FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id WHERE mp.project_id=? AND m.is_active=1 ORDER BY COALESCE(m.display_name,m.login)');$managers->execute([$projectId]);
         return['groups'=>$groups,'sources'=>$q->fetchAll(),'managers'=>$managers->fetchAll()];
     }
@@ -54,12 +54,12 @@ class RoutingAdminService
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();if(self::isDuplicateKeyFailure($e))return['ok'=>false,'error'=>'duplicate_group_key'];return['ok'=>false,'error'=>'save_failed'];}
     }
 
-    public static function saveSource(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter,string $handlingMode='ai'): bool
+    public static function saveSource(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter,string $handlingMode='ai',bool $suppressChannelOffer=false): bool
     {
-        return !empty(self::saveSourceResult($managerId,$projectKey,$sourceId,$sourceKey,$displayName,$channel,$primaryGroupId,$fallbackMode,$fallbackGroupId,$fallbackAfter,$handlingMode)['ok']);
+        return !empty(self::saveSourceResult($managerId,$projectKey,$sourceId,$sourceKey,$displayName,$channel,$primaryGroupId,$fallbackMode,$fallbackGroupId,$fallbackAfter,$handlingMode,$suppressChannelOffer)['ok']);
     }
 
-    public static function saveSourceResult(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter,string $handlingMode='ai'): array
+    public static function saveSourceResult(int $managerId,string $projectKey,int $sourceId,string $sourceKey,string $displayName,string $channel,int $primaryGroupId,string $fallbackMode,int $fallbackGroupId,int $fallbackAfter,string $handlingMode='ai',bool $suppressChannelOffer=false): array
     {
         if(!self::requireAdmin($managerId))return['ok'=>false,'error'=>'admin_required'];
         if(!ProjectAccessService::canAccess($managerId,$projectKey))return['ok'=>false,'error'=>'project_access_denied'];
@@ -83,13 +83,14 @@ class RoutingAdminService
         if($fallbackMode==='immediate')$fallbackAfter=0;
         if($fallbackMode!=='none'&&$fallbackGroupId>0&&$fallback===null)return['ok'=>false,'error'=>'invalid_fallback_group'];
         if($fallbackMode!=='none'&&$fallback===null)return['ok'=>false,'error'=>'fallback_group_required'];
+        $suppress=$suppressChannelOffer?1:0;
         try{
             if($sourceId>0){
-                $q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,handling_mode=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');
-                $q->execute([$sourceKey,$displayName,$channel,$handlingMode,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);
+                $q=$pdo->prepare('UPDATE conversation_sources SET source_key=?,display_name=?,channel=?,handling_mode=?,suppress_channel_offer=?,primary_group_id=?,fallback_mode=?,fallback_group_id=?,fallback_after_minutes=? WHERE id=? AND project_id=?');
+                $q->execute([$sourceKey,$displayName,$channel,$handlingMode,$suppress,$primary,$fallbackMode,$fallback,$fallbackAfter,$sourceId,$projectId]);
             }else{
-                $q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,handling_mode,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?,?)');
-                $q->execute([$projectId,$sourceKey,$displayName,$channel,$handlingMode,$primary,$fallbackMode,$fallback,$fallbackAfter]);
+                $q=$pdo->prepare('INSERT INTO conversation_sources (project_id,source_key,display_name,channel,handling_mode,suppress_channel_offer,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES (?,?,?,?,?,?,?,?,?,?)');
+                $q->execute([$projectId,$sourceKey,$displayName,$channel,$handlingMode,$suppress,$primary,$fallbackMode,$fallback,$fallbackAfter]);
                 $sourceId=(int)$pdo->lastInsertId();
             }
         }catch(Throwable $e){
@@ -114,6 +115,6 @@ class RoutingAdminService
     }
     private static function sourceRow(int $id): ?array
     {
-        $q=ConversationDb::connection()->prepare('SELECT id,project_id,source_key,display_name,channel,handling_mode,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes,is_active FROM conversation_sources WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();return$row?:null;
+        $q=ConversationDb::connection()->prepare('SELECT id,project_id,source_key,display_name,channel,handling_mode,suppress_channel_offer,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes,is_active FROM conversation_sources WHERE id=? LIMIT 1');$q->execute([$id]);$row=$q->fetch();return$row?:null;
     }
 }
