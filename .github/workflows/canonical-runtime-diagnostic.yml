@@ -28,11 +28,11 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Inspect canonical PHP runtime
+      - name: Run canonical Telegram smoke
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -r '\''require "config.php"; require_once "integrations/TelegramIncomingAdapter.php"; $r=new ReflectionClass("IncomingMessage"); echo "IncomingMessage=".$r->getFileName()."\n"; $r=new ReflectionClass("TelegramIncomingAdapter"); echo "TelegramIncomingAdapter=".$r->getFileName()."\n"; $u=["update_id"=>1,"message"=>["message_id"=>2,"from"=>["id"=>3,"first_name"=>"Smoke"],"chat"=>["id"=>3,"type"=>"private"],"date"=>time(),"text"=>"Хочу в Турцию в сентябре"]]; var_export(TelegramIncomingAdapter::fromUpdate($u)); echo "\n";'\'''
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && echo SHA=$(git rev-parse HEAD) && php tools/telegram_smoke_test.php'
