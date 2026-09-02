@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T11:31:35+00:00",
+    "generated_at": "2026-09-02T11:34:23+00:00",
     "production": {
-        "sha": "27bdbca128d586156e0259290cb1cce86691b2af",
+        "sha": "ec2a8ebf289390b5143fe1570058d92644a29b36",
         "branch": "main"
     },
     "migrations": {
@@ -155,17 +155,17 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 10:31:25",
+        "since_utc": "2026-09-02 10:34:13",
         "summary": {
-            "sessions": 12,
-            "raw_sessions": 12,
+            "sessions": 13,
+            "raw_sessions": 13,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 12,
+                "resolved": 13,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 12,
+            "started": 13,
             "needs_collected": 10,
             "tours_opened": 10,
             "site_opened": 0,
@@ -185,7 +185,7 @@
             },
             "drop_points": {
                 "tours_opened": 6,
-                "collecting_needs": 2,
+                "collecting_needs": 3,
                 "manager_replied": 2,
                 "customer_replied_after_manager": 2
             },
@@ -224,7 +224,7 @@
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 725,
+                "conversation_id": 726,
                 "flags": [
                     "repeated_callback_input"
                 ],
@@ -233,7 +233,7 @@
                 "manager_response_seconds": null
             },
             {
-                "conversation_id": 726,
+                "conversation_id": 725,
                 "flags": [
                     "repeated_callback_input"
                 ],
@@ -248,7 +248,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "27bdbca128d586156e0259290cb1cce86691b2af",
+        "sha": "ec2a8ebf289390b5143fe1570058d92644a29b36",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -257,7 +257,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-02T11:31:35Z"
+        "reported_at": "2026-09-02T11:34:23Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -272,19 +272,19 @@
         "window_hours": null,
         "since_utc": "2026-09-01 22:00:00",
         "summary": {
-            "sessions": 52,
-            "raw_sessions": 52,
+            "sessions": 54,
+            "raw_sessions": 54,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 52,
+                "resolved": 54,
                 "unresolved": 0,
                 "unresolved_conversation_ids": []
             },
-            "started": 52,
-            "needs_collected": 42,
-            "tours_opened": 39,
+            "started": 54,
+            "needs_collected": 44,
+            "tours_opened": 40,
             "site_opened": 1,
-            "post_tour_manager_cta_shown": 19,
+            "post_tour_manager_cta_shown": 20,
             "manager_requested": 8,
             "manager_replied": 8,
             "customer_replied_after_manager": 3,
@@ -299,10 +299,10 @@
                 "max_seconds": 40781
             },
             "drop_points": {
-                "tours_opened": 30,
+                "tours_opened": 31,
                 "collecting_needs": 10,
                 "manager_replied": 5,
-                "needs_collected": 3,
+                "needs_collected": 4,
                 "customer_replied_after_manager": 3,
                 "site_open": 1
             },
@@ -312,11 +312,11 @@
                 "rapid_date_reselection": 3
             },
             "calendar_day": {
-                "conversations_started": 45,
-                "needs_collected_from_started": 35,
-                "tours_opened_from_started": 32,
+                "conversations_started": 47,
+                "needs_collected_from_started": 37,
+                "tours_opened_from_started": 33,
                 "site_opened": 1,
-                "post_tour_manager_cta_shown": 16,
+                "post_tour_manager_cta_shown": 17,
                 "manager_requested": 0,
                 "manager_replied": 5,
                 "customer_replied_after_manager": 2
@@ -324,12 +324,12 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T11:31:34+00:00",
+        "generated_at": "2026-09-02T11:34:22+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 65123,
-                "code_lines": 956
+                "bytes": 65488,
+                "code_lines": 964
             },
             "actions": {
                 "files": 9,
@@ -338,8 +338,8 @@
             },
             "services": {
                 "files": 134,
-                "bytes": 521936,
-                "code_lines": 11138
+                "bytes": 524987,
+                "code_lines": 11213
             },
             "integrations": {
                 "files": 10,
@@ -368,8 +368,8 @@
             },
             "tests": {
                 "files": 170,
-                "bytes": 724402,
-                "code_lines": 8436
+                "bytes": 725808,
+                "code_lines": 8449
             },
             "tools": {
                 "files": 35,
@@ -415,6 +415,12 @@
                 "severity": "observe"
             },
             {
+                "path": "handlers/StateMessageHandler.php",
+                "lines": 199,
+                "bytes": 9673,
+                "severity": "observe"
+            },
+            {
                 "path": "services/ProjectHealth.php",
                 "lines": 199,
                 "bytes": 6868,
@@ -430,12 +436,6 @@
                 "path": "services/ConversationStateRepository.php",
                 "lines": 196,
                 "bytes": 7098,
-                "severity": "observe"
-            },
-            {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 191,
-                "bytes": 9308,
                 "severity": "observe"
             }
         ],
