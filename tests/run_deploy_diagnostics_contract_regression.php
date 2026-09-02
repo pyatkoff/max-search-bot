@@ -1,14 +1,11 @@
 <?php
-// #132: production diagnostics must be pulled from the remote host; using an
-// upload-oriented SCP action makes the runner archive a path that exists only
-// on production and can therefore produce a false/empty transfer.
 $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/deploy.yml');
 
 $checks = [
-    'diagnostics download uses remote scp rather than upload action' =>
+    'diagnostics download uses canonical remote scp' =>
         strpos($workflow, 'appleboy/scp-action@') === false
-        && strpos($workflow, 'scp \\') !== false
-        && strpos($workflow, '"${DEPLOY_USER}@${DEPLOY_HOST}:www/anytour.online/max-search/diagnostics/*.json"') !== false,
+        && strpos($workflow, 'scp -o BatchMode=yes') !== false
+        && strpos($workflow, '/var/www/anytoour/data/www/app.anytoour.ru/diagnostics/*.json') !== false,
     'diagnostics directory is populated during smoke' =>
         strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') !== false,
     'download requires at least one json file' =>
