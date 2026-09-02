@@ -23,7 +23,7 @@ jobs:
 
       - name: Prepare SSH private key
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -40,29 +40,30 @@ jobs:
 
       - name: Wait for deployed SHA, migrate and capture production
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           key_file="$RUNNER_TEMP/deploy_key"
           ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
           deployed=""
           for attempt in $(seq 1 60); do
-            deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && git rev-parse HEAD' 2>/dev/null || true)"
+            deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && git rev-parse HEAD" 2>/dev/null || true)"
             if [ "$deployed" = "$GITHUB_SHA" ]; then break; fi
             sleep 5
           done
           test "$deployed" = "$GITHUB_SHA"
 
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/conversation_db.php migrate' > migration.log
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/production_snapshot.php' > production_snapshot.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php 1' > live_session_report.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php today' > daily_session_report.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/live_session_snapshot.php yesterday' > yesterday_session_report.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/export_handoff_snapshot.php' > handoff.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/website_production_smoke.php' > website_smoke.json
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'cd ~/www/anytour.online/max-search && /opt/php81/bin/php tools/architecture_inventory.php --compact' > architecture_inventory.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/conversation_db.php migrate" > migration.log
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/production_snapshot.php" > production_snapshot.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php 1" > live_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php today" > daily_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php yesterday" > yesterday_session_report.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/export_handoff_snapshot.php" > handoff.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/website_production_smoke.php" > website_smoke.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/architecture_inventory.php --compact" > architecture_inventory.json
 
           php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["admin_project_access_ok"])){fwrite(STDERR,"admin_project_access_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("live_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["summary"],$j["sessions"])) {fwrite(STDERR,"live_session_snapshot_contract_failed\n");exit(1);}'
