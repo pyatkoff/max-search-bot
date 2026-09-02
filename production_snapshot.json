@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T10:55:06+00:00",
+    "generated_at": "2026-09-02T10:58:20+00:00",
     "production": {
-        "sha": "33397c5186549e5781f5432624ef800a52f3c746",
+        "sha": "ca6b013c930195a30cd716960b7b3a9368dde854",
         "branch": "main"
     },
     "database": {
@@ -205,7 +205,7 @@
         "customers": 718,
         "customer_channels": 718,
         "conversations": 720,
-        "messages": 18552,
+        "messages": 18553,
         "managers": 6,
         "manager_assignments": 122,
         "conversation_events": 1004,
@@ -2132,6 +2132,15 @@
     ],
     "recent_messages": [
         {
+            "id": 18553,
+            "conversation_id": 720,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Не открывается",
+            "created_at": "2026-09-02 12:55:12"
+        },
+        {
             "id": 18552,
             "conversation_id": 720,
             "direction": "outbound",
@@ -2661,15 +2670,6 @@
             "channel": "max",
             "text": "pick_country_4",
             "created_at": "2026-09-02 12:34:34"
-        },
-        {
-            "id": 18493,
-            "conversation_id": 717,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-09-02 12:34:29"
         }
     ],
     "recent_events": [
