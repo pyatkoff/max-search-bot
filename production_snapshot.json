@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T09:09:40+00:00",
+    "generated_at": "2026-09-02T09:34:57+00:00",
     "production": {
-        "sha": "05909b005495cb5bf2aed0d4ec71a308612377a7",
+        "sha": "93771d7056f6481ec6e547af9324310cea51dade",
         "branch": "main"
     },
     "database": {
@@ -202,10 +202,10 @@
         }
     ],
     "stats": {
-        "customers": 699,
-        "customer_channels": 699,
-        "conversations": 701,
-        "messages": 18169,
+        "customers": 703,
+        "customer_channels": 703,
+        "conversations": 705,
+        "messages": 18231,
         "managers": 6,
         "manager_assignments": 114,
         "conversation_events": 975,
@@ -314,7 +314,7 @@
             "all": 200,
             "mine": 2,
             "waiting": 9,
-            "assigned_to_others": 9
+            "assigned_to_others": 8
         },
         {
             "manager_id": 3,
@@ -324,7 +324,7 @@
             "all": 200,
             "mine": 0,
             "waiting": 9,
-            "assigned_to_others": 10
+            "assigned_to_others": 9
         },
         {
             "manager_id": 4,
@@ -364,7 +364,7 @@
         "pending_count": 2,
         "overdue_count": 2,
         "stuck_count": 2,
-        "oldest_wait_seconds": 2388,
+        "oldest_wait_seconds": 3908,
         "routing_blocked_count": 0,
         "requests": [
             {
@@ -374,7 +374,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-09-02 10:29:53",
-                "wait_seconds": 2388,
+                "wait_seconds": 3908,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4,
@@ -390,7 +390,7 @@
                 "status": "waiting_manager",
                 "manager_id": null,
                 "manager_request_at": "2026-09-02 10:55:47",
-                "wait_seconds": 834,
+                "wait_seconds": 2354,
                 "severity": "stuck",
                 "eligible_working_manager_ids": [
                     4,
@@ -1494,7 +1494,7 @@
             "project_key": "anytour",
             "channel": "max",
             "status": "ai",
-            "count": 561
+            "count": 565
         },
         {
             "project_key": "anytour",
@@ -1825,544 +1825,544 @@
     ],
     "recent_messages": [
         {
-            "id": 18169,
+            "id": 18231,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_2",
+            "created_at": "2026-09-02 11:31:31"
+        },
+        {
+            "id": 18230,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_2",
+            "created_at": "2026-09-02 11:31:28"
+        },
+        {
+            "id": 18229,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_2",
+            "created_at": "2026-09-02 11:31:24"
+        },
+        {
+            "id": 18228,
+            "conversation_id": 705,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
+            "created_at": "2026-09-02 11:31:21"
+        },
+        {
+            "id": 18227,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_2",
+            "created_at": "2026-09-02 11:31:21"
+        },
+        {
+            "id": 18226,
+            "conversation_id": 705,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-09-02 11:31:19"
+        },
+        {
+            "id": 18225,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-09-02 11:31:19"
+        },
+        {
+            "id": 18224,
+            "conversation_id": 705,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-09-02 11:31:16"
+        },
+        {
+            "id": 18223,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-09-02 11:31:16"
+        },
+        {
+            "id": 18222,
+            "conversation_id": 705,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-09-02 11:31:09"
+        },
+        {
+            "id": 18221,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_1",
+            "created_at": "2026-09-02 11:31:09"
+        },
+        {
+            "id": 18220,
+            "conversation_id": 705,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-09-02 11:30:57"
+        },
+        {
+            "id": 18219,
+            "conversation_id": 705,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-09-02 11:30:57"
+        },
+        {
+            "id": 18218,
+            "conversation_id": 704,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
+            "created_at": "2026-09-02 11:24:39"
+        },
+        {
+            "id": 18217,
+            "conversation_id": 704,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "ai_start",
+            "created_at": "2026-09-02 11:24:39"
+        },
+        {
+            "id": 18216,
+            "conversation_id": 703,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-09-02 11:23:27"
+        },
+        {
+            "id": 18215,
+            "conversation_id": 703,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-09-02 11:23:27"
+        },
+        {
+            "id": 18214,
+            "conversation_id": 703,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_1",
+            "created_at": "2026-09-02 11:23:21"
+        },
+        {
+            "id": 18213,
+            "conversation_id": 703,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_1",
+            "created_at": "2026-09-02 11:23:05"
+        },
+        {
+            "id": 18212,
+            "conversation_id": 703,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-09-02 11:22:24"
+        },
+        {
+            "id": 18211,
+            "conversation_id": 703,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_1",
+            "created_at": "2026-09-02 11:22:24"
+        },
+        {
+            "id": 18210,
+            "conversation_id": 703,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-09-02 11:22:16"
+        },
+        {
+            "id": 18209,
+            "conversation_id": 703,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-09-02 11:22:16"
+        },
+        {
+            "id": 18208,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 11:16:38"
+        },
+        {
+            "id": 18207,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 11:16:33"
+        },
+        {
+            "id": 18206,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-09-02 11:15:52"
+        },
+        {
+            "id": 18205,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-02 11:15:52"
+        },
+        {
+            "id": 18204,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_07.09.2026",
+            "created_at": "2026-09-02 11:15:42"
+        },
+        {
+            "id": 18203,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "month_change_10.2026",
+            "created_at": "2026-09-02 11:15:29"
+        },
+        {
+            "id": 18202,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "nights_9_11",
+            "created_at": "2026-09-02 11:15:21"
+        },
+        {
+            "id": 18201,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "meal_7",
+            "created_at": "2026-09-02 11:15:15"
+        },
+        {
+            "id": 18200,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "star_2",
+            "created_at": "2026-09-02 11:15:02"
+        },
+        {
+            "id": 18199,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "child_0",
+            "created_at": "2026-09-02 11:14:55"
+        },
+        {
+            "id": 18198,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "adults_1",
+            "created_at": "2026-09-02 11:14:51"
+        },
+        {
+            "id": 18197,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "Абхазия",
+            "created_at": "2026-09-02 11:14:47"
+        },
+        {
+            "id": 18196,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Введите страну</b> Напишите название направления, которое хотите рассмотреть.",
+            "created_at": "2026-09-02 11:14:34"
+        },
+        {
+            "id": 18195,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_country_other",
+            "created_at": "2026-09-02 11:14:34"
+        },
+        {
+            "id": 18194,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
+            "created_at": "2026-09-02 11:14:26"
+        },
+        {
+            "id": 18193,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_city_99",
+            "created_at": "2026-09-02 11:14:26"
+        },
+        {
+            "id": 18192,
+            "conversation_id": 702,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
+            "created_at": "2026-09-02 11:14:13"
+        },
+        {
+            "id": 18191,
+            "conversation_id": 702,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "start_search",
+            "created_at": "2026-09-02 11:14:13"
+        },
+        {
+            "id": 18190,
+            "conversation_id": 701,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
+            "created_at": "2026-09-02 11:10:27"
+        },
+        {
+            "id": 18189,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "show_tours",
+            "created_at": "2026-09-02 11:10:27"
+        },
+        {
+            "id": 18188,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_21.09.2026",
+            "created_at": "2026-09-02 11:10:22"
+        },
+        {
+            "id": 18187,
+            "conversation_id": 701,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "created_at": "2026-09-02 11:10:18"
+        },
+        {
+            "id": 18186,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "nights_6_8",
+            "created_at": "2026-09-02 11:10:18"
+        },
+        {
+            "id": 18185,
+            "conversation_id": 701,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "max",
+            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+            "created_at": "2026-09-02 11:10:12"
+        },
+        {
+            "id": 18184,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "back_nights",
+            "created_at": "2026-09-02 11:10:12"
+        },
+        {
+            "id": 18183,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_21.09.2026",
+            "created_at": "2026-09-02 11:10:11"
+        },
+        {
+            "id": 18182,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_21.09.2026",
+            "created_at": "2026-09-02 11:10:10"
+        },
+        {
+            "id": 18181,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_21.09.2026",
+            "created_at": "2026-09-02 11:10:10"
+        },
+        {
+            "id": 18180,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_21.09.2026",
+            "created_at": "2026-09-02 11:09:57"
+        },
+        {
+            "id": 18179,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_26.09.2026",
+            "created_at": "2026-09-02 11:09:56"
+        },
+        {
+            "id": 18178,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_23.09.2026",
+            "created_at": "2026-09-02 11:09:56"
+        },
+        {
+            "id": 18177,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_28.09.2026",
+            "created_at": "2026-09-02 11:09:55"
+        },
+        {
+            "id": 18176,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_23.09.2026",
+            "created_at": "2026-09-02 11:09:55"
+        },
+        {
+            "id": 18175,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_23.09.2026",
+            "created_at": "2026-09-02 11:09:54"
+        },
+        {
+            "id": 18174,
             "conversation_id": 701,
             "direction": "inbound",
             "sender_type": "customer",
             "channel": "max",
             "text": "pick_date_22.09.2026",
-            "created_at": "2026-09-02 11:09:40"
+            "created_at": "2026-09-02 11:09:53"
         },
         {
-            "id": 18168,
+            "id": 18173,
+            "conversation_id": 701,
+            "direction": "inbound",
+            "sender_type": "customer",
+            "channel": "max",
+            "text": "pick_date_22.09.2026",
+            "created_at": "2026-09-02 11:09:52"
+        },
+        {
+            "id": 18172,
             "conversation_id": 701,
             "direction": "inbound",
             "sender_type": "customer",
             "channel": "max",
             "text": "pick_date_21.09.2026",
-            "created_at": "2026-09-02 11:09:37"
-        },
-        {
-            "id": 18167,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_21.09.2026",
-            "created_at": "2026-09-02 11:09:36"
-        },
-        {
-            "id": 18166,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_21.09.2026",
-            "created_at": "2026-09-02 11:09:34"
-        },
-        {
-            "id": 18165,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_21.09.2026",
-            "created_at": "2026-09-02 11:08:26"
-        },
-        {
-            "id": 18164,
-            "conversation_id": 700,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "В какую страну хотите поехать?",
-            "created_at": "2026-09-02 11:08:17"
-        },
-        {
-            "id": 18163,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-09-02 11:08:14"
-        },
-        {
-            "id": 18162,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_9_11",
-            "created_at": "2026-09-02 11:08:14"
-        },
-        {
-            "id": 18161,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-02 11:08:11"
-        },
-        {
-            "id": 18160,
-            "conversation_id": 700,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "1 взрослый и 1ребенок",
-            "created_at": "2026-09-02 11:08:11"
-        },
-        {
-            "id": 18159,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-02 11:08:11"
-        },
-        {
-            "id": 18158,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-09-02 11:07:57"
-        },
-        {
-            "id": 18157,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_7",
-            "created_at": "2026-09-02 11:07:56"
-        },
-        {
-            "id": 18156,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_26.09.2026",
-            "created_at": "2026-09-02 11:07:56"
-        },
-        {
-            "id": 18155,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-09-02 11:07:52"
-        },
-        {
-            "id": 18154,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-09-02 11:07:51"
-        },
-        {
-            "id": 18153,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-09-02 11:07:44"
-        },
-        {
-            "id": 18152,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_26.09.2026",
-            "created_at": "2026-09-02 11:07:44"
-        },
-        {
-            "id": 18151,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "12, 13",
-            "created_at": "2026-09-02 11:07:44"
-        },
-        {
-            "id": 18150,
-            "conversation_id": 700,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "На море по России в с 28 сентября",
-            "created_at": "2026-09-02 11:07:38"
-        },
-        {
-            "id": 18149,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-09-02 11:07:32"
-        },
-        {
-            "id": 18148,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_9_11",
-            "created_at": "2026-09-02 11:07:32"
-        },
-        {
-            "id": 18147,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🧒 <b>Сколько лет детям?</b> Введите 2 возраста через пробел или запятую, например: 3, 7",
-            "created_at": "2026-09-02 11:07:31"
-        },
-        {
-            "id": 18146,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_2",
-            "created_at": "2026-09-02 11:07:31"
-        },
-        {
-            "id": 18145,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-09-02 11:07:26"
-        },
-        {
-            "id": 18144,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-09-02 11:07:26"
-        },
-        {
-            "id": 18143,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-09-02 11:07:24"
-        },
-        {
-            "id": 18142,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_7",
-            "created_at": "2026-09-02 11:07:24"
-        },
-        {
-            "id": 18141,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-09-02 11:07:19"
-        },
-        {
-            "id": 18140,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_1",
-            "created_at": "2026-09-02 11:07:19"
-        },
-        {
-            "id": 18139,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-09-02 11:07:15"
-        },
-        {
-            "id": 18138,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_1",
-            "created_at": "2026-09-02 11:07:15"
-        },
-        {
-            "id": 18137,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-09-02 11:07:15"
-        },
-        {
-            "id": 18136,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-09-02 11:07:15"
-        },
-        {
-            "id": 18135,
-            "conversation_id": 701,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-09-02 11:07:10"
-        },
-        {
-            "id": 18134,
-            "conversation_id": 701,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-09-02 11:07:09"
-        },
-        {
-            "id": 18133,
-            "conversation_id": 700,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-            "created_at": "2026-09-02 11:06:58"
-        },
-        {
-            "id": 18132,
-            "conversation_id": 700,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "ai_start",
-            "created_at": "2026-09-02 11:06:58"
-        },
-        {
-            "id": 18131,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-            "created_at": "2026-09-02 11:06:55"
-        },
-        {
-            "id": 18130,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "child_0",
-            "created_at": "2026-09-02 11:06:54"
-        },
-        {
-            "id": 18129,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-09-02 11:06:51"
-        },
-        {
-            "id": 18128,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
-            "created_at": "2026-09-02 11:06:46"
-        },
-        {
-            "id": 18127,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "adults_2",
-            "created_at": "2026-09-02 11:06:46"
-        },
-        {
-            "id": 18126,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_4",
-            "created_at": "2026-09-02 11:06:40"
-        },
-        {
-            "id": 18125,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_1",
-            "created_at": "2026-09-02 11:06:39"
-        },
-        {
-            "id": 18124,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "👥 <b>Кто едет?</b> Шаг 3 из 7 · Сколько будет взрослых туристов?",
-            "created_at": "2026-09-02 11:06:32"
-        },
-        {
-            "id": 18123,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_country_1",
-            "created_at": "2026-09-02 11:06:32"
-        },
-        {
-            "id": 18122,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌍 <b>Куда хотите поехать?</b> Шаг 2 из 7 · Выберите популярное направление или введите своё.",
-            "created_at": "2026-09-02 11:06:15"
-        },
-        {
-            "id": 18121,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_city_5",
-            "created_at": "2026-09-02 11:06:15"
-        },
-        {
-            "id": 18120,
-            "conversation_id": 699,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "✈️ <b>Откуда вылетаете?</b> Шаг 1 из 7 · Выберите город или введите его вручную.",
-            "created_at": "2026-09-02 11:06:10"
-        },
-        {
-            "id": 18119,
-            "conversation_id": 699,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "start_search",
-            "created_at": "2026-09-02 11:06:10"
-        },
-        {
-            "id": 18118,
-            "conversation_id": 698,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🔥 <b>Подходящие туры готовы</b> Откройте результаты на сайте — там будут актуальные варианты по выбранным параметрам. Хотите следить за снижением цен и горящими предложениями — загляните в наш MAX-канал.",
-            "created_at": "2026-09-02 11:06:10"
-        },
-        {
-            "id": 18117,
-            "conversation_id": 698,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "show_tours",
-            "created_at": "2026-09-02 11:06:10"
-        },
-        {
-            "id": 18116,
-            "conversation_id": 698,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_10.09.2026",
-            "created_at": "2026-09-02 11:05:58"
-        },
-        {
-            "id": 18115,
-            "conversation_id": 698,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
-            "created_at": "2026-09-02 11:05:50"
-        },
-        {
-            "id": 18114,
-            "conversation_id": 698,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "nights_6_8",
-            "created_at": "2026-09-02 11:05:50"
-        },
-        {
-            "id": 18113,
-            "conversation_id": 698,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
-            "created_at": "2026-09-02 11:05:46"
-        },
-        {
-            "id": 18112,
-            "conversation_id": 698,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "meal_7",
-            "created_at": "2026-09-02 11:05:46"
-        },
-        {
-            "id": 18111,
-            "conversation_id": 698,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-            "created_at": "2026-09-02 11:05:39"
-        },
-        {
-            "id": 18110,
-            "conversation_id": 698,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "star_4",
-            "created_at": "2026-09-02 11:05:39"
+            "created_at": "2026-09-02 11:09:50"
         }
     ],
     "recent_events": [
