@@ -1,8 +1,8 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T19:12:15+00:00",
+    "generated_at": "2026-09-02T19:22:51+00:00",
     "production": {
-        "sha": "329cb402234a0bf03aa4fab729d827aa41651bd7",
+        "sha": "9231e699f16c00891dd950739f1b44c3fce1e07b",
         "branch": "main"
     },
     "database": {
@@ -219,7 +219,7 @@
         "customers": 767,
         "customer_channels": 767,
         "conversations": 769,
-        "messages": 19969,
+        "messages": 19971,
         "managers": 6,
         "manager_assignments": 131,
         "conversation_events": 1008,
@@ -1764,6 +1764,15 @@
     ],
     "recent_messages": [
         {
+            "id": 19971,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-02 19:22:48"
+        },
+        {
             "id": 19970,
             "conversation_id": 656,
             "direction": "outbound",
@@ -2293,15 +2302,6 @@
             "channel": "max",
             "text": "Завтрак",
             "created_at": "2026-09-02 18:26:49"
-        },
-        {
-            "id": 19911,
-            "conversation_id": 766,
-            "direction": "outbound",
-            "sender_type": "ai",
-            "channel": "max",
-            "text": "Какое питание предпочитаете?",
-            "created_at": "2026-09-02 18:26:28"
         }
     ],
     "recent_events": [
