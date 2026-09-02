@@ -66,13 +66,14 @@ class RoutingAdminService
         RoutingAccessService::ensureSchema();
         $pdo=ConversationDb::connection();
         $projectId=ProjectAccessService::projectIdByKey($projectKey);
-        $sourceKey=trim($sourceKey);$displayName=trim($displayName);$channel=trim($channel);$handlingMode=trim($handlingMode);
-        $fallbackMode=in_array($fallbackMode,['none','delayed','immediate'],true)?$fallbackMode:'none';$fallbackAfter=max(0,$fallbackAfter);
+        $sourceKey=trim($sourceKey);$displayName=trim($displayName);$channel=trim($channel);$handlingMode=trim($handlingMode);$fallbackMode=trim($fallbackMode);
+        $fallbackAfter=max(0,$fallbackAfter);
         if($projectId<=0)return['ok'=>false,'error'=>'project_not_found'];
         if($sourceKey==='')return['ok'=>false,'error'=>'missing_source_key'];
         if($displayName==='')return['ok'=>false,'error'=>'missing_display_name'];
         if(!in_array($channel,['max','telegram','website'],true))return['ok'=>false,'error'=>'invalid_channel'];
         if(!in_array($handlingMode,['ai','manager','ask'],true))return['ok'=>false,'error'=>'invalid_handling_mode'];
+        if(!in_array($fallbackMode,['none','delayed','immediate'],true))return['ok'=>false,'error'=>'invalid_fallback_mode'];
         $before=$sourceId>0?self::sourceRow($sourceId):null;
         if($sourceId>0&&!$before)return['ok'=>false,'error'=>'source_not_found'];
         if($sourceId>0&&(int)($before['project_id']??0)!==$projectId)return['ok'=>false,'error'=>'source_project_mismatch'];
