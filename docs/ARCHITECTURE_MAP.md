@@ -8,6 +8,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/NeedValueResolver.php` — deterministic need interpretation boundary.
 - `services/NeedApplicationService.php` — applying recognized need values.
 - `services/InteractionGuard.php` — callback concurrency/staleness safety.
+- `services/TourSearchHandoffService.php` — canonical normalization boundary from saved dialogue/claim data to the public tour-search query contract (route, dates, nights, tourists/child ages, stars, meal and yclid); `ProjectConfig` may keep compatibility URL helpers but must not regain field-mapping ownership.
 - `services/RuntimeBootstrap.php` — canonical runtime bootstrap for MAX webhook, Telegram webhook and followup cron; standalone mode is explicit/opt-in and must not be inferred from hostname.
 - `services/RuntimeStorage.php` plus the MySQL runtime repositories — canonical storage switch for standalone conversation/claim/runtime persistence while legacy production remains available until cutover proof.
 - `services/DestinationCatalogRepository.php` — destination catalog storage boundary; consumers must not read Bitrix HL directly when a repository path exists.
@@ -38,6 +39,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 
 - Remaining direct field parsing in handlers/actions → `NeedValueResolver`.
 - Remaining direct need mutation / next-field choice → `NeedApplicationService` and canonical progression owner.
+- Remaining claim/saved-dialogue → public search query mapping or hand-built tour-search parameter lists → `TourSearchHandoffService`; do not duplicate the public search contract in `TourResultsService`, `PostTourService`, handlers or manager UI.
 - Remaining direct Bitrix HL/catalog reads in destination/search code → `DestinationCatalogRepository` or the relevant repository boundary.
 - Remaining direct lead persistence/transport calls → `LeadDeliveryGateway`; business payload construction stays in `LeadPayloadService` and transport adapters must not re-map lead semantics.
 - Remaining runtime/bootstrap decisions in webhook/cron entrypoints → `RuntimeBootstrap`; do not create per-transport standalone switches.
