@@ -15,7 +15,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 - `index.php` — canonical production workspace entrypoint; redirect-free.
 - `lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/conversation-authorization boundary. `start()` owns session bootstrap for HTML/binary/non-JSON manager surfaces; `startJson()` layers JSON headers on the same lifecycle. Keep it business-service free.
-- `services/ManagerQueueProjectionService.php` — actionable Manager queue/count projection owner. It composes canonical conversation lists with delivery-state eligibility, while preserving notification-unread semantics; HTTP endpoints must not rebuild these projections.
+- `services/ManagerQueueProjectionService.php` — actionable Manager queue/count projection owner. It composes canonical conversation lists with delivery-state eligibility, while preserving notification-unread semantics; HTTP endpoints and `ManagerConversationService` must not rebuild these projections.
 - `assets/workspace-v2.js` — shared state/transport/boot/auth-recovery core only; feature rendering stays in modules.
 - `assets/workspace-v2-inbox.*` — inbox owner: queue selection, list projection, list/kanban view handoff.
 - `assets/workspace-v2-filters.js` — inbox search/filter state, persistence, filter controls and task-filter shortcut orchestration. It may invoke the inbox reload/queue boundary but must not own sales-stage or task business semantics.
@@ -55,7 +55,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 - `workspace-v2.php` — **deleted after #252**. Do not recreate it or another workspace alias.
 - Network redirect code between `/manager/` and `/manager/index.php` — keep deleted/forbidden; canonicalization must not create requests.
-- `ManagerConversationService::queueCounts()` — legacy candidate after queue projections move to `ManagerQueueProjectionService`; delete only after a caller-backed inventory confirms no compatibility caller remains.
+- `ManagerConversationService::queueCounts()` — **deleted after #627 projection migration** once repository caller inventory confirmed no compatibility caller remained. Keep queue-count business rules in `ManagerQueueProjectionService` only.
 - Legacy/duplicate endpoint helpers only after the owning endpoint has moved to the shared boundary and required behavior tests are green.
 - Dead CSS selectors / JS hooks only after visual QA and DOM contract checks prove no use.
 

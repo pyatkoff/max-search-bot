@@ -100,23 +100,6 @@ class ManagerConversationService
         return array_slice($rows,0,$limit);
     }
 
-    public static function queueCounts(int $managerId,string $projectKey='*'): array
-    {
-        $out=[];$rowsByQueue=[];
-        foreach(['waiting','mine'] as $queue){
-            $rows=self::list($managerId,$queue,200,$projectKey);$rowsByQueue[$queue]=$rows;
-            $unreadRows=$queue==='waiting'?array_filter($rows,static function($r){return empty($r['manager_id']);}):$rows;
-            $out[$queue]=['count'=>count($rows),'unread'=>array_sum(array_map(static function($r){return(int)($r['unread_count']??0);},$unreadRows))];
-        }
-        $unique=[];
-        foreach(array_merge($rowsByQueue['waiting'],$rowsByQueue['mine']) as $row){
-            $id=(int)($row['id']??0);if($id<=0)continue;
-            $unique[$id]=max((int)($unique[$id]??0),(int)($row['unread_count']??0));
-        }
-        $out['notification_unread']=array_sum($unique);
-        return$out;
-    }
-
     public static function filterManagers(int $managerId): array
     {
         $manager=ManagerAuthService::byId($managerId);if(!ManagerAuthService::isAdmin($manager))return[];
