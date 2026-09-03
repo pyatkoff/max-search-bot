@@ -1,29 +1,29 @@
 {
     "ok": true,
-    "generated_at": "2026-09-03T09:20:14+00:00",
+    "generated_at": "2026-09-03T09:31:08+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 25,
-        "raw_sessions": 25,
+        "sessions": 26,
+        "raw_sessions": 26,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 25,
+            "resolved": 26,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 25,
-        "needs_collected": 20,
-        "tours_opened": 19,
+        "started": 26,
+        "needs_collected": 21,
+        "tours_opened": 20,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 2,
         "manager_replied": 2,
         "customer_replied_after_manager": 2,
         "phone_received": 1,
-        "flagged_sessions": 7,
+        "flagged_sessions": 8,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 2,
@@ -33,18 +33,19 @@
             "max_seconds": 49005
         },
         "drop_points": {
-            "tours_opened": 18,
+            "tours_opened": 19,
             "collecting_needs": 5,
             "customer_replied_after_manager": 2
         },
         "flags": {
-            "repeated_callback_input": 6,
-            "excessive_turns": 5
+            "repeated_callback_input": 7,
+            "excessive_turns": 6,
+            "rapid_date_reselection": 1
         },
         "calendar_day": {
-            "conversations_started": 19,
-            "needs_collected_from_started": 14,
-            "tours_opened_from_started": 14,
+            "conversations_started": 20,
+            "needs_collected_from_started": 15,
+            "tours_opened_from_started": 15,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
@@ -1800,161 +1801,348 @@
             "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 42,
-            "outbound_messages": 15,
-            "date_picks": 1,
-            "anomaly_inbound_messages": 42,
+            "inbound_messages": 68,
+            "outbound_messages": 25,
+            "date_picks": 3,
+            "anomaly_inbound_messages": 68,
             "drop_point": "tours_opened",
             "flags": [
                 "repeated_callback_input",
                 "excessive_turns"
             ],
             "started_at": "2026-09-03 09:11:47",
-            "last_message_at": "2026-09-03 09:19:39",
+            "last_message_at": "2026-09-03 09:21:58",
             "message_tail": [
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_56ebf002_manager_request",
-                    "created_at": "2026-09-03 09:17:08"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "Тест",
-                    "created_at": "2026-09-03 09:17:15"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "g1_56ebf002_show_tours",
-                    "created_at": "2026-09-03 09:17:45"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "g1_56ebf002_manager_request",
-                    "created_at": "2026-09-03 09:17:45"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "g1_56ebf002_manager_request",
-                    "created_at": "2026-09-03 09:17:46"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "g1_56ebf002_manager_request",
-                    "created_at": "2026-09-03 09:17:46"
+                    "text": "adults_2",
+                    "created_at": "2026-09-03 09:21:33"
                 },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
-                    "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
-                    "created_at": "2026-09-03 09:18:45"
+                    "text": "👨‍👩‍👧 <b>Будут дети?</b> Если да — укажите количество. Возраст спросим следующим сообщением.",
+                    "created_at": "2026-09-03 09:21:33"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "ai_start",
-                    "created_at": "2026-09-03 09:18:47"
+                    "text": "child_0",
+                    "created_at": "2026-09-03 09:21:34"
                 },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
-                    "text": "Опишите поездку одним сообщением или несколькими. Например: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено». Я уточню только то, чего не хватает.",
-                    "created_at": "2026-09-03 09:18:47"
+                    "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
+                    "created_at": "2026-09-03 09:21:35"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "Тест",
-                    "created_at": "2026-09-03 09:18:55"
+                    "text": "star_4",
+                    "created_at": "2026-09-03 09:21:37"
                 },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
-                    "text": "В какую страну хотите поехать?",
-                    "created_at": "2026-09-03 09:19:01"
+                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
+                    "created_at": "2026-09-03 09:21:37"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "Турция 10.09 на 9 ночей 2 взрослых из Москвы",
-                    "created_at": "2026-09-03 09:19:16"
+                    "text": "meal_7",
+                    "created_at": "2026-09-03 09:21:39"
                 },
                 {
                     "direction": "outbound",
                     "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Турция 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 9 ночей 📅 Вылет 10.09.2026 · ищем 07.09–13.09.2026 Что удобнее дальше?",
-                    "created_at": "2026-09-03 09:19:24"
+                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+                    "created_at": "2026-09-03 09:21:39"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:27"
+                    "text": "nights_6_8",
+                    "created_at": "2026-09-03 09:21:41"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-09-03 09:21:41"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:31"
+                    "text": "pick_date_17.09.2026",
+                    "created_at": "2026-09-03 09:21:42"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:32"
+                    "text": "pick_date_17.09.2026",
+                    "created_at": "2026-09-03 09:21:47"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ С.Петербург → Египет 👥 2 взр., без детей 🏨 от 4★ 🍽 Все Включено 🌙 6-8 ночей 📅 Вылет 17.09.2026 · ищем 14.09–20.09.2026 Что удобнее дальше?",
+                    "created_at": "2026-09-03 09:21:48"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:32"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:51"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:32"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:53"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:33"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:53"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:34"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:54"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:34"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:55"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:38"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:55"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:38"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:56"
                 },
                 {
                     "direction": "inbound",
                     "sender_type": "customer",
-                    "text": "g1_780baefd_manager_request",
-                    "created_at": "2026-09-03 09:19:39"
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:56"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:57"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:58"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_12fd44ae_manager_request",
+                    "created_at": "2026-09-03 09:21:58"
+                }
+            ]
+        },
+        {
+            "conversation_id": 798,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": true,
+            "tours_opened": true,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 33,
+            "outbound_messages": 22,
+            "date_picks": 5,
+            "anomaly_inbound_messages": 33,
+            "drop_point": "tours_opened",
+            "flags": [
+                "rapid_date_reselection",
+                "repeated_callback_input",
+                "excessive_turns"
+            ],
+            "started_at": "2026-09-03 09:28:02",
+            "last_message_at": "2026-09-03 09:31:03",
+            "message_tail": [
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_578e9b43_manager_request",
+                    "created_at": "2026-09-03 09:29:57"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_578e9b43_manager_request",
+                    "created_at": "2026-09-03 09:29:57"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "month_change_10.2026",
+                    "created_at": "2026-09-03 09:29:59"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "back_nights",
+                    "created_at": "2026-09-03 09:30:01"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+                    "created_at": "2026-09-03 09:30:01"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "nights_other",
+                    "created_at": "2026-09-03 09:30:07"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
+                    "created_at": "2026-09-03 09:30:08"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "7-10",
+                    "created_at": "2026-09-03 09:30:15"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-09-03 09:30:15"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "month_change_10.2026",
+                    "created_at": "2026-09-03 09:30:23"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-09-03 09:30:24"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "back_nights",
+                    "created_at": "2026-09-03 09:30:30"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌙 <b>На сколько ночей хотите поехать?</b> Шаг 6 из 7 · Можно выбрать диапазон или указать свой.",
+                    "created_at": "2026-09-03 09:30:30"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "nights_other",
+                    "created_at": "2026-09-03 09:30:32"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🌙 <b>Введите количество ночей</b> Например: 7 или диапазон 7-10.",
+                    "created_at": "2026-09-03 09:30:33"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "7-9",
+                    "created_at": "2026-09-03 09:30:38"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-09-03 09:30:39"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "month_change_08.2026",
+                    "created_at": "2026-09-03 09:30:44"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "📅 <b>Когда хотите вылететь?</b> Шаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+                    "created_at": "2026-09-03 09:30:44"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "pick_date_28.09.2026",
+                    "created_at": "2026-09-03 09:30:51"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Китай 👥 3 взр., без детей 🏨 от 4★ 🍽 Завтрак 🌙 7-9 ночей 📅 Вылет 28.09.2026 · ищем 25.09–01.10.2026 Что удобнее дальше?",
+                    "created_at": "2026-09-03 09:30:51"
+                },
+                {
+                    "direction": "inbound",
+                    "sender_type": "customer",
+                    "text": "g1_f3c7f267_show_tours",
+                    "created_at": "2026-09-03 09:30:59"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
+                    "created_at": "2026-09-03 09:31:00"
+                },
+                {
+                    "direction": "outbound",
+                    "sender_type": "ai",
+                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
+                    "created_at": "2026-09-03 09:31:03"
                 }
             ]
         }
