@@ -14,8 +14,13 @@ require_once $baseDir.'/services/LeadTaskService.php';
 
 ManagerHttp::startJson();
 
-function pipelineConversation(int $id,int $mid):?array{$d=ManagerConversationService::detail($id,$mid);return$d?(array)($d['conversation']??[]):null;}
+function pipelineConversation(int $id,int $mid):?array{return ManagerConversationService::visibleConversation($id,$mid);}
 function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat==='')return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
+function pipelineDetailPart(string $component,int $conversationId,callable $load,$fallback,array &$degraded)
+{
+    try{return$load();}
+    catch(Throwable $e){$degraded[]=$component;error_log('MANAGER_PIPELINE_DETAIL_DEGRADED '.json_encode(['conversation_id'=>$conversationId,'component'=>$component,'exception'=>get_class($e)],JSON_UNESCAPED_SLASHES));return$fallback;}
+}
 function pipelineCatalogSaveStatus(array $result):int
 {
     if(!empty($result['ok']))return 200;
@@ -60,7 +65,14 @@ $c=pipelineConversation($id,(int)$m['id']);
 if(!$c)ManagerHttp::respond(['ok'=>false,'error'=>'not_found'],404);
 $can=ManagerHttp::canEditConversation($c,$m);
 
-if($action==='detail')ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can,'pipeline'=>SalesPipelineService::conversationSnapshot($id),'tasks'=>LeadTaskService::listForConversation($id),'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null,'entry_channel'=>$c['entry_channel']??null,'attribution_region'=>$c['attribution_region']??null,'attribution_campaign'=>$c['attribution_campaign']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>ManagerDeliveryStateService::activeFailure($id)]]);
+if($action==='detail'){
+    $degraded=[];
+    $pipeline=pipelineDetailPart('pipeline',$id,static fn()=>SalesPipelineService::conversationSnapshot($id),['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']],$degraded);
+    $tasks=pipelineDetailPart('tasks',$id,static fn()=>LeadTaskService::listForConversation($id),[],$degraded);
+    $deliveryFailure=pipelineDetailPart('delivery_failure',$id,static fn()=>ManagerDeliveryStateService::activeFailure($id),null,$degraded);
+    $salesDataComplete=!in_array('pipeline',$degraded,true)&&!in_array('tasks',$degraded,true);
+    ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can&&$salesDataComplete,'pipeline'=>$pipeline,'tasks'=>$tasks,'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null,'entry_channel'=>$c['entry_channel']??null,'attribution_region'=>$c['attribution_region']??null,'attribution_campaign'=>$c['attribution_campaign']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>$deliveryFailure],'degraded_components'=>$degraded]);
+}
 if($action==='set_stage'){
     ManagerHttp::requireConversationEdit($c,$m);
     $ok=SalesPipelineService::setStage($id,(string)($data['stage_key']??''),(int)$m['id']);
