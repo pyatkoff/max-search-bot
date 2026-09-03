@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/ManagerConversationAccessPolicy.php';
 require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
@@ -89,7 +90,7 @@ class ManagerConversationService
             .'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE '.implode(' AND ',$where)
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':'COALESCE(c.last_message_at,c.started_at) DESC')).' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
-        $rows=array_values(array_filter($rows,static function($row)use($managerId){return RoutingAccessService::canSeeConversation($managerId,$row);}));
+        $rows=array_values(array_filter($rows,static function($row)use($managerId){return ManagerConversationAccessPolicy::canView($managerId,$row);}));
         $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
         foreach($rows as &$row){
@@ -115,7 +116,7 @@ class ManagerConversationService
     {
         RoutingAccessService::ensureSchema();
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
-        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!RoutingAccessService::canSeeConversation($managerId,$conversation))return null;
+        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!ManagerConversationAccessPolicy::canView($managerId,$conversation))return null;
         return$conversation;
     }
 
@@ -132,7 +133,7 @@ class ManagerConversationService
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
         RoutingAccessService::ensureSchema();$sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
-        $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();if(!$row||!RoutingAccessService::canSeeConversation($managerId,$row))return null;return$row;
+        $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();if(!$row||!ManagerConversationAccessPolicy::canView($managerId,$row))return null;return$row;
     }
 
     public static function take(int $conversationId,int $managerId): bool
@@ -164,7 +165,7 @@ class ManagerConversationService
         $pdo=ConversationDb::connection();$pdo->beginTransaction();
         try{
             $row=self::accessibleConversation($conversationId,$adminId,true);
-            if(!$row||(string)$row['status']==='closed'||!RoutingAccessService::canSeeConversation($targetManagerId,$row)){$pdo->rollBack();return false;}
+            if(!$row||(string)$row['status']==='closed'||!ManagerConversationAccessPolicy::canView($targetManagerId,$row)){$pdo->rollBack();return false;}
             $previous=(int)($row['manager_id']??0);
             if($previous===$targetManagerId&&(string)$row['status']==='manager'){$pdo->commit();return true;}
             $pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);

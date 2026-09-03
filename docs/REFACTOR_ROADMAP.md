@@ -60,7 +60,7 @@ Do this before the next broad visual polish pass.
 - [x] Admin and routing CSS/JS moved out of PHP shells into owned assets.
 - [x] Shared `manager-http-client.js` is used by Workspace/Admin/Routing where request/auth/error semantics match.
 - [x] Inventory remaining Manager endpoint families not using the canonical HTTP/auth/error boundary; all current top-level Manager PHP interfaces now enter through `ManagerHttp`, and authenticated write paths use its CSRF guard.
-- [ ] Centralize conversation visibility/ownership authorization behavior shared by Manager and Sales Pipeline APIs.
+- [x] Centralize conversation visibility/ownership authorization behavior shared by Manager and Sales Pipeline APIs behind `ManagerConversationAccessPolicy`.
 - [ ] Keep `workspace-v2.js` feature-neutral; do not turn shared core into another frontend monolith.
 - [ ] Review duplicate client-side request/error wrappers and remove only caller-proven duplicates.
 
