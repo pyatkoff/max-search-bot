@@ -115,6 +115,39 @@ class InteractionGuard
     }
 
     /**
+     * Serialize an exact-duplicate callback, persist its marker before the
+     * business side effect, and keep suppression diagnostics inside the guard.
+     */
+    public static function runDuplicateCallback(
+        int $chatId,
+        string $payload,
+        string $scope,
+        float $windowSeconds,
+        callable $callback,
+        ?callable $onDuplicate = null
+    ): bool {
+        return self::synchronized($chatId, $scope, function ($fp) use ($chatId, $payload, $scope, $windowSeconds, $callback, $onDuplicate): bool {
+            rewind($fp);
+            $state = json_decode((string)stream_get_contents($fp), true);
+            $previousPayload = is_array($state) ? (string)($state['payload'] ?? '') : '';
+            $previousAt = is_array($state) ? (float)($state['at'] ?? 0.0) : 0.0;
+            $now = microtime(true);
+
+            if (self::isDuplicate($previousPayload, $previousAt, $payload, $now, $windowSeconds)) {
+                self::reportSuppressed($chatId, $payload, 'duplicate', null, null, $scope);
+                if ($onDuplicate !== null) $onDuplicate($previousPayload, $previousAt, $now);
+                return true;
+            }
+
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode(['payload'=>$payload, 'at'=>$now], JSON_UNESCAPED_SLASHES));
+            fflush($fp);
+            return (bool)$callback();
+        });
+    }
+
+    /**
      * Serialize an expected-status callback with both exact-duplicate and
      * different-payload replacement windows. The accepted marker is committed
      * only when the business callback explicitly invokes the supplied $accept
