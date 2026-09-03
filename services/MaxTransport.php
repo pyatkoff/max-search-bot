@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/LegacyActionClassifier.php';
+require_once __DIR__ . '/MaxTlsConfig.php';
 
 class MaxTransport
 {
@@ -9,9 +10,8 @@ class MaxTransport
     /**
      * Low-level MAX API request.
      *
-     * IMPORTANT: SSL verification is intentionally disabled here exactly as it
-     * was in MaxSearchBase. This is a compatibility move only; do not change
-     * this behavior until the certificate issue is handled separately.
+     * TLS verification is owned by MaxTlsConfig. Production preflight verifies
+     * both the API and dynamic upload host before this transport is deployed.
      */
     public static function request($baseUrl, $token, $httpMethod, $path, array $query = [], $body = null, $logFile = null)
     {
@@ -19,8 +19,7 @@ class MaxTransport
         $url = rtrim((string)$baseUrl, '/') . '/' . ltrim((string)$path, '/');
         if (!empty($query)) $url .= '?' . http_build_query($query);
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt_array($ch, MaxTlsConfig::curlOptions(false));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -114,7 +113,7 @@ class MaxTransport
     private static function multipartUpload(string $url, string $filePath, string $fileName, string $mimeType, $logFile = null)
     {
         $ch=curl_init($url);
-        curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,false);curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,false);curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+        curl_setopt_array($ch,MaxTlsConfig::curlOptions(false));curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
         curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,10);curl_setopt($ch,CURLOPT_TIMEOUT,300);curl_setopt($ch,CURLOPT_POST,true);
         curl_setopt($ch,CURLOPT_POSTFIELDS,['data'=>new CURLFile($filePath,$mimeType!==''?$mimeType:'application/octet-stream',$fileName)]);
         $response=curl_exec($ch);$errno=curl_errno($ch);$error=curl_error($ch);$httpCode=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);

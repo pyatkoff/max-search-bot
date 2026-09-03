@@ -6,6 +6,7 @@ if (PHP_SAPI !== 'cli') {
 
 require_once(__DIR__ . '/config.php');
 require_once __DIR__ . '/services/WebhookTargetConfig.php';
+require_once __DIR__ . '/services/MaxTlsConfig.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
@@ -27,10 +28,8 @@ function apiReq($method, $url, $token, $body = null) {
             'Authorization: ' . $token,
             'Content-Type: application/json',
         ],
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_TIMEOUT => 30,
-    ];
+    ] + MaxTlsConfig::curlOptions(false);
     if ($body !== null) {
         $opts[CURLOPT_POSTFIELDS] = json_encode($body, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     }
