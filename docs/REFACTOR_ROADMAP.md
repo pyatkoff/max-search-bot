@@ -61,8 +61,8 @@ Do this before the next broad visual polish pass.
 - [x] Shared `manager-http-client.js` is used by Workspace/Admin/Routing where request/auth/error semantics match.
 - [x] Inventory remaining Manager endpoint families not using the canonical HTTP/auth/error boundary; all current top-level Manager PHP interfaces now enter through `ManagerHttp`, and authenticated write paths use its CSRF guard.
 - [x] Centralize conversation visibility/ownership authorization behavior shared by Manager and Sales Pipeline APIs behind `ManagerConversationAccessPolicy`.
-- [ ] Keep `workspace-v2.js` feature-neutral; do not turn shared core into another frontend monolith.
-- [ ] Review duplicate client-side request/error wrappers and remove only caller-proven duplicates.
+- [x] Keep `workspace-v2.js` feature-neutral; required module-split and client-transport inventories reject feature endpoint ownership in the shared core.
+- [x] Review duplicate client-side request/error wrappers and remove only caller-proven duplicates; the current inventory keeps ordinary admin JSON transport shared while preserving distinct Workspace auth recovery, multipart media, timed push and service-worker lifecycle semantics.
 
 ## Phase D — Dialogue canonical ownership
 

@@ -73,7 +73,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Dead duplicate parser/state branches superseded by canonical services.
 - Legacy manager UI branches after Workspace V2 feature parity and production proof.
 - Ad-hoc Manager session/auth/CSRF/JSON/error helpers duplicated by `ManagerHttp` after all callers have migrated and regressions cover the boundary.
-- Duplicate browser HTTP/auth/error wrappers after caller search proves `manager-http-client.js` covers their semantics.
+- Duplicate browser HTTP/auth/error wrappers after caller search proves `manager-http-client.js` covers their semantics. The current caller inventory found no further safe merge: Workspace auth recovery, multipart media, timed push recovery, standalone setup and service-worker lifecycle have materially different contracts and are guarded as explicit owners.
 - Runtime schema-creation/alteration code after equivalent forward migrations exist.
 - Bespoke regression runners when their scenario is represented by the reusable scenario engine without losing coverage.
 - Direct local Bitrix lead insertion from the standalone host after bridge cutover is production-proven; keep the legacy receiver only as long as the compatibility phase requires it.
