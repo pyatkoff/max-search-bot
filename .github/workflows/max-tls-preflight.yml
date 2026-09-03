@@ -55,7 +55,7 @@ jobs:
           [[ "$matched" == "1" ]] || { echo "Exact production SHA was not deployed" >&2; exit 1; }
 
           result="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
-            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/max_tls_preflight.php')"
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/max_tls_preflight.php --include-upload-host')"
           printf '%s\n' "$result"
           printf '%s\n' "$result" | jq -e '
             .ok == true
@@ -64,4 +64,8 @@ jobs:
             and .ssl_verify_result == 0
             and (.http_status >= 200 and .http_status < 300)
             and .api_json_valid == true
+            and .upload_host.checked == true
+            and .upload_host.ok == true
+            and .upload_host.curl_errno == 0
+            and .upload_host.ssl_verify_result == 0
           ' >/dev/null

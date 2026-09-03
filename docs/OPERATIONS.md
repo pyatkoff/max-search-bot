@@ -33,7 +33,7 @@ Do not treat a diagnostics-download failure as a successful deployment.
 
 ## MAX TLS rollout gate
 
-`tools/max_tls_preflight.php` is the read-only production gate for MAX certificate verification. It performs only `GET /subscriptions`, forces peer and hostname verification even when the legacy compatibility flag is set, and reports no token or subscription URLs.
+`tools/max_tls_preflight.php` is the non-customer-facing production gate for MAX certificate verification. It performs `GET /subscriptions`, optionally reserves an upload URL and probes that host with a bodyless request, forces peer and hostname verification even when the legacy compatibility flag is set, and reports no token, subscription URL or upload URL. The upload probe does not transfer a file or send a message.
 
 The `Verify production MAX TLS` workflow must be green on the exact production SHA before any customer-facing MAX transport switches from the legacy compatibility mode to verified TLS. A failed preflight is evidence to keep the current transport unchanged and repair the CA trust path first.
 
