@@ -30,6 +30,7 @@ class IncomingUpdateDispatcher
 
         ConversationRecorder::inbound($incoming);
         ConversationAttributionService::syncByChat($platform,$chatId);
+        MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);
         if (SourceHandlingService::handle($incoming)) {
             DiagnosticLogger::log('incoming_dispatch','source_handling',['platform'=>$platform,'type'=>$type],$chatId);
             return true;
