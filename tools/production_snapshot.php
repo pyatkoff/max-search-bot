@@ -7,6 +7,7 @@ require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/LeadTaskService.php';
+require_once $baseDir.'/services/CallbackGeneration.php';
 require_once $baseDir.'/services/ManagerResponseHealth.php';
 require_once $baseDir.'/services/ManagerPushHealth.php';
 require_once $baseDir.'/services/HandoffIntegrityHealth.php';
@@ -77,6 +78,17 @@ function managerLeadDetailHealth(PDO $pdo):array{
     $ok=!$missing;foreach($probes as$probe)if(!$probe['ok'])$ok=false;
     return['ok'=>$ok,'sample_size'=>count($ids),'schema'=>['ok'=>!$missing,'missing'=>$missing],'components'=>$probes];
 }
+function recentTelegramManagerCallback(PDO $pdo,string $structuredPath):array{
+    $q=$pdo->query("SELECT m.conversation_id,m.text,m.created_at,c.external_chat_id,c.status,(SELECT COUNT(*) FROM messages o WHERE o.conversation_id=m.conversation_id AND o.direction='outbound' AND o.sender_type='ai' AND o.created_at>=m.created_at) AS ai_outbound_after,(SELECT COUNT(*) FROM conversation_events e WHERE e.conversation_id=m.conversation_id AND e.event_type='waiting_manager' AND e.created_at>=m.created_at) AS waiting_events_after FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE m.channel='telegram' AND m.direction='inbound' AND m.metadata_json LIKE '%\"type\":\"callback\"%' AND m.text LIKE '%manager_request%' ORDER BY m.id DESC LIMIT 1");
+    $row=$q->fetch();if(!$row)return['found'=>false];
+    $callbackAt=(string)$row['created_at'];$chatId=(string)$row['external_chat_id'];$events=[];
+    foreach(recentStructuredComponentEvents($structuredPath,'interaction_guard',100) as$event){if((string)($event['chat_id']??'')!==$chatId)continue;if(strtotime((string)($event['ts']??''))<strtotime($callbackAt.' UTC')-5)continue;$data=(array)($event['data']??[]);$events[]=['ts'=>$event['ts']??null,'component'=>'interaction_guard','event'=>$event['event']??null,'level'=>$event['level']??null,'data'=>array_intersect_key($data,array_flip(['reason','scope','payload','current_status','expected_status','generation','current_generation']))];}
+    foreach(recentStructuredComponentEvents($structuredPath,'telegram_transport',100) as$event){if((string)($event['chat_id']??'')!==$chatId)continue;if(strtotime((string)($event['ts']??''))<strtotime($callbackAt.' UTC')-5)continue;$data=(array)($event['data']??[]);$events[]=['ts'=>$event['ts']??null,'component'=>'telegram_transport','event'=>$event['event']??null,'level'=>$event['level']??null,'data'=>array_intersect_key($data,array_flip(['method','http','ok','curl_errno','description']))];}
+    foreach(recentStructuredComponentEvents($structuredPath,'incoming_dispatch',100) as$event){if((string)($event['chat_id']??'')!==$chatId)continue;if(strtotime((string)($event['ts']??''))<strtotime($callbackAt.' UTC')-5)continue;$data=(array)($event['data']??[]);$events[]=['ts'=>$event['ts']??null,'component'=>'incoming_dispatch','event'=>$event['event']??null,'level'=>$event['level']??null,'data'=>array_intersect_key($data,array_flip(['platform','type','status']))];}
+    foreach(recentStructuredComponentEvents($structuredPath,'telegram_webhook',100) as$event){$eventName=(string)($event['event']??'');if((string)($event['chat_id']??'')!==$chatId&&$eventName!=='fatal')continue;if(strtotime((string)($event['ts']??''))<strtotime($callbackAt.' UTC')-5)continue;$data=(array)($event['data']??[]);$safe=array_intersect_key($data,array_flip(['update_id','type','source_key','error','file','line']));if(isset($safe['error']))$safe['error']=compactText((string)$safe['error'],500);$events[]=['ts'=>$event['ts']??null,'component'=>'telegram_webhook','event'=>$eventName,'level'=>$event['level']??null,'data'=>$safe];}
+    usort($events,static fn(array$a,array$b)=>strcmp((string)($a['ts']??''),(string)($b['ts']??'')));
+    return['found'=>true,'conversation_id'=>(int)$row['conversation_id'],'callback_at'=>$callbackAt,'payload'=>CallbackGeneration::base((string)$row['text']),'conversation_status'=>(string)$row['status'],'ai_outbound_after'=>(int)$row['ai_outbound_after'],'waiting_events_after'=>(int)$row['waiting_events_after'],'events'=>array_slice($events,-20)];
+}
 
 try{
     $pdo=ConversationDb::connection();
@@ -97,6 +109,7 @@ try{
         'manager_response_health'=>[],
         'manager_push_health'=>[],
         'manager_lead_detail_health'=>[],
+        'recent_telegram_manager_callback'=>[],
         'handoff_integrity_health'=>[],
         'admin_project_access_health'=>['ok'=>false,'error'=>'schema_missing'],
         'health'=>[
@@ -201,6 +214,10 @@ try{
         $managerLeadDetail=managerLeadDetailHealth($pdo);
         $snapshot['manager_lead_detail_health']=$managerLeadDetail;
         $snapshot['health']['manager_lead_detail_ok']=$managerLeadDetail['ok'];
+    }
+
+    if(tableExists($pdo,'conversations')&&tableExists($pdo,'messages')&&tableExists($pdo,'conversation_events')){
+        $snapshot['recent_telegram_manager_callback']=recentTelegramManagerCallback($pdo,$baseDir.'/structured_events.log');
     }
 
     if(tableExists($pdo,'messages')){
