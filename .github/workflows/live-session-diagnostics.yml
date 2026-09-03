@@ -113,10 +113,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          git rm -f --ignore-unmatch live_sessions.json daily_sessions.json live_anomalies.json
+          find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
+          rm -f migration.log
           cp "$live_out" public_live_status.json
           cp "$daily_out" public_daily_status.json
-          git add -A live_sessions.json daily_sessions.json live_anomalies.json public_live_status.json public_daily_status.json
+          git add -A
           git commit -m "Update live session diagnostics" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi

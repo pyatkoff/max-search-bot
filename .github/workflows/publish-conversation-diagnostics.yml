@@ -97,12 +97,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          git rm -f --ignore-unmatch production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log live_sessions.json daily_sessions.json live_anomalies.json
-          git rm -f --ignore-unmatch 'diag-*.json'
+          find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
+          rm -f migration.log
           cp "$out_dir/architecture_inventory.json" .
           cp "$out_dir/ops_status.json" .
           cp "$out_dir/autopilot_snapshot.json" .
-          git add -A architecture_inventory.json ops_status.json autopilot_snapshot.json
+          git add -A
           git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
