@@ -1,20 +1,20 @@
 {
     "ok": true,
-    "generated_at": "2026-09-02T22:25:49+00:00",
+    "generated_at": "2026-09-03T00:22:26+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 2,
-        "raw_sessions": 2,
+        "sessions": 1,
+        "raw_sessions": 1,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 2,
+            "resolved": 1,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 2,
+        "started": 1,
         "needs_collected": 1,
         "tours_opened": 1,
         "site_opened": 0,
@@ -23,7 +23,7 @@
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
-        "flagged_sessions": 1,
+        "flagged_sessions": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -33,54 +33,13 @@
             "max_seconds": null
         },
         "drop_points": {
-            "collecting_needs": 1,
             "tours_opened": 1
         },
-        "flags": {
-            "repeated_callback_input": 1,
-            "excessive_turns": 1
-        }
+        "flags": []
     },
     "sessions": [
         {
-            "conversation_id": 776,
-            "project_key": "anytour",
-            "source_id": 1,
-            "source_resolved": true,
-            "channel": "max",
-            "status": "ai",
-            "is_test": false,
-            "test_source": "",
-            "test_reason": "",
-            "started": true,
-            "needs_collected": false,
-            "tours_opened": false,
-            "site_opened": false,
-            "site_opened_at": null,
-            "post_tour_manager_cta_shown": false,
-            "post_tour_manager_cta_at": null,
-            "manager_requested": false,
-            "manager_request_active": false,
-            "manager_replied": false,
-            "customer_replied_after_manager": false,
-            "manager_request_at": null,
-            "manager_first_reply_at": null,
-            "customer_first_reply_after_manager_at": null,
-            "manager_response_seconds": null,
-            "customer_reply_after_manager_seconds": null,
-            "manager_response_bucket": null,
-            "phone_received": false,
-            "inbound_messages": 6,
-            "outbound_messages": 6,
-            "date_picks": 0,
-            "anomaly_inbound_messages": 6,
-            "drop_point": "collecting_needs",
-            "flags": [],
-            "started_at": "2026-09-02 21:28:48",
-            "last_message_at": "2026-09-02 21:30:02"
-        },
-        {
-            "conversation_id": 777,
+            "conversation_id": 778,
             "project_key": "anytour",
             "source_id": 1,
             "source_resolved": true,
@@ -107,164 +66,15 @@
             "customer_reply_after_manager_seconds": null,
             "manager_response_bucket": null,
             "phone_received": false,
-            "inbound_messages": 20,
-            "outbound_messages": 23,
+            "inbound_messages": 8,
+            "outbound_messages": 9,
             "date_picks": 0,
-            "anomaly_inbound_messages": 20,
+            "anomaly_inbound_messages": 2,
             "drop_point": "tours_opened",
-            "flags": [
-                "repeated_callback_input",
-                "excessive_turns"
-            ],
-            "started_at": "2026-09-02 21:31:05",
-            "last_message_at": "2026-09-02 21:57:53",
-            "message_tail": [
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-                    "created_at": "2026-09-02 21:33:35"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-                    "created_at": "2026-09-02 21:33:39"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 21:42:51"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-09-02 21:42:51"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "back_check",
-                    "created_at": "2026-09-02 21:43:01"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр. + 2 реб. (11, 10 лет) 🏨 5★ 🍽 Полный Пансион 🌙 7-9 ночей 📅 Вылет 01.10.2026 · ищем 28.09–04.10.2026 Что удобнее дальше?",
-                    "created_at": "2026-09-02 21:43:01"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 21:43:06"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-                    "created_at": "2026-09-02 21:43:06"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-                    "created_at": "2026-09-02 21:43:09"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 21:57:20"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-09-02 21:57:20"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_stars",
-                    "created_at": "2026-09-02 21:57:23"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🏨 <b>Какой уровень отеля рассматриваете?</b> Шаг 4 из 7 · Укажите минимальную категорию.",
-                    "created_at": "2026-09-02 21:57:24"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "star_5",
-                    "created_at": "2026-09-02 21:57:26"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр. + 2 реб. (11, 10 лет) 🏨 5★ 🍽 Полный Пансион 🌙 7-9 ночей 📅 Вылет 01.10.2026 · ищем 28.09–04.10.2026 Что удобнее дальше?",
-                    "created_at": "2026-09-02 21:57:26"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_params",
-                    "created_at": "2026-09-02 21:57:38"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✏️ <b>Что хотите изменить?</b> Не нужно начинать подбор заново — выберите только нужный параметр.",
-                    "created_at": "2026-09-02 21:57:38"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "edit_meal",
-                    "created_at": "2026-09-02 21:57:44"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🍽 <b>Какое питание предпочитаете?</b> Шаг 5 из 7",
-                    "created_at": "2026-09-02 21:57:44"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "meal_5",
-                    "created_at": "2026-09-02 21:57:47"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Россия 👥 2 взр. + 2 реб. (11, 10 лет) 🏨 5★ 🍽 Полный Пансион 🌙 7-9 ночей 📅 Вылет 01.10.2026 · ищем 28.09–04.10.2026 Что удобнее дальше?",
-                    "created_at": "2026-09-02 21:57:47"
-                },
-                {
-                    "direction": "inbound",
-                    "sender_type": "customer",
-                    "text": "show_tours",
-                    "created_at": "2026-09-02 21:57:50"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
-                    "created_at": "2026-09-02 21:57:50"
-                },
-                {
-                    "direction": "outbound",
-                    "sender_type": "ai",
-                    "text": "А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥",
-                    "created_at": "2026-09-02 21:57:53"
-                }
-            ]
+            "flags": [],
+            "started_at": "2026-09-02 23:20:23",
+            "last_message_at": "2026-09-02 23:23:14"
         }
     ],
-    "since_utc": "2026-09-02 21:25:49"
+    "since_utc": "2026-09-02 23:22:26"
 }
