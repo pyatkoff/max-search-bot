@@ -19,6 +19,11 @@ class InteractionGuard
         return $dir . '/' . hash('sha256', (string)$chatId) . '.' . preg_replace('/[^a-z0-9_.-]+/i', '_', $scope) . '.lock';
     }
 
+    /**
+     * Execute a callback under a per-chat/per-scope exclusive lock.
+     * Failure to acquire the lock is treated as a consumed interaction so a
+     * concurrent delivery cannot fall through into duplicate behavior.
+     */
     public static function synchronized(
         int $chatId,
         string $scope,
@@ -47,6 +52,12 @@ class InteractionGuard
         }
     }
 
+    /**
+     * Serialize a callback and require one exact dialogue status before handing
+     * control to the business action. Stale/concurrent decisions and structured
+     * diagnostics stay owned by the shared guard; optional onStale keeps legacy
+     * operational text logs outside the safety policy itself.
+     */
     public static function runExpectedStatusCallback(
         int $chatId,
         string $payload,
@@ -192,6 +203,15 @@ class InteractionGuard
         }
     }
 
+    /**
+     * Run a versioned callback exactly once for the currently rendered surface.
+     *
+     * The generation claim is persisted before the business callback executes,
+     * under the same per-chat lock. A concurrent or late retry therefore sees
+     * `used:<generation>` and is consumed as obsolete instead of repeating side
+     * effects. If a handler rejects the action before changing dialogue state,
+     * the claim is restored so the user can retry.
+     */
     public static function runGeneratedCallback(
         int $chatId,
         string $rawPayload,
@@ -251,6 +271,9 @@ class InteractionGuard
         try {
             return DialogueStateMachine::stateForStatus($status);
         } catch (Throwable $ignored) {
+            // Diagnostics must never be able to break callback handling. Numeric
+            // status evidence remains authoritative when state-name enrichment
+            // is unavailable in a partial runtime/test fixture.
             return null;
         }
     }

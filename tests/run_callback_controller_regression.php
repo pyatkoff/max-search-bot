@@ -88,24 +88,34 @@ ccCheck('wizard loads shared interaction guard', strpos($wizardSource, 'Interact
 ccCheck('edit loads shared interaction guard', strpos($editSource, 'InteractionGuard.php') !== false, true);
 ccCheck('shared guard owns interaction lock directory', strpos($guardSource, 'max-search-interaction-locks') !== false, true);
 $dateStart=strpos($wizardSource,'private static function handleDateSelection');
-$dateEnd=strpos($wizardSource,'public static function isDuplicateMonthChange',$dateStart===false?0:$dateStart);
+$dateEnd=strpos($wizardSource,'public static function expectedStatusForForwardCallback',$dateStart===false?0:$dateStart);
 $dateSource=$dateStart!==false&&$dateEnd!==false?substr($wizardSource,$dateStart,$dateEnd-$dateStart):'';
 ccCheck('date callback delegates serialization and expected-status safety to shared guard',strpos($dateSource,'InteractionGuard::runExpectedStatusCallback(')!==false,true);
 ccCheck('date callback no longer owns fopen or flock',strpos($dateSource,'fopen(')===false&&strpos($dateSource,'flock(')===false,true);
 ccCheck('stale date callback expected-status policy lives in shared guard',strpos($guardSource,'function runExpectedStatusCallback(')!==false&&strpos($guardSource,"'stale_state'")!==false&&strpos($guardSource,'MaxSearchApi::getCurentStatus($chatId)')!==false&&strpos($dateSource,'$statusDate')!==false,true);
 ccCheck('date stale legacy text log remains for operational continuity',strpos($dateSource,'STALE_DATE_CALLBACK_SKIPPED')!==false,true);
 ccCheck('date callback routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'pick_date_') === 0) return self::handleDateSelection") !== false, true);
+$monthStart=strpos($wizardSource,'private static function handleMonthChange');
+$monthEnd=strpos($wizardSource,'public static function handle(',$monthStart===false?0:$monthStart);
+$monthSource=$monthStart!==false&&$monthEnd!==false?substr($wizardSource,$monthStart,$monthEnd-$monthStart):'';
 ccCheck('month change routes through guarded handler', strpos($wizardSource, "strpos(\$q, 'month_change_') === 0) return self::handleMonthChange") !== false, true);
+ccCheck('month callback delegates serialization status and replacement safety to shared guard',strpos($monthSource,'InteractionGuard::runExpectedStatusReplacementCallback(')!==false,true);
+ccCheck('month callback no longer owns fopen flock or timestamp state',strpos($monthSource,'fopen(')===false&&strpos($monthSource,'flock(')===false&&strpos($monthSource,'microtime(')===false,true);
+ccCheck('month callback preserves exact duplicate and rapid replacement windows',preg_match('/10\\.0\\s*,\\s*0\\.75\\s*,/s',$monthSource)===1,true);
+$monthValidBranch=strpos($monthSource,"if (count(\$arr) >= 2 && \$arr[0] !== '' && \$arr[1] !== '')");
+$monthAccept=strpos($monthSource,'$accept();');
+$monthCalendar=strpos($monthSource,'DialogueView::calendar(');
+ccCheck('month callback accepts marker only inside valid month payload branch',$monthValidBranch!==false&&$monthAccept!==false&&$monthCalendar!==false&&$monthValidBranch<$monthAccept&&$monthAccept<$monthCalendar,true);
 ccCheck('stale month change requires active date step', strpos($wizardSource, 'STALE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('duplicate month change is explicitly suppressed', strpos($wizardSource, 'DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
 ccCheck('rapid different month replacement is explicitly suppressed', strpos($wizardSource, 'RAPID_MONTH_CHANGE_CALLBACK_SKIPPED') !== false, true);
-ccCheck('same month callback inside extended live debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 104.0), true);
-ccCheck('same month callback near end of debounce window is duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 109.9), true);
-ccCheck('same month callback after debounce window is allowed', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_09.2026', 110.1), false);
-ccCheck('different month remains non-duplicate', WizardCallbackAction::isDuplicateMonthChange('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1), false);
-ccCheck('live-style stale keyboard month replacement burst is suppressed', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_10.2026', 100.2), true);
-ccCheck('same payload stays owned by duplicate guard, not rapid replacement', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_08.2026', 100.2), false);
-ccCheck('different month after rendered-keyboard grace window is allowed', WizardCallbackAction::isRapidDifferentMonthChange('month_change_08.2026', 100.0, 'month_change_09.2026', 100.8), false);
+ccCheck('same month callback inside extended live debounce window is duplicate', InteractionGuard::isDuplicate('month_change_09.2026', 100.0, 'month_change_09.2026', 104.0, 10.0), true);
+ccCheck('same month callback near end of debounce window is duplicate', InteractionGuard::isDuplicate('month_change_09.2026', 100.0, 'month_change_09.2026', 109.9, 10.0), true);
+ccCheck('same month callback after debounce window is allowed', InteractionGuard::isDuplicate('month_change_09.2026', 100.0, 'month_change_09.2026', 110.1, 10.0), false);
+ccCheck('different month remains non-duplicate', InteractionGuard::isDuplicate('month_change_09.2026', 100.0, 'month_change_10.2026', 100.1, 10.0), false);
+ccCheck('live-style stale keyboard month replacement burst is suppressed', InteractionGuard::isRapidReplacement('month_change_08.2026', 100.0, 'month_change_10.2026', 100.2, 0.75), true);
+ccCheck('same payload stays owned by duplicate guard, not rapid replacement', InteractionGuard::isRapidReplacement('month_change_08.2026', 100.0, 'month_change_08.2026', 100.2, 0.75), false);
+ccCheck('different month after rendered-keyboard grace window is allowed', InteractionGuard::isRapidReplacement('month_change_08.2026', 100.0, 'month_change_09.2026', 100.8, 0.75), false);
 
 ccCheck('city choice is valid only on city step', WizardCallbackAction::expectedStatusForForwardCallback('pick_city_1'), (int)MaxSearchApi::$statusCityChoose);
 ccCheck('country choice is valid only on country step', WizardCallbackAction::expectedStatusForForwardCallback('pick_country_4'), (int)MaxSearchApi::$statusContryChoose);
@@ -158,6 +168,74 @@ try{
     MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusDate;
     @unlink($expectedStatusDiagnosticFile);
     @unlink($expectedStatusLock);
+    DiagnosticLogger::setFile('');
+}
+
+$replacementDiagnosticFile=sys_get_temp_dir().'/max-search-replacement-'.bin2hex(random_bytes(4)).'.log';
+DiagnosticLogger::setFile($replacementDiagnosticFile);
+$replacementChat=random_int(1000000,9999999);
+$replacementScope='month_change_regression';
+$replacementLock=InteractionGuard::lockPath($replacementChat,$replacementScope);
+$replacementCalls=0;
+try{
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusDate;
+    $invalid=InteractionGuard::runExpectedStatusReplacementCallback(
+        $replacementChat,'month_change_invalid',$replacementScope,(int)MaxSearchApi::$statusDate,10.0,0.75,
+        function(callable $accept)use(&$replacementCalls):bool{$replacementCalls++;return true;}
+    );
+    ccCheck('replacement guard consumes business-rejected payload',$invalid,true);
+    ccCheck('replacement guard invokes business validation',$replacementCalls,1);
+    $invalidState=is_file($replacementLock)?json_decode((string)file_get_contents($replacementLock),true):null;
+    ccCheck('business-rejected payload does not commit accepted marker',$invalidState,null);
+
+    $accepted=InteractionGuard::runExpectedStatusReplacementCallback(
+        $replacementChat,'month_change_invalid',$replacementScope,(int)MaxSearchApi::$statusDate,10.0,0.75,
+        function(callable $accept)use(&$replacementCalls):bool{$replacementCalls++;$accept();return true;}
+    );
+    ccCheck('replacement guard accepts validated payload',$accepted,true);
+    ccCheck('unmarked rejected payload remains retryable',$replacementCalls,2);
+    $acceptedState=is_file($replacementLock)?json_decode((string)file_get_contents($replacementLock),true):null;
+    ccCheck('business-accepted payload commits marker',$acceptedState['payload']??null,'month_change_invalid');
+    ccCheck('business-accepted marker records timestamp',isset($acceptedState['at'])&&is_numeric($acceptedState['at']),true);
+
+    $duplicate=InteractionGuard::runExpectedStatusReplacementCallback(
+        $replacementChat,'month_change_invalid',$replacementScope,(int)MaxSearchApi::$statusDate,10.0,0.75,
+        function(callable $accept)use(&$replacementCalls):bool{$replacementCalls++;$accept();return true;}
+    );
+    ccCheck('replacement guard consumes exact duplicate',$duplicate,true);
+    ccCheck('exact duplicate does not reach business callback',$replacementCalls,2);
+    $lines=is_file($replacementDiagnosticFile)?file($replacementDiagnosticFile,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[];
+    $last=$lines?json_decode((string)end($lines),true):null;
+    ccCheck('replacement duplicate diagnostic reason',$last['data']['reason']??null,'duplicate');
+    ccCheck('replacement duplicate diagnostic scope',$last['data']['scope']??null,$replacementScope);
+
+    $rapid=InteractionGuard::runExpectedStatusReplacementCallback(
+        $replacementChat,'month_change_10.2026',$replacementScope,(int)MaxSearchApi::$statusDate,10.0,0.75,
+        function(callable $accept)use(&$replacementCalls):bool{$replacementCalls++;$accept();return true;}
+    );
+    ccCheck('replacement guard consumes rapid different payload',$rapid,true);
+    ccCheck('rapid replacement does not reach business callback',$replacementCalls,2);
+    $lines=is_file($replacementDiagnosticFile)?file($replacementDiagnosticFile,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[];
+    $last=$lines?json_decode((string)end($lines),true):null;
+    ccCheck('rapid replacement diagnostic reason',$last['data']['reason']??null,'rapid_replacement');
+    ccCheck('rapid replacement diagnostic previous payload',$last['data']['previous_payload']??null,'month_change_invalid');
+
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusCheck;
+    $stale=InteractionGuard::runExpectedStatusReplacementCallback(
+        $replacementChat,'month_change_11.2026',$replacementScope,(int)MaxSearchApi::$statusDate,10.0,0.75,
+        function(callable $accept)use(&$replacementCalls):bool{$replacementCalls++;$accept();return true;}
+    );
+    ccCheck('replacement guard consumes stale callback',$stale,true);
+    ccCheck('stale replacement does not reach business callback',$replacementCalls,2);
+    $lines=is_file($replacementDiagnosticFile)?file($replacementDiagnosticFile,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[];
+    $last=$lines?json_decode((string)end($lines),true):null;
+    ccCheck('replacement stale diagnostic reason',$last['data']['reason']??null,'stale_state');
+    ccCheck('replacement stale diagnostic current status',$last['data']['current_status']??null,(int)MaxSearchApi::$statusCheck);
+    ccCheck('replacement stale diagnostic expected status',$last['data']['expected_status']??null,(int)MaxSearchApi::$statusDate);
+}finally{
+    MaxSearchApi::$currentStatus=(int)MaxSearchApi::$statusDate;
+    @unlink($replacementDiagnosticFile);
+    @unlink($replacementLock);
     DiagnosticLogger::setFile('');
 }
 

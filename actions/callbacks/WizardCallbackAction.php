@@ -20,11 +20,6 @@ class WizardCallbackAction
             || (strpos($q, 'back_') === 0 && $q !== 'back_phone');
     }
 
-    private static function callbackLockPath(int $chatId, string $suffix = ''): string
-    {
-        return InteractionGuard::lockPath($chatId, 'date' . ($suffix === '' ? '' : $suffix));
-    }
-
     private static function handleDateSelection(int $chatId, string $q): bool
     {
         return InteractionGuard::runExpectedStatusCallback(
@@ -44,18 +39,6 @@ class WizardCallbackAction
         );
     }
 
-    public static function isDuplicateMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 10.0): bool
-    {
-        return InteractionGuard::isDuplicate($previousPayload, $previousAt, $payload, $now, $windowSeconds);
-    }
-
-    public static function isRapidDifferentMonthChange(string $previousPayload, float $previousAt, string $payload, float $now, float $windowSeconds = 0.75): bool
-    {
-        return $previousPayload !== ''
-            && $previousPayload !== $payload
-            && InteractionGuard::isRecent($previousAt, $now, $windowSeconds);
-    }
-
     public static function expectedStatusForForwardCallback(string $q): ?int
     {
         return InteractionGuard::expectedWizardStatus($q);
@@ -68,51 +51,33 @@ class WizardCallbackAction
 
     private static function handleMonthChange(int $chatId, string $q): bool
     {
-        $fp = @fopen(self::callbackLockPath($chatId, '.month'), 'c+');
-        if (!$fp || !flock($fp, LOCK_EX)) {
-            if ($fp) fclose($fp);
-            InteractionGuard::reportSuppressed($chatId, $q, 'concurrent', null, (int)MaxSearchApi::$statusDate, 'month_change');
-            return true;
-        }
-
-        try {
-            $currentStatus = (int)MaxSearchApi::getCurentStatus($chatId);
-            if ($currentStatus !== (int)MaxSearchApi::$statusDate) {
-                InteractionGuard::reportSuppressed($chatId, $q, 'stale_state', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
-                if (function_exists('put_log_in')) put_log_in('STALE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
+        return InteractionGuard::runExpectedStatusReplacementCallback(
+            $chatId,
+            $q,
+            'month_change',
+            (int)MaxSearchApi::$statusDate,
+            10.0,
+            0.75,
+            static function (callable $accept) use ($chatId, $q): bool {
+                $monthYear = str_replace('month_change_', '', $q);
+                $arr = explode('.', $monthYear);
+                if (count($arr) >= 2 && $arr[0] !== '' && $arr[1] !== '') {
+                    $accept();
+                    DialogueView::calendar($chatId, $arr[0], $arr[1]);
+                }
                 return true;
+            },
+            static function (string $reason, string $previousPayload, int $currentStatus, int $expectedStatus) use ($chatId, $q): void {
+                if (!function_exists('put_log_in')) return;
+                if ($reason === 'stale_state') {
+                    put_log_in('STALE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q . ' status=' . $currentStatus);
+                } elseif ($reason === 'duplicate') {
+                    put_log_in('DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q);
+                } elseif ($reason === 'rapid_replacement') {
+                    put_log_in('RAPID_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' previous=' . $previousPayload . ' payload=' . $q);
+                }
             }
-
-            rewind($fp);
-            $state = json_decode((string)stream_get_contents($fp), true);
-            $previousPayload = is_array($state) ? (string)($state['payload'] ?? '') : '';
-            $previousAt = is_array($state) ? (float)($state['at'] ?? 0) : 0.0;
-            $now = microtime(true);
-            if (self::isDuplicateMonthChange($previousPayload, $previousAt, $q, $now)) {
-                InteractionGuard::reportSuppressed($chatId, $q, 'duplicate', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
-                if (function_exists('put_log_in')) put_log_in('DUPLICATE_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' payload=' . $q);
-                return true;
-            }
-            if (self::isRapidDifferentMonthChange($previousPayload, $previousAt, $q, $now)) {
-                InteractionGuard::reportSuppressed($chatId, $q, 'rapid_replacement', $currentStatus, (int)MaxSearchApi::$statusDate, 'month_change');
-                if (function_exists('put_log_in')) put_log_in('RAPID_MONTH_CHANGE_CALLBACK_SKIPPED chat=' . $chatId . ' previous=' . $previousPayload . ' payload=' . $q);
-                return true;
-            }
-
-            $monthYear = str_replace('month_change_', '', $q);
-            $arr = explode('.', $monthYear);
-            if (count($arr) >= 2 && $arr[0] !== '' && $arr[1] !== '') {
-                ftruncate($fp, 0);
-                rewind($fp);
-                fwrite($fp, json_encode(['payload'=>$q, 'at'=>$now], JSON_UNESCAPED_SLASHES));
-                fflush($fp);
-                DialogueView::calendar($chatId, $arr[0], $arr[1]);
-            }
-            return true;
-        } finally {
-            flock($fp, LOCK_UN);
-            fclose($fp);
-        }
+        );
     }
 
     public static function handle(int $chatId, string $q): bool
