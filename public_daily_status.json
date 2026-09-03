@@ -1,25 +1,25 @@
 {
     "ok": true,
-    "generated_at": "2026-09-03T12:15:27+00:00",
+    "generated_at": "2026-09-03T12:21:35+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 38,
-        "raw_sessions": 38,
+        "sessions": 41,
+        "raw_sessions": 41,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 38,
+            "resolved": 41,
             "unresolved": 0
         },
-        "started": 38,
-        "needs_collected": 31,
-        "tours_opened": 30,
+        "started": 41,
+        "needs_collected": 32,
+        "tours_opened": 31,
         "site_opened": 5,
         "post_tour_manager_cta_shown": 4,
-        "manager_requested": 12,
-        "manager_replied": 12,
+        "manager_requested": 13,
+        "manager_replied": 13,
         "customer_replied_after_manager": 3,
         "phone_received": 2,
         "manager_response": {
@@ -31,11 +31,11 @@
             "max_seconds": 49005
         },
         "drop_points": {
-            "tours_opened": 16,
-            "manager_replied": 9,
-            "collecting_needs": 7,
+            "tours_opened": 17,
+            "manager_replied": 10,
+            "collecting_needs": 9,
             "customer_replied_after_manager": 3,
-            "site_open": 3
+            "site_open": 2
         },
         "flags": {
             "repeated_callback_input": 9,
@@ -43,13 +43,13 @@
             "rapid_date_reselection": 1
         },
         "calendar_day": {
-            "conversations_started": 31,
+            "conversations_started": 33,
             "needs_collected_from_started": 24,
             "tours_opened_from_started": 24,
             "site_opened": 5,
             "post_tour_manager_cta_shown": 4,
             "manager_requested": 2,
-            "manager_replied": 11,
+            "manager_replied": 12,
             "customer_replied_after_manager": 2
         }
     },
