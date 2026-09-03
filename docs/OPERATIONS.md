@@ -61,6 +61,8 @@ Use this file as an index/triage surface. Detailed message-level evidence is gen
 
 Raw generated production diagnostics must not be committed to any public branch. The diagnostics branch may contain only outputs passed through `tools/sanitize_public_diagnostics.php` plus non-sensitive deployment/architecture status.
 
+Raw deploy diagnostics must also stay outside the production document root. `export_debug_logs.php` rejects an output directory inside the application tree; deploys use a mode-0700 directory under `/tmp`, download it over SSH, and remove it immediately afterward. Legacy `diag-*.json` files and the old `diagnostics/` webroot directory are deleted during smoke checks.
+
 Sensitive customer content should remain bounded and redacted; never expose secrets/config values in snapshots.
 
 ## Live conversation evidence
