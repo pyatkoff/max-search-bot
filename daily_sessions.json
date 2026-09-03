@@ -1,20 +1,20 @@
 {
     "ok": true,
-    "generated_at": "2026-09-03T09:41:23+00:00",
+    "generated_at": "2026-09-03T09:56:29+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 28,
-        "raw_sessions": 28,
+        "sessions": 29,
+        "raw_sessions": 29,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 28,
+            "resolved": 29,
             "unresolved": 0,
             "unresolved_conversation_ids": []
         },
-        "started": 28,
+        "started": 29,
         "needs_collected": 23,
         "tours_opened": 22,
         "site_opened": 0,
@@ -34,7 +34,7 @@
         },
         "drop_points": {
             "tours_opened": 21,
-            "collecting_needs": 5,
+            "collecting_needs": 6,
             "customer_replied_after_manager": 2
         },
         "flags": {
@@ -43,7 +43,7 @@
             "rapid_date_reselection": 1
         },
         "calendar_day": {
-            "conversations_started": 22,
+            "conversations_started": 23,
             "needs_collected_from_started": 17,
             "tours_opened_from_started": 17,
             "site_opened": 0,
@@ -2368,6 +2368,43 @@
                     "created_at": "2026-09-03 09:35:03"
                 }
             ]
+        },
+        {
+            "conversation_id": 801,
+            "project_key": "anytour",
+            "source_id": 1,
+            "source_resolved": true,
+            "channel": "max",
+            "status": "ai",
+            "is_test": false,
+            "test_source": "",
+            "test_reason": "",
+            "started": true,
+            "needs_collected": false,
+            "tours_opened": false,
+            "site_opened": false,
+            "site_opened_at": null,
+            "post_tour_manager_cta_shown": false,
+            "post_tour_manager_cta_at": null,
+            "manager_requested": false,
+            "manager_request_active": false,
+            "manager_replied": false,
+            "customer_replied_after_manager": false,
+            "manager_request_at": null,
+            "manager_first_reply_at": null,
+            "customer_first_reply_after_manager_at": null,
+            "manager_response_seconds": null,
+            "customer_reply_after_manager_seconds": null,
+            "manager_response_bucket": null,
+            "phone_received": false,
+            "inbound_messages": 1,
+            "outbound_messages": 1,
+            "date_picks": 0,
+            "anomaly_inbound_messages": 1,
+            "drop_point": "collecting_needs",
+            "flags": [],
+            "started_at": "2026-09-03 09:48:26",
+            "last_message_at": "2026-09-03 09:48:26"
         }
     ],
     "local_date": "2026-09-03",
