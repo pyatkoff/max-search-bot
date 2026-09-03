@@ -31,6 +31,12 @@ A successful deploy must include all of:
 
 Do not treat a diagnostics-download failure as a successful deployment.
 
+## MAX TLS rollout gate
+
+`tools/max_tls_preflight.php` is the read-only production gate for MAX certificate verification. It performs only `GET /subscriptions`, forces peer and hostname verification even when the legacy compatibility flag is set, and reports no token or subscription URLs.
+
+The `Verify production MAX TLS` workflow must be green on the exact production SHA before any customer-facing MAX transport switches from the legacy compatibility mode to verified TLS. A failed preflight is evidence to keep the current transport unchanged and repair the CA trust path first.
+
 ## Autopilot first read
 
 The public diagnostics branch publishes only redacted aggregate artifacts. `autopilot_snapshot.json` is the compact first-read artifact and combines, without transcript text or customer/operator identifiers:

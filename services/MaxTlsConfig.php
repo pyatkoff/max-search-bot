@@ -23,25 +23,36 @@ final class MaxTlsConfig
     /** @return array<int,mixed> */
     public static function curlOptions(bool $allowLegacyInsecure = false): array
     {
-        $bundle = self::caBundle();
-        if ($bundle !== '') {
-            return [
-                CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_SSL_VERIFYHOST => 2,
-                CURLOPT_CAINFO => $bundle,
-            ];
-        }
-
-        if ($allowLegacyInsecure || getenv('MAX_SEARCH_MAX_API_INSECURE_COMPAT') === '1') {
+        if (($allowLegacyInsecure || getenv('MAX_SEARCH_MAX_API_INSECURE_COMPAT') === '1') && self::caBundle() === '') {
             return [
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => 0,
             ];
         }
 
-        return [
+        return self::strictCurlOptions();
+    }
+
+    /**
+     * Verified TLS options for preflight and migrated transports.
+     *
+     * This deliberately ignores the legacy insecure compatibility flag so a
+     * green preflight proves that certificate verification really succeeded.
+     *
+     * @return array<int,mixed>
+     */
+    public static function strictCurlOptions(): array
+    {
+        $options = [
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_SSL_VERIFYHOST => 2,
         ];
+
+        $bundle = self::caBundle();
+        if ($bundle !== '') {
+            $options[CURLOPT_CAINFO] = $bundle;
+        }
+
+        return $options;
     }
 }
