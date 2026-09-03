@@ -153,6 +153,7 @@ return [
         'php tests/run_live_party_word_counts_regression.php',
         'php tests/run_live_date_window_summary_regression.php',
         'php tests/run_deploy_diagnostics_contract_regression.php',
+        'php tests/run_public_diagnostics_privacy_regression.php',
         'php tests/run_production_snapshot_encoding_regression.php',
         'php tests/run_live_session_analyzer_regression.php',
         'php tests/run_site_open_diagnostics_regression.php',

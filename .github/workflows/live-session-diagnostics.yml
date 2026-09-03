@@ -97,26 +97,26 @@ jobs:
           php -r '$j=json_decode(file_get_contents("daily_sessions.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["needs_collected_from_started"],$j["summary"]["calendar_day"]["tours_opened_from_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"daily_session_snapshot_not_ok\n");exit(1);}'
           php tools/compose_live_anomalies.php live_sessions.json > live_anomalies.json
           php -r '$j=json_decode(file_get_contents("live_anomalies.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"live_anomalies_not_ok\n");exit(1);}'
+          php tools/sanitize_public_diagnostics.php live_sessions.json > public_live_status.json
+          php tools/sanitize_public_diagnostics.php daily_sessions.json > public_daily_status.json
 
       - name: Publish diagnostics
         shell: bash
         run: |
           set -euo pipefail
-          sessions_out="$RUNNER_TEMP/live_sessions.json"
-          daily_out="$RUNNER_TEMP/daily_sessions.json"
-          anomalies_out="$RUNNER_TEMP/live_anomalies.json"
-          cp live_sessions.json "$sessions_out"
-          cp daily_sessions.json "$daily_out"
-          cp live_anomalies.json "$anomalies_out"
-          rm -f live_sessions.json daily_sessions.json live_anomalies.json
+          live_out="$RUNNER_TEMP/public_live_status.json"
+          daily_out="$RUNNER_TEMP/public_daily_status.json"
+          cp public_live_status.json "$live_out"
+          cp public_daily_status.json "$daily_out"
+          rm -f live_sessions.json daily_sessions.json live_anomalies.json public_live_status.json public_daily_status.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          cp "$sessions_out" live_sessions.json
-          cp "$daily_out" daily_sessions.json
-          cp "$anomalies_out" live_anomalies.json
-          git add live_sessions.json daily_sessions.json live_anomalies.json
+          git rm -f --ignore-unmatch live_sessions.json daily_sessions.json live_anomalies.json
+          cp "$live_out" public_live_status.json
+          cp "$daily_out" public_daily_status.json
+          git add -A live_sessions.json daily_sessions.json live_anomalies.json public_live_status.json public_daily_status.json
           git commit -m "Update live session diagnostics" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
