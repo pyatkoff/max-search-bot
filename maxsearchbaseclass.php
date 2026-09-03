@@ -901,6 +901,17 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	public static function getLatestYclid($chatID)
 	{
 		if($chatID=="") return "";
+		// The standalone runtime keeps attribution in the transport-neutral
+		// traffic store. Bitrix is intentionally absent there, so reaching the
+		// legacy HL lookup must fail open instead of aborting the user action
+		// (manager handoff and tour links both consume this optional value).
+		if(!class_exists('\\Bitrix\\Main\\Loader'))
+		{
+			try {
+				$meta=is_callable([static::class,'getTrafficMeta']) ? static::getTrafficMeta($chatID) : [];
+				return is_array($meta) ? trim((string)($meta['yclid'] ?? '')) : '';
+			} catch(\Throwable $e) { return ''; }
+		}
 		\Bitrix\Main\Loader::includeModule('highloadblock');
 		$hlblock = \Bitrix\Highloadblock\HighloadBlockTable::getById(static::$yclidHL)->fetch();
 		$entity  = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($hlblock);

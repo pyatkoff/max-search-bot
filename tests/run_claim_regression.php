@@ -5,6 +5,17 @@ declare(strict_types=1);
 require_once __DIR__ . '/../services/ClaimRepository.php';
 require_once __DIR__ . '/../services/ClaimCodeGenerator.php';
 require_once __DIR__ . '/../services/LeadPayloadService.php';
+require_once __DIR__ . '/../maxsearchbaseclass.php';
+
+class StandaloneYclidRegressionApi extends MaxSearchBase
+{
+    public static array $trafficMeta = [];
+
+    public static function getTrafficMeta($chatId): array
+    {
+        return self::$trafficMeta;
+    }
+}
 
 $passed = 0;
 $failed = 0;
@@ -28,6 +39,11 @@ ccheck('native claim code rejects non-positive length', $threw, true);
 $maxSearchSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
 ccheck('claim creation delegates to native generator', strpos($maxSearchSource, 'ClaimCodeGenerator::generate(10)') !== false, true);
 ccheck('claim creation no longer calls Bitrix randString', strpos($maxSearchSource, 'randString(') === false, true);
+
+StandaloneYclidRegressionApi::$trafficMeta = ['yclid'=>' 123456789 '];
+ccheck('standalone latest yclid uses persisted traffic attribution without Bitrix', StandaloneYclidRegressionApi::getLatestYclid(-123), '123456789');
+StandaloneYclidRegressionApi::$trafficMeta = [];
+ccheck('standalone latest yclid fails open when attribution is absent', StandaloneYclidRegressionApi::getLatestYclid(-123), '');
 
 $status = [
     'city'=>65,'country'=>66,'adults'=>67,'children'=>68,'child_ages'=>69,
