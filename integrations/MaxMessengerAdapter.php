@@ -9,8 +9,9 @@ class MaxMessengerAdapter implements MessengerInterface
     private $sendWithButtons;
     private $sendMedia;
     private $senderType;
+    private $recordOutbound;
 
-    public function __construct(?callable $send = null, ?callable $sendWithButtons = null, string $senderType = 'ai', ?callable $sendMedia = null)
+    public function __construct(?callable $send = null, ?callable $sendWithButtons = null, string $senderType = 'ai', ?callable $sendMedia = null, bool $recordOutbound = true)
     {
         $this->send = $send ?: static function ($chatId, string $text): bool {
             return class_exists('MaxSearchApi') && (bool)MaxSearchApi::MaxSend($text, $chatId);
@@ -23,19 +24,20 @@ class MaxMessengerAdapter implements MessengerInterface
             return MaxTransport::uploadAndSend(MaxSearchApi::$TV_API_URL, MAX_SEARCH_TOKEN, $chatId, $type, $filePath, $fileName, $mimeType, $text, dirname(__DIR__) . '/tmp_max_search.txt');
         };
         $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
+        $this->recordOutbound = $recordOutbound;
     }
 
     public function send($chatId, string $text): bool
     {
         $ok = (bool)call_user_func($this->send, $chatId, $text);
-        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType);
+        if ($ok && $this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType);
         return $ok;
     }
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
         $ok = (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
-        if ($ok) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, ['has_buttons'=>true]);
+        if ($ok && $this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, ['has_buttons'=>true]);
         return $ok;
     }
 
@@ -47,7 +49,7 @@ class MaxMessengerAdapter implements MessengerInterface
         $metadataAttachment = ['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
         if(trim($previewUrl)!=='')$metadataAttachment['url']=trim($previewUrl);
         if (is_array($result) && !empty($result['attachment']['payload']['token'])) $metadataAttachment['token']=(string)$result['attachment']['payload']['token'];
-        ConversationRecorder::outbound('max', $chatId, $preview, $this->senderType, ['attachments'=>[$metadataAttachment]]);
+        if ($this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $preview, $this->senderType, ['attachments'=>[$metadataAttachment]]);
         return true;
     }
 

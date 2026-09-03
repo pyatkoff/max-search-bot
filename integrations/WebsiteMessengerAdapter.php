@@ -6,23 +6,25 @@ class WebsiteMessengerAdapter implements MessengerInterface
 {
     private $messages = [];
     private $senderType;
+    private $recordOutbound;
 
-    public function __construct(string $senderType = 'ai')
+    public function __construct(string $senderType = 'ai', bool $recordOutbound = true)
     {
         $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
+        $this->recordOutbound = $recordOutbound;
     }
 
     public function send($chatId, string $text): bool
     {
         $this->messages[] = ['type'=>'message','text'=>$text,'buttons'=>[]];
-        ConversationRecorder::outbound('website', $chatId, $text, $this->senderType);
+        if ($this->recordOutbound) ConversationRecorder::outbound('website', $chatId, $text, $this->senderType);
         return true;
     }
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
         $this->messages[] = ['type'=>'message','text'=>$text,'buttons'=>$buttons];
-        ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, ['has_buttons'=>true,'buttons'=>$buttons]);
+        if ($this->recordOutbound) ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, ['has_buttons'=>true,'buttons'=>$buttons]);
         return true;
     }
 
@@ -38,4 +40,5 @@ class WebsiteMessengerAdapter implements MessengerInterface
     {
         $messages = $this->messages; $this->messages = []; return $messages;
     }
+
 }

@@ -3,6 +3,7 @@ require_once __DIR__ . '/ManagerConversationService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
@@ -35,6 +36,7 @@ class ManagerOutboundService
         $c = $detail['conversation'];
         if ((string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) return false;
         $chatId = $c['external_chat_id']; $channel = strtolower((string)$c['channel']);
+        $projectKey = (string)$c['project_key'];
 
         if ($channel === 'max') {
             $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
@@ -48,13 +50,15 @@ class ManagerOutboundService
                 return true;
             }
 
-            if ($channel === 'max') $adapter = new MaxMessengerAdapter(null, null, 'manager');
-            elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager');
-            elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager');
+            if ($channel === 'max') $adapter = new MaxMessengerAdapter(null, null, 'manager', null, false);
+            elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager', false);
+            elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager', false);
             else return false;
 
-            $ok = $adapter->send($chatId, htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+            $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey]);
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
@@ -73,6 +77,7 @@ class ManagerOutboundService
         $c=$detail['conversation'];
         if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return false;
         $channel=strtolower((string)$c['channel']);
+        $projectKey=(string)$c['project_key'];
         if($channel!=='max'&&$channel!=='telegram'){
             self::$lastFailure=['category'=>'unsupported','http_code'=>0,'message'=>'Медиа для этого канала пока не поддерживается','channel'=>$channel,'project_key'=>(string)$c['project_key']];
             return false;
@@ -82,10 +87,14 @@ class ManagerOutboundService
             if($suspended){self::$lastFailure=$suspended;return false;}
         }
         $type=self::attachmentTypeForMime($mimeType);
-        $adapter=$channel==='max'?new MaxMessengerAdapter(null,null,'manager'):new TelegramMessengerAdapter(null,'manager');
+        $adapter=$channel==='max'?new MaxMessengerAdapter(null,null,'manager',null,false):new TelegramMessengerAdapter(null,'manager',false);
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
+            $preview=$safeCaption!==''?$safeCaption:ConversationRecorder::attachmentPreview([['type'=>$type]]);
+            $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
+            if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
+            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]]);
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key'],'media_type'=>$type]);
             MetrikaConversionGoalService::managerReply($conversationId);
             return true;
