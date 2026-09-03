@@ -1,23 +1,23 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-03T09:15:37+00:00",
+    "generated_at": "2026-09-03T09:20:33+00:00",
     "production": {
-        "sha": "ac6235acfd871395b70cd505b87ec9ca0db741b4",
+        "sha": "198c235fb0d0b4bd465c66cc1234dc614b2b9668",
         "branch": "main"
     },
     "migrations": {
-        "total": 30,
+        "total": 31,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "027_lead_close_reasons.sql"
+        "latest_version": "028_repair_lead_close_reason_collation.sql"
     },
     "health": {
         "manager_visibility_ok": true,
         "manager_visibility_anomalies": [],
         "manager_response_ok": true,
         "manager_push_ok": false,
-        "manager_lead_detail_ok": false,
+        "manager_lead_detail_ok": true,
         "handoff_integrity_ok": true,
         "admin_project_access_ok": true,
         "website_attribution_ok": true,
@@ -159,7 +159,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-03 08:15:23",
+        "since_utc": "2026-09-03 08:20:20",
         "summary": {
             "sessions": 4,
             "raw_sessions": 4,
@@ -178,7 +178,7 @@
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
             "phone_received": 0,
-            "flagged_sessions": 1,
+            "flagged_sessions": 2,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -191,13 +191,23 @@
                 "tours_opened": 4
             },
             "flags": {
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
+                "repeated_callback_input": 2,
+                "excessive_turns": 2
             }
         },
         "flagged_sessions": [
             {
                 "conversation_id": 794,
+                "flags": [
+                    "repeated_callback_input",
+                    "excessive_turns"
+                ],
+                "drop_point": "tours_opened",
+                "manager_response_bucket": null,
+                "manager_response_seconds": null
+            },
+            {
+                "conversation_id": 796,
                 "flags": [
                     "repeated_callback_input",
                     "excessive_turns"
@@ -213,7 +223,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "ac6235acfd871395b70cd505b87ec9ca0db741b4",
+        "sha": "198c235fb0d0b4bd465c66cc1234dc614b2b9668",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -222,7 +232,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-03T09:15:37Z"
+        "reported_at": "2026-09-03T09:20:33Z"
     },
     "artifacts": {
         "production": "production_snapshot.json",
@@ -254,7 +264,7 @@
             "manager_replied": 2,
             "customer_replied_after_manager": 2,
             "phone_received": 1,
-            "flagged_sessions": 6,
+            "flagged_sessions": 7,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 2,
@@ -269,8 +279,8 @@
                 "customer_replied_after_manager": 2
             },
             "flags": {
-                "repeated_callback_input": 5,
-                "excessive_turns": 4
+                "repeated_callback_input": 6,
+                "excessive_turns": 5
             },
             "calendar_day": {
                 "conversations_started": 19,
@@ -285,11 +295,11 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-03T09:15:36+00:00",
+        "generated_at": "2026-09-03T09:20:33+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 96275,
+                "bytes": 98074,
                 "code_lines": 964
             },
             "actions": {
@@ -323,18 +333,18 @@
                 "code_lines": 0
             },
             "migrations": {
-                "files": 30,
-                "bytes": 30694,
+                "files": 31,
+                "bytes": 30790,
                 "code_lines": 0
             },
             "tests": {
                 "files": 173,
-                "bytes": 773005,
-                "code_lines": 8849
+                "bytes": 773675,
+                "code_lines": 8852
             },
             "tools": {
                 "files": 36,
-                "bytes": 117450,
+                "bytes": 117439,
                 "code_lines": 2145
             }
         },
@@ -360,7 +370,7 @@
             {
                 "path": "tools/production_snapshot.php",
                 "lines": 228,
-                "bytes": 15091,
+                "bytes": 15080,
                 "severity": "observe"
             },
             {
