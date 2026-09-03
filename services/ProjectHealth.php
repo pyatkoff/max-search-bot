@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/AiRuntimeLogger.php';
+
 class ProjectHealth
 {
     public static function collect($baseDir)
@@ -138,20 +140,19 @@ class ProjectHealth
     private static function runtimeInfo($baseDir)
     {
         $files = [
-            'ai_debug.log',
-            'cron_followup.log',
-            'funnel.csv',
-            'metrika_events.log',
-            'metrika_offline_queue.csv',
-            'structured_events.log',
+            'ai_debug.log' => AiRuntimeLogger::debugFile(),
+            'cron_followup.log' => $baseDir . '/cron_followup.log',
+            'funnel.csv' => $baseDir . '/funnel.csv',
+            'metrika_events.log' => $baseDir . '/metrika_events.log',
+            'metrika_offline_queue.csv' => $baseDir . '/metrika_offline_queue.csv',
+            'structured_events.log' => $baseDir . '/structured_events.log',
         ];
         $out = [];
-        foreach ($files as $name) {
-            $path = $baseDir . '/' . $name;
+        foreach ($files as $name => $path) {
             $mtime = is_file($path) ? filemtime($path) : false;
             $out[$name] = [
                 'exists' => is_file($path),
-                'writable' => is_file($path) ? is_writable($path) : is_writable($baseDir),
+                'writable' => is_file($path) ? is_writable($path) : is_writable(dirname($path)),
                 'mtime' => $mtime ? date('c', $mtime) : null,
                 'age_minutes' => $mtime ? (int)floor((time() - $mtime) / 60) : null,
             ];

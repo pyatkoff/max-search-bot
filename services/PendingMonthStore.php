@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/AiRuntimeLogger.php';
+
 class PendingMonthStore
 {
     public static function filePath($chatId): string
@@ -17,10 +19,8 @@ class PendingMonthStore
             'chat' => (string)$chatId,
             'action' => $action,
         ], $extra);
-        @file_put_contents(
-            __DIR__ . '/../ai_debug.log',
-            "PENDING_MONTH: ".json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-            FILE_APPEND|LOCK_EX
+        AiRuntimeLogger::debug(
+            "PENDING_MONTH: ".json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n"
         );
     }
 

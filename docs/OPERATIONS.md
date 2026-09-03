@@ -65,6 +65,8 @@ Raw generated production diagnostics must not be committed to any public branch.
 
 Raw deploy diagnostics must also stay outside the production document root. `export_debug_logs.php` rejects an output directory inside the application tree; deploys use a mode-0700 directory under `/tmp`, download it over SSH, and remove it immediately afterward. Legacy `diag-*.json` files and the old `diagnostics/` webroot directory are deleted during smoke checks.
 
+Raw AI debug/error logs use `AiRuntimeLogger` and default to the external mode-0700 directory `/tmp/max-search-bot-ai`; files are mode 0600 and bounded to 1 MiB. `MAX_SEARCH_AI_LOG_DIR` may override that absolute path, but the logger rejects any directory inside the application/document root. Production deploy verifies the external path/modes, removes legacy `ai_debug.log` files from webroot and fails unless the public paths return HTTP 403 or 404.
+
 Sensitive customer content should remain bounded and redacted; never expose secrets/config values in snapshots.
 
 ## Live conversation evidence

@@ -7,6 +7,7 @@ require_once(__DIR__ . '/../services/NeedProgressionService.php');
 require_once(__DIR__ . '/../services/LocalAiFallbackService.php');
 require_once(__DIR__ . '/../services/AiBusinessDefaultsService.php');
 require_once(__DIR__ . '/../services/AiInvocationService.php');
+require_once(__DIR__ . '/../services/AiRuntimeLogger.php');
 require_once(__DIR__ . '/../services/AiDateContextService.php');
 require_once(__DIR__ . '/../services/AiNeedCompletionService.php');
 require_once(__DIR__ . '/../services/DepartureCityResolver.php');
@@ -149,11 +150,7 @@ class AiMessageHandler
                 $params = is_array($ai['parameters'] ?? null) ? $ai['parameters'] : [];
                 $params = AiDateContextService::applyAiGuard($chat_id, $userText, $params);
 
-                @file_put_contents(
-                    __DIR__.'/ai_debug.log',
-                    "ROUTE AFTER AI: APPLY_PARAMETERS\n",
-                    FILE_APPEND|LOCK_EX
-                );
+                AiRuntimeLogger::debug("ROUTE AFTER AI: APPLY_PARAMETERS\n");
                 $completion = AiNeedCompletionService::applyAndAdvance(
                     $chat_id,
                     $params,
@@ -162,13 +159,11 @@ class AiMessageHandler
                 $appliedResult = $completion['applied'];
                 $missing = $completion['missing'];
 
-                @file_put_contents(
-                    __DIR__.'/ai_debug.log',
+                AiRuntimeLogger::debug(
                     "AI PARAMS: ".json_encode($params,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n".
                     "AI APPLIED: ".json_encode($appliedResult,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n".
                     "AI CONTEXT AFTER: ".json_encode(MaxSearchApi::getAiSearchContext($chat_id),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n".
-                    "AI MISSING: ".json_encode($missing,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n",
-                    FILE_APPEND|LOCK_EX
+                    "AI MISSING: ".json_encode($missing,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n"
                 );
 
     }
