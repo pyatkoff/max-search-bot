@@ -1,4 +1,9 @@
 <?php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 $configFile = __DIR__ . '/../config.php';
 if (is_file($configFile)) require_once $configFile;
 require_once __DIR__ . '/../integrations/TelegramIncomingAdapter.php';

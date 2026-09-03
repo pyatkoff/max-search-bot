@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 /**
  * One-time maintenance helper.
  * Removes methods from MaxSearchBase only when MaxSearchApi already owns the
