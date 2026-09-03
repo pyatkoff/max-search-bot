@@ -162,6 +162,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
+          rm -rf production-diagnostics
           find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
           rm -f migration.log
           printf '{"sha":"%s","run_id":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
