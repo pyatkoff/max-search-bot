@@ -17,11 +17,13 @@ $inboxService=(string)file_get_contents($root.'/services/ManagerLeadInboxService
 $context=(string)file_get_contents($root.'/services/ManagerRequestContext.php');
 $migration=(string)file_get_contents($root.'/migrations/021_lead_sale_tracking.sql');
 $closeReasonMigration=(string)file_get_contents($root.'/migrations/027_lead_close_reasons.sql');
+$closeReasonCollationRepair=(string)file_get_contents($root.'/migrations/028_repair_lead_close_reason_collation.sql');
 $passed=0;$failed=0;
 function outcomeCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 outcomeCheck('catalog exposes active outcomes and close reasons',strpos($api,"'outcomes'=>SalesPipelineService::outcomeOptions()")!==false&&strpos($api,"'close_reasons'=>SalesPipelineService::closeReasonOptions(true)")!==false);
 outcomeCheck('close reasons have a forward-only configurable catalog',strpos($closeReasonMigration,'CREATE TABLE IF NOT EXISTS lead_close_reasons')!==false&&strpos($closeReasonMigration,"('price', 'Цена'")!==false&&strpos($closeReasonMigration,'UPDATE conversations')===false&&strpos($closeReasonMigration,'ALTER TABLE conversations')===false);
+outcomeCheck('close reason repair aligns JOIN collation without changing conversations',strpos($closeReasonCollationRepair,'ALTER TABLE lead_close_reasons')!==false&&strpos($closeReasonCollationRepair,'CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')!==false&&strpos($closeReasonCollationRepair,'conversations')===false&&stripos($closeReasonCollationRepair,'DROP ')===false);
 outcomeCheck('detail snapshot includes outcome and close reason catalog state',strpos($service,"'outcome'=>self::outcomeForConversation")!==false&&strpos($service,'close_reason_label')!==false&&strpos($service,'close_reason_active')!==false&&strpos($service,'LEFT JOIN lead_close_reasons')!==false);
 outcomeCheck('workspace renders outcome controls',strpos($js,'id="leadOutcome"')!==false&&strpos($js,'id="leadCloseReason"')!==false&&strpos($js,'id="leadOutcomeNote"')!==false);
 outcomeCheck('lost outcome requires structured reason',strpos($outcomeJs,"outcome==='lost'&&!closeReason")!==false&&strpos($service,"\$outcome==='lost'")!==false);

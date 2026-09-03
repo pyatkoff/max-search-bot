@@ -67,7 +67,7 @@ function managerLeadDetailHealth(PDO $pdo):array{
     $missing=[];
     foreach($expected as$table=>$columns){
         if(!tableExists($pdo,$table)){$missing[$table]=['__table__'];continue;}
-        $q=$pdo->prepare('SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);$actual=array_flip(array_map('strtolower',array_column($q->fetchAll(),'column_name')));
+        $q=$pdo->prepare('SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);$actual=array_flip(array_map('strtolower',$q->fetchAll(PDO::FETCH_COLUMN)));
         foreach($columns as$column)if(!isset($actual[strtolower($column)]))$missing[$table][]=$column;
     }
     $ids=array_map('intval',array_column(rows($pdo,'SELECT id FROM conversations WHERE is_test=0 ORDER BY id DESC LIMIT 5'),'id'));
