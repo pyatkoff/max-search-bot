@@ -1,8 +1,8 @@
 # Architecture & Maintainability Refactor Roadmap
 
-Updated: 2026-08-30
+Updated: 2026-09-03
 
-This roadmap complements issue #55 and `docs/TECHNICAL_AUDIT.md`. Current execution mode is **technical/checks first, Manager UX/visual second**. Confirmed production outages, lead-loss/data-integrity defects and broken manager handoff still interrupt refactor work immediately.
+This roadmap complements issue #55 and `docs/TECHNICAL_AUDIT.md`. Read `START_HERE.md` first for the current verified checkpoint and next safe sequence. Confirmed production outages, lead-loss/data-integrity defects and broken manager handoff still interrupt refactor work immediately.
 
 ## Current baseline
 
@@ -85,7 +85,7 @@ No large rewrite. Move one caller-backed rule at a time.
 
 ## Phase F — Persistence and diagnostics
 
-- [ ] Publish architecture/test inventory in stable diagnostics so technical drift is visible without a manual repository reread.
+- [x] Publish architecture/test inventory in stable diagnostics so technical drift is visible without a manual repository reread.
 - [ ] Review Manager inbox/tasks/pipeline and diagnostics query patterns before adding indexes.
 - [ ] Keep schema changes migration-only; applied migrations immutable and repairs forward-only.
 - [ ] Introduce repositories only where repeated direct SQL leaks application/domain rules.
@@ -116,12 +116,7 @@ Only after canonical owners are proven:
 
 ## Immediate autonomous sequence
 
-1. Publish architecture inventory as a stable deploy/diagnostics artifact and review current signals.
-2. Add test-group timing/reporting and explicit optional/manual classification if it can be done without weakening the required gate.
-3. Finish the highest-value remaining Manager HTTP/auth/authorization ownership slices.
-4. Audit dialogue and handoff canonical ownership in small behavior-preserving slices.
-5. Review direct SQL/runtime DDL/hotspots from current inventory and create caller-backed refactor candidates.
-6. Then return to the full Manager UX/visual pass with the stronger layout gate in place.
+The former sequence here is superseded because its architecture inventory, test timing/classification and Phase C Manager ownership work are complete. Do not restart those items. `START_HERE.md` is the current execution sequence; this file retains phase-level direction only.
 
 ## Continuous refactor questions
 

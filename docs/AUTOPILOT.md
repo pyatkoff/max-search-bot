@@ -4,7 +4,7 @@ This is the default execution order for autonomous work.
 
 ## One pass
 
-1. Read `AGENTS.md` and the relevant durable docs.
+1. Read `START_HERE.md`, then `AGENTS.md` and the relevant durable docs.
 2. Check current `main`, open PRs and latest production/deploy state.
 3. Read the newest production snapshot/diagnostics artifact.
 4. Inspect fresh live conversations first, including exact customer input and bot/manager replies.

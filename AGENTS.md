@@ -1,6 +1,6 @@
 # MAX Search Bot — Autonomous Development Contract
 
-This file is the first-read operating contract for autonomous work in this repository.
+Read `START_HERE.md` first for the current handoff/checkpoint. This file owns the stable operating contract for autonomous work in this repository.
 
 ## Scope
 
@@ -65,7 +65,7 @@ See `docs/ARCHITECTURE.md` for the detailed dependency contract.
 ## Handoff policy
 
 Product policy is fixed unless explicitly changed by the user:
-- working window: 10:00–20:00;
+- working window: 10:00–20:00 Europe/Kaliningrad;
 - during working hours, manager handoff must not be blocked by mandatory phone capture;
 - after 5 minutes without a manager reply, offer phone capture once through the existing fallback;
 - outside working hours, prefer self-service tours/site plus optional phone with a truthful next-working-period expectation.
@@ -88,6 +88,7 @@ Target baseline viewports for automated visual evidence: 390, 430, 768 and 1440 
 
 ## Documentation ownership
 
+- `START_HERE.md` — first-read current handoff, verified checkpoint and next safe sequence;
 - `AGENTS.md` — stable autonomous operating rules;
 - `docs/PRODUCT.md` — durable product decisions and success criteria;
 - `docs/ARCHITECTURE.md` — code ownership/dependency direction;
