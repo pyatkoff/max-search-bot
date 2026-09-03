@@ -15,11 +15,18 @@ function publicDiagnosticSensitiveKey(string $key): bool
     if ($key === '') return false;
     if (preg_match('/(^|_)(conversation|manager|actor|customer|chat|user|source)_ids?$/', $key)) return true;
     return in_array($key, [
-        'text','message','payload','message_tail','messages','recent_messages',
-        'sessions','flagged_sessions','requests','events','recent_events',
+        'text','message','payload','message_tail','recent_messages',
+        'flagged_sessions','recent_events',
         'login','display_name','phone','email','username','external_chat_id',
-        'external_user_id','working_managers','manager_visibility','manager_usage',
-        'website_attribution','recent_manager_priority_events','recent_manager_push_events',
+        'external_user_id','recent_manager_priority_events','recent_manager_push_events',
+    ], true);
+}
+
+function publicDiagnosticSensitiveCollectionKey(string $key): bool
+{
+    return in_array(strtolower(trim($key)), [
+        'sessions','messages','requests','events','working_managers',
+        'manager_visibility','manager_usage','website_attribution',
     ], true);
 }
 
@@ -29,6 +36,7 @@ function sanitizePublicDiagnosticValue($value)
     $out = [];
     foreach ($value as $key => $item) {
         if (is_string($key) && publicDiagnosticSensitiveKey($key)) continue;
+        if (is_string($key) && is_array($item) && publicDiagnosticSensitiveCollectionKey($key)) continue;
         $out[$key] = sanitizePublicDiagnosticValue($item);
     }
     return $out;
