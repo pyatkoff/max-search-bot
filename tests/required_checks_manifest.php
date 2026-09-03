@@ -33,6 +33,7 @@ return [
         'php tests/run_max_tls_preflight_contract_regression.php',
         'php tests/run_max_tls_transport_regression.php',
         'php tests/run_deployment_ownership_regression.php',
+        'bash tests/run_deploy_main_provenance_regression.sh',
     ],
     'dialogue' => [
         'php tests/run_regression.php',
