@@ -61,14 +61,27 @@ class ConversationRecorder
             if ($platform === '' || $chatId === '') return false;
             $conversationId = self::findConversationByChat($platform, $chatId);
             if (!$conversationId) return false;
+            return self::outboundForConversation($conversationId,$platform,$text,$senderType,null,$metadata);
+        } catch (Throwable $e) {
+            self::logFailure('outbound', $e);
+            return false;
+        }
+    }
 
+    /** Mirror an outbound message when the owning conversation is already known. */
+    public static function outboundForConversation(int $conversationId, string $platform, string $text, string $senderType = 'ai', $senderId = null, array $metadata = []): bool
+    {
+        try {
+            if (!ConversationDb::isConfigured() || $conversationId <= 0) return false;
+            $platform = strtolower(trim($platform));
+            if ($platform === '') return false;
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,text,metadata_json) VALUES (?,?,?,?,?,?,?)');
-            $stmt->execute([$conversationId,'outbound',$senderType,null,$platform,$text,self::json($metadata)]);
+            $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$text,self::json($metadata)]);
             self::touch($conversationId);
             return true;
         } catch (Throwable $e) {
-            self::logFailure('outbound', $e);
+            self::logFailure('outbound_for_conversation', $e);
             return false;
         }
     }

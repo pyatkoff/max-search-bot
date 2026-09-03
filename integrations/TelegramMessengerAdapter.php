@@ -7,11 +7,13 @@ class TelegramMessengerAdapter implements MessengerInterface
 {
     private $sendCallable;
     private $senderType;
+    private $recordOutbound;
 
-    public function __construct(?callable $sendCallable = null, string $senderType = 'ai')
+    public function __construct(?callable $sendCallable = null, string $senderType = 'ai', bool $recordOutbound = true)
     {
         $this->sendCallable = $sendCallable;
         $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
+        $this->recordOutbound = $recordOutbound;
     }
 
     public function send($chatId, string $text): bool
@@ -42,7 +44,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         $preview = trim($text) !== '' ? $text : ConversationRecorder::attachmentPreview([['type'=>$type]]);
         $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
         if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
-        ConversationRecorder::outbound('telegram',$chatId,$preview,$this->senderType,['attachments'=>[$attachment]]);
+        if ($this->recordOutbound) ConversationRecorder::outbound('telegram',$chatId,$preview,$this->senderType,['attachments'=>[$attachment]]);
         return true;
     }
 
@@ -94,7 +96,7 @@ class TelegramMessengerAdapter implements MessengerInterface
     {
         if ($this->sendCallable) {
             $ok = (bool)call_user_func($this->sendCallable, $method, $payload);
-            if ($ok && $method === 'sendMessage' && isset($payload['chat_id'])) {
+            if ($ok && $this->recordOutbound && $method === 'sendMessage' && isset($payload['chat_id'])) {
                 ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
             }
             return $ok;
@@ -130,7 +132,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         if ($error !== '') $details['curl_error']=$error;
         if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
         DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
-        if ($ok && !$multipart && $method === 'sendMessage' && $chatId !== null) {
+        if ($ok && $this->recordOutbound && !$multipart && $method === 'sendMessage' && $chatId !== null) {
             ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
         }
         return $ok;
