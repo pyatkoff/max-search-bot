@@ -6,7 +6,7 @@ require_once __DIR__ . '/DiagnosticLogger.php';
  * Shared callback interaction guard helpers.
  *
  * This service deliberately contains only generic interaction-safety mechanics:
- * per-chat serialization, expected-status checks, duplicate-window checks,
+ * per-chat serialization, expected-status checks, duplicate/replacement windows,
  * one-shot callback generations and wizard forward-step expectations. Dialogue
  * actions keep ownership of business behavior.
  */
@@ -102,12 +102,71 @@ class InteractionGuard
             && ($now - $previousAt) < $windowSeconds;
     }
 
+    public static function isRapidReplacement(
+        string $previousPayload,
+        float $previousAt,
+        string $payload,
+        float $now,
+        float $windowSeconds
+    ): bool {
+        return $previousPayload !== ''
+            && $previousPayload !== $payload
+            && self::isRecent($previousAt, $now, $windowSeconds);
+    }
+
     /**
-     * Consume an exact repeated callback delivery inside a short window.
-     * The marker is written while holding the same per-chat/scope lock, so a
-     * concurrent retry sees the first delivery before it can repeat behavior.
-     * Different payloads are never suppressed by this helper.
+     * Serialize an expected-status callback with both exact-duplicate and
+     * different-payload replacement windows. The accepted marker is committed
+     * only when the business callback explicitly invokes the supplied $accept
+     * closure, preserving callers that intentionally ignore malformed payloads.
      */
+    public static function runExpectedStatusReplacementCallback(
+        int $chatId,
+        string $payload,
+        string $scope,
+        int $expectedStatus,
+        float $duplicateWindowSeconds,
+        float $replacementWindowSeconds,
+        callable $callback,
+        ?callable $onSuppressed = null
+    ): bool {
+        return self::runExpectedStatusCallback(
+            $chatId,
+            $payload,
+            $scope,
+            $expectedStatus,
+            function ($fp) use ($chatId, $payload, $scope, $expectedStatus, $duplicateWindowSeconds, $replacementWindowSeconds, $callback, $onSuppressed): bool {
+                rewind($fp);
+                $state = json_decode((string)stream_get_contents($fp), true);
+                $previousPayload = is_array($state) ? (string)($state['payload'] ?? '') : '';
+                $previousAt = is_array($state) ? (float)($state['at'] ?? 0.0) : 0.0;
+                $now = microtime(true);
+
+                if (self::isDuplicate($previousPayload, $previousAt, $payload, $now, $duplicateWindowSeconds)) {
+                    self::reportSuppressed($chatId, $payload, 'duplicate', $expectedStatus, $expectedStatus, $scope, ['previous_payload'=>$previousPayload]);
+                    if ($onSuppressed !== null) $onSuppressed('duplicate', $previousPayload, $expectedStatus, $expectedStatus);
+                    return true;
+                }
+                if (self::isRapidReplacement($previousPayload, $previousAt, $payload, $now, $replacementWindowSeconds)) {
+                    self::reportSuppressed($chatId, $payload, 'rapid_replacement', $expectedStatus, $expectedStatus, $scope, ['previous_payload'=>$previousPayload]);
+                    if ($onSuppressed !== null) $onSuppressed('rapid_replacement', $previousPayload, $expectedStatus, $expectedStatus);
+                    return true;
+                }
+
+                $accept = static function () use ($fp, $payload, $now): void {
+                    ftruncate($fp, 0);
+                    rewind($fp);
+                    fwrite($fp, json_encode(['payload'=>$payload, 'at'=>$now], JSON_UNESCAPED_SLASHES));
+                    fflush($fp);
+                };
+                return (bool)$callback($accept, $previousPayload, $previousAt, $now);
+            },
+            $onSuppressed === null ? null : static function (int $currentStatus, int $expectedStatus) use ($onSuppressed): void {
+                $onSuppressed('stale_state', '', $currentStatus, $expectedStatus);
+            }
+        );
+    }
+
     public static function suppressDuplicateCallback(
         int $chatId,
         string $payload,
