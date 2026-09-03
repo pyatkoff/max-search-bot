@@ -29,6 +29,7 @@ return [
         'php tests/run_bot_cutover_runbook_regression.php',
         'php tests/run_cron_ownership_diagnostic_contract_regression.php',
         'php tests/run_cli_entrypoint_guard_regression.php',
+        'php tests/run_max_tls_preflight_contract_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',

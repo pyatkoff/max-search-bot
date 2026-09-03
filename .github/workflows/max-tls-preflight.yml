@@ -1,0 +1,67 @@
+name: Verify production MAX TLS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  strict-tls-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare SSH private key
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          rm -f "$key_file"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "STANDBY_DEPLOY_SSH_KEY is invalid"; exit 1; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Wait for exact active-server SHA and verify strict TLS
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+          matched=0
+          for attempt in $(seq 1 30); do
+            deployed_sha="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
+              'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
+            if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              matched=1
+              echo "Active server SHA verified: $deployed_sha"
+              break
+            fi
+            echo "Waiting for active-server SHA $EXPECTED_SHA (current: ${deployed_sha:-unavailable}, attempt $attempt/30)"
+            sleep 5
+          done
+          [[ "$matched" == "1" ]] || { echo "Exact production SHA was not deployed" >&2; exit 1; }
+
+          result="$(ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/max_tls_preflight.php')"
+          printf '%s\n' "$result"
+          printf '%s\n' "$result" | jq -e '
+            .ok == true
+            and .reason == "verified"
+            and .tls_verification == "strict"
+            and .ssl_verify_result == 0
+            and (.http_status >= 200 and .http_status < 300)
+            and .api_json_valid == true
+          ' >/dev/null
