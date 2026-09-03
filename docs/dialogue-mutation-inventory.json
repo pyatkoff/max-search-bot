@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "purpose": "Required inventory of direct dialogue and trip-state mutation callers. New unclassified writers fail CI.",
+  "required_methods": [
+    "setStatus",
+    "saveLastValue",
+    "upsertStatusValue",
+    "deleteAll",
+    "applyAiParameters"
+  ],
+  "monitored_methods": [
+    "setStatus",
+    "saveLastValue",
+    "upsertStatusValue",
+    "deleteAll",
+    "deleteAllStatus",
+    "applyAiParameters"
+  ],
+  "classifications": [
+    "trip_value",
+    "transition",
+    "reset",
+    "metadata",
+    "manager_technical_state"
+  ],
+  "callers": [
+    {"path":"actions/AskAction.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Enter AI question state."},
+    {"path":"actions/callbacks/WizardCallbackAction.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":8,"classification":"trip_value","rationale":"Apply explicit wizard callback values."},
+    {"path":"actions/callbacks/WizardCallbackAction.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":2,"classification":"transition","rationale":"Restart wizard flow from callback actions."},
+    {"path":"handlers/DepartureRouteAdviceHandler.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Return route-advice dialogue to AI state."},
+    {"path":"handlers/MaxUpdateHandler.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":1,"classification":"reset","rationale":"Reset state for an explicit start command."},
+    {"path":"handlers/StateMessageHandler.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":1,"classification":"reset","rationale":"Reset state from the message flow."},
+    {"path":"handlers/StateMessageHandler.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":5,"classification":"trip_value","rationale":"Apply free-text wizard values."},
+    {"path":"handlers/StateMessageHandler.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Enter AI fallback state."},
+    {"path":"maxsearchbaseclass.php","receiver":"static","method":"setStatus","occurrences":16,"classification":"transition","rationale":"Legacy dialogue view methods append the next wizard state."},
+    {"path":"maxsearchclass.php","receiver":"ConversationStateRepository","method":"deleteAll","occurrences":1,"classification":"reset","rationale":"Public reset wrapper delegates to state storage."},
+    {"path":"maxsearchclass.php","receiver":"ConversationStateRepository","method":"saveLastValue","occurrences":1,"classification":"trip_value","rationale":"Public update-only value wrapper delegates to state storage."},
+    {"path":"maxsearchclass.php","receiver":"static","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Update-only compatibility creates only age/date steps when absent."},
+    {"path":"maxsearchclass.php","receiver":"static","method":"upsertStatusValue","occurrences":1,"classification":"trip_value","rationale":"AI parameter application upserts normalized trip values."},
+    {"path":"services/CallbackController.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":2,"classification":"reset","rationale":"Explicit callback restart actions clear dialogue state."},
+    {"path":"services/ConversationStateRepository.php","receiver":"MysqlDialogueStateRepository","method":"deleteAll","occurrences":1,"classification":"reset","rationale":"Storage boundary delegates a full reset to MySQL mode."},
+    {"path":"services/ConversationStateRepository.php","receiver":"MysqlDialogueStateRepository","method":"saveLastValue","occurrences":1,"classification":"trip_value","rationale":"Storage boundary delegates update-only value persistence to MySQL mode."},
+    {"path":"services/DepartureCityResolver.php","receiver":"MaxSearchApi","method":"applyAiParameters","occurrences":1,"classification":"trip_value","rationale":"Resolved departure city is applied as a trip value."},
+    {"path":"services/DestinationAreaResolver.php","receiver":"MaxSearchApi","method":"applyAiParameters","occurrences":1,"classification":"trip_value","rationale":"Resolved destination area is applied as a trip value."},
+    {"path":"services/DestinationResolver.php","receiver":"MaxSearchApi","method":"applyAiParameters","occurrences":1,"classification":"trip_value","rationale":"Resolved destination is applied as a trip value."},
+    {"path":"services/DialogueController.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":2,"classification":"reset","rationale":"Explicit restart paths clear dialogue state."},
+    {"path":"services/DialogueView.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":1,"classification":"metadata","rationale":"Persist the rendered check-view generation token."},
+    {"path":"services/DialogueView.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":3,"classification":"transition","rationale":"Successful view delivery advances to the presented state."},
+    {"path":"services/EditFlowService.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":1,"classification":"trip_value","rationale":"Restore an existing trip value during edit-state reconstruction."},
+    {"path":"services/EditFlowService.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Restore a missing wizard step during edit-state reconstruction."},
+    {"path":"services/EditParamsView.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Return edit flow to the check state after successful delivery."},
+    {"path":"services/InteractionGuard.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":2,"classification":"metadata","rationale":"Persist callback generation claims and current generation markers."},
+    {"path":"services/ManagerConversationService.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":1,"classification":"manager_technical_state","rationale":"Manager close synchronizes the legacy dialogue state."},
+    {"path":"services/ManagerConversationService.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"manager_technical_state","rationale":"Manager release synchronizes the legacy dialogue state."},
+    {"path":"services/MissingFieldQuestionService.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Remain in AI state while asking for a missing field."},
+    {"path":"services/NeedApplicationService.php","receiver":"MaxSearchApi","method":"applyAiParameters","occurrences":1,"classification":"trip_value","rationale":"Canonical application boundary applies normalized trip values."},
+    {"path":"services/WizardStepView.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Successful wizard-step delivery advances to the presented state."}
+  ]
+}
