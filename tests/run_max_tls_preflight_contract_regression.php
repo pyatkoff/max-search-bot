@@ -19,13 +19,13 @@ foreach (['strictCurlOptions', 'CURLOPT_SSL_VERIFYPEER => true', 'CURLOPT_SSL_VE
     maxTlsPreflightAssert(str_contains($config, $needle), 'strict MAX TLS config is missing: ' . $needle);
 }
 maxTlsPreflightAssert(str_contains($tool, "PHP_SAPI !== 'cli'"), 'MAX TLS preflight must be CLI-only');
-foreach (['MaxTlsConfig::strictCurlOptions()', '/subscriptions', 'CURLINFO_SSL_VERIFYRESULT', "'tls_verification'=>'strict'"] as $needle) {
+foreach (['MaxTlsConfig::strictCurlOptions()', '/subscriptions', '/uploads?type=image', '--include-upload-host', 'CURLOPT_NOBODY => true', 'CURLINFO_SSL_VERIFYRESULT', "'tls_verification'=>'strict'"] as $needle) {
     maxTlsPreflightAssert(str_contains($tool, $needle), 'MAX TLS preflight contract is missing: ' . $needle);
 }
-foreach (['POST', 'DELETE', '/messages', '/uploads'] as $forbidden) {
-    maxTlsPreflightAssert(!str_contains($tool, $forbidden), 'MAX TLS preflight must stay read-only: ' . $forbidden);
+foreach (['CURLOPT_POSTFIELDS', 'DELETE', '/messages'] as $forbidden) {
+    maxTlsPreflightAssert(!str_contains($tool, $forbidden), 'MAX TLS preflight must not transfer a file or send/delete messages: ' . $forbidden);
 }
-foreach (['push:', 'workflow_dispatch:', 'EXPECTED_SHA', 'tools/max_tls_preflight.php', '.ssl_verify_result == 0'] as $needle) {
+foreach (['push:', 'workflow_dispatch:', 'EXPECTED_SHA', 'tools/max_tls_preflight.php --include-upload-host', '.ssl_verify_result == 0', '.upload_host.ok == true'] as $needle) {
     maxTlsPreflightAssert(str_contains($workflow, $needle), 'MAX TLS workflow contract is missing: ' . $needle);
 }
 
