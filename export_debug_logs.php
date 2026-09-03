@@ -8,6 +8,28 @@ $baseDir = __DIR__;
 require_once $baseDir . '/services/ProjectHealth.php';
 require_once $baseDir . '/services/ShadowComparisonReport.php';
 
+$outputDir = trim((string)(getenv('MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') ?: ''));
+if ($outputDir === '') {
+    $outputDir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'max-search-diagnostics';
+}
+if ($outputDir[0] !== DIRECTORY_SEPARATOR) {
+    fwrite(STDERR, "MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR must be absolute\n");
+    exit(2);
+}
+if (!is_dir($outputDir) && !mkdir($outputDir, 0700, true) && !is_dir($outputDir)) {
+    fwrite(STDERR, "Cannot create diagnostics output directory\n");
+    exit(2);
+}
+@chmod($outputDir, 0700);
+$resolvedBaseDir = realpath($baseDir);
+$resolvedOutputDir = realpath($outputDir);
+if ($resolvedBaseDir === false || $resolvedOutputDir === false
+    || $resolvedOutputDir === $resolvedBaseDir
+    || str_starts_with($resolvedOutputDir, $resolvedBaseDir . DIRECTORY_SEPARATOR)) {
+    fwrite(STDERR, "Diagnostics output directory must stay outside the document root\n");
+    exit(2);
+}
+
 $maxLinesByType = [
     'funnel'=>2500,'tmp'=>500,'cron'=>2500,'ai'=>1200,
     'structured'=>1200,'metrika'=>1200,'metrika_queue'=>1200,
@@ -22,16 +44,16 @@ $logs = [
     'metrika_queue'=>$baseDir.'/metrika_offline_queue.csv',
 ];
 $outputs = [
-    'funnel'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-funnel.json',
-    'tmp'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-tmp.json',
-    'cron'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-cron.json',
-    'ai'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-ai.json',
-    'structured'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-structured.json',
-    'metrika'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika.json',
-    'metrika_queue'=>$baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika-queue.json',
+    'funnel'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-funnel.json',
+    'tmp'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-tmp.json',
+    'cron'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-cron.json',
+    'ai'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-ai.json',
+    'structured'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-structured.json',
+    'metrika'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika.json',
+    'metrika_queue'=>$outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-metrika-queue.json',
 ];
-$shadowComparisonOutput = $baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-shadow-comparison.json';
-$conversationOutput = $baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-conversations.json';
+$shadowComparisonOutput = $outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-shadow-comparison.json';
+$conversationOutput = $outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-conversations.json';
 
 function tailLines($file,$maxLines){
     if(!is_file($file)||!is_readable($file))return[];$fh=fopen($file,'rb');if(!$fh)return[];
@@ -46,7 +68,7 @@ function redactConversationText($text){
     $text=preg_replace('/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/iu','[email-redacted]',$text);
     return $text;
 }
-function atomicWriteJson($path,$data){$tmp=$path.'.tmp';$json=json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if($json===false)return false;if(file_put_contents($tmp,$json,LOCK_EX)===false)return false;@chmod($tmp,0644);return rename($tmp,$path);}
+function atomicWriteJson($path,$data){$tmp=$path.'.tmp';$json=json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);if($json===false)return false;if(file_put_contents($tmp,$json,LOCK_EX)===false)return false;@chmod($tmp,0600);return rename($tmp,$path);}
 
 function collectConversationSnapshot($baseDir,$limit=150){
     $result=['ok'=>false,'generated_at'=>date('c'),'channel'=>'max','count'=>0,'messages'=>[]];
@@ -119,5 +141,5 @@ $manifest['reports']['shadow_comparison'] = [
 $manifest['tests']['conversation_regression']=runSuite($baseDir,$regressionPhp,'tests/run_conversation_regression.php');
 $manifest['tests']['conversation_catalog']=runSuite($baseDir,$regressionPhp,'tests/run_conversation_catalog.php');
 foreach($manifest['tests']as$t)if(!$t['ok'])$manifest['ok']=false;
-atomicWriteJson($baseDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-index.json',$manifest);
+atomicWriteJson($outputDir.'/diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-index.json',$manifest);
 echo 'OK '.date('c').PHP_EOL;
