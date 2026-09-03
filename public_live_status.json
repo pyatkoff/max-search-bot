@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-03T21:05:30+00:00",
+    "generated_at": "2026-09-03T21:14:03+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -34,11 +34,8 @@
             "customer_replied_after_manager": 1,
             "site_open": 1
         },
-        "flags": {
-            "repeated_callback_input": 1,
-            "repeated_same_input": 1
-        }
+        "flags": []
     },
-    "since_utc": "2026-09-03 20:05:30",
+    "since_utc": "2026-09-03 20:14:03",
     "public_redacted": true
 }
