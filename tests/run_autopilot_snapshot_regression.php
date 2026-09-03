@@ -23,6 +23,6 @@ aCheck('live funnel summary is surfaced',($json['live']['summary']['sessions']??
 aCheck('flagged session metadata is surfaced',($json['live']['flagged_sessions'][0]['conversation_id']??null)===101&&in_array('repeated_same_input',$json['live']['flagged_sessions'][0]['flags']??[],true));
 aCheck('architecture control-plane summary is surfaced',($json['architecture']['areas']['handlers']['files']??null)===10&&($json['architecture']['hotspots'][0]['path']??null)==='handlers/Big.php'&&($json['architecture']['signal_counts']['direct_sql_writes']??null)===1&&($json['architecture']['signal_counts']['runtime_ddl']??null)===0);
 aCheck('compact snapshot excludes transcript text',strpos($raw,'SECRET CUSTOMER TEXT')===false&&strpos($raw,'SECRET LIVE TEXT')===false&&strpos($raw,'message_tail')===false&&strpos($raw,'recent_messages')===false);
-aCheck('artifact pointers remain explicit',($json['artifacts']['production']??null)==='production_snapshot.json'&&($json['artifacts']['live']??null)==='live_session_report.json'&&($json['artifacts']['architecture']??null)==='architecture_inventory.json');
+aCheck('artifact pointers expose public-safe files only',array_keys((array)($json['artifacts']??[]))===['ops','architecture']&&($json['artifacts']['architecture']??null)==='architecture_inventory.json');
 foreach(array_keys($fixtures) as $name)@unlink($tmp.'/'.$name);@rmdir($tmp);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);

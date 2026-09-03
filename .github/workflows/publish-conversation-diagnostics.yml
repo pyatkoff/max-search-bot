@@ -74,46 +74,35 @@ jobs:
           php -r '$j=json_decode(file_get_contents("website_smoke.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"website_production_smoke_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("architecture_inventory.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["areas"],$j["hotspots"],$j["signals"]["runtime_ddl"],$j["signals"]["direct_sql_writes"])) {fwrite(STDERR,"architecture_inventory_contract_failed\n");exit(1);}'
           printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","architecture_inventory":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
-          php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json architecture_inventory.json > autopilot_snapshot.json
+          php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json architecture_inventory.json > autopilot_snapshot.private.json
+          php tools/sanitize_public_diagnostics.php autopilot_snapshot.private.json > autopilot_snapshot.json
           php -r '$j=json_decode(file_get_contents("autopilot_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])||(int)($j["schema_version"]??0)!==1){fwrite(STDERR,"autopilot_snapshot_contract_failed\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"autopilot_snapshot_sha_mismatch\n");exit(1);} if((int)($j["migrations"]["pending"]??-1)!==0||(int)($j["migrations"]["checksum_failures"]??-1)!==0){fwrite(STDERR,"autopilot_snapshot_migration_health_failed\n");exit(1);} if(!isset($j["daily"]["summary"]["calendar_day"]["conversations_started"],$j["daily"]["summary"]["calendar_day"]["manager_requested"])) {fwrite(STDERR,"autopilot_snapshot_daily_missing\n");exit(1);} if(!isset($j["architecture"]["signal_counts"]["runtime_ddl"],$j["architecture"]["signal_counts"]["direct_sql_writes"])) {fwrite(STDERR,"autopilot_snapshot_architecture_missing\n");exit(1);}'
 
           out_dir="$RUNNER_TEMP/production-diagnostics-out"
           rm -rf "$out_dir"
           mkdir -p "$out_dir"
-          cp production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json migration.log ops_status.json autopilot_snapshot.json "$out_dir/"
+          cp architecture_inventory.json ops_status.json autopilot_snapshot.json "$out_dir/"
 
       - name: Publish production snapshot
         shell: bash
         run: |
           set -euo pipefail
           out_dir="$RUNNER_TEMP/production-diagnostics-out"
-          test -s "$out_dir/production_snapshot.json"
-          test -s "$out_dir/live_session_report.json"
-          test -s "$out_dir/daily_session_report.json"
-          test -s "$out_dir/yesterday_session_report.json"
-          test -s "$out_dir/handoff.json"
-          test -s "$out_dir/website_smoke.json"
           test -s "$out_dir/architecture_inventory.json"
-          test -s "$out_dir/migration.log"
           test -s "$out_dir/ops_status.json"
           test -s "$out_dir/autopilot_snapshot.json"
 
-          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json migration.log ops_status.json autopilot_snapshot.json
+          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json migration.log ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
-          cp "$out_dir/production_snapshot.json" .
-          cp "$out_dir/live_session_report.json" .
-          cp "$out_dir/daily_session_report.json" .
-          cp "$out_dir/yesterday_session_report.json" .
-          cp "$out_dir/handoff.json" .
-          cp "$out_dir/website_smoke.json" .
+          git rm -f --ignore-unmatch production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json migration.log live_sessions.json daily_sessions.json live_anomalies.json
+          git rm -f --ignore-unmatch 'diag-*.json'
           cp "$out_dir/architecture_inventory.json" .
-          cp "$out_dir/migration.log" .
           cp "$out_dir/ops_status.json" .
           cp "$out_dir/autopilot_snapshot.json" .
-          git add production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json migration.log ops_status.json autopilot_snapshot.json
+          git add -A architecture_inventory.json ops_status.json autopilot_snapshot.json
           git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi

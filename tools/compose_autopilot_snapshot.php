@@ -97,11 +97,8 @@ try{
         ],
         'ops'=>$ops,
         'artifacts'=>[
-            'production'=>'production_snapshot.json',
-            'live'=>'live_session_report.json',
-            'handoff'=>'handoff.json',
-            'website'=>'website_smoke.json',
             'ops'=>'ops_status.json',
+            'architecture'=>'architecture_inventory.json',
         ],
     ];
     if(is_array($daily)){
@@ -110,11 +107,9 @@ try{
             'since_utc'=>$daily['since_utc']??null,
             'summary'=>$daily['summary']??[],
         ];
-        $snapshot['artifacts']['daily']='daily_session_report.json';
     }
     if(is_array($architecture)){
         $snapshot['architecture']=architectureSummary($architecture);
-        $snapshot['artifacts']['architecture']='architecture_inventory.json';
     }
 
     $json=json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT|JSON_INVALID_UTF8_SUBSTITUTE);

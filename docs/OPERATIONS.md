@@ -33,17 +33,17 @@ Do not treat a diagnostics-download failure as a successful deployment.
 
 ## Autopilot first read
 
-The diagnostics branch publishes `autopilot_snapshot.json` as the compact first-read artifact for autonomous work. It combines, without transcript text:
+The public diagnostics branch publishes only redacted aggregate artifacts. `autopilot_snapshot.json` is the compact first-read artifact and combines, without transcript text or customer/operator identifiers:
 - production SHA/branch;
 - migration count/pending/checksum state;
 - health flags;
-- manager response/push/visibility state;
+- aggregate manager response/push/visibility health;
 - handoff health;
-- current live-session funnel summary and flagged conversation IDs/reasons;
+- current live-session funnel summary and aggregate anomaly reasons;
 - website smoke summary and ops status;
-- pointers to the detailed diagnostic files.
+- pointers only to other public-safe aggregate artifacts.
 
-Use this file to decide what detailed artifact to inspect next. It is an index/triage surface, not a replacement for message-level evidence.
+Use this file as an index/triage surface. Detailed message-level evidence is generated only ephemerally inside the protected production workflow and must not be committed to the public repository.
 
 `tools/compose_autopilot_snapshot.php` composes it from the detailed production artifacts and deliberately excludes `recent_messages` and live `message_tail` content.
 
@@ -51,7 +51,7 @@ Use this file to decide what detailed artifact to inspect next. It is an index/t
 
 `tools/production_snapshot.php` is the canonical detailed machine-readable production snapshot generator. It contains production SHA/branch, database/migration state, manager visibility/response/push health, handoff integrity, website attribution, recent messages/events and manager delivery failures.
 
-Generated production diagnostics belong on the diagnostics artifact/branch, not in `main`.
+Raw generated production diagnostics must not be committed to any public branch. The diagnostics branch may contain only outputs passed through `tools/sanitize_public_diagnostics.php` plus non-sensitive deployment/architecture status.
 
 Sensitive customer content should remain bounded and redacted; never expose secrets/config values in snapshots.
 
