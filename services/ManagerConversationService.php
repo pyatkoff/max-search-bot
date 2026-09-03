@@ -110,11 +110,19 @@ class ManagerConversationService
         $q=$pdo->prepare($sql);$q->execute($projectIds);return$q->fetchAll();
     }
 
-    public static function detail(int $conversationId,int $managerId): ?array
+    /** Visible conversation metadata without read-state or transcript side effects. */
+    public static function visibleConversation(int $conversationId,int $managerId): ?array
     {
-        RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
+        RoutingAccessService::ensureSchema();
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!RoutingAccessService::canSeeConversation($managerId,$conversation))return null;
+        return$conversation;
+    }
+
+    public static function detail(int $conversationId,int $managerId): ?array
+    {
+        ManagerReadService::ensureSchema();
+        $conversation=self::visibleConversation($conversationId,$managerId);if(!$conversation)return null;
         ManagerReadService::markRead($managerId,$conversationId);
         $q=ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');$q->execute([$conversationId]);$messages=$q->fetchAll();
         foreach($messages as &$message){if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');}unset($message);
