@@ -13,7 +13,8 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `services/DestinationCatalogRepository.php` — destination catalog storage boundary; consumers must not read Bitrix HL directly when a repository path exists.
 - `services/LeadDeliveryGateway.php` — canonical lead-delivery boundary. `BitrixLeadDeliveryGateway` preserves current local production delivery; `HttpLeadDeliveryGateway` is the authenticated standalone transport for the already-built canonical element and must not own business fields.
 - `services/StandaloneReadiness.php` + `tools/standalone_readiness.php` — cutover gate. A new host is not standalone-ready until runtime/database/catalog storage and the supported lead bridge configuration are all explicitly green; secret values must never be printed.
-- `services/ManagerRequestContext.php` — manager identity plus conversation authorization/visibility context.
+- `services/ManagerConversationAccessPolicy.php` — canonical Manager conversation visibility delegation and visible-conversation edit ownership policy shared by Manager and Sales Pipeline paths.
+- `services/ManagerRequestContext.php` — manager session identity/CSRF context and HTTP-facing delegation to the conversation access policy.
 - `manager/lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/JSON/error boundary for thin PHP endpoints; new endpoint plumbing should converge here instead of recreating local guards.
 - `manager/assets/manager-http-client.js` — shared browser request/auth/error helper for Manager/Admin/Routing and focused feature endpoints where semantics actually match; endpoint selection is a transport concern, while feature-specific state stays in its owning module.
 - `services/AdminDirectoryService.php` — bounded admin directory/read snapshot composition.
@@ -45,7 +46,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Remaining direct Bitrix HL/catalog reads in destination/search code → `DestinationCatalogRepository` or the relevant repository boundary.
 - Remaining direct lead persistence/transport calls → `LeadDeliveryGateway`; business payload construction stays in `LeadPayloadService` and transport adapters must not re-map lead semantics.
 - Remaining runtime/bootstrap decisions in webhook/cron entrypoints → `RuntimeBootstrap`; do not create per-transport standalone switches.
-- Current Manager endpoint session/auth/CSRF/JSON/error plumbing is consolidated in `manager/lib/ManagerHttp.php`; repository inventory guards that boundary for new top-level Manager PHP interfaces. Conversation edit visibility stays delegated to `ManagerRequestContext` rather than duplicated.
+- Current Manager endpoint session/auth/CSRF/JSON/error plumbing is consolidated in `manager/lib/ManagerHttp.php`; repository inventory guards that boundary for new top-level Manager PHP interfaces. Conversation visibility/edit ownership delegates through `ManagerConversationAccessPolicy` rather than being duplicated between Manager and Sales Pipeline paths.
 - Remaining browser fetch/auth/error wrappers with the same semantics → `manager/assets/manager-http-client.js`; do not merge feature-specific request behavior merely for code-count reduction.
 - Repeated admin directory/audit read assembly → `AdminDirectoryService` / `AuditLogService`, leaving `manager/admin.php` as an interface renderer.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.

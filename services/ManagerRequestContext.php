@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/ManagerAuthService.php';
+require_once __DIR__ . '/ManagerConversationAccessPolicy.php';
 
 final class ManagerRequestContext
 {
@@ -63,11 +64,7 @@ final class ManagerRequestContext
 
     public static function canEditAssignedConversation(array $conversation, array $manager): bool
     {
-        if (self::isAdmin($manager)) {
-            return true;
-        }
-        $assignedManagerId = (int) ($conversation['manager_id'] ?? 0);
-        return $assignedManagerId > 0 && $assignedManagerId === (int) ($manager['id'] ?? 0);
+        return ManagerConversationAccessPolicy::canEditVisibleConversation($conversation, $manager);
     }
 
     public static function jsonBody(): array
