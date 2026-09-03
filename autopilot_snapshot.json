@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-02T22:26:03+00:00",
+    "generated_at": "2026-09-03T00:32:45+00:00",
     "production": {
-        "sha": "58873f6f7d3526dde0d486a56ee6397f67673c26",
+        "sha": "cdda4b513744c308f4685bfb8234951d65e05692",
         "branch": "main"
     },
     "migrations": {
@@ -158,84 +158,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-02 21:25:52",
-        "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
-            "explicit_test_sessions": 0,
-            "source_resolution": {
-                "resolved": 2,
-                "unresolved": 0,
-                "unresolved_conversation_ids": []
-            },
-            "started": 2,
-            "needs_collected": 1,
-            "tours_opened": 1,
-            "site_opened": 0,
-            "post_tour_manager_cta_shown": 0,
-            "manager_requested": 0,
-            "manager_replied": 0,
-            "customer_replied_after_manager": 0,
-            "phone_received": 0,
-            "flagged_sessions": 1,
-            "manager_response": {
-                "answered_in_90s": 0,
-                "answered_after_90s": 0,
-                "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
-            },
-            "drop_points": {
-                "collecting_needs": 1,
-                "tours_opened": 1
-            },
-            "flags": {
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
-            }
-        },
-        "flagged_sessions": [
-            {
-                "conversation_id": 777,
-                "flags": [
-                    "repeated_callback_input",
-                    "excessive_turns"
-                ],
-                "drop_point": "tours_opened",
-                "manager_response_bucket": null,
-                "manager_response_seconds": null
-            }
-        ]
-    },
-    "website": {
-        "ok": true,
-        "summary": []
-    },
-    "ops": {
-        "sha": "58873f6f7d3526dde0d486a56ee6397f67673c26",
-        "migration": "success",
-        "snapshot": "success",
-        "live_sessions": "success",
-        "daily_sessions": "success",
-        "yesterday_sessions": "success",
-        "architecture_inventory": "success",
-        "website_smoke": "success",
-        "health": "success",
-        "reported_at": "2026-09-02T22:26:03Z"
-    },
-    "artifacts": {
-        "production": "production_snapshot.json",
-        "live": "live_session_report.json",
-        "handoff": "handoff.json",
-        "website": "website_smoke.json",
-        "ops": "ops_status.json",
-        "daily": "daily_session_report.json",
-        "architecture": "architecture_inventory.json"
-    },
-    "daily": {
-        "window_hours": null,
-        "since_utc": "2026-09-02 22:00:00",
+        "since_utc": "2026-09-02 23:32:34",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -264,11 +187,73 @@
                 "max_seconds": null
             },
             "drop_points": [],
+            "flags": []
+        },
+        "flagged_sessions": []
+    },
+    "website": {
+        "ok": true,
+        "summary": []
+    },
+    "ops": {
+        "sha": "cdda4b513744c308f4685bfb8234951d65e05692",
+        "migration": "success",
+        "snapshot": "success",
+        "live_sessions": "success",
+        "daily_sessions": "success",
+        "yesterday_sessions": "success",
+        "architecture_inventory": "success",
+        "website_smoke": "success",
+        "health": "success",
+        "reported_at": "2026-09-03T00:32:45Z"
+    },
+    "artifacts": {
+        "production": "production_snapshot.json",
+        "live": "live_session_report.json",
+        "handoff": "handoff.json",
+        "website": "website_smoke.json",
+        "ops": "ops_status.json",
+        "daily": "daily_session_report.json",
+        "architecture": "architecture_inventory.json"
+    },
+    "daily": {
+        "window_hours": null,
+        "since_utc": "2026-09-02 22:00:00",
+        "summary": {
+            "sessions": 1,
+            "raw_sessions": 1,
+            "explicit_test_sessions": 0,
+            "source_resolution": {
+                "resolved": 1,
+                "unresolved": 0,
+                "unresolved_conversation_ids": []
+            },
+            "started": 1,
+            "needs_collected": 1,
+            "tours_opened": 1,
+            "site_opened": 0,
+            "post_tour_manager_cta_shown": 0,
+            "manager_requested": 0,
+            "manager_replied": 0,
+            "customer_replied_after_manager": 0,
+            "phone_received": 0,
+            "flagged_sessions": 0,
+            "manager_response": {
+                "answered_in_90s": 0,
+                "answered_after_90s": 0,
+                "still_unanswered": 0,
+                "measured_responses": 0,
+                "avg_seconds": null,
+                "max_seconds": null
+            },
+            "drop_points": {
+                "tours_opened": 1
+            },
             "flags": [],
             "calendar_day": {
-                "conversations_started": 0,
-                "needs_collected_from_started": 0,
-                "tours_opened_from_started": 0,
+                "conversations_started": 1,
+                "needs_collected_from_started": 1,
+                "tours_opened_from_started": 1,
                 "site_opened": 0,
                 "post_tour_manager_cta_shown": 0,
                 "manager_requested": 0,
@@ -278,7 +263,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-02T22:26:03+00:00",
+        "generated_at": "2026-09-03T00:32:45+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -287,13 +272,13 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 24218,
-                "code_lines": 584
+                "bytes": 22274,
+                "code_lines": 549
             },
             "services": {
                 "files": 137,
-                "bytes": 542723,
-                "code_lines": 11596
+                "bytes": 545634,
+                "code_lines": 11655
             },
             "integrations": {
                 "files": 11,
@@ -322,8 +307,8 @@
             },
             "tests": {
                 "files": 173,
-                "bytes": 761316,
-                "code_lines": 8728
+                "bytes": 767362,
+                "code_lines": 8806
             },
             "tools": {
                 "files": 36,
@@ -334,26 +319,20 @@
         "hotspots": [
             {
                 "path": "services/InteractionGuard.php",
-                "lines": 262,
-                "bytes": 9988,
+                "lines": 321,
+                "bytes": 12899,
                 "severity": "observe"
             },
             {
-                "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 247,
-                "bytes": 11339,
+                "path": "tests/run_callback_controller_regression.php",
+                "lines": 308,
+                "bytes": 23457,
                 "severity": "observe"
             },
             {
                 "path": "services/DialogueView.php",
                 "lines": 237,
                 "bytes": 13468,
-                "severity": "observe"
-            },
-            {
-                "path": "tests/run_callback_controller_regression.php",
-                "lines": 230,
-                "bytes": 17411,
                 "severity": "observe"
             },
             {
@@ -366,6 +345,12 @@
                 "path": "tools/live_session_snapshot.php",
                 "lines": 218,
                 "bytes": 10172,
+                "severity": "observe"
+            },
+            {
+                "path": "actions/callbacks/WizardCallbackAction.php",
+                "lines": 212,
+                "bytes": 9395,
                 "severity": "observe"
             },
             {
