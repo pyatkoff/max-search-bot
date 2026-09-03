@@ -36,7 +36,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 - **Completed:** push API/status/enable surfaces, `media-upload.php`, `media-file.php`, `pipeline-api.php` and the main `api.php` use `ManagerHttp` for their applicable session/auth/CSRF/response lifecycle.
 - **Completed for admin/routing shells:** direct `ManagerRequestContext::startSession()` ownership is removed; both HTML shells now enter through `ManagerHttp::start()`.
-- Remaining repeated response/auth/CSRF handling in admin/routing actions and other Manager endpoints → `ManagerHttp`, one endpoint family at a time with behavior regressions.
+- **Completed for current endpoint inventory:** all Manager PHP interfaces enter through `ManagerHttp`; authenticated business-write JSON/form endpoints, including push subscription persistence, use its shared CSRF guard. Re-run caller inventory before adding or migrating an endpoint instead of assuming completion is permanent.
 - **Completed for admin/routing frontend:** duplicated `fetch` / malformed-response / network-error transport uses `assets/manager-http-client.js`. Do not force Workspace V2 auth-recovery behavior into this small client; converge further only when the contracts genuinely match.
 - Admin/routing visual primitives → shared manager admin CSS only when duplication becomes material; do not couple them to conversation CSS.
 
@@ -73,7 +73,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 ## Refactor sequence
 
 1. **Done:** entrypoint stability, single `index.php`, cache-busted assets and real production HTTP smoke.
-2. **In progress:** central request/auth/error interface layer. Push API/status/enable, media upload/preview, Sales Pipeline API, main Manager API, and admin/routing shell session bootstrap are migrated; continue with narrow slices rather than widening `ManagerHttp` into a business layer.
+2. **Done for the current endpoint inventory:** push API/status/enable, media upload/preview, Sales Pipeline API, main Manager API, and admin/routing shells use the shared request/auth boundary; push subscription writes now use the same CSRF contract. Keep `ManagerHttp` business-service free and inventory new endpoints as they appear.
 3. **Done:** split admin and routing monolith assets. Admin and routing CSS/JS are extracted; PHP files remain markup shells.
 4. **Done for admin/routing frontend transport:** one small JSON client owns duplicated fetch/network/invalid-response behavior while page modules retain role gates, CSRF state and domain-specific errors.
 5. **In progress for Workspace frontend ownership:** `workspace-v2.js` remains feature-neutral; stage history, inbox filters and task mutation orchestration are split into focused modules. Continue extracting only where ownership is clear and behavior regressions can lock the boundary.

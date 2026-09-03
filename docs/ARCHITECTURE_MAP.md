@@ -45,7 +45,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Remaining direct Bitrix HL/catalog reads in destination/search code → `DestinationCatalogRepository` or the relevant repository boundary.
 - Remaining direct lead persistence/transport calls → `LeadDeliveryGateway`; business payload construction stays in `LeadPayloadService` and transport adapters must not re-map lead semantics.
 - Remaining runtime/bootstrap decisions in webhook/cron entrypoints → `RuntimeBootstrap`; do not create per-transport standalone switches.
-- Remaining Manager endpoint session/auth/CSRF/JSON/error plumbing → `manager/lib/ManagerHttp.php`; conversation edit visibility stays delegated to `ManagerRequestContext` rather than duplicated.
+- Current Manager endpoint session/auth/CSRF/JSON/error plumbing is consolidated in `manager/lib/ManagerHttp.php`; repository inventory guards that boundary for new top-level Manager PHP interfaces. Conversation edit visibility stays delegated to `ManagerRequestContext` rather than duplicated.
 - Remaining browser fetch/auth/error wrappers with the same semantics → `manager/assets/manager-http-client.js`; do not merge feature-specific request behavior merely for code-count reduction.
 - Repeated admin directory/audit read assembly → `AdminDirectoryService` / `AuditLogService`, leaving `manager/admin.php` as an interface renderer.
 - Repeated handoff policy wording/availability decisions → canonical handoff policy/application owner.

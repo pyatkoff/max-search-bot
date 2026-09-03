@@ -17,6 +17,7 @@ try{
         ManagerHttp::respond(['ok'=>true,'public_key'=>ManagerPushService::publicKey()]);
     }
     if($action==='subscribe'){
+        ManagerHttp::requireCsrf($data);
         $ok=ManagerPushService::saveSubscription(
             $managerId,
             (array)($data['subscription']??[]),
