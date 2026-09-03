@@ -1,5 +1,6 @@
 <?php
 //require_once($_SERVER["DOCUMENT_ROOT"].'/bitrix/modules/main/include/prolog_before.php');
+require_once __DIR__ . '/services/MaxTlsConfig.php';
 
 class MaxSearchBase
 {
@@ -667,11 +668,8 @@ class MaxSearchBase
 		}
 
 		$ch = curl_init($url);
-		
-// MAX platform-api2 certificate workaround
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt_array($ch, MaxTlsConfig::curlOptions(false));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($httpMethod));

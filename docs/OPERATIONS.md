@@ -37,6 +37,8 @@ Do not treat a diagnostics-download failure as a successful deployment.
 
 The `Verify production MAX TLS` workflow must be green on the exact production SHA before any customer-facing MAX transport switches from the legacy compatibility mode to verified TLS. A failed preflight is evidence to keep the current transport unchanged and repair the CA trust path first.
 
+All MAX API, media-upload and subscription-admin requests use `MaxTlsConfig`. Verified peer/hostname checks are the production default. `MAX_SEARCH_MAX_API_INSECURE_COMPAT=1` remains an emergency compatibility path only when no readable CA bundle is installed; remove the flag and restore the managed bundle immediately after recovery.
+
 ## Autopilot first read
 
 The public diagnostics branch publishes only redacted aggregate artifacts. `autopilot_snapshot.json` is the compact first-read artifact and combines, without transcript text or customer/operator identifiers:
