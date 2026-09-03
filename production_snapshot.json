@@ -1,14 +1,14 @@
 {
     "ok": true,
-    "generated_at": "2026-09-03T09:35:25+00:00",
+    "generated_at": "2026-09-03T09:41:24+00:00",
     "production": {
-        "sha": "5e98ac0e0eac3e9c549fcd026a086c5871ef94fa",
+        "sha": "9c6cdff40f62e4aaabea54086ad0efa3faff88fd",
         "branch": "main"
     },
     "database": {
         "name": "anytour_max_search",
         "host": "localhost",
-        "latency_ms": 0.3
+        "latency_ms": 0.4
     },
     "migrations": [
         {
@@ -233,7 +233,7 @@
         "customers": 798,
         "customer_channels": 798,
         "conversations": 800,
-        "messages": 20791,
+        "messages": 20792,
         "managers": 6,
         "manager_assignments": 131,
         "conversation_events": 1008,
@@ -1852,6 +1852,15 @@
     ],
     "recent_messages": [
         {
+            "id": 20792,
+            "conversation_id": 656,
+            "direction": "outbound",
+            "sender_type": "ai",
+            "channel": "telegram",
+            "text": "🌴 <b>Давайте найдём ваш отдых</b> Можно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+            "created_at": "2026-09-03 09:41:22"
+        },
+        {
             "id": 20791,
             "conversation_id": 800,
             "direction": "inbound",
@@ -2380,15 +2389,6 @@
             "sender_type": "ai",
             "channel": "max",
             "text": "✅ <b>Готово! Проверьте параметры</b> ✈️ Москва → Китай 👥 3 взр., без детей 🏨 от 4★ 🍽 Завтрак 🌙 7-9 ночей 📅 Вылет 28.09.2026 · ищем 25.09–01.10.2026 Что удобнее дальше?",
-            "created_at": "2026-09-03 09:30:51"
-        },
-        {
-            "id": 20732,
-            "conversation_id": 798,
-            "direction": "inbound",
-            "sender_type": "customer",
-            "channel": "max",
-            "text": "pick_date_28.09.2026",
             "created_at": "2026-09-03 09:30:51"
         }
     ],
