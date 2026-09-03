@@ -20,7 +20,7 @@ async function syncPushSubscription(){
   const keyResp=await fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'});
   if(!keyResp.ok)throw new Error('push_key_http_'+keyResp.status);
   const keyJson=await keyResp.json();
-  if(!keyJson.ok||!keyJson.public_key)throw new Error('push_key_missing');
+  if(!keyJson.ok||!keyJson.public_key||!keyJson.csrf)throw new Error('push_key_missing');
   const key=b64ToUint8(keyJson.public_key);
   let sub=await self.registration.pushManager.getSubscription();
   if(sub&&sub.options&&sub.options.applicationServerKey&&!sameBytes(sub.options.applicationServerKey,key)){
@@ -28,7 +28,7 @@ async function syncPushSubscription(){
     sub=null;
   }
   if(!sub)sub=await self.registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-  const save=await fetch('push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',subscription:sub.toJSON()})});
+  const save=await fetch('push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:keyJson.csrf,subscription:sub.toJSON()})});
   if(!save.ok)throw new Error('push_save_http_'+save.status);
   const saved=await save.json();
   if(!saved.ok)throw new Error('push_save_failed');
