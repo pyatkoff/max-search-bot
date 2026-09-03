@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ProjectConfig.php';
 
 /**
  * Conversation-aware owner for higher-funnel Yandex Metrika conversion goals.
@@ -9,6 +10,10 @@ require_once __DIR__ . '/ConversationDb.php';
  */
 class MetrikaConversionGoalService
 {
+    private const CUSTOMER_ACTIVITY_GOAL = 'max_bot_activity_start';
+    private const BOT_PLATFORMS = ['max','telegram'];
+    private const CUSTOMER_ACTIVITY_TYPES = ['message','callback','contact'];
+
     private const STAGE_GOALS = [
         'working' => 'max_lead_working',
         'offer_sent' => 'max_offer_sent',
@@ -20,6 +25,29 @@ class MetrikaConversionGoalService
     {
         $stageKey = trim($stageKey);
         return self::STAGE_GOALS[$stageKey] ?? null;
+    }
+
+    public static function isCustomerActivity(string $platform, string $type): bool
+    {
+        return in_array(strtolower(trim($platform)), self::BOT_PLATFORMS, true)
+            && in_array(strtolower(trim($type)), self::CUSTOMER_ACTIVITY_TYPES, true);
+    }
+
+    public static function customerActivity(string $platform, $chatId, string $type, ?callable $queue = null): bool
+    {
+        if (!self::isCustomerActivity($platform, $type)) return false;
+        $conversationId = 0;
+        try {
+            $conversationId = self::conversationIdByChat($platform, $chatId);
+            if ($conversationId <= 0) return false;
+            return self::emitOnce($conversationId, self::CUSTOMER_ACTIVITY_GOAL, $queue);
+        } catch (Throwable $e) {
+            self::logFailure('customer_activity', $conversationId, $e, [
+                'platform'=>strtolower(trim($platform)),
+                'type'=>strtolower(trim($type)),
+            ]);
+            return false;
+        }
     }
 
     public static function managerReply(int $conversationId, ?callable $queue = null): bool
@@ -97,6 +125,18 @@ class MetrikaConversionGoalService
         $q = ConversationDb::connection()->prepare('SELECT external_chat_id FROM conversations WHERE id=? LIMIT 1');
         $q->execute([$conversationId]);
         return trim((string)($q->fetchColumn() ?: ''));
+    }
+
+    private static function conversationIdByChat(string $platform, $chatId): int
+    {
+        $q = ConversationDb::connection()->prepare('SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1');
+        $q->execute([
+            ProjectConfig::projectId(),
+            strtolower(trim($platform)),
+            trim((string)$chatId),
+            'closed',
+        ]);
+        return (int)$q->fetchColumn();
     }
 
     private static function hasEvent(int $conversationId, string $eventType): bool

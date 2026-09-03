@@ -22,6 +22,8 @@ $managerHttpClient=(string)file_get_contents(dirname(__DIR__).'/manager/assets/m
 $passed=0;$failed=0;
 function spCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
+require_once dirname(__DIR__).'/services/MetrikaConversionGoalService.php';
+
 spCheck('pipeline catalog table exists',strpos($migration011,'CREATE TABLE IF NOT EXISTS lead_stages')!==false);
 spCheck('technical status is not replaced by sales stage',strpos($migration011,'ADD COLUMN lead_stage_key')!==false && strpos($migration011,'CHANGE COLUMN status')===false && strpos($migration011,'MODIFY COLUMN status')===false);
 spCheck('default new stage is explicit',strpos($migration011,"DEFAULT 'new'")!==false && strpos($migration011,"('new','Новый лид'")!==false);
@@ -72,6 +74,19 @@ spCheck('Metrika business milestones use the approved goal names',
     && strpos($metrikaGoals,"'won' => 'max_sale'")!==false
     && strpos($metrikaGoals,"'max_manager_reply'")!==false
     && strpos($metrikaGoals,"'max_customer_reply_after_manager'")!==false
+    && strpos($metrikaGoals,"'max_bot_activity_start'")!==false
+);
+spCheck('bot activity goal counts tourist messages callbacks and contacts on MAX and Telegram only',
+    MetrikaConversionGoalService::isCustomerActivity('max','message')
+    && MetrikaConversionGoalService::isCustomerActivity('max','callback')
+    && MetrikaConversionGoalService::isCustomerActivity('telegram','contact')
+    && !MetrikaConversionGoalService::isCustomerActivity('max','bot_started')
+    && !MetrikaConversionGoalService::isCustomerActivity('website','message')
+);
+spCheck('first bot activity is evaluated after attribution sync and before routing branches',
+    strpos($incoming,'MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);')!==false
+    && strpos($incoming,'ConversationAttributionService::syncByChat($platform,$chatId);') < strpos($incoming,'MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);')
+    && strpos($incoming,'MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);') < strpos($incoming,'SourceHandlingService::handle($incoming)')
 );
 spCheck('Metrika conversion owner requires real handoff evidence and dedupes by conversation event',
     strpos($metrikaGoals,"hasEvent(\$conversationId, 'waiting_manager')")!==false
