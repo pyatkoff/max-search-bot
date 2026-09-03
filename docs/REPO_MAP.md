@@ -44,7 +44,7 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 - `tools/production_snapshot.php` — canonical production JSON snapshot;
 - `tools/live_session_snapshot.php` — bounded recent live-session evidence;
 - `tools/architecture_inventory.php` — code-area/hotspot/runtime-write inventory for technical audits;
-- `tools/required_checks_inventory.php` — required regression coverage inventory;
+- `tools/required_checks_inventory.php` — inventory of every `tests/run_*.php` entrypoint, including required and explicitly classified non-required checks;
 - `tools/conversation_db.php` — conversation inspection CLI;
 - `tools/export_handoff_snapshot.php` — handoff evidence;
 - `.github/workflows/deploy.yml` — production deployment;

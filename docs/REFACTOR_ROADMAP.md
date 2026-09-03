@@ -35,8 +35,8 @@ Do not use old unchecked roadmap items as implementation truth. Verify current m
 - [x] Parallel PR groups: `architecture`, `dialogue`, `website`, `manager`, `diagnostics`.
 - [x] Preserve one aggregate required result (`regression`) and one all-groups local/deploy command.
 - [x] Promote responsive Workspace Visual QA from screenshot-only evidence to executable layout assertions.
-- [ ] Add timing metadata/reporting per required group so slow areas can be optimized from evidence rather than intuition.
-- [ ] Classify optional/manual tests explicitly instead of relying on naming accidents.
+- [x] Add timing metadata/reporting per required group so slow areas can be optimized from evidence rather than intuition.
+- [x] Classify optional/manual tests explicitly instead of relying on naming accidents.
 - [ ] Review duplicated PR/deploy verification only after main-branch provenance/branch protection makes removal safe.
 - [ ] Convert formatting-sensitive source assertions to behavior tests when those areas are touched; keep static checks for true architecture/security invariants.
 
@@ -45,7 +45,7 @@ Do not use old unchecked roadmap items as implementation truth. Verify current m
 - [x] Generate lightweight code-area/hotspot/runtime-write inventory from the real tree.
 - [x] Correct repository map so Manager V2 ownership matches production.
 - [x] Maintain explicit keep/merge/move/delete ownership map in `docs/ARCHITECTURE_MAP.md`.
-- [ ] Publish/surface architecture inventory summary as a stable diagnostics/autopilot artifact after deploys.
+- [x] Publish/surface architecture inventory summary as a stable diagnostics/autopilot artifact after deploys.
 - [ ] Add caller-backed legacy candidate inventory before any deletion.
 - [ ] Review every `runtime_ddl` signal; production request paths must not mutate schema.
 - [ ] Review `direct_sql_writes` signals and identify only the places where repositories/owners would reduce duplicated domain logic.
