@@ -34,6 +34,7 @@ return [
         'php tests/run_max_tls_transport_regression.php',
         'php tests/run_deployment_ownership_regression.php',
         'bash tests/run_deploy_main_provenance_regression.sh',
+        'php tests/run_dialogue_mutation_inventory_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',

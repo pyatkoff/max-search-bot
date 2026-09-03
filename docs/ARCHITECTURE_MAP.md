@@ -74,6 +74,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - Legacy manager UI branches after Workspace V2 feature parity and production proof.
 - Ad-hoc Manager session/auth/CSRF/JSON/error helpers duplicated by `ManagerHttp` after all callers have migrated and regressions cover the boundary.
 - Duplicate browser HTTP/auth/error wrappers after caller search proves `manager-http-client.js` covers their semantics. The current caller inventory found no further safe merge: Workspace auth recovery, multipart media, timed push recovery, standalone setup and service-worker lifecycle have materially different contracts and are guarded as explicit owners.
+- Direct dialogue/trip-state mutations are classified in `docs/dialogue-mutation-inventory.json` and enforced by `tools/dialogue_mutation_inventory.php`. A new caller of `setStatus`, `saveLastValue`, `upsertStatusValue`, `deleteAll`/`deleteAllStatus` or `applyAiParameters` must be classified before required CI can pass; the inventory is an observe-only boundary and does not make update, upsert, transition, reset, metadata or Manager technical-state semantics interchangeable.
 - Runtime schema-creation/alteration code after equivalent forward migrations exist.
 - Bespoke regression runners when their scenario is represented by the reusable scenario engine without losing coverage.
 - Direct local Bitrix lead insertion from the standalone host after bridge cutover is production-proven; keep the legacy receiver only as long as the compatibility phase requires it.
