@@ -33,6 +33,7 @@ mphCheck('push delivery logs successful subscription send',strpos($push,"'delive
 mphCheck('push delivery logs failed and expired sends',strpos($push,"'delivery_failed'")!==false && strpos($push,"'subscription_expired'")!==false && strpos($push,"'delivery_exception'")!==false);
 mphCheck('production snapshot exposes recent per-conversation push evidence',strpos($snapshot,"'recent_manager_push_events'")!==false && strpos($snapshot,"recentStructuredComponentEvents")!==false && strpos($snapshot,"'manager_push',50")!==false);
 mphCheck('service worker repairs server push subscription',strpos($sw,'syncPushSubscription')!==false && strpos($sw,"push.php?action=key")!==false && strpos($sw,"action:'subscribe'")!==false);
+mphCheck('service worker subscription repair satisfies the Manager CSRF contract',strpos($pushEndpoint,"'csrf'=>ManagerHttp::csrf(true)")!==false && strpos($sw,'!keyJson.csrf')!==false && strpos($sw,"action:'subscribe',csrf:keyJson.csrf,subscription:sub.toJSON()")!==false);
 mphCheck('service worker repairs subscription on activation',strpos($sw,"self.addEventListener('activate'")!==false && strpos($sw,'await syncPushSubscription()')!==false);
 mphCheck('service worker replaces stale VAPID subscription',strpos($sw,'applicationServerKey')!==false && strpos($sw,'await sub.unsubscribe()')!==false);
 mphCheck('push enable replaces stale VAPID subscription',strpos($enable,'applicationServerKey')!==false && strpos($enable,'await sub.unsubscribe()')!==false && strpos($enable,"action:'subscribe'")!==false);

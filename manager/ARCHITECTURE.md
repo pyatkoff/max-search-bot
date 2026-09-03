@@ -30,7 +30,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/manager-http-client.js` — small shared same-origin JSON transport owner for admin/routing pages; pages continue to own their CSRF/session state and business-specific error copy.
 - `assets/admin.css` + `assets/admin.js` — admin presentation/interaction owner; `admin.php` remains markup shell only and delegates session bootstrap to `ManagerHttp`.
 - `assets/routing.css` + `assets/routing.js` — routing-admin presentation/interaction owner; `routing.php` remains markup shell only and delegates session bootstrap to `ManagerHttp`.
-- `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep; push behavior remains in services while endpoints use the shared HTTP boundary.
+- `sw.js`, `push-enable.php`, `push-status.php`, `push.php` — keep; push behavior remains in services while endpoints use the shared HTTP boundary. The authenticated, no-store key response carries the current Manager CSRF token so service-worker subscription repair obeys the same protected write contract as page callers.
 
 ### Merge / centralize incrementally
 

@@ -14,7 +14,11 @@ $action=(string)($data['action']??$_GET['action']??'key');
 
 try{
     if($action==='key'){
-        ManagerHttp::respond(['ok'=>true,'public_key'=>ManagerPushService::publicKey()]);
+        ManagerHttp::respond([
+            'ok'=>true,
+            'public_key'=>ManagerPushService::publicKey(),
+            'csrf'=>ManagerHttp::csrf(true),
+        ]);
     }
     if($action==='subscribe'){
         ManagerHttp::requireCsrf($data);
