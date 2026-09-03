@@ -27,6 +27,7 @@ return [
         'php tests/run_cutover_db_sync_readiness_regression.php',
         'php tests/run_cutover_db_sync_execution_regression.php',
         'php tests/run_bot_cutover_runbook_regression.php',
+        'php tests/run_max_dual_cutover_contract.php',
         'php tests/run_cron_ownership_diagnostic_contract_regression.php',
         'php tests/run_cli_entrypoint_guard_regression.php',
         'php tests/run_max_tls_preflight_contract_regression.php',
