@@ -8,7 +8,7 @@ $checks = [
         && strpos($workflow, 'scp -o BatchMode=yes') !== false
         && strpos($workflow, '$remote_diag_dir/*.json') !== false,
     'diagnostics are generated outside document root' =>
-        strpos($workflow, "MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR='/tmp/max-search-diagnostics-$EXPECTED_SHA'") !== false
+        strpos($workflow, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR=\'/tmp/max-search-diagnostics-$EXPECTED_SHA\'') !== false
         && strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') === false
         && strpos($exporter, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') !== false
         && strpos($exporter, 'Diagnostics output directory must stay outside the document root') !== false,
@@ -20,7 +20,7 @@ $checks = [
         && strpos($workflow, 'rm -rf diagnostics') !== false,
     'temporary remote diagnostics are always cleaned' =>
         strpos($workflow, 'trap cleanup_remote_diagnostics EXIT') !== false
-        && strpos($workflow, "rm -rf '$remote_diag_dir'") !== false,
+        && strpos($workflow, 'rm -rf \'$remote_diag_dir\'') !== false,
     'download requires at least one json file' =>
         strpos($workflow, "find production-diagnostics -maxdepth 1 -type f -name '*.json' -print -quit") !== false,
     'diagnostics download outcome is captured' =>
