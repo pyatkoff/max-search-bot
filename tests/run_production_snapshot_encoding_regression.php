@@ -23,5 +23,8 @@ pseCheck('substituted snapshot remains valid JSON', is_array($decoded) && ($deco
 $source = (string)file_get_contents(__DIR__ . '/../tools/production_snapshot.php');
 pseCheck('production snapshot enables invalid UTF-8 substitution', strpos($source, 'JSON_INVALID_UTF8_SUBSTITUTE') !== false, true);
 pseCheck('production snapshot checks json_encode failure explicitly', strpos($source, 'production_snapshot_json_encode_failed') !== false, true);
+pseCheck('production snapshot probes manager lead detail without publishing lead data', strpos($source, 'function managerLeadDetailHealth(PDO $pdo):array') !== false && strpos($source, "'manager_lead_detail_health'=>[]") !== false && strpos($source, "'manager_lead_detail_ok'=>true") !== false, true);
+pseCheck('lead detail probe checks schema and components independently', strpos($source, "'lead_tasks'=>['id','conversation_id','title','due_at_utc','status','is_pinned'") !== false && strpos($source, "'pipeline'=>static fn(int\$id)=>SalesPipelineService::conversationSnapshot(\$id)") !== false && strpos($source, "'tasks'=>static fn(int\$id)=>LeadTaskService::listForConversation(\$id)") !== false && strpos($source, "'delivery_failure'=>static fn(int\$id)=>ManagerDeliveryStateService::activeFailure(\$id)") !== false, true);
+pseCheck('lead detail failures expose only bounded technical identity', strpos($source, "['exception'=>get_class(\$e),'code'=>(string)\$e->getCode()]") !== false && strpos($source, "\$failure['sqlstate']") !== false && strpos($source, "\$failure['driver_code']") !== false, true);
 
 exit($failed > 0 ? 1 : 0);
