@@ -59,7 +59,8 @@ Workspace V2 at `/manager/` is the forward and current production Manager produc
 
 ## Durable docs
 
-- `/AGENTS.md` — first-read autonomous rules;
+- `/START_HERE.md` — first-read current handoff, verified checkpoint and next safe sequence;
+- `/AGENTS.md` — stable autonomous operating rules;
 - `docs/PRODUCT.md` — durable product policy;
 - `docs/ARCHITECTURE.md` — dependency/ownership contract;
 - `docs/AUTOPILOT.md` — execution loop;

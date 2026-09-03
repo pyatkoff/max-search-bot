@@ -19,7 +19,7 @@ Do not optimize a micro-conversion at the cost of a higher-value handoff.
 
 ## Working-hours handoff
 
-Working window: 10:00–20:00.
+Working window: 10:00–20:00 Europe/Kaliningrad.
 
 During this window:
 - a manager request is sent to the working queue without making phone mandatory;
