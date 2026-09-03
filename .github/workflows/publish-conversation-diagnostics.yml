@@ -1,8 +1,9 @@
 name: Publish production diagnostics
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [Deploy production]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -14,11 +15,15 @@ concurrency:
 
 jobs:
   publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    env:
+      TARGET_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.TARGET_SHA }}
           fetch-depth: 0
 
       - name: Prepare SSH private key
@@ -38,7 +43,7 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Wait for deployed SHA, migrate and capture production
+      - name: Verify deployed SHA and capture production
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -51,12 +56,11 @@ jobs:
           deployed=""
           for attempt in $(seq 1 60); do
             deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && git rev-parse HEAD" 2>/dev/null || true)"
-            if [ "$deployed" = "$GITHUB_SHA" ]; then break; fi
+            if [ "$deployed" = "$TARGET_SHA" ]; then break; fi
             sleep 5
           done
-          test "$deployed" = "$GITHUB_SHA"
+          test "$deployed" = "$TARGET_SHA"
 
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/conversation_db.php migrate" > migration.log
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/production_snapshot.php" > production_snapshot.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php 1" > live_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php today" > daily_session_report.json
@@ -65,7 +69,7 @@ jobs:
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/website_production_smoke.php" > website_smoke.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/architecture_inventory.php --compact" > architecture_inventory.json
 
-          php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["admin_project_access_ok"])){fwrite(STDERR,"admin_project_access_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
+          php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("TARGET_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["admin_project_access_ok"])){fwrite(STDERR,"admin_project_access_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("live_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["summary"],$j["sessions"])) {fwrite(STDERR,"live_session_snapshot_contract_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("daily_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"daily_session_snapshot_contract_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("yesterday_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||($j["window_type"]??"")!=="calendar_day"||($j["timezone"]??"")!=="Europe/Kaliningrad"||!isset($j["summary"]["calendar_day"]["conversations_started"],$j["summary"]["calendar_day"]["manager_requested"],$j["summary"]["calendar_day"]["manager_replied"])) {fwrite(STDERR,"yesterday_session_snapshot_contract_failed\n");exit(1);}'
@@ -73,10 +77,10 @@ jobs:
           cat website_smoke.json
           php -r '$j=json_decode(file_get_contents("website_smoke.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"website_production_smoke_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("architecture_inventory.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["areas"],$j["hotspots"],$j["signals"]["runtime_ddl"],$j["signals"]["direct_sql_writes"])) {fwrite(STDERR,"architecture_inventory_contract_failed\n");exit(1);}'
-          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","architecture_inventory":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
+          printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","architecture_inventory":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$TARGET_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
           php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json architecture_inventory.json > autopilot_snapshot.private.json
           php tools/sanitize_public_diagnostics.php autopilot_snapshot.private.json > autopilot_snapshot.json
-          php -r '$j=json_decode(file_get_contents("autopilot_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])||(int)($j["schema_version"]??0)!==1){fwrite(STDERR,"autopilot_snapshot_contract_failed\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("GITHUB_SHA")){fwrite(STDERR,"autopilot_snapshot_sha_mismatch\n");exit(1);} if((int)($j["migrations"]["pending"]??-1)!==0||(int)($j["migrations"]["checksum_failures"]??-1)!==0){fwrite(STDERR,"autopilot_snapshot_migration_health_failed\n");exit(1);} if(!isset($j["daily"]["summary"]["calendar_day"]["conversations_started"],$j["daily"]["summary"]["calendar_day"]["manager_requested"])) {fwrite(STDERR,"autopilot_snapshot_daily_missing\n");exit(1);} if(!isset($j["architecture"]["signal_counts"]["runtime_ddl"],$j["architecture"]["signal_counts"]["direct_sql_writes"])) {fwrite(STDERR,"autopilot_snapshot_architecture_missing\n");exit(1);}'
+          php -r '$j=json_decode(file_get_contents("autopilot_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])||(int)($j["schema_version"]??0)!==1){fwrite(STDERR,"autopilot_snapshot_contract_failed\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("TARGET_SHA")){fwrite(STDERR,"autopilot_snapshot_sha_mismatch\n");exit(1);} if((int)($j["migrations"]["pending"]??-1)!==0||(int)($j["migrations"]["checksum_failures"]??-1)!==0){fwrite(STDERR,"autopilot_snapshot_migration_health_failed\n");exit(1);} if(!isset($j["daily"]["summary"]["calendar_day"]["conversations_started"],$j["daily"]["summary"]["calendar_day"]["manager_requested"])) {fwrite(STDERR,"autopilot_snapshot_daily_missing\n");exit(1);} if(!isset($j["architecture"]["signal_counts"]["runtime_ddl"],$j["architecture"]["signal_counts"]["direct_sql_writes"])) {fwrite(STDERR,"autopilot_snapshot_architecture_missing\n");exit(1);}'
 
           out_dir="$RUNNER_TEMP/production-diagnostics-out"
           rm -rf "$out_dir"
@@ -92,19 +96,18 @@ jobs:
           test -s "$out_dir/ops_status.json"
           test -s "$out_dir/autopilot_snapshot.json"
 
-          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json migration.log ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json
+          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
           git checkout -B diagnostics origin/diagnostics
           rm -rf production-diagnostics
           find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
-          rm -f migration.log
           cp "$out_dir/architecture_inventory.json" .
           cp "$out_dir/ops_status.json" .
           cp "$out_dir/autopilot_snapshot.json" .
           git add -A
-          git commit -m "Update production diagnostics for ${GITHUB_SHA}" || true
+          git commit -m "Update production diagnostics for ${TARGET_SHA}" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
             git pull --rebase origin diagnostics
