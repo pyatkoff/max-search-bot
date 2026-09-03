@@ -8,6 +8,8 @@ Production deploy is driven by `.github/workflows/deploy.yml` after merge/push t
 
 `Deploy production` is the sole automatic owner of active-server checkout synchronization and database migrations. Production diagnostics runs only after that workflow completes successfully and is read-only. The legacy standby deploy is manual recovery tooling and must not be restored as a parallel `main` push deployment.
 
+Before loading deployment credentials or building a bundle, the production workflow explicitly fetches the authoritative `refs/heads/main` from GitHub and requires it to equal the full workflow SHA. It must not trust a cached local `origin/main`. A superseded push run or a manual run bound to a non-current commit is rejected and recorded as a failed provenance stage; rollback is performed by merging a new revert commit to `main`.
+
 Production checkout path is documented in `README.md` and deploy workflow. Treat the repository/deploy workflow as canonical if paths change.
 
 ## Required pre-merge check
@@ -24,6 +26,7 @@ This includes PHP syntax plus dialogue, manager, integration, website, diagnosti
 
 A successful deploy must include all of:
 - verify job / required checks;
+- fresh authoritative-main provenance check;
 - SSH probe;
 - production checkout sync to expected SHA;
 - migrations applied with no pending/checksum corruption;

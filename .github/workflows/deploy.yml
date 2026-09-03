@@ -39,8 +39,17 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
+      - name: Verify deployment SHA is current main
+        id: provenance
+        continue-on-error: true
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: bash tools/verify_deploy_main_provenance.sh
+
       - name: Prepare canonical SSH private key
         id: ssh_key
+        if: steps.provenance.outcome == 'success'
         continue-on-error: true
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -160,6 +169,7 @@ jobs:
         env:
           DEPLOY_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
+          PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
           BUNDLE_OUTCOME: ${{ steps.bundle.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
@@ -177,7 +187,7 @@ jobs:
           rm -rf production-diagnostics
           find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
           rm -f migration.log
-          printf '{"sha":"%s","run_id":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
+          printf '{"sha":"%s","run_id":"%s","provenance":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$PROVENANCE_OUTCOME" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
           git add -A
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
           for attempt in 1 2 3; do
@@ -189,6 +199,7 @@ jobs:
       - name: Fail failed deployment
         if: always()
         env:
+          PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
           BUNDLE_OUTCOME: ${{ steps.bundle.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
@@ -199,6 +210,7 @@ jobs:
         shell: bash
         run: |
           set -e
+          test "$PROVENANCE_OUTCOME" = "success"
           test "$KEY_OUTCOME" = "success"
           test "$BUNDLE_OUTCOME" = "success"
           test "$SYNC_OUTCOME" = "success"
