@@ -1,4 +1,9 @@
 <?php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 $documentRoot = dirname(__DIR__);
 $_SERVER['DOCUMENT_ROOT'] = $documentRoot;
 

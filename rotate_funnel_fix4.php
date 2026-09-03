@@ -1,4 +1,9 @@
 <?php
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 $src=__DIR__.'/funnel.csv';
 header('Content-Type: text/plain; charset=utf-8');
 if(!is_file($src)) {
