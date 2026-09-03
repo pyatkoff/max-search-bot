@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-03T22:11:52+00:00",
+    "generated_at": "2026-09-03T22:45:23+00:00",
     "production": {
-        "sha": "3c5fc71f9162fe84c35bc7ba36b5def596c03af2",
+        "sha": "3dc384e4bae124e209e8a0b6864ddb79daa123bc",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 23941,
+            "oldest_wait_seconds": 25956,
             "routing_blocked_count": 0
         },
         "push": {
@@ -94,16 +94,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-03 21:11:40",
+        "since_utc": "2026-09-03 21:45:15",
         "summary": {
-            "sessions": 1,
-            "raw_sessions": 1,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 1,
+                "resolved": 0,
                 "unresolved": 0
             },
-            "started": 1,
+            "started": 0,
             "needs_collected": 0,
             "tours_opened": 0,
             "site_opened": 0,
@@ -120,9 +120,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "collecting_needs": 1
-            },
+            "drop_points": [],
             "flags": []
         }
     },
@@ -131,7 +129,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "3c5fc71f9162fe84c35bc7ba36b5def596c03af2",
+        "sha": "3dc384e4bae124e209e8a0b6864ddb79daa123bc",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -140,7 +138,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-03T22:11:51Z"
+        "reported_at": "2026-09-03T22:45:23Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -189,12 +187,12 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-03T22:11:51+00:00",
+        "generated_at": "2026-09-03T22:45:23+00:00",
         "areas": {
             "handlers": {
-                "files": 11,
-                "bytes": 128570,
-                "code_lines": 964
+                "files": 10,
+                "bytes": 45886,
+                "code_lines": 958
             },
             "actions": {
                 "files": 9,
@@ -202,9 +200,9 @@
                 "code_lines": 534
             },
             "services": {
-                "files": 138,
-                "bytes": 551867,
-                "code_lines": 11797
+                "files": 139,
+                "bytes": 555512,
+                "code_lines": 11909
             },
             "integrations": {
                 "files": 11,
@@ -232,14 +230,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 181,
-                "bytes": 798787,
-                "code_lines": 9208
+                "files": 182,
+                "bytes": 802650,
+                "code_lines": 9291
             },
             "tools": {
-                "files": 38,
-                "bytes": 130075,
-                "code_lines": 2425
+                "files": 39,
+                "bytes": 131102,
+                "code_lines": 2462
             }
         },
         "hotspots": [
@@ -292,15 +290,15 @@
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 199,
-                "bytes": 9673,
+                "path": "services/ProjectHealth.php",
+                "lines": 200,
+                "bytes": 7100,
                 "severity": "observe"
             },
             {
-                "path": "services/ProjectHealth.php",
+                "path": "handlers/StateMessageHandler.php",
                 "lines": 199,
-                "bytes": 6868,
+                "bytes": 9673,
                 "severity": "observe"
             }
         ],
