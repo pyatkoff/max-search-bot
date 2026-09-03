@@ -6,6 +6,7 @@ require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
+require_once $baseDir.'/services/LeadTaskService.php';
 require_once $baseDir.'/services/ManagerResponseHealth.php';
 require_once $baseDir.'/services/ManagerPushHealth.php';
 require_once $baseDir.'/services/HandoffIntegrityHealth.php';
@@ -48,6 +49,34 @@ function recentStructuredComponentEvents(string $path,string $component,int $lim
     }
     return $matched;
 }
+function managerLeadDetailFailure(Throwable $e):array{
+    $failure=['exception'=>get_class($e),'code'=>(string)$e->getCode()];
+    if($e instanceof PDOException&&is_array($e->errorInfo)){$failure['sqlstate']=$e->errorInfo[0]??null;$failure['driver_code']=$e->errorInfo[1]??null;}
+    return$failure;
+}
+function managerLeadDetailHealth(PDO $pdo):array{
+    $expected=[
+        'conversations'=>['lead_stage_key','lead_outcome','lead_close_reason','lead_outcome_note','lead_sale_amount','lead_sale_date','lead_outcome_updated_at','lead_outcome_manager_id'],
+        'lead_stages'=>['stage_key','display_name','color','sort_order','is_active','is_terminal','is_won'],
+        'lead_tags'=>['id','tag_key','display_name','color','sort_order','is_active'],
+        'conversation_lead_tags'=>['conversation_id','tag_id'],
+        'lead_stage_history'=>['id','conversation_id','from_stage_key','to_stage_key','changed_by_manager_id','created_at'],
+        'lead_tasks'=>['id','conversation_id','title','due_at_utc','status','is_pinned','assigned_manager_id','created_by_manager_id','completed_at_utc','reminder_attempted_at_utc','reminder_notified_at_utc','created_at','updated_at'],
+        'lead_close_reasons'=>['reason_key','display_name','sort_order','is_active'],
+    ];
+    $missing=[];
+    foreach($expected as$table=>$columns){
+        if(!tableExists($pdo,$table)){$missing[$table]=['__table__'];continue;}
+        $q=$pdo->prepare('SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);$actual=array_flip(array_map('strtolower',array_column($q->fetchAll(),'column_name')));
+        foreach($columns as$column)if(!isset($actual[strtolower($column)]))$missing[$table][]=$column;
+    }
+    $ids=array_map('intval',array_column(rows($pdo,'SELECT id FROM conversations WHERE is_test=0 ORDER BY id DESC LIMIT 5'),'id'));
+    $components=['pipeline'=>static fn(int$id)=>SalesPipelineService::conversationSnapshot($id),'tasks'=>static fn(int$id)=>LeadTaskService::listForConversation($id),'delivery_failure'=>static fn(int$id)=>ManagerDeliveryStateService::activeFailure($id)];
+    $probes=[];
+    foreach($components as$name=>$load){$failures=[];foreach($ids as$id){try{$load($id);}catch(Throwable $e){$failure=managerLeadDetailFailure($e);$key=json_encode($failure,JSON_UNESCAPED_SLASHES);$failures[$key]=($failures[$key]??0)+1;}}$probes[$name]=['ok'=>!$failures,'attempts'=>count($ids),'failures'=>array_map(static function($key,$count){return['count'=>$count]+(json_decode($key,true)?:[]);},array_keys($failures),array_values($failures))];}
+    $ok=!$missing;foreach($probes as$probe)if(!$probe['ok'])$ok=false;
+    return['ok'=>$ok,'sample_size'=>count($ids),'schema'=>['ok'=>!$missing,'missing'=>$missing],'components'=>$probes];
+}
 
 try{
     $pdo=ConversationDb::connection();
@@ -67,6 +96,7 @@ try{
         'manager_visibility'=>[],
         'manager_response_health'=>[],
         'manager_push_health'=>[],
+        'manager_lead_detail_health'=>[],
         'handoff_integrity_health'=>[],
         'admin_project_access_health'=>['ok'=>false,'error'=>'schema_missing'],
         'health'=>[
@@ -74,6 +104,7 @@ try{
             'manager_visibility_anomalies'=>[],
             'manager_response_ok'=>true,
             'manager_push_ok'=>true,
+            'manager_lead_detail_ok'=>true,
             'handoff_integrity_ok'=>true,
             'admin_project_access_ok'=>false,
             'website_attribution_ok'=>true,
@@ -164,6 +195,12 @@ try{
         $managerPushHealth=ManagerPushHealth::collect($pdo);
         $snapshot['manager_push_health']=$managerPushHealth;
         $snapshot['health']['manager_push_ok']=$managerPushHealth['ok'];
+    }
+
+    if(tableExists($pdo,'conversations')){
+        $managerLeadDetail=managerLeadDetailHealth($pdo);
+        $snapshot['manager_lead_detail_health']=$managerLeadDetail;
+        $snapshot['health']['manager_lead_detail_ok']=$managerLeadDetail['ok'];
     }
 
     if(tableExists($pdo,'messages')){
