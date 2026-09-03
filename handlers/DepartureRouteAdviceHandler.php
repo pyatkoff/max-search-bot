@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../DepartureRouteAdvisor.php');
 require_once(__DIR__ . '/../services/DateParser.php');
 require_once(__DIR__ . '/../services/DestinationPreferenceResolver.php');
 require_once(__DIR__ . '/../services/DiagnosticLogger.php');
+require_once(__DIR__ . '/../services/AiRuntimeLogger.php');
 require_once(__DIR__ . '/../services/IntegrationRegistry.php');
 
 class DepartureRouteAdviceHandler
@@ -170,10 +171,8 @@ class DepartureRouteAdviceHandler
     private static function log($chatId, string $type, array $data, string $level = 'info'): void
     {
         DiagnosticLogger::log('route_advice', strtolower($type), $data, $chatId, $level);
-        @file_put_contents(
-            __DIR__ . '/../ai_debug.log',
-            'ROUTE_ADVICE ' . $type . ' chat=' . $chatId . ' ' . json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL,
-            FILE_APPEND|LOCK_EX
+        AiRuntimeLogger::debug(
+            'ROUTE_ADVICE ' . $type . ' chat=' . $chatId . ' ' . json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . PHP_EOL
         );
     }
 }

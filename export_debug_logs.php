@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $baseDir = __DIR__;
 require_once $baseDir . '/services/ProjectHealth.php';
 require_once $baseDir . '/services/ShadowComparisonReport.php';
+require_once $baseDir . '/services/AiRuntimeLogger.php';
 
 $outputDir = trim((string)(getenv('MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') ?: ''));
 if ($outputDir === '') {
@@ -38,7 +39,7 @@ $logs = [
     'funnel'=>$baseDir.'/funnel.csv',
     'tmp'=>$baseDir.'/tmp_in.txt',
     'cron'=>$baseDir.'/cron_followup.log',
-    'ai'=>$baseDir.'/ai_debug.log',
+    'ai'=>AiRuntimeLogger::debugFile(),
     'structured'=>$baseDir.'/structured_events.log',
     'metrika'=>$baseDir.'/metrika_events.log',
     'metrika_queue'=>$baseDir.'/metrika_offline_queue.csv',
