@@ -6,6 +6,8 @@ Source of truth: repository `main`.
 
 Production deploy is driven by `.github/workflows/deploy.yml` after merge/push to `main`. The normal autonomous path is PR → required CI → merge → automated production deploy. Avoid manual production edits.
 
+`Deploy production` is the sole automatic owner of active-server checkout synchronization and database migrations. Production diagnostics runs only after that workflow completes successfully and is read-only. The legacy standby deploy is manual recovery tooling and must not be restored as a parallel `main` push deployment.
+
 Production checkout path is documented in `README.md` and deploy workflow. Treat the repository/deploy workflow as canonical if paths change.
 
 ## Required pre-merge check
