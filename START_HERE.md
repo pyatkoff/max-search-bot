@@ -41,6 +41,9 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - runtime directory/file modes are `0700/0600`;
   - legacy AI-log paths are publicly inaccessible with an accepted 403/404 response; the #660 deployment returned 404;
   - this containment must never be removed by rollback.
+- Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. Do not restart those slices.
+- Phase E's read-only handoff inventory and the first two proven consolidations shipped in PRs #672, #675 and #676. They centralized queue-decision application and contact send/status application without changing handoff policy.
+- The Manager notification activation incident reported by Anna was repaired in PRs #673, #674 and #677. PR #678 added redacted reason counts, and Anna's healthy green state was naturally confirmed after deployment.
 - The exact current SHA and run IDs belong in live GitHub/diagnostics and the latest issue #55 checkpoint, not hard-coded here.
 
 Known operational signals are evidence to investigate, not permission to change policy:
@@ -50,6 +53,14 @@ Known operational signals are evidence to investigate, not permission to change 
 - a historical Telegram 500 may remain visible while current pending updates and controller smoke are healthy.
 
 Do not infer a routing, shift, lead-delivery or webhook defect from those aggregate signals alone.
+
+## Current execution point
+
+Phase D's selected slices and Phase E's first two consolidations are complete. The detailed sections below remain as historical acceptance and rollback contracts, not as an instruction to rerun them.
+
+The next autonomous step is a fresh audit of the remaining Phase E inventory. Open another runtime PR only when an exact duplicate responsibility is proven and executable golden cases preserve all current policy and ordering. The two `ManagerAvailabilityService::withinWorkingHours()` calls in `ManagerPhoneFallbackService` are intentionally separate: one bounds candidate selection, while the second rechecks policy inside the per-conversation lock immediately before external delivery. Do not collapse that safety check merely to reduce occurrence count.
+
+If no further exact duplicate is proven, stop handoff consolidation and record that result. Do not advance deferred meal, children/ages, city, country or date mutations, and do not make observe-only transition validation blocking, without the explicit contracts and clean production evidence required below.
 
 ## Protected behavior
 
@@ -69,9 +80,9 @@ Use the canonical priority order in `AGENTS.md`; do not maintain a competing num
 
 An aggregate metric is a diagnostic lead, not automatically a code defect. Capture the message/state evidence and a failing regression before changing behavior.
 
-## Immediate plan after Phase C and P0
+## Completed execution record after Phase C and P0
 
-Keep every item independent. Do not combine neighbouring cleanup.
+The items in this section are complete and retained so their original acceptance and rollback contracts are not lost. Do not execute them again. Keep every future item independent and do not combine neighbouring cleanup.
 
 ### Documentation truth checkpoint — covered by the introducing PR
 
@@ -191,7 +202,7 @@ Phase D non-negotiable semantics:
 
 ## Phase E — handoff consolidation
 
-Do not start Phase E until the selected Phase D slices are stable.
+Phase E started only after the selected Phase D slices were stable. Its read-only inventory and first two caller-proven consolidations are complete; use the current execution point above for the next decision.
 
 First create a read-only caller/policy inventory for:
 
