@@ -48,6 +48,11 @@ espCheck('edit menu captures snapshot before adding check boundary', $menuCaptur
 espCheck('field selection reuses existing pre-menu snapshot', strpos($flowSource, 'self::captureSnapshot($chatId, false)') !== false, true);
 espCheck('all edit field entries begin preserved edit flow', substr_count($editSource, 'EditFlowService::begin(') >= 4, true);
 espCheck('dialogue reset clears snapshot', strpos($controllerSource, 'EditFlowService::clearSnapshot($chatId)') !== false, true);
-espCheck('missing snapshot values are re-appended before check', strpos($flowSource, 'MaxSearchApi::setStatus($chatId, $status)') !== false && strpos($flowSource, 'MaxSearchApi::saveLastValue($chatId, $status, $value)') !== false, true);
+espCheck(
+    'missing snapshot values are re-appended then applied through the update-only boundary before check',
+    strpos($flowSource, 'MaxSearchApi::setStatus($chatId, $status)') !== false
+        && strpos($flowSource, 'ExistingWizardStepApplicationService::apply($chatId, $status, $value)') !== false,
+    true
+);
 
 exit($failed > 0 ? 1 : 0);
