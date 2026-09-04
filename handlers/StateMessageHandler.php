@@ -8,6 +8,7 @@ require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.
 require_once dirname(__DIR__) . '/services/ChildAgeValueContract.php';
 require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
+require_once dirname(__DIR__) . '/services/DepartureCityValueContract.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -27,7 +28,13 @@ class StateMessageHandler
                 }
                 if($cityRes)
                 {
-                    MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusCityChoose,$cityRes["ID"]);
+                    $cityId = DepartureCityValueContract::fromDirectoryId($cityRes["ID"] ?? null);
+                    if($cityId === null) return;
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusCityChoose,
+                        $cityId
+                    )) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'city'))
                         MaxSearchApi::showCountryButtons($chat_id);
                 }
