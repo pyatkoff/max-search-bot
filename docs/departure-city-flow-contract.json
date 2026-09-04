@@ -36,14 +36,14 @@
     },
     "manual_payload": "pick_city_other",
     "manual_payload_mutates_value": false,
-    "application": "MaxSearchApi::saveLastValue",
-    "application_result_is_checked": false,
+    "application": "ExistingWizardStepApplicationService::apply",
+    "application_result_is_checked": true,
     "guard_scope": "wizard.forward",
     "expected_state": "city",
     "normal_next": "country",
     "edit_next": "check",
     "missing_or_pre_start_step_result": false,
-    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write"
+    "missing_or_pre_start_step_current_behavior": "consumed_fail_closed_without_mutation_or_progression"
   },
   "free_text": {
     "first_lookup": "TravelDirectoryRepository::cityByName",
@@ -143,15 +143,15 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "value_contract_only",
+    "reason": "callback_only_runtime_free_text_blocked",
     "required_before_runtime": [
-      "confirm the executable value contract production-green",
-      "decide fail-closed behavior when the existing city step is missing or pre-start",
-      "prove callback decimal-string, directory/PDO and AI integer values remain semantically identical",
-      "prove no-flight id 99 remains displayable and reaches search as from=99",
+      "confirm the callback-only runtime slice production-green",
+      "define a separate free-text application contract and authorization checkpoint",
       "preserve field resolver, rich-request AI routing and Moscow default behavior",
-      "add executable callback and real-handler free-text regressions",
-      "record a separate production-green authorization checkpoint"
+      "add a real-handler free-text regression for exact directory/PDO storage",
+      "keep AI application and upsert semantics unchanged",
+      "prove no-flight id 99 remains displayable and reaches search as from=99",
+      "record a separate production-green authorization checkpoint before another caller"
     ]
   },
   "protected_non_goals": [
@@ -165,7 +165,7 @@
   ],
   "executable_value_contract": {
     "owner": "services/DepartureCityValueContract.php",
-    "runtime_connected": false,
+    "runtime_connected": "callback_only",
     "storage_projection": "positive_canonical_directory_id_to_exact_decimal_string",
     "callback_parser": "existing_pick_city_<positive_canonical_directory_id>_shape_only",
     "fixed_ids": [
