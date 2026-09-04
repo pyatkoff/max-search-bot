@@ -41,17 +41,15 @@
     {"path": "services/ManagerHandoffDispatchService.php", "receiver": "DialogueView", "method": "managerRequest", "classification": "presentation", "occurrences": 1, "rationale": "Outside-hours path presents optional contact and self-service return without entering the live queue."},
     {"path": "services/ManagerPhoneFallbackService.php", "receiver": "DialogueView", "method": "managerPhoneFallback", "classification": "fallback_application", "occurrences": 1, "rationale": "The due fallback performs the single external optional-phone offer."},
 
-    {"path": "actions/ManagerAction.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "AI path enters waiting_manager only when dispatch returns queue_waiting."},
-    {"path": "actions/callbacks/ManagerCallbackAction.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "Callback path enters waiting_manager only when dispatch returns queue_waiting."},
-    {"path": "services/SourceHandlingService.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "Source-policy path enters waiting_manager only when dispatch returns queue_waiting."},
+    {"path": "services/ManagerHandoffDispatchService.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "Canonical handoff queue application enters waiting_manager only from an already-computed queue_waiting decision."},
     {"path": "cron_followup.php", "receiver": "ManagerPhoneFallbackService", "method": "runDue", "classification": "fallback_scheduler", "occurrences": 1, "rationale": "The existing follow-up cron is the only scheduler for five-minute fallback processing."}
   ],
   "policy_surfaces": [
     {
       "path": "services/ManagerHandoffDispatchService.php",
       "classification": "decision",
-      "responsibility": "Initial handoff decision: working-hours live queue versus outside-hours optional contact presentation.",
-      "required_markers": ["if ($withinWorkingHours)", "queue_waiting", "DialogueView::managerRequest"]
+      "responsibility": "Initial handoff decision plus canonical application of its working-hours queue transition; outside hours remain optional contact presentation only.",
+      "required_markers": ["if ($withinWorkingHours)", "queue_waiting", "applyQueueDecision", "ConversationControlService::markWaitingByChat", "DialogueView::managerRequest"]
     },
     {
       "path": "services/ManagerAvailabilityService.php",

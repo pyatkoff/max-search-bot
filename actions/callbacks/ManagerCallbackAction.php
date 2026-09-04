@@ -1,6 +1,5 @@
 <?php
 require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
-require_once dirname(__DIR__, 2) . '/services/ConversationControlService.php';
 require_once dirname(__DIR__, 2) . '/services/ManagerHandoffDispatchService.php';
 require_once dirname(__DIR__, 2) . '/services/ProjectConfig.php';
 
@@ -26,14 +25,12 @@ class ManagerCallbackAction
                 self::userName($query),
                 $afterTours
             );
-            if (!empty($handoff['queue_waiting'])) {
-                ConversationControlService::markWaitingByChat($platform,$chatId,[
-                    'from_tours'=>$afterTours,
-                    'source'=>'callback',
-                    'manager_available'=>$handoff['manager_available'],
-                    'within_working_hours'=>$handoff['within_working_hours'],
-                ]);
-            }
+            ManagerHandoffDispatchService::applyQueueDecision($handoff,$platform,$chatId,[
+                'from_tours'=>$afterTours,
+                'source'=>'callback',
+                'manager_available'=>$handoff['manager_available'],
+                'within_working_hours'=>$handoff['within_working_hours'],
+            ]);
             return (bool)$handoff['sent'];
         }
         if ($q === 'phone_manual') return DialogueView::manualPhone($chatId);

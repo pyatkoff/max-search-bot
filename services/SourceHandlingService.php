@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
-require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ManagerHandoffDispatchService.php';
@@ -85,7 +84,7 @@ class SourceHandlingService
             'manager_available'=>$handoff['manager_available'],
             'within_working_hours'=>$handoff['within_working_hours'],
         ],'system');
-        if(!empty($handoff['queue_waiting']))ConversationControlService::markWaitingByChat($platform,$chatId,[
+        ManagerHandoffDispatchService::applyQueueDecision($handoff,$platform,$chatId,[
             'source'=>$reason,
             'manager_available'=>$handoff['manager_available'],
             'within_working_hours'=>$handoff['within_working_hours'],
