@@ -42,8 +42,8 @@ childrenAgesContractCheck('zero children skip ages and continue to stars', strpo
 childrenAgesContractCheck('positive children open age input with exact count', strpos($callback, 'MaxSearchApi::showAgeButtons($chatId, (int)$child)') !== false);
 childrenAgesContractCheck('children callback remains under shared forward guard', strpos($callback, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false && strpos($state, "if (strpos(\$payload, 'child_') === 0) return 'children';") !== false);
 
-childrenAgesContractCheck('current age parser bounds every value to 0 through 17', strpos($handler, 'if($ageItem<0 || $ageItem>17)') !== false);
-childrenAgesContractCheck('current age parser requires exact child count', strpos($handler, 'count($ageOut)!=$childCount') !== false);
+childrenAgesContractCheck('current age parser bounds every value to 0 through 17', strpos($valueContract, 'if ($age < 0 || $age > 17) return null;') !== false);
+childrenAgesContractCheck('current age parser requires exact child count', strpos($valueContract, 'if (count($ages) !== $childrenCount) return null;') !== false);
 childrenAgesContractCheck('current age storage uses exact projector and update-only application', substr_count($handler, 'ChildAgeValueContract::toStorage') === 1 && strpos($handler, 'MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge') === false && ($contract['child_ages']['current_application'] ?? null) === 'ExistingWizardStepApplicationService::apply');
 childrenAgesContractCheck('valid ages finish tourists edit or continue to stars', strpos($handler, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($handler, 'MaxSearchApi::showStarsButtons($chat_id)') !== false);
 childrenAgesContractCheck('deterministic child-age resolver requires child-count context', strpos($resolver, "if (\$field === 'child_ages')") !== false && strpos($resolver, "\$childrenCount = (int)(\$context['children'] ?? 0);") !== false);
