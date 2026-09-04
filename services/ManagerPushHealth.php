@@ -16,6 +16,11 @@ class ManagerPushHealth
                 'recent_error_manager_ids' => [],
                 'unusable_notification_path_manager_ids' => [],
                 'working_manager_notification_path_ok' => false,
+                'working_manager_count' => 0,
+                'usable_notification_path_count' => 0,
+                'no_subscription_count' => 0,
+                'unhealthy_subscription_count' => 0,
+                'other_unusable_count' => 0,
             ];
         }
     }
@@ -110,6 +115,11 @@ class ManagerPushHealth
             'recent_error_manager_ids' => [],
             'unusable_notification_path_manager_ids' => [],
             'working_manager_notification_path_ok' => true,
+            'working_manager_count' => 0,
+            'usable_notification_path_count' => 0,
+            'no_subscription_count' => 0,
+            'unhealthy_subscription_count' => 0,
+            'other_unusable_count' => 0,
         ];
 
         if (!self::tableExists($pdo, 'managers')) {
@@ -123,6 +133,17 @@ class ManagerPushHealth
         foreach ($managers as $manager) {
             $id = (int)$manager['id'];
             $entry = self::statusForManager($pdo, $id);
+            $result['working_manager_count']++;
+
+            if ($entry['notification_path_usable']) {
+                $result['usable_notification_path_count']++;
+            } elseif ($entry['notification_path_reason'] === 'no_subscription') {
+                $result['no_subscription_count']++;
+            } elseif ($entry['notification_path_reason'] === 'subscription_unhealthy') {
+                $result['unhealthy_subscription_count']++;
+            } else {
+                $result['other_unusable_count']++;
+            }
 
             if ($entry['subscription_count'] === 0) {
                 $result['missing_subscription_manager_ids'][] = $id;
