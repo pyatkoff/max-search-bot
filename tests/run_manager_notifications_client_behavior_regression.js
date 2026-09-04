@@ -31,9 +31,8 @@ const context = {
 vm.runInNewContext(source, context, { filename: 'workspace-v2-notifications.js' });
 
 async function run() {
-  await context.window.WorkspaceV2Notifications.init();
   if (typeof listeners.click !== 'function') {
-    throw new Error('push setup click handler was not attached without service worker support');
+    throw new Error('push setup click handler depends on the late workspace init');
   }
 
   listeners.click({
