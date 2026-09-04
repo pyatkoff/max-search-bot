@@ -258,12 +258,13 @@ departureCityCallbackCheck('city edit updates one city row', DepartureCityCallba
 departureCityCallbackCheck('city edit direct write is only check generation', array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
 
 $messenger = departureCityCallbackReset(1132);
-MaxSearchApi::$currentStatus = MaxSearchApi::$statusContryChoose;
+MaxSearchApi::$currentStatus = MaxSearchApi::$statusAdults;
 $before = DepartureCityCallbackFakeData::$rows;
-departureCityCallbackCheck('back to city is consumed', WizardCallbackAction::handle(1132, 'back_pick_country'), true);
-departureCityCallbackCheck('back to city preserves trip rows', DepartureCityCallbackFakeData::$rows, $before);
-departureCityCallbackCheck('back to city renders city once', MaxSearchApi::$cityViews, [1132]);
-departureCityCallbackCheck('back to city makes no value update', DepartureCityCallbackFakeData::$updates, 0);
+departureCityCallbackCheck('back to country is consumed', WizardCallbackAction::handle(1132, 'back_pick_country'), true);
+departureCityCallbackCheck('back to country preserves trip rows', DepartureCityCallbackFakeData::$rows, $before);
+departureCityCallbackCheck('back to country renders country once', MaxSearchApi::$countryViews, [1132]);
+departureCityCallbackCheck('back to country advances to country', MaxSearchApi::$transitions, [MaxSearchApi::$statusContryChoose]);
+departureCityCallbackCheck('back to country makes no value update', DepartureCityCallbackFakeData::$updates, 0);
 
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 departureCityCallbackCheck('action parses city callback through value contract', strpos($source, 'DepartureCityValueContract::fromCallbackPayload($q)') !== false, true);
