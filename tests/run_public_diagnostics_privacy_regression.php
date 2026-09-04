@@ -7,6 +7,16 @@ $fixture=[
     'ok'=>true,'production'=>['sha'=>'abc123'],'summary'=>['sessions'=>4,'flags'=>['repeat'=>2]],
     'sessions'=>[['conversation_id'=>91,'manager_id'=>5,'login'=>'Svetlana','message_tail'=>[['text'=>'PRIVATE TOURIST MESSAGE']]]],
     'manager_visibility'=>[['manager_id'=>5,'display_name'=>'Светлана','waiting'=>2]],
+    'manager_push_health'=>[
+        'working_manager_notification_path_ok'=>false,
+        'working_manager_count'=>3,
+        'usable_notification_path_count'=>1,
+        'no_subscription_count'=>1,
+        'unhealthy_subscription_count'=>1,
+        'other_unusable_count'=>0,
+        'working_managers'=>[['manager_id'=>5,'display_name'=>'Светлана','notification_path_reason'=>'subscription_unhealthy']],
+        'unusable_notification_path_manager_ids'=>[5,8],
+    ],
     'phone'=>'+70000000000','external_chat_id'=>'private-chat',
 ];
 file_put_contents($tmp,json_encode($fixture,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
@@ -18,6 +28,7 @@ $deploy=(string)file_get_contents($root.'/.github/workflows/deploy.yml');
 $passed=0;$failed=0;
 function publicDiagCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 publicDiagCheck('sanitizer preserves aggregate health data',$code===0&&is_array($json)&&!empty($json['public_redacted'])&&($json['summary']['sessions']??null)===4);
+publicDiagCheck('sanitizer preserves manager push reason counts',($json['manager_push_health']['working_manager_count']??null)===3&&($json['manager_push_health']['usable_notification_path_count']??null)===1&&($json['manager_push_health']['no_subscription_count']??null)===1&&($json['manager_push_health']['unhealthy_subscription_count']??null)===1&&($json['manager_push_health']['other_unusable_count']??null)===0);
 publicDiagCheck('sanitizer removes transcript and personal identifiers',strpos($raw,'PRIVATE TOURIST MESSAGE')===false&&strpos($raw,'Svetlana')===false&&strpos($raw,'Светлана')===false&&strpos($raw,'+70000000000')===false&&strpos($raw,'private-chat')===false&&strpos($raw,'conversation_id')===false&&strpos($raw,'manager_id')===false);
 $allowlist="find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete";
 publicDiagCheck('production publisher commits only public-safe aggregate artifacts',strpos($publish,'cp production_snapshot.json live_session_report.json')===false&&strpos($publish,$allowlist)!==false&&strpos($publish,'git add -A')!==false);
