@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-04T20:50:55+00:00",
+    "generated_at": "2026-09-04T20:55:44+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -17,7 +17,7 @@
         "needs_collected": 1,
         "tours_opened": 1,
         "site_opened": 1,
-        "post_tour_manager_cta_shown": 0,
+        "post_tour_manager_cta_shown": 1,
         "manager_requested": 0,
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
@@ -35,6 +35,6 @@
         },
         "flags": []
     },
-    "since_utc": "2026-09-04 19:50:55",
+    "since_utc": "2026-09-04 19:55:44",
     "public_redacted": true
 }
