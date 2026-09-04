@@ -174,7 +174,12 @@ class WizardCallbackAction
         if (strpos($q, 'star_') === 0 || $q === 'back_meal') {
             if ($q === 'back_meal') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusStars, str_replace('star_', '', $q));
+                $stars = str_replace('star_', '', $q);
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusStars,
+                    $stars
+                )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'stars')) return true;
             }
             WizardStepView::meal($chatId);
