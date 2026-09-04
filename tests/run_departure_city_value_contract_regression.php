@@ -97,8 +97,8 @@ departureCityValueCheck(
     true
 );
 departureCityValueCheck(
-    'contract remains disconnected from callback free-text and AI runtime',
-    strpos($callback, 'DepartureCityValueContract') === false
+    'contract is wired once to callback while free-text and AI remain disconnected',
+    substr_count($callback, 'DepartureCityValueContract::fromCallbackPayload') === 1
         && strpos($handler, 'DepartureCityValueContract') === false
         && strpos($aiContext, 'DepartureCityValueContract') === false,
     true
