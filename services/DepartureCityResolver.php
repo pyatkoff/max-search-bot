@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/TravelDirectoryRepository.php';
+require_once __DIR__ . '/NeedApplicationService.php';
 
 class DepartureCityResolver
 {
@@ -16,7 +17,7 @@ class DepartureCityResolver
             $best = self::bestMatch($lower, TravelDirectoryRepository::activeDepartures());
             if (!$best) return false;
 
-            $applied = MaxSearchApi::applyAiParameters($chatId, ['city' => $best['city']]);
+            $applied = NeedApplicationService::applyParameters($chatId, ['city' => $best['city']]);
             if (empty($applied['city'])) return false;
 
             MaxSearchApi::funnelLog($chatId, 'departure_city_resolved', [

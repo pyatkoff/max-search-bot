@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/DestinationCatalogRepository.php';
+require_once __DIR__ . '/NeedApplicationService.php';
 
 class DestinationResolver
 {
@@ -53,7 +54,7 @@ class DestinationResolver
         if ($country) {
             $resolvedCountry = (string)$country['UF_NAME'];
             if (empty($current['country']) || self::norm($current['country']) !== self::norm($resolvedCountry)) {
-                MaxSearchApi::applyAiParameters($chatId, ['country' => $resolvedCountry]);
+                NeedApplicationService::applyParameters($chatId, ['country' => $resolvedCountry]);
             }
         }
 
