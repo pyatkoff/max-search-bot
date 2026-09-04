@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T14:25:19+00:00",
+    "generated_at": "2026-09-04T14:33:38+00:00",
     "production": {
-        "sha": "e231293743e11042dde43f5336741ad1873a5b8c",
+        "sha": "7d155455d416e322ef952f324304725402269412",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 13:25:06",
+        "since_utc": "2026-09-04 13:33:29",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -127,12 +127,10 @@
             },
             "drop_points": {
                 "site_open": 1,
-                "customer_replied_after_manager": 1,
-                "tours_opened": 1
+                "tours_opened": 1,
+                "customer_replied_after_manager": 1
             },
-            "flags": {
-                "excessive_turns": 1
-            }
+            "flags": []
         }
     },
     "website": {
@@ -140,7 +138,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "e231293743e11042dde43f5336741ad1873a5b8c",
+        "sha": "7d155455d416e322ef952f324304725402269412",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -149,7 +147,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T14:25:19Z"
+        "reported_at": "2026-09-04T14:33:38Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -208,7 +206,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T14:25:18+00:00",
+        "generated_at": "2026-09-04T14:33:38+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -217,8 +215,8 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 22040,
-                "code_lines": 555
+                "bytes": 22183,
+                "code_lines": 560
             },
             "services": {
                 "files": 141,
@@ -251,9 +249,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 193,
-                "bytes": 896215,
-                "code_lines": 10908
+                "files": 194,
+                "bytes": 907019,
+                "code_lines": 11127
             },
             "tools": {
                 "files": 42,
@@ -287,15 +285,15 @@
                 "severity": "observe"
             },
             {
-                "path": "tests/run_nights_callback_application_regression.php",
-                "lines": 238,
-                "bytes": 11973,
+                "path": "actions/callbacks/WizardCallbackAction.php",
+                "lines": 242,
+                "bytes": 10418,
                 "severity": "observe"
             },
             {
-                "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 237,
-                "bytes": 10275,
+                "path": "tests/run_nights_callback_application_regression.php",
+                "lines": 238,
+                "bytes": 11973,
                 "severity": "observe"
             },
             {
@@ -311,15 +309,15 @@
                 "severity": "observe"
             },
             {
-                "path": "tools/live_session_snapshot.php",
+                "path": "tests/run_meal_callback_application_regression.php",
                 "lines": 218,
-                "bytes": 10172,
+                "bytes": 10649,
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 216,
-                "bytes": 10476,
+                "path": "tools/live_session_snapshot.php",
+                "lines": 218,
+                "bytes": 10172,
                 "severity": "observe"
             }
         ],
