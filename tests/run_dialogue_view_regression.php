@@ -10,11 +10,12 @@ require_once __DIR__ . '/../services/CallbackGeneration.php';
 
 class ViewTestMessenger implements MessengerInterface {
     public array $sent = [];
+    public bool $contactSucceeds = true;
     public function send($chatId, string $text): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>[]]; return true; }
     public function sendWithButtons($chatId, string $text, array $buttons): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>$buttons]; return true; }
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool {
         $this->sent[]=['chat'=>$chatId,'text'=>$text,'contact'=>true,'manual'=>$manualCallback,'back'=>$backCallback];
-        return true;
+        return $this->contactSucceeds;
     }
 }
 class MaxSearchApi {
@@ -71,8 +72,22 @@ dvCheck('manager status',MaxSearchApi::$statuses[4],[14,75]);
 DialogueView::managerRequest(15,'Pavel',true);
 dvCheck('manager after tours back',$m->sent[5]['back']??null,'tours_checked');
 
+DialogueView::managerRequest(17,'Pavel',false,true);
+dvCheck('outside-hours manager uses truthful copy',strpos($m->sent[6]['text']??'','следующий рабочий период')!==false,true);
+$deletesBeforeFallback=MaxSearchApi::$deletes;
+DialogueView::managerPhoneFallback(18,true);
+dvCheck('fallback uses delayed response copy',strpos($m->sent[7]['text']??'','не успел ответить')!==false,true);
+dvCheck('fallback preserves after-tours back callback',$m->sent[7]['back']??null,'tours_checked');
+dvCheck('fallback does not delete the preceding chat message',MaxSearchApi::$deletes,$deletesBeforeFallback);
+dvCheck('contact paths share one canonical renderer',substr_count((string)file_get_contents(__DIR__ . '/../services/DialogueView.php'),'ManagerRequestService::prepare')===1,true);
+$statusesBeforeFailure=count(MaxSearchApi::$statuses);
+$m->contactSucceeds=false;
+dvCheck('failed fallback reports transport failure',DialogueView::managerPhoneFallback(19,false),false);
+dvCheck('failed fallback does not advance phone status',count(MaxSearchApi::$statuses),$statusesBeforeFailure);
+$m->contactSucceeds=true;
+
 DialogueView::check(16);
-$checkButtons=$m->sent[6]['buttons']??[];
+$checkButtons=$m->sent[9]['buttons']??[];
 $checkPayloads=[
     $checkButtons[0][0]['callback_data']??'',
     $checkButtons[1][0]['callback_data']??'',
