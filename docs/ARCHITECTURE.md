@@ -91,6 +91,7 @@ Rules:
 - AI understands free text and fills gaps, but must not become a parallel state owner;
 - `NeedApplicationService` is the canonical boundary for applying recognized values with upsert semantics;
 - `ExistingWizardStepApplicationService` owns update-only writes to a step that already exists after the current start boundary and must never append a hidden status transition;
+- `DialogueTransitionObserver` records canonical transition validation without mutating or blocking the dialogue; only nights → date is wired initially, and blocking requires separate clean production evidence;
 - presentation belongs to `DialogueView`/view-model helpers rather than state mutation code;
 - confirmed production defects should become reusable regression scenarios.
 
