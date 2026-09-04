@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T20:49:15+00:00",
+    "generated_at": "2026-09-04T20:56:48+00:00",
     "production": {
-        "sha": "22f4580e5adfa56345ea05c08293ff3d8a46b24b",
+        "sha": "b1f33016d6c8389e9cde1d0228805bd0e989a491",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 19:49:02",
+        "since_utc": "2026-09-04 19:56:39",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -112,7 +112,7 @@
             "needs_collected": 1,
             "tours_opened": 1,
             "site_opened": 1,
-            "post_tour_manager_cta_shown": 0,
+            "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -136,7 +136,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "22f4580e5adfa56345ea05c08293ff3d8a46b24b",
+        "sha": "b1f33016d6c8389e9cde1d0228805bd0e989a491",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -145,7 +145,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T20:49:15Z"
+        "reported_at": "2026-09-04T20:56:48Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -166,7 +166,7 @@
             "needs_collected": 50,
             "tours_opened": 50,
             "site_opened": 44,
-            "post_tour_manager_cta_shown": 29,
+            "post_tour_manager_cta_shown": 30,
             "manager_requested": 16,
             "manager_replied": 15,
             "customer_replied_after_manager": 8,
@@ -200,7 +200,7 @@
                 "needs_collected_from_started": 41,
                 "tours_opened_from_started": 41,
                 "site_opened": 42,
-                "post_tour_manager_cta_shown": 26,
+                "post_tour_manager_cta_shown": 27,
                 "manager_requested": 11,
                 "manager_replied": 13,
                 "customer_replied_after_manager": 7
@@ -208,7 +208,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T20:49:15+00:00",
+        "generated_at": "2026-09-04T20:56:48+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -252,7 +252,7 @@
             },
             "tests": {
                 "files": 196,
-                "bytes": 929508,
+                "bytes": 929632,
                 "code_lines": 11457
             },
             "tools": {
