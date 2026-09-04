@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "flow": "departure_city",
+  "scope": "read_only_inventory",
+  "owners": {
+    "callback": "actions/callbacks/WizardCallbackAction.php",
+    "free_text": "handlers/StateMessageHandler.php",
+    "explicit_phrase_resolver": "services/DepartureCityResolver.php",
+    "directory": "services/TravelDirectoryRepository.php",
+    "ai_normalization": "services/AiSearchContextService.php",
+    "ai_orchestration": "handlers/AiMessageHandler.php",
+    "view": "services/DialogueView.php",
+    "edit_flow": "services/EditFlowService.php",
+    "claim_projection": "services/ClaimRepository.php",
+    "search_projection": "services/TourSearchHandoffService.php"
+  },
+  "state": {
+    "status": "statusCityChoose",
+    "status_id": 65,
+    "storage_field": "wizard_status_value",
+    "semantic_value": "active_departure_directory_id",
+    "source_representations": {
+      "callback": "decimal_string",
+      "directory_free_text": "directory_id_as_returned_by_PDO",
+      "ai": "integer"
+    },
+    "downstream_normalization": "integer_cast_for_search_query"
+  },
+  "callback": {
+    "payload_to_storage": {
+      "pick_city_1": "1",
+      "pick_city_5": "5",
+      "pick_city_10": "10",
+      "pick_city_12": "12",
+      "pick_city_99": "99"
+    },
+    "manual_payload": "pick_city_other",
+    "manual_payload_mutates_value": false,
+    "application": "MaxSearchApi::saveLastValue",
+    "application_result_is_checked": false,
+    "guard_scope": "wizard.forward",
+    "expected_state": "city",
+    "normal_next": "country",
+    "edit_next": "check",
+    "missing_or_pre_start_step_result": false,
+    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write"
+  },
+  "free_text": {
+    "first_lookup": "TravelDirectoryRepository::cityByName",
+    "fallback_lookup": "DepartureCityResolver::resolveFieldValue",
+    "directory_scope": "active_departures_only",
+    "field_match": {
+      "canonical_or_genitive_name": true,
+      "case_and_edge_punctuation_ignored": true,
+      "abbreviated_token_minimum_length": 3,
+      "abbreviation_requires_trailing_dot": true,
+      "match_must_be_unambiguous": true
+    },
+    "application": "MaxSearchApi::saveLastValue",
+    "application_result_is_checked": false,
+    "normal_next": "country",
+    "edit_next": "check",
+    "missing_or_pre_start_step_result": false,
+    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write",
+    "unknown_single_value": "show_city_not_found_error",
+    "rich_request": "switch_to_ai_status_and_delegate_to_AiMessageHandler"
+  },
+  "manual_city": {
+    "entry": "pick_city_other",
+    "view": "DialogueView::cityOther",
+    "state_remains": "city",
+    "back_payload": "back_pick_city",
+    "back_mutates_trip_value": false
+  },
+  "ai": {
+    "explicit_departure_phrase": {
+      "resolver": "DepartureCityResolver::resolveAndStore",
+      "requires_departure_marker": true,
+      "directory_scope": "active_departures_only",
+      "application": "NeedApplicationService::applyParameters",
+      "storage_semantics": "upsert"
+    },
+    "normalizer": "AiSearchContextService::normalizeParameters",
+    "fixed_alias_ids": {
+      "Москва": 1,
+      "Санкт-Петербург": 5,
+      "Казань": 10,
+      "Красноярск": 12,
+      "без перелета": 99,
+      "без перелёта": 99
+    },
+    "fallback_directory_lookup": "TravelDirectoryRepository::cityByName",
+    "local_default_when_city_missing": "Москва",
+    "rich_preseed_suppresses_implicit_moscow_without_explicit_departure": true,
+    "business_default_may_restore_moscow_after_ai": true,
+    "application": "NeedApplicationService::applyParameters",
+    "storage_semantics": "upsert"
+  },
+  "no_flight": {
+    "label": "Без перелёта",
+    "id": 99,
+    "button_payload": "pick_city_99",
+    "ai_aliases": [
+      "без перелета",
+      "без перелёта"
+    ],
+    "special_runtime_branch_after_storage": false,
+    "requires_active_directory_row_for_display_context": true,
+    "search_query": {
+      "parameter": "from",
+      "value": 99
+    }
+  },
+  "edit_and_back": {
+    "edit_city": {
+      "snapshot_before_edit": true,
+      "edit_mode": "city",
+      "entry_view": "city",
+      "successful_selection_return": "check"
+    },
+    "back_pick_city": {
+      "used_from": [
+        "manual_city",
+        "country"
+      ],
+      "return": "city",
+      "mutates_trip_value": false
+    },
+    "back_pick_country": {
+      "used_from": [
+        "adults"
+      ],
+      "return": "country",
+      "mutates_trip_value": false
+    }
+  },
+  "downstream": {
+    "claim_field": "UF_CITY",
+    "search_parameter": "from",
+    "search_value": "integer_cast_of_UF_CITY_or_saved_city",
+    "display_and_ai_context": "resolve_stored_id_through_active_departure_directory",
+    "invalid_or_inactive_id_context_behavior": "stored_value_is_nonempty_but_name_resolution_is_omitted"
+  },
+  "migration_readiness": {
+    "runtime_migration_allowed": false,
+    "reason": "inventory_only",
+    "required_before_runtime": [
+      "define one exact callback and free-text application contract",
+      "decide fail-closed behavior when the existing city step is missing or pre-start",
+      "prove callback decimal-string, directory/PDO and AI integer values remain semantically identical",
+      "prove no-flight id 99 remains displayable and reaches search as from=99",
+      "preserve field resolver, rich-request AI routing and Moscow default behavior",
+      "add executable callback and real-handler free-text regressions",
+      "record a separate production-green authorization checkpoint"
+    ]
+  },
+  "protected_non_goals": [
+    "callback payload changes",
+    "directory lookup changes",
+    "URL or Tourvisor value changes",
+    "country or date mutation",
+    "Yandex Metrica or goal changes",
+    "lead delivery changes",
+    "manager shift or routing changes"
+  ]
+}
