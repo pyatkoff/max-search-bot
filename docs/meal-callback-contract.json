@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "field": "meal",
+  "callback_owner": "actions/callbacks/WizardCallbackAction.php",
+  "view_owner": "services/WizardStepView.php",
+  "directory_owner": "services/TravelDirectoryRepository.php",
+  "storage_representation": "directory_id_string",
+  "payload_to_storage": {
+    "meal_999": "999",
+    "meal_7": "7",
+    "meal_3": "3",
+    "meal_4": "4",
+    "meal_5": "5"
+  },
+  "storage_to_canonical": {
+    "999": "any",
+    "7": "all_inclusive",
+    "3": "breakfast",
+    "4": "half_board",
+    "5": "full_board"
+  },
+  "application": {
+    "current_method": "MaxSearchApi::saveLastValue",
+    "target_method": "ExistingWizardStepApplicationService::apply",
+    "update_existing_only": true,
+    "insert_if_missing": false,
+    "transition_on_failed_apply": false
+  },
+  "progression": {
+    "normal_next_state": "nights",
+    "normal_next_view": "WizardStepView::nights",
+    "edit_return_state": "check",
+    "edit_owner": "EditFlowService::finishIfNeeded",
+    "back_payload": "back_nights",
+    "back_mutates_meal": false
+  },
+  "guard": {
+    "scope": "wizard.forward",
+    "expected_state": "meal",
+    "duplicate_and_stale_callbacks_are_consumed": true
+  }
+}
