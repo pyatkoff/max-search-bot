@@ -35,7 +35,7 @@ childrenAgesContractCheck('child-age message migration remains blocked by projec
 foreach ($payloadMap as $payload => $value) {
     childrenAgesContractCheck("view exposes {$payload}", strpos($view, "'{$payload}'") !== false);
 }
-childrenAgesContractCheck('current child callback owns prefix removal and legacy update', strpos($callback, "\$child = str_replace('child_', '', \$q);") !== false && strpos($callback, 'MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusChild, $child);') !== false);
+childrenAgesContractCheck('child callback no longer owns a direct value write', strpos($callback, 'MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusChild, $child);') === false && ($contract['children']['current_application'] ?? null) === 'ExistingWizardStepApplicationService::apply');
 childrenAgesContractCheck('zero children skip ages and continue to stars', strpos($callback, 'if ((int)$child === 0)') !== false && strpos($callback, "EditFlowService::finishIfNeeded(\$chatId, 'tourists')") !== false && strpos($callback, 'MaxSearchApi::showStarsButtons($chatId)') !== false);
 childrenAgesContractCheck('positive children open age input with exact count', strpos($callback, 'MaxSearchApi::showAgeButtons($chatId, (int)$child)') !== false);
 childrenAgesContractCheck('children callback remains under shared forward guard', strpos($callback, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false && strpos($state, "if (strpos(\$payload, 'child_') === 0) return 'children';") !== false);
@@ -50,7 +50,7 @@ childrenAgesContractCheck('state machine owns conditional children progression',
 childrenAgesContractCheck('back transitions preserve children and age structure', strpos($state, "'child_ages' => ['children']") !== false && strpos($state, "'stars' => ['children', 'child_ages']") !== false);
 childrenAgesContractCheck('tourists edit owns adults children and ages together', strpos($edit, "case 'tourists': return [MaxSearchApi::\$statusAdults, MaxSearchApi::\$statusChild, MaxSearchApi::\$statusAge];") !== false);
 
-childrenAgesContractCheck('contract-only slice leaves current application results unchecked', empty($contract['children']['current_application_result_is_checked']) && empty($contract['child_ages']['current_application_result_is_checked']));
+childrenAgesContractCheck('child callback checks application while free-text ages remain unchanged', !empty($contract['children']['current_application_result_is_checked']) && empty($contract['child_ages']['current_application_result_is_checked']));
 
 echo "\n--------------------------\n";
 echo $failed === 0 ? "CHILDREN/AGES FLOW CONTRACT: OK\n" : "CHILDREN/AGES FLOW CONTRACT: FAIL ({$failed})\n";

@@ -30,7 +30,7 @@ function mutationInventoryCheck(bool $condition, string $message): void
 $current = json_decode($currentOutput, true);
 mutationInventoryCheck($currentCode === 0 && is_array($current) && !empty($current['ok']), 'current mutation inventory is complete');
 mutationInventoryCheck(($current['summary']['caller_groups'] ?? 0) === 28, 'inventory owns the exact current caller-group baseline');
-mutationInventoryCheck(($current['summary']['occurrences'] ?? 0) === 54, 'inventory owns the exact current occurrence baseline');
+mutationInventoryCheck(($current['summary']['occurrences'] ?? 0) === 53, 'inventory owns the exact current occurrence baseline');
 
 $methods = array_values(array_unique(array_column($current['callers'] ?? [], 'method')));
 foreach (['setStatus', 'saveLastValue', 'upsertStatusValue', 'deleteAll', 'applyAiParameters'] as $method) {
