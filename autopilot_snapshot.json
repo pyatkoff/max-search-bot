@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T23:35:40+00:00",
+    "generated_at": "2026-09-04T23:44:09+00:00",
     "production": {
-        "sha": "33ee780ca301986bf2de56e42f5138815cfac73a",
+        "sha": "430a5108e8804b2155821059d0363a9c2ca570f1",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 22:35:29",
+        "since_utc": "2026-09-04 22:43:57",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -134,7 +134,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "33ee780ca301986bf2de56e42f5138815cfac73a",
+        "sha": "430a5108e8804b2155821059d0363a9c2ca570f1",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T23:35:40Z"
+        "reported_at": "2026-09-04T23:44:08Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -192,7 +192,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T23:35:40+00:00",
+        "generated_at": "2026-09-04T23:44:08+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -201,8 +201,8 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 22279,
-                "code_lines": 564
+                "bytes": 22568,
+                "code_lines": 571
             },
             "services": {
                 "files": 143,
@@ -235,9 +235,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 200,
-                "bytes": 960518,
-                "code_lines": 11952
+                "files": 201,
+                "bytes": 976355,
+                "code_lines": 12237
             },
             "tools": {
                 "files": 42,
@@ -259,6 +259,12 @@
                 "severity": "observe"
             },
             {
+                "path": "tests/run_departure_city_callback_application_regression.php",
+                "lines": 284,
+                "bytes": 15420,
+                "severity": "observe"
+            },
+            {
                 "path": "tests/run_children_callback_application_regression.php",
                 "lines": 269,
                 "bytes": 14696,
@@ -266,8 +272,8 @@
             },
             {
                 "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 246,
-                "bytes": 10514,
+                "lines": 253,
+                "bytes": 10803,
                 "severity": "observe"
             },
             {
@@ -298,12 +304,6 @@
                 "path": "tests/run_free_text_nights_application_regression.php",
                 "lines": 226,
                 "bytes": 10892,
-                "severity": "observe"
-            },
-            {
-                "path": "services/DestinationResolver.php",
-                "lines": 221,
-                "bytes": 14203,
                 "severity": "observe"
             }
         ],
