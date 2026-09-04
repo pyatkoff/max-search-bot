@@ -6,7 +6,8 @@ This is the current incremental refactoring map. It is intentionally conservativ
 
 - `services/DialogueStateMachine.php` — dialogue transition validity.
 - `services/NeedValueResolver.php` — deterministic need interpretation boundary.
-- `services/NeedApplicationService.php` — applying recognized need values.
+- `services/NeedApplicationService.php` — applying recognized need values with upsert semantics.
+- `services/ExistingWizardStepApplicationService.php` — updating an already-existing current-session wizard step without inserting or transitioning.
 - `services/InteractionGuard.php` — callback concurrency/staleness safety.
 - `services/RuntimeBootstrap.php` — canonical runtime bootstrap for MAX webhook, Telegram webhook and followup cron; standalone mode is explicit/opt-in and must not be inferred from hostname.
 - `services/RuntimeStorage.php` plus the MySQL runtime repositories — canonical storage switch for standalone conversation/claim/runtime persistence while legacy production remains available until cutover proof.

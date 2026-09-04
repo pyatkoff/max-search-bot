@@ -89,7 +89,8 @@ Rules:
 - `DialogueStateMachine` is the canonical owner of state-transition validity.
 - deterministic parsers/`NeedValueResolver` understand known fields first;
 - AI understands free text and fills gaps, but must not become a parallel state owner;
-- `NeedApplicationService` is the canonical boundary for applying recognized values;
+- `NeedApplicationService` is the canonical boundary for applying recognized values with upsert semantics;
+- `ExistingWizardStepApplicationService` owns update-only writes to a step that already exists after the current start boundary and must never append a hidden status transition;
 - presentation belongs to `DialogueView`/view-model helpers rather than state mutation code;
 - confirmed production defects should become reusable regression scenarios.
 

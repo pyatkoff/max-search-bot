@@ -43,7 +43,7 @@
     {"path":"services/DialogueController.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":2,"classification":"reset","rationale":"Explicit restart paths clear dialogue state."},
     {"path":"services/DialogueView.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":1,"classification":"metadata","rationale":"Persist the rendered check-view generation token."},
     {"path":"services/DialogueView.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":3,"classification":"transition","rationale":"Successful view delivery advances to the presented state."},
-    {"path":"services/EditFlowService.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":1,"classification":"trip_value","rationale":"Restore an existing trip value during edit-state reconstruction."},
+    {"path":"services/ExistingWizardStepApplicationService.php","receiver":"ConversationStateRepository","method":"saveLastValue","occurrences":1,"classification":"trip_value","rationale":"Explicit update-only boundary applies a value to an existing current-session wizard step."},
     {"path":"services/EditFlowService.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Restore a missing wizard step during edit-state reconstruction."},
     {"path":"services/EditParamsView.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Return edit flow to the check state after successful delivery."},
     {"path":"services/InteractionGuard.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":2,"classification":"metadata","rationale":"Persist callback generation claims and current generation markers."},

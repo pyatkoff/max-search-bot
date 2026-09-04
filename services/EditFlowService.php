@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/DialogueView.php';
+require_once __DIR__ . '/ExistingWizardStepApplicationService.php';
 
 class EditFlowService
 {
@@ -50,7 +51,7 @@ class EditFlowService
         $editedStatuses = self::editedStatuses($field);
         foreach (self::missingSnapshotValues($current, $snapshot, $editedStatuses) as $status => $value) {
             MaxSearchApi::setStatus($chatId, $status);
-            MaxSearchApi::saveLastValue($chatId, $status, $value);
+            ExistingWizardStepApplicationService::apply($chatId, $status, $value);
         }
 
         MaxSearchApi::setEditMode($chatId, '');
