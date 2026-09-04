@@ -40,8 +40,10 @@
       "space",
       "comma"
     ],
-    "current_application": "MaxSearchApi::saveLastValue",
-    "current_application_result_is_checked": false,
+    "current_parser": "ChildAgeValueContract::parseLegacyInput",
+    "current_projection": "ChildAgeValueContract::toStorage",
+    "current_application": "ExistingWizardStepApplicationService::apply",
+    "current_application_result_is_checked": true,
     "target_application": "ExistingWizardStepApplicationService::apply",
     "target_projection_required": false,
     "resolver_output_representation": "integer_array",
@@ -91,6 +93,7 @@
   "migration_readiness": {
     "child_callback": {
       "runtime_migration_allowed": true,
+      "runtime_migration_completed": true,
       "scope": "child_* callback only",
       "preserve_existing_child_age_value_when_zero": true,
       "reason": "This is the current behavior. Clearing a stored age value requires a separately confirmed defect and explicit runtime contract.",
@@ -99,6 +102,7 @@
     },
     "child_age_message": {
       "runtime_migration_allowed": true,
+      "runtime_migration_completed": true,
       "authorized_scope": "StateMessageHandler statusAge free-text branch only",
       "contract_production_green_pr": 687,
       "blocker": null,

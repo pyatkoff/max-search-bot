@@ -60,7 +60,7 @@ childAgeValueCheck('rejects out-of-range resolver value', ChildAgeValueContract:
 $service = (string)file_get_contents(__DIR__ . '/../services/ChildAgeValueContract.php');
 $handler = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 childAgeValueCheck('contract has no runtime mutation dependency', strpos($service, 'MaxSearchApi') === false && strpos($service, 'saveLastValue') === false && strpos($service, 'ExistingWizardStepApplicationService') === false, true);
-childAgeValueCheck('contract remains disconnected from runtime', strpos($handler, 'ChildAgeValueContract') === false, true);
+childAgeValueCheck('runtime uses only the executable parser and projector', substr_count($handler, 'ChildAgeValueContract::parseLegacyInput') === 1 && substr_count($handler, 'ChildAgeValueContract::toStorage') === 1, true);
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";

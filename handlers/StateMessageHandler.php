@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
 require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.php';
+require_once dirname(__DIR__) . '/services/ChildAgeValueContract.php';
 require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once __DIR__ . '/AiDateHandler.php';
@@ -58,36 +59,25 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusAge)
             {
-                $age = $message['text'];
                 $error = false;
                 $childCount = MaxSearchApi::getLastValue($chat_id,MaxSearchApi::$statusChild);
-                preg_match('/[^\d\s,]{1,}/', $age, $checkArray);
-                if(is_array($checkArray) && count($checkArray)>0)
+                $ageOut = ChildAgeValueContract::parseLegacyInput(
+                    (string)$message['text'],
+                    (int)$childCount
+                );
+                if($ageOut===null)
                     $error = true;
                 else
                 {
-                    $sep = " ";
-                    if(strpos($age,",")!==false)
-                        $sep = ",";
-                    $ageArr = explode($sep,$age);
-                    $ageOut = [];
-                    foreach($ageArr as $ageItem)
-                    {
-                        $ageItem = intval(trim($ageItem));
-                        if($ageItem<0 || $ageItem>17)
-                        {
-                            $error = true;
-                            break;
-                        }
-                        else
-                        $ageOut[] = $ageItem;
-                    }
-                    if(!$error && count($ageOut)!=$childCount)
+                    $ageValue = ChildAgeValueContract::toStorage($ageOut, (int)$childCount);
+                    if($ageValue===null)
                         $error = true;
-                    if(!$error)
+                    elseif(ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusAge,
+                        $ageValue
+                    ))
                     {
-                        $ageOut = implode(", ",$ageOut);
-                        MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge,$ageOut);
                         if(!EditFlowService::finishIfNeeded($chat_id,'tourists'))
                             MaxSearchApi::showStarsButtons($chat_id);
                     }

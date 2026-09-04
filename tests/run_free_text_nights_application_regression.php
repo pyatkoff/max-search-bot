@@ -212,7 +212,10 @@ foreach ([['stale', 400, true, true], ['missing', 401, false, false]] as [$label
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 freeTextNightsCheck('handler resolves nights through canonical boundary', substr_count($source, "NeedValueResolver::resolve('nights'"), 1);
-freeTextNightsCheck('handler applies nights through update-only boundary', substr_count($source, 'ExistingWizardStepApplicationService::apply('), 1);
+$nightsStart = strpos($source, 'elseif($status==MaxSearchApi::$statusNights)');
+$dateStart = $nightsStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusDate)', $nightsStart);
+$nightsSource = $nightsStart === false || $dateStart === false ? '' : substr($source, $nightsStart, $dateStart - $nightsStart);
+freeTextNightsCheck('handler applies nights through one update-only boundary', substr_count($nightsSource, 'ExistingWizardStepApplicationService::apply('), 1);
 freeTextNightsCheck('handler no longer parses nights directly', strpos($source, 'NightsParser::parse('), false);
 
 EditFlowService::clearSnapshot(300);
