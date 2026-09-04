@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T14:33:38+00:00",
+    "generated_at": "2026-09-04T14:39:07+00:00",
     "production": {
-        "sha": "7d155455d416e322ef952f324304725402269412",
+        "sha": "a094f7e48ce91053b9645a2b4901f55e6be324e7",
         "branch": "main"
     },
     "migrations": {
@@ -99,19 +99,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 13:33:29",
+        "since_utc": "2026-09-04 13:38:53",
         "summary": {
-            "sessions": 3,
-            "raw_sessions": 3,
+            "sessions": 2,
+            "raw_sessions": 2,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 3,
+                "resolved": 2,
                 "unresolved": 0
             },
-            "started": 3,
-            "needs_collected": 3,
-            "tours_opened": 3,
-            "site_opened": 1,
+            "started": 2,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 1,
             "manager_replied": 1,
@@ -126,7 +126,6 @@
                 "max_seconds": 360
             },
             "drop_points": {
-                "site_open": 1,
                 "tours_opened": 1,
                 "customer_replied_after_manager": 1
             },
@@ -138,7 +137,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "7d155455d416e322ef952f324304725402269412",
+        "sha": "a094f7e48ce91053b9645a2b4901f55e6be324e7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -147,7 +146,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T14:33:38Z"
+        "reported_at": "2026-09-04T14:39:07Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -206,7 +205,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T14:33:38+00:00",
+        "generated_at": "2026-09-04T14:39:07+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -250,8 +249,8 @@
             },
             "tests": {
                 "files": 194,
-                "bytes": 907019,
-                "code_lines": 11127
+                "bytes": 907506,
+                "code_lines": 11128
             },
             "tools": {
                 "files": 42,
