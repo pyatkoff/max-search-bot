@@ -165,7 +165,11 @@ class WizardCallbackAction
                 return true;
             }
             $child = str_replace('child_', '', $q);
-            MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusChild, $child);
+            if (!ExistingWizardStepApplicationService::apply(
+                $chatId,
+                MaxSearchApi::$statusChild,
+                $child
+            )) return true;
             if ((int)$child === 0) {
                 if (!EditFlowService::finishIfNeeded($chatId, 'tourists')) MaxSearchApi::showStarsButtons($chatId);
             } else MaxSearchApi::showAgeButtons($chatId, (int)$child);

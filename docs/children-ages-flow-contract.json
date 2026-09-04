@@ -17,8 +17,8 @@
       "child_2": "2",
       "child_3": "3"
     },
-    "current_application": "MaxSearchApi::saveLastValue",
-    "current_application_result_is_checked": false,
+    "current_application": "ExistingWizardStepApplicationService::apply",
+    "current_application_result_is_checked": true,
     "target_application": "ExistingWizardStepApplicationService::apply",
     "target_update_existing_only": true,
     "target_insert_if_missing": false,
