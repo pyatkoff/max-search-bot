@@ -143,9 +143,9 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "inventory_only",
+    "reason": "value_contract_only",
     "required_before_runtime": [
-      "define one exact callback and free-text application contract",
+      "confirm the executable value contract production-green",
       "decide fail-closed behavior when the existing city step is missing or pre-start",
       "prove callback decimal-string, directory/PDO and AI integer values remain semantically identical",
       "prove no-flight id 99 remains displayable and reaches search as from=99",
@@ -162,5 +162,27 @@
     "Yandex Metrica or goal changes",
     "lead delivery changes",
     "manager shift or routing changes"
-  ]
+  ],
+  "executable_value_contract": {
+    "owner": "services/DepartureCityValueContract.php",
+    "runtime_connected": false,
+    "storage_projection": "positive_canonical_directory_id_to_exact_decimal_string",
+    "callback_parser": "existing_pick_city_<positive_canonical_directory_id>_shape_only",
+    "fixed_ids": [
+      1,
+      5,
+      10,
+      12,
+      99
+    ],
+    "no_flight_id": 99,
+    "rejected": [
+      "zero",
+      "negative",
+      "fractional",
+      "empty",
+      "non_numeric",
+      "non_canonical_decimal_string"
+    ]
+  }
 }
