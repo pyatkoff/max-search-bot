@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-04T14:25:06+00:00",
+    "generated_at": "2026-09-04T14:32:45+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -32,13 +32,11 @@
         },
         "drop_points": {
             "site_open": 1,
-            "customer_replied_after_manager": 1,
-            "tours_opened": 1
+            "tours_opened": 1,
+            "customer_replied_after_manager": 1
         },
-        "flags": {
-            "excessive_turns": 1
-        }
+        "flags": []
     },
-    "since_utc": "2026-09-04 13:25:06",
+    "since_utc": "2026-09-04 13:32:45",
     "public_redacted": true
 }
