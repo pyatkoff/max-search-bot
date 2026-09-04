@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T12:59:08+00:00",
+    "generated_at": "2026-09-04T13:08:06+00:00",
     "production": {
-        "sha": "d1ec170875fc55d8d16763f395e9c1d30ad0315d",
+        "sha": "6cd79506f5bda097e2494b166e2f94cbc970ecb7",
         "branch": "main"
     },
     "migrations": {
@@ -94,40 +94,37 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 11:58:56",
+        "since_utc": "2026-09-04 12:07:53",
         "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
+            "sessions": 4,
+            "raw_sessions": 4,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 2,
+                "resolved": 4,
                 "unresolved": 0
             },
-            "started": 2,
-            "needs_collected": 2,
-            "tours_opened": 2,
-            "site_opened": 0,
-            "post_tour_manager_cta_shown": 1,
-            "manager_requested": 2,
-            "manager_replied": 2,
-            "customer_replied_after_manager": 2,
+            "started": 4,
+            "needs_collected": 4,
+            "tours_opened": 4,
+            "site_opened": 1,
+            "post_tour_manager_cta_shown": 2,
+            "manager_requested": 3,
+            "manager_replied": 3,
+            "customer_replied_after_manager": 3,
             "phone_received": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 2,
+                "answered_after_90s": 3,
                 "still_unanswered": 0,
-                "measured_responses": 2,
-                "avg_seconds": 5132,
+                "measured_responses": 3,
+                "avg_seconds": 4213,
                 "max_seconds": 9903
             },
             "drop_points": {
-                "customer_replied_after_manager": 2
+                "customer_replied_after_manager": 3,
+                "tours_opened": 1
             },
-            "flags": {
-                "rapid_date_reselection": 1,
-                "repeated_callback_input": 1,
-                "excessive_turns": 1
-            }
+            "flags": []
         }
     },
     "website": {
@@ -135,7 +132,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "d1ec170875fc55d8d16763f395e9c1d30ad0315d",
+        "sha": "6cd79506f5bda097e2494b166e2f94cbc970ecb7",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -144,7 +141,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T12:59:08Z"
+        "reported_at": "2026-09-04T13:08:06Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -154,21 +151,21 @@
         "window_hours": null,
         "since_utc": "2026-09-03 22:00:00",
         "summary": {
-            "sessions": 43,
-            "raw_sessions": 43,
+            "sessions": 44,
+            "raw_sessions": 44,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 43,
+                "resolved": 44,
                 "unresolved": 0
             },
-            "started": 43,
-            "needs_collected": 33,
-            "tours_opened": 33,
+            "started": 44,
+            "needs_collected": 34,
+            "tours_opened": 34,
             "site_opened": 28,
             "post_tour_manager_cta_shown": 20,
             "manager_requested": 12,
             "manager_replied": 12,
-            "customer_replied_after_manager": 5,
+            "customer_replied_after_manager": 6,
             "phone_received": 5,
             "manager_response": {
                 "answered_in_90s": 0,
@@ -181,9 +178,9 @@
             "drop_points": {
                 "site_open": 21,
                 "collecting_needs": 9,
-                "manager_replied": 7,
-                "customer_replied_after_manager": 5,
-                "tours_opened": 1
+                "manager_replied": 6,
+                "customer_replied_after_manager": 6,
+                "tours_opened": 2
             },
             "flags": {
                 "repeated_callback_input": 6,
@@ -198,12 +195,12 @@
                 "post_tour_manager_cta_shown": 17,
                 "manager_requested": 7,
                 "manager_replied": 10,
-                "customer_replied_after_manager": 4
+                "customer_replied_after_manager": 5
             }
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T12:59:08+00:00",
+        "generated_at": "2026-09-04T13:08:06+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -217,8 +214,8 @@
             },
             "services": {
                 "files": 141,
-                "bytes": 559206,
-                "code_lines": 12018
+                "bytes": 559226,
+                "code_lines": 12025
             },
             "integrations": {
                 "files": 11,
@@ -247,8 +244,8 @@
             },
             "tests": {
                 "files": 192,
-                "bytes": 885956,
-                "code_lines": 10766
+                "bytes": 887150,
+                "code_lines": 10781
             },
             "tools": {
                 "files": 42,
@@ -276,6 +273,12 @@
                 "severity": "observe"
             },
             {
+                "path": "services/DialogueView.php",
+                "lines": 244,
+                "bytes": 13488,
+                "severity": "observe"
+            },
+            {
                 "path": "tests/run_nights_callback_application_regression.php",
                 "lines": 238,
                 "bytes": 11973,
@@ -285,12 +288,6 @@
                 "path": "actions/callbacks/WizardCallbackAction.php",
                 "lines": 237,
                 "bytes": 10275,
-                "severity": "observe"
-            },
-            {
-                "path": "services/DialogueView.php",
-                "lines": 237,
-                "bytes": 13468,
                 "severity": "observe"
             },
             {
