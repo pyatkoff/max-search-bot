@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-04T10:14:27+00:00",
+    "generated_at": "2026-09-04T10:28:30+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -17,38 +17,40 @@
         "needs_collected": 28,
         "tours_opened": 28,
         "site_opened": 25,
-        "post_tour_manager_cta_shown": 17,
-        "manager_requested": 7,
+        "post_tour_manager_cta_shown": 18,
+        "manager_requested": 8,
         "manager_replied": 7,
         "customer_replied_after_manager": 3,
         "phone_received": 4,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 6,
-            "still_unanswered": 0,
+            "still_unanswered": 1,
             "measured_responses": 6,
             "avg_seconds": 28394,
             "max_seconds": 59826
         },
         "drop_points": {
-            "site_open": 21,
+            "site_open": 20,
             "collecting_needs": 8,
             "manager_replied": 4,
             "customer_replied_after_manager": 3,
-            "tours_opened": 1
+            "tours_opened": 1,
+            "manager_requested": 1
         },
         "flags": {
             "repeated_callback_input": 5,
             "excessive_turns": 3,
-            "rapid_date_reselection": 2
+            "rapid_date_reselection": 2,
+            "manager_requested_no_reply": 1
         },
         "calendar_day": {
             "conversations_started": 29,
             "needs_collected_from_started": 23,
             "tours_opened_from_started": 23,
             "site_opened": 23,
-            "post_tour_manager_cta_shown": 15,
-            "manager_requested": 3,
+            "post_tour_manager_cta_shown": 16,
+            "manager_requested": 4,
             "manager_replied": 6,
             "customer_replied_after_manager": 3
         }
