@@ -60,7 +60,7 @@ Phase D's selected slices, including the contract-backed meal callback, and Phas
 
 The remaining Phase E inventory was re-audited and no further exact duplicate responsibility was proven, so handoff consolidation is stopped. The two `ManagerAvailabilityService::withinWorkingHours()` calls in `ManagerPhoneFallbackService` are intentionally separate: one bounds candidate selection, while the second rechecks policy inside the per-conversation lock immediately before external delivery. Do not collapse that safety check merely to reduce occurrence count.
 
-The next autonomous roadmap step is a contract-only inventory for the coupled children and child-age flow. It must record zero-children progression, one status row per age, exact callback value representation, edit return targets, back behavior and stale/missing-step semantics before any runtime mutation PR is allowed. Keep city, country and date mutations deferred, and do not make observe-only transition validation blocking, without their own explicit contracts and clean production evidence.
+The next autonomous roadmap step is a contract-only inventory for the coupled children and child-age flow. It must record zero-children progression, the single comma-separated child-age status value, exact callback value representation, edit return targets, back behavior and stale/missing-step semantics before any runtime mutation PR is allowed. Keep city, country and date mutations deferred, and do not make observe-only transition validation blocking, without their own explicit contracts and clean production evidence.
 
 ## Protected behavior
 

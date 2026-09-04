@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "flow": "children_and_child_ages",
+  "owners": {
+    "child_callback": "actions/callbacks/WizardCallbackAction.php",
+    "age_message": "handlers/StateMessageHandler.php",
+    "views": "services/DialogueView.php",
+    "state_machine": "services/DialogueStateMachine.php",
+    "edit_flow": "services/EditFlowService.php"
+  },
+  "children": {
+    "status": "statusChild",
+    "storage_representation": "decimal_string",
+    "payload_to_storage": {
+      "child_0": "0",
+      "child_1": "1",
+      "child_2": "2",
+      "child_3": "3"
+    },
+    "current_application": "MaxSearchApi::saveLastValue",
+    "current_application_result_is_checked": false,
+    "target_application": "ExistingWizardStepApplicationService::apply",
+    "target_update_existing_only": true,
+    "target_insert_if_missing": false,
+    "target_transition_on_failed_apply": false
+  },
+  "child_ages": {
+    "status": "statusAge",
+    "storage_cardinality": "single_status_row",
+    "storage_representation": "comma_space_joined_decimal_string",
+    "storage_examples": ["6", "3, 7", "0"],
+    "accepted_age_min": 0,
+    "accepted_age_max": 17,
+    "accepted_count_must_equal_children": true,
+    "current_input_separators": ["space", "comma"],
+    "current_application": "MaxSearchApi::saveLastValue",
+    "current_application_result_is_checked": false,
+    "target_application": "ExistingWizardStepApplicationService::apply",
+    "target_projection_required": true,
+    "resolver_output_representation": "integer_array",
+    "application_input_representation": "comma_space_joined_decimal_string",
+    "target_update_existing_only": true,
+    "target_insert_if_missing": false,
+    "target_transition_on_failed_apply": false
+  },
+  "progression": {
+    "zero_children_normal_next": "stars",
+    "zero_children_skips_child_ages": true,
+    "positive_children_next": "child_ages",
+    "valid_child_ages_next": "stars",
+    "tourists_edit_return": "check",
+    "tourists_edit_covers": ["adults", "children", "child_ages"],
+    "invalid_child_ages_remain_in_state": "child_ages"
+  },
+  "back_navigation": {
+    "back_adults": {"from": "children", "to": "adults", "mutates_trip_values": false},
+    "back_child_from_ages": {"from": "child_ages", "to": "children", "mutates_trip_values": false},
+    "back_child_from_stars": {"from": "stars", "to": "children", "mutates_trip_values": false}
+  },
+  "guard": {
+    "children_callback_scope": "wizard.forward",
+    "children_callback_expected_state": "children",
+    "duplicate_and_stale_children_callbacks_are_consumed": true,
+    "child_age_free_text_uses_callback_guard": false
+  },
+  "unresolved_runtime_semantics": {
+    "child_age_projection": "NeedValueResolver returns an integer array while current storage contains one comma-space joined string.",
+    "zero_children_existing_age_value": "Current child_0 flow does not clear a previously stored child-age value in the same session.",
+    "runtime_migration_allowed": false,
+    "required_before_runtime": [
+      "executable projection contract from integer array to exact storage string",
+      "explicit policy and regression for a pre-existing child-age value when children becomes zero"
+    ]
+  }
+}
