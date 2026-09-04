@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "timezone": "Europe/Kaliningrad",
+    "working_start_hour": 10,
+    "working_end_hour": 20,
+    "phone_fallback_delay_seconds": 300,
+    "outside_hours_queue_waiting": false
+  },
+  "classifications": [
+    "entrypoint",
+    "decision",
+    "presentation",
+    "mutation",
+    "fallback_scheduler",
+    "fallback_application",
+    "projection"
+  ],
+  "monitored_calls": [
+    {"receiver": "ManagerHandoffDispatchService", "method": "dispatch"},
+    {"receiver": "ManagerAvailabilityService", "method": "withinWorkingHours"},
+    {"receiver": "ManagerAvailabilityService", "method": "anyWorkingForConversation"},
+    {"receiver": "ManagerRequestService", "method": "prepare"},
+    {"receiver": "DialogueView", "method": "managerRequest"},
+    {"receiver": "DialogueView", "method": "managerPhoneFallback"},
+    {"receiver": "ConversationControlService", "method": "markWaitingByChat"},
+    {"receiver": "ManagerPhoneFallbackService", "method": "runDue"}
+  ],
+  "callers": [
+    {"path": "actions/ManagerAction.php", "receiver": "ManagerHandoffDispatchService", "method": "dispatch", "classification": "entrypoint", "occurrences": 1, "rationale": "AI manager request delegates the complete handoff decision and presentation."},
+    {"path": "actions/callbacks/ManagerCallbackAction.php", "receiver": "ManagerHandoffDispatchService", "method": "dispatch", "classification": "entrypoint", "occurrences": 1, "rationale": "Button manager request delegates the complete handoff decision and presentation."},
+    {"path": "services/SourceHandlingService.php", "receiver": "ManagerHandoffDispatchService", "method": "dispatch", "classification": "entrypoint", "occurrences": 1, "rationale": "Source policy manager-first mode delegates the complete handoff decision and presentation."},
+
+    {"path": "services/ManagerHandoffDispatchService.php", "receiver": "ManagerAvailabilityService", "method": "withinWorkingHours", "classification": "decision", "occurrences": 1, "rationale": "Canonical initial handoff branch selects working-hours or outside-hours behavior."},
+    {"path": "services/ManagerPhoneFallbackService.php", "receiver": "ManagerAvailabilityService", "method": "withinWorkingHours", "classification": "decision", "occurrences": 2, "rationale": "Fallback selection and its locked final check are both limited to the working window."},
+    {"path": "services/ManagerHandoffDispatchService.php", "receiver": "ManagerAvailabilityService", "method": "anyWorkingForConversation", "classification": "decision", "occurrences": 1, "rationale": "Live manager reachability is an informational presentation decision and does not block a working-hours request."},
+    {"path": "services/WebsiteSessionService.php", "receiver": "ManagerAvailabilityService", "method": "anyWorkingForConversation", "classification": "projection", "occurrences": 1, "rationale": "Website conversation projection exposes the canonical availability result without mutating handoff state."},
+
+    {"path": "services/ManagerHandoffDispatchService.php", "receiver": "ManagerRequestService", "method": "prepare", "classification": "presentation", "occurrences": 1, "rationale": "Working-hours copy and callbacks come from the shared request model."},
+    {"path": "services/DialogueView.php", "receiver": "ManagerRequestService", "method": "prepare", "classification": "presentation", "occurrences": 2, "rationale": "Outside-hours and delayed fallback views consume the shared request model."},
+    {"path": "services/ManagerHandoffDispatchService.php", "receiver": "DialogueView", "method": "managerRequest", "classification": "presentation", "occurrences": 1, "rationale": "Outside-hours path presents optional contact and self-service return without entering the live queue."},
+    {"path": "services/ManagerPhoneFallbackService.php", "receiver": "DialogueView", "method": "managerPhoneFallback", "classification": "fallback_application", "occurrences": 1, "rationale": "The due fallback performs the single external optional-phone offer."},
+
+    {"path": "actions/ManagerAction.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "AI path enters waiting_manager only when dispatch returns queue_waiting."},
+    {"path": "actions/callbacks/ManagerCallbackAction.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "Callback path enters waiting_manager only when dispatch returns queue_waiting."},
+    {"path": "services/SourceHandlingService.php", "receiver": "ConversationControlService", "method": "markWaitingByChat", "classification": "mutation", "occurrences": 1, "rationale": "Source-policy path enters waiting_manager only when dispatch returns queue_waiting."},
+    {"path": "cron_followup.php", "receiver": "ManagerPhoneFallbackService", "method": "runDue", "classification": "fallback_scheduler", "occurrences": 1, "rationale": "The existing follow-up cron is the only scheduler for five-minute fallback processing."}
+  ],
+  "policy_surfaces": [
+    {
+      "path": "services/ManagerHandoffDispatchService.php",
+      "classification": "decision",
+      "responsibility": "Initial handoff decision: working-hours live queue versus outside-hours optional contact presentation.",
+      "required_markers": ["if ($withinWorkingHours)", "queue_waiting", "DialogueView::managerRequest"]
+    },
+    {
+      "path": "services/ManagerAvailabilityService.php",
+      "classification": "decision",
+      "responsibility": "Canonical business timezone, working window and project/routing-aware manager availability.",
+      "required_markers": ["WORKDAY_START_HOUR = 10", "WORKDAY_END_HOUR = 20", "BUSINESS_TIMEZONE = 'Europe/Kaliningrad'", "is_working=1"]
+    },
+    {
+      "path": "services/ManagerPhoneFallbackService.php",
+      "classification": "fallback_application",
+      "responsibility": "Idempotent five-minute optional-phone fallback after an unanswered active manager request.",
+      "required_markers": ["DELAY_SECONDS = 300", "manager_phone_fallback_sent", "manager_phone_fallback_failed", "hasManagerReply"]
+    },
+    {
+      "path": "services/DialogueView.php",
+      "classification": "presentation",
+      "responsibility": "Renders initial outside-hours and delayed fallback contact offers; successful rendering advances only the dialogue phone step.",
+      "required_markers": ["function managerRequest", "function managerPhoneFallback", "outside_hours_text", "fallback_text"]
+    },
+    {
+      "path": "web-consultant/widget.js",
+      "classification": "presentation",
+      "responsibility": "Website-only projection of manager availability and local contact UI; it is not the MAX five-minute fallback owner.",
+      "required_markers": ["manager_available", "contactFallbackShown", "showContact(true)"]
+    }
+  ]
+}
