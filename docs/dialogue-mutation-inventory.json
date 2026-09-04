@@ -76,9 +76,9 @@
       "path": "handlers/StateMessageHandler.php",
       "receiver": "MaxSearchApi",
       "method": "saveLastValue",
-      "occurrences": 3,
+      "occurrences": 2,
       "classification": "trip_value",
-      "rationale": "Apply the remaining city, country and date free-text wizard values outside the migrated nights and child-age boundaries."
+      "rationale": "Apply the remaining country and date free-text wizard values outside the migrated wizard boundaries."
     },
     {
       "path": "handlers/StateMessageHandler.php",
