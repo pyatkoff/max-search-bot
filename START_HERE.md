@@ -42,6 +42,7 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - legacy AI-log paths are publicly inaccessible with an accepted 403/404 response; the #660 deployment returned 404;
   - this containment must never be removed by rollback.
 - Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. The meal callback contract and update-only runtime slice shipped in PRs #680 and #681. Do not restart those slices.
+- The coupled children/child-age inventory shipped in PR #683. It confirms one comma-space age-status value and keeps free-text age migration blocked until an exact array-to-storage projection is executable.
 - Phase E's read-only handoff inventory and the first two proven consolidations shipped in PRs #672, #675 and #676. They centralized queue-decision application and contact send/status application without changing handoff policy.
 - The Manager notification activation incident reported by Anna was repaired in PRs #673, #674 and #677. PR #678 added redacted reason counts, and Anna's healthy green state was naturally confirmed after deployment.
 - The exact current SHA and run IDs belong in live GitHub/diagnostics and the latest issue #55 checkpoint, not hard-coded here.
@@ -60,7 +61,7 @@ Phase D's selected slices, including the contract-backed meal callback, and Phas
 
 The remaining Phase E inventory was re-audited and no further exact duplicate responsibility was proven, so handoff consolidation is stopped. The two `ManagerAvailabilityService::withinWorkingHours()` calls in `ManagerPhoneFallbackService` are intentionally separate: one bounds candidate selection, while the second rechecks policy inside the per-conversation lock immediately before external delivery. Do not collapse that safety check merely to reduce occurrence count.
 
-The next autonomous roadmap step is a contract-only inventory for the coupled children and child-age flow. It must record zero-children progression, the single comma-separated child-age status value, exact callback value representation, edit return targets, back behavior and stale/missing-step semantics before any runtime mutation PR is allowed. Keep city, country and date mutations deferred, and do not make observe-only transition validation blocking, without their own explicit contracts and clean production evidence.
+The next autonomous runtime slice is only the `child_*` callback. Apply the exact decimal-string child count through `ExistingWizardStepApplicationService::apply`, preserve `wizard.forward`, edit/back behavior and zero-versus-positive progression, and fail closed without rendering or transitioning when the existing child step is missing. For `child_0`, preserve current behavior by leaving any pre-existing child-age status value untouched; clearing it requires a separately confirmed defect and explicit runtime contract. Required executable cases are `child_0`, `child_1`, `child_3`, duplicate, stale, missing-step, tourists edit and presentation-only back behavior. Do not migrate free-text child ages in that PR. Keep city, country and date mutations deferred, and do not make observe-only transition validation blocking, without their own explicit contracts and clean production evidence.
 
 ## Protected behavior
 

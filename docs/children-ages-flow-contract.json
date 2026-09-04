@@ -28,11 +28,18 @@
     "status": "statusAge",
     "storage_cardinality": "single_status_row",
     "storage_representation": "comma_space_joined_decimal_string",
-    "storage_examples": ["6", "3, 7", "0"],
+    "storage_examples": [
+      "6",
+      "3, 7",
+      "0"
+    ],
     "accepted_age_min": 0,
     "accepted_age_max": 17,
     "accepted_count_must_equal_children": true,
-    "current_input_separators": ["space", "comma"],
+    "current_input_separators": [
+      "space",
+      "comma"
+    ],
     "current_application": "MaxSearchApi::saveLastValue",
     "current_application_result_is_checked": false,
     "target_application": "ExistingWizardStepApplicationService::apply",
@@ -49,13 +56,29 @@
     "positive_children_next": "child_ages",
     "valid_child_ages_next": "stars",
     "tourists_edit_return": "check",
-    "tourists_edit_covers": ["adults", "children", "child_ages"],
+    "tourists_edit_covers": [
+      "adults",
+      "children",
+      "child_ages"
+    ],
     "invalid_child_ages_remain_in_state": "child_ages"
   },
   "back_navigation": {
-    "back_adults": {"from": "children", "to": "adults", "mutates_trip_values": false},
-    "back_child_from_ages": {"from": "child_ages", "to": "children", "mutates_trip_values": false},
-    "back_child_from_stars": {"from": "stars", "to": "children", "mutates_trip_values": false}
+    "back_adults": {
+      "from": "children",
+      "to": "adults",
+      "mutates_trip_values": false
+    },
+    "back_child_from_ages": {
+      "from": "child_ages",
+      "to": "children",
+      "mutates_trip_values": false
+    },
+    "back_child_from_stars": {
+      "from": "stars",
+      "to": "children",
+      "mutates_trip_values": false
+    }
   },
   "guard": {
     "children_callback_scope": "wizard.forward",
@@ -63,13 +86,22 @@
     "duplicate_and_stale_children_callbacks_are_consumed": true,
     "child_age_free_text_uses_callback_guard": false
   },
-  "unresolved_runtime_semantics": {
-    "child_age_projection": "NeedValueResolver returns an integer array while current storage contains one comma-space joined string.",
-    "zero_children_existing_age_value": "Current child_0 flow does not clear a previously stored child-age value in the same session.",
-    "runtime_migration_allowed": false,
-    "required_before_runtime": [
-      "executable projection contract from integer array to exact storage string",
-      "explicit policy and regression for a pre-existing child-age value when children becomes zero"
-    ]
+  "migration_readiness": {
+    "child_callback": {
+      "runtime_migration_allowed": true,
+      "scope": "child_* callback only",
+      "preserve_existing_child_age_value_when_zero": true,
+      "reason": "This is the current behavior. Clearing a stored age value requires a separately confirmed defect and explicit runtime contract.",
+      "required_application": "ExistingWizardStepApplicationService::apply",
+      "fail_closed_on_missing_step": true
+    },
+    "child_age_message": {
+      "runtime_migration_allowed": false,
+      "blocker": "NeedValueResolver returns an integer array while current storage contains one comma-space joined string.",
+      "required_before_runtime": [
+        "executable projection contract from integer array to exact storage string",
+        "behavior parity for current accepted and rejected free-text separators"
+      ]
+    }
   }
 }
