@@ -3,7 +3,8 @@ require_once dirname(__DIR__) . '/services/DialogueView.php';
 require_once dirname(__DIR__) . '/services/WizardStepView.php';
 require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
-require_once dirname(__DIR__) . '/services/NightsParser.php';
+require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
+require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
@@ -101,12 +102,19 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusNights)
             {
-                $nightsOut = NightsParser::parse((string)$message['text']);
-                if($nightsOut !== '')
+                $resolved = NeedValueResolver::resolve('nights', (string)$message['text']);
+                if(!empty($resolved['recognized']))
                 {
-                    MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusNights,$nightsOut);
-                    if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
-                        DialogueView::calendar($chat_id,date("m"),date("Y"));
+                    $applied = ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusNights,
+                        $resolved['value']
+                    );
+                    if($applied)
+                    {
+                        if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                            DialogueView::calendar($chat_id,date("m"),date("Y"));
+                    }
                 }
                 else
                     self::send($chat_id,"К сожалению диапазон ночей указан неверно. Пожалуйста, укажите число или диапазон от 1 до 28 — например: 6, на 6 ночей или 7-10 ночей.");
