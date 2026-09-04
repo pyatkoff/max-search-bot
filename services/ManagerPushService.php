@@ -43,7 +43,7 @@ class ManagerPushService
         $keys=(array)($subscription['keys']??[]); $p256dh=trim((string)($keys['p256dh']??'')); $auth=trim((string)($keys['auth']??''));
         if($endpoint===''||$p256dh===''||$auth==='') return false;
         $hash=hash('sha256',$endpoint);
-        $q=ConversationDb::connection()->prepare('INSERT INTO manager_push_subscriptions (manager_id,endpoint,endpoint_hash,p256dh,auth_secret,user_agent) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE endpoint=VALUES(endpoint),p256dh=VALUES(p256dh),auth_secret=VALUES(auth_secret),user_agent=VALUES(user_agent),updated_at=NOW()');
+        $q=ConversationDb::connection()->prepare('INSERT INTO manager_push_subscriptions (manager_id,endpoint,endpoint_hash,p256dh,auth_secret,user_agent) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE endpoint=VALUES(endpoint),p256dh=VALUES(p256dh),auth_secret=VALUES(auth_secret),user_agent=VALUES(user_agent),last_error_at=NULL,last_error=NULL,updated_at=NOW()');
         return $q->execute([$managerId,$endpoint,$hash,$p256dh,$auth,mb_substr($userAgent,0,500)]);
     }
 

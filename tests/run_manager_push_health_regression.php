@@ -28,6 +28,7 @@ mphCheck('push health can report one manager regardless of working state',strpos
 mphCheck('production snapshot includes manager push health',strpos($snapshot,"ManagerPushHealth.php")!==false && strpos($snapshot,"'manager_push_health'")!==false && strpos($snapshot,"'manager_push_ok'")!==false);
 mphCheck('push subscription schema is migration owned',strpos($pushMigration,'CREATE TABLE IF NOT EXISTS manager_push_subscriptions')!==false && strpos($pushMigration,'UNIQUE KEY uq_manager_endpoint')!==false && strpos($pushMigration,'KEY idx_manager_push_manager')!==false);
 mphCheck('runtime push service never creates schema',stripos($push,'CREATE TABLE')===false && strpos($push,'ensureSchema')===false);
+mphCheck('successful subscription refresh clears stale delivery failure health',strpos($push,'last_error_at=NULL,last_error=NULL,updated_at=NOW()')!==false);
 mphCheck('push delivery logs missing selected manager subscription',strpos($push,"'no_subscription'")!==false && strpos($push,"'conversation_id'=>\$conversationId")!==false && strpos($push,"'manager_id'=>(int)\$managerId")!==false);
 mphCheck('push delivery logs successful subscription send',strpos($push,"'delivery_success'")!==false && strpos($push,"'subscription_id'=>\$subscriptionId")!==false && strpos($push,"'http_code'=>\$code")!==false);
 mphCheck('push delivery logs failed and expired sends',strpos($push,"'delivery_failed'")!==false && strpos($push,"'subscription_expired'")!==false && strpos($push,"'delivery_exception'")!==false);
