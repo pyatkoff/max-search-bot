@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
 require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.php';
+require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
@@ -112,8 +113,16 @@ class StateMessageHandler
                     );
                     if($applied)
                     {
-                        if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                        if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
+                            DialogueTransitionObserver::observe(
+                                $chat_id,
+                                (int)MaxSearchApi::$statusNights,
+                                (int)MaxSearchApi::$statusDate,
+                                'forward',
+                                'free_text_nights'
+                            );
                             DialogueView::calendar($chat_id,date("m"),date("Y"));
+                        }
                     }
                 }
                 else

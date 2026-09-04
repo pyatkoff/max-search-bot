@@ -50,6 +50,7 @@ return [
         'php tests/run_date_context_resolver_regression.php',
         'php tests/run_native_date_service_regression.php',
         'php tests/run_dialogue_state_machine_regression.php',
+        'php tests/run_dialogue_transition_observer_regression.php',
         'php tests/run_interaction_guard_diagnostics_regression.php',
         'php tests/run_scenarios.php dialogue',
         'php tests/run_dialogue_view_regression.php',

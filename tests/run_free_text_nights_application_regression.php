@@ -61,10 +61,15 @@ class MaxSearchApi
     public static $statusStart = 64;
     public static $statusCityChoose = 65;
     public static $statusContryChoose = 66;
+    public static $statusAdults = 67;
+    public static $statusChild = 68;
     public static $statusAge = 69;
+    public static $statusStars = 70;
+    public static $statusMeal = 71;
     public static $statusNights = 72;
     public static $statusDate = 73;
     public static $statusCheck = 74;
+    public static $statusPhone = 75;
     public static $statusAi = 76;
     public static string $editMode = '';
     public static array $transitions = [];
@@ -96,6 +101,10 @@ class MaxSearchApi
 
 require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
+$freeTextNightsTransitionLog = sys_get_temp_dir() . '/max-search-free-text-nights-transition-' . getmypid() . '.log';
+@unlink($freeTextNightsTransitionLog);
+DiagnosticLogger::setFile($freeTextNightsTransitionLog);
+
 final class FreeTextNightsMessenger implements MessengerInterface
 {
     public array $sent = [];
@@ -118,7 +127,9 @@ function freeTextNightsCheck(string $name, $actual, $expected): void
 
 function freeTextNightsReset(int $chatId, bool $withStep = true, bool $stale = false): FreeTextNightsMessenger
 {
+    global $freeTextNightsTransitionLog;
     EditFlowService::clearSnapshot($chatId);
+    @unlink($freeTextNightsTransitionLog);
     MaxSearchApi::$editMode = '';
     MaxSearchApi::$transitions = [];
     MaxSearchApi::$directSaves = [];
@@ -139,6 +150,16 @@ function freeTextNightsReset(int $chatId, bool $withStep = true, bool $stale = f
     return $messenger;
 }
 
+function freeTextNightsTransitionEvents(): array
+{
+    global $freeTextNightsTransitionLog;
+    $lines = file($freeTextNightsTransitionLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    return array_values(array_filter(array_map(
+        static fn(string $line): ?array => json_decode($line, true),
+        $lines
+    )));
+}
+
 foreach ([
     ['На 6', '6'],
     ['7-10', '7-10'],
@@ -151,6 +172,10 @@ foreach ([
     freeTextNightsCheck("{$text} advances to calendar", MaxSearchApi::$transitions, [MaxSearchApi::$statusDate]);
     freeTextNightsCheck("{$text} renders calendar once", count($messenger->buttons), 1);
     freeTextNightsCheck("{$text} avoids legacy direct write", MaxSearchApi::$directSaves, []);
+    $transitionEvents = freeTextNightsTransitionEvents();
+    freeTextNightsCheck("{$text} observes nights to date once", count($transitionEvents), 1);
+    freeTextNightsCheck("{$text} observer is allowed", $transitionEvents[0]['data']['allowed'] ?? null, true);
+    freeTextNightsCheck("{$text} observer keeps free-text scope", $transitionEvents[0]['data']['scope'] ?? null, 'free_text_nights');
 }
 
 $messenger = freeTextNightsReset(200);
@@ -158,6 +183,7 @@ StateMessageHandler::handle(['text'=>'не знаю'], 200, MaxSearchApi::$statu
 freeTextNightsCheck('invalid text keeps the step value', MaxSearchApi::getSavedData(200)[MaxSearchApi::$statusNights] ?? null, '6');
 freeTextNightsCheck('invalid text sends the existing validation prompt', count($messenger->sent), 1);
 freeTextNightsCheck('invalid text does not advance', MaxSearchApi::$transitions, []);
+freeTextNightsCheck('invalid text emits no transition observation', freeTextNightsTransitionEvents(), []);
 
 $messenger = freeTextNightsReset(300);
 MaxSearchApi::$editMode = 'nights';
@@ -166,6 +192,7 @@ freeTextNightsCheck('edit flow stores the resolved value', MaxSearchApi::getSave
 freeTextNightsCheck('edit flow returns to check instead of calendar', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 freeTextNightsCheck('edit flow renders check once', count($messenger->buttons), 1);
 freeTextNightsCheck('edit flow clears edit mode', MaxSearchApi::$editMode, '');
+freeTextNightsCheck('edit flow emits no nights to date observation', freeTextNightsTransitionEvents(), []);
 
 foreach ([['stale', 400, true, true], ['missing', 401, false, false]] as [$label, $chatId, $withStep, $stale]) {
     $messenger = freeTextNightsReset($chatId, $withStep, $stale);
@@ -175,6 +202,7 @@ foreach ([['stale', 400, true, true], ['missing', 401, false, false]] as [$label
     freeTextNightsCheck("{$label} step does not call add", FreeTextNightsFakeData::$adds, 0);
     freeTextNightsCheck("{$label} step does not advance", MaxSearchApi::$transitions, []);
     freeTextNightsCheck("{$label} step renders no next view", count($messenger->buttons), 0);
+    freeTextNightsCheck("{$label} step emits no transition observation", freeTextNightsTransitionEvents(), []);
 }
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
@@ -183,6 +211,7 @@ freeTextNightsCheck('handler applies nights through update-only boundary', subst
 freeTextNightsCheck('handler no longer parses nights directly', strpos($source, 'NightsParser::parse('), false);
 
 EditFlowService::clearSnapshot(300);
+@unlink($freeTextNightsTransitionLog);
 echo "\n--------------------------\n";
 echo $failed === 0 ? "FREE-TEXT NIGHTS APPLICATION: OK\n" : "FREE-TEXT NIGHTS APPLICATION: FAIL ({$failed})\n";
 exit($failed === 0 ? 0 : 1);

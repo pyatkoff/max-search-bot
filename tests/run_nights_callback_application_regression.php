@@ -108,6 +108,10 @@ class MaxSearchApi
 
 require_once __DIR__ . '/../actions/callbacks/WizardCallbackAction.php';
 
+$nightsCallbackTransitionLog = sys_get_temp_dir() . '/max-search-nights-callback-transition-' . getmypid() . '.log';
+@unlink($nightsCallbackTransitionLog);
+DiagnosticLogger::setFile($nightsCallbackTransitionLog);
+
 final class NightsCallbackMessenger implements MessengerInterface
 {
     public array $sent = [];
@@ -130,7 +134,9 @@ function nightsCallbackCheck(string $name, $actual, $expected): void
 
 function nightsCallbackReset(int $chatId, bool $withStep = true): NightsCallbackMessenger
 {
+    global $nightsCallbackTransitionLog;
     EditFlowService::clearSnapshot($chatId);
+    @unlink($nightsCallbackTransitionLog);
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
     MaxSearchApi::$currentStatus = (int)MaxSearchApi::$statusNights;
     MaxSearchApi::$editMode = '';
@@ -149,6 +155,16 @@ function nightsCallbackReset(int $chatId, bool $withStep = true): NightsCallback
     return $messenger;
 }
 
+function nightsCallbackTransitionEvents(): array
+{
+    global $nightsCallbackTransitionLog;
+    $lines = file($nightsCallbackTransitionLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+    return array_values(array_filter(array_map(
+        static fn(string $line): ?array => json_decode($line, true),
+        $lines
+    )));
+}
+
 $messenger = nightsCallbackReset(500);
 $handled = WizardCallbackAction::handle(500, 'nights_9_11');
 nightsCallbackCheck('nights callback is consumed', $handled, true);
@@ -157,6 +173,10 @@ nightsCallbackCheck('nights callback advances exactly once to date', MaxSearchAp
 nightsCallbackCheck('nights callback renders calendar once', count($messenger->buttons), 1);
 nightsCallbackCheck('nights callback updates the step exactly once', NightsCallbackFakeData::$updates, 1);
 nightsCallbackCheck('nights callback avoids legacy direct write', MaxSearchApi::$directSaves, []);
+$transitionEvents = nightsCallbackTransitionEvents();
+nightsCallbackCheck('nights callback observes nights to date once', count($transitionEvents), 1);
+nightsCallbackCheck('nights callback observer is allowed', $transitionEvents[0]['data']['allowed'] ?? null, true);
+nightsCallbackCheck('nights callback observer keeps callback scope', $transitionEvents[0]['data']['scope'] ?? null, 'nights_callback');
 
 $handledAgain = WizardCallbackAction::handle(500, 'nights_9_11');
 nightsCallbackCheck('duplicate delivery is consumed after state advance', $handledAgain, true);
@@ -164,6 +184,7 @@ nightsCallbackCheck('duplicate delivery does not write again', MaxSearchApi::get
 nightsCallbackCheck('duplicate delivery does not render again', count($messenger->buttons), 1);
 nightsCallbackCheck('duplicate delivery does not transition again', MaxSearchApi::$transitions, [MaxSearchApi::$statusDate]);
 nightsCallbackCheck('duplicate delivery does not update again', NightsCallbackFakeData::$updates, 1);
+nightsCallbackCheck('duplicate delivery does not emit another observation', count(nightsCallbackTransitionEvents()), 1);
 
 $messenger = nightsCallbackReset(501);
 MaxSearchApi::$currentStatus = (int)MaxSearchApi::$statusDate;
@@ -173,6 +194,7 @@ nightsCallbackCheck('stale nights callback preserves stored value', MaxSearchApi
 nightsCallbackCheck('stale nights callback renders no view', count($messenger->buttons), 0);
 nightsCallbackCheck('stale nights callback makes no transition', MaxSearchApi::$transitions, []);
 nightsCallbackCheck('stale nights callback makes no update', NightsCallbackFakeData::$updates, 0);
+nightsCallbackCheck('stale nights callback emits no transition observation', nightsCallbackTransitionEvents(), []);
 
 $messenger = nightsCallbackReset(502);
 MaxSearchApi::$editMode = 'nights';
@@ -181,6 +203,7 @@ nightsCallbackCheck('edit callback stores exact range', MaxSearchApi::getSavedDa
 nightsCallbackCheck('edit callback returns to check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 nightsCallbackCheck('edit callback renders check once', count($messenger->buttons), 1);
 nightsCallbackCheck('edit callback clears edit mode', MaxSearchApi::$editMode, '');
+nightsCallbackCheck('edit callback emits no nights to date observation', nightsCallbackTransitionEvents(), []);
 
 $messenger = nightsCallbackReset(503, false);
 $before = count(NightsCallbackFakeData::$rows);
@@ -191,6 +214,7 @@ nightsCallbackCheck('missing nights step does not call add', NightsCallbackFakeD
 nightsCallbackCheck('missing nights step makes no update', NightsCallbackFakeData::$updates, 0);
 nightsCallbackCheck('missing nights step renders no next view', count($messenger->buttons), 0);
 nightsCallbackCheck('missing nights step makes no transition', MaxSearchApi::$transitions, []);
+nightsCallbackCheck('missing nights step emits no transition observation', nightsCallbackTransitionEvents(), []);
 
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 nightsCallbackCheck('action applies nights through update-only boundary', strpos($source, '$nights = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusNights,') !== false, true);
@@ -201,6 +225,7 @@ foreach ([500, 501, 502, 503] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
 }
+@unlink($nightsCallbackTransitionLog);
 
 echo "\n--------------------------\n";
 echo $failed === 0 ? "NIGHTS CALLBACK APPLICATION: OK\n" : "NIGHTS CALLBACK APPLICATION: FAIL ({$failed})\n";

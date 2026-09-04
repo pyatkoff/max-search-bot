@@ -4,6 +4,7 @@ require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
+require_once dirname(__DIR__, 2) . '/services/DialogueTransitionObserver.php';
 
 class WizardCallbackAction
 {
@@ -208,6 +209,13 @@ class WizardCallbackAction
                     $nights
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'nights')) return true;
+                DialogueTransitionObserver::observe(
+                    $chatId,
+                    (int)MaxSearchApi::$statusNights,
+                    (int)MaxSearchApi::$statusDate,
+                    'forward',
+                    'nights_callback'
+                );
             }
             DialogueView::calendar($chatId, date('m'), date('Y'));
             return true;
