@@ -1,31 +1,31 @@
 {
     "ok": true,
-    "generated_at": "2026-09-04T11:39:32+00:00",
+    "generated_at": "2026-09-04T12:10:08+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 41,
-        "raw_sessions": 41,
+        "sessions": 42,
+        "raw_sessions": 42,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 41,
+            "resolved": 42,
             "unresolved": 0
         },
-        "started": 41,
-        "needs_collected": 31,
-        "tours_opened": 31,
+        "started": 42,
+        "needs_collected": 32,
+        "tours_opened": 32,
         "site_opened": 28,
         "post_tour_manager_cta_shown": 19,
-        "manager_requested": 10,
+        "manager_requested": 11,
         "manager_replied": 10,
         "customer_replied_after_manager": 3,
         "phone_received": 5,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 9,
-            "still_unanswered": 0,
+            "still_unanswered": 1,
             "measured_responses": 9,
             "avg_seconds": 19449,
             "max_seconds": 59826
@@ -35,20 +35,24 @@
             "collecting_needs": 9,
             "manager_replied": 7,
             "customer_replied_after_manager": 3,
-            "tours_opened": 1
+            "tours_opened": 1,
+            "manager_requested": 1
         },
         "flags": {
-            "repeated_callback_input": 5,
-            "excessive_turns": 5,
-            "rapid_date_reselection": 2
+            "repeated_callback_input": 6,
+            "excessive_turns": 6,
+            "rapid_date_reselection": 3,
+            "manager_requested_no_reply": 1,
+            "left_waiting_queue_without_manager_reply": 1,
+            "manager_taken_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 33,
-            "needs_collected_from_started": 26,
-            "tours_opened_from_started": 26,
+            "conversations_started": 34,
+            "needs_collected_from_started": 27,
+            "tours_opened_from_started": 27,
             "site_opened": 26,
             "post_tour_manager_cta_shown": 17,
-            "manager_requested": 6,
+            "manager_requested": 7,
             "manager_replied": 9,
             "customer_replied_after_manager": 3
         }
