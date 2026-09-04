@@ -32,7 +32,7 @@ function handoffInventoryCheck(bool $condition, string $message): void
 $current = json_decode($currentOutput, true);
 handoffInventoryCheck($currentCode === 0 && is_array($current) && !empty($current['ok']), 'current handoff policy inventory is complete');
 handoffInventoryCheck(($current['summary']['caller_groups'] ?? 0) === 13, 'inventory owns the exact current caller-group baseline');
-handoffInventoryCheck(($current['summary']['occurrences'] ?? 0) === 15, 'inventory owns the exact current occurrence baseline');
+handoffInventoryCheck(($current['summary']['occurrences'] ?? 0) === 14, 'inventory owns the exact current occurrence baseline');
 handoffInventoryCheck(($current['summary']['policy_surfaces'] ?? 0) === 5, 'inventory records every current policy surface');
 
 $policy = $current['policy'] ?? [];

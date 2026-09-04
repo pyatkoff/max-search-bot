@@ -37,7 +37,7 @@
     {"path": "services/WebsiteSessionService.php", "receiver": "ManagerAvailabilityService", "method": "anyWorkingForConversation", "classification": "projection", "occurrences": 1, "rationale": "Website conversation projection exposes the canonical availability result without mutating handoff state."},
 
     {"path": "services/ManagerHandoffDispatchService.php", "receiver": "ManagerRequestService", "method": "prepare", "classification": "presentation", "occurrences": 1, "rationale": "Working-hours copy and callbacks come from the shared request model."},
-    {"path": "services/DialogueView.php", "receiver": "ManagerRequestService", "method": "prepare", "classification": "presentation", "occurrences": 2, "rationale": "Outside-hours and delayed fallback views consume the shared request model."},
+    {"path": "services/DialogueView.php", "receiver": "ManagerRequestService", "method": "prepare", "classification": "presentation", "occurrences": 1, "rationale": "One canonical contact renderer serves the outside-hours and delayed fallback views from the shared request model."},
     {"path": "services/ManagerHandoffDispatchService.php", "receiver": "DialogueView", "method": "managerRequest", "classification": "presentation", "occurrences": 1, "rationale": "Outside-hours path presents optional contact and self-service return without entering the live queue."},
     {"path": "services/ManagerPhoneFallbackService.php", "receiver": "DialogueView", "method": "managerPhoneFallback", "classification": "fallback_application", "occurrences": 1, "rationale": "The due fallback performs the single external optional-phone offer."},
 
@@ -66,8 +66,8 @@
     {
       "path": "services/DialogueView.php",
       "classification": "presentation",
-      "responsibility": "Renders initial outside-hours and delayed fallback contact offers; successful rendering advances only the dialogue phone step.",
-      "required_markers": ["function managerRequest", "function managerPhoneFallback", "outside_hours_text", "fallback_text"]
+      "responsibility": "Renders initial outside-hours and delayed fallback contact offers through one contact renderer; successful rendering advances only the dialogue phone step.",
+      "required_markers": ["function managerRequest", "function managerPhoneFallback", "function sendManagerContactRequest", "outside_hours_text", "fallback_text"]
     },
     {
       "path": "web-consultant/widget.js",

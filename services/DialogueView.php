@@ -160,25 +160,32 @@ class DialogueView
 
     public static function managerRequest($chatId, string $name = '', bool $fromTours = false, bool $outsideHours = false): bool
     {
-        $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
-        MaxSearchApi::deletePrevMessage($chatId);
-        $text = $outsideHours ? (string)$model['outside_hours_text'] : (string)$model['text'];
-        $ok = IntegrationRegistry::messenger()->sendContactRequest(
+        return self::sendManagerContactRequest(
             $chatId,
-            $text,
-            (string)$model['manual_callback'],
-            (string)$model['back_callback']
+            $name,
+            $fromTours,
+            $outsideHours ? 'outside_hours_text' : 'text',
+            true
         );
-        if ($ok) MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusPhone);
-        return (bool)$ok;
     }
 
     public static function managerPhoneFallback($chatId, bool $fromTours = false): bool
     {
-        $model = ManagerRequestService::prepare($chatId, '', $fromTours);
+        return self::sendManagerContactRequest($chatId, '', $fromTours, 'fallback_text', false);
+    }
+
+    private static function sendManagerContactRequest(
+        $chatId,
+        string $name,
+        bool $fromTours,
+        string $textKey,
+        bool $deletePrevious
+    ): bool {
+        $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
+        if ($deletePrevious) MaxSearchApi::deletePrevMessage($chatId);
         $ok = IntegrationRegistry::messenger()->sendContactRequest(
             $chatId,
-            (string)$model['fallback_text'],
+            (string)$model[$textKey],
             (string)$model['manual_callback'],
             (string)$model['back_callback']
         );
