@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T23:22:28+00:00",
+    "generated_at": "2026-09-04T23:30:47+00:00",
     "production": {
-        "sha": "84030a0d76aba91acec8ab6116cc048641175973",
+        "sha": "39acb4a5db9cb50e807b523670fa9b7fb0c24b31",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 22:22:15",
+        "since_utc": "2026-09-04 22:30:35",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -134,7 +134,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "84030a0d76aba91acec8ab6116cc048641175973",
+        "sha": "39acb4a5db9cb50e807b523670fa9b7fb0c24b31",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T23:22:27Z"
+        "reported_at": "2026-09-04T23:30:47Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -192,7 +192,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T23:22:27+00:00",
+        "generated_at": "2026-09-04T23:30:46+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -205,9 +205,9 @@
                 "code_lines": 564
             },
             "services": {
-                "files": 142,
-                "bytes": 561735,
-                "code_lines": 12088
+                "files": 143,
+                "bytes": 562681,
+                "code_lines": 12121
             },
             "integrations": {
                 "files": 11,
@@ -235,9 +235,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 199,
-                "bytes": 956401,
-                "code_lines": 11840
+                "files": 200,
+                "bytes": 960535,
+                "code_lines": 11952
             },
             "tools": {
                 "files": 42,
