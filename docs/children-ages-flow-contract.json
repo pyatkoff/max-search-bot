@@ -98,16 +98,17 @@
       "fail_closed_on_missing_step": true
     },
     "child_age_message": {
-      "runtime_migration_allowed": false,
-      "blocker": "Executable projection and legacy parser contracts exist, but runtime wiring remains disabled until this contract is production-green and START_HERE explicitly names a separate runtime slice.",
+      "runtime_migration_allowed": true,
+      "authorized_scope": "StateMessageHandler statusAge free-text branch only",
+      "contract_production_green_pr": 687,
+      "blocker": null,
       "completed_before_runtime": [
         "executable projection contract from integer array to exact storage string",
-        "behavior parity contract for current accepted and rejected free-text separators"
-      ],
-      "required_before_runtime": [
+        "behavior parity contract for current accepted and rejected free-text separators",
         "production-green verification of the executable contract",
         "separate START_HERE authorization for runtime wiring"
-      ]
+      ],
+      "required_before_runtime": []
     }
   }
 }
