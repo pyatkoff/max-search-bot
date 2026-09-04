@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-03T23:48:21+00:00",
+    "generated_at": "2026-09-04T00:00:32+00:00",
     "production": {
-        "sha": "e94c932362fbf4bdf39dd6f58f486101819fb734",
+        "sha": "23c4cb4c387f43152eee33ddfa71a543ecb56382",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 29731,
+            "oldest_wait_seconds": 30461,
             "routing_blocked_count": 0
         },
         "push": {
@@ -94,7 +94,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-03 22:48:09",
+        "since_utc": "2026-09-03 23:00:20",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -107,7 +107,7 @@
             "needs_collected": 1,
             "tours_opened": 1,
             "site_opened": 1,
-            "post_tour_manager_cta_shown": 0,
+            "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -131,7 +131,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "e94c932362fbf4bdf39dd6f58f486101819fb734",
+        "sha": "23c4cb4c387f43152eee33ddfa71a543ecb56382",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -140,7 +140,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-03T23:48:21Z"
+        "reported_at": "2026-09-04T00:00:32Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -161,7 +161,7 @@
             "needs_collected": 1,
             "tours_opened": 1,
             "site_opened": 1,
-            "post_tour_manager_cta_shown": 0,
+            "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -183,7 +183,7 @@
                 "needs_collected_from_started": 1,
                 "tours_opened_from_started": 1,
                 "site_opened": 1,
-                "post_tour_manager_cta_shown": 0,
+                "post_tour_manager_cta_shown": 1,
                 "manager_requested": 0,
                 "manager_replied": 0,
                 "customer_replied_after_manager": 0
@@ -191,7 +191,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-03T23:48:21+00:00",
+        "generated_at": "2026-09-04T00:00:32+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -234,14 +234,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 183,
-                "bytes": 809716,
-                "code_lines": 9306
+                "files": 184,
+                "bytes": 812506,
+                "code_lines": 9364
             },
             "tools": {
-                "files": 40,
-                "bytes": 132254,
-                "code_lines": 2462
+                "files": 41,
+                "bytes": 139137,
+                "code_lines": 2666
             }
         },
         "hotspots": [
@@ -294,15 +294,15 @@
                 "severity": "observe"
             },
             {
-                "path": "services/ProjectHealth.php",
-                "lines": 200,
-                "bytes": 7100,
+                "path": "tools/dialogue_mutation_inventory.php",
+                "lines": 204,
+                "bytes": 6883,
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 199,
-                "bytes": 9673,
+                "path": "services/ProjectHealth.php",
+                "lines": 200,
+                "bytes": 7100,
                 "severity": "observe"
             }
         ],
