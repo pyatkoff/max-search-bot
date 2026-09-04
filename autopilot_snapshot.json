@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T07:26:08+00:00",
+    "generated_at": "2026-09-04T07:32:43+00:00",
     "production": {
-        "sha": "0b4dc7190c8ad1c7ebdaa226680028d41bc291f4",
+        "sha": "ecc6f2572e0d43cdbf3ceadb6d8d457fbe4e7838",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 57199,
+            "oldest_wait_seconds": 57592,
             "routing_blocked_count": 0
         },
         "push": {
@@ -94,16 +94,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 06:25:57",
+        "since_utc": "2026-09-04 06:32:31",
         "summary": {
-            "sessions": 7,
-            "raw_sessions": 7,
+            "sessions": 6,
+            "raw_sessions": 6,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 7,
+                "resolved": 6,
                 "unresolved": 0
             },
-            "started": 7,
+            "started": 6,
             "needs_collected": 6,
             "tours_opened": 6,
             "site_opened": 6,
@@ -121,8 +121,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "site_open": 6,
-                "collecting_needs": 1
+                "site_open": 6
             },
             "flags": {
                 "excessive_turns": 2
@@ -134,7 +133,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "0b4dc7190c8ad1c7ebdaa226680028d41bc291f4",
+        "sha": "ecc6f2572e0d43cdbf3ceadb6d8d457fbe4e7838",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +142,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T07:26:08Z"
+        "reported_at": "2026-09-04T07:32:43Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -201,7 +200,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T07:26:08+00:00",
+        "generated_at": "2026-09-04T07:32:43+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -215,8 +214,8 @@
             },
             "services": {
                 "files": 139,
-                "bytes": 556274,
-                "code_lines": 11926
+                "bytes": 556461,
+                "code_lines": 11929
             },
             "integrations": {
                 "files": 11,
@@ -245,8 +244,8 @@
             },
             "tests": {
                 "files": 184,
-                "bytes": 817282,
-                "code_lines": 9462
+                "bytes": 818600,
+                "code_lines": 9487
             },
             "tools": {
                 "files": 41,
@@ -281,8 +280,8 @@
             },
             {
                 "path": "services/DestinationResolver.php",
-                "lines": 220,
-                "bytes": 14141,
+                "lines": 221,
+                "bytes": 14203,
                 "severity": "observe"
             },
             {
@@ -299,8 +298,8 @@
             },
             {
                 "path": "services/DestinationAreaResolver.php",
-                "lines": 211,
-                "bytes": 9490,
+                "lines": 212,
+                "bytes": 9553,
                 "severity": "observe"
             },
             {
