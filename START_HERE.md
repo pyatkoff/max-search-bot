@@ -41,7 +41,7 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - runtime directory/file modes are `0700/0600`;
   - legacy AI-log paths are publicly inaccessible with an accepted 403/404 response; the #660 deployment returned 404;
   - this containment must never be removed by rollback.
-- Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. Do not restart those slices.
+- Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. The meal callback contract and update-only runtime slice shipped in PRs #680 and #681. Do not restart those slices.
 - Phase E's read-only handoff inventory and the first two proven consolidations shipped in PRs #672, #675 and #676. They centralized queue-decision application and contact send/status application without changing handoff policy.
 - The Manager notification activation incident reported by Anna was repaired in PRs #673, #674 and #677. PR #678 added redacted reason counts, and Anna's healthy green state was naturally confirmed after deployment.
 - The exact current SHA and run IDs belong in live GitHub/diagnostics and the latest issue #55 checkpoint, not hard-coded here.
@@ -56,11 +56,11 @@ Do not infer a routing, shift, lead-delivery or webhook defect from those aggreg
 
 ## Current execution point
 
-Phase D's selected slices and Phase E's first two consolidations are complete. The detailed sections below remain as historical acceptance and rollback contracts, not as an instruction to rerun them.
+Phase D's selected slices, including the contract-backed meal callback, and Phase E's first two consolidations are complete. The detailed sections below remain as historical acceptance and rollback contracts, not as an instruction to rerun them.
 
-The next autonomous step is a fresh audit of the remaining Phase E inventory. Open another runtime PR only when an exact duplicate responsibility is proven and executable golden cases preserve all current policy and ordering. The two `ManagerAvailabilityService::withinWorkingHours()` calls in `ManagerPhoneFallbackService` are intentionally separate: one bounds candidate selection, while the second rechecks policy inside the per-conversation lock immediately before external delivery. Do not collapse that safety check merely to reduce occurrence count.
+The remaining Phase E inventory was re-audited and no further exact duplicate responsibility was proven, so handoff consolidation is stopped. The two `ManagerAvailabilityService::withinWorkingHours()` calls in `ManagerPhoneFallbackService` are intentionally separate: one bounds candidate selection, while the second rechecks policy inside the per-conversation lock immediately before external delivery. Do not collapse that safety check merely to reduce occurrence count.
 
-If no further exact duplicate is proven, stop handoff consolidation and record that result. Do not advance deferred meal, children/ages, city, country or date mutations, and do not make observe-only transition validation blocking, without the explicit contracts and clean production evidence required below.
+The next autonomous roadmap step is a contract-only inventory for the coupled children and child-age flow. It must record zero-children progression, one status row per age, exact callback value representation, edit return targets, back behavior and stale/missing-step semantics before any runtime mutation PR is allowed. Keep city, country and date mutations deferred, and do not make observe-only transition validation blocking, without their own explicit contracts and clean production evidence.
 
 ## Protected behavior
 
@@ -189,7 +189,8 @@ Required tests must execute the callback action and assert exact stored value an
 ### Later Phase D slices
 
 - Migrate adults and stars one field per PR after nights is stable.
-- Defer meal, children, child ages, city, country and date until their ID/directory/pending-month/edit semantics have explicit contracts.
+- Meal is complete through the contract-backed callback slice in PRs #680 and #681.
+- Defer children, child ages, city, country and date until their ID/directory/pending-month/edit semantics have explicit contracts.
 - Add state-machine validation observe-only for one transition first, such as nights → date; introduce blocking only after clean production evidence.
 - Never mechanically replace `saveLastValue` with an upsert: code rollback cannot undo status rows already written.
 
