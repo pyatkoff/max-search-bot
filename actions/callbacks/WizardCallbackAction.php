@@ -3,6 +3,7 @@ require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
+require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
 
 class WizardCallbackAction
 {
@@ -189,7 +190,11 @@ class WizardCallbackAction
             if ($q === 'back_calendar') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
                 $nights = str_replace('_', '-', str_replace('nights_', '', $q));
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusNights, $nights);
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusNights,
+                    $nights
+                )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'nights')) return true;
             }
             DialogueView::calendar($chatId, date('m'), date('Y'));

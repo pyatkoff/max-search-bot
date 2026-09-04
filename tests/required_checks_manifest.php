@@ -64,6 +64,7 @@ return [
         'php tests/run_need_application_service_regression.php',
         'php tests/run_existing_wizard_step_application_regression.php',
         'php tests/run_free_text_nights_application_regression.php',
+        'php tests/run_nights_callback_application_regression.php',
         'php tests/run_missing_field_questions_regression.php',
         'php tests/run_local_ai_fallback_regression.php',
         'php tests/run_ai_business_defaults_regression.php',
