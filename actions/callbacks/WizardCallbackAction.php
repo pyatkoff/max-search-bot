@@ -190,7 +190,12 @@ class WizardCallbackAction
         if (strpos($q, 'meal_') === 0 || $q === 'back_nights') {
             if ($q === 'back_nights') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusMeal, str_replace('meal_', '', $q));
+                $meal = str_replace('meal_', '', $q);
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusMeal,
+                    $meal
+                )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'meal')) return true;
             }
             WizardStepView::nights($chatId);

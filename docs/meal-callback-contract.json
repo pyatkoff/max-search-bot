@@ -20,7 +20,7 @@
     "5": "full_board"
   },
   "application": {
-    "current_method": "MaxSearchApi::saveLastValue",
+    "current_method": "ExistingWizardStepApplicationService::apply",
     "target_method": "ExistingWizardStepApplicationService::apply",
     "update_existing_only": true,
     "insert_if_missing": false,
