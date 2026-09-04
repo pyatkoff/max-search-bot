@@ -49,7 +49,7 @@ foreach ($canonicalMap as $storageValue => $canonicalValue) {
     mealContractCheck("normalizer maps {$canonicalValue} to {$storageValue}", strpos($normalizer, "'{$canonicalValue}'=>'{$storageValue}'") !== false);
 }
 
-mealContractCheck('current callback owns only prefix removal and update of meal step', strpos($action, "MaxSearchApi::saveLastValue(\$chatId, MaxSearchApi::\$statusMeal, str_replace('meal_', '', \$q))") !== false);
+mealContractCheck('current callback applies the exact meal id through the update-only boundary', strpos($action, "\$meal = str_replace('meal_', '', \$q);") !== false && strpos($action, 'ExistingWizardStepApplicationService::apply(') !== false && strpos($action, 'MaxSearchApi::$statusMeal,') !== false);
 $editPosition = strpos($action, "EditFlowService::finishIfNeeded(\$chatId, 'meal')");
 $nightsPosition = strpos($action, 'WizardStepView::nights($chatId)');
 mealContractCheck('current callback keeps edit return before nights rendering', $editPosition !== false && $nightsPosition !== false && $editPosition < $nightsPosition);

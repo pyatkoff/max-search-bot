@@ -65,6 +65,7 @@ return [
         'php tests/run_need_application_service_regression.php',
         'php tests/run_existing_wizard_step_application_regression.php',
         'php tests/run_meal_callback_contract_regression.php',
+        'php tests/run_meal_callback_application_regression.php',
         'php tests/run_free_text_nights_application_regression.php',
         'php tests/run_nights_callback_application_regression.php',
         'php tests/run_adults_callback_application_regression.php',

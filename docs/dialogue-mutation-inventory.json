@@ -25,7 +25,7 @@
   ],
   "callers": [
     {"path":"actions/AskAction.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Enter AI question state."},
-    {"path":"actions/callbacks/WizardCallbackAction.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":5,"classification":"trip_value","rationale":"Apply the remaining explicit wizard callback values outside the migrated nights, adults and stars boundaries."},
+    {"path":"actions/callbacks/WizardCallbackAction.php","receiver":"MaxSearchApi","method":"saveLastValue","occurrences":4,"classification":"trip_value","rationale":"Apply the remaining explicit wizard callback values outside the migrated nights, adults, stars and meal boundaries."},
     {"path":"actions/callbacks/WizardCallbackAction.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":2,"classification":"transition","rationale":"Restart wizard flow from callback actions."},
     {"path":"handlers/DepartureRouteAdviceHandler.php","receiver":"MaxSearchApi","method":"setStatus","occurrences":1,"classification":"transition","rationale":"Return route-advice dialogue to AI state."},
     {"path":"handlers/MaxUpdateHandler.php","receiver":"MaxSearchApi","method":"deleteAllStatus","occurrences":1,"classification":"reset","rationale":"Reset state for an explicit start command."},
