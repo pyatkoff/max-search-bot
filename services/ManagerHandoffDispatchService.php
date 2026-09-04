@@ -16,6 +16,22 @@ class ManagerHandoffDispatchService
         return $sent && $withinWorkingHours;
     }
 
+    /**
+     * Applies an already-computed queue decision without re-evaluating working
+     * hours, manager availability or routing policy.
+     */
+    public static function applyQueueDecision(
+        array $handoff,
+        string $platform,
+        $chatId,
+        array $payload = [],
+        ?callable $markWaiting = null
+    ): bool {
+        if (empty($handoff['queue_waiting'])) return false;
+        if ($markWaiting !== null) return (bool)$markWaiting($platform, $chatId, $payload);
+        return ConversationControlService::markWaitingByChat($platform, $chatId, $payload);
+    }
+
     public static function dispatch($chatId, string $platform, string $name = '', bool $fromTours = false, ?int $now = null): array
     {
         $platform = strtolower(trim($platform));

@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
-require_once __DIR__ . '/../services/ConversationControlService.php';
 require_once __DIR__ . '/../services/ManagerHandoffDispatchService.php';
 require_once __DIR__ . '/../services/ProjectConfig.php';
 
@@ -32,7 +31,7 @@ class ManagerAction
             'within_working_hours'=>$handoff['within_working_hours'],
         ],'ai');
 
-        if (!empty($handoff['queue_waiting'])) ConversationControlService::markWaitingByChat($platform,$chatId,[
+        ManagerHandoffDispatchService::applyQueueDecision($handoff,$platform,$chatId,[
             'summary'=>$plan['summary'],
             'from_tours'=>$fromTours,
             'manager_available'=>$handoff['manager_available'],
