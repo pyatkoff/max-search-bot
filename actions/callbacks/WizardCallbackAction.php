@@ -4,6 +4,7 @@ require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
+require_once dirname(__DIR__, 2) . '/services/DepartureCityValueContract.php';
 require_once dirname(__DIR__, 2) . '/services/DialogueTransitionObserver.php';
 
 class WizardCallbackAction
@@ -122,7 +123,13 @@ class WizardCallbackAction
             }
             if ($q === 'back_pick_country') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCityChoose, str_replace('pick_city_', '', $q));
+                $city = DepartureCityValueContract::fromCallbackPayload($q);
+                if ($city === null) return true;
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusCityChoose,
+                    $city
+                )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'city')) return true;
             }
             MaxSearchApi::showCountryButtons($chatId);
