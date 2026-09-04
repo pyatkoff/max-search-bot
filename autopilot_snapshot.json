@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T10:06:06+00:00",
+    "generated_at": "2026-09-04T10:15:33+00:00",
     "production": {
-        "sha": "87d61e5387f127c71517e6fae04604c4560ad778",
+        "sha": "326ce3e51266af41b9d4edfd9dedd6d295cc3feb",
         "branch": "main"
     },
     "migrations": {
@@ -94,19 +94,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 09:05:54",
+        "since_utc": "2026-09-04 09:15:19",
         "summary": {
-            "sessions": 7,
-            "raw_sessions": 7,
+            "sessions": 8,
+            "raw_sessions": 8,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 7,
+                "resolved": 8,
                 "unresolved": 0
             },
-            "started": 7,
-            "needs_collected": 6,
-            "tours_opened": 6,
-            "site_opened": 4,
+            "started": 8,
+            "needs_collected": 7,
+            "tours_opened": 7,
+            "site_opened": 5,
             "post_tour_manager_cta_shown": 3,
             "manager_requested": 4,
             "manager_replied": 4,
@@ -121,8 +121,8 @@
                 "max_seconds": 1371
             },
             "drop_points": {
+                "site_open": 3,
                 "customer_replied_after_manager": 3,
-                "site_open": 2,
                 "collecting_needs": 1,
                 "manager_replied": 1
             },
@@ -137,7 +137,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "87d61e5387f127c71517e6fae04604c4560ad778",
+        "sha": "326ce3e51266af41b9d4edfd9dedd6d295cc3feb",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -146,7 +146,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T10:06:06Z"
+        "reported_at": "2026-09-04T10:15:33Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -156,17 +156,17 @@
         "window_hours": null,
         "since_utc": "2026-09-03 22:00:00",
         "summary": {
-            "sessions": 36,
-            "raw_sessions": 36,
+            "sessions": 37,
+            "raw_sessions": 37,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 36,
+                "resolved": 37,
                 "unresolved": 0
             },
-            "started": 36,
-            "needs_collected": 27,
-            "tours_opened": 27,
-            "site_opened": 24,
+            "started": 37,
+            "needs_collected": 28,
+            "tours_opened": 28,
+            "site_opened": 25,
             "post_tour_manager_cta_shown": 17,
             "manager_requested": 7,
             "manager_replied": 7,
@@ -181,7 +181,7 @@
                 "max_seconds": 59826
             },
             "drop_points": {
-                "site_open": 20,
+                "site_open": 21,
                 "collecting_needs": 8,
                 "manager_replied": 4,
                 "customer_replied_after_manager": 3,
@@ -193,10 +193,10 @@
                 "rapid_date_reselection": 2
             },
             "calendar_day": {
-                "conversations_started": 28,
-                "needs_collected_from_started": 22,
-                "tours_opened_from_started": 22,
-                "site_opened": 22,
+                "conversations_started": 29,
+                "needs_collected_from_started": 23,
+                "tours_opened_from_started": 23,
+                "site_opened": 23,
                 "post_tour_manager_cta_shown": 15,
                 "manager_requested": 3,
                 "manager_replied": 6,
@@ -205,22 +205,22 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T10:06:06+00:00",
+        "generated_at": "2026-09-04T10:15:32+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
-                "bytes": 46223,
-                "code_lines": 966
+                "bytes": 46689,
+                "code_lines": 975
             },
             "actions": {
                 "files": 9,
-                "bytes": 21938,
-                "code_lines": 551
+                "bytes": 22293,
+                "code_lines": 559
             },
             "services": {
-                "files": 140,
-                "bytes": 557301,
-                "code_lines": 11958
+                "files": 141,
+                "bytes": 558692,
+                "code_lines": 12003
             },
             "integrations": {
                 "files": 11,
@@ -248,9 +248,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 189,
-                "bytes": 866932,
-                "code_lines": 10468
+                "files": 190,
+                "bytes": 874595,
+                "code_lines": 10605
             },
             "tools": {
                 "files": 41,
@@ -278,15 +278,27 @@
                 "severity": "observe"
             },
             {
+                "path": "tests/run_nights_callback_application_regression.php",
+                "lines": 238,
+                "bytes": 11973,
+                "severity": "observe"
+            },
+            {
+                "path": "actions/callbacks/WizardCallbackAction.php",
+                "lines": 237,
+                "bytes": 10275,
+                "severity": "observe"
+            },
+            {
                 "path": "services/DialogueView.php",
                 "lines": 237,
                 "bytes": 13468,
                 "severity": "observe"
             },
             {
-                "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 229,
-                "bytes": 9920,
+                "path": "tests/run_free_text_nights_application_regression.php",
+                "lines": 223,
+                "bytes": 10551,
                 "severity": "observe"
             },
             {
@@ -302,21 +314,9 @@
                 "severity": "observe"
             },
             {
-                "path": "services/DestinationAreaResolver.php",
-                "lines": 212,
-                "bytes": 9553,
-                "severity": "observe"
-            },
-            {
-                "path": "tests/run_nights_callback_application_regression.php",
-                "lines": 208,
-                "bytes": 10210,
-                "severity": "observe"
-            },
-            {
-                "path": "tests/run_stars_callback_application_regression.php",
-                "lines": 208,
-                "bytes": 10067,
+                "path": "handlers/StateMessageHandler.php",
+                "lines": 216,
+                "bytes": 10476,
                 "severity": "observe"
             }
         ],
