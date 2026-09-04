@@ -124,6 +124,7 @@ ccCheck('children choice is valid only on children step', WizardCallbackAction::
 ccCheck('stars choice is valid only on stars step', WizardCallbackAction::expectedStatusForForwardCallback('star_4'), (int)MaxSearchApi::$statusStars);
 ccCheck('meal choice is valid only on meal step', WizardCallbackAction::expectedStatusForForwardCallback('meal_7'), (int)MaxSearchApi::$statusMeal);
 ccCheck('nights choice is valid only on nights step', WizardCallbackAction::expectedStatusForForwardCallback('nights_9_11'), (int)MaxSearchApi::$statusNights);
+ccCheck('nights callback uses existing-step application boundary', strpos($wizardSource, 'ExistingWizardStepApplicationService::apply(') !== false, true);
 ccCheck('date choice remains under dedicated guarded handler', WizardCallbackAction::expectedStatusForForwardCallback('pick_date_17.10.2026'), null);
 ccCheck('back navigation is not blocked by forward-step guard', WizardCallbackAction::expectedStatusForForwardCallback('back_nights'), null);
 ccCheck('forward wizard callbacks delegate stale-step guard', strpos($wizardSource, 'InteractionGuard::isStaleWizardForward($chatId, $q)') !== false, true);
