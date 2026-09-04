@@ -46,7 +46,7 @@ mphCheck('Manager workspace keeps shift and push reachability independent',$read
 mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'data-enable-push')!==false && strpos($panel,"fetch('push.php?action=key'")!==false && strpos($panel,"fetch('push.php',{method:'POST'")!==false && strpos($panel,"workingWithoutPush?'Включить':'Настроить'")!==false && strpos($panel,'href="push-enable.php"')===false);
 $healthyLabel=strpos($panel,"healthy_subscription:'Уведомления включены'")!==false;
 $healthyPath=strpos($panel,"usable=!!status?.notification_path_usable")!==false;
-$criticalOverride=strpos($panel,"label=workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
+$criticalOverride=strpos($panel,"label=setupFailure?reasonText(reason):workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
 mphCheck('Manager workspace only claims notifications enabled for healthy server path',$healthyLabel&&$healthyPath&&$criticalOverride);
 
 $total=$passed+$failed;
