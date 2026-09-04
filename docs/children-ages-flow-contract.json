@@ -43,9 +43,11 @@
     "current_application": "MaxSearchApi::saveLastValue",
     "current_application_result_is_checked": false,
     "target_application": "ExistingWizardStepApplicationService::apply",
-    "target_projection_required": true,
+    "target_projection_required": false,
     "resolver_output_representation": "integer_array",
     "application_input_representation": "comma_space_joined_decimal_string",
+    "projection_contract": "ChildAgeValueContract::toStorage",
+    "parser_parity_contract": "ChildAgeValueContract::parseLegacyInput",
     "target_update_existing_only": true,
     "target_insert_if_missing": false,
     "target_transition_on_failed_apply": false
@@ -97,10 +99,14 @@
     },
     "child_age_message": {
       "runtime_migration_allowed": false,
-      "blocker": "NeedValueResolver returns an integer array while current storage contains one comma-space joined string.",
-      "required_before_runtime": [
+      "blocker": "Executable projection and legacy parser contracts exist, but runtime wiring remains disabled until this contract is production-green and START_HERE explicitly names a separate runtime slice.",
+      "completed_before_runtime": [
         "executable projection contract from integer array to exact storage string",
-        "behavior parity for current accepted and rejected free-text separators"
+        "behavior parity contract for current accepted and rejected free-text separators"
+      ],
+      "required_before_runtime": [
+        "production-green verification of the executable contract",
+        "separate START_HERE authorization for runtime wiring"
       ]
     }
   }
