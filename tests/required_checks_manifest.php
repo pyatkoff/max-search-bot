@@ -146,6 +146,7 @@ return [
         'php tests/run_manager_workspace_v2_wait_urgency_regression.php',
         'php tests/run_manager_workspace_v2_module_split_regression.php',
         'php tests/run_manager_workspace_v2_notifications_regression.php',
+        'node tests/run_manager_notifications_client_behavior_regression.js',
         'php tests/run_manager_workspace_v2_outcome_regression.php',
         'php tests/run_lead_task_regression.php',
         'php tests/run_manager_closed_lead_task_creation_regression.php',
