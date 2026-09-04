@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-04T09:59:06+00:00",
+    "generated_at": "2026-09-04T10:06:06+00:00",
     "production": {
-        "sha": "2f0e45685045e2a162bc081a68709d6e72690440",
+        "sha": "87d61e5387f127c71517e6fae04604c4560ad778",
         "branch": "main"
     },
     "migrations": {
@@ -94,16 +94,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 08:58:56",
+        "since_utc": "2026-09-04 09:05:54",
         "summary": {
-            "sessions": 8,
-            "raw_sessions": 8,
+            "sessions": 7,
+            "raw_sessions": 7,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 8,
+                "resolved": 7,
                 "unresolved": 0
             },
-            "started": 8,
+            "started": 7,
             "needs_collected": 6,
             "tours_opened": 6,
             "site_opened": 4,
@@ -122,8 +122,8 @@
             },
             "drop_points": {
                 "customer_replied_after_manager": 3,
-                "collecting_needs": 2,
                 "site_open": 2,
+                "collecting_needs": 1,
                 "manager_replied": 1
             },
             "flags": {
@@ -137,7 +137,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "2f0e45685045e2a162bc081a68709d6e72690440",
+        "sha": "87d61e5387f127c71517e6fae04604c4560ad778",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -146,7 +146,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-04T09:59:06Z"
+        "reported_at": "2026-09-04T10:06:06Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -205,7 +205,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-04T09:59:05+00:00",
+        "generated_at": "2026-09-04T10:06:06+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -214,8 +214,8 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 21793,
-                "code_lines": 546
+                "bytes": 21938,
+                "code_lines": 551
             },
             "services": {
                 "files": 140,
@@ -248,9 +248,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 188,
-                "bytes": 856798,
-                "code_lines": 10259
+                "files": 189,
+                "bytes": 866932,
+                "code_lines": 10468
             },
             "tools": {
                 "files": 41,
@@ -285,8 +285,8 @@
             },
             {
                 "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 224,
-                "bytes": 9775,
+                "lines": 229,
+                "bytes": 9920,
                 "severity": "observe"
             },
             {
@@ -314,9 +314,9 @@
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 207,
-                "bytes": 10010,
+                "path": "tests/run_stars_callback_application_regression.php",
+                "lines": 208,
+                "bytes": 10067,
                 "severity": "observe"
             }
         ],
