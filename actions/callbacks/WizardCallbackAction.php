@@ -144,7 +144,14 @@ class WizardCallbackAction
         if (strpos($q, 'adults_') === 0 || $q === 'back_child') {
             if (strpos($q, 'adults_') === 0) MaxSearchApi::funnelLog($chatId, 'tourists_selected', ['stage'=>'adults','payload'=>$q]);
             if ($q === 'back_child') MaxSearchApi::deletePrevMessage($chatId, true);
-            else MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusAdults, str_replace('adults_', '', $q));
+            else {
+                $adults = str_replace('adults_', '', $q);
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusAdults,
+                    $adults
+                )) return true;
+            }
             MaxSearchApi::showChildButtons($chatId);
             return true;
         }

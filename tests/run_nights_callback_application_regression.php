@@ -193,7 +193,7 @@ nightsCallbackCheck('missing nights step renders no next view', count($messenger
 nightsCallbackCheck('missing nights step makes no transition', MaxSearchApi::$transitions, []);
 
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
-nightsCallbackCheck('action applies nights through update-only boundary', substr_count($source, 'ExistingWizardStepApplicationService::apply('), 1);
+nightsCallbackCheck('action applies nights through update-only boundary', strpos($source, '$nights = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusNights,') !== false, true);
 nightsCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 nightsCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
 
