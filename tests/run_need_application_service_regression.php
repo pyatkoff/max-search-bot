@@ -62,6 +62,31 @@ nasCheck('AI message local parameter application uses application service', strp
 nasCheck('AI completion boundary advances through progression service', strpos($completionSource, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false, true);
 nasCheck('AI message no longer applies parameters through MaxSearchApi directly', strpos($aiMessageSource, 'MaxSearchApi::applyAiParameters') === false, true);
 
+$resolverPaths = [
+    'departure city' => __DIR__ . '/../services/DepartureCityResolver.php',
+    'destination' => __DIR__ . '/../services/DestinationResolver.php',
+    'destination area' => __DIR__ . '/../services/DestinationAreaResolver.php',
+];
+foreach ($resolverPaths as $label => $path) {
+    $resolverSource = (string)file_get_contents($path);
+    nasCheck("{$label} resolver applies through canonical boundary", strpos($resolverSource, 'NeedApplicationService::applyParameters') !== false, true);
+    nasCheck("{$label} resolver has no direct application bypass", strpos($resolverSource, 'MaxSearchApi::applyAiParameters') === false, true);
+}
+
+$inventory = json_decode((string)file_get_contents(__DIR__ . '/../docs/dialogue-mutation-inventory.json'), true);
+$directApplicationCallers = array_values(array_filter(
+    $inventory['callers'] ?? [],
+    static fn(array $caller): bool => ($caller['method'] ?? '') === 'applyAiParameters'
+));
+nasCheck('mutation inventory keeps one canonical direct application caller', $directApplicationCallers, [[
+    'path'=>'services/NeedApplicationService.php',
+    'receiver'=>'MaxSearchApi',
+    'method'=>'applyAiParameters',
+    'occurrences'=>1,
+    'classification'=>'trip_value',
+    'rationale'=>'Canonical application boundary applies normalized trip values.',
+]]);
+
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);

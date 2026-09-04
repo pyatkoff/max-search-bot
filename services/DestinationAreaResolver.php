@@ -1,5 +1,6 @@
 <?php
 require_once(__DIR__ . '/DateNoiseGuard.php');
+require_once(__DIR__ . '/NeedApplicationService.php');
 
 class DestinationAreaResolver
 {
@@ -12,7 +13,7 @@ class DestinationAreaResolver
         $region = self::getRegion((int)$inferred['region_id']);
         if (!$country || !$region) return null;
 
-        MaxSearchApi::applyAiParameters($chatId, ['country' => (string)$country['UF_NAME']]);
+        NeedApplicationService::applyParameters($chatId, ['country' => (string)$country['UF_NAME']]);
 
         $dir = dirname(__DIR__) . '/ai_destination';
         if (!is_dir($dir)) @mkdir($dir, 0755, true);
