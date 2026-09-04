@@ -158,11 +158,16 @@ function nightsCallbackReset(int $chatId, bool $withStep = true): NightsCallback
 function nightsCallbackTransitionEvents(): array
 {
     global $nightsCallbackTransitionLog;
+    if (!is_file($nightsCallbackTransitionLog)) return [];
     $lines = file($nightsCallbackTransitionLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-    return array_values(array_filter(array_map(
+    $events = array_values(array_filter(array_map(
         static fn(string $line): ?array => json_decode($line, true),
         $lines
     )));
+    return array_values(array_filter(
+        $events,
+        static fn(array $event): bool => ($event['component'] ?? null) === 'dialogue_transition'
+    ));
 }
 
 $messenger = nightsCallbackReset(500);

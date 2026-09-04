@@ -153,11 +153,16 @@ function freeTextNightsReset(int $chatId, bool $withStep = true, bool $stale = f
 function freeTextNightsTransitionEvents(): array
 {
     global $freeTextNightsTransitionLog;
+    if (!is_file($freeTextNightsTransitionLog)) return [];
     $lines = file($freeTextNightsTransitionLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-    return array_values(array_filter(array_map(
+    $events = array_values(array_filter(array_map(
         static fn(string $line): ?array => json_decode($line, true),
         $lines
     )));
+    return array_values(array_filter(
+        $events,
+        static fn(array $event): bool => ($event['component'] ?? null) === 'dialogue_transition'
+    ));
 }
 
 foreach ([
