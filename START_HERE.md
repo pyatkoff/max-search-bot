@@ -41,6 +41,12 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - runtime directory/file modes are `0700/0600`;
   - legacy AI-log paths are publicly inaccessible with an accepted 403/404 response; the #660 deployment returned 404;
   - this containment must never be removed by rollback.
+- P0 public MAX webhook-log exposure was contained in PR #715:
+  - raw MAX request bodies are no longer persisted by the webhook handler;
+  - compatibility webhook input/output events use a bounded logger outside the document root with directory/file modes `0700/0600` and a 1 MiB cap;
+  - deploy removes legacy `tmp_in.txt` / `tmp_out.txt` and requires both public paths to return 403/404; the #715 deployment returned 404 for both;
+  - authorized diagnostics and delivery inspection use only the external log path;
+  - no rollback may restore raw request-body logging or either public legacy file.
 - Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. The meal callback contract and update-only runtime slice shipped in PRs #680 and #681. Do not restart those slices.
 - The coupled children/child-age inventory shipped in PR #683. It confirms one comma-space age-status value and keeps free-text age migration blocked until an exact array-to-storage projection is executable.
 - The `child_*` callback update-only runtime slice shipped in PR #685. It preserves the existing child-age value for `child_0`, fails closed when the existing child step is missing and keeps free-text child ages out of scope. Do not repeat that runtime slice.
@@ -68,6 +74,8 @@ Known operational signals are evidence to investigate, not permission to change 
 Do not infer a routing, shift, lead-delivery or webhook defect from those aggregate signals alone.
 
 ## Current execution point
+
+The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
 Phase D's selected slices, including the contract-backed meal callback, and Phase E's first two consolidations are complete. The detailed sections below remain as historical acceptance and rollback contracts, not as an instruction to rerun them.
 
@@ -262,6 +270,7 @@ After every merge, before starting another PR:
 - Do not delete/repair production business data merely to make diagnostics green.
 - Treat update-versus-upsert semantics as irreversible enough to test before merge.
 - Never restore public AI logs or weaken the external AI-log boundary from PR #660.
+- Never restore raw MAX webhook-body logging, public `tmp_in.txt` / `tmp_out.txt` or weaken the external webhook-log boundary from PR #715.
 
 ## Stop conditions
 
