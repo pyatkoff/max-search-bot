@@ -39,6 +39,7 @@ $payloadMap = [
 
 countryContractCheck('contract has stable read-only schema', is_array($contract) && ($contract['schema_version'] ?? null) === 1 && ($contract['flow'] ?? null) === 'country' && ($contract['scope'] ?? null) === 'read_only_inventory');
 countryContractCheck('country status and semantic storage are explicit', ($contract['state']['status'] ?? null) === 'statusContryChoose' && ($contract['state']['status_id'] ?? null) === 66 && ($contract['state']['semantic_value'] ?? null) === 'active_country_directory_id');
+countryContractCheck('executable value contract is present and disconnected', ($contract['executable_value_contract']['owner'] ?? null) === 'services/CountryValueContract.php' && empty($contract['executable_value_contract']['runtime_connected']) && ($contract['executable_value_contract']['directory_id_projection'] ?? null) === 'positive_canonical_integer_or_decimal_string_to_exact_decimal_storage_string' && ($contract['executable_value_contract']['callback_payload_parser'] ?? null) === 'pick_country_<positive_canonical_id>' && ($contract['executable_value_contract']['covered_popular_ids'] ?? null) === [1, 2, 4, 8, 9, 12] && ($contract['executable_value_contract']['covered_additional_id'] ?? null) === 347);
 countryContractCheck('popular callback payloads preserve current ids', ($contract['callback']['payload_to_storage'] ?? null) === $payloadMap);
 foreach ($payloadMap as $payload => $value) {
     countryContractCheck("view exposes {$payload}", strpos($view, "'{$payload}'") !== false);
@@ -63,7 +64,7 @@ countryContractCheck('back paths do not own a country value mutation', empty($co
 countryContractCheck('claim preserves country and search emits integer country', strpos($claim, "'UF_COUNTRY' => !empty(\$savedData[\$statusMap['country']])") !== false && strpos($handoff, "'country' => (int)(\$claim['UF_COUNTRY'] ?? 0)") !== false && strpos($handoff, "'country' => (int)(\$savedData[\$statusMap['country']] ?? 0)") !== false);
 
 $protected = (array)($contract['protected_non_goals'] ?? []);
-countryContractCheck('runtime migration remains explicitly blocked', empty($contract['migration_readiness']['runtime_migration_allowed']) && ($contract['migration_readiness']['reason'] ?? null) === 'read_only_inventory_requires_executable_value_and_application_contract' && count((array)($contract['migration_readiness']['required_before_runtime'] ?? [])) === 7);
+countryContractCheck('runtime migration remains explicitly blocked', empty($contract['migration_readiness']['runtime_migration_allowed']) && ($contract['migration_readiness']['reason'] ?? null) === 'value_contract_requires_production_green_and_separate_application_authorization' && count((array)($contract['migration_readiness']['required_before_runtime'] ?? [])) === 6);
 countryContractCheck('payload directory AI URL and protected mechanisms stay frozen', in_array('callback payload changes', $protected, true) && in_array('directory query changes', $protected, true) && in_array('AI normalization or default changes', $protected, true) && in_array('URL or Tourvisor projection changes', $protected, true) && in_array('Yandex Metrica or goal changes', $protected, true) && in_array('lead delivery changes', $protected, true) && in_array('manager shift or routing changes', $protected, true));
 
 echo "\n--------------------------------\n";
