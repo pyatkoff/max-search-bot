@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-05T01:55:37+00:00",
+    "generated_at": "2026-09-05T02:09:56+00:00",
     "production": {
-        "sha": "25dd4b6242617a2bd6ddf503eefecf4b790c5c41",
+        "sha": "c8eadcbff324eb1d4338cf98ab8f601d987a88fa",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-05 00:55:26",
+        "since_utc": "2026-09-05 01:09:44",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -134,7 +134,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "25dd4b6242617a2bd6ddf503eefecf4b790c5c41",
+        "sha": "c8eadcbff324eb1d4338cf98ab8f601d987a88fa",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-05T01:55:37Z"
+        "reported_at": "2026-09-05T02:09:56Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -192,7 +192,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-05T01:55:36+00:00",
+        "generated_at": "2026-09-05T02:09:55+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -201,12 +201,12 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 22851,
-                "code_lines": 578
+                "bytes": 23122,
+                "code_lines": 585
             },
             "services": {
                 "files": 145,
-                "bytes": 564610,
+                "bytes": 564596,
                 "code_lines": 12185
             },
             "integrations": {
@@ -235,9 +235,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 208,
-                "bytes": 1052192,
-                "code_lines": 13433
+                "files": 209,
+                "bytes": 1065269,
+                "code_lines": 13677
             },
             "tools": {
                 "files": 42,
@@ -290,8 +290,8 @@
             },
             {
                 "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 260,
-                "bytes": 11086,
+                "lines": 267,
+                "bytes": 11357,
                 "severity": "observe"
             },
             {
