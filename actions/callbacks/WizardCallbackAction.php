@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__, 2) . '/services/DepartureCityValueContract.php';
+require_once dirname(__DIR__, 2) . '/services/CountryValueContract.php';
 require_once dirname(__DIR__, 2) . '/services/DialogueTransitionObserver.php';
 
 class WizardCallbackAction
@@ -141,8 +142,14 @@ class WizardCallbackAction
         if (strpos($q, 'pick_country_') === 0 || $q === 'back_adults') {
             if ($q === 'back_adults') MaxSearchApi::deletePrevMessage($chatId, true);
             else {
+                $country = CountryValueContract::fromCallbackPayload($q);
+                if ($country === null) return true;
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusContryChoose,
+                    $country
+                )) return true;
                 MaxSearchApi::funnelLog($chatId, 'country_selected', ['payload'=>$q]);
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusContryChoose, str_replace('pick_country_', '', $q));
                 if (EditFlowService::finishIfNeeded($chatId, 'country')) return true;
             }
             MaxSearchApi::showAdultsButtons($chatId);
