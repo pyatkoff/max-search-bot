@@ -30,7 +30,7 @@
   },
   "executable_value_contract": {
     "owner": "services/DateValueContract.php",
-    "runtime_connected": false,
+    "runtime_connected": "date_selection_callback_only",
     "storage_projection": "calendar_valid_exact_DD.MM.YYYY_string_preserved_verbatim",
     "callback_payload_parser": "pick_date_DD.MM.YYYY",
     "today_or_future_policy": "intentionally_not_owned",
@@ -55,10 +55,10 @@
   "selection_callback": {
     "payload": "pick_date_DD.MM.YYYY",
     "generated_by": "CalendarViewModel::build",
-    "application": "MaxSearchApi::saveLastValue",
-    "application_semantics": "direct_write_with_statusDate_auto_insert_fallback_when_no_current_session_value_row_exists",
-    "application_result_checked": false,
-    "payload_validation_at_action_boundary": "none_beyond_prefix_removal",
+    "application": "ExistingWizardStepApplicationService::apply",
+    "application_semantics": "update_existing_current_session_statusDate_row_only",
+    "application_result_checked": true,
+    "payload_validation_at_action_boundary": "DateValueContract::fromCallbackPayload",
     "guard": "InteractionGuard::runExpectedStatusCallback",
     "guard_scope": "date_selection",
     "expected_status": "statusDate",
@@ -66,7 +66,7 @@
     "stale_behavior": "consumed_without_value_mutation_and_reported_as_stale_state",
     "normal_next": "check",
     "edit_next": "check",
-    "missing_or_pre_start_behavior": "expected_status_guard_consumes_unless_current_status_is_statusDate"
+    "missing_or_pre_start_behavior": "consume_without_mutation_or_progression"
   },
   "month_navigation": {
     "payload": "month_change_MM.YYYY",
@@ -151,15 +151,15 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "date_value_contract_is_disconnected_and_direct_wizard_writes_and_AI_upsert_have_different_validation_and_missing_step_semantics",
+    "reason": "date_selection_callback_is_update_only_but_wizard_free_text_and_AI_paths_still_have_different_application_validation_and_missing_step_semantics",
     "required_before_runtime": [
-      "production_green_date_value_contract_checkpoint",
+      "production_green_date_selection_callback_checkpoint",
       "explicit_decision_on_callback_and_wizard_free_text_validation_parity",
       "executable_missing_or_pre_start_and_edit_flow_cases"
     ]
   },
   "protected_non_goals": [
-    "runtime behavior changes",
+    "runtime behavior changes outside date selection callback",
     "callback payload changes",
     "date parsing changes",
     "calendar UX changes",

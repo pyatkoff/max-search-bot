@@ -4,8 +4,8 @@
  * Side-effect-free representation contract for the stored departure date.
  *
  * This class deliberately owns only the exact DD.MM.YYYY shape and calendar
- * validity. It does not choose today/future policy and remains disconnected
- * from runtime writers until a later explicit checkpoint.
+ * validity. It does not choose today/future policy; each authorized caller
+ * retains ownership of that separate policy.
  */
 final class DateValueContract
 {

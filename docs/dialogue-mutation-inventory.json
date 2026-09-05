@@ -35,14 +35,6 @@
     {
       "path": "actions/callbacks/WizardCallbackAction.php",
       "receiver": "MaxSearchApi",
-      "method": "saveLastValue",
-      "occurrences": 1,
-      "classification": "trip_value",
-      "rationale": "Apply the remaining date callback value outside the migrated wizard boundaries."
-    },
-    {
-      "path": "actions/callbacks/WizardCallbackAction.php",
-      "receiver": "MaxSearchApi",
       "method": "setStatus",
       "occurrences": 2,
       "classification": "transition",

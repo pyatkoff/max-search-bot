@@ -98,8 +98,8 @@ dateValueCheck(
     true
 );
 dateValueCheck(
-    'contract remains disconnected from every authorized runtime boundary',
-    strpos($callback, 'DateValueContract') === false
+    'contract is connected only at the date-selection callback boundary',
+    substr_count($callback, 'DateValueContract::fromCallbackPayload($q)') === 1
         && strpos($handler, 'DateValueContract') === false
         && strpos($aiPolicy, 'DateValueContract') === false
         && strpos($application, 'DateValueContract') === false
