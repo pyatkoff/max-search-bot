@@ -67,14 +67,6 @@
     {
       "path": "handlers/StateMessageHandler.php",
       "receiver": "MaxSearchApi",
-      "method": "saveLastValue",
-      "occurrences": 1,
-      "classification": "trip_value",
-      "rationale": "Apply the remaining date free-text wizard value outside the migrated wizard boundaries."
-    },
-    {
-      "path": "handlers/StateMessageHandler.php",
-      "receiver": "MaxSearchApi",
       "method": "setStatus",
       "occurrences": 1,
       "classification": "transition",
