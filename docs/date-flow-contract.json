@@ -30,7 +30,7 @@
   },
   "executable_value_contract": {
     "owner": "services/DateValueContract.php",
-    "runtime_connected": "date_selection_callback_only",
+    "runtime_connected": "date_selection_callback_and_wizard_free_text",
     "storage_projection": "calendar_valid_exact_DD.MM.YYYY_string_preserved_verbatim",
     "callback_payload_parser": "pick_date_DD.MM.YYYY",
     "today_or_future_policy": "intentionally_not_owned",
@@ -88,13 +88,14 @@
     "pending_short_date_first": "AiDateHandler::resolvePendingShortDate",
     "full_or_month_text_second": "AiDateHandler::rememberMonthFromText",
     "month_only_behavior": "remember_pending_month_render_calendar_and_keep_date_unset",
-    "recognized_date_application": "MaxSearchApi::saveLastValue",
-    "application_semantics": "direct_write_with_statusDate_auto_insert_fallback_when_no_current_session_value_row_exists",
-    "application_result_checked": false,
-    "validation": "DateParser_checkdate_and_shape_only_no_NativeDateService_today_or_future_gate_on_this_path",
+    "recognized_date_application": "ExistingWizardStepApplicationService::apply",
+    "application_semantics": "update_existing_current_session_statusDate_row_only",
+    "application_result_checked": true,
+    "validation": "DateParser_then_DateValueContract_fromStorageValue_calendar_shape_only_no_NativeDateService_today_or_future_gate_on_this_path",
     "normal_next": "check",
     "edit_next": "check",
-    "unrecognized_behavior": "send_date_example_error_and_keep_current_state"
+    "unrecognized_behavior": "send_date_example_error_and_keep_current_state",
+    "missing_or_pre_start_behavior": "consume_without_mutation_or_progression"
   },
   "ai": {
     "month_only_policy": "store_pending_month_and_clear_AI_date_parameter_instead_of_accepting_an_invented_exact_date",
@@ -151,15 +152,13 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "date_selection_callback_is_update_only_but_wizard_free_text_and_AI_paths_still_have_different_application_validation_and_missing_step_semantics",
+    "reason": "date_selection_callback_and_wizard_free_text_use_update_only_contract_while_AI_retains_separate_upsert_and_future_policy",
     "required_before_runtime": [
-      "production_green_date_selection_callback_checkpoint",
-      "explicit_decision_on_callback_and_wizard_free_text_validation_parity",
-      "executable_missing_or_pre_start_and_edit_flow_cases"
+      "explicit_checkpoint_before_any_AI_date_migration"
     ]
   },
   "protected_non_goals": [
-    "runtime behavior changes outside date selection callback",
+    "runtime behavior changes outside date selection callback and wizard free text",
     "callback payload changes",
     "date parsing changes",
     "calendar UX changes",
