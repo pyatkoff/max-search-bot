@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "flow": "country",
+  "scope": "read_only_inventory",
+  "owners": {
+    "callback": "actions/callbacks/WizardCallbackAction.php",
+    "free_text": "handlers/StateMessageHandler.php",
+    "directory": "services/TravelDirectoryRepository.php",
+    "ai_normalization": "services/AiSearchContextService.php",
+    "ai_local_parser": "services/LocalAiFallbackService.php",
+    "ai_business_defaults": "services/AiBusinessDefaultsService.php",
+    "destination_hints": "services/DestinationHintService.php",
+    "view": "services/DialogueView.php",
+    "edit_flow": "services/EditFlowService.php",
+    "claim_projection": "services/ClaimRepository.php",
+    "search_projection": "services/TourSearchHandoffService.php"
+  },
+  "state": {
+    "status": "statusContryChoose",
+    "status_id": 66,
+    "storage_field": "wizard_status_value",
+    "semantic_value": "active_country_directory_id",
+    "source_representations": {
+      "callback": "payload_suffix_decimal_string",
+      "directory_free_text": "directory_id_as_returned_by_PDO",
+      "ai": "integer"
+    },
+    "downstream_normalization": "integer_cast_for_search_query"
+  },
+  "callback": {
+    "payload_to_storage": {
+      "pick_country_4": "4",
+      "pick_country_1": "1",
+      "pick_country_2": "2",
+      "pick_country_9": "9",
+      "pick_country_8": "8",
+      "pick_country_12": "12"
+    },
+    "manual_payload": "pick_country_other",
+    "manual_payload_mutates_value": false,
+    "application": "MaxSearchApi::saveLastValue",
+    "application_result_is_checked": false,
+    "payload_projection": "str_replace_prefix_without_value_validation",
+    "guard_scope": "wizard.forward",
+    "expected_state": "country",
+    "normal_next": "adults",
+    "edit_next": "check",
+    "missing_or_pre_start_step_result": false,
+    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write"
+  },
+  "free_text": {
+    "lookup": "TravelDirectoryRepository::countryByName",
+    "lookup_semantics": "exact_case_sensitive_active_name",
+    "application": "MaxSearchApi::saveLastValue",
+    "application_result_is_checked": false,
+    "normal_next": "adults",
+    "edit_next": "check",
+    "missing_or_pre_start_step_result": false,
+    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write",
+    "unknown_single_value": "show_country_not_found_error",
+    "rich_request": "switch_to_ai_status_and_delegate_to_AiMessageHandler"
+  },
+  "manual_country": {
+    "entry": "pick_country_other",
+    "view": "DialogueView::manualCountry",
+    "state_remains": "country",
+    "back_payload": "back_pick_country",
+    "back_returns_to": "country",
+    "back_mutates_trip_value": false
+  },
+  "ai": {
+    "normalizer": "AiSearchContextService::normalizeParameters",
+    "fixed_alias_ids": {
+      "Турция": 4,
+      "Египет": 1,
+      "Таиланд": 2,
+      "ОАЭ": 9,
+      "Мальдивы": 8,
+      "Шри-Ланка": 12
+    },
+    "directory_fallback": "TravelDirectoryRepository::countryByName",
+    "local_parser": "stem_match_to_canonical_country_name",
+    "resort_hint_owner": "DestinationHintService::seedCountry",
+    "implicit_country_default": false,
+    "turkey_egypt_defaults": {
+      "meal_when_missing": "all_inclusive",
+      "stars_when_missing": 4
+    },
+    "application": "NeedApplicationService::applyParameters",
+    "storage_semantics": "upsert",
+    "country_question_policy": {
+      "default": "Куда хотите поехать?",
+      "country_explicit": "В какую страну хотите поехать?"
+    }
+  },
+  "edit_and_back": {
+    "edit_country": {
+      "snapshot_before_edit": true,
+      "edit_mode": "country",
+      "entry_view": "country",
+      "successful_selection_return": "check"
+    },
+    "back_pick_country": {
+      "used_from": [
+        "manual_country",
+        "adults"
+      ],
+      "return": "country",
+      "mutates_trip_value": false
+    },
+    "back_adults": {
+      "return": "adults",
+      "mutates_trip_value": false
+    }
+  },
+  "downstream": {
+    "claim_field": "UF_COUNTRY",
+    "search_parameter": "country",
+    "search_value": "integer_cast_of_UF_COUNTRY_or_saved_country",
+    "display_and_ai_context": "resolve_stored_id_through_active_country_directory",
+    "invalid_or_inactive_id_context_behavior": "stored_value_is_nonempty_but_name_resolution_is_omitted"
+  },
+  "migration_readiness": {
+    "runtime_migration_allowed": false,
+    "reason": "read_only_inventory_requires_executable_value_and_application_contract",
+    "required_before_runtime": [
+      "confirm this inventory production-green",
+      "define exact positive canonical directory-id validation for callback and PDO values",
+      "define checked update-only behavior for missing and pre-start rows",
+      "add real-handler callback and free-text regressions",
+      "preserve short validation, rich AI routing, edit and back behavior",
+      "keep AI normalization, hints, defaults and upsert semantics unchanged",
+      "record a separate authorization checkpoint before any runtime caller"
+    ]
+  },
+  "protected_non_goals": [
+    "callback payload changes",
+    "directory query changes",
+    "stored country value changes",
+    "AI normalization or default changes",
+    "URL or Tourvisor projection changes",
+    "country or date runtime mutation",
+    "Yandex Metrica or goal changes",
+    "lead delivery changes",
+    "manager shift or routing changes"
+  ]
+}
