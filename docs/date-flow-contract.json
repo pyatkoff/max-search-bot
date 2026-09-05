@@ -28,6 +28,30 @@
     "canonical_wizard_value": "one_orientational_departure_date",
     "search_window": "presentation_and_lead_windows_are_plus_or_minus_3_days_while_search_query_uses_the_single_date_for_dateFrom_and_dateTo"
   },
+  "executable_value_contract": {
+    "owner": "services/DateValueContract.php",
+    "runtime_connected": false,
+    "storage_projection": "calendar_valid_exact_DD.MM.YYYY_string_preserved_verbatim",
+    "callback_payload_parser": "pick_date_DD.MM.YYYY",
+    "today_or_future_policy": "intentionally_not_owned",
+    "accepted_calendar_classes": [
+      "present_example",
+      "past_example",
+      "future_example",
+      "valid_leap_day"
+    ],
+    "rejected_shapes": [
+      "invalid_day_or_month",
+      "invalid_non_leap_day",
+      "missing_leading_zero",
+      "ISO",
+      "whitespace_padded",
+      "time_or_extra_suffix",
+      "empty",
+      "non_string",
+      "wrong_callback_prefix"
+    ]
+  },
   "selection_callback": {
     "payload": "pick_date_DD.MM.YYYY",
     "generated_by": "CalendarViewModel::build",
@@ -127,10 +151,9 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "inventory_only_direct_wizard_writes_and_AI_upsert_have_different_validation_and_missing_step_semantics",
+    "reason": "date_value_contract_is_disconnected_and_direct_wizard_writes_and_AI_upsert_have_different_validation_and_missing_step_semantics",
     "required_before_runtime": [
-      "production_green_inventory_checkpoint",
-      "separate_authorized_date_value_contract",
+      "production_green_date_value_contract_checkpoint",
       "explicit_decision_on_callback_and_wizard_free_text_validation_parity",
       "executable_missing_or_pre_start_and_edit_flow_cases"
     ]
