@@ -10,6 +10,7 @@ require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityValueContract.php';
 require_once dirname(__DIR__) . '/services/CountryValueContract.php';
+require_once dirname(__DIR__) . '/services/DateValueContract.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -150,7 +151,17 @@ class StateMessageHandler
 
                 if($date !== '')
                 {
-                    MaxSearchApi::saveLastValue($chat_id, MaxSearchApi::$statusDate, $date);
+                    $dateValue = DateValueContract::fromStorageValue($date);
+                    if($dateValue === null)
+                    {
+                        self::send($chat_id,"Не получилось распознать дату. Напишите, например: 8 ноября, 08.11 или выберите дату в календаре.");
+                        return;
+                    }
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusDate,
+                        $dateValue
+                    )) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'date'))
                         DialogueView::check($chat_id);
                 }
