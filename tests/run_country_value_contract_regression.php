@@ -103,9 +103,9 @@ countryValueCheck(
     true
 );
 countryValueCheck(
-    'contract is wired once to callback while free-text and AI remain disconnected',
+    'contract is wired once to callback and free-text while AI remains disconnected',
     substr_count($callback, 'CountryValueContract::fromCallbackPayload') === 1
-        && strpos($handler, 'CountryValueContract') === false
+        && substr_count($handler, 'CountryValueContract::fromDirectoryId') === 1
         && strpos($aiContext, 'CountryValueContract') === false,
     true
 );
