@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-05T07:53:16+00:00",
+    "generated_at": "2026-09-05T08:03:23+00:00",
     "production": {
-        "sha": "614ff4942298595af1b56fa7063ba19acfc85418",
+        "sha": "a3119a8ca76be47becd687a5f9bf638c68fab38b",
         "branch": "main"
     },
     "migrations": {
@@ -99,34 +99,35 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-05 06:53:07",
+        "since_utc": "2026-09-05 07:03:13",
         "summary": {
-            "sessions": 3,
-            "raw_sessions": 3,
+            "sessions": 5,
+            "raw_sessions": 5,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 3,
+                "resolved": 5,
                 "unresolved": 0
             },
-            "started": 3,
-            "needs_collected": 3,
-            "tours_opened": 3,
-            "site_opened": 2,
+            "started": 5,
+            "needs_collected": 5,
+            "tours_opened": 5,
+            "site_opened": 3,
             "post_tour_manager_cta_shown": 3,
-            "manager_requested": 0,
-            "manager_replied": 0,
-            "customer_replied_after_manager": 0,
-            "phone_received": 1,
+            "manager_requested": 2,
+            "manager_replied": 2,
+            "customer_replied_after_manager": 2,
+            "phone_received": 2,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 0,
+                "answered_after_90s": 1,
                 "still_unanswered": 0,
-                "measured_responses": 0,
-                "avg_seconds": null,
-                "max_seconds": null
+                "measured_responses": 1,
+                "avg_seconds": 901,
+                "max_seconds": 901
             },
             "drop_points": {
                 "site_open": 2,
+                "customer_replied_after_manager": 2,
                 "tours_opened": 1
             },
             "flags": {
@@ -140,7 +141,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "614ff4942298595af1b56fa7063ba19acfc85418",
+        "sha": "a3119a8ca76be47becd687a5f9bf638c68fab38b",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -149,7 +150,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-05T07:53:16Z"
+        "reported_at": "2026-09-05T08:03:23Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -159,21 +160,21 @@
         "window_hours": null,
         "since_utc": "2026-09-04 22:00:00",
         "summary": {
-            "sessions": 6,
-            "raw_sessions": 6,
+            "sessions": 7,
+            "raw_sessions": 7,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 6,
+                "resolved": 7,
                 "unresolved": 0
             },
-            "started": 6,
-            "needs_collected": 6,
-            "tours_opened": 6,
+            "started": 7,
+            "needs_collected": 7,
+            "tours_opened": 7,
             "site_opened": 4,
             "post_tour_manager_cta_shown": 5,
-            "manager_requested": 1,
-            "manager_replied": 1,
-            "customer_replied_after_manager": 1,
+            "manager_requested": 2,
+            "manager_replied": 2,
+            "customer_replied_after_manager": 2,
             "phone_received": 2,
             "manager_response": {
                 "answered_in_90s": 0,
@@ -186,7 +187,7 @@
             "drop_points": {
                 "site_open": 3,
                 "tours_opened": 2,
-                "customer_replied_after_manager": 1
+                "customer_replied_after_manager": 2
             },
             "flags": {
                 "excessive_turns": 2,
@@ -205,7 +206,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-05T07:53:15+00:00",
+        "generated_at": "2026-09-05T08:03:22+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -249,7 +250,7 @@
             },
             "tests": {
                 "files": 211,
-                "bytes": 1082444,
+                "bytes": 1082961,
                 "code_lines": 13992
             },
             "tools": {
