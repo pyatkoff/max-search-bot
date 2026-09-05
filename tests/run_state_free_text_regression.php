@@ -136,6 +136,9 @@ $guards = [
     'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
     'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
     'date state resolves natural month text' => strpos($source, 'AiDateHandler::rememberMonthFromText(') !== false,
+    'wizard date uses exact value contract' => strpos($source, 'DateValueContract::fromStorageValue($date)') !== false,
+    'wizard date uses existing-step application boundary' => strpos($source, 'MaxSearchApi::$statusDate,') !== false && strpos($source, '$dateValue') !== false,
+    'wizard date no longer directly writes a value' => strpos($source, 'MaxSearchApi::saveLastValue($chat_id, MaxSearchApi::$statusDate, $date);') === false,
     'resolved date reaches check screen' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($source, 'DialogueView::check($chat_id);') !== false,
 ];
 foreach ($guards as $label => $ok) {
