@@ -49,21 +49,22 @@ jobs:
             cd /var/www/anytoour/data/www/app.anytoour.ru
             echo "MAX_DELIVERY_DIAGNOSTIC_SHA=$(git rev-parse HEAD)"
             php tools/max_shadow_mode.php --status || true
-            if [ ! -f tmp_in.txt ]; then
+            log_file=$(php -r "require \"services/WebhookRuntimeLogger.php\"; echo WebhookRuntimeLogger::inputFile();")
+            if [ -z "$log_file" ] || [ ! -f "$log_file" ]; then
               echo "SHADOW_MARKER_COUNT=0"
               echo "LIVE_MARKER_COUNT=0"
               exit 0
             fi
-            shadow=$(grep -c "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt || true)
-            live=$(grep -c "LIVE_UPDATE_RECEIVED type=" tmp_in.txt || true)
+            shadow=$(grep -c "SHADOW_UPDATE_RECEIVED type=" "$log_file" || true)
+            live=$(grep -c "LIVE_UPDATE_RECEIVED type=" "$log_file" || true)
             echo "SHADOW_MARKER_COUNT=$shadow"
             echo "LIVE_MARKER_COUNT=$live"
             if [ "$shadow" -gt 0 ]; then
-              grep "SHADOW_UPDATE_RECEIVED type=" tmp_in.txt | tail -n 5 | sed -E "s/^([0-9:. ]+)--- SHADOW_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/SHADOW_RECENT=timestamp:\1,type:\2/"
+              grep "SHADOW_UPDATE_RECEIVED type=" "$log_file" | tail -n 5 | sed -E "s/^([0-9:. ]+)--- SHADOW_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/SHADOW_RECENT=timestamp:\1,type:\2/"
             fi
             if [ "$live" -gt 0 ]; then
               echo "LIVE_DELIVERY_OBSERVED=YES"
-              grep "LIVE_UPDATE_RECEIVED type=" tmp_in.txt | tail -n 10 | sed -E "s/^([0-9:. ]+)--- LIVE_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/LIVE_RECENT=timestamp:\1,type:\2/"
+              grep "LIVE_UPDATE_RECEIVED type=" "$log_file" | tail -n 10 | sed -E "s/^([0-9:. ]+)--- LIVE_UPDATE_RECEIVED type=([A-Za-z0-9_]+).*$/LIVE_RECENT=timestamp:\1,type:\2/"
             else
               echo "LIVE_DELIVERY_OBSERVED=NO"
             fi

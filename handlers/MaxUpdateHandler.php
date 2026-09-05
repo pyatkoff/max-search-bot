@@ -9,7 +9,6 @@ class MaxUpdateHandler
     public static function handle()
     {
         $content = file_get_contents('php://input');
-        if (function_exists('put_log_in')) put_log_in($content);
         $update = json_decode($content, true);
 
         $incomingSecret = $_SERVER['HTTP_X_MAX_BOT_API_SECRET'] ?? '';
