@@ -17,7 +17,7 @@
   },
   "executable_value_contract": {
     "owner": "services/CountryValueContract.php",
-    "runtime_connected": "callback_only",
+    "runtime_connected": "callback_and_wizard_free_text",
     "directory_id_projection": "positive_canonical_integer_or_decimal_string_to_exact_decimal_storage_string",
     "callback_payload_parser": "pick_country_<positive_canonical_id>",
     "covered_popular_ids": [1, 2, 4, 8, 9, 12],
@@ -83,12 +83,13 @@
   "free_text": {
     "lookup": "TravelDirectoryRepository::countryByName",
     "lookup_semantics": "exact_case_sensitive_active_name",
-    "application": "MaxSearchApi::saveLastValue",
-    "application_result_is_checked": false,
+    "application": "ExistingWizardStepApplicationService::apply",
+    "application_result_is_checked": true,
+    "directory_id_projection": "CountryValueContract::fromDirectoryId",
     "normal_next": "adults",
     "edit_next": "check",
     "missing_or_pre_start_step_result": false,
-    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write",
+    "missing_or_pre_start_step_current_behavior": "fails_closed_without_insert_mutation_or_progression",
     "unknown_single_value": "show_country_not_found_error",
     "rich_request": "switch_to_ai_status_and_delegate_to_AiMessageHandler"
   },
@@ -153,15 +154,10 @@
     "invalid_or_inactive_id_context_behavior": "stored_value_is_nonempty_but_name_resolution_is_omitted"
   },
   "migration_readiness": {
-    "runtime_migration_allowed": false,
-    "reason": "callback_slice_requires_production_green_and_separate_free_text_authorization",
+    "runtime_migration_allowed": true,
+    "reason": "callback_and_wizard_free_text_use_the_executable_update_only_contract",
     "required_before_runtime": [
-      "confirm the callback-only update slice production-green",
-      "record a separate explicit free-text authorization checkpoint",
-      "define checked update-only free-text behavior for missing and pre-start rows",
-      "add a real-handler free-text regression",
-      "preserve short validation, rich AI routing, edit and back behavior",
-      "keep AI normalization, hints, defaults and upsert semantics unchanged"
+      "confirm the callback and free-text slices production-green before selecting any new caller"
     ]
   },
   "protected_non_goals": [
