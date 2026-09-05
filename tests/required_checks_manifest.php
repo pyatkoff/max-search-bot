@@ -72,6 +72,7 @@ return [
         'php tests/run_country_flow_contract_regression.php',
         'php tests/run_country_value_contract_regression.php',
         'php tests/run_country_callback_application_regression.php',
+        'php tests/run_country_free_text_application_regression.php',
         'php tests/run_child_age_value_contract_regression.php',
         'php tests/run_child_age_free_text_application_regression.php',
         'php tests/run_children_callback_application_regression.php',
