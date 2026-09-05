@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-05T00:52:54+00:00",
+    "generated_at": "2026-09-05T01:01:18+00:00",
     "production": {
-        "sha": "0f56f818d68945c167f3565c6e1dab50c01e27e7",
+        "sha": "503fb10cf47eee56e65944b272cb59b5b4b4c822",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 23:52:41",
+        "since_utc": "2026-09-05 00:01:06",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -134,7 +134,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "0f56f818d68945c167f3565c6e1dab50c01e27e7",
+        "sha": "503fb10cf47eee56e65944b272cb59b5b4b4c822",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-05T00:52:54Z"
+        "reported_at": "2026-09-05T01:01:18Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -192,12 +192,12 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-05T00:52:53+00:00",
+        "generated_at": "2026-09-05T01:01:18+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
-                "bytes": 46620,
-                "code_lines": 972
+                "bytes": 46958,
+                "code_lines": 979
             },
             "actions": {
                 "files": 9,
@@ -235,9 +235,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 205,
-                "bytes": 1021589,
-                "code_lines": 12974
+                "files": 206,
+                "bytes": 1036722,
+                "code_lines": 13245
             },
             "tools": {
                 "files": 42,
@@ -271,6 +271,12 @@
                 "severity": "observe"
             },
             {
+                "path": "tests/run_country_free_text_application_regression.php",
+                "lines": 270,
+                "bytes": 14842,
+                "severity": "observe"
+            },
+            {
                 "path": "tests/run_children_callback_application_regression.php",
                 "lines": 269,
                 "bytes": 14696,
@@ -298,12 +304,6 @@
                 "path": "services/DialogueView.php",
                 "lines": 244,
                 "bytes": 13488,
-                "severity": "observe"
-            },
-            {
-                "path": "tests/run_nights_callback_application_regression.php",
-                "lines": 238,
-                "bytes": 11973,
                 "severity": "observe"
             }
         ],
