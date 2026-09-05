@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "flow": "date",
+  "scope": "read_only_inventory",
+  "owners": {
+    "date_selection_callback": "actions/callbacks/WizardCallbackAction.php",
+    "month_navigation_callback": "actions/callbacks/WizardCallbackAction.php",
+    "wizard_free_text": "handlers/StateMessageHandler.php",
+    "ai_entry": "handlers/AiMessageHandler.php",
+    "ai_date_policy": "services/AiDateContextService.php",
+    "ai_compatibility_wrapper": "handlers/AiDateHandler.php",
+    "stateful_resolution": "services/DateContextResolver.php",
+    "stateless_parser": "services/DateParser.php",
+    "pending_month_store": "services/PendingMonthStore.php",
+    "calendar_view_model": "services/CalendarViewModel.php",
+    "calendar_view": "services/DialogueView.php",
+    "edit_flow": "services/EditFlowService.php",
+    "claim_projection": "services/ClaimRepository.php",
+    "search_projection": "services/TourSearchHandoffService.php",
+    "summary_projection": "services/SearchDateSummary.php",
+    "trip_state_projection": "services/TripStateService.php"
+  },
+  "state": {
+    "status": "statusDate",
+    "status_id": 73,
+    "storage_field": "wizard_status_value",
+    "stored_representation": "DD.MM.YYYY_string",
+    "canonical_wizard_value": "one_orientational_departure_date",
+    "search_window": "presentation_and_lead_windows_are_plus_or_minus_3_days_while_search_query_uses_the_single_date_for_dateFrom_and_dateTo"
+  },
+  "selection_callback": {
+    "payload": "pick_date_DD.MM.YYYY",
+    "generated_by": "CalendarViewModel::build",
+    "application": "MaxSearchApi::saveLastValue",
+    "application_semantics": "direct_write_with_statusDate_auto_insert_fallback_when_no_current_session_value_row_exists",
+    "application_result_checked": false,
+    "payload_validation_at_action_boundary": "none_beyond_prefix_removal",
+    "guard": "InteractionGuard::runExpectedStatusCallback",
+    "guard_scope": "date_selection",
+    "expected_status": "statusDate",
+    "duplicate_behavior": "serialized_by_scope_then_second_delivery_is_stale_after_first_successfully_renders_check",
+    "stale_behavior": "consumed_without_value_mutation_and_reported_as_stale_state",
+    "normal_next": "check",
+    "edit_next": "check",
+    "missing_or_pre_start_behavior": "expected_status_guard_consumes_unless_current_status_is_statusDate"
+  },
+  "month_navigation": {
+    "payload": "month_change_MM.YYYY",
+    "mutates_trip_date_value": false,
+    "presentation_effect": "renders_replacement_calendar_and_appends_statusDate_only_after_send_success",
+    "guard": "InteractionGuard::runExpectedStatusReplacementCallback",
+    "guard_scope": "month_change",
+    "expected_status": "statusDate",
+    "duplicate_window_seconds": 10.0,
+    "rapid_replacement_window_seconds": 0.75,
+    "accept_marker_timing": "after_nonempty_month_and_year_parts_before_calendar_render",
+    "action_validation": "requires_two_nonempty_dot_separated_parts",
+    "view_normalization": "month_clamped_to_1_12_year_below_2000_replaced_with_current_year_and_past_month_clamped_to_current_month",
+    "stale_duplicate_and_rapid_replacement_behavior": "consumed_without_calendar_render_with_structured_suppression_diagnostics"
+  },
+  "wizard_free_text": {
+    "entry_condition": "current_status_equals_statusDate",
+    "interaction_guard_scope": null,
+    "pending_short_date_first": "AiDateHandler::resolvePendingShortDate",
+    "full_or_month_text_second": "AiDateHandler::rememberMonthFromText",
+    "month_only_behavior": "remember_pending_month_render_calendar_and_keep_date_unset",
+    "recognized_date_application": "MaxSearchApi::saveLastValue",
+    "application_semantics": "direct_write_with_statusDate_auto_insert_fallback_when_no_current_session_value_row_exists",
+    "application_result_checked": false,
+    "validation": "DateParser_checkdate_and_shape_only_no_NativeDateService_today_or_future_gate_on_this_path",
+    "normal_next": "check",
+    "edit_next": "check",
+    "unrecognized_behavior": "send_date_example_error_and_keep_current_state"
+  },
+  "ai": {
+    "month_only_policy": "store_pending_month_and_clear_AI_date_parameter_instead_of_accepting_an_invented_exact_date",
+    "short_follow_up": "resolve_day_or_period_against_pending_month_before_general_AI_routing",
+    "local_rich_and_short_date_owner": "AiDateContextService::resolveLocal",
+    "external_ai_guard_owner": "AiDateContextService::applyAiGuard",
+    "application": "NeedApplicationService::applyParameters",
+    "storage_semantics": "normalized_upsert_through_MaxSearchApi::applyAiParameters",
+    "validation": "DD.MM.YYYY_shape_plus_NativeDateService::isTodayOrFuture",
+    "pending_month_storage": "per_chat_json_file_outside_dialogue_rows",
+    "pending_month_clear": [
+      "exact_date_resolution",
+      "accepted_nonlocal_AI_date",
+      "restart",
+      "back_phone_full_reset",
+      "plain_start_or_menu_reset"
+    ]
+  },
+  "calendar": {
+    "past_dates": "not_rendered",
+    "today": "selectable",
+    "date_button_label": "DD.MM",
+    "date_button_payload": "pick_date_DD.MM.YYYY",
+    "month_navigation_payload": "month_change_MM.YYYY",
+    "back_payload": "back_nights",
+    "back_destination": "nights",
+    "calendar_send_success_status": "statusDate"
+  },
+  "edit_and_back": {
+    "edit_date": {
+      "snapshot_before_edit": true,
+      "edit_mode": "date",
+      "entry_calendar": "current_month",
+      "successful_selection_return": "check",
+      "snapshot_restore_excludes": "statusDate"
+    },
+    "back_nights": {
+      "return": "nights",
+      "mutates_trip_date_value": false
+    },
+    "back_check": {
+      "return": "check",
+      "mutates_trip_date_value": false
+    }
+  },
+  "downstream": {
+    "claim_field": "UF_DATE_DEPART",
+    "claim_value": "stored_DD.MM.YYYY_string",
+    "search_parameters": ["dateFrom", "dateTo"],
+    "search_value": "TourSearchHandoffService_dateValue_normalized_to_YYYY-MM-DD",
+    "invalid_search_value": "empty_string",
+    "summary": "SearchDateSummary_formats_selected_date_and_plus_or_minus_3_day_window_with_lower_bound_clamped_to_today",
+    "trip_state": "dates.from_and_dates.to_equal_stored_value_dates.month_is_YYYY-MM_and_flexible_days_is_3_when_date_present"
+  },
+  "migration_readiness": {
+    "runtime_migration_allowed": false,
+    "reason": "inventory_only_direct_wizard_writes_and_AI_upsert_have_different_validation_and_missing_step_semantics",
+    "required_before_runtime": [
+      "production_green_inventory_checkpoint",
+      "separate_authorized_date_value_contract",
+      "explicit_decision_on_callback_and_wizard_free_text_validation_parity",
+      "executable_missing_or_pre_start_and_edit_flow_cases"
+    ]
+  },
+  "protected_non_goals": [
+    "runtime behavior changes",
+    "callback payload changes",
+    "date parsing changes",
+    "calendar UX changes",
+    "stored date representation changes",
+    "URL or Tourvisor projection changes",
+    "Yandex Metrica or goal changes",
+    "lead delivery changes",
+    "manager shift or routing changes",
+    "AI log boundary changes",
+    "deploy provenance changes"
+  ]
+}
