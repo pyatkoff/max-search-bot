@@ -8,6 +8,7 @@ $baseDir = __DIR__;
 require_once $baseDir . '/services/ProjectHealth.php';
 require_once $baseDir . '/services/ShadowComparisonReport.php';
 require_once $baseDir . '/services/AiRuntimeLogger.php';
+require_once $baseDir . '/services/WebhookRuntimeLogger.php';
 
 $outputDir = trim((string)(getenv('MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') ?: ''));
 if ($outputDir === '') {
@@ -37,7 +38,7 @@ $maxLinesByType = [
 ];
 $logs = [
     'funnel'=>$baseDir.'/funnel.csv',
-    'tmp'=>$baseDir.'/tmp_in.txt',
+    'tmp'=>WebhookRuntimeLogger::inputFile(),
     'cron'=>$baseDir.'/cron_followup.log',
     'ai'=>AiRuntimeLogger::debugFile(),
     'structured'=>$baseDir.'/structured_events.log',

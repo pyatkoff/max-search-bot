@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/AiRuntimeLogger.php';
+require_once __DIR__ . '/WebhookRuntimeLogger.php';
 
 class ProjectHealth
 {
@@ -141,6 +142,8 @@ class ProjectHealth
     {
         $files = [
             'ai_debug.log' => AiRuntimeLogger::debugFile(),
+            'webhook_input.log' => WebhookRuntimeLogger::inputFile(),
+            'webhook_output.log' => WebhookRuntimeLogger::outputFile(),
             'cron_followup.log' => $baseDir . '/cron_followup.log',
             'funnel.csv' => $baseDir . '/funnel.csv',
             'metrika_events.log' => $baseDir . '/metrika_events.log',
