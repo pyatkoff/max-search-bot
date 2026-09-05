@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "scope": "read_only_inventory",
+  "transport": "max",
+  "primary_owner": {
+    "handler": "handlers/MaxUpdateHandler.php",
+    "deduplicator": "services/IncomingUpdateDeduplicator.php",
+    "claim_order": "after_secret_and_shadow_checks_before_adapter_dispatch_or_bot_started_side_effects"
+  },
+  "event_contracts": {
+    "message_callback": {
+      "key": "callback:<callback.callback_id>",
+      "missing_key_behavior": "fail_open",
+      "current_guarantee": "same_non_empty_callback_id_is_claimed_once_per_local_store_within_ttl"
+    },
+    "message_created": {
+      "key": "message:<message.body.mid>",
+      "missing_key_behavior": "fail_open",
+      "current_guarantee": "same_non_empty_message_mid_is_claimed_once_per_local_store_within_ttl"
+    },
+    "bot_started": {
+      "key": "bot_started:sha256(user_id|timestamp|payload)",
+      "missing_key_behavior": "fail_open_when_all_components_are_empty",
+      "current_guarantee": "same_non_empty_composite_is_claimed_once_per_local_store_within_ttl"
+    }
+  },
+  "store": {
+    "default_path": "/tmp/max-search-bot-update-dedupe.json",
+    "shared_between_hosts": false,
+    "durable_across_host_replacement": false,
+    "exclusive_lock": "flock_LOCK_EX",
+    "ttl_seconds": 86400,
+    "max_entries": 5000,
+    "open_or_lock_failure_behavior": "fail_open",
+    "write_or_flush_result_checked": false
+  },
+  "delivery_semantics": {
+    "claim_before_business_effects": true,
+    "duplicate_within_current_store_and_ttl": "at_most_once",
+    "crash_after_claim_before_effect": "event_can_be_lost_until_claim_expires",
+    "missing_identifier_or_unavailable_store": "at_least_once_possible",
+    "cross_host_exactly_once": false
+  },
+  "secondary_guards": [
+    {
+      "owner": "services/InteractionGuard.php",
+      "entrypoint": "services/CallbackController.php",
+      "actions": ["show_tours", "manager_request", "edit_params"],
+      "mechanism": "current_surface_generation_is_replaced_with_used_generation_under_per_chat_lock_before_dispatch",
+      "rejected_handler_behavior": "restore_generation_if_claim_is_still_owned"
+    }
+  ],
+  "manager_request_paths": [
+    {
+      "path": "generated_manager_request_callback",
+      "primary_event_guard": "callback_id",
+      "secondary_guard": "surface_generation"
+    },
+    {
+      "path": "unversioned_manager_request_or_manager_after_tours_callback",
+      "primary_event_guard": "callback_id",
+      "secondary_guard": "none_at_entrypoint"
+    },
+    {
+      "path": "ai_or_source_message_handoff",
+      "primary_event_guard": "message_mid",
+      "secondary_guard": "none_at_entrypoint"
+    }
+  ],
+  "conversation_mirror": {
+    "owner": "services/ConversationRecorder.php",
+    "lookup": "select_before_insert_by_conversation_direction_external_message_id",
+    "database_index": "non_unique_channel_external_message_id",
+    "atomic_uniqueness_guarantee": false,
+    "role": "best_effort_observability_not_business_event_idempotency_owner"
+  },
+  "known_gaps": [
+    "events_without_the_expected_external_identifier_are_not_deduplicated",
+    "the_local_tmp_store_does_not_coordinate_multiple_active_hosts",
+    "host_replacement_can_remove_the_claim_store",
+    "claim_before_effect_can_suppress_a_retry_after_a_process_crash",
+    "unchecked_write_or_flush_failure_can_process_an_event_without_persisting_its_claim",
+    "the_conversation_mirror_select_before_insert_is_not_an_atomic_uniqueness_barrier",
+    "unversioned_and_message_driven_manager_requests_have_no_secondary_entrypoint_idempotency_key"
+  ],
+  "runtime_change_authorized": false,
+  "migration_authorized": false,
+  "protected_non_goals": [
+    "Yandex Metrica counters goals or goal semantics",
+    "lead delivery destination or mechanism",
+    "manager shifts or is_working state",
+    "routing eligibility or bonuses",
+    "URL payload or Tourvisor behavior",
+    "MAX or Telegram webhook ownership",
+    "strict MAX TLS behavior",
+    "AI log boundary",
+    "deploy provenance",
+    "neighboring repositories domains or projects"
+  ]
+}

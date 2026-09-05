@@ -101,6 +101,7 @@ return [
         'php tests/run_conversation_regression.php',
         'php tests/run_conversation_catalog.php',
         'php tests/run_update_deduplicator_regression.php',
+        'php tests/run_max_event_idempotency_inventory_regression.php',
     ],
     'website' => [
         'php tests/run_website_transport_regression.php',
