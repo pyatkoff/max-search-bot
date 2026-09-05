@@ -17,7 +17,7 @@
   },
   "executable_value_contract": {
     "owner": "services/CountryValueContract.php",
-    "runtime_connected": false,
+    "runtime_connected": "callback_only",
     "directory_id_projection": "positive_canonical_integer_or_decimal_string_to_exact_decimal_storage_string",
     "callback_payload_parser": "pick_country_<positive_canonical_id>",
     "covered_popular_ids": [1, 2, 4, 8, 9, 12],
@@ -69,15 +69,16 @@
     },
     "manual_payload": "pick_country_other",
     "manual_payload_mutates_value": false,
-    "application": "MaxSearchApi::saveLastValue",
-    "application_result_is_checked": false,
-    "payload_projection": "str_replace_prefix_without_value_validation",
+    "application": "ExistingWizardStepApplicationService::apply",
+    "application_result_is_checked": true,
+    "payload_projection": "CountryValueContract::fromCallbackPayload",
+    "funnel_event_after_successful_application": "country_selected",
     "guard_scope": "wizard.forward",
     "expected_state": "country",
     "normal_next": "adults",
     "edit_next": "check",
     "missing_or_pre_start_step_result": false,
-    "missing_or_pre_start_step_current_behavior": "progresses_without_confirming_write"
+    "missing_or_pre_start_step_current_behavior": "consumed_without_insert_mutation_or_progression"
   },
   "free_text": {
     "lookup": "TravelDirectoryRepository::countryByName",
@@ -153,12 +154,12 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "value_contract_requires_production_green_and_separate_application_authorization",
+    "reason": "callback_slice_requires_production_green_and_separate_free_text_authorization",
     "required_before_runtime": [
-      "confirm the disconnected value contract production-green",
-      "record a separate explicit runtime-application authorization checkpoint",
-      "define checked update-only behavior for missing and pre-start rows",
-      "add real-handler callback and free-text regressions",
+      "confirm the callback-only update slice production-green",
+      "record a separate explicit free-text authorization checkpoint",
+      "define checked update-only free-text behavior for missing and pre-start rows",
+      "add a real-handler free-text regression",
       "preserve short validation, rich AI routing, edit and back behavior",
       "keep AI normalization, hints, defaults and upsert semantics unchanged"
     ]
