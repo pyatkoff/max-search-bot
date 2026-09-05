@@ -15,6 +15,37 @@
     "claim_projection": "services/ClaimRepository.php",
     "search_projection": "services/TourSearchHandoffService.php"
   },
+  "executable_value_contract": {
+    "owner": "services/CountryValueContract.php",
+    "runtime_connected": false,
+    "directory_id_projection": "positive_canonical_integer_or_decimal_string_to_exact_decimal_storage_string",
+    "callback_payload_parser": "pick_country_<positive_canonical_id>",
+    "covered_popular_ids": [1, 2, 4, 8, 9, 12],
+    "covered_additional_id": 347,
+    "rejected_directory_values": [
+      "zero",
+      "negative",
+      "fractional",
+      "empty",
+      "non_numeric",
+      "leading_zero",
+      "signed",
+      "whitespace_padded",
+      "boolean",
+      "null"
+    ],
+    "rejected_callback_shapes": [
+      "manual",
+      "zero",
+      "negative",
+      "fractional",
+      "empty_suffix",
+      "leading_zero",
+      "wrong_prefix",
+      "extra_suffix",
+      "whitespace_padded"
+    ]
+  },
   "state": {
     "status": "statusContryChoose",
     "status_id": 66,
@@ -122,15 +153,14 @@
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
-    "reason": "read_only_inventory_requires_executable_value_and_application_contract",
+    "reason": "value_contract_requires_production_green_and_separate_application_authorization",
     "required_before_runtime": [
-      "confirm this inventory production-green",
-      "define exact positive canonical directory-id validation for callback and PDO values",
+      "confirm the disconnected value contract production-green",
+      "record a separate explicit runtime-application authorization checkpoint",
       "define checked update-only behavior for missing and pre-start rows",
       "add real-handler callback and free-text regressions",
       "preserve short validation, rich AI routing, edit and back behavior",
-      "keep AI normalization, hints, defaults and upsert semantics unchanged",
-      "record a separate authorization checkpoint before any runtime caller"
+      "keep AI normalization, hints, defaults and upsert semantics unchanged"
     ]
   },
   "protected_non_goals": [
