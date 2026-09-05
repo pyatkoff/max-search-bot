@@ -6,6 +6,7 @@ require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
 require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__, 2) . '/services/DepartureCityValueContract.php';
 require_once dirname(__DIR__, 2) . '/services/CountryValueContract.php';
+require_once dirname(__DIR__, 2) . '/services/DateValueContract.php';
 require_once dirname(__DIR__, 2) . '/services/DialogueTransitionObserver.php';
 
 class WizardCallbackAction
@@ -32,7 +33,13 @@ class WizardCallbackAction
             'date_selection',
             (int)MaxSearchApi::$statusDate,
             static function () use ($chatId, $q): bool {
-                MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusDate, str_replace('pick_date_', '', $q));
+                $date = DateValueContract::fromCallbackPayload($q);
+                if ($date === null) return true;
+                if (!ExistingWizardStepApplicationService::apply(
+                    $chatId,
+                    MaxSearchApi::$statusDate,
+                    $date
+                )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
                 DialogueView::check($chatId);
                 return true;
