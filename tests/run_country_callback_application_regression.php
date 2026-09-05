@@ -244,7 +244,7 @@ countryCallbackCheck('country edit renders check once', count($messenger->button
 countryCallbackCheck('country edit clears edit mode', MaxSearchApi::$editMode, '');
 countryCallbackCheck('country edit does not render adults', MaxSearchApi::$adultsViews, []);
 countryCallbackCheck('country edit updates one country row', CountryCallbackFakeData::$updates, 1);
-countryCallbackCheck('country edit preserves funnel event', MaxSearchApi::$funnelEvents, [['country_selected', ['payload'=>'pick_country_12']]]);
+countryCallbackCheck('country edit preserves selection then check funnel events', MaxSearchApi::$funnelEvents, [['country_selected', ['payload'=>'pick_country_12']], ['search_ready', []]]);
 countryCallbackCheck('country edit direct write is only check generation', array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
 
 countryCallbackReset(1232);
