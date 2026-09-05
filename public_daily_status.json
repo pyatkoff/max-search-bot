@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-05T19:07:29+00:00",
+    "generated_at": "2026-09-05T21:21:58+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -17,7 +17,7 @@
         "needs_collected": 18,
         "tours_opened": 18,
         "site_opened": 13,
-        "post_tour_manager_cta_shown": 10,
+        "post_tour_manager_cta_shown": 11,
         "manager_requested": 6,
         "manager_replied": 6,
         "customer_replied_after_manager": 3,
@@ -46,7 +46,7 @@
             "needs_collected_from_started": 12,
             "tours_opened_from_started": 12,
             "site_opened": 11,
-            "post_tour_manager_cta_shown": 7,
+            "post_tour_manager_cta_shown": 8,
             "manager_requested": 4,
             "manager_replied": 4,
             "customer_replied_after_manager": 1
