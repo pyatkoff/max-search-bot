@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-05T00:22:09+00:00",
+    "generated_at": "2026-09-05T00:29:14+00:00",
     "production": {
-        "sha": "2fcd7e8ecc7dac2ad7bca80eee9289dd7f3abf81",
+        "sha": "6940b1e6e9b781f3bf68dd084c847491f3e4a796",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-04 23:21:57",
+        "since_utc": "2026-09-04 23:29:05",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -134,7 +134,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "2fcd7e8ecc7dac2ad7bca80eee9289dd7f3abf81",
+        "sha": "6940b1e6e9b781f3bf68dd084c847491f3e4a796",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -143,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-05T00:22:09Z"
+        "reported_at": "2026-09-05T00:29:14Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -192,7 +192,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-05T00:22:08+00:00",
+        "generated_at": "2026-09-05T00:29:14+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -205,9 +205,9 @@
                 "code_lines": 571
             },
             "services": {
-                "files": 143,
-                "bytes": 562681,
-                "code_lines": 12121
+                "files": 144,
+                "bytes": 563590,
+                "code_lines": 12152
             },
             "integrations": {
                 "files": 11,
@@ -235,9 +235,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 203,
-                "bytes": 1001446,
-                "code_lines": 12581
+                "files": 204,
+                "bytes": 1006131,
+                "code_lines": 12699
             },
             "tools": {
                 "files": 42,
