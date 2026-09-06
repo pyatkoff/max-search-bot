@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
-function createHarness() {
+function createHarness({storage, managerId=7, mobile=false, sessionHistory} = {}) {
 const ids = new Map();
 class Element {
   constructor(tag = 'div') {
@@ -45,6 +45,7 @@ class Element {
   appendChild(child) { this.children.push(child); child.parentElement = this; return child; }
   replaceChildren(...children) { this.children = children; this._text = ''; }
   setAttribute(name, value) { this[name] = value; }
+  removeAttribute(name) { delete this[name]; }
   addEventListener(name, handler) { (this.handlers[name] ||= []).push(handler); }
   async dispatch(name) { for (const fn of this.handlers[name] || []) await fn({preventDefault(){}}); }
   focus() {}
@@ -61,13 +62,13 @@ const document = {
 };
 ['inboxList','adminLink','managerName','conversationLoadStatus','conversationActions',
  'conversationTitle','conversationAvatar','conversationState','conversationMeta',
- 'deliveryFailure','composerLocked','replyStatus','conversationZone','messages'].forEach(id => add(id));
+ 'deliveryFailure','composerLocked','replyStatus','conversationZone','messages','workspaceRoot','leadZone','mobileBack','mobileLeadBtn','mobileLeadClose'].forEach(id => add(id));
 add('composer', 'form', 'composer hidden'); add('replyText', 'textarea'); add('replyFile', 'input'); add('sendReply', 'button');
 
 const calls = [];
 let hook = null;
 let nextIdentity = null;
-const manager = {id:7, role:'manager', login:'synthetic', display_name:'Synthetic manager', is_working:true};
+const manager = {id:managerId, role:'manager', login:'synthetic', display_name:'Synthetic manager', is_working:true};
 const identity = {ok:true, csrf:'synthetic-csrf', manager, projects:[]};
 const conversation = {id:101, manager_id:7, status:'manager', channel:'max', display_name:'Synthetic conversation'};
 async function fetch(url, options) {
@@ -75,7 +76,7 @@ async function fetch(url, options) {
   if(hook){const result=await hook(url,request);if(result)return result;}
   let value;
   if (request.action === 'me' || request.action === 'login') value = nextIdentity || identity;
-  else if (url === 'api.php' && request.action === 'detail') value = {ok:true, conversation, messages:[]};
+  else if (url === 'api.php' && request.action === 'detail') value = {ok:true, conversation:{...conversation,id:request.conversation_id}, messages:[]};
   else if (url === 'pipeline-api.php' && request.action === 'detail') value = {ok:true};
   else if (request.action === 'catalog') value = {ok:true};
   else if (request.action === 'filter_options') value = {ok:true, filters:{projects:[],sources:[],managers:[]}};
@@ -83,21 +84,25 @@ async function fetch(url, options) {
   return {ok:true,status:200,json:async()=>value};
 }
 let selectedFile = null;
+const events=new Map();
 const window = {
+  matchMedia:()=>({matches:mobile}),addEventListener:(name,fn)=>{events.set(name,fn)},
   WorkspaceV2Inbox: {bind(){},load:async()=>true,markRead(){},markActive(){}},
   WorkspaceV2LeadCard: {render(){},renderUnavailable(){}},
   WorkspaceV2Media: {init(){},configure(){},clear(){selectedFile=null;},hasFile:()=>!!selectedFile},
   WorkspaceV2Mobile: {bind(){},isMobile:()=>false,showInbox(){}},
 };
-const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:''},history:{},setTimeout:()=>0,console});
-for (const file of ['workspace-v2.js','workspace-v2-conversation.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
+const history=sessionHistory||{entries:[null],index:0,get state(){return this.entries[this.index]},replaceState(state){this.entries[this.index]=state},pushState(state){this.entries.splice(++this.index);this.entries.push(state)},async back(){if(this.index>0){this.index--;await this.listener(this.state)}},async forward(){if(this.index<this.entries.length-1){this.index++;await this.listener(this.state)}}};
+history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
+const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/'},history,setTimeout:()=>0,console,sessionStorage:storage});
+for (const file of ['workspace-v2.js','workspace-v2-conversation.js',...(mobile?['workspace-v2-mobile.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
 async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
 async function expire(){hook=(url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false,error:'unauthorized'},401):null;await C.open(101);hook=null;assert.equal(W.S.authExpired,true);}
 async function login(){ids.get('managerAuthLogin').value='synthetic';ids.get('managerAuthPassword').value='synthetic-only';await ids.get('managerAuthForm').dispatch('submit');}
 async function draft(text='Unsent synthetic draft'){ids.get('replyText').value=text;await ids.get('replyText').dispatch('input');}
-return {W,C,ids,calls,start,expire,login,draft,window,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
+return {W,C,ids,calls,start,expire,login,draft,window,history,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
   setFile(file){selectedFile=file},getFile(){return selectedFile}};
 }
 function response(value,status=200){return{ok:status>=200&&status<300,status,json:async()=>value};}
@@ -180,4 +185,5 @@ test('pending protected request is discarded across account switch',async()=>{
   old.resolve(response({ok:true,counts:{mine:{count:99}}}));const result=await pending;
   assert.equal(result.ok,false);assert.equal(result.error,'stale_session');
 });
-(async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})()
+module.exports={createHarness,response,deferred,hidden,assertNoMutations};
+if(require.main===module)(async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})()
