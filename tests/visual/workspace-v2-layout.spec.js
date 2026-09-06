@@ -3,6 +3,26 @@ const { test, expect } = require('@playwright/test');
 const base = 'http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html';
 const pipelineAdmin = 'http://127.0.0.1:4173/tests/visual/pipeline-admin-fixture.html';
 
+test('conversation renders bot headings without interpreting message HTML', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(base + '?view=conversation');
+  await page.evaluate(() => {
+    document.querySelector('.messages').id = 'messages';
+    window.WorkspaceV2 = { S: {}, $: id => document.getElementById(id) };
+  });
+  await page.addScriptTag({ url: 'http://127.0.0.1:4173/manager/assets/workspace-v2-conversation.js' });
+  await page.evaluate(() => window.WorkspaceV2Conversation.renderMessages([
+    { sender_type: 'ai', text: '📱 <b>Менеджер пока не успел ответить</b>\nМожно продолжить ждать.' },
+    { sender_type: 'customer', text: '<b>Мой текст</b>' },
+    { sender_type: 'ai', text: '<img src=x onerror="window.messageHtmlExecuted=true">' },
+  ]));
+  await expect(page.locator('.msg.ai strong')).toHaveText('Менеджер пока не успел ответить');
+  await expect(page.locator('.msg.customer .msgBody')).toHaveText('<b>Мой текст</b>');
+  await expect(page.locator('.msgBody img, .msgBody script')).toHaveCount(0);
+  expect(await page.evaluate(() => window.messageHtmlExecuted)).toBeUndefined();
+  await expectNoHorizontalOverflow(page);
+});
+
 async function rect(locator) {
   const box = await locator.boundingBox();
   expect(box).not.toBeNull();
