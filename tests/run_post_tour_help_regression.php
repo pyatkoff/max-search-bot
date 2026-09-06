@@ -88,14 +88,33 @@ foreach (["  ССЫЛКА НЕ РАБОТАЕТ!  ", "Не открываетс�
     helpCheck('variant receives one answer', count($messenger->sent), 1);
 }
 foreach (['Ссылка работает', 'Подборка открывается', 'Не работает телефон', 'Не открывается ссылка на канал', 'Ссылка не работает, хочу Турцию на 7 ночей', 'Подборка не открывается? Нет, всё работает', 'Хочу Египет', 'manager_after_tours'] as $phrase) {
-    helpCheck('unrelated/mixed text stays on existing check path', helpDispatch($phrase), true);
-    helpCheck('unrelated text is not intercepted', $messenger->sent, []);
+    helpCheck('unrelated/mixed text is not classified as link trouble', PostTourService::isLinkHelpRequest($phrase), false);
+    helpCheck('unrelated/mixed check text receives guidance', helpDispatch($phrase), true);
+    helpCheck('check guidance does not claim a link failure', strpos($messenger->sent[0]['text'] ?? '', 'Понимаю, подборка не открывается') === false, true);
 }
 
 MaxSearchApi::$claim = [];
-helpCheck('missing prior result remains unchanged', helpDispatch('Ссылка не работает'), true);
-helpCheck('no prior result produces no post-tour advice', $messenger->sent, []);
+helpCheck('missing prior result still allows neutral check guidance', helpDispatch('Ссылка не работает'), true);
+helpCheck('no prior result produces no post-tour link advice', strpos($messenger->sent[0]['text'] ?? '', 'Посмотреть на сайте') === false, true);
 MaxSearchApi::$claim = ['UF_CODE'=>'synthetic-existing-claim'];
+
+// Fresh live evidence: a completed check summary was followed by a country
+// correction, but the statusCheck text path silently ignored both messages.
+// Guide into existing explicit edit controls; do not claim the value was saved.
+foreach (['max', 'telegram'] as $platform) {
+    foreach (['ОАЭ', 'Хотим в ОАЭ', 'Поменять дату'] as $phrase) {
+        helpCheck('check text is handled', helpDispatch($phrase,74,$platform), true);
+        helpCheck('check text gets one answer', count($messenger->sent), 1);
+        helpCheck('check guidance preserves status', MaxSearchApi::$status, 74);
+        $sent = $messenger->sent[0] ?? [];
+        helpCheck('guidance offers existing edit callback', $sent['buttons'][0][0]['callback_data'] ?? null, 'edit_params');
+        helpCheck('guidance truthfully leaves values unchanged', strpos($sent['text'] ?? '', 'Параметры пока не изменены') !== false, true);
+        helpCheck('guidance has no search or manager side action', count($sent['buttons'] ?? []), 1);
+        helpCheck('guidance never echoes customer text or invents URL', strpos(json_encode($sent), 'http') === false && strpos($sent['text'] ?? '', $phrase) === false, true);
+    }
+}
+helpCheck('blank check text remains harmless', helpDispatch('   '), true);
+helpCheck('blank check text sends nothing', $messenger->sent, []);
 
 helpCheck('phone input path still handles message', helpDispatch('Подборка не открывается',75), true);
 helpCheck('phone path is not replaced by help', strpos($messenger->sent[0]['text'] ?? '', 'распознать номер') !== false, true);
@@ -108,6 +127,9 @@ $messenger->succeeds = false;
 helpCheck('failed send reports failure, without AI fallthrough', helpDispatch('Ссылка не работает'), false);
 helpCheck('failed send attempts once', count($messenger->sent), 1);
 helpCheck('failed send preserves state', MaxSearchApi::$status, 74);
+helpCheck('failed check guidance returns failure without AI fallthrough', helpDispatch('Хотим в ОАЭ'), false);
+helpCheck('failed check guidance attempts once', count($messenger->sent), 1);
+helpCheck('failed check guidance preserves state', MaxSearchApi::$status, 74);
 
 IntegrationRegistry::resetForTests();
 echo "\nTOTAL " . ($passed+$failed) . " | PASS {$passed} | FAIL {$failed}\n";
