@@ -85,8 +85,11 @@ async function resumeAuthenticated(me){
     $('inboxList')?.replaceChildren();$('kanbanBoard')?.replaceChildren();$('leadCard')?.replaceChildren();
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
   }
-  S.authExpired=false;hideAuthRecovery();applyIdentity(me);await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  S.authExpired=false;hideAuthRecovery();applyIdentity(me);
+  const savedConversationId=window.WorkspaceV2Conversation?.activateReplySession(S.manager?.id);
+  await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
   if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
+  else if(savedConversationId===window.WorkspaceV2Conversation?.getSavedSelection()&&savedConversationId&&!S.authExpired&&!S.current&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(savedConversationId,{restoreSession:true,mobileHistory:window.WorkspaceV2Mobile?.reloadHistoryMode?.()||'none'});
 }
 async function loginFromRecovery(){
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;

@@ -170,6 +170,7 @@ return [
         'node tests/run_manager_notifications_client_behavior_regression.js',
         'node tests/run_manager_message_text_behavior_regression.js',
         'node tests/run_manager_reauth_composer_behavior_regression.js',
+        'node tests/run_manager_reply_session_behavior_regression.js',
         'php tests/run_manager_workspace_v2_outcome_regression.php',
         'php tests/run_lead_task_regression.php',
         'php tests/run_manager_closed_lead_task_creation_regression.php',
