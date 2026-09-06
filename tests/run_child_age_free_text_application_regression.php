@@ -160,6 +160,9 @@ $accepted = [
     ['6', 1, '6'],
     ['0', 1, '0'],
     ['3 7', 2, '3, 7'],
+    ['10  14', 2, '10, 14'],
+    ['3   7', 2, '3, 7'],
+    ['0  7', 2, '0, 7'],
     ['3,7', 2, '3, 7'],
     ['3, 7', 2, '3, 7'],
     ['3 4, 7', 2, '3, 7'],
@@ -179,7 +182,7 @@ foreach ($accepted as $index => [$text, $children, $stored]) {
     childAgeFreeTextCheck("{$text} avoids legacy direct write", MaxSearchApi::$directSaves, []);
 }
 
-foreach (['3 и 7', '3;7', '3/7', '3-7', "3\t7", '3  7', '3', '3, 18'] as $index => $text) {
+foreach (['3 и 7', '3;7', '3/7', '3-7', "3\t7", '3', '3, 18', '10  18', '2016, 2012'] as $index => $text) {
     $chatId = 1200 + $index;
     $messenger = childAgeFreeTextReset($chatId);
     StateMessageHandler::handle(['text'=>$text], $chatId, MaxSearchApi::$statusAge);
@@ -195,20 +198,22 @@ StateMessageHandler::handle(['text'=>'18'], 1300, MaxSearchApi::$statusAge);
 childAgeFreeTextCheck('single-child error keeps exact singular prompt', $messenger->sent[0][1] ?? '', 'К сожалению возраст ребенка указан неверно. Пожалуйста, введите 1 число в диапазоне от 0 до 17.');
 
 foreach ([['missing', 1301, false], ['pre-start', 1302, true]] as [$label, $chatId, $preStart]) {
-    $messenger = childAgeFreeTextReset($chatId, 2, $label !== 'missing', $preStart);
-    $before = ChildAgeFreeTextFakeData::$rows;
-    StateMessageHandler::handle(['text'=>'5, 12'], $chatId, MaxSearchApi::$statusAge);
-    childAgeFreeTextCheck("{$label} age step preserves rows", ChildAgeFreeTextFakeData::$rows, $before);
-    childAgeFreeTextCheck("{$label} age step does not update", ChildAgeFreeTextFakeData::$updates, 0);
-    childAgeFreeTextCheck("{$label} age step does not insert", ChildAgeFreeTextFakeData::$adds, 0);
-    childAgeFreeTextCheck("{$label} age step does not advance", MaxSearchApi::$transitions, []);
-    childAgeFreeTextCheck("{$label} age step renders nothing", $messenger->buttons, []);
-    childAgeFreeTextCheck("{$label} age step sends no validation error", $messenger->sent, []);
+    foreach (['5, 12', '5  12'] as $text) {
+        $messenger = childAgeFreeTextReset($chatId, 2, $label !== 'missing', $preStart);
+        $before = ChildAgeFreeTextFakeData::$rows;
+        StateMessageHandler::handle(['text'=>$text], $chatId, MaxSearchApi::$statusAge);
+        childAgeFreeTextCheck("{$label} age step preserves rows", ChildAgeFreeTextFakeData::$rows, $before);
+        childAgeFreeTextCheck("{$label} age step does not update", ChildAgeFreeTextFakeData::$updates, 0);
+        childAgeFreeTextCheck("{$label} age step does not insert", ChildAgeFreeTextFakeData::$adds, 0);
+        childAgeFreeTextCheck("{$label} age step does not advance", MaxSearchApi::$transitions, []);
+        childAgeFreeTextCheck("{$label} age step renders nothing", $messenger->buttons, []);
+        childAgeFreeTextCheck("{$label} age step sends no validation error", $messenger->sent, []);
+    }
 }
 
 $messenger = childAgeFreeTextReset(1400);
 EditFlowService::begin(1400, 'tourists');
-StateMessageHandler::handle(['text'=>'5, 12'], 1400, MaxSearchApi::$statusAge);
+StateMessageHandler::handle(['text'=>'5  12'], 1400, MaxSearchApi::$statusAge);
 childAgeFreeTextCheck('tourists edit stores exact ages', MaxSearchApi::getSavedData(1400)[MaxSearchApi::$statusAge] ?? null, '5, 12');
 childAgeFreeTextCheck('tourists edit returns to check once', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 childAgeFreeTextCheck('tourists edit renders check once', count($messenger->buttons), 1);

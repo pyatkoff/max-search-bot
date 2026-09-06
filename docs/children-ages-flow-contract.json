@@ -41,6 +41,7 @@
       "comma"
     ],
     "current_parser": "ChildAgeValueContract::parseLegacyInput",
+    "confirmed_separator_repair": "Repeated internal ASCII spaces between digits in comma-free input form one separator; they must not add a zero-age child. Other legacy separator semantics are unchanged.",
     "current_projection": "ChildAgeValueContract::toStorage",
     "current_application": "ExistingWizardStepApplicationService::apply",
     "current_application_result_is_checked": true,
