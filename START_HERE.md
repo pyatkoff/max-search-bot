@@ -185,6 +185,29 @@ keyboard/session-expiry confirmation or proof of customer delivery. Do not repea
 Continue the authorized workspace/dialogue review from fresh evidence; select the
 next independent repair only after another exact failing scenario is confirmed.
 
+The open-transcript auto-refresh repair shipped and was production verified in
+PR #733. The existing 15-second Inbox/focus/visibility cycle now refreshes the
+visible conversation through protected detail, preserving unsent reply text,
+selected attachment, lead/task/outcome editor DOM and history-reading position.
+Unchanged messages retain their DOM. Hidden tabs and hidden mobile conversation
+panes are not polled because the detail endpoint retains its existing mark-read
+behavior. Navigation, authentication and send/lifecycle boundaries reject stale
+responses; fresh access loss locks reply controls. No transport, handoff or
+business-data behavior changed. Canonical regression and controlled browser
+verification are distinct from natural customer-arrival/iPhone confirmation.
+Do not repeat this repair; continue from a newly confirmed independent scenario.
+
+The upload-result context repair shipped and was production verified in PR #734.
+Late upload responses are pinned to their original file, conversation and
+authenticated session generation. They cannot clear a newer selected attachment
+or reopen sign-in after successful reauthentication. The post-send conversation
+refresh preserves a replacement file; fresh ownership loss removes unavailable
+reply attachments. Existing upload transport, multipart fields, retries and
+lifecycle behavior remain unchanged, and no operation is replayed. Ten synthetic
+upload/context cases and the existing conversation/session suites cover these
+boundaries; natural slow-upload/session-expiry confirmation remains separate.
+Do not repeat this repair or turn it into a transport redesign.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
