@@ -67,6 +67,11 @@ class DialogueController
             && MaxSearchApi::getLastClaimForChat($chatId)) {
             return DialogueView::tourLinkHelp($chatId);
         }
+        // Check is a button-confirmation state, not a free-text field editor.
+        // Acknowledge text without silently dropping it or mutating saved needs.
+        if ($status == MaxSearchApi::$statusCheck && $plainText !== '') {
+            return DialogueView::checkTextGuidance($chatId);
+        }
         if ($status == MaxSearchApi::$statusAi || !$status || $status == MaxSearchApi::$statusStart) {
             DepartureCityResolver::resolveAndStore($chatId, $text);
             DestinationAreaResolver::resolveAndStore($chatId, $text);

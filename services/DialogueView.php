@@ -148,6 +148,15 @@ class DialogueView
         return $ok;
     }
 
+    public static function checkTextGuidance($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons(
+            $chatId,
+            "Параметры пока не изменены.\n\nЧтобы изменить страну, город вылета, даты или другие условия, нажмите «Изменить параметры» и выберите нужный пункт.",
+            ButtonFactory::rows(ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры', 'edit_params')))
+        );
+    }
+
     public static function tourResults($chatId, array $model): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);
