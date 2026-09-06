@@ -58,6 +58,15 @@ After merge, do not call the slice complete until production deploy reports succ
 - production diagnostics download;
 - deploy telemetry/final health gate.
 
+Owner clarification, 2026-09-06 (recorded in START_HERE and #55): delayed human
+manager replies / accepted-without-reply backlog alone are non-blocking for
+independent development. Preserve `manager_response_ok` and the real counts;
+do not make them green, modify business data or repeatedly pause/notify solely
+for the backlog's age/count. This does not waive confirmed message/lead delivery
+failure, handoff-integrity or security regressions, or any required technical
+CI/deploy/provenance/migration/TLS/webhook/diagnostic-publication gate. Report
+technical production verification separately from the unresolved response warning.
+
 ## Live verification language
 
 Use precise language:

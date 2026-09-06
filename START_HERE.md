@@ -84,22 +84,46 @@ Private read-only dialogue review shipped and was authenticated on real evidence
 in PR #719. Follow `docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md` for bounded encrypted
 message tails, owner-held key custody and exact-SHA/freshness verification. Public
 redaction and production data remain unchanged. Do not repeat this completed
-diagnostics slice. Its one-PR owner exception for the manager-response gate does
-not authorize exceptions for later work.
+diagnostics slice. Its original one-PR manager-response exception was limited to
+#719; the owner's later independent direction is recorded below.
 
 The first fresh text review is recorded in #55. The standalone explicit-date
 separator-spacing defect was repaired production-green in PR #720 with unchanged
 calendar/year/range policy and AI/wizard coverage. Do not repeat that slice.
 
-The next independent repair is the confirmed `tours_checked` state-boundary defect:
-returning from the after-tours phone prompt rendered the follow-up question but left
-the wizard in phone input state, so the next help message was rejected as a malformed
-phone number. The narrow repair may move only a successfully rendered return from
-phone to normal AI text handling. It must preserve saved trip/phone values, phone
-acceptance/delivery, handoff, URL/payload/Tourvisor, routing and analytics, and must
-leave phone state unchanged on transport failure. Treat it as complete only after
-the introducing PR passes required CI and exact production verification. AI
-date-range disagreement remains a separate investigation lead.
+The `tours_checked` phone-return state-boundary repair shipped and was production
+verified in PR #721. A successfully rendered return moves phone input to normal AI
+text handling; failed delivery keeps phone state. Saved trip/phone values and the
+protected handoff/search contracts are preserved. Do not repeat this slice.
+
+The explicit post-tour link-help response shipped and was production verified in
+PR #722 under the owner's operational-backlog exception. After results, the
+statusCheck text path previously ignored "Ссылка не работает". The controller now
+handles bounded opening complaints in self-service check/AI state with an existing
+claim through `PostTourService` and `DialogueView`. It sends guidance with the
+existing manager/edit callbacks; it does not generate/resend URLs, create claims,
+call AI, change state, delete messages or request a manager automatically. Phone
+input and upstream manager ownership are untouched. Required executable regression
+covers MAX/Telegram, state/phrase boundaries and failed delivery. Natural post-deploy
+help confirmation is still pending; production verification is not live confirmation.
+Do not repeat this slice.
+
+On 2026-09-06 the owner explicitly instructed "Забей на это. Продолжай работать
+дальше" in response to the unanswered-manager backlog (authority recorded in #55).
+Delayed human replies / accepted-without-reply backlog alone no longer stop
+independent development. Keep `manager_response_ok` and counts truthful: this is
+an operational warning, not a green response gate. Do not repeatedly notify or
+pause solely for the known backlog's age/count. This exception does not cover a
+confirmed delivery failure, handoff-integrity regression, security exposure or any
+technical CI/deploy/provenance/migration/TLS/webhook/diagnostic-publication failure.
+It authorizes no shift, routing, lead-delivery, phone-policy or business-data change.
+The already-known no-subscription baseline remains a separate documented fact, not
+permission to ignore new push failures.
+
+Next: review fresh bounded private dialogue evidence first. AI date-range disagreement
+remains a separate investigation lead; capture the exact input/state, prove the
+canonical-owner defect and a failing regression before selecting a runtime repair.
+No speculative date-window, URL/payload/Tourvisor or handoff-policy change is authorized.
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
@@ -288,7 +312,7 @@ After every merge, before starting another PR:
 - strict MAX TLS on the exact SHA: API and upload HTTP 200, curl errno 0, SSL verify 0;
 - MAX and Telegram webhook checks succeed;
 - manager visibility, lead detail, handoff integrity, admin project access and website attribution do not regress;
-- no new operational failure or count regression; separately document expected elapsed-time aging of an unchanged historical item;
+- no new operational failure or count regression outside the owner's documented human-response-backlog exception; keep its raw counts/flags and do not present them as green;
 - natural live confirmation is stated only after a real post-deploy case.
 
 ## Rollback contract
