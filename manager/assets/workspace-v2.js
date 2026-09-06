@@ -6,7 +6,7 @@ function canonicalizeManagerUrl(){
   if(history?.replaceState)history.replaceState(history.state,'',canonical);
 }
 canonicalizeManagerUrl();
-const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,workspaceBound:false,booting:false};
+const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,authGeneration:0,workspaceBound:false,booting:false};
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -28,6 +28,7 @@ function ensureAuthRecovery(){
   return overlay;
 }
 function showAuthRecovery(message='Сессия менеджера истекла. Войдите снова, чтобы продолжить.'){
+  if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   $('managerAuthMessage').textContent=message;
@@ -44,8 +45,10 @@ function hideAuthRecovery(){
 }
 async function request(url,action,data={}){
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
+  const generation=S.authGeneration;
   const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
+  if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
   if(r.status===401){showAuthRecovery();throw new Error('unauthorized')}
   if(!r.ok)return{...j,ok:false,http_status:r.status};
   return j;
@@ -74,7 +77,16 @@ function bindWorkspaceOnce(){
   S.workspaceBound=true;
 }
 async function resumeAuthenticated(me){
+  const previousId=Number(S.manager?.id||0),sameIdentity=previousId>0&&previousId===Number(me.manager?.id||0),recovering=S.authExpired;
+  const conversationId=recovering&&sameIdentity?Number(S.current||0):0,conversationGeneration=window.WorkspaceV2Conversation?.getOpenGeneration();
+  S.authGeneration++;
+  if(previousId&&!sameIdentity){
+    window.WorkspaceV2Conversation?.resetForIdentityChange();
+    $('inboxList')?.replaceChildren();$('kanbanBoard')?.replaceChildren();$('leadCard')?.replaceChildren();
+    window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
+  }
   S.authExpired=false;hideAuthRecovery();applyIdentity(me);await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
 }
 async function loginFromRecovery(){
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;
