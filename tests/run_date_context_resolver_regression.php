@@ -16,6 +16,29 @@ function dcrCheck(string $name, bool $ok): void {
 $chatId = -926082702;
 DateContextResolver::clear($chatId);
 
+// Synthetic reproduction of the observed spaced numeric-date rejection.
+// Formatting must not alter the explicit year, calendar validation or AI guard.
+foreach ([
+    ['18 . 11.2030', '18.11.2030'],
+    ['18.11 . 2030', '18.11.2030'],
+    [' 18 . 11 . 2030 ', '18.11.2030'],
+    ["18\u{00A0}.\u{00A0}11 . 2030", '18.11.2030'],
+    ['18 / 11 / 30', '18/11/30'],
+    ['18 . 11 . 2020', '18.11.2020'],
+    ['29 . 02 . 2032', '29.02.2032'],
+    ['29 . 02 . 2030', '29.02.2030'],
+    ['31 . 11 . 2030', '31.11.2030'],
+] as [$spaced, $compact]) {
+    dcrCheck('explicit numeric date spacing: ' . $compact,
+        DateParser::resolveDate($spaced) === DateParser::resolveDate($compact));
+}
+DateContextResolver::rememberMonth($chatId, 12, 2030);
+$spacedLocal = AiDateContextService::resolveLocal($chatId, '18 . 11.2030');
+dcrCheck('AI local date recognizes spaced explicit input', ($spacedLocal['date'] ?? '') === '18.11.2030');
+dcrCheck('spaced explicit date clears obsolete month context', PendingMonthStore::get($chatId) === []);
+$spacedGuard = AiDateContextService::applyAiGuard($chatId, '18 . 11.2030', ['date'=>'20.12.2030']);
+dcrCheck('spaced explicit user date wins over AI guess', ($spacedGuard['date'] ?? '') === '18.11.2030');
+
 $monthOnly = DateContextResolver::resolveFromText($chatId, 'в декабре 2026');
 dcrCheck('month-only text is recognized without inventing a day', empty($monthOnly['date']) && ($monthOnly['month'] ?? null) === 12 && ($monthOnly['year'] ?? null) === 2026);
 $pending = PendingMonthStore::get($chatId);
