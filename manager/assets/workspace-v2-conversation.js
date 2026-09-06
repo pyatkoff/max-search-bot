@@ -107,7 +107,8 @@ async function change(a){
 }
 async function sendReply(){
   if(busy||deliverySuspended())return;
-  const target=Number(S.current||0),generation=openSeq,owner=replySessionOwner,draftText=$('replyText').value,text=draftText.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  const owner=replySessionOwner,draftText=$('replyText').value;
+  const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
   if(!target||(!text&&!hasFile))return;
   setBusy(true);setReplyStatus('Отправляем сообщение…');
   try{
