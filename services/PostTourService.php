@@ -5,6 +5,30 @@ require_once __DIR__ . '/TourResultsService.php';
 
 class PostTourService
 {
+    /** Explicit opening trouble only; mixed trip requests stay on their old path. */
+    public static function isLinkHelpRequest(string $text): bool
+    {
+        return preg_match(
+            '/^(?:(?:ссылка|подборка)(?:\s+на\s+туры)?\s+не\s+(?:работает|открывается|загружается)'
+            . '|не\s+(?:работает|открывается|загружается)\s+(?:ссылка|подборка)(?:\s+на\s+туры)?'
+            . '|не\s+могу\s+открыть\s+(?:ссылку|подборку)(?:\s+на\s+туры)?)[.!?…]*$/ui',
+            trim($text)
+        ) === 1;
+    }
+
+    public static function linkHelpModel(): array
+    {
+        return [
+            'text' => "Понимаю, подборка не открывается.\n\n"
+                . "Попробуйте ещё раз нажать «Посмотреть на сайте» в сообщении с турами. "
+                . "Если не получится, нажмите «Нужна помощь с подбором» ниже — можно продолжить подбор с менеджером.",
+            'buttons' => ButtonFactory::rows(
+                ButtonFactory::row(ButtonFactory::callback('👩‍💼 Нужна помощь с подбором', 'manager_after_tours')),
+                ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры', 'edit_params'))
+            ),
+        ];
+    }
+
     public static function followupModel(): array
     {
         return [

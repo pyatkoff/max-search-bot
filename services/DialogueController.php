@@ -2,6 +2,7 @@
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/CallbackController.php';
 require_once __DIR__ . '/DialogueView.php';
+require_once __DIR__ . '/PostTourService.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/EditFlowService.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
@@ -58,6 +59,14 @@ class DialogueController
         }
 
         $status = MaxSearchApi::getCurentStatus($chatId);
+        // Results preserve statusCheck; previously a help message was silent there.
+        // Only self-service post-tour turns qualify. Phone collection and upstream
+        // manager ownership stay untouched; help neither creates a claim nor changes state.
+        if (in_array((int)$status, [(int)MaxSearchApi::$statusCheck, (int)MaxSearchApi::$statusAi], true)
+            && PostTourService::isLinkHelpRequest($plainText)
+            && MaxSearchApi::getLastClaimForChat($chatId)) {
+            return DialogueView::tourLinkHelp($chatId);
+        }
         if ($status == MaxSearchApi::$statusAi || !$status || $status == MaxSearchApi::$statusStart) {
             DepartureCityResolver::resolveAndStore($chatId, $text);
             DestinationAreaResolver::resolveAndStore($chatId, $text);
