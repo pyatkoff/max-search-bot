@@ -87,15 +87,19 @@ redaction and production data remain unchanged. Do not repeat this completed
 diagnostics slice. Its one-PR owner exception for the manager-response gate does
 not authorize exceptions for later work.
 
-The first fresh text review is recorded in #55. A standalone explicit date with
-spaces around separators was rejected until the customer removed the spaces.
-The next independent repair is spelling normalization in `DateParser`, with a
-failing reproduction, unchanged calendar/year/range policy and AI/wizard coverage.
-Treat it as complete only after the introducing PR passes required CI and exact
-production verification; natural live success is a separate evidence requirement.
-Phone-state interception of a help message and AI date-range disagreement remain
-separate investigation leads. Do not change phone acceptance/delivery, handoff,
-URL/payload/Tourvisor or date-window policy under the date-spacing repair.
+The first fresh text review is recorded in #55. The standalone explicit-date
+separator-spacing defect was repaired production-green in PR #720 with unchanged
+calendar/year/range policy and AI/wizard coverage. Do not repeat that slice.
+
+The next independent repair is the confirmed `tours_checked` state-boundary defect:
+returning from the after-tours phone prompt rendered the follow-up question but left
+the wizard in phone input state, so the next help message was rejected as a malformed
+phone number. The narrow repair may move only a successfully rendered return from
+phone to normal AI text handling. It must preserve saved trip/phone values, phone
+acceptance/delivery, handoff, URL/payload/Tourvisor, routing and analytics, and must
+leave phone state unchanged on transport failure. Treat it as complete only after
+the introducing PR passes required CI and exact production verification. AI
+date-range disagreement remains a separate investigation lead.
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
@@ -111,7 +115,7 @@ The country-flow inventory, value contract, guarded callback and wizard free-tex
 
 The date-flow inventory, value contract, guarded date-selection callback and wizard free-text update-only slices are complete in PRs #707, #709, #711 and #713 and must not be repeated. Callback and wizard message paths now share exact calendar-valid `DD.MM.YYYY` projection and current-session update-only application while preserving their distinct guards, pending-month ownership and progression. The AI date path intentionally remains on `NeedApplicationService::applyParameters`: it has upsert semantics and an explicit `NativeDateService::isTodayOrFuture` policy, so it is not equivalent to either migrated wizard writer and must not be mechanically moved to the existing-step boundary.
 
-The direct mutation inventory is now 26 caller groups and 46 occurrences. The remaining trip-value entries are canonical storage/application wrappers (`ConversationStateRepository`, `MysqlDialogueStateRepository`, `ExistingWizardStepApplicationService`, `NeedApplicationService` and `MaxSearchApi` compatibility methods), not a caller-proven bypass. Phase D's authorized mutation cleanup and Phase E's proven handoff consolidations are therefore stopped at their current production-green boundary. Do not create another cleanup PR merely to reduce counts. Select new code work only from a confirmed production/customer defect or a newly authorized product priority after fresh evidence; keep all protected mechanisms unchanged.
+The direct mutation inventory is now 27 caller groups and 47 occurrences. The confirmed after-tours phone-return repair adds one classified transition caller without changing trip-value storage. The remaining trip-value entries are canonical storage/application wrappers (`ConversationStateRepository`, `MysqlDialogueStateRepository`, `ExistingWizardStepApplicationService`, `NeedApplicationService` and `MaxSearchApi` compatibility methods), not a caller-proven bypass. Phase D's authorized mutation cleanup and Phase E's proven handoff consolidations are therefore stopped at their current production-green boundary. Do not create another cleanup PR merely to reduce counts. Select new code work only from a confirmed production/customer defect or a newly authorized product priority after fresh evidence; keep all protected mechanisms unchanged.
 
 ## Protected behavior
 
