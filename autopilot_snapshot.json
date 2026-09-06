@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T17:27:03+00:00",
+    "generated_at": "2026-09-06T17:34:17+00:00",
     "production": {
-        "sha": "ba541240949e8a70a367cdaf3290be1fba888dea",
+        "sha": "3d257c186b9ca2ae41fa83eaa9f9c16a51001c8b",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 11,
             "overdue_count": 11,
             "stuck_count": 11,
-            "oldest_wait_seconds": 1155700,
+            "oldest_wait_seconds": 1156136,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 16:26:53",
+        "since_utc": "2026-09-06 16:34:08",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -142,7 +142,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "ba541240949e8a70a367cdaf3290be1fba888dea",
+        "sha": "3d257c186b9ca2ae41fa83eaa9f9c16a51001c8b",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -151,7 +151,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T17:27:02Z"
+        "reported_at": "2026-09-06T17:34:17Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -214,7 +214,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T17:27:02+00:00",
+        "generated_at": "2026-09-06T17:34:17+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -228,8 +228,8 @@
             },
             "services": {
                 "files": 146,
-                "bytes": 571875,
-                "code_lines": 12359
+                "bytes": 572777,
+                "code_lines": 12373
             },
             "integrations": {
                 "files": 11,
@@ -258,8 +258,8 @@
             },
             "tests": {
                 "files": 216,
-                "bytes": 1116548,
-                "code_lines": 14345
+                "bytes": 1118531,
+                "code_lines": 14367
             },
             "tools": {
                 "files": 45,
@@ -318,8 +318,8 @@
             },
             {
                 "path": "services/DialogueView.php",
-                "lines": 250,
-                "bytes": 13723,
+                "lines": 259,
+                "bytes": 14319,
                 "severity": "observe"
             },
             {
