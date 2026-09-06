@@ -47,6 +47,11 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - deploy removes legacy `tmp_in.txt` / `tmp_out.txt` and requires both public paths to return 403/404; the #715 deployment returned 404 for both;
   - authorized diagnostics and delivery inspection use only the external log path;
   - no rollback may restore raw request-body logging or either public legacy file.
+- The read-only MAX event idempotency inventory shipped production-green in PR #717:
+  - `message_callback`, `message_created` and `bot_started` key ownership, claim ordering, local-store bounds and generated-surface secondary guards are executable contracts;
+  - the inventory explicitly records fail-open missing IDs/storage, local `/tmp` durability, multi-host, crash-after-claim, unchecked write/flush and non-atomic conversation-mirror gaps;
+  - it authorizes no runtime change or migration; aggregate repeated-callback flags alone are not a confirmed defect;
+  - do not add a durable ledger, change claim timing or alter manager-request paths without separate narrow authorization plus evidence and rollback criteria.
 - Phase D is complete through the selected low-risk slices: D1–D6, adults callback, stars callback and the observe-only nights → date transition shipped in PRs #663–#671. The meal callback contract and update-only runtime slice shipped in PRs #680 and #681. Do not restart those slices.
 - The coupled children/child-age inventory shipped in PR #683. It confirms one comma-space age-status value and keeps free-text age migration blocked until an exact array-to-storage projection is executable.
 - The `child_*` callback update-only runtime slice shipped in PR #685. It preserves the existing child-age value for `child_0`, fails closed when the existing child step is missing and keeps free-text child ages out of scope. Do not repeat that runtime slice.
@@ -76,6 +81,8 @@ Do not infer a routing, shift, lead-delivery or webhook defect from those aggreg
 ## Current execution point
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
+
+The MAX ingress idempotency inventory in PR #717 is also complete. Its documented gaps are risk evidence only: they do not authorize a runtime or schema slice. Keep the current implementation unchanged unless a concrete duplicate/lost event is confirmed or the user explicitly authorizes one narrowly scoped hardening change.
 
 Phase D's selected slices, including the contract-backed meal callback, and Phase E's first two consolidations are complete. The detailed sections below remain as historical acceptance and rollback contracts, not as an instruction to rerun them.
 
