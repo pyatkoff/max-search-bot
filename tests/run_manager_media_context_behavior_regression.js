@@ -56,5 +56,12 @@ test('conversation refresh after send preserves a replacement attachment too',as
   const pending=h.C.sendReply(),next={name:'replacement.png'};h.setFile(next);sent.resolve({ok:true});await pending;
   assert.equal(h.getFile(),next);assert.equal(h.W.S.current,101);
 });
+test('fresh ownership loss after send still discards the unavailable reply attachment',async()=>{
+  const {createHarness,deferred,response}=require('./run_manager_reauth_composer_behavior_regression');
+  const h=createHarness(),sent=deferred();await h.start();h.setFile({name:'first.png'});h.window.WorkspaceV2Media.send=()=>sent.promise;
+  const pending=h.C.sendReply();h.setFile({name:'replacement.png'});
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:true,conversation:{...h.conversation,manager_id:8},messages:[]}):null);
+  sent.resolve({ok:true});await pending;assert.equal(h.getFile(),null);assert.equal(h.ids.get('composer').classList.contains('hidden'),true);
+});
 
 (async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();
