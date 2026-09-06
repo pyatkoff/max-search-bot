@@ -33,6 +33,14 @@
       "rationale": "Enter AI question state."
     },
     {
+      "path": "actions/callbacks/ToursCallbackAction.php",
+      "receiver": "MaxSearchApi",
+      "method": "setStatus",
+      "occurrences": 1,
+      "classification": "transition",
+      "rationale": "Leave phone input only after the after-tours return question is delivered successfully."
+    },
+    {
       "path": "actions/callbacks/WizardCallbackAction.php",
       "receiver": "MaxSearchApi",
       "method": "setStatus",
