@@ -1,0 +1,2 @@
+# Linux x86_64 CPython >=3.9 ABI3 wheel; no production/server dependency.
+pyrage==1.3.0 --hash=sha256:ab066b22925c5a0ec5fead2e21e4586b21d5da730055c7e46caa978bd99de936

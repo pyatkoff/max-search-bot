@@ -58,6 +58,12 @@ The public diagnostics branch publishes only redacted aggregate artifacts. `auto
 
 Use this file as an index/triage surface. Detailed message-level evidence is generated only ephemerally inside the protected production workflow and must not be committed to the public repository.
 
+The owner-authorized encrypted export is described in
+`docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md`. It uses a separately held private key and
+a ciphertext-only Actions artifact; ordinary artifacts in this public repository
+must not be treated as private storage for readable transcripts. Public summaries
+remain unchanged, and successful encryption is not a replacement for health gates.
+
 `tools/compose_autopilot_snapshot.php` composes it from the detailed production artifacts and deliberately excludes `recent_messages` and live `message_tail` content.
 
 ## Production snapshot

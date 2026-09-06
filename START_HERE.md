@@ -80,6 +80,15 @@ Do not infer a routing, shift, lead-delivery or webhook defect from those aggreg
 
 ## Current execution point
 
+The owner authorized restoring private read-only dialogue review on 2026-09-06.
+The encrypted evidence slice is defined in `docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md`:
+bounded existing message tails encrypted to an owner-held age key, ciphertext-only
+Actions artifact, unchanged public redaction and production data. This is a new
+diagnostics priority, not a restart of the completed refactor roadmap. Do not
+claim restored access until required CI, exact deploy, existing production gates
+and a fresh authenticated decryption are recorded in #55. Red mandatory gates
+still stop the next PR unless the owner explicitly authorizes a narrow exception.
+
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
 The MAX ingress idempotency inventory in PR #717 is also complete. Its documented gaps are risk evidence only: they do not authorize a runtime or schema slice. Keep the current implementation unchanged unless a concrete duplicate/lost event is confirmed or the user explicitly authorizes one narrowly scoped hardening change.
