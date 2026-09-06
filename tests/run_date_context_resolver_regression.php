@@ -16,6 +16,41 @@ function dcrCheck(string $name, bool $ok): void {
 $chatId = -926082702;
 DateContextResolver::clear($chatId);
 
+// Synthetic reproduction: a month at the end of a full numeric date must not
+// become the first day of a shorthand range (24.11-29.11 -> 11-29.11).
+// Unsupported full-endpoint ranges retain the existing first-literal-date
+// fallback; this repair does not introduce a new range or search-window policy.
+foreach ([
+    ['24.11-29.11', '24.11'],
+    ['24.11–29.11', '24.11'],
+    ['24.11—29.11', '24.11'],
+    ['24/11-29/11', '24/11'],
+    ['24. 11 - 29.11', '24.11'],
+    ["24.\u{00A0}11–29.11", '24.11'],
+    ['24.11.28-29.11.28', '24.11.28'],
+    ['24.11.2030-29.11.2030', '24.11.2030'],
+    ['24.11-03.12', '24.11'],
+    ['Из Москвы в Египет, 24.11-29.11, 2 взрослых без детей', '24.11'],
+] as [$input, $firstDate]) {
+    $expected = DateParser::resolveDate($firstDate);
+    dcrCheck('numeric range cannot start inside a date: ' . $input,
+        DateParser::resolveDate($input) === $expected);
+}
+foreach (['24-29.11.2030', 'туры 24–29/11/2030', "Вылет\n24 — 29.11.2030"] as $input) {
+    $range = DateParser::resolveDate($input);
+    dcrCheck('standalone shorthand range retains midpoint and endpoints: ' . $input,
+        ($range['date'] ?? '') === '27.11.2030'
+        && ($range['range_from'] ?? '') === '24.11.2030'
+        && ($range['range_to'] ?? '') === '29.11.2030');
+}
+DateContextResolver::rememberMonth($chatId, 12, 2030);
+$numericLocal = AiDateContextService::resolveLocal($chatId, '24.11.28-29.11.28');
+dcrCheck('AI local parsing does not seed a suffix-derived date', ($numericLocal['date'] ?? '') === '24.11.2028');
+dcrCheck('literal numeric date clears obsolete pending month', PendingMonthStore::get($chatId) === []);
+$numericGuard = AiDateContextService::applyAiGuard($chatId, '24.11.28-29.11.28', ['date'=>'20.11.2028', 'nights'=>'5']);
+dcrCheck('AI guard preserves literal date instead of an invented range midpoint', ($numericGuard['date'] ?? '') === '24.11.2028');
+dcrCheck('numeric date guard does not change other trip values', ($numericGuard['nights'] ?? '') === '5');
+
 // Synthetic reproduction of the observed spaced numeric-date rejection.
 // Formatting must not alter the explicit year, calendar validation or AI guard.
 foreach ([

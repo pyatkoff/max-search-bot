@@ -70,7 +70,13 @@ class DateParser
             return ['date'=>date('d.m.Y', strtotime('+1 day'))];
         }
 
-        if (preg_match('/(?<!\d)(\d{1,2})\s*[-–—]\s*(\d{1,2})[.\/]\s*(\d{1,2})(?:[.\/]\s*(\d{2,4}))?(?!\d)/u', $text, $m)) {
+        // A shorthand range must begin at a date token, not at the month/year
+        // suffix of a preceding numeric date. Otherwise 24.11-29.11 becomes
+        // 11-29.11 and invents an unrelated midpoint. Keep the single-date
+        // fallback below for full-endpoint intervals; do not infer new policy.
+        if (preg_match('/(?<!\d)(\d{1,2})\s*[-–—]\s*(\d{1,2})[.\/]\s*(\d{1,2})(?:[.\/]\s*(\d{2,4}))?(?!\d)/u', $text, $range, PREG_OFFSET_CAPTURE)
+            && !preg_match('/\d[.\/]\s*$/u', substr($text, 0, $range[0][1]))) {
+            $m = array_column($range, 0);
             $fromDay = (int)$m[1];
             $toDay = (int)$m[2];
             $month = (int)$m[3];
