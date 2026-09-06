@@ -19,6 +19,45 @@ async function expectNoHorizontalOverflow(page) {
   expect(overflow.body).toBeLessThanOrEqual(overflow.viewport + 1);
 }
 
+for (const width of [390, 430, 768]) {
+  test(`${width}px reply stays reachable with expanded mobile browser controls`, async ({ page }) => {
+    const visibleHeight = 650;
+    const largeHeight = 800;
+    await page.setViewportSize({ width, height: visibleHeight });
+    // Headless browsers equate vh and dvh. Model expanded browser controls by
+    // resolving legacy vh against the large viewport; leave dvh and all layout
+    // declarations intact so production min/max-height interactions are tested.
+    await page.route('**/manager/assets/*.css', async route => {
+      const response = await route.fetch();
+      const body = (await response.text()).replace(/\b(\d+(?:\.\d+)?)vh\b/g,
+        (_, value) => `${Number(value) * largeHeight / 100}px`);
+      await route.fulfill({ response, body });
+    });
+    await page.goto(base + '?view=conversation&stress=chat');
+    await page.evaluate(() => document.body.classList.add('workspaceMobileDetail'));
+    for (const height of [visibleHeight, 550]) {
+      await page.setViewportSize({ width, height });
+      const zone = await rect(page.locator('.conversationZone'));
+      const composer = await rect(page.locator('.composer'));
+      const send = page.locator('.composer .sendBtn');
+      const sendBox = await rect(send);
+      expect(zone.y + zone.height).toBeLessThanOrEqual(height + 1);
+      expect(composer.y).toBeGreaterThanOrEqual(0);
+      expect(composer.y + composer.height).toBeLessThanOrEqual(height + 1);
+      expect(sendBox.y + sendBox.height).toBeLessThanOrEqual(height + 1);
+      await send.click({ trial: true });
+      const reply = page.locator('.composer textarea');
+      await reply.fill('Здравствуйте! Проверяю варианты для вас.');
+      await expect(reply).toHaveValue('Здравствуйте! Проверяю варианты для вас.');
+      await reply.blur();
+      await expectNoHorizontalOverflow(page);
+    }
+    await page.goto(base + '?view=lead');
+    const lead = await rect(page.locator('.leadZone'));
+    expect(lead.y + lead.height).toBeLessThanOrEqual(551);
+  });
+}
+
 test('390px conversation keeps the composer usable and inside the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + '?view=conversation');
