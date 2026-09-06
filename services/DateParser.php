@@ -57,6 +57,13 @@ class DateParser
 
     public static function resolveDate(string $text): array
     {
+        // A standalone explicit date may contain spaces around its separators.
+        // Normalize only that spelling; retain the existing calendar/year policy
+        // and leave prose, ranges and incomplete dates to their current parsers.
+        if (preg_match('/^\s*(\d{1,2})\s*([.\/])\s*(\d{1,2})\s*\2\s*(\d{2}|\d{4})\s*$/u', $text, $numeric)) {
+            $text = $numeric[1] . $numeric[2] . $numeric[3] . $numeric[2] . $numeric[4];
+        }
+
         if (preg_match('/\bзавтра\b/ui', $text)) return ['date'=>date('d.m.Y', strtotime('+1 day'))];
         if (preg_match('/\bпослезавтра\b/ui', $text)) return ['date'=>date('d.m.Y', strtotime('+2 days'))];
         if (preg_match('/\b(?:ближайш(?:ая|ие|ую)|как\s+можно\s+скорее|поскорее)\b/ui', $text)) {
