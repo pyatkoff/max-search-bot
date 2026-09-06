@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T20:57:56+00:00",
+    "generated_at": "2026-09-06T21:22:59+00:00",
     "production": {
         "sha": "7c0b32cfb61a49cd61372916f1180fc9fab27095",
         "branch": "main"
@@ -31,7 +31,7 @@
             "pending_count": 12,
             "overdue_count": 12,
             "stuck_count": 12,
-            "oldest_wait_seconds": 1168350,
+            "oldest_wait_seconds": 1169858,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 19:57:43",
+        "since_utc": "2026-09-06 20:22:51",
         "summary": {
             "sessions": 2,
             "raw_sessions": 2,
@@ -112,7 +112,7 @@
             "needs_collected": 2,
             "tours_opened": 2,
             "site_opened": 2,
-            "post_tour_manager_cta_shown": 0,
+            "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
@@ -147,7 +147,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T20:57:56Z"
+        "reported_at": "2026-09-06T21:22:59Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -168,7 +168,7 @@
             "needs_collected": 19,
             "tours_opened": 19,
             "site_opened": 18,
-            "post_tour_manager_cta_shown": 11,
+            "post_tour_manager_cta_shown": 12,
             "manager_requested": 12,
             "manager_replied": 3,
             "customer_replied_after_manager": 1,
@@ -202,7 +202,7 @@
                 "needs_collected_from_started": 13,
                 "tours_opened_from_started": 13,
                 "site_opened": 16,
-                "post_tour_manager_cta_shown": 8,
+                "post_tour_manager_cta_shown": 9,
                 "manager_requested": 9,
                 "manager_replied": 2,
                 "customer_replied_after_manager": 1
@@ -210,7 +210,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T20:57:56+00:00",
+        "generated_at": "2026-09-06T21:22:59+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
