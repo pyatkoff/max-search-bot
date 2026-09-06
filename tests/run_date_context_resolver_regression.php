@@ -27,7 +27,7 @@ foreach ([
     ['24/11-29/11', '24/11'],
     ['24. 11 - 29.11', '24.11'],
     ["24.\u{00A0}11–29.11", '24.11'],
-    ['24.11.30-29.11.30', '24.11.30'],
+    ['24.11.28-29.11.28', '24.11.28'],
     ['24.11.2030-29.11.2030', '24.11.2030'],
     ['24.11-03.12', '24.11'],
     ['Из Москвы в Египет, 24.11-29.11, 2 взрослых без детей', '24.11'],
@@ -44,11 +44,11 @@ foreach (['24-29.11.2030', 'туры 24–29/11/2030', "Вылет\n24 — 29.11
         && ($range['range_to'] ?? '') === '29.11.2030');
 }
 DateContextResolver::rememberMonth($chatId, 12, 2030);
-$numericLocal = AiDateContextService::resolveLocal($chatId, '24.11.30-29.11.30');
-dcrCheck('AI local parsing does not seed a suffix-derived date', ($numericLocal['date'] ?? '') === '24.11.2030');
+$numericLocal = AiDateContextService::resolveLocal($chatId, '24.11.28-29.11.28');
+dcrCheck('AI local parsing does not seed a suffix-derived date', ($numericLocal['date'] ?? '') === '24.11.2028');
 dcrCheck('literal numeric date clears obsolete pending month', PendingMonthStore::get($chatId) === []);
-$numericGuard = AiDateContextService::applyAiGuard($chatId, '24.11.30-29.11.30', ['date'=>'20.11.2030', 'nights'=>'5']);
-dcrCheck('AI guard preserves literal date instead of an invented range midpoint', ($numericGuard['date'] ?? '') === '24.11.2030');
+$numericGuard = AiDateContextService::applyAiGuard($chatId, '24.11.28-29.11.28', ['date'=>'20.11.2028', 'nights'=>'5']);
+dcrCheck('AI guard preserves literal date instead of an invented range midpoint', ($numericGuard['date'] ?? '') === '24.11.2028');
 dcrCheck('numeric date guard does not change other trip values', ($numericGuard['nights'] ?? '') === '5');
 
 // Synthetic reproduction of the observed spaced numeric-date rejection.
