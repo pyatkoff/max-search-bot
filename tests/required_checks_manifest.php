@@ -59,6 +59,7 @@ return [
         'php tests/run_edit_menu_duplicate_regression.php',
         'php tests/run_edit_state_preservation_regression.php',
         'php tests/run_post_tour_regression.php',
+        'php tests/run_tours_checked_state_regression.php',
         'php tests/run_messenger_neutral_handlers_regression.php',
         'php tests/run_state_free_text_regression.php',
         'php tests/run_need_value_resolver_regression.php',
