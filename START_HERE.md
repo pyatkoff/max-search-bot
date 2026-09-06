@@ -80,14 +80,22 @@ Do not infer a routing, shift, lead-delivery or webhook defect from those aggreg
 
 ## Current execution point
 
-The owner authorized restoring private read-only dialogue review on 2026-09-06.
-The encrypted evidence slice is defined in `docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md`:
-bounded existing message tails encrypted to an owner-held age key, ciphertext-only
-Actions artifact, unchanged public redaction and production data. This is a new
-diagnostics priority, not a restart of the completed refactor roadmap. Do not
-claim restored access until required CI, exact deploy, existing production gates
-and a fresh authenticated decryption are recorded in #55. Red mandatory gates
-still stop the next PR unless the owner explicitly authorizes a narrow exception.
+Private read-only dialogue review shipped and was authenticated on real evidence
+in PR #719. Follow `docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md` for bounded encrypted
+message tails, owner-held key custody and exact-SHA/freshness verification. Public
+redaction and production data remain unchanged. Do not repeat this completed
+diagnostics slice. Its one-PR owner exception for the manager-response gate does
+not authorize exceptions for later work.
+
+The first fresh text review is recorded in #55. A standalone explicit date with
+spaces around separators was rejected until the customer removed the spaces.
+The next independent repair is spelling normalization in `DateParser`, with a
+failing reproduction, unchanged calendar/year/range policy and AI/wizard coverage.
+Treat it as complete only after the introducing PR passes required CI and exact
+production verification; natural live success is a separate evidence requirement.
+Phone-state interception of a help message and AI date-range disagreement remain
+separate investigation leads. Do not change phone acceptance/delivery, handoff,
+URL/payload/Tourvisor or date-window policy under the date-spacing repair.
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
