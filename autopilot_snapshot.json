@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T20:32:04+00:00",
+    "generated_at": "2026-09-06T20:35:51+00:00",
     "production": {
         "sha": "447210deb6d95f63c24fe7d3ab07c16c69da6c75",
         "branch": "main"
@@ -31,7 +31,7 @@
             "pending_count": 12,
             "overdue_count": 12,
             "stuck_count": 12,
-            "oldest_wait_seconds": 1166802,
+            "oldest_wait_seconds": 1167025,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 19:31:55",
+        "since_utc": "2026-09-06 19:35:38",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -145,7 +145,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T20:32:03Z"
+        "reported_at": "2026-09-06T20:35:50Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -208,7 +208,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T20:32:03+00:00",
+        "generated_at": "2026-09-06T20:35:50+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
