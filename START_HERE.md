@@ -87,15 +87,19 @@ redaction and production data remain unchanged. Do not repeat this completed
 diagnostics slice. Its one-PR owner exception for the manager-response gate does
 not authorize exceptions for later work.
 
-The first fresh text review is recorded in #55. A standalone explicit date with
-spaces around separators was rejected until the customer removed the spaces.
-The next independent repair is spelling normalization in `DateParser`, with a
-failing reproduction, unchanged calendar/year/range policy and AI/wizard coverage.
-Treat it as complete only after the introducing PR passes required CI and exact
-production verification; natural live success is a separate evidence requirement.
-Phone-state interception of a help message and AI date-range disagreement remain
-separate investigation leads. Do not change phone acceptance/delivery, handoff,
-URL/payload/Tourvisor or date-window policy under the date-spacing repair.
+The first fresh text review is recorded in #55. The standalone explicit-date
+separator-spacing defect was repaired production-green in PR #720 with unchanged
+calendar/year/range policy and AI/wizard coverage. Do not repeat that slice.
+
+The next independent repair is the confirmed `tours_checked` state-boundary defect:
+returning from the after-tours phone prompt rendered the follow-up question but left
+the wizard in phone input state, so the next help message was rejected as a malformed
+phone number. The narrow repair may move only a successfully rendered return from
+phone to normal AI text handling. It must preserve saved trip/phone values, phone
+acceptance/delivery, handoff, URL/payload/Tourvisor, routing and analytics, and must
+leave phone state unchanged on transport failure. Treat it as complete only after
+the introducing PR passes required CI and exact production verification. AI
+date-range disagreement remains a separate investigation lead.
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 

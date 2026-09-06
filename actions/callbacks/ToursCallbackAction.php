@@ -42,7 +42,12 @@ class ToursCallbackAction
         }
 
         if ($q === 'tours_checked') {
-            return DialogueView::afterToursQuestion($chatId);
+            $sent = DialogueView::afterToursQuestion($chatId);
+            if ($sent
+                && (int)MaxSearchApi::getCurentStatus($chatId) === (int)MaxSearchApi::$statusPhone) {
+                MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
+            }
+            return $sent;
         }
 
         if ($q === 'tours_found') {
