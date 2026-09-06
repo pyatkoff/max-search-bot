@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T03:36:47+00:00",
+    "generated_at": "2026-09-06T05:10:11+00:00",
     "production": {
         "sha": "a453c7ff0beb8f4a933dd52c0afe92556ef7febe",
         "branch": "main"
@@ -99,16 +99,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 02:36:38",
+        "since_utc": "2026-09-06 04:10:03",
         "summary": {
-            "sessions": 0,
-            "raw_sessions": 0,
+            "sessions": 1,
+            "raw_sessions": 1,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 0,
+                "resolved": 1,
                 "unresolved": 0
             },
-            "started": 0,
+            "started": 1,
             "needs_collected": 0,
             "tours_opened": 0,
             "site_opened": 0,
@@ -125,7 +125,9 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": [],
+            "drop_points": {
+                "collecting_needs": 1
+            },
             "flags": []
         }
     },
@@ -143,7 +145,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T03:36:47Z"
+        "reported_at": "2026-09-06T05:10:11Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -153,14 +155,14 @@
         "window_hours": null,
         "since_utc": "2026-09-05 22:00:00",
         "summary": {
-            "sessions": 1,
-            "raw_sessions": 1,
+            "sessions": 2,
+            "raw_sessions": 2,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 1,
+                "resolved": 2,
                 "unresolved": 0
             },
-            "started": 1,
+            "started": 2,
             "needs_collected": 1,
             "tours_opened": 1,
             "site_opened": 1,
@@ -178,11 +180,12 @@
                 "max_seconds": 6822
             },
             "drop_points": {
-                "customer_replied_after_manager": 1
+                "customer_replied_after_manager": 1,
+                "collecting_needs": 1
             },
             "flags": [],
             "calendar_day": {
-                "conversations_started": 0,
+                "conversations_started": 1,
                 "needs_collected_from_started": 0,
                 "tours_opened_from_started": 0,
                 "site_opened": 0,
@@ -194,7 +197,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T03:36:47+00:00",
+        "generated_at": "2026-09-06T05:10:11+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
