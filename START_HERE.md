@@ -120,10 +120,28 @@ It authorizes no shift, routing, lead-delivery, phone-policy or business-data ch
 The already-known no-subscription baseline remains a separate documented fact, not
 permission to ignore new push failures.
 
-Next: review fresh bounded private dialogue evidence first. AI date-range disagreement
-remains a separate investigation lead; capture the exact input/state, prove the
-canonical-owner defect and a failing regression before selecting a runtime repair.
-No speculative date-window, URL/payload/Tourvisor or handoff-policy change is authorized.
+The numeric-date suffix corruption was repaired and production verified in PR #724.
+A full numeric interval could be misread as a shorthand day range beginning at its
+month/year suffix, inventing an unrelated midpoint. `DateParser` now rejects that
+partial match and retains the existing first-literal-date fallback. Valid shorthand
+midpoints/endpoints and downstream search-window policy are unchanged. This does not
+implement arbitrary full-endpoint or cross-month ranges. Do not repeat this slice.
+
+The silent statusCheck text path was repaired and production verified in PR #725
+after fresh evidence of unanswered country-correction text. Nonblank check-state
+text receives neutral guidance and the existing `edit_params` button, explicitly
+saying the parameters have not changed. Specific post-tour link help still takes
+priority. This adds no automatic AI interpretation, trip write, state/generation
+change, message deletion, URL/claim creation or manager request. Phone/wizard and
+upstream manager ownership remain unchanged. Do not repeat this slice.
+
+Natural post-deploy confirmation of #724/#725 remains pending; executable regression
+and production verification are not natural live confirmation. Review fresh bounded
+private dialogue evidence first. A separate natural-language cross-month phrase with
+an omitted starting month remains an interpretation/policy question, not a proven
+canonical-owner defect or permission to redesign date ranges. Before any next runtime
+repair, capture exact input/state and prove a failing regression. No speculative
+date-window, URL/payload/Tourvisor or handoff-policy change is authorized.
 
 The confirmed public MAX webhook-log exposure interrupted roadmap work and was contained production-green in PR #715. The containment is now part of the security baseline, not an instruction for follow-up cleanup. Do not restore raw webhook-body persistence, document-root runtime logs or public access to `tmp_in.txt` / `tmp_out.txt`.
 
