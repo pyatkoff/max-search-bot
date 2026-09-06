@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T21:22:59+00:00",
+    "generated_at": "2026-09-06T21:31:01+00:00",
     "production": {
         "sha": "7c0b32cfb61a49cd61372916f1180fc9fab27095",
         "branch": "main"
@@ -31,7 +31,7 @@
             "pending_count": 12,
             "overdue_count": 12,
             "stuck_count": 12,
-            "oldest_wait_seconds": 1169858,
+            "oldest_wait_seconds": 1170339,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,24 +99,24 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 20:22:51",
+        "since_utc": "2026-09-06 20:30:52",
         "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
+            "sessions": 1,
+            "raw_sessions": 1,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 2,
+                "resolved": 1,
                 "unresolved": 0
             },
-            "started": 2,
-            "needs_collected": 2,
-            "tours_opened": 2,
-            "site_opened": 2,
+            "started": 1,
+            "needs_collected": 1,
+            "tours_opened": 1,
+            "site_opened": 1,
             "post_tour_manager_cta_shown": 1,
             "manager_requested": 0,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
-            "phone_received": 1,
+            "phone_received": 0,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
@@ -126,7 +126,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "site_open": 2
+                "site_open": 1
             },
             "flags": {
                 "excessive_turns": 1
@@ -147,7 +147,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T21:22:59Z"
+        "reported_at": "2026-09-06T21:31:00Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -210,7 +210,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T21:22:59+00:00",
+        "generated_at": "2026-09-06T21:31:00+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
