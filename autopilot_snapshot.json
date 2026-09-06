@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-06T23:37:33+00:00",
+    "generated_at": "2026-09-06T23:46:07+00:00",
     "production": {
-        "sha": "aafdc4ce4df7d5d3ee08ef1eea42b09d953983b9",
+        "sha": "893030fd52aa742b3b79d50b5a426b595daee923",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 7,
             "overdue_count": 7,
             "stuck_count": 7,
-            "oldest_wait_seconds": 40285,
+            "oldest_wait_seconds": 40799,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-06 22:37:20",
+        "since_utc": "2026-09-06 22:45:55",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -129,7 +129,6 @@
                 "site_open": 1
             },
             "flags": {
-                "rapid_date_reselection": 1,
                 "repeated_callback_input": 1,
                 "excessive_turns": 1
             }
@@ -140,7 +139,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "aafdc4ce4df7d5d3ee08ef1eea42b09d953983b9",
+        "sha": "893030fd52aa742b3b79d50b5a426b595daee923",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -149,7 +148,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-06T23:37:33Z"
+        "reported_at": "2026-09-06T23:46:07Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -204,7 +203,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-06T23:37:32+00:00",
+        "generated_at": "2026-09-06T23:46:07+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -218,8 +217,8 @@
             },
             "services": {
                 "files": 146,
-                "bytes": 572777,
-                "code_lines": 12373
+                "bytes": 572912,
+                "code_lines": 12374
             },
             "integrations": {
                 "files": 11,
@@ -228,8 +227,8 @@
             },
             "manager": {
                 "files": 54,
-                "bytes": 338177,
-                "code_lines": 1739
+                "bytes": 338386,
+                "code_lines": 1740
             },
             "website": {
                 "files": 4,
@@ -248,8 +247,8 @@
             },
             "tests": {
                 "files": 221,
-                "bytes": 1175672,
-                "code_lines": 15011
+                "bytes": 1177041,
+                "code_lines": 15022
             },
             "tools": {
                 "files": 45,
