@@ -14,6 +14,14 @@ function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)ret
 function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;if(text)drafts.set(key,text);else drafts.delete(key)}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)||''):'';autoGrow()}
+function suspendForAuthRecovery(){openSeq++;$('composer')?.classList.add('hidden')}
+function resetForIdentityChange(){
+  suspendForAuthRecovery();drafts.clear();S.current=0;S.detail=null;
+  const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
+  window.WorkspaceV2Media?.clear();renderMessages([]);
+  ['conversationTitle','conversationAvatar','conversationState','conversationMeta','conversationActions','deliveryFailure','composerLocked'].forEach(id=>{$(id)?.replaceChildren()});
+  $('deliveryFailure')?.classList.add('hidden');$('composerLocked')?.classList.add('hidden');
+}
 function looksLikeImage(a,url){const probe=String(a?.name||url||'').split('?')[0].toLowerCase();return a?.type==='image'||/\.(png|jpe?g|gif|webp|bmp|avif)$/.test(probe)}
 function mediaFallback(node,a,url,label='Вложение'){node.onerror=()=>{const link=document.createElement('a');link.textContent='📎 '+(a?.name||label);if(url){link.href=url;link.target='_blank';link.rel='noopener'}node.replaceWith(link)}}
 function renderAttachments(root,items){if(!Array.isArray(items)||!items.length)return;const wrap=document.createElement('div');wrap.className='attachments';items.forEach(a=>{const url=String(a?.url||'');let n;if((a.type==='image'||looksLikeImage(a,url))&&url){n=document.createElement('img');n.src=url;n.loading='lazy';n.alt=a?.name||'Изображение';mediaFallback(n,a,url,'Изображение')}else if(a.type==='video'&&url){n=document.createElement('video');n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}else if(a.type==='audio'&&url){n=document.createElement('audio');n.src=url;n.controls=true}else{n=document.createElement('a');n.textContent='📎 '+(a.name||'Вложение');if(url){n.href=url;n.target='_blank';n.rel='noopener'}}wrap.appendChild(n)});root.appendChild(wrap)}
@@ -43,9 +51,10 @@ async function open(id,options={}){
   setLoadStatus(switching?'Открываем лид…':'Обновляем диалог…','loading');
   const [detailResult,leadResult]=await Promise.allSettled([api('detail',{conversation_id:target}),pipe('detail',{conversation_id:target})]);
   if(seq!==openSeq)return false;
+  if(S.authExpired)return false;
   const d=detailResult.status==='fulfilled'?detailResult.value:null,p=leadResult.status==='fulfilled'&&leadResult.value?.ok?leadResult.value:null;
   if(!d?.ok){if(!S.authExpired)setLoadStatus(switching?'Не удалось открыть лид. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false}
-  S.current=target;S.detail={...d,lead:p};setReplyStatus();setLoadStatus();window.WorkspaceV2Media?.configure(S.csrf,S.current);window.WorkspaceV2Media?.clear();window.WorkspaceV2Inbox?.markRead(S.current);
+  S.current=target;S.detail={...d,lead:p};setReplyStatus();setLoadStatus();window.WorkspaceV2Media?.configure(S.csrf,S.current);if(!options.preserveAttachment||switching)window.WorkspaceV2Media?.clear();window.WorkspaceV2Inbox?.markRead(S.current);
   const c=d.conversation;renderHeader(c);renderMessages(d.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching});renderDeliveryFailure(d.delivery_failure||null);if(p)window.WorkspaceV2LeadCard?.render(p,c);else window.WorkspaceV2LeadCard?.renderUnavailable(c);renderActions(c);if(switching)restoreDraft(S.current);window.WorkspaceV2Inbox?.markActive(S.current);if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(S.current,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');return true
 }
 async function refreshLeadData({refreshInbox=false,conversationId=S.current}={}){const target=Number(conversationId||0);if(!target)return false;let p;try{p=await pipe('detail',{conversation_id:target})}catch(e){p=null}const stillCurrent=Number(S.current)===target&&!!S.detail?.conversation;if(!p?.ok){if(stillCurrent&&!S.detail?.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);return false}if(stillCurrent){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}if(refreshInbox)await window.WorkspaceV2Inbox?.load({preserveScroll:true});return stillCurrent}
@@ -92,5 +101,5 @@ async function sendReply(){
   }finally{setBusy(false)}
 }
 function bind(){if(bound)return;bound=true;const form=$('composer'),reply=$('replyText');form.onsubmit=async e=>{e.preventDefault();await sendReply()};reply.addEventListener('input',()=>{saveDraft();autoGrow()});reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>{reply.value=b.dataset.reply||'';saveDraft();autoGrow();reply.focus()})}
-window.WorkspaceV2Conversation={bind,open,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
+window.WorkspaceV2Conversation={bind,open,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
 })();
