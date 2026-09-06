@@ -208,6 +208,16 @@ upload/context cases and the existing conversation/session suites cover these
 boundaries; natural slow-upload/session-expiry confirmation remains separate.
 Do not repeat this repair or turn it into a transport redesign.
 
+The Inbox AI-preview formatting repair shipped and was production verified in
+PR #736. Conversation lists now project the exact last-message sender type. The
+preview removes only exact attribute-free `<b>plain text</b>` spans from explicit
+AI messages before applying the existing escaping; customer, manager, unknown
+sender and malformed/unsafe markup remain literal text. Stored messages, transcript
+rendering, transport and lifecycle behavior are unchanged. Controlled authenticated
+browser verification found three formatted AI fallback previews without literal
+bold tags after reload. Do not repeat this repair or expand it into general preview
+HTML rendering without a separately proven need and safeguards.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
