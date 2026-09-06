@@ -199,6 +199,12 @@ class DialogueView
         return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
     }
 
+    public static function tourLinkHelp($chatId): bool
+    {
+        $model = PostTourService::linkHelpModel();
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
+    }
+
     public static function afterToursQuestion($chatId): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);
