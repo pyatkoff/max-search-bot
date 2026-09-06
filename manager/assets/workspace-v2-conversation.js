@@ -123,7 +123,7 @@ async function sendReply(){
     if(owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
     if(stillCurrent){
       if($('replyText').value===draftText)$('replyText').value='';autoGrow();
-      const refreshed=await open(target,{stickToBottom:true,mobileHistory:'none'});
+      const refreshed=await open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
       if(refreshed){const statusGeneration=openSeq;setReplyStatus('Отправлено','success');setTimeout(()=>{if(!busy&&Number(S.current)===target&&openSeq===statusGeneration)setReplyStatus()},1400)}
     }
     await window.WorkspaceV2Inbox?.load({preserveScroll:true})
