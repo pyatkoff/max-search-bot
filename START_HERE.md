@@ -156,6 +156,35 @@ not prove that the reporting manager can reply on her device or that a customer
 received a reply. Keep the actual response/push indicators and technical gates
 truthful; these display repairs do not resolve or waive notification failures.
 
+The same-manager session-recovery composer repair shipped and was production
+verified in PR #730. After successful reauthentication, the selected conversation
+is refreshed through protected detail requests before reply controls return.
+Fresh ownership/status/suspension remain authoritative; expired responses and
+newer navigation are guarded. Same-account recovery preserves unsent text and the
+selected attachment, while an account change clears the prior context. No send or
+lifecycle action is replayed. Do not repeat this repair.
+
+The owner-authorized reload continuity improvement shipped and was production
+verified in PR #731. Unsent reply text and selected conversation survive reload
+within account-scoped tab sessionStorage, after fresh authentication and authorized
+matching detail. Storage is bounded to 24 hours and up to 20 complete drafts, each
+up to 20,000 characters; larger text remains in memory only, without truncation. Credentials,
+transcript history and attachments are not persisted. Account changes, loss of
+reply ownership, a 403/404 while restoring detail, successful sends and explicit clearing
+remove the relevant saved text. Late responses cannot erase a newer/other-account
+draft; mobile Back/Forward and repeated reload preserve coherent navigation.
+Do not extend this into cross-device/server draft synchronization without a new
+authorized product requirement.
+
+The authenticated desktop browser check in #55 confirmed visible reply controls,
+restoration of the same conversation and exact synthetic unsent text after reload,
+and an empty field after clearing and reloading again. No customer message or
+attachment was sent. This is controlled browser verification, not natural iPhone
+keyboard/session-expiry confirmation or proof of customer delivery. Do not repeat
+#730/#731 or turn the remaining device confirmation into a speculative runtime fix.
+Continue the authorized workspace/dialogue review from fresh evidence; select the
+next independent repair only after another exact failing scenario is confirmed.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
