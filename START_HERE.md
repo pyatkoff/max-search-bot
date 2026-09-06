@@ -135,6 +135,27 @@ priority. This adds no automatic AI interpretation, trip write, state/generation
 change, message deletion, URL/claim creation or manager request. Phone/wizard and
 upstream manager ownership remain unchanged. Do not repeat this slice.
 
+The owner-reported Manager Workspace mobile reply visibility defect shipped and
+was production verified in PR #727. Mobile workspace/zones no longer impose a
+large-viewport minimum height over the dynamic visible height. Existing reply
+ownership, sending, safe-area and fallback behavior are preserved. Executable
+tests cover expanded browser controls and reduced visible heights; those tests
+are not real-iPhone keyboard or natural manager confirmation. Do not repeat it.
+
+The literal bot bold-tag display defect visible on the same owner screenshot
+shipped and was production verified in PR #728. The transcript renderer recognizes
+only exact attribute-free `<b>plain text</b>` spans for explicit AI messages and
+builds text/strong nodes without parsing message HTML. Customer, manager and
+unknown-sender text stays literal; unknown markup and entities remain literal.
+Stored messages, send behavior and attachments are unchanged. Do not expand this
+into a general rich-HTML renderer without separately proven need and safeguards.
+
+Natural manager/device confirmation of #727/#728 remains pending. Refreshing the
+workspace loads the versioned assets, but deployment and automated tests alone do
+not prove that the reporting manager can reply on her device or that a customer
+received a reply. Keep the actual response/push indicators and technical gates
+truthful; these display repairs do not resolve or waive notification failures.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
