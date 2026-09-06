@@ -3,9 +3,9 @@
 /**
  * Executable child-age input and storage contract.
  *
- * This class is intentionally not wired into runtime yet. The input method
- * preserves the current StateMessageHandler separator semantics exactly, while
- * the projection method turns a validated integer array into the existing
+ * Used by StateMessageHandler. The input method retains legacy separator
+ * semantics except repeated internal ASCII spaces between ages; those are one
+ * separator, not an extra zero-age child. The projection keeps the existing
  * comma-space storage representation.
  */
 final class ChildAgeValueContract
@@ -16,6 +16,7 @@ final class ChildAgeValueContract
         if (is_array($invalid) && count($invalid) > 0) return null;
 
         $separator = strpos($text, ',') !== false ? ',' : ' ';
+        if ($separator === ' ') $text = preg_replace('/(?<=\d) {2,}(?=\d)/', ' ', $text) ?? $text;
         $parts = explode($separator, $text);
         $ages = [];
         foreach ($parts as $part) {
