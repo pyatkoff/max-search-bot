@@ -40,4 +40,13 @@ const mixed = render('ai', '<b>Заголовок</b> <a href="javascript:alert(
 assert.equal(mixed.textContent, 'Заголовок <a href="javascript:alert(1)">ссылка</a>');
 assert.ok(mixed.children.every(n => ['#text', 'strong'].includes(n.tag)));
 assert.equal(render('ai', null).textContent, '');
-console.log('PASS bot bold headings, literal customer/manager text, immutable source and no HTML parsing');
+
+const inboxContext={window:{WorkspaceV2:{S:{},$:()=>null,esc:value=>String(value??''),pipe(){},api(){},statusText(){},outcomeText(){},formatWait(){}}},document:{}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-inbox.js'),'utf8'),inboxContext);
+const preview=inboxContext.window.WorkspaceV2Inbox.messagePreview;
+assert.equal(preview(phrase,'ai'),'📱 Менеджер пока не успел ответить\nМожно продолжить ждать.');
+assert.equal(preview('<b>Первый</b> и <b>второй</b>','ai'),'Первый и второй');
+for(const sender of ['customer','manager','system',undefined])assert.equal(preview(phrase,sender),phrase,`${sender}: literal inbox preview must be preserved`);
+for(const text of ['<b>незакрытый','<b onclick="alert(1)">текст</b>','<img src=x onerror=alert(1)>','<b><img src=x onerror=alert(1)></b>'])assert.equal(preview(text,'ai'),text,'Unknown/unsafe preview markup stays literal');
+
+console.log('PASS bot bold headings and previews, literal customer/manager text, immutable source and no HTML parsing');
