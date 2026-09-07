@@ -231,6 +231,22 @@ application regressions and exact production technical gates passed; natural
 post-deploy input confirmation remains pending. Do not repeat this repair or expand
 separator/age interpretation without another confirmed scenario and scope review.
 
+The queued post-tour reminder ownership repair shipped and was production verified
+in PR #740. Fresh private chronology showed an AI handoff offer after a manager had
+already replied. The cron now rechecks the existing read-only
+`ConversationControlService::shouldRouteToAi` policy immediately before reminder
+telemetry/delivery and discards due reminders in `manager`/`waiting_manager`, including
+reminders re-enqueued by opening an existing tour URL. Self-service/legacy behavior,
+phone suppression and the separate five-minute phone fallback remain unchanged.
+Ownership lookup failures propagate without sending or deleting the pending reminder.
+Eight synthetic cases exercise the real cron loop; the required regression was red
+before the guard and green afterward. Exact production technical verification is in
+issue #55. Natural post-deploy recurrence confirmation remains pending; absence in a
+bounded window is not proof. Do not repeat this repair or expand it into scheduling,
+closed-conversation, concurrency, routing or handoff-policy changes without new
+evidence and scope review. No lead delivery, trip payload, URL or business-data change
+was made.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
