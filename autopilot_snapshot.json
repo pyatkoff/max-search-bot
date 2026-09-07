@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T20:31:55+00:00",
+    "generated_at": "2026-09-07T21:55:07+00:00",
     "production": {
         "sha": "fd914551062e419c8dfe3f63d07b6b196c25e6e2",
         "branch": "main"
@@ -52,7 +52,7 @@
                 "all": 200,
                 "mine": 1,
                 "waiting": 9,
-                "assigned_to_others": 59
+                "assigned_to_others": 58
             },
             {
                 "role": "admin",
@@ -60,7 +60,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 9,
-                "assigned_to_others": 59
+                "assigned_to_others": 58
             },
             {
                 "role": "manager",
@@ -99,19 +99,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 19:31:46",
+        "since_utc": "2026-09-07 20:54:56",
         "summary": {
-            "sessions": 1,
-            "raw_sessions": 1,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 1,
+                "resolved": 0,
                 "unresolved": 0
             },
-            "started": 1,
-            "needs_collected": 1,
-            "tours_opened": 1,
-            "site_opened": 1,
+            "started": 0,
+            "needs_collected": 0,
+            "tours_opened": 0,
+            "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
             "manager_replied": 0,
@@ -125,9 +125,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "site_open": 1
-            },
+            "drop_points": [],
             "flags": []
         }
     },
@@ -145,7 +143,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T20:31:55Z"
+        "reported_at": "2026-09-07T21:55:07Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -155,18 +153,18 @@
         "window_hours": null,
         "since_utc": "2026-09-06 22:00:00",
         "summary": {
-            "sessions": 60,
-            "raw_sessions": 60,
+            "sessions": 61,
+            "raw_sessions": 61,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 60,
+                "resolved": 61,
                 "unresolved": 0
             },
-            "started": 60,
-            "needs_collected": 46,
-            "tours_opened": 44,
-            "site_opened": 34,
-            "post_tour_manager_cta_shown": 28,
+            "started": 61,
+            "needs_collected": 47,
+            "tours_opened": 45,
+            "site_opened": 35,
+            "post_tour_manager_cta_shown": 29,
             "manager_requested": 16,
             "manager_replied": 15,
             "customer_replied_after_manager": 9,
@@ -180,7 +178,7 @@
                 "max_seconds": 62994
             },
             "drop_points": {
-                "site_open": 21,
+                "site_open": 22,
                 "collecting_needs": 14,
                 "customer_replied_after_manager": 9,
                 "tours_opened": 8,
@@ -195,11 +193,11 @@
                 "rapid_date_reselection": 1
             },
             "calendar_day": {
-                "conversations_started": 42,
-                "needs_collected_from_started": 32,
-                "tours_opened_from_started": 31,
-                "site_opened": 26,
-                "post_tour_manager_cta_shown": 21,
+                "conversations_started": 43,
+                "needs_collected_from_started": 33,
+                "tours_opened_from_started": 32,
+                "site_opened": 27,
+                "post_tour_manager_cta_shown": 22,
                 "manager_requested": 8,
                 "manager_replied": 13,
                 "customer_replied_after_manager": 7
@@ -207,7 +205,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T20:31:55+00:00",
+        "generated_at": "2026-09-07T21:55:07+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
