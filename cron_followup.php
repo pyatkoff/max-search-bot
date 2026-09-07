@@ -27,6 +27,7 @@ try {
     require_once(__DIR__ . '/maxsearchclass.php');
     require_once(__DIR__ . '/services/FollowupQueueService.php');
     require_once(__DIR__ . '/services/DialogueView.php');
+    require_once(__DIR__ . '/services/ConversationControlService.php');
     require_once(__DIR__ . '/services/ManagerPhoneFallbackService.php');
     require_once(__DIR__ . '/services/LeadTaskReminderService.php');
 
@@ -61,6 +62,17 @@ try {
 
         if ($hasPhone) {
             cronLog('SKIP_PHONE chat=' . $chatID);
+            @unlink($file);
+            continue;
+        }
+
+        // A tour URL can enqueue a new reminder after handoff. Recheck the
+        // canonical ownership policy at delivery time, not only at scheduling.
+        if (!ConversationControlService::shouldRouteToAi(
+            (string)ProjectConfig::get('messenger.provider', 'max'),
+            $chatID
+        )) {
+            cronLog('SKIP_MANAGER chat=' . $chatID);
             @unlink($file);
             continue;
         }
