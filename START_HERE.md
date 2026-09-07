@@ -293,6 +293,18 @@ CI and exact production technical gates passed. Natural recurrence after deploym
 remains separate from release verification. Do not repeat this repair or broaden
 spouse/party interpretation without another exact failing phrase and boundary tests.
 
+The bounded check-state price-guidance repair shipped and was production verified
+in PR #748. Fresh private chronology showed the exact messages `Цена` and
+`Какая цена` receiving generic parameter-edit guidance after the completed search
+summary. Only those normalized exact forms now point the tourist to the existing
+«Показать туры» control. The reply does not start a search, create a URL, add a
+callback, change status or saved needs, or touch Tourvisor/payload and handoff
+behavior. Mixed and broader price phrases remain on the previous safe path. Required
+MAX/Telegram boundary regression, CI and exact production technical gates passed.
+Natural recurrence after deployment remains separate from release verification. Do
+not repeat this repair or broaden price interpretation without a new exact failing
+phrase and boundary tests.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
