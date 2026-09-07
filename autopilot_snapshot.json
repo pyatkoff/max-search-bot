@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T10:25:21+00:00",
+    "generated_at": "2026-09-07T10:29:27+00:00",
     "production": {
         "sha": "2c21d53f316287b4a73962927a8fe6d31eed02f2",
         "branch": "main"
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 8211,
+            "oldest_wait_seconds": 8455,
             "routing_blocked_count": 0
         },
         "push": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 09:25:10",
+        "since_utc": "2026-09-07 09:29:14",
         "summary": {
             "sessions": 8,
             "raw_sessions": 8,
@@ -109,8 +109,8 @@
                 "unresolved": 0
             },
             "started": 8,
-            "needs_collected": 6,
-            "tours_opened": 6,
+            "needs_collected": 7,
+            "tours_opened": 7,
             "site_opened": 4,
             "post_tour_manager_cta_shown": 3,
             "manager_requested": 3,
@@ -126,11 +126,11 @@
                 "max_seconds": 56711
             },
             "drop_points": {
-                "collecting_needs": 2,
                 "site_open": 2,
                 "customer_replied_after_manager": 2,
+                "tours_opened": 2,
                 "manager_requested": 1,
-                "tours_opened": 1
+                "collecting_needs": 1
             },
             "flags": {
                 "manager_requested_no_reply": 1,
@@ -152,7 +152,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T10:25:21Z"
+        "reported_at": "2026-09-07T10:29:27Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -195,8 +195,8 @@
                 "manager_requested": 2
             },
             "flags": {
+                "excessive_turns": 6,
                 "repeated_callback_input": 6,
-                "excessive_turns": 5,
                 "manager_requested_no_reply": 2,
                 "rapid_date_reselection": 1,
                 "repeated_same_input": 1,
@@ -216,7 +216,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T10:25:21+00:00",
+        "generated_at": "2026-09-07T10:29:27+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
