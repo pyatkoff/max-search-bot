@@ -43,7 +43,7 @@ inboxCheck('lead cards use compact identity trip preview action hierarchy',strpo
 inboxCheck('lead cards keep urgency unread stage outcome and task evidence',strpos($js,'unreadBadge')!==false&&strpos($js,'leadStageCompact')!==false&&strpos($js,'leadTaskCompact')!==false&&strpos($js,'leadWaitCompact')!==false&&strpos($js,'leadOutcomeCompact')!==false);
 inboxCheck('lead cards expose responsible manager or explicit unassigned owner',strpos($js,"manager||'Не назначен'")!==false&&strpos($js,'leadManagerSignal')!==false&&strpos($js,"?'':' unassigned'")!==false);
 inboxCheck('lead cards expose last activity without another backend projection',strpos($js,'function formatLastActivity')!==false&&strpos($js,"c.last_message_at||c.started_at||''")!==false&&strpos($js,'leadActivityTime')!==false&&strpos($js,'Последняя активность')!==false);
-inboxCheck('AI preview formatting uses exact sender metadata while every preview remains escaped',strpos($conversationService,'AS last_sender_type')!==false&&strpos($js,"messagePreview(c.last_text||'Нет последнего сообщения',c.last_sender_type)")!==false&&strpos($js,'<div class="leadPreview">${esc(preview)}</div>')!==false);
+inboxCheck('AI preview formatting uses exact sender metadata while every preview remains escaped',strpos($conversationService,'AS last_sender_type')!==false&&strpos($js,"messagePreview(c.last_text||'Нет последнего сообщения',c.last_sender_type,c.last_preview_text)")!==false&&strpos($js,'<div class="leadPreview">${esc(preview)}</div>')!==false);
 inboxCheck('activity formatting is timezone-neutral and compact',strpos($js,'`${m[3]}.${m[2]} · ${m[4]}:${m[5]}`')!==false&&strpos($js,"new Date(value.replace(' ','T')")!==false);
 inboxCheck('opened conversations can clear their local unread badge without reloading the list',strpos($js,'function markRead(id=S.current)')!==false&&strpos($js,"el.querySelector('.unreadBadge')?.remove()")!==false&&strpos($js,'markRead,autoRefresh')!==false);
 inboxCheck('ordinary open outcome is not rendered as permanent visual noise',strpos($js,"outcome==='won'||outcome==='lost'")!==false);
@@ -55,6 +55,37 @@ inboxCheck('manager-request queue reuses canonical waiting_manager lifecycle eve
 inboxCheck('manager-request queue preserves non-admin ownership visibility and newest-request ordering',strpos($conversationService,"if(!\$isAdmin){\$where[]='(c.manager_id IS NULL OR c.manager_id=?)';\$args[]=\$managerId;}")!==false&&strpos($conversationService,"\$queue==='requested'?'manager_request_at DESC'")!==false);
 inboxCheck('mobile inbox has dedicated compact treatment',strpos($css,'@media(max-width:520px)')!==false&&strpos($css,'.inboxSearchRow')!==false&&strpos($css,'.filtersToggle:before')!==false&&strpos($css,'.leadPrimary')!==false);
 inboxCheck('redesign does not mutate shifts metrika or routing bonuses',stripos($js.$filters.$pipeline.$pipelineApi.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'set_working')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'metrika')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'yclid')===false&&stripos($filterService.$leadInbox.$conversationService,'bonus')===false);
+
+require_once $root.'/services/ManagerConversationService.php';
+$raw='g1_1234abcd_show_tours';
+$buttonRow=['id'=>1,'last_text'=>$raw,'last_direction'=>'inbound','last_sender_type'=>'customer','last_metadata_json'=>'{"type":"callback","username":"private-test"}'];
+$label='Нажата кнопка «Показать туры»';
+foreach ([
+    ['generated button',[], $label],
+    ['legacy button',['last_text'=>'show_tours'], $label],
+    ['ordinary typed code',['last_metadata_json'=>'{"type":"message"}'], $raw],
+    ['missing metadata',['last_metadata_json'=>null], $raw],
+    ['malformed metadata',['last_metadata_json'=>'{'], $raw],
+    ['non-object metadata',['last_metadata_json'=>'42'], $raw],
+    ['outbound text',['last_direction'=>'outbound'], $raw],
+    ['manager text',['last_sender_type'=>'manager'], $raw],
+    ['AI text',['last_sender_type'=>'ai'], $raw],
+    ['unknown action',['last_text'=>'g1_1234abcd_future_action'], 'g1_1234abcd_future_action'],
+    ['invalid generation',['last_text'=>'g1_invalid_show_tours'], 'g1_invalid_show_tours'],
+    ['unsafe text',['last_text'=>'<img src=x onerror=alert(1)>'], '<img src=x onerror=alert(1)>'],
+] as [$name,$override,$expected]) {
+    $input=array_replace($buttonRow,$override);
+    $output=ManagerConversationService::decorateLastMessagePreviews([$input])[0];
+    inboxCheck($name.' has correct display text',$output['last_preview_text']===$expected);
+    inboxCheck($name.' preserves raw search text',$output['last_text']===$input['last_text']);
+    inboxCheck($name.' does not expose raw metadata',!array_key_exists('last_metadata_json',$output));
+}
+$waiting=$buttonRow+['awaiting_first_reply'=>1,'wait_age_seconds'=>600];
+$waiting=ManagerConversationService::decorateLastMessagePreviews([$waiting])[0];
+inboxCheck('waiting prefix is identical for raw and display text',str_replace($raw,'',$waiting['last_text'])===str_replace($label,'',$waiting['last_preview_text'])&&$waiting['last_preview_text']!==$label);
+$unavailable=ManagerConversationService::decorateLastMessagePreviews([$buttonRow],[1=>['category'=>'recipient_unavailable']])[0];
+inboxCheck('delivery failure remains visible with readable callback',$unavailable['last_preview_text']==='🔴 Клиент недоступен в MAX · '.$label);
+inboxCheck('delivery failure keeps existing raw preview',$unavailable['last_text']==='🔴 Клиент недоступен в MAX · '.$raw);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
