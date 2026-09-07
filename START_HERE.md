@@ -305,6 +305,19 @@ Natural recurrence after deployment remains separate from release verification. 
 not repeat this repair or broaden price interpretation without a new exact failing
 phrase and boundary tests.
 
+The Manager Workspace task-draft lifecycle repair shipped and was production
+verified in PR #750. The isolated persistence module previously tried to wrap an
+`options.onCreate` callback that the canonical task renderer never accepted, so a
+successfully submitted title/deadline could be restored during the lead refresh and
+remain available for accidental duplicate creation. The existing create path now
+marks only that lead-scoped draft pending before refresh and clears its persisted and
+visible fields after confirmed success. Failed creation retains the exact retryable
+draft. Server task mutations, reminders, task policy, lead ownership and routing are
+unchanged. A real-module behavior regression covers successful refresh, failed
+follow-up refresh and failed creation; required CI, responsive visual QA and exact
+production technical gates passed. Do not repeat this repair or broaden task draft
+storage/synchronization policy without another confirmed defect.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
