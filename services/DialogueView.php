@@ -157,6 +157,14 @@ class DialogueView
         );
     }
 
+    public static function checkPriceGuidance($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->send(
+            $chatId,
+            "Чтобы посмотреть актуальные цены по этим параметрам, нажмите «Показать туры» в сообщении с итогами. Параметры поиска останутся без изменений."
+        );
+    }
+
     public static function tourResults($chatId, array $model): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);

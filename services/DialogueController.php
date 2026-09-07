@@ -67,6 +67,12 @@ class DialogueController
             && MaxSearchApi::getLastClaimForChat($chatId)) {
             return DialogueView::tourLinkHelp($chatId);
         }
+        // The check summary already owns the guarded "show_tours" action. Answer
+        // a bounded price question with guidance to that existing control; do not
+        // start a search, invent a price, or mutate the saved parameters.
+        if ($status == MaxSearchApi::$statusCheck && self::isCheckPriceQuestion($plainText)) {
+            return DialogueView::checkPriceGuidance($chatId);
+        }
         // Check is a button-confirmation state, not a free-text field editor.
         // Acknowledge text without silently dropping it or mutating saved needs.
         if ($status == MaxSearchApi::$statusCheck && $plainText !== '') {
@@ -157,6 +163,11 @@ class DialogueController
             return null;
         }
         return "Поняла. Давайте попробуем удешевить подбор.\n\nМожно:\n• немного сдвинуть даты;\n• сократить количество ночей;\n• снизить категорию отеля;\n• посмотреть другое направление.\n\nНапишите, что готовы изменить — я пересоберу поиск.";
+    }
+
+    public static function isCheckPriceQuestion(string $text): bool
+    {
+        return preg_match('/^(?:цена|какая\s+цена)[.!?… ]*$/ui', trim($text)) === 1;
     }
 
     private function resetDialogueSafe($chatId, bool $clearDate, string $platform): void
