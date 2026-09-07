@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T11:16:23+00:00",
+    "generated_at": "2026-09-07T11:47:55+00:00",
     "production": {
         "sha": "58d674a114bcea1da10b6a981ee96dfd6a9aa61d",
         "branch": "main"
@@ -99,36 +99,36 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 10:16:11",
+        "since_utc": "2026-09-07 10:47:46",
         "summary": {
-            "sessions": 8,
-            "raw_sessions": 8,
+            "sessions": 4,
+            "raw_sessions": 4,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 8,
+                "resolved": 4,
                 "unresolved": 0
             },
-            "started": 8,
-            "needs_collected": 8,
-            "tours_opened": 8,
-            "site_opened": 7,
-            "post_tour_manager_cta_shown": 4,
-            "manager_requested": 4,
-            "manager_replied": 4,
-            "customer_replied_after_manager": 4,
+            "started": 4,
+            "needs_collected": 4,
+            "tours_opened": 4,
+            "site_opened": 3,
+            "post_tour_manager_cta_shown": 2,
+            "manager_requested": 2,
+            "manager_replied": 2,
+            "customer_replied_after_manager": 2,
             "phone_received": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 4,
+                "answered_after_90s": 2,
                 "still_unanswered": 0,
-                "measured_responses": 4,
-                "avg_seconds": 30733,
+                "measured_responses": 2,
+                "avg_seconds": 31626,
                 "max_seconds": 62994
             },
             "drop_points": {
-                "customer_replied_after_manager": 4,
-                "site_open": 3,
-                "tours_opened": 1
+                "customer_replied_after_manager": 2,
+                "tours_opened": 1,
+                "site_open": 1
             },
             "flags": []
         }
@@ -147,7 +147,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T11:16:23Z"
+        "reported_at": "2026-09-07T11:47:55Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -208,7 +208,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T11:16:23+00:00",
+        "generated_at": "2026-09-07T11:47:55+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
