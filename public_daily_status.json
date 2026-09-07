@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-09-07T10:24:13+00:00",
+    "generated_at": "2026-09-07T10:29:22+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -39,8 +39,8 @@
             "manager_requested": 2
         },
         "flags": {
+            "excessive_turns": 6,
             "repeated_callback_input": 6,
-            "excessive_turns": 5,
             "manager_requested_no_reply": 2,
             "rapid_date_reselection": 1,
             "repeated_same_input": 1,
