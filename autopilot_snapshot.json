@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T11:09:41+00:00",
+    "generated_at": "2026-09-07T11:16:23+00:00",
     "production": {
-        "sha": "92e9af018b336706d53abb4d1a32446e08b5367e",
+        "sha": "58d674a114bcea1da10b6a981ee96dfd6a9aa61d",
         "branch": "main"
     },
     "migrations": {
@@ -52,7 +52,7 @@
                 "all": 200,
                 "mine": 2,
                 "waiting": 9,
-                "assigned_to_others": 60
+                "assigned_to_others": 61
             },
             {
                 "role": "admin",
@@ -60,7 +60,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 9,
-                "assigned_to_others": 60
+                "assigned_to_others": 61
             },
             {
                 "role": "manager",
@@ -99,18 +99,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 10:09:29",
+        "since_utc": "2026-09-07 10:16:11",
         "summary": {
-            "sessions": 9,
-            "raw_sessions": 9,
+            "sessions": 8,
+            "raw_sessions": 8,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 9,
+                "resolved": 8,
                 "unresolved": 0
             },
-            "started": 9,
-            "needs_collected": 9,
-            "tours_opened": 9,
+            "started": 8,
+            "needs_collected": 8,
+            "tours_opened": 8,
             "site_opened": 7,
             "post_tour_manager_cta_shown": 4,
             "manager_requested": 4,
@@ -128,7 +128,7 @@
             "drop_points": {
                 "customer_replied_after_manager": 4,
                 "site_open": 3,
-                "tours_opened": 2
+                "tours_opened": 1
             },
             "flags": []
         }
@@ -138,7 +138,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "92e9af018b336706d53abb4d1a32446e08b5367e",
+        "sha": "58d674a114bcea1da10b6a981ee96dfd6a9aa61d",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -147,7 +147,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T11:09:41Z"
+        "reported_at": "2026-09-07T11:16:23Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -208,7 +208,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T11:09:40+00:00",
+        "generated_at": "2026-09-07T11:16:23+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
