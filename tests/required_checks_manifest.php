@@ -172,6 +172,7 @@ return [
         'node tests/run_manager_message_text_behavior_regression.js',
         'node tests/run_manager_reauth_composer_behavior_regression.js',
         'node tests/run_manager_reply_session_behavior_regression.js',
+        'node tests/run_manager_task_draft_behavior_regression.js',
         'node tests/run_manager_media_context_behavior_regression.js',
         'node tests/run_manager_visible_conversation_behavior_regression.js',
         'php tests/run_manager_workspace_v2_outcome_regression.php',
