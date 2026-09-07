@@ -15,6 +15,54 @@ const snapshot=saved=>JSON.parse([...saved.values.values()][0]);
 const tick=()=>new Promise(setImmediate);
 const cases=[];function test(name,run){cases.push({name,run})}
 
+function quickReplies(h){
+  const buttons=[{dataset:{reply:'Synthetic greeting'}},{dataset:{reply:'Synthetic budget question'}}];
+  const query=h.document.querySelectorAll;
+  h.document.querySelectorAll=selector=>selector==='.quickReplies [data-reply]'?buttons:query(selector);
+  return buttons;
+}
+
+test('quick reply keeps the exact existing draft and attachment through reload without sending',async()=>{
+  const saved=storage(),h=createHarness({storage:saved}),buttons=quickReplies(h);await h.start();
+  const draft='Synthetic drafted offer\n  Keep these details <b>literal</b>  ',file={name:'synthetic.png'};
+  await h.draft(draft);h.setFile(file);const callCount=h.calls.length;buttons[0].onclick();
+  const expected=draft+'\nSynthetic greeting';
+  assert.equal(h.ids.get('replyText').value,expected);assert.equal(h.getFile(),file);assert.equal(h.calls.length,callCount);assertNoMutations(h);
+  const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,expected);assertNoMutations(next);
+});
+
+test('quick replies fill an empty editor and retain existing whitespace when adding another paragraph',async()=>{
+  for(const draft of ['', 'First line', 'First line\n', '  ']){
+    const h=createHarness(),buttons=quickReplies(h);await h.start();await h.draft(draft);buttons[0].onclick();
+    const expected=draft+(draft&&!draft.endsWith('\n')?'\n':'')+'Synthetic greeting';
+    assert.equal(h.ids.get('replyText').value,expected);buttons[1].onclick();
+    assert.equal(h.ids.get('replyText').value,expected+'\nSynthetic budget question');assertNoMutations(h);
+  }
+});
+
+test('quick replies cannot change drafts while the composer is hidden for authentication',async()=>{
+  const h=createHarness(),buttons=quickReplies(h);await h.start();await h.draft();await h.expire();
+  const count=h.calls.length;buttons[0].onclick();assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.calls.length,count);
+  await h.login();assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assertNoMutations(h);
+});
+
+test('quick replies share the suspended composer lock and recover with the editor',async()=>{
+  const h=createHarness(),buttons=quickReplies(h);await h.start();await h.draft();
+  h.W.S.detail.delivery_failure={category:'suspended'};h.C.renderDeliveryFailure(h.W.S.detail.delivery_failure);
+  assert.equal(buttons[0].disabled,true);buttons[0].onclick();assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');
+  h.W.S.detail.delivery_failure=null;h.C.renderDeliveryFailure(null);assert.equal(buttons[0].disabled,false);
+  buttons[0].onclick();assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft\nSynthetic greeting');assertNoMutations(h);
+});
+
+test('in-flight send locks quick replies and a failed send restores them without changing text',async()=>{
+  const h=createHarness(),buttons=quickReplies(h),sent=deferred(),requested=deferred();await h.start();await h.draft();
+  h.setHook((url,r)=>r.action==='send'?(requested.resolve(),sent.promise):null);
+  const pending=h.C.sendReply();await requested.promise;assert.equal(buttons[0].disabled,true);
+  buttons[0].onclick();assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');
+  sent.resolve(response({ok:false},500));await pending;assert.equal(buttons[0].disabled,false);
+  assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+});
+
 test('reload authenticates and authorizes the selected detail before restoring exact unsent text',async()=>{
   const {saved,h}=await seeded();h.setFile({name:'not-persisted.png'});
   const next=createHarness({storage:saved}),detail=deferred(),requested=deferred();
