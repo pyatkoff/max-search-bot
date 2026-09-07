@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T14:27:16+00:00",
+    "generated_at": "2026-09-07T14:33:19+00:00",
     "production": {
-        "sha": "d63e1219b52db39d0d7a1bd9fb792513bc1de182",
+        "sha": "18be4badd1cf4ee36ddac9555d1ea8b27602d131",
         "branch": "main"
     },
     "migrations": {
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 13:27:06",
+        "since_utc": "2026-09-07 13:33:10",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -129,7 +129,9 @@
                 "collecting_needs": 2,
                 "site_open": 1
             },
-            "flags": []
+            "flags": {
+                "repeated_callback_input": 1
+            }
         }
     },
     "website": {
@@ -137,7 +139,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "d63e1219b52db39d0d7a1bd9fb792513bc1de182",
+        "sha": "18be4badd1cf4ee36ddac9555d1ea8b27602d131",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -146,7 +148,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T14:27:16Z"
+        "reported_at": "2026-09-07T14:33:19Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -189,7 +191,7 @@
                 "manager_requested": 1
             },
             "flags": {
-                "repeated_callback_input": 7,
+                "repeated_callback_input": 8,
                 "excessive_turns": 6,
                 "rapid_date_reselection": 1,
                 "repeated_same_input": 1
@@ -207,7 +209,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T14:27:15+00:00",
+        "generated_at": "2026-09-07T14:33:18+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
