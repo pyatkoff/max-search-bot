@@ -218,6 +218,19 @@ browser verification found three formatted AI fallback previews without literal
 bold tags after reload. Do not repeat this repair or expand it into general preview
 HTML rendering without a separately proven need and safeguards.
 
+The confirmed child-age whitespace defect shipped and was production verified in
+PR #738. Authenticated original message text proved that the two-child wizard
+rejected `10  14` with two ASCII spaces. `ChildAgeValueContract` now treats repeated
+internal ASCII spaces between digits in comma-free input as one separator, without
+inventing a zero-age child. Comma/mixed-input behavior, other separators, age bounds,
+child count, exact comma-space storage, update-only missing/pre-start rejection and
+normal/edit progression remain unchanged. This is a narrow evidence-backed exception
+to the historical parser parity contract, not a new child-age migration. It adds no
+birth-year/range interpretation or downstream search change. Required parser and
+application regressions and exact production technical gates passed; natural
+post-deploy input confirmation remains pending. Do not repeat this repair or expand
+separator/age interpretation without another confirmed scenario and scope review.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
