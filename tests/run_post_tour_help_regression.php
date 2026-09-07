@@ -83,11 +83,11 @@ foreach ([74,76] as $status) {
     }
 }
 
-foreach (["  ССЫЛКА НЕ РАБОТАЕТ!  ", "Не открывается подборка", "Не могу открыть ссылку", "Подборка\nне загружается", 'Не работает ссылка на туры'] as $phrase) {
+foreach (["  ССЫЛКА НЕ РАБОТАЕТ!  ", "Не открывается подборка", "Не могу открыть ссылку", "Подборка\nне загружается", 'Не работает ссылка на туры', 'Не показывает'] as $phrase) {
     helpCheck('explicit help variant', helpDispatch($phrase), true);
     helpCheck('variant receives one answer', count($messenger->sent), 1);
 }
-foreach (['Ссылка работает', 'Подборка открывается', 'Не работает телефон', 'Не открывается ссылка на канал', 'Ссылка не работает, хочу Турцию на 7 ночей', 'Подборка не открывается? Нет, всё работает', 'Хочу Египет', 'manager_after_tours'] as $phrase) {
+foreach (['Ссылка работает', 'Подборка открывается', 'Не показывает телефон', 'Не показывает туры, хочу изменить даты', 'Не работает телефон', 'Не открывается ссылка на канал', 'Ссылка не работает, хочу Турцию на 7 ночей', 'Подборка не открывается? Нет, всё работает', 'Хочу Египет', 'manager_after_tours'] as $phrase) {
     helpCheck('unrelated/mixed text is not classified as link trouble', PostTourService::isLinkHelpRequest($phrase), false);
     helpCheck('unrelated/mixed check text receives guidance', helpDispatch($phrase), true);
     helpCheck('check guidance does not claim a link failure', strpos($messenger->sent[0]['text'] ?? '', 'Понимаю, подборка не открывается') === false, true);
