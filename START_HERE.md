@@ -247,6 +247,28 @@ closed-conversation, concurrency, routing or handoff-policy changes without new
 evidence and scope review. No lead delivery, trip payload, URL or business-data change
 was made.
 
+The recorded tour-button Inbox preview repair shipped and was production verified
+in PR #742. The exact inbound customer callback metadata and existing
+`CallbackGeneration` codec now project a readable `Нажата кнопка «Показать туры»`
+label for `show_tours` only. Raw message text/history/search, callback payloads and
+dispatch are unchanged. Ordinary typed codes, unknown actions, missing/malformed
+metadata and other senders remain literal; raw metadata is removed from the list
+response. Existing wait/delivery warning prefixes and preview escaping remain intact.
+The display regression was red before the fix; boundary/privacy/prefix regressions,
+required CI, responsive layout checks and exact production technical gates passed.
+Controlled authenticated reload verified one readable label and no raw generated
+show-tours preview among 100 visible rows. This proves rendering of the existing
+recorded case, not a new natural post-deploy button event. Do not repeat this repair
+or expand callback labeling/dispatch behavior without another confirmed scenario.
+
+The pre-#742 private/browser triage did not confirm a zero-age child storage defect:
+the inspected original `child_0` selection and current lead card both represented
+two adults and no children. A manager's question alone does not prove corrupt data.
+The inspected `tours_checked` path while waiting for a manager is the existing
+explicit handoff-cancellation/self-service-resume policy, not a recurrence of the
+#740 cron reminder defect. Neither observation authorizes a child payload or handoff
+policy change.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
