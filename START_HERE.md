@@ -269,6 +269,20 @@ explicit handoff-cancellation/self-service-resume policy, not a recurrence of th
 #740 cron reminder defect. Neither observation authorizes a child payload or handoff
 policy change.
 
+The quick-reply draft preservation repair shipped and was production verified in
+PR #744. A synthetic reproduction of the actual production-bound button handler
+proved that a quick reply replaced and persisted over existing unsent text. Quick
+replies now append on a new line while preserving the exact draft and selected
+attachment. Buttons follow the existing busy/suspended/access-loss locks; hidden
+or disabled composers reject insertion. Template wording, draft storage policy,
+sending and upload transport remain unchanged, and insertion never sends a message.
+Five new red-to-green cases cover insertion, reload, attachment and session/send
+boundaries; the 31-case reply-session suite, 13-case authentication suite, required
+CI, responsive visual evidence and exact production technical gates passed.
+Synthetic editor and fixture verification are not natural manager/device or
+individual production-conversation confirmation. Do not repeat this repair or
+expand it into new template policy or cross-device/server draft synchronization.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
