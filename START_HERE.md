@@ -283,6 +283,16 @@ Synthetic editor and fixture verification are not natural manager/device or
 individual production-conversation confirmation. Do not repeat this repair or
 expand it into new template policy or cross-device/server draft synchronization.
 
+The exact natural adult-pair answer repair shipped and was production verified in
+PR #746. Fresh private chronology showed the bot repeating its adults question
+after the exact answer `Я и жена`. The canonical `AdultsParser` now maps only the
+normalized exact form `я и жена` to two adults. Existing numeric and word forms are
+unchanged; unrelated pairs and phrases containing additional party details remain
+unresolved so no children are invented or discarded. Required resolver regression,
+CI and exact production technical gates passed. Natural recurrence after deployment
+remains separate from release verification. Do not repeat this repair or broaden
+spouse/party interpretation without another exact failing phrase and boundary tests.
+
 Natural post-deploy confirmation of #724/#725 remains pending; executable regression
 and production verification are not natural live confirmation. Review fresh bounded
 private dialogue evidence first. A separate natural-language cross-month phrase with
