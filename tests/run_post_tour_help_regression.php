@@ -113,6 +113,28 @@ foreach (['max', 'telegram'] as $platform) {
         helpCheck('guidance never echoes customer text or invents URL', strpos(json_encode($sent), 'http') === false && strpos($sent['text'] ?? '', $phrase) === false, true);
     }
 }
+
+// Fresh production evidence: in the completed check state, "Цена" and
+// "Какая цена" received generic parameter-edit guidance. Point only these
+// bounded questions to the existing results control; never start the search.
+foreach (['max', 'telegram'] as $platform) {
+    foreach (['Цена', 'Какая цена', "  КАКАЯ   ЦЕНА?  "] as $phrase) {
+        helpCheck('price question classifier accepts exact request', DialogueController::isCheckPriceQuestion($phrase), true);
+        helpCheck('check price question is handled', helpDispatch($phrase,74,$platform), true);
+        helpCheck('check price question gets one answer', count($messenger->sent), 1);
+        helpCheck('price guidance preserves status', MaxSearchApi::$status, 74);
+        $sent = $messenger->sent[0] ?? [];
+        helpCheck('price guidance names current prices', strpos($sent['text'] ?? '', 'актуальные цены') !== false, true);
+        helpCheck('price guidance points to existing tours control', strpos($sent['text'] ?? '', 'Показать туры') !== false, true);
+        helpCheck('price guidance has no new callback side action', $sent['buttons'] ?? null, []);
+        helpCheck('price guidance does not invent a URL', strpos(json_encode($sent), 'http') === false, true);
+    }
+}
+foreach (['Какая цена и поменять дату', 'Цена до 200 тысяч', 'Дорого', 'Цены на октябрь'] as $phrase) {
+    helpCheck('mixed or broader price text stays outside narrow classifier', DialogueController::isCheckPriceQuestion($phrase), false);
+    helpCheck('mixed or broader check text receives generic guidance', helpDispatch($phrase), true);
+    helpCheck('mixed or broader text does not get price claim', strpos($messenger->sent[0]['text'] ?? '', 'актуальные цены') === false, true);
+}
 helpCheck('blank check text remains harmless', helpDispatch('   '), true);
 helpCheck('blank check text sends nothing', $messenger->sent, []);
 
@@ -130,6 +152,9 @@ helpCheck('failed send preserves state', MaxSearchApi::$status, 74);
 helpCheck('failed check guidance returns failure without AI fallthrough', helpDispatch('Хотим в ОАЭ'), false);
 helpCheck('failed check guidance attempts once', count($messenger->sent), 1);
 helpCheck('failed check guidance preserves state', MaxSearchApi::$status, 74);
+helpCheck('failed price guidance returns failure without AI fallthrough', helpDispatch('Какая цена'), false);
+helpCheck('failed price guidance attempts once', count($messenger->sent), 1);
+helpCheck('failed price guidance preserves state', MaxSearchApi::$status, 74);
 
 IntegrationRegistry::resetForTests();
 echo "\nTOTAL " . ($passed+$failed) . " | PASS {$passed} | FAIL {$failed}\n";
