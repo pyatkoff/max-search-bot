@@ -305,6 +305,21 @@ Natural recurrence after deployment remains separate from release verification. 
 not repeat this repair or broaden price interpretation without a new exact failing
 phrase and boundary tests.
 
+The exact post-tour `Не показывает` help repair shipped and was production
+verified in PR #752. Fresh private chronology showed repeated presses of the
+existing generated `show_tours` control, followed by that exact text receiving
+generic parameter-edit guidance instead of opening-problem help. The link-help
+classifier now accepts only the normalized exact phrase when the existing
+controller boundary already has check/AI state and a prior claim. Unrelated and
+mixed phrases remain on their previous paths. Existing help copy and manager/edit
+controls are reused; URL generation, callback payload/generation behavior,
+Tourvisor/search, saved needs/status and automatic handoff are unchanged. Required
+regression, CI and exact production technical gates passed. Natural recurrence
+after deployment remains separate. Do not repeat or broaden this phrase repair,
+and do not infer from it that every repeated `show_tours` callback has the same
+cause; callback-generation changes still require separate exact evidence and
+authorization.
+
 The Manager Workspace task-draft lifecycle repair shipped and was production
 verified in PR #750. The isolated persistence module previously tried to wrap an
 `options.onCreate` callback that the canonical task renderer never accepted, so a
