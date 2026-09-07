@@ -8,9 +8,23 @@ require_once __DIR__ . '/ManagerReadService.php';
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/SalesPipelineService.php';
+require_once __DIR__ . '/CallbackGeneration.php';
 
 class ManagerConversationService
 {
+    /** Display only; stored text and the Inbox search input remain unchanged. */
+    private static function lastMessagePreview(array $row): string
+    {
+        $text = (string)($row['last_text'] ?? '');
+        if (($row['last_direction'] ?? '') !== 'inbound'
+            || ($row['last_sender_type'] ?? '') !== 'customer') return $text;
+        $metadata = json_decode((string)($row['last_metadata_json'] ?? ''), true);
+        if (!is_array($metadata) || ($metadata['type'] ?? '') !== 'callback') return $text;
+        return CallbackGeneration::base($text) === 'show_tours'
+            ? 'Нажата кнопка «Показать туры»'
+            : $text;
+    }
+
     private static function resolveProject(int $managerId, string $projectKey=''): string
     {
         $projectKey=trim($projectKey);
@@ -87,6 +101,7 @@ class ManagerConversationService
             .'(SELECT mm.text FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_text,'
             .'(SELECT mm.direction FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_direction,'
             .'(SELECT mm.sender_type FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_sender_type,'
+            .'(SELECT mm.metadata_json FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_metadata_json,'
             .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
             .'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE '.implode(' AND ',$where)
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':'COALESCE(c.last_message_at,c.started_at) DESC')).' LIMIT 200';
@@ -94,12 +109,21 @@ class ManagerConversationService
         $rows=array_values(array_filter($rows,static function($row)use($managerId){return ManagerConversationAccessPolicy::canView($managerId,$row);}));
         $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
-        foreach($rows as &$row){
-            $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
-            if($failure){$preview=trim((string)($row['last_text']??''));$row['last_text']='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');continue;}
-            if(!empty($row['awaiting_first_reply'])){$preview=trim((string)($row['last_text']??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row['last_text']=$marker.($preview!==''?' · '.$preview:'');}
-        }unset($row);
+        $rows=self::decorateLastMessagePreviews($rows,$failures);
         return array_slice($rows,0,$limit);
+    }
+
+    /** Keep display labels and warning prefixes separate from raw search text. */
+    public static function decorateLastMessagePreviews(array $rows, array $failures = []): array
+    {
+        foreach($rows as &$row){
+            $row['last_preview_text']=self::lastMessagePreview($row);
+            unset($row['last_metadata_json']);
+            $id=(int)($row['id']??0);$failure=$failures[$id]??null;$row['delivery_failure_category']=$failure['category']??null;
+            if($failure){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$row[$field]='🔴 Клиент недоступен в MAX'.($preview!==''?' · '.$preview:'');}continue;}
+            if(!empty($row['awaiting_first_reply'])){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row[$field]=$marker.($preview!==''?' · '.$preview:'');}}
+        }unset($row);
+        return $rows;
     }
 
     public static function filterManagers(int $managerId): array
