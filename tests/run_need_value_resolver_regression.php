@@ -29,6 +29,13 @@ nvrCheck('adults deterministic confidence', $adults['confidence'], 1.0);
 
 $adultsSuffix = NeedValueResolver::resolve('adults', '3 взрослых');
 nvrCheck('adults suffix form retained', $adultsSuffix['value'], 3);
+$adultsLivePair = NeedValueResolver::resolve('adults', 'Я и жена');
+nvrCheck('live spouse pair is recognized', $adultsLivePair['recognized'], true);
+nvrCheck('live spouse pair maps to two adults', $adultsLivePair['value'], 2);
+$adultsUnrelatedPair = NeedValueResolver::resolve('adults', 'Я и ребенок');
+nvrCheck('unrelated pair does not invent adults', $adultsUnrelatedPair['recognized'], false);
+$adultsPairWithExtraIntent = NeedValueResolver::resolve('adults', 'Я и жена, и ребенок');
+nvrCheck('spouse pair with extra party detail stays unresolved', $adultsPairWithExtraIntent['recognized'], false);
 $adultsUnknown = NeedValueResolver::resolve('adults', 'семеро');
 nvrCheck('out of range adults stays unresolved', $adultsUnknown['recognized'], false);
 
