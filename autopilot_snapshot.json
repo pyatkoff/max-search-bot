@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-07T16:57:23+00:00",
+    "generated_at": "2026-09-07T17:08:42+00:00",
     "production": {
-        "sha": "18be4badd1cf4ee36ddac9555d1ea8b27602d131",
+        "sha": "12d594a35b9632c4c025bdf6ebb68244b3916eca",
         "branch": "main"
     },
     "migrations": {
@@ -99,18 +99,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-07 15:57:11",
+        "since_utc": "2026-09-07 16:08:33",
         "summary": {
-            "sessions": 6,
-            "raw_sessions": 6,
+            "sessions": 5,
+            "raw_sessions": 5,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 6,
+                "resolved": 5,
                 "unresolved": 0
             },
-            "started": 6,
-            "needs_collected": 6,
-            "tours_opened": 5,
+            "started": 5,
+            "needs_collected": 5,
+            "tours_opened": 4,
             "site_opened": 3,
             "post_tour_manager_cta_shown": 2,
             "manager_requested": 1,
@@ -126,8 +126,8 @@
                 "max_seconds": 2242
             },
             "drop_points": {
-                "tours_opened": 2,
                 "site_open": 2,
+                "tours_opened": 1,
                 "manager_replied": 1,
                 "needs_collected": 1
             },
@@ -142,7 +142,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "18be4badd1cf4ee36ddac9555d1ea8b27602d131",
+        "sha": "12d594a35b9632c4c025bdf6ebb68244b3916eca",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -151,7 +151,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-07T16:57:23Z"
+        "reported_at": "2026-09-07T17:08:42Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -213,7 +213,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-07T16:57:23+00:00",
+        "generated_at": "2026-09-07T17:08:42+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -227,8 +227,8 @@
             },
             "services": {
                 "files": 146,
-                "bytes": 574471,
-                "code_lines": 12402
+                "bytes": 575502,
+                "code_lines": 12421
             },
             "integrations": {
                 "files": 11,
@@ -257,8 +257,8 @@
             },
             "tests": {
                 "files": 222,
-                "bytes": 1189328,
-                "code_lines": 15220
+                "bytes": 1191464,
+                "code_lines": 15245
             },
             "tools": {
                 "files": 45,
@@ -317,8 +317,8 @@
             },
             {
                 "path": "services/DialogueView.php",
-                "lines": 259,
-                "bytes": 14319,
+                "lines": 267,
+                "bytes": 14762,
                 "severity": "observe"
             },
             {
