@@ -82,7 +82,7 @@ namespace {
     paidReaderCheck(\Bitrix\Highloadblock\HighloadBlockTable::$requestedId === 34, 'configured highload block is used');
     $query = \PaidYclidFixture\Data::$query;
     paidReaderCheck(($query['order']['ID'] ?? null) === 'DESC', 'latest records are read first');
-    paidReaderCheck(($query['filter']['@UF_CHATID'] ?? null) === ['-111', '-222'], 'only requested chats are queried');
+    paidReaderCheck(($query['filter']['@UF_CHATID'] ?? null) === [-111, -222], 'only requested chats are queried');
     paidReaderCheck(($query['limit'] ?? null) === 10001, 'legacy result is bounded');
     paidReaderCheck(strpos((string)json_encode($paid), 'SECRET') === false, 'yclid values never leave reader');
 
