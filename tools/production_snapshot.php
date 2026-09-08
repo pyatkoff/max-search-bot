@@ -3,6 +3,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
+require_once $baseDir.'/services/PaidDailyReport.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
@@ -151,6 +152,13 @@ try{
     if(tableExists($pdo,'conversations')){
         $snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
         $snapshot['recent_entry_attribution']=rows($pdo,"SELECT id AS conversation_id,project_key,channel,source_id,entry_channel,attribution_region,attribution_campaign,status,manager_id,started_at,last_message_at FROM conversations WHERE entry_channel IS NOT NULL AND entry_channel<>'' ORDER BY id DESC LIMIT 50");
+    }
+    try {
+        $snapshot['paid_daily']=PaidDailyReport::collect($pdo,$baseDir,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')));
+    } catch (Throwable $e) {
+        // Reporting failure is explicit and cannot fabricate zero-valued cohorts.
+        $reason=$e->getMessage();
+        $snapshot['paid_daily']=['ok'=>false,'error'=>preg_match('/\Apaid_report_[a-z_]+\z/',$reason)?$reason:'paid_report_collection_failed'];
     }
     if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
 

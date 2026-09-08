@@ -398,6 +398,26 @@ The date-flow inventory, value contract, guarded date-selection callback and wiz
 
 The direct mutation inventory is now 27 caller groups and 47 occurrences. The confirmed after-tours phone-return repair adds one classified transition caller without changing trip-value storage. The remaining trip-value entries are canonical storage/application wrappers (`ConversationStateRepository`, `MysqlDialogueStateRepository`, `ExistingWizardStepApplicationService`, `NeedApplicationService` and `MaxSearchApi` compatibility methods), not a caller-proven bypass. Phase D's authorized mutation cleanup and Phase E's proven handoff consolidations are therefore stopped at their current production-green boundary. Do not create another cleanup PR merely to reduce counts. Select new code work only from a confirmed production/customer defect or a newly authorized product priority after fresh evidence; keep all protected mechanisms unchanged.
 
+## Advertising daily reporting
+
+The owner requested daily advertising-only dialogue statistics and accepted a
+simple attribution approximation: a conversation is paid when its chat currently
+has a saved nonempty `yclid`. `paid_daily` in the full autopilot snapshot reports
+seven local calendar-day cohorts for the current project, MAX only, excluding
+explicit tests. Outcomes use the existing LiveSessionAnalyzer definitions and
+only evidence from the conversation start through that local day's end (today
+through capture). Each stage counts a conversation once. `tours_opened` is the
+recorded show-tours action, not proof the external website rendered; `site_opened`
+is a separate recorded event. Missing YCLID is unattributed, not proven organic.
+Repeated conversations can inherit current attribution; metadata can be overwritten
+by later starts. This is not historical click-level or first-touch attribution.
+Only aggregates leave the collector. It reads existing DB/traffic files without
+writes, URLs, goals or messages; no workflow/security boundary changes. The full
+publisher refreshes this report; the hourly live publisher does not. A collection
+failure exposes `paid_daily.ok=false` with no fabricated zero totals; it does not
+change existing technical/manager gate meanings. See #55 for release evidence.
+Rollback is a forward revert through normal gates; no data migration is needed.
+
 ## Protected behavior
 
 A confirmed defect permits only a narrow fix that preserves the values and policies below. Changing any of them requires explicit user authorization for that exact change:
