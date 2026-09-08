@@ -333,6 +333,29 @@ Natural MAX25 traffic remains separate confirmation. Do not repeat or broaden
 this parser repair without another exact producer/live shape and boundary tests;
 producer-side fallback behavior remains a separately authorized project slice.
 
+The owner-authorized paid MAX entry integration shipped and was production
+verified in PR #756. The owner explicitly selected `/new/max2/`, not the retired
+MAX2 entry path. Only fresh MAX `bot_started` metadata can add the optional
+channel-subscription button to the first greeting; both AI and wizard search
+actions remain immediately available. Ordinary restarts cannot reuse old ad
+metadata, and Telegram/organic/invalid/missing-config entries keep their previous
+greeting. `ChannelOfferService::startUrl` uses the configured subscription bot's
+Mini App and projects only the three numeric fields accepted by `/new/max2/`.
+Search keeps `entry_channel` in attribution and its existing suppression policy;
+the Mini App receives YCLID/region/campaign with its documented missing-field
+defaults. Exact bounds, caller ownership and rollback are in
+`docs/MAX2_PAID_ENTRY.md`.
+
+`channel_offer_start` means only a successfully delivered offer, never a click,
+subscription or Metrica conversion. Signed MAX user matching, existing persistence
+and regional channel opening remain in MAX2; actual membership monitoring belongs
+to the separate bot recorded in the neighboring cutover evidence. No neighboring
+runtime, registration, exporter, Metrica/goal, lead-delivery, shift, routing or
+Tourvisor/search-URL change was included. Natural ad entry through Mini App to an
+actual subscription and conversion receipt remains unconfirmed. Do not repeat #756,
+copy MAX2's backend, restore its retired webhook or infer permission to change those
+protected mechanisms from this completed integration.
+
 The Manager Workspace task-draft lifecycle repair shipped and was production
 verified in PR #750. The isolated persistence module previously tried to wrap an
 `options.onCreate` callback that the canonical task renderer never accepted, so a
