@@ -3,13 +3,36 @@ require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/TrafficAttributionService.php';
 
 /**
- * Owns the pre-results channel offer policy.
+ * Owns the channel offer policy at paid MAX entry and before results.
  * The offer is advisory only: it never blocks or changes tour-search/manager routing.
  */
 class ChannelOfferService
 {
+    /** Current MAX bot_started metadata only; ordinary restarts must not reuse old traffic. */
+    public static function startUrl(array $entryMeta): string
+    {
+        if (strtolower((string)ProjectConfig::get('messenger.provider', 'max')) !== 'max') return '';
+        $yclid = (string)($entryMeta['yclid'] ?? '');
+        $region = (string)($entryMeta['region_id'] ?? '');
+        $campaign = (string)($entryMeta['campaign_id'] ?? '');
+        // /new/max2/ accepts three numeric fields; its documented defaults are region 1 / campaign 0.
+        if ($region === '') $region = '1';
+        if ($campaign === '') $campaign = '0';
+        if (!preg_match('/\A[0-9]{6,64}\z/', $yclid) || !preg_match('/[1-9]/', $yclid)) return '';
+        if (!preg_match('/\A[0-9]{1,20}\z/', $region) || !preg_match('/[1-9]/', $region)) return '';
+        if (!preg_match('/\A[0-9]{1,20}\z/', $campaign)) return '';
+        if (self::sourceSuppressesOffer($entryMeta)) return '';
+        $botUrl = (string)ProjectConfig::get('messenger.miniapp_bot_url', '');
+        if ($botUrl === '') return '';
+        // entry_channel remains in Search attribution/suppression; MAX2 does not accept that suffix.
+        return TrafficAttributionService::buildMiniappUrl($botUrl, [
+            'yclid' => $yclid, 'region_id' => $region, 'campaign_id' => $campaign,
+        ]);
+    }
+
     public static function channelUrl(string $provider, array $meta, string $latestYclid = ''): string
     {
         $provider = strtolower(trim($provider));

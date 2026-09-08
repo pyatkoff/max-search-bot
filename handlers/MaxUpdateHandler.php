@@ -65,7 +65,7 @@ class MaxUpdateHandler
             MaxSearchApi::setEditMode($internalId, '');
             if (class_exists('AiShadowObserver')) AiShadowObserver::clear($internalId);
             if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
-            MaxSearchApi::showStart($internalId);
+            MaxSearchApi::showStart($internalId, $meta);
         }
         elseif (in_array($type, ['message_created','message_callback'], true) && $userId) {
             $incoming = MaxIncomingAdapter::fromUpdate($update);

@@ -57,7 +57,7 @@ class MaxSearchApi extends MaxSearchBase
         ];
     }
 
-    public static function showStart($chatID){ return DialogueView::start($chatID); }
+    public static function showStart($chatID, array $entryMeta = []){ return DialogueView::start($chatID, $entryMeta); }
     public static function showAiStart($chatID){ return DialogueView::aiStart($chatID); }
     public static function showCityButtons($chatID){ return DialogueView::city($chatID); }
     public static function showCityOtherButtons($chatID){ return DialogueView::cityOther($chatID); }
