@@ -6,21 +6,32 @@ require_once __DIR__ . '/CalendarViewModel.php';
 require_once __DIR__ . '/ManagerRequestService.php';
 require_once __DIR__ . '/PostTourService.php';
 require_once __DIR__ . '/SearchDateSummary.php';
+require_once __DIR__ . '/ChannelOfferService.php';
 
 class DialogueView
 {
-    public static function start($chatId): bool
+    public static function start($chatId, array $entryMeta = []): bool
     {
         $buttons = ButtonFactory::rows(
             ButtonFactory::row(ButtonFactory::callback('✨ Подобрать с AI','ai_start')),
             ButtonFactory::row(ButtonFactory::callback('🧭 Подобрать по шагам','start_search'))
         );
-        return self::sendAndStatus($chatId,
-            "🌴 <b>Давайте найдём ваш отдых</b>\n\nМожно описать пожелания своими словами — или пройти короткий подбор по шагам.",
+        $text = "🌴 <b>Давайте найдём ваш отдых</b>\n\nМожно описать пожелания своими словами — или пройти короткий подбор по шагам.";
+        $channelUrl = ChannelOfferService::startUrl($entryMeta);
+        if ($channelUrl !== '') {
+            $text .= "\n\n🔥 В нашем MAX-канале — горящие туры и снижения цен. Подписка по желанию: можно сразу перейти к подбору.";
+            $buttons[] = ButtonFactory::row(ButtonFactory::url('🔥 Подписаться на канал', $channelUrl));
+        }
+        $ok = self::sendAndStatus($chatId,
+            $text,
             $buttons,
             MaxSearchApi::$statusStart,
             false
         );
+        if ($ok && $channelUrl !== '') {
+            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_start', []); } catch (Throwable $e) {}
+        }
+        return $ok;
     }
 
     public static function aiStart($chatId): bool
