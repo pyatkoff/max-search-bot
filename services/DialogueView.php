@@ -12,15 +12,21 @@ class DialogueView
 {
     public static function start($chatId, array $entryMeta = []): bool
     {
-        $buttons = ButtonFactory::rows(
-            ButtonFactory::row(ButtonFactory::callback('✨ Подобрать с AI','ai_start')),
-            ButtonFactory::row(ButtonFactory::callback('🧭 Подобрать по шагам','start_search'))
-        );
+        $buttons = self::searchModeButtons();
         $text = "🌴 <b>Давайте найдём ваш отдых</b>\n\nМожно описать пожелания своими словами — или пройти короткий подбор по шагам.";
         $channelUrl = ChannelOfferService::startUrl($entryMeta);
         if ($channelUrl !== '') {
-            $text .= "\n\n🔥 В нашем MAX-канале — горящие туры и снижения цен. Подписка по желанию: можно сразу перейти к подбору.";
-            $buttons[] = ButtonFactory::row(ButtonFactory::url('🔥 Подписаться на канал', $channelUrl));
+            // Owner-selected copy from /new/max2/; the search action keeps subscription optional.
+            $text = "<b>🔥 Горящие туры и лучшие предложения AnyTour</b>\n\n"
+                . "Подпишитесь на канал горящих туров от AnyTour, чтобы первыми получать:\n"
+                . "• выгодные туры и акции;\n"
+                . "• подборки по популярным направлениям;\n"
+                . "• предложения с удобными вылетами.\n\n"
+                . "Нажмите кнопку ниже чтобы подписаться 👇";
+            $buttons = ButtonFactory::rows(
+                ButtonFactory::row(ButtonFactory::url('🔥 Подписаться на канал', $channelUrl)),
+                ButtonFactory::row(ButtonFactory::callback('🔎 Подобрать тур', 'search_options'))
+            );
         }
         $ok = self::sendAndStatus($chatId,
             $text,
@@ -32,6 +38,24 @@ class DialogueView
             try { MaxSearchApi::funnelLog($chatId, 'channel_offer_start', []); } catch (Throwable $e) {}
         }
         return $ok;
+    }
+
+    private static function searchModeButtons(): array
+    {
+        return ButtonFactory::rows(
+            ButtonFactory::row(ButtonFactory::callback('✨ Подобрать с AI', 'ai_start')),
+            ButtonFactory::row(ButtonFactory::callback('🧭 Подобрать по шагам', 'start_search'))
+        );
+    }
+
+    public static function searchOptions($chatId): bool
+    {
+        // Presentation only: keep the start boundary, saved data and immediate AI text path.
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons(
+            $chatId,
+            "🌴 <b>Как будем подбирать тур?</b>\n\nВыберите удобный вариант или просто напишите пожелания — я помогу с подбором.",
+            self::searchModeButtons()
+        );
     }
 
     public static function aiStart($chatId): bool
