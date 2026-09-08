@@ -411,8 +411,11 @@ recorded show-tours action, not proof the external website rendered; `site_opene
 is a separate recorded event. Missing YCLID is unattributed, not proven organic.
 Repeated conversations can inherit current attribution; metadata can be overwritten
 by later starts. This is not historical click-level or first-touch attribution.
-Only aggregates leave the collector. It reads existing DB/traffic files without
-writes, URLs, goals or messages; no workflow/security boundary changes. The full
+Only aggregates leave the collector. Legacy production resolves the current saved
+YCLID from its canonical Bitrix highload-block in one bounded read-only batch;
+standalone runtime uses the canonical traffic files. It performs no writes and
+does not change URLs, goals or messages; no workflow/security boundary changes.
+The full
 publisher refreshes this report; the hourly live publisher does not. A collection
 failure exposes `paid_daily.ok=false` with no fabricated zero totals; it does not
 change existing technical/manager gate meanings. See #55 for release evidence.
