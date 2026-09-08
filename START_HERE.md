@@ -320,6 +320,19 @@ and do not infer from it that every repeated `show_tours` callback has the same
 cause; callback-generation changes still require separate exact evidence and
 authorization.
 
+The MAX25 positional region-attribution repair shipped and was production
+verified in PR #754. Owner-provided producer evidence confirmed the complete
+`YCLID_REGION_campaign_CAMPAIGN` handoff shape; the canonical parser previously
+retained YCLID and campaign but dropped its numeric region. It now recognizes
+only that complete ASCII-numeric shape and passes the region into the existing
+attribution storage path. Existing incoming payloads, outbound miniapp URL
+generation, raw payload and string-ID preservation, legacy formats, Metrica,
+lead delivery, shifts, routing/bonuses, webhook registration, schemas and
+historical records are unchanged. No producer-side MAX25 file was changed.
+Natural MAX25 traffic remains separate confirmation. Do not repeat or broaden
+this parser repair without another exact producer/live shape and boundary tests;
+producer-side fallback behavior remains a separately authorized project slice.
+
 The Manager Workspace task-draft lifecycle repair shipped and was production
 verified in PR #750. The isolated persistence module previously tried to wrap an
 `options.onCreate` callback that the canonical task renderer never accepted, so a
