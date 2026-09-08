@@ -53,7 +53,7 @@ $legacy=PaidDailyReport::collect($pdo,$tmp,'search',$now,static function(array $
     return ['-111'=>true,'-333'=>true,'-999'=>true];
 },'current_saved_bitrix_yclid');
 $legacyDays=array_column($legacy['days'],null,'date');
-sort($resolvedChats);
+sort($resolvedChats,SORT_STRING);
 ck($resolvedChats===['-111','-333','-444'],'batch resolver receives unique in-scope chat keys');
 ck($legacy['attribution_basis']==='current_saved_bitrix_yclid','selected attribution basis is public');
 ck($legacyDays['2026-09-04']['paid_new']===2 && $legacyDays['2026-09-04']['without_saved_yclid']===1,'external resolver drives paid cohort without leaking extra keys');
