@@ -421,6 +421,15 @@ failure exposes `paid_daily.ok=false` with no fabricated zero totals; it does no
 change existing technical/manager gate meanings. See #55 for release evidence.
 Rollback is a forward revert through normal gates; no data migration is needed.
 
+The fresh #760 production capture proved the active runtime is standalone, not
+legacy Bitrix, and therefore could not recover historical YCLIDs from HL34. Paid
+MAX `bot_started` handling must persist the canonical traffic metadata before any
+optional legacy YCLID mirror, and the mirror must run only when Bitrix is loaded.
+This preserves the accepted current-saved-YCLID approximation and prevents a paid
+standalone start from aborting before its greeting. It does not reconstruct past
+click attribution: advertising cohorts become measurable only from a subsequent
+real start carrying a supported payload. Do not classify missing YCLID as organic.
+
 ## Protected behavior
 
 A confirmed defect permits only a narrow fix that preserves the values and policies below. Changing any of them requires explicit user authorization for that exact change:
