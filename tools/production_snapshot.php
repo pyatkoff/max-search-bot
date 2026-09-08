@@ -4,6 +4,8 @@ $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
+require_once $baseDir.'/services/LegacyPaidYclidReader.php';
+require_once $baseDir.'/services/RuntimeBootstrap.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
@@ -154,7 +156,18 @@ try{
         $snapshot['recent_entry_attribution']=rows($pdo,"SELECT id AS conversation_id,project_key,channel,source_id,entry_channel,attribution_region,attribution_campaign,status,manager_id,started_at,last_message_at FROM conversations WHERE entry_channel IS NOT NULL AND entry_channel<>'' ORDER BY id DESC LIMIT 50");
     }
     try {
-        $snapshot['paid_daily']=PaidDailyReport::collect($pdo,$baseDir,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')));
+        $paidChatResolver=null;
+        $paidAttributionBasis='current_saved_traffic_yclid';
+        if(!RuntimeBootstrap::isStandalone()){
+            RuntimeBootstrap::boot($baseDir);
+            require_once $baseDir.'/maxsearchclass.php';
+            $paidChatResolver=static fn(array $chatKeys):array=>LegacyPaidYclidReader::paidChatKeys($chatKeys,(int)MaxSearchApi::$yclidHL);
+            $paidAttributionBasis='current_saved_bitrix_yclid';
+        }
+        $snapshot['paid_daily']=PaidDailyReport::collect(
+            $pdo,$baseDir,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')),
+            $paidChatResolver,$paidAttributionBasis
+        );
     } catch (Throwable $e) {
         // Reporting failure is explicit and cannot fabricate zero-valued cohorts.
         $reason=$e->getMessage();
