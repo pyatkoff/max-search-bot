@@ -56,8 +56,11 @@ class MaxUpdateHandler
             $campaign=(string)($meta['campaign_id']??'');
             $entry=(string)($meta['entry_channel']??'');
 
-            if ($yclid !== '') MaxSearchApi::addYclid($internalId, $yclid);
+            // Standalone production has no Bitrix classes. Persist its canonical
+            // attribution before the optional legacy mirror so a paid start can
+            // never abort before the greeting and dialogue reset.
             TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry);
+            if ($yclid !== '' && class_exists('Bitrix\\Main\\Loader')) MaxSearchApi::addYclid($internalId, $yclid);
             MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload,'entry_channel'=>$entry]);
 
             MaxSearchApi::cancelToursFollowup($internalId);
