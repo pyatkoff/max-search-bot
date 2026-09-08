@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-08T12:08:05+00:00",
+    "generated_at": "2026-09-08T12:15:31+00:00",
     "production": {
-        "sha": "47d37ae9f3acfeead10d9cd1b5febe503cd5ec25",
+        "sha": "975d3108648dce77c5fe0f538e2ceb73080bf3e4",
         "branch": "main"
     },
     "migrations": {
@@ -28,10 +28,10 @@
             "ok": true,
             "warning_after_seconds": 90,
             "stuck_after_seconds": 600,
-            "pending_count": 0,
+            "pending_count": 1,
             "overdue_count": 0,
             "stuck_count": 0,
-            "oldest_wait_seconds": 0,
+            "oldest_wait_seconds": 78,
             "routing_blocked_count": 0
         },
         "push": {
@@ -51,23 +51,23 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 1,
-                "waiting": 9,
-                "assigned_to_others": 52
+                "waiting": 10,
+                "assigned_to_others": 51
             },
             {
                 "role": "admin",
                 "is_working": false,
                 "all": 200,
                 "mine": 0,
-                "waiting": 9,
-                "assigned_to_others": 52
+                "waiting": 10,
+                "assigned_to_others": 51
             },
             {
                 "role": "manager",
                 "is_working": true,
                 "all": 200,
                 "mine": 24,
-                "waiting": 1,
+                "waiting": 2,
                 "assigned_to_others": 0
             },
             {
@@ -75,7 +75,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 131,
-                "waiting": 8,
+                "waiting": 9,
                 "assigned_to_others": 0
             },
             {
@@ -83,7 +83,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 0,
-                "waiting": 0,
+                "waiting": 1,
                 "assigned_to_others": 0
             }
         ]
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-08 11:07:53",
+        "since_utc": "2026-09-08 11:15:22",
         "summary": {
             "sessions": 6,
             "raw_sessions": 6,
@@ -109,7 +109,7 @@
                 "unresolved": 0
             },
             "started": 6,
-            "needs_collected": 4,
+            "needs_collected": 5,
             "tours_opened": 3,
             "site_opened": 3,
             "post_tour_manager_cta_shown": 1,
@@ -127,8 +127,9 @@
             },
             "drop_points": {
                 "manager_replied": 3,
-                "collecting_needs": 2,
-                "site_open": 1
+                "site_open": 1,
+                "needs_collected": 1,
+                "collecting_needs": 1
             },
             "flags": {
                 "rapid_date_reselection": 1,
@@ -142,7 +143,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "47d37ae9f3acfeead10d9cd1b5febe503cd5ec25",
+        "sha": "975d3108648dce77c5fe0f538e2ceb73080bf3e4",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -151,7 +152,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-08T12:08:05Z"
+        "reported_at": "2026-09-08T12:15:31Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -161,15 +162,15 @@
         "window_hours": null,
         "since_utc": "2026-09-07 22:00:00",
         "summary": {
-            "sessions": 21,
-            "raw_sessions": 21,
+            "sessions": 22,
+            "raw_sessions": 22,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 21,
+                "resolved": 22,
                 "unresolved": 0
             },
-            "started": 21,
-            "needs_collected": 18,
+            "started": 22,
+            "needs_collected": 19,
             "tours_opened": 16,
             "site_opened": 14,
             "post_tour_manager_cta_shown": 6,
@@ -189,8 +190,8 @@
                 "site_open": 8,
                 "manager_replied": 6,
                 "collecting_needs": 3,
+                "needs_collected": 2,
                 "tours_opened": 2,
-                "needs_collected": 1,
                 "customer_replied_after_manager": 1
             },
             "flags": {
@@ -199,8 +200,8 @@
                 "rapid_date_reselection": 1
             },
             "calendar_day": {
-                "conversations_started": 18,
-                "needs_collected_from_started": 15,
+                "conversations_started": 19,
+                "needs_collected_from_started": 16,
                 "tours_opened_from_started": 14,
                 "site_opened": 14,
                 "post_tour_manager_cta_shown": 6,
@@ -211,7 +212,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-08T12:08:05+00:00",
+        "generated_at": "2026-09-08T12:15:31+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
@@ -220,13 +221,13 @@
             },
             "actions": {
                 "files": 9,
-                "bytes": 23362,
-                "code_lines": 590
+                "bytes": 23857,
+                "code_lines": 601
             },
             "services": {
                 "files": 146,
-                "bytes": 577970,
-                "code_lines": 12459
+                "bytes": 579255,
+                "code_lines": 12483
             },
             "integrations": {
                 "files": 11,
@@ -255,8 +256,8 @@
             },
             "tests": {
                 "files": 223,
-                "bytes": 1203507,
-                "code_lines": 15470
+                "bytes": 1208174,
+                "code_lines": 15542
             },
             "tools": {
                 "files": 45,
@@ -278,15 +279,21 @@
                 "severity": "observe"
             },
             {
+                "path": "services/DialogueView.php",
+                "lines": 302,
+                "bytes": 16767,
+                "severity": "observe"
+            },
+            {
                 "path": "tests/run_departure_city_callback_application_regression.php",
                 "lines": 284,
                 "bytes": 15420,
                 "severity": "observe"
             },
             {
-                "path": "services/DialogueView.php",
+                "path": "actions/callbacks/WizardCallbackAction.php",
                 "lines": 278,
-                "bytes": 15482,
+                "bytes": 11852,
                 "severity": "observe"
             },
             {
@@ -311,12 +318,6 @@
                 "path": "tests/run_departure_city_free_text_application_regression.php",
                 "lines": 269,
                 "bytes": 15499,
-                "severity": "observe"
-            },
-            {
-                "path": "actions/callbacks/WizardCallbackAction.php",
-                "lines": 267,
-                "bytes": 11357,
                 "severity": "observe"
             },
             {
