@@ -23,16 +23,16 @@ final class LegacyPaidYclidReader
         }
         if (!$keys) return [];
 
-        if (!class_exists('\\Bitrix\\Main\\Loader')
-            || !\\Bitrix\\Main\\Loader::includeModule('highloadblock')) {
+        if (!class_exists('Bitrix\\Main\\Loader')
+            || !\Bitrix\Main\Loader::includeModule('highloadblock')) {
             throw new RuntimeException('paid_report_legacy_store_unavailable');
         }
 
-        $block = \\Bitrix\\Highloadblock\\HighloadBlockTable::getById($highloadBlockId)->fetch();
+        $block = \Bitrix\Highloadblock\HighloadBlockTable::getById($highloadBlockId)->fetch();
         if (!is_array($block) || !$block) {
             throw new RuntimeException('paid_report_legacy_store_unavailable');
         }
-        $entity = \\Bitrix\\Highloadblock\\HighloadBlockTable::compileEntity($block);
+        $entity = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity($block);
         $dataClass = $entity->getDataClass();
         $result = $dataClass::getList([
             'order' => ['ID' => 'DESC'],
