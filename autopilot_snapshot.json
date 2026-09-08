@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-08T02:31:48+00:00",
+    "generated_at": "2026-09-08T04:20:18+00:00",
     "production": {
         "sha": "f4e74bd7b73229524e83572c439fa3af69a313c3",
         "branch": "main"
@@ -52,7 +52,7 @@
                 "all": 200,
                 "mine": 1,
                 "waiting": 9,
-                "assigned_to_others": 58
+                "assigned_to_others": 55
             },
             {
                 "role": "admin",
@@ -60,7 +60,7 @@
                 "all": 200,
                 "mine": 0,
                 "waiting": 9,
-                "assigned_to_others": 58
+                "assigned_to_others": 55
             },
             {
                 "role": "manager",
@@ -99,19 +99,19 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-08 01:31:39",
+        "since_utc": "2026-09-08 03:20:08",
         "summary": {
-            "sessions": 0,
-            "raw_sessions": 0,
+            "sessions": 3,
+            "raw_sessions": 3,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 0,
+                "resolved": 3,
                 "unresolved": 0
             },
-            "started": 0,
-            "needs_collected": 0,
-            "tours_opened": 0,
-            "site_opened": 0,
+            "started": 3,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "site_opened": 2,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
             "manager_replied": 0,
@@ -125,7 +125,10 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": [],
+            "drop_points": {
+                "site_open": 2,
+                "collecting_needs": 1
+            },
             "flags": []
         }
     },
@@ -143,7 +146,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-08T02:31:48Z"
+        "reported_at": "2026-09-08T04:20:18Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -153,17 +156,17 @@
         "window_hours": null,
         "since_utc": "2026-09-07 22:00:00",
         "summary": {
-            "sessions": 0,
-            "raw_sessions": 0,
+            "sessions": 3,
+            "raw_sessions": 3,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 0,
+                "resolved": 3,
                 "unresolved": 0
             },
-            "started": 0,
-            "needs_collected": 0,
-            "tours_opened": 0,
-            "site_opened": 0,
+            "started": 3,
+            "needs_collected": 2,
+            "tours_opened": 2,
+            "site_opened": 2,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
             "manager_replied": 0,
@@ -177,13 +180,16 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": [],
+            "drop_points": {
+                "site_open": 2,
+                "collecting_needs": 1
+            },
             "flags": [],
             "calendar_day": {
-                "conversations_started": 0,
-                "needs_collected_from_started": 0,
-                "tours_opened_from_started": 0,
-                "site_opened": 0,
+                "conversations_started": 2,
+                "needs_collected_from_started": 1,
+                "tours_opened_from_started": 1,
+                "site_opened": 2,
                 "post_tour_manager_cta_shown": 0,
                 "manager_requested": 0,
                 "manager_replied": 0,
@@ -192,7 +198,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-08T02:31:48+00:00",
+        "generated_at": "2026-09-08T04:20:17+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
