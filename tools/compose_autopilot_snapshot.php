@@ -101,6 +101,7 @@ try{
             'architecture'=>'architecture_inventory.json',
         ],
     ];
+    if(isset($production['paid_daily'])) $snapshot['paid_daily']=$production['paid_daily'];
     if(is_array($daily)){
         $snapshot['daily']=[
             'window_hours'=>$daily['window_hours']??null,
