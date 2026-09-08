@@ -47,6 +47,16 @@ ck($days['2026-09-08']['paid_new']===1 && $days['2026-09-08']['tours_opened']===
 ck($days['2026-09-04']['partial']===false,'past day complete');
 $encoded=json_encode($r);foreach(['1234567890123456','SECRET_PAYLOAD','PRIVATE_REPLY','external_chat_id','conversation_id','message_tail'] as $secret)ck(strpos($encoded,$secret)===false,'aggregate privacy '.$secret);
 ck(file_get_contents($tmp.'/traffic/-111.json')===$before && !file_exists($tmp.'/traffic/-333.json'),'traffic reads never create or update records');
+$resolvedChats=[];
+$legacy=PaidDailyReport::collect($pdo,$tmp,'search',$now,static function(array $chatKeys)use(&$resolvedChats):array{
+    $resolvedChats=$chatKeys;
+    return ['-111'=>true,'-333'=>true,'-999'=>true];
+},'current_saved_bitrix_yclid');
+$legacyDays=array_column($legacy['days'],null,'date');
+sort($resolvedChats);
+ck($resolvedChats===['-111','-333','-444'],'batch resolver receives unique in-scope chat keys');
+ck($legacy['attribution_basis']==='current_saved_bitrix_yclid','selected attribution basis is public');
+ck($legacyDays['2026-09-04']['paid_new']===2 && $legacyDays['2026-09-04']['without_saved_yclid']===1,'external resolver drives paid cohort without leaking extra keys');
 file_put_contents($tmp.'/traffic/-111.json','broken');
 try{PaidDailyReport::collect($pdo,$tmp,'search',$now);throw new RuntimeException('expected invalid file failure');}catch(RuntimeException $e){ck($e->getMessage()==='paid_report_invalid_traffic_file','corrupt evidence is not counted as organic');}
 file_put_contents($tmp.'/traffic/-111.json',$before);
