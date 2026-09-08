@@ -1,23 +1,23 @@
 {
     "ok": true,
-    "generated_at": "2026-09-08T12:14:34+00:00",
+    "generated_at": "2026-09-08T12:45:54+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 22,
-        "raw_sessions": 22,
+        "sessions": 23,
+        "raw_sessions": 23,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 22,
+            "resolved": 23,
             "unresolved": 0
         },
-        "started": 22,
-        "needs_collected": 19,
-        "tours_opened": 16,
-        "site_opened": 14,
-        "post_tour_manager_cta_shown": 6,
+        "started": 23,
+        "needs_collected": 20,
+        "tours_opened": 18,
+        "site_opened": 16,
+        "post_tour_manager_cta_shown": 8,
         "manager_requested": 7,
         "manager_replied": 7,
         "customer_replied_after_manager": 1,
@@ -31,24 +31,24 @@
             "max_seconds": 2089
         },
         "drop_points": {
-            "site_open": 8,
+            "site_open": 10,
             "manager_replied": 6,
             "collecting_needs": 3,
-            "needs_collected": 2,
             "tours_opened": 2,
+            "needs_collected": 1,
             "customer_replied_after_manager": 1
         },
         "flags": {
             "repeated_callback_input": 5,
             "excessive_turns": 4,
-            "rapid_date_reselection": 1
+            "rapid_date_reselection": 2
         },
         "calendar_day": {
-            "conversations_started": 19,
-            "needs_collected_from_started": 16,
-            "tours_opened_from_started": 14,
-            "site_opened": 14,
-            "post_tour_manager_cta_shown": 6,
+            "conversations_started": 20,
+            "needs_collected_from_started": 17,
+            "tours_opened_from_started": 16,
+            "site_opened": 16,
+            "post_tour_manager_cta_shown": 8,
             "manager_requested": 7,
             "manager_replied": 7,
             "customer_replied_after_manager": 1
