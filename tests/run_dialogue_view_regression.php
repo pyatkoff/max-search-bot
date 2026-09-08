@@ -11,8 +11,9 @@ require_once __DIR__ . '/../services/CallbackGeneration.php';
 class ViewTestMessenger implements MessengerInterface {
     public array $sent = [];
     public bool $contactSucceeds = true;
+    public bool $sendSucceeds = true;
     public function send($chatId, string $text): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>[]]; return true; }
-    public function sendWithButtons($chatId, string $text, array $buttons): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>$buttons]; return true; }
+    public function sendWithButtons($chatId, string $text, array $buttons): bool { $this->sent[]=['chat'=>$chatId,'text'=>$text,'buttons'=>$buttons]; return $this->sendSucceeds; }
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool {
         $this->sent[]=['chat'=>$chatId,'text'=>$text,'contact'=>true,'manual'=>$manualCallback,'back'=>$backCallback];
         return $this->contactSucceeds;
@@ -23,13 +24,14 @@ class MaxSearchApi {
     public static array $statuses=[];
     public static array $statusValues=[];
     public static int $deletes=0;
+    public static array $events=[];
     public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
     public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];}
     public static function saveLastValue($chatId,$status,$value){self::$statusValues[(int)$status]=(string)$value;}
     public static function getLastClaimForChat($chatId){return ['ID'=>1];}
     public static function getSavedData($chatId){return [self::$statusDate=>'05.10.2026'];}
     public static function formatSavedData($saved){return ['👥 Туристы: 2 взрослых','🌙 Ночей: 7'];}
-    public static function funnelLog($chatId,$event,$details=[]){return true;}
+    public static function funnelLog($chatId,$event,$details=[]){self::$events[]=$event;return true;}
     public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}
 }
 require_once __DIR__ . '/../services/DialogueView.php';
@@ -102,6 +104,49 @@ dvCheck('final check edit keeps normalized action',$parsed[2]['payload']??null,'
 dvCheck('final check buttons share one generation',count($generations),1);
 dvCheck('final check generation is persisted on check state',MaxSearchApi::$statusValues[74]??null,$generations[0]??null);
 dvCheck('final check status remains canonical',MaxSearchApi::$statuses[count(MaxSearchApi::$statuses)-1]??null,[16,74]);
+
+// Advertising entry reuses MAX2's configured MiniApp and the canonical payload builder.
+$config=ProjectConfig::all();
+foreach (['1234567890123456_region_213_campaign_42','1234567890123456_213_campaign_42','1234567890123456_entry_paid_region_213_campaign_42'] as $payload) {
+    $meta=TrafficAttributionService::parseStartPayload($payload);
+    $statusesBefore=count(MaxSearchApi::$statuses);
+    $eventsBefore=count(MaxSearchApi::$events);
+    dvCheck('paid start delivered: '.$payload,DialogueView::start(-900000001,$meta),true);
+    $sent=$m->sent[count($m->sent)-1];
+    dvCheck('paid start preserves AI button',$sent['buttons'][0][0]['callback_data'],'ai_start');
+    dvCheck('paid start preserves wizard button',$sent['buttons'][1][0]['callback_data'],'start_search');
+    dvCheck('paid start opens existing MAX2 with all attribution',$sent['buttons'][2][0]['url'],
+        'https://max.ru/id9704048781_2_bot?startapp=1234567890123456_region_213_campaign_42');
+    dvCheck('subscription is explicitly optional',strpos($sent['text'],'Подписка по желанию')!==false,true);
+    dvCheck('paid start changes status once',count(MaxSearchApi::$statuses),$statusesBefore+1);
+    dvCheck('paid start retains start state',MaxSearchApi::$statuses[$statusesBefore],[-900000001,64]);
+    dvCheck('offer is not a subscription conversion',array_slice(MaxSearchApi::$events,$eventsBefore),['channel_offer_start']);
+}
+foreach (['','0','ordinary_entry','12345_region_213_campaign_42','000000_region_213_campaign_42','123456789_region_0_campaign_42','123456789_region_unknown_campaign_42','123456789_region_213_campaign_unknown'] as $payload) {
+    DialogueView::start(-900000001,TrafficAttributionService::parseStartPayload($payload));
+    dvCheck('non-ad start keeps two search buttons: '.$payload,count($m->sent[count($m->sent)-1]['buttons']),2);
+}
+DialogueView::start(-900000001);
+dvCheck('ordinary restart does not reuse preceding paid entry',count($m->sent[count($m->sent)-1]['buttons']),2);
+dvCheck('yclid-only entry uses documented MAX2 defaults',ChannelOfferService::startUrl(TrafficAttributionService::parseStartPayload('123456789')),
+    'https://max.ru/id9704048781_2_bot?startapp=123456789_region_1_campaign_0');
+$meta=TrafficAttributionService::parseStartPayload('1234567890123456_region_213_campaign_42');
+$config['messenger']['provider']='telegram';
+ProjectConfig::resetForTests($config);
+DialogueView::start(900000001,$meta);
+dvCheck('Telegram entry is unchanged',count($m->sent[count($m->sent)-1]['buttons']),2);
+$config['messenger']['provider']='max';
+$config['messenger']['miniapp_bot_url']='';
+ProjectConfig::resetForTests($config);
+DialogueView::start(-900000001,$meta);
+dvCheck('missing MiniApp configuration keeps search usable',count($m->sent[count($m->sent)-1]['buttons']),2);
+ProjectConfig::resetForTests(null);
+$m->sendSucceeds=false;
+$statusesBefore=count(MaxSearchApi::$statuses);
+$eventsBefore=count(MaxSearchApi::$events);
+dvCheck('failed paid greeting reports delivery failure',DialogueView::start(-900000001,$meta),false);
+dvCheck('failed paid greeting does not advance state',count(MaxSearchApi::$statuses),$statusesBefore);
+dvCheck('failed paid greeting does not record an offer',count(MaxSearchApi::$events),$eventsBefore);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
