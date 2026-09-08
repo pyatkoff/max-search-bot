@@ -192,6 +192,7 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_paid_daily_report_regression.php',
         'bash tests/run_encrypted_dialogue_evidence.sh',
         'php tests/run_live_duplicate_back_callback_regression.php',
         'php tests/run_live_september_typo_regression.php',
