@@ -27,6 +27,9 @@ class TrafficAttributionService
             $out['yclid']=$m[1]??'';$out['region_id']=$m[3]??'';$out['campaign_id']=$m[4]??'';
         }elseif(preg_match('/^_?(\d{6,})_r_([^_]+)(?:_c_([^_]+))?/i',$clean,$m)){
             $out['yclid']=$m[1]??'';$out['region_id']=$m[2]??'';$out['campaign_id']=$m[3]??'';
+        }elseif(preg_match('/\A([0-9]{6,})_([0-9]+)_campaign_([0-9]+)\z/i',$clean,$m)){
+            // MAX25 positional payload; keep IDs as strings and all legacy formats intact.
+            $out['yclid']=$m[1];$out['region_id']=$m[2];$out['campaign_id']=$m[3];
         }elseif(preg_match('/^(\d{6,})/',$clean,$m)){
             $out['yclid']=$m[1]??'';
         }
