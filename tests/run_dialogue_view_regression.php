@@ -25,16 +25,29 @@ class MaxSearchApi {
     public static array $statusValues=[];
     public static int $deletes=0;
     public static array $events=[];
+    public static int $currentStatus=64;
+    public static bool $probeAi=false;
+    public static function getCurentStatus($chatId){return self::$currentStatus;}
+    public static function getAiSearchContext($chatId){return [];}
+    public static function getAiMissingFields($chatId){return ['city'];}
     public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
-    public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];}
+    public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];self::$currentStatus=(int)$status;}
     public static function saveLastValue($chatId,$status,$value){self::$statusValues[(int)$status]=(string)$value;}
     public static function getLastClaimForChat($chatId){return ['ID'=>1];}
     public static function getSavedData($chatId){return [self::$statusDate=>'05.10.2026'];}
     public static function formatSavedData($saved){return ['👥 Туристы: 2 взрослых','🌙 Ночей: 7'];}
-    public static function funnelLog($chatId,$event,$details=[]){self::$events[]=$event;return true;}
+    public static function funnelLog($chatId,$event,$details=[]){
+        self::$events[]=$event;
+        // Stop at the real AI handler's entry, before any external AI call.
+        if(self::$probeAi && $event==='ai_text') throw new AiEntryReached((string)($details['text']??''));
+        return true;
+    }
     public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}
 }
 require_once __DIR__ . '/../services/DialogueView.php';
+require_once __DIR__ . '/../services/DialogueController.php';
+class AiEntryReached extends RuntimeException {}
+define('AI_SHADOW_V2', false);
 
 $passed=0;$failed=0;
 function dvCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
@@ -113,11 +126,16 @@ foreach (['1234567890123456_region_213_campaign_42','1234567890123456_213_campai
     $eventsBefore=count(MaxSearchApi::$events);
     dvCheck('paid start delivered: '.$payload,DialogueView::start(-900000001,$meta),true);
     $sent=$m->sent[count($m->sent)-1];
-    dvCheck('paid start preserves AI button',$sent['buttons'][0][0]['callback_data'],'ai_start');
-    dvCheck('paid start preserves wizard button',$sent['buttons'][1][0]['callback_data'],'start_search');
-    dvCheck('paid start opens existing MAX2 with all attribution',$sent['buttons'][2][0]['url'],
+    dvCheck('paid start offers exactly two actions',count($sent['buttons']),2);
+    dvCheck('paid start leads with subscription',$sent['buttons'][0][0]['text'],'🔥 Подписаться на канал');
+    dvCheck('paid start offers immediate tour selection',$sent['buttons'][1][0],['text'=>'🔎 Подобрать тур','callback_data'=>'search_options']);
+    dvCheck('paid start opens existing MAX2 with all attribution',$sent['buttons'][0][0]['url'],
         'https://max.ru/id9704048781_2_bot?startapp=1234567890123456_region_213_campaign_42');
-    dvCheck('subscription is explicitly optional',strpos($sent['text'],'Подписка по желанию')!==false,true);
+    dvCheck('paid start uses the MAX2 invitation',$sent['text'],
+        "<b>🔥 Горящие туры и лучшие предложения AnyTour</b>\n\n"
+        . "Подпишитесь на канал горящих туров от AnyTour, чтобы первыми получать:\n"
+        . "• выгодные туры и акции;\n• подборки по популярным направлениям;\n"
+        . "• предложения с удобными вылетами.\n\nНажмите кнопку ниже чтобы подписаться 👇");
     dvCheck('paid start changes status once',count(MaxSearchApi::$statuses),$statusesBefore+1);
     dvCheck('paid start retains start state',MaxSearchApi::$statuses[$statusesBefore],[-900000001,64]);
     dvCheck('offer is not a subscription conversion',array_slice(MaxSearchApi::$events,$eventsBefore),['channel_offer_start']);
@@ -125,6 +143,7 @@ foreach (['1234567890123456_region_213_campaign_42','1234567890123456_213_campai
 foreach (['','0','ordinary_entry','12345_region_213_campaign_42','000000_region_213_campaign_42','123456789_region_0_campaign_42','123456789_region_unknown_campaign_42','123456789_region_213_campaign_unknown'] as $payload) {
     DialogueView::start(-900000001,TrafficAttributionService::parseStartPayload($payload));
     dvCheck('non-ad start keeps two search buttons: '.$payload,count($m->sent[count($m->sent)-1]['buttons']),2);
+    dvCheck('non-ad start keeps direct AI: '.$payload,$m->sent[count($m->sent)-1]['buttons'][0][0]['callback_data'],'ai_start');
 }
 DialogueView::start(-900000001);
 dvCheck('ordinary restart does not reuse preceding paid entry',count($m->sent[count($m->sent)-1]['buttons']),2);
@@ -147,6 +166,59 @@ $eventsBefore=count(MaxSearchApi::$events);
 dvCheck('failed paid greeting reports delivery failure',DialogueView::start(-900000001,$meta),false);
 dvCheck('failed paid greeting does not advance state',count(MaxSearchApi::$statuses),$statusesBefore);
 dvCheck('failed paid greeting does not record an offer',count(MaxSearchApi::$events),$eventsBefore);
+
+$m->sendSucceeds=true;
+$chat=-900000000-random_int(10000,999999);
+$controller=new DialogueController();
+$meta=TrafficAttributionService::parseStartPayload('1234567890123456_213_campaign_42');
+DialogueView::start($chat,$meta);
+$statesBefore=MaxSearchApi::$statuses;
+$valuesBefore=MaxSearchApi::$statusValues;
+$deletesBefore=MaxSearchApi::$deletes;
+$eventsBefore=MaxSearchApi::$events;
+$sentBefore=count($m->sent);
+// Exercise normalized callback dispatch with the real controller/action/view/guard.
+$query=['from'=>['id'=>$chat],'data'=>'search_options'];
+dvCheck('tour button opens mode chooser',(new CallbackController())->handle($query),true);
+dvCheck('chooser sends one message',count($m->sent),$sentBefore+1);
+dvCheck('chooser preserves direct AI and wizard actions',array_column(array_merge(...$m->sent[count($m->sent)-1]['buttons']),'callback_data'),['ai_start','start_search']);
+dvCheck('chooser never resets start or advances state',MaxSearchApi::$statuses,$statesBefore);
+dvCheck('chooser preserves saved needs',MaxSearchApi::$statusValues,$valuesBefore);
+dvCheck('chooser preserves channel invitation',MaxSearchApi::$deletes,$deletesBefore);
+dvCheck('chooser is not a subscription or search-start event',MaxSearchApi::$events,$eventsBefore);
+dvCheck('rapid repeated chooser callback is consumed',(new CallbackController())->handle($query),true);
+dvCheck('rapid repeat does not send another chooser',count($m->sent),$sentBefore+1);
+
+// Free text before any button, and after opening the chooser, enters the actual
+// canonical AI handler with unchanged text. The test stops before remote inference.
+foreach (['first_screen','mode_chooser'] as $surface) {
+    if($surface==='first_screen') DialogueView::start($chat,$meta);
+    else DialogueView::searchOptions($chat);
+    MaxSearchApi::$probeAi=true;
+    $phrase='Хочу отдохнуть у моря';
+    $reached=null;
+    try { $controller->handleIncomingMessage(['platform'=>'max','user'=>['chat_id'=>$chat],'text'=>$phrase]); }
+    catch(AiEntryReached $e){$reached=$e->getMessage();}
+    catch(Throwable $e){$reached='UNEXPECTED: '.$e->getMessage();}
+    MaxSearchApi::$probeAi=false;
+    dvCheck($surface.' text enters canonical AI without button',$reached,$phrase);
+}
+foreach ([76,65,74,75] as $activeStatus) {
+    MaxSearchApi::$currentStatus=$activeStatus;
+    $sentBefore=count($m->sent);
+    dvCheck('stale tour chooser is consumed in '.$activeStatus,(new CallbackController())->handle($query),true);
+    dvCheck('stale chooser cannot interrupt active flow',count($m->sent),$sentBefore);
+    dvCheck('stale chooser preserves active status',MaxSearchApi::$currentStatus,$activeStatus);
+}
+MaxSearchApi::$currentStatus=64;
+$failureQuery=['from'=>['id'=>$chat-1],'data'=>'search_options'];
+$m->sendSucceeds=false;
+dvCheck('failed chooser reports failure',(new CallbackController())->handle($failureQuery),false);
+$m->sendSucceeds=true;
+$sentBefore=count($m->sent);
+dvCheck('failed chooser can be retried immediately',(new CallbackController())->handle($failureQuery),true);
+dvCheck('successful retry delivers chooser',count($m->sent),$sentBefore+1);
+foreach ([$chat,$chat-1] as $testChat) @unlink(InteractionGuard::lockPath($testChat,'search_options'));
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);

@@ -14,6 +14,7 @@ class WizardCallbackAction
     public static function handles(string $q): bool
     {
         return $q === 'ai_start'
+            || $q === 'search_options'
             || $q === 'start_search'
             || strpos($q, 'pick_') === 0
             || strpos($q, 'adults_') === 0
@@ -93,6 +94,16 @@ class WizardCallbackAction
 
     public static function handle(int $chatId, string $q): bool
     {
+        if ($q === 'search_options') {
+            return InteractionGuard::runExpectedStatusReplacementCallback(
+                $chatId, $q, 'search_options', (int)MaxSearchApi::$statusStart, 1.0, 0.0,
+                static function (callable $accept) use ($chatId): bool {
+                    $ok = DialogueView::searchOptions($chatId);
+                    if ($ok) $accept();
+                    return $ok;
+                }
+            );
+        }
         if (self::expectedStatusForForwardCallback($q) !== null) {
             return InteractionGuard::synchronized($chatId, 'wizard.forward', static function() use ($chatId, $q): bool {
                 if (self::staleForwardCallback($chatId, $q)) return true;

@@ -8,8 +8,19 @@ The owner explicitly selected `/new/max2/`.
 
 - MAX Search remains `id9704048781_1_bot`. Only `bot_started` passes its freshly
   parsed metadata through `MaxSearchApi::showStart` to `DialogueView::start`.
-- AI and wizard buttons keep their callbacks and order. A third optional channel
-  button opens the configured `id9704048781_2_bot` Mini App via `startapp`.
+- The owner selected the two-action advertising screen on 2026-09-08: the exact
+  MAX2 invitation, then `🔥 Подписаться на канал` and `🔎 Подобрать тур`. The
+  channel button opens the configured `id9704048781_2_bot` Mini App via `startapp`.
+- `search_options` shows the existing AI/wizard choices immediately, without a
+  timer, subscription check, trip reset, state transition or message deletion.
+  The canonical InteractionGuard accepts it only in start state, suppresses rapid
+  repeats and permits immediate retry after failed delivery. Once AI/wizard/check/
+  phone handling has begun, an old chooser button cannot interrupt it.
+- Both advertising screens retain start-state free-text handling: a message goes
+  directly into the existing AI pipeline without requiring either button. The
+  existing AI/wizard action callbacks themselves are unchanged.
+- The invitation is copied from `MaxTransport::sendStart` in the same upstream
+  production.php at the receipt SHA below; no neighboring file is modified.
 - That bot's Mini App is deployed at `https://tour-max.ru/new/max2/` according to
   the neighboring [PR #46](https://github.com/pyatkoff/tour-max/pull/46) execution
   receipt (`docs/MAX2_BOT_START_REPAIR_STATUS.md`, head
@@ -44,6 +55,9 @@ unchanged and therefore keeps its existing size budget.
 The required DialogueView regression exercises fresh paid metadata, both known
 incoming payload shapes, source-tagged input, exact MAX2 URL, organic/restart/TG
 boundaries, invalid fields, missing configuration and failed message delivery.
+It also exercises actual chooser dispatch, stale/duplicate callbacks, retry after
+failed delivery, preservation of state/data/invitation, and actual controller entry
+into the AI handler before any remote inference for text on either start screen.
 Full required CI and the normal exact-SHA production gates are required.
 
 CI/deployment evidence does not prove an actual MAX Mini App click, database match
