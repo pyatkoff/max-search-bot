@@ -336,8 +336,13 @@ producer-side fallback behavior remains a separately authorized project slice.
 The owner-authorized paid MAX entry integration shipped and was production
 verified in PR #756. The owner explicitly selected `/new/max2/`, not the retired
 MAX2 entry path. Only fresh MAX `bot_started` metadata can add the optional
-channel-subscription button to the first greeting; both AI and wizard search
-actions remain immediately available. Ordinary restarts cannot reuse old ad
+channel-subscription button to the first greeting. The owner subsequently selected
+a two-action advertising screen: exact MAX2 invitation, subscription first, then
+`Подобрать тур` revealing the existing AI/wizard choices. No 30-second timer or
+subscription prerequisite is used. Both screens accept immediate free text through
+the existing AI pipeline; the chooser does not reset state/data and ignores stale
+callbacks after the user progresses. See #55 for release verification of this
+owner-authorized refinement. Ordinary restarts cannot reuse old ad
 metadata, and Telegram/organic/invalid/missing-config entries keep their previous
 greeting. `ChannelOfferService::startUrl` uses the configured subscription bot's
 Mini App and projects only the three numeric fields accepted by `/new/max2/`.
