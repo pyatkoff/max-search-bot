@@ -91,6 +91,7 @@ $push=(string)file_get_contents($base.'/services/ManagerPushService.php');
 $admin=(string)file_get_contents($base.'/manager/admin.php');
 $api=(string)file_get_contents($base.'/manager/api.php');
 $dispatcher=(string)file_get_contents($base.'/services/IncomingUpdateDispatcher.php');
+$maxHandler=(string)file_get_contents($base.'/handlers/MaxUpdateHandler.php');
 
 mpCheck('migration adds manager base priority',str_contains($migration,'ADD COLUMN priority INT NOT NULL DEFAULT 0'),true);
 mpCheck('migration adds conversation entry channel',str_contains($migration,'ADD COLUMN entry_channel VARCHAR(64)'),true);
@@ -107,6 +108,10 @@ mpCheck('admin exposes base priority control',str_contains($admin,'Базовы�
 mpCheck('admin exposes MAX entry channel rule',str_contains($admin,'MAX-канал входа'),true);
 mpCheck('admin API saves priority rules',str_contains($api,"\$action==='save_priority_rule'"),true);
 mpCheck('incoming dispatcher syncs traffic attribution',str_contains($dispatcher,'ConversationAttributionService::syncByChat($platform,$chatId)'),true);
+$trafficSave=strpos($maxHandler,'TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry)');
+$legacyMirror=strpos($maxHandler,"class_exists('Bitrix\\\\Main\\\\Loader')");
+mpCheck('MAX paid start stores canonical standalone attribution before legacy mirror',$trafficSave!==false&&$legacyMirror!==false&&$trafficSave<$legacyMirror,true);
+mpCheck('MAX paid start gates legacy YCLID mirror on Bitrix availability',str_contains($maxHandler,"if (\$yclid !== '' && class_exists('Bitrix\\\\Main\\\\Loader')) MaxSearchApi::addYclid"),true);
 
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
