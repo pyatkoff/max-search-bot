@@ -1,27 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-09-09T20:07:24+00:00",
+    "generated_at": "2026-09-09T20:33:11+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 100,
-        "raw_sessions": 100,
+        "sessions": 101,
+        "raw_sessions": 101,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 100,
+            "resolved": 101,
             "unresolved": 0
         },
-        "started": 100,
-        "needs_collected": 74,
-        "tours_opened": 71,
+        "started": 101,
+        "needs_collected": 75,
+        "tours_opened": 72,
         "site_opened": 58,
-        "post_tour_manager_cta_shown": 40,
+        "post_tour_manager_cta_shown": 41,
         "manager_requested": 23,
         "manager_replied": 22,
         "customer_replied_after_manager": 12,
-        "phone_received": 2,
+        "phone_received": 3,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 22,
@@ -34,7 +34,7 @@
             "site_open": 40,
             "collecting_needs": 26,
             "customer_replied_after_manager": 12,
-            "tours_opened": 10,
+            "tours_opened": 11,
             "manager_replied": 10,
             "needs_collected": 1,
             "manager_requested": 1
@@ -49,11 +49,11 @@
             "manager_taken_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 95,
-            "needs_collected_from_started": 69,
-            "tours_opened_from_started": 66,
+            "conversations_started": 96,
+            "needs_collected_from_started": 70,
+            "tours_opened_from_started": 67,
             "site_opened": 55,
-            "post_tour_manager_cta_shown": 38,
+            "post_tour_manager_cta_shown": 39,
             "manager_requested": 21,
             "manager_replied": 20,
             "customer_replied_after_manager": 11
