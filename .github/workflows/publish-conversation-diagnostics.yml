@@ -121,7 +121,7 @@ jobs:
           out_dir="$RUNNER_TEMP/production-diagnostics-out"
           rm -rf "$out_dir"
           mkdir -p "$out_dir"
-          cp architecture_inventory.json ops_status.json autopilot_snapshot.json "$out_dir/"
+          cp architecture_inventory.json ops_status.json autopilot_snapshot.json metrika_delivery_diagnostic.txt "$out_dir/"
 
           # Only ciphertext leaves this job. Public reports keep their existing sanitizer.
           "$RUNNER_TEMP/evidence-python/bin/python" tools/encrypted_dialogue_evidence.py encrypt \
@@ -139,6 +139,7 @@ jobs:
           test -s "$out_dir/architecture_inventory.json"
           test -s "$out_dir/ops_status.json"
           test -s "$out_dir/autopilot_snapshot.json"
+          test -s "$out_dir/metrika_delivery_diagnostic.txt"
 
           rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json metrika_delivery_diagnostic.txt
           git config user.name "github-actions[bot]"
@@ -171,7 +172,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: metrika-delivery-diagnostic-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: metrika_delivery_diagnostic.txt
+          path: ${{ runner.temp }}/production-diagnostics-out/metrika_delivery_diagnostic.txt
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
