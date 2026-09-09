@@ -157,13 +157,20 @@ def run():
     counters=[ident(x) for x in items(block.get('CounterIds'))]
     if not 1<=len(counters)<=5 or not 1<=len(goals)<=10 or model not in ('AUTO','LC','FCCD','LSCCD'):
         raise Stop('OWN_GOAL_OR_ATTRIBUTION_UNRESOLVED')
-    catalog={}
+    catalog={}; inaccessible=[]
     for counter in counters:
-        data=req('/management/v1/counter/'+str(counter)+'/goals')
-        catalog[str(counter)]=[{k:g.get(k) for k in ('id','name','type','conditions')} for g in data.get('goals',[]) if ident(g['id']) in goals]
+        try:
+            data=req('/management/v1/counter/'+str(counter)+'/goals')
+            catalog[str(counter)]=[{k:g.get(k) for k in ('id','name','type','conditions')} for g in data.get('goals',[]) if ident(g['id']) in goals]
+        except Stop as e:
+            inaccessible.append(counter)
+            result['errors'].append({'stage':'counter_goals','counter_id':counter,**e.info})
     result['goal_catalog']=catalog
-    for g in goals:
-        if sum(any(ident(v['id'])==g for v in gs) for gs in catalog.values())!=1: raise Stop('GOAL_BINDING_AMBIGUOUS')
+    result['goal_binding']={'accessible_matches':{str(g):[int(c) for c,gs in catalog.items() if any(ident(v['id'])==g for v in gs)] for g in goals},
+        'unread_counter_ids':inaccessible,'all_configured_counters_checked':not inaccessible,
+        'direct_goal_from_exact_campaign_strategy':True}
+    # Reports use only the exact goal(s) returned by Direct for this campaign.
+    # Unread Metrika counters remain explicit; no cross-counter attribution claim.
     last=(datetime.now(ZoneInfo('Europe/Moscow')).date()-timedelta(days=1))
     first=last-timedelta(days=29)
     result['context']={'counter_ids':counters,'goal_ids':goals,'attribution':model,
