@@ -132,7 +132,7 @@ jobs:
           test -s "$out_dir/ops_status.json"
           test -s "$out_dir/autopilot_snapshot.json"
 
-          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json
+          rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json website_smoke.json architecture_inventory.json ops_status.json autopilot_snapshot.private.json autopilot_snapshot.json metrika_delivery_diagnostic.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin diagnostics
