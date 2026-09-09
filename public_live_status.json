@@ -1,49 +1,49 @@
 {
     "ok": true,
-    "generated_at": "2026-09-09T12:10:09+00:00",
+    "generated_at": "2026-09-09T14:40:07+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 22,
-        "raw_sessions": 22,
+        "sessions": 14,
+        "raw_sessions": 14,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 22,
+            "resolved": 14,
             "unresolved": 0
         },
-        "started": 22,
-        "needs_collected": 18,
-        "tours_opened": 17,
-        "site_opened": 14,
-        "post_tour_manager_cta_shown": 8,
+        "started": 14,
+        "needs_collected": 11,
+        "tours_opened": 11,
+        "site_opened": 8,
+        "post_tour_manager_cta_shown": 6,
         "manager_requested": 6,
-        "manager_replied": 5,
+        "manager_replied": 3,
         "customer_replied_after_manager": 3,
-        "phone_received": 1,
+        "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 5,
-            "still_unanswered": 1,
-            "measured_responses": 5,
-            "avg_seconds": 3266,
+            "answered_after_90s": 3,
+            "still_unanswered": 3,
+            "measured_responses": 3,
+            "avg_seconds": 2770,
             "max_seconds": 6822
         },
         "drop_points": {
-            "site_open": 10,
-            "collecting_needs": 4,
             "customer_replied_after_manager": 3,
-            "tours_opened": 2,
-            "manager_replied": 2,
-            "manager_requested": 1
+            "site_open": 3,
+            "collecting_needs": 3,
+            "manager_requested": 3,
+            "tours_opened": 2
         },
         "flags": {
+            "manager_requested_no_reply": 3,
             "repeated_callback_input": 2,
-            "excessive_turns": 1,
-            "manager_requested_no_reply": 1
+            "excessive_turns": 2,
+            "repeated_same_input": 1
         }
     },
-    "since_utc": "2026-09-09 11:10:09",
+    "since_utc": "2026-09-09 13:40:07",
     "public_redacted": true
 }
