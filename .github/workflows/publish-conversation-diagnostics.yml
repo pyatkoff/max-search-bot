@@ -85,6 +85,15 @@ jobs:
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/export_handoff_snapshot.php" > handoff.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/website_production_smoke.php" > website_smoke.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/architecture_inventory.php --compact" > architecture_inventory.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && {
+            printf '%s\\n' 'CRON_METRIKA_ENTRIES';
+            crontab -l 2>/dev/null | grep -E '(^|[[:space:]])([^#[:space:]]*/)?(cron_metrika\\.php|metrika_queue\\.php)([[:space:]]|$)' || true;
+            printf '%s ' 'QUEUE_BYTES'; stat -c '%s' metrika_offline_queue.csv 2>/dev/null || printf '0'; printf '\\n';
+            printf '%s ' 'PROCESSING_BYTES'; stat -c '%s' metrika_offline_processing.csv 2>/dev/null || printf '0'; printf '\\n';
+            printf '%s ' 'QUEUE_MTIME'; stat -c '%y' metrika_offline_queue.csv 2>/dev/null || printf 'missing'; printf '\\n';
+            printf '%s\\n' 'UPLOAD_LOG_TAIL';
+            tail -n 20 metrika_upload.log 2>/dev/null | sed -E 's/(yclid|token|authorization)[^[:space:]]*/\\1=[redacted]/gi' || true;
+          }" > metrika_delivery_diagnostic.txt
 
           php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("TARGET_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["admin_project_access_ok"])){fwrite(STDERR,"admin_project_access_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("live_session_report.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["summary"],$j["sessions"])) {fwrite(STDERR,"live_session_snapshot_contract_failed\n");exit(1);}'
@@ -94,6 +103,8 @@ jobs:
           cat website_smoke.json
           php -r '$j=json_decode(file_get_contents("website_smoke.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"website_production_smoke_failed\n");exit(1);}'
           php -r '$j=json_decode(file_get_contents("architecture_inventory.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["areas"],$j["hotspots"],$j["signals"]["runtime_ddl"],$j["signals"]["direct_sql_writes"])) {fwrite(STDERR,"architecture_inventory_contract_failed\n");exit(1);}'
+          test -s metrika_delivery_diagnostic.txt
+          cat metrika_delivery_diagnostic.txt
           printf '{"sha":"%s","migration":"success","snapshot":"success","live_sessions":"success","daily_sessions":"success","yesterday_sessions":"success","architecture_inventory":"success","website_smoke":"success","health":"success","reported_at":"%s"}\n' "$TARGET_SHA" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > ops_status.json
           php tools/compose_autopilot_snapshot.php production_snapshot.json live_session_report.json handoff.json website_smoke.json ops_status.json daily_session_report.json architecture_inventory.json > autopilot_snapshot.private.json
           php tools/sanitize_public_diagnostics.php autopilot_snapshot.private.json > autopilot_snapshot.json
@@ -143,7 +154,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encrypted-dialogue-evidence-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/dialogue-evidence.age
+          path: |
+            ${{ runner.temp }}/dialogue-evidence.age
+            metrika_delivery_diagnostic.txt
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
