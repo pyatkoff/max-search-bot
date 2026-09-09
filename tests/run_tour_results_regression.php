@@ -37,8 +37,12 @@ trCheck('manager button label',$model['buttons'][1][0]['text'],'👩‍💼 По
 trCheck('manager callback',$model['buttons'][1][0]['callback_data'],'manager_after_tours');
 trCheck('edit callback',$model['buttons'][2][0]['callback_data'],'edit_params');
 trCheck('final results do not duplicate channel offer',count($model['buttons']),3);
-trCheck('tour tracking keeps canonical target',$model['buttons'][0][0]['url'],'https://tracker.test/track/tours.php?chat=-123&url='.rawurlencode($canonical));
-trCheck('final message wording',$model['text'],"🔥 <b>Подходящие туры готовы</b>\n\nМожно посмотреть варианты самостоятельно или продолжить подбор с менеджером.");
+trCheck('tour button opens canonical target directly',$model['buttons'][0][0]['url'],$canonical);
+trCheck('tour button preserves YCLID on direct target',parse_url($model['buttons'][0][0]['url'],PHP_URL_QUERY),'from=1&country=4&dateFrom=2026-09-15&dateTo=2026-09-15&daysFrom=9&daysTill=11&count_people=3&child_count=2&child_age%5B%5D=5&child_age%5B%5D=8&stars=4&food=7&yclid=777');
+trCheck('tour button bypasses open_tours redirect',str_contains($model['buttons'][0][0]['url'],'open_tours.php'),false);
+trCheck('final message wording',$model['text'],"🔥 <b>Подходящие туры готовы</b>\n\nМожно посмотреть варианты самостоятельно или продолжить подбор с менеджером.");\n$legacySource = (string)file_get_contents(__DIR__ . '/../maxsearchbaseclass.php');
+trCheck('legacy tour button also bypasses open_tours redirect',str_contains($legacySource,"['text'=>'🔥 Открыть туры на сайте','url'=>'https://app.anytoour.ru/open_tours.php"),false);
+trCheck('legacy tour button uses generated canonical target',str_contains($legacySource,"['text'=>'🔥 Открыть туры на сайте','url'=>\$link]"),true);
 
 ProjectConfig::resetForTests(['messenger'=>['channel_offer'=>[
     'telegram_url'=>'https://t.me/Any_tour_bot?startapp={yclid}',
