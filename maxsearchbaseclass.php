@@ -521,7 +521,7 @@ class MaxSearchBase
 
 		$buttons = [
 			[
-				['text'=>'🔥 Открыть туры на сайте','url'=>'https://app.anytoour.ru/open_tours.php?chat='.rawurlencode($chatID).'&url='.rawurlencode($link)],
+				['text'=>'🔥 Открыть туры на сайте','url'=>$link],
 			],
 		];
 
