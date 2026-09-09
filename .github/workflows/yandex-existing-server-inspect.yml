@@ -1,8 +1,8 @@
-name: Inspect existing Yandex project metadata
+name: Read Yandex campaign through existing authorised server
 on:
   push:
     branches: [audit/yandex-existing-server-access-20260909]
-    paths: [.github/workflows/yandex-existing-server-inspect.yml]
+    paths: [.github/workflows/yandex-existing-server-inspect.yml, audit/yandex-readonly-queries.py]
 permissions:
   contents: read
 concurrency:
@@ -12,9 +12,15 @@ jobs:
   inspect:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 7
     steps:
-      - name: Inspect only fixed project metadata; no config values, API calls or remote writes
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Require local encryption before reading private advertising data
+        run: python3 -c 'from cryptography.hazmat.primitives.ciphers.aead import AESGCM; from cryptography.hazmat.primitives.asymmetric import padding; from cryptography.hazmat.primitives import hashes, serialization'
+      - name: Read using existing server dotenv; retain only encrypted evidence
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -24,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          work="$(mktemp -d "$RUNNER_TEMP/yandex-meta.XXXXXX")"
+          work="$(mktemp -d "$RUNNER_TEMP/yandex-read.XXXXXX")"
           trap 'rm -rf "$work"' EXIT
           export WORK_DIR="$work"
           python3 - <<'PY'
@@ -33,115 +39,83 @@ jobs:
           root=Path(os.environ['WORK_DIR'])
           if not all(os.environ.get(k) for k in ('SSH_KEY','SSH_HOST','SSH_USER')):
               raise SystemExit('EXISTING_SSH_SETTINGS_UNAVAILABLE')
-          raw=os.environ['SSH_KEY'].replace('\r','')
           try:
-              if 'PRIVATE KEY' in raw:
-                  raw=raw.replace('\\n','\n')
-              else:
-                  raw=base64.b64decode(raw).decode()
-              (root/'key').write_text(raw.rstrip()+'\n')
-              (root/'key').chmod(0o600)
+              raw=os.environ['SSH_KEY'].replace('\r','')
+              raw=raw.replace('\\n','\n') if 'PRIVATE KEY' in raw else base64.b64decode(raw).decode()
+              (root/'key').write_text(raw.rstrip()+'\n'); (root/'key').chmod(0o600)
           except Exception:
               raise SystemExit('EXISTING_SSH_KEY_FORMAT_INVALID') from None
           known=os.environ.get('PINNED_HOSTS','').strip()
           (root/'known_hosts').write_text(known+'\n' if known else '')
-          print('HOST_TRUST=EXISTING_PIN' if known else 'HOST_TRUST=FIRST_USE_METADATA_ONLY_NOT_PREVERIFIED')
+          print('HOST_TRUST=EXISTING_PIN' if known else 'HOST_TRUST=EXISTING_ENDPOINT_FIRST_USE_NOT_INDEPENDENTLY_VERIFIED')
           PY
           ssh-keygen -y -f "$work/key" > /dev/null 2>&1
           trust=yes
           if [ ! -s "$work/known_hosts" ]; then trust=accept-new; fi
-          # Existing connection; never weaken a supplied pin. With no supplied pin,
-          # inspect metadata only. This is not independent host-key verification.
-          # No dotenv contents, tokens, package execution, database or API operations.
+          opts=(-i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null \
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          # Verify the same project revision first; the next connection refuses a changed host key.
+          ssh "${opts[@]}" -o StrictHostKeyChecking="$trust" "$SSH_USER@$SSH_HOST" \
+            'cd /var/www/anytoour/data/www/d.anytoour.ru && GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse HEAD' \
+            > "$work/sha" 2> "$work/ssh-error"
+          test "$(tr -d '\r\n' < "$work/sha")" = '602c6db7bbe4eebfbbe75744567bb58d67ba0dd0'
+          export HOST_KEY_FINGERPRINT="$(ssh-keygen -lf "$work/known_hosts" -E sha256 | awk '{print $2}' | head -n1)"
+          # Source goes over stdin. No installation, checkout, config or database write on server.
           set +e
-          ssh -i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
-            -o StrictHostKeyChecking="$trust" -o UserKnownHostsFile="$work/known_hosts" \
-            -o GlobalKnownHostsFile=/dev/null -o ConnectTimeout=15 \
-            -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \
-            "$SSH_USER@$SSH_HOST" 'python3 -I -B -S -' \
-            > "$work/result.json" 2> "$work/ssh-error" <<'PY'
-          import json, os, re, stat, subprocess, sys
-          from pathlib import Path
-          root=Path('/var/www/anytoour/data/www/d.anytoour.ru')
-          bot=Path('/var/www/anytoour/data/www/app.anytoour.ru')
-          expected_bot='547bfc9fd2898c93dfde69786b4fadd8ca551851'
-          result={'scope':'d.anytoour.ru metadata only','remote_mutations':False,
-                  'dotenv_contents_read':False,'api_called':False,'database_opened':False,
-                  'python_version':'.'.join(map(str,sys.version_info[:3]))}
-          def git(path,args):
-              env={'PATH':'/usr/local/bin:/usr/bin:/bin','HOME':os.environ.get('HOME','/'),
-                   'GIT_OPTIONAL_LOCKS':'0','GIT_TERMINAL_PROMPT':'0',
-                   'GIT_CONFIG_NOSYSTEM':'1','GIT_CONFIG_GLOBAL':'/dev/null'}
-              p=subprocess.run(['git','--no-optional-locks','-c','core.fsmonitor=false',
-                  '-c','core.hooksPath=/dev/null','-C',str(path)]+args,
-                  capture_output=True,timeout=15,env=env,text=True)
-              return p.stdout.strip() if p.returncode==0 else None
-          def file_meta(path):
-              try:
-                  s=path.lstat()
-                  return {'exists':True,'regular_file':stat.S_ISREG(s.st_mode),
-                          'symlink':stat.S_ISLNK(s.st_mode),'readable':os.access(path,os.R_OK),
-                          'owned_by_ssh_user':s.st_uid==os.getuid(),'mode':oct(stat.S_IMODE(s.st_mode))}
-              except OSError:return {'exists':False}
-          try:
-              result['project_directory_exists']=root.is_dir()
-              result['project_directory_accessible']=os.access(root,os.R_OK|os.X_OK)
-              result['project_realpath_matches']=root.resolve()==root
-              bsha=git(bot,['rev-parse','HEAD']) if bot.is_dir() else None
-              result['bot_sha_matches_last_verified']=bsha==expected_bot
-              if bsha and re.fullmatch('[a-f0-9]{40}',bsha):result['bot_sha']=bsha
-              if not root.is_dir() or root.resolve()!=root:
-                  result['status']='PROJECT_DIRECTORY_NOT_CONFIRMED'
-              else:
-                  result['dotenv']=file_meta(root/'.env')
-                  result['venv_python_exists']=(root/'.venv/bin/python').is_file()
-                  result['venv_python_executable']=os.access(root/'.venv/bin/python',os.X_OK)
-                  sha=git(root,['rev-parse','HEAD'])
-                  if sha and re.fullmatch('[a-f0-9]{40}',sha):result['project_sha']=sha
-                  top=git(root,['rev-parse','--show-toplevel'])
-                  result['git_root_matches']=top==str(root)
-                  remote=git(root,['config','--get','remote.origin.url'])
-                  result['remote_matches_yandex_repository']=remote in (
-                      'git@github.com:pyatkoff/yandex-direct-autopilot.git',
-                      'https://github.com/pyatkoff/yandex-direct-autopilot.git',
-                      'https://github.com/pyatkoff/yandex-direct-autopilot')
-                  result['remote_matches_bot_repository']=remote in (
-                      'git@github.com:pyatkoff/max-search-bot.git',
-                      'https://github.com/pyatkoff/max-search-bot.git',
-                      'https://github.com/pyatkoff/max-search-bot')
-                  changes=git(root,['status','--porcelain=v1','--untracked-files=no'])
-                  result['tracked_worktree_clean']=changes=='' if changes is not None else None
-                  branch=git(root,['branch','--show-current'])
-                  if branch is not None and re.fullmatch('[A-Za-z0-9_./-]{0,128}',branch):result['branch']=branch
-                  meta=root/'pyproject.toml'
-                  package=False
-                  if meta.is_file() and not meta.is_symlink() and meta.stat().st_size<=100000:
-                      text=meta.read_text()
-                      package=bool(re.search(r'(?m)^name\s*=\s*[\x22\x27]anytour-yandex-autopilot[\x22\x27]\s*$',text))
-                  result['package_name_matches']=package
-                  result['source_package_exists']=(root/'src/anytour_yandex').is_dir()
-                  result['installed_query_monitor_source_exists']=(root/'src/anytour_yandex/query_monitor_run.py').is_file()
-                  identity=result['git_root_matches'] and result['remote_matches_yandex_repository'] and package
-                  result['project_identity_confirmed']=bool(identity)
-                  result['status']='METADATA_CONFIRMED' if identity and result['dotenv'].get('readable') else 'PROJECT_IDENTITY_OR_ACCESS_NOT_CONFIRMED'
-          except Exception:
-              result['status']='METADATA_INSPECTION_FAILED'
-          print(json.dumps(result,sort_keys=True))
-          PY
+          timeout 240s ssh "${opts[@]}" -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" \
+            'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' \
+            < audit/yandex-readonly-queries.py > "$work/report.json" 2> "$work/read-error"
           status=$?
           set -e
-          if [ "$status" -ne 0 ]; then
-            printf '{"status":"SSH_METADATA_COMMAND_FAILED","ssh_exit":%s,"dotenv_contents_read":false,"remote_mutations":false}\n' "$status"
-            exit 1
-          fi
-          python3 - "$work/result.json" <<'PY'
-          import json,sys
+          export READ_EXIT="$status"
+          python3 - <<'PY'
+          import base64,json,os
           from pathlib import Path
-          p=Path(sys.argv[1])
-          if p.stat().st_size>12000:raise SystemExit('METADATA_OUTPUT_TOO_LARGE')
-          try:d=json.loads(p.read_text())
-          except Exception:raise SystemExit('METADATA_OUTPUT_INVALID') from None
-          if d.get('dotenv_contents_read') is not False or d.get('remote_mutations') is not False:
-              raise SystemExit('METADATA_SCOPE_VIOLATION')
-          print(json.dumps(d,sort_keys=True))
+          from cryptography.hazmat.primitives import hashes,serialization
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          root=Path(os.environ['WORK_DIR']); p=root/'report.json'
+          try:
+              if os.environ['READ_EXIT']!='0' or not p.is_file() or p.stat().st_size>16000000:
+                  raise ValueError()
+              report=json.loads(p.read_bytes())
+              if any(report.get(k) is not False for k in ('server_writes','advertising_writes','database_opened','token_exported')):
+                  raise ValueError()
+          except Exception:
+              report={'status':'TRANSPORT_OR_REPORT_FAILED','campaign_id':714260445,'report_received':False}
+          data=json.dumps(report,ensure_ascii=False,allow_nan=False).encode()
+          pem=b'''-----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAxADqHa+0YI5EpQ8tQKWu
+          Y/PlDmk8tqnMZDT1oysEDQs9s0w84qqQ1uQoTxIUYhhJNSn3PaPHCVMDPoSjKMt3
+          jg61K+gFeJg2T9JJ8v1AuxWul16qNOWxR652svrJ5xj+Qx/PI5Si+RdP7lTCZr/2
+          YMQkgirjd/1nKqMsvgvwpXR17zwutRr7ny7pJ5eNI3yMvWDRi0kEcaB1YXbmxCAb
+          S4+WliL4rQlP4ZoSmmmschrMBwe7RjOSjjDDg34LwjmrQj7lfn2jYeCbKOnJxCc5
+          bmt3Us4Hs1TakqhpuS6QBV9HStd2jG2SwXVXFC4tXa2WGZYk1IGGwfgZmhRY3Ktt
+          9Tvl2Zu8dIZFIcJ9nuzpNmDbZZzOnoEce4wJ3RCLmUnOCqQCH7BdtxRtqb/t4xnu
+          yzr6B7kaRxQX2QBQGsxQlj2k+YQ1fAFB5J0h6Cua+mZbQyJf3c74RE+ILWeDuE/t
+          1on8rRNEZL91DlkwbsK0jG5wSVfQxqzDWIeKiWAw8xThAgMBAAE=
+          -----END PUBLIC KEY-----'''
+          public=serialization.load_pem_public_key(pem)
+          key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
+          aad=b'yandex-714260445-report-v1'
+          ciphertext=AESGCM(key).encrypt(nonce,data,aad)
+          wrapped=public.encrypt(key,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          b64=lambda v:base64.b64encode(v).decode()
+          envelope={'schema':1,'alg':'RSA-OAEP-SHA256+AES-256-GCM','aad':b64(aad),
+                    'nonce':b64(nonce),'wrapped_key':b64(wrapped),'ciphertext':b64(ciphertext),
+                    'host_key_fingerprint':os.environ.get('HOST_KEY_FINGERPRINT'),
+                    'host_independently_preverified':bool(os.environ.get('PINNED_HOSTS','').strip())}
+          out=Path('yandex-encrypted-evidence');out.mkdir(exist_ok=True)
+          (out/'report.enc.json').write_text(json.dumps(envelope))
+          state=report.get('status')
+          print('READ_RESULT='+state if state in ('COLLECTED','PARTIAL','READ_FAILED','TRANSPORT_OR_REPORT_FAILED') else 'READ_RESULT=UNKNOWN')
+          print('EVIDENCE_ENCRYPTED=true; PRIVATE_KEY_AND_OAUTH_NOT_UPLOADED')
           PY
+      - name: Retain encrypted evidence only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: yandex-714260445-encrypted-read
+          path: yandex-encrypted-evidence/report.enc.json
+          retention-days: 3
+          if-no-files-found: error
