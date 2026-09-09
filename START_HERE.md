@@ -430,6 +430,32 @@ standalone start from aborting before its greeting. It does not reconstruct past
 click attribution: advertising cohorts become measurable only from a subsequent
 real start carrying a supported payload. Do not classify missing YCLID as organic.
 
+## All-channel daily activity
+
+PR #762 production-verifies the read-only `channel_daily` report in the full
+autopilot snapshot. It reports seven Europe/Kaliningrad calendar days for the
+current project across `max`, `telegram`, `website` and a fail-closed `other`
+bucket, excluding explicit tests. For each channel it separates new conversations
+from conversations started earlier but active that day, and records inbound,
+manager-request and any outbound-manager-reply conversation counts. These are
+conversation aggregates, not people, visits, subscriptions, sales or matched
+request-to-reply conversions. A reply recorded today can answer an older request.
+The report does not redefine the existing manager response, delivery, handoff or
+webhook gates and exports no transcript, user ID, source label or YCLID.
+
+The first production capture showed real manager requests were not absent: on
+2026-09-08 MAX recorded 13 requesting conversations and Telegram recorded 2.
+It also showed zero non-test website conversation activity for every captured day
+from 2026-09-03 through 2026-09-09. That zero is a diagnostic lead, not proof of
+zero website visitors or a bot-runtime defect. Read-only inspection confirmed the
+live search page loads the existing consultant widget, while the live homepage and
+its release source do not. The minimal homepage loader belongs to the neighbouring
+website project and requires its own explicit authorization and coordinated release;
+do not change or deploy that project from this repository. Until such a release,
+do not present the website channel as connected site-wide. Do not create a
+synthetic production conversation merely to turn the aggregate nonzero.
+
+
 ## Protected behavior
 
 A confirmed defect permits only a narrow fix that preserves the values and policies below. Changing any of them requires explicit user authorization for that exact change:
