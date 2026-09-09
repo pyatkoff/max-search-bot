@@ -1,0 +1,143 @@
+name: Read seven Yandex campaigns for monthly query review
+on:
+  push:
+    branches: [audit/yandex-existing-server-access-20260909]
+    paths: [.github/workflows/yandex-seven-campaign-month.yml]
+permissions:
+  contents: read
+concurrency:
+  group: yandex-seven-campaign-month-20260910
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        campaign: [710156106, 713757657, 713747091, 713759214, 710165291, 710187715, 713216424]
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read fixed campaign on existing server; keep OAuth there and encrypt report
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          CAMPAIGN: ${{ matrix.campaign }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          work="$(mktemp -d "$RUNNER_TEMP/yandex-month.XXXXXX")"
+          trap 'rm -rf "$work"' EXIT
+          export WORK_DIR="$work"
+          python3 - <<'PY'
+          import base64,hashlib,os,subprocess
+          from pathlib import Path
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          root=Path(os.environ['WORK_DIR'])
+          if not all(os.environ.get(k) for k in ('SSH_KEY','SSH_HOST','SSH_USER')):
+              raise SystemExit('ESTABLISHED_SSH_SETTINGS_UNAVAILABLE')
+          try:
+              raw=os.environ['SSH_KEY'].replace('\r','')
+              raw=raw.replace('\\n','\n') if 'PRIVATE KEY' in raw else base64.b64decode(raw).decode()
+              (root/'key').write_text(raw.rstrip()+'\n');(root/'key').chmod(0o600)
+          except Exception:
+              raise SystemExit('SSH_KEY_FORMAT_INVALID') from None
+          # Pin the public host fingerprint observed by the previous successful read.
+          # Continuity pin, not a new claim of independent out-of-band verification.
+          expected='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0'
+          p=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['SSH_HOST']],capture_output=True,timeout=35,text=True)
+          matches=[]
+          for line in p.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp==expected:matches.append(line)
+          if not matches:raise SystemExit('HOST_CONTINUITY_PIN_MISMATCH_STOP')
+          (root/'known_hosts').write_text('\n'.join(matches)+'\n')
+          print('HOST_CONTINUITY_PIN_OK')
+          cid=int(os.environ['CAMPAIGN'])
+          if cid not in [710156106,713757657,713747091,713759214,710165291,710187715,713216424]:
+              raise SystemExit('CAMPAIGN_SCOPE_INVALID')
+          source=Path('audit/yandex-readonly-queries.py').read_text()
+          blob=hashlib.sha1(b'blob '+str(len(source.encode())).encode()+b'\0'+source.encode()).hexdigest()
+          if blob!='dede6a80f43c42a719f21b809d6f13dbdbac17b6':raise SystemExit('REVIEWED_READER_CHANGED')
+          def once(before,after):
+              global source
+              if source.count(before)!=1:raise SystemExit('READER_ANCHOR_CHANGED')
+              source=source.replace(before,after,1)
+          once('CID = 714260445','CID = '+str(cid))
+          once('signal.alarm(210)','signal.alarm(360)')
+          once("if len(result['requests'])>=30:","if len(result['requests'])>=100:")
+          once('last=(datetime.now(ZoneInfo(\'Europe/Moscow\')).date()-timedelta(days=1))',"last=datetime.fromisoformat('2026-09-09').date()")
+          once('for page in range(10):','for page in range(40):')
+          once("'Page':{'Limit':1000,'Offset':page*1000}","'Page':{'Limit':2000,'Offset':page*2000}")
+          once('if len(batch)>1000:','if len(batch)>2000:')
+          once('if len(batch)<1000:','if len(batch)<2000:')
+          compile(source,'fixed-campaign-month-reader','exec')
+          (root/'reader.py').write_text(source)
+          PY
+          ssh-keygen -y -f "$work/key" >/dev/null 2>&1
+          opts=(-i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null -o ConnectTimeout=15 \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          set +e
+          timeout 390s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" \
+            'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' \
+            < "$work/reader.py" > "$work/report.json" 2> "$work/read-error"
+          status=$?
+          set -e
+          export READ_EXIT="$status"
+          python3 - <<'PY'
+          import base64,json,os
+          from pathlib import Path
+          from cryptography.hazmat.primitives import hashes,serialization
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          root=Path(os.environ['WORK_DIR']);p=root/'report.json';cid=int(os.environ['CAMPAIGN'])
+          try:
+              if os.environ['READ_EXIT']!='0' or not p.is_file() or p.stat().st_size>64000000:raise ValueError()
+              report=json.loads(p.read_bytes())
+              if report.get('campaign_id')!=cid:raise ValueError()
+              if any(report.get(k) is not False for k in ('server_writes','advertising_writes','database_opened','token_exported')):raise ValueError()
+          except Exception:
+              report={'status':'TRANSPORT_OR_REPORT_FAILED','campaign_id':cid,'report_received':False}
+          data=json.dumps(report,ensure_ascii=False,allow_nan=False).encode()
+          pem=b'''-----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAqe9fTOCnPUm25FdsP0+H
+          duCzrwBvgxb4BHd7Ywwdd6Md/jk7OBRoBUY6MXKKqXybfUzAcbxykKcCmFyNTSlS
+          2TMQWPO+lP//0ayH9CwMiVzuCBkLabjwXEsXIdwv7I+uSoy4TB6t/7jytSaf2ntn
+          mQ6mrjWpA4nnuZM3hRJTnmLqUACj7weGjDfsiwfomtlqZtXT1LgpJ+PdeuYAigJx
+          ES1ZE08NjGxeIguM0bgzDYgMoGJ0E8nkf1bMQii9jYEMNKstg1bxs52CYvldVgz2
+          6g/yQ+JEZ7fTD3yVHeB2I9BR2LKLHL/O6fd+iSpdXKlXNEMWaZmkXgwRUOMWN7sd
+          CLBo14mzKEMLSMWqc3CIAElnJo7lZgVsau6S15Z7BShMwJwg9t/oaz8jBQHIfQRI
+          bDnb6rKQN8Iq0LMJVTQqSgXB6cYm1vVb52TIKjrn+AQoJAThke0EhZ1nDi5BehNM
+          KPunZwNlB4Ef/XY3mXInq4Enazd4A07fVVw03JSkwdzpAgMBAAE=
+          -----END PUBLIC KEY-----'''
+          public=serialization.load_pem_public_key(pem)
+          key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12);aad=('yandex-month-20260910-'+str(cid)).encode()
+          ciphertext=AESGCM(key).encrypt(nonce,data,aad)
+          wrapped=public.encrypt(key,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          b64=lambda v:base64.b64encode(v).decode()
+          envelope={'schema':1,'campaign_id':cid,'aad':b64(aad),'nonce':b64(nonce),'wrapped_key':b64(wrapped),'ciphertext':b64(ciphertext)}
+          out=Path('encrypted-month');out.mkdir(exist_ok=True)
+          (out/(str(cid)+'.enc.json')).write_text(json.dumps(envelope))
+          state=report.get('status')
+          print('READ_RESULT='+state if state in ('COLLECTED','PARTIAL','READ_FAILED','TRANSPORT_OR_REPORT_FAILED') else 'READ_RESULT=UNKNOWN')
+          print('ONLY_ENCRYPTED_REPORT_UPLOADED; NO_SERVER_OR_ADVERTISING_WRITES')
+          PY
+      - name: Retain encrypted report only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: yandex-month-${{ matrix.campaign }}
+          path: encrypted-month/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
