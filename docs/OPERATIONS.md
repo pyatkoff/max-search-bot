@@ -58,6 +58,20 @@ The public diagnostics branch publishes only redacted aggregate artifacts. `auto
 
 Use this file as an index/triage surface. Detailed message-level evidence is generated only ephemerally inside the protected production workflow and must not be committed to the public repository.
 
+`channel_daily` reports seven calendar days across MAX, Telegram, website and an
+`other` transport bucket, scoped to this project and excluding explicit tests.
+Active means a conversation started or had a recorded message/event in that day.
+New and continued partition active conversations by their original start date;
+these are conversation counts, not unique people or distinct visits. Inbound
+activity includes recorded callbacks. Requests count conversations with a recorded
+manager-request/waiting-manager event in the day; replies count conversations
+with any recorded outbound manager message in the day, including replies to older
+requests. The two counts are not a matched conversion rate or delivery receipt.
+No source labels, IDs, transcript or advertising values are published. Missing
+source counts flag absent IDs only, not proof of source correctness. Zero activity
+does not establish whether an external channel is connected. Collector errors
+are explicit (`ok=false`), never fabricated zero totals.
+
 The owner-authorized encrypted export is described in
 `docs/PRIVATE_DIALOGUE_DIAGNOSTICS.md`. It uses a separately held private key and
 a ciphertext-only Actions artifact; ordinary artifacts in this public repository

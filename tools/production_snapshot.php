@@ -4,6 +4,7 @@ $baseDir=dirname(__DIR__);
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
+require_once $baseDir.'/services/ChannelDailyReport.php';
 require_once $baseDir.'/services/LegacyPaidYclidReader.php';
 require_once $baseDir.'/services/RuntimeBootstrap.php';
 require_once $baseDir.'/services/MigrationRunner.php';
@@ -154,6 +155,11 @@ try{
     if(tableExists($pdo,'conversations')){
         $snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
         $snapshot['recent_entry_attribution']=rows($pdo,"SELECT id AS conversation_id,project_key,channel,source_id,entry_channel,attribution_region,attribution_campaign,status,manager_id,started_at,last_message_at FROM conversations WHERE entry_channel IS NOT NULL AND entry_channel<>'' ORDER BY id DESC LIMIT 50");
+    }
+    try {
+        $snapshot['channel_daily']=ChannelDailyReport::collect($pdo,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')));
+    } catch (Throwable $e) {
+        $snapshot['channel_daily']=['ok'=>false,'error'=>$e->getMessage()==='channel_report_conversation_limit'?'channel_report_conversation_limit':'channel_report_collection_failed'];
     }
     try {
         $paidChatResolver=null;
