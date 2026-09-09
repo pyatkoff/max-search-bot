@@ -124,9 +124,41 @@ jobs:
           set -euo pipefail
           ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/max_webhook_reconcile.php --apply'
 
+      - name: Ensure Metrika offline uploader cron
+        id: metrika_cron
+        if: steps.max_webhook_reconcile.outcome == 'success'
+        continue-on-error: true
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" '
+            set -euo pipefail
+            root=/var/www/anytoour/data/www/app.anytoour.ru
+            before="$(mktemp)"
+            after="$(mktemp)"
+            crontab -l 2>/dev/null >"$before" || true
+            cp "$before" "$after"
+            sed -i -E "/cron_metrika\\.php/d;/# max-search-bot metrika uploader/d" "$after"
+            {
+              echo "# max-search-bot metrika uploader"
+              echo "*/5 * * * * flock -n /tmp/max-search-metrika-cron.lock /usr/bin/php $root/cron_metrika.php >> $root/metrika_upload.log 2>&1"
+            } >>"$after"
+            rollback() { crontab "$before" || true; rm -f "$before" "$after"; }
+            trap rollback ERR
+            crontab "$after"
+            count="$(crontab -l | grep -E "(^|[[:space:]])([^#[:space:]]*/)?cron_metrika\\.php([[:space:]]|$)" | wc -l | tr -d " ")"
+            [[ "$count" == "1" ]]
+            trap - ERR
+            rm -f "$before" "$after"
+            echo "METRIKA_CRON_COUNT=1"
+          '
+
       - name: Production smoke checks
         id: smoke
-        if: steps.max_webhook_reconcile.outcome == 'success'
+        if: steps.metrika_cron.outcome == 'success'
         continue-on-error: true
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -175,6 +207,7 @@ jobs:
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           MAX_WEBHOOK_OUTCOME: ${{ steps.max_webhook_reconcile.outcome }}
+          METRIKA_CRON_OUTCOME: ${{ steps.metrika_cron.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
           DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
@@ -187,7 +220,7 @@ jobs:
           rm -rf production-diagnostics
           find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
           rm -f migration.log
-          printf '{"sha":"%s","run_id":"%s","provenance":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$PROVENANCE_OUTCOME" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
+          printf '{"sha":"%s","run_id":"%s","provenance":"%s","key":"%s","bundle":"%s","sync":"%s","migration":"%s","max_webhook":"%s","metrika_cron":"%s","smoke":"%s","diagnostics":"%s","reported_at":"%s"}\n' "$DEPLOY_SHA" "$RUN_ID" "$PROVENANCE_OUTCOME" "$KEY_OUTCOME" "$BUNDLE_OUTCOME" "$SYNC_OUTCOME" "$MIGRATION_OUTCOME" "$MAX_WEBHOOK_OUTCOME" "$METRIKA_CRON_OUTCOME" "$SMOKE_OUTCOME" "$DOWNLOAD_OUTCOME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > deploy_status.json
           git add -A
           git commit -m "Report deploy status for ${DEPLOY_SHA}" || true
           for attempt in 1 2 3; do
@@ -205,6 +238,7 @@ jobs:
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
           MIGRATION_OUTCOME: ${{ steps.migration.outcome }}
           MAX_WEBHOOK_OUTCOME: ${{ steps.max_webhook_reconcile.outcome }}
+          METRIKA_CRON_OUTCOME: ${{ steps.metrika_cron.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
           DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}
         shell: bash
@@ -216,5 +250,6 @@ jobs:
           test "$SYNC_OUTCOME" = "success"
           test "$MIGRATION_OUTCOME" = "success"
           test "$MAX_WEBHOOK_OUTCOME" = "success"
+          test "$METRIKA_CRON_OUTCOME" = "success"
           test "$SMOKE_OUTCOME" = "success"
           test "$DOWNLOAD_OUTCOME" = "success"
