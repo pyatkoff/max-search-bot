@@ -430,6 +430,42 @@ standalone start from aborting before its greeting. It does not reconstruct past
 click attribution: advertising cohorts become measurable only from a subsequent
 real start carrying a supported payload. Do not classify missing YCLID as organic.
 
+## Advertising analytics delivery and direct search links
+
+The owner-confirmed analytics incident is complete through PRs #765–#769 and must
+not be restarted. PRs #765–#767 installed the existing `cron_metrika.php` uploader
+as one production cron entry and added read-only runtime evidence. Production
+proved the daemon active, the queue and processing files drained to zero, and
+Yandex accepted the accumulated 175 offline events with `status=UPLOADED`, followed
+by additional accepted batches as new events arrived. This proves delivery to
+Yandex; reporting UI appearance can lag and is not a reason to replay events or
+change goal semantics.
+
+PR #768 implements the owner's direct-link experiment: newly generated active and
+legacy tour-result buttons use the canonical
+`https://anytoour.ru/poisk-turov/?...&yclid=...` destination directly. They no
+longer pass through `open_tours.php`; that endpoint remains only for already-issued
+links and backward compatibility. Therefore a new direct click is not expected to
+produce the old endpoint-owned `site_open`, offline `max_show_tours`, or its
+click-triggered follow-up. Do not diagnose their absence after #768 as lost website
+traffic. The website's online `V2_SEARCH_STARTED` and `V2_SEARCH_COMPLETE` goals
+are the authoritative evidence that the destination search actually began and
+completed. A controlled public production smoke confirmed counter `98615635`,
+PageView, both goals, and rendered search results; it did not submit a lead or
+manager request and used no YCLID.
+
+PR #769 fixes the diagnostics provenance boundary for Metrika delivery evidence.
+The full publisher stages the just-captured production diagnostic outside the
+diagnostics checkout and uploads that exact fresh file. Do not restore the previous
+tracked-path artifact behavior: it could publish stale queue/cron contents even
+when the production capture itself was healthy. The fresh artifact must show the
+runtime cron, queue/processing sizes and upload-log tail from the same capture.
+
+These releases changed neither goal names/semantics nor lead delivery, routing,
+manager shifts, Tourvisor requests or production business data. Any future analytics
+repair requires fresh evidence that delivery or online goal emission has failed;
+a delayed/filtered Metrika report alone is not enough.
+
 ## All-channel daily activity
 
 PR #762 production-verifies the read-only `channel_daily` report in the full
