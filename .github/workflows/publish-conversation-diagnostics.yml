@@ -93,6 +93,14 @@ jobs:
             printf '%s ' 'QUEUE_MTIME'; stat -c '%y' metrika_offline_queue.csv 2>/dev/null || printf 'missing'; printf '\\n';
             printf '%s\\n' 'UPLOAD_LOG_TAIL';
             tail -n 20 metrika_upload.log 2>/dev/null | sed -E 's/(yclid|token|authorization)[^[:space:]]*/\\1=[redacted]/gi' || true;
+            printf '%s\\n' 'CRON_RUNTIME';
+            printf '%s ' 'CRON_DAEMON'; (systemctl is-active cron 2>/dev/null || systemctl is-active crond 2>/dev/null || printf 'unknown'); printf '\\n';
+            printf '%s\\n' 'CRON_PROCESSES'; ps -eo user,comm,args 2>/dev/null | grep -E '[c]ron(d)?' | head -n 10 || true;
+            printf '%s ' 'FLOCK_PATH'; command -v flock 2>/dev/null || printf 'missing'; printf '\\n';
+            printf '%s ' 'PHP_PATH'; command -v php 2>/dev/null || printf 'missing'; printf '\\n';
+            printf '%s ' 'PHP_SAPI'; php -r 'echo PHP_SAPI;' 2>/dev/null || printf 'unavailable'; printf '\\n';
+            printf '%s ' 'CONFIG_FLAGS'; php -r 'require __DIR__ . "/config.php"; echo "counter=".(defined("METRIKA_COUNTER_ID") && trim((string)METRIKA_COUNTER_ID) !== "" ? "set" : "missing")." token=".(defined("METRIKA_OAUTH_TOKEN") && trim((string)METRIKA_OAUTH_TOKEN) !== "" ? "set" : "missing");' 2>/dev/null || printf 'unavailable'; printf '\\n';
+            printf '%s ' 'CRONTAB_FILE_LINES'; crontab -l 2>/dev/null | wc -l;
           }" > metrika_delivery_diagnostic.txt
 
           php -r '$j=json_decode(file_get_contents("production_snapshot.json"),true); if(!is_array($j)||empty($j["ok"])) {fwrite(STDERR,"snapshot_not_ok\n");exit(1);} if((string)($j["production"]["sha"]??"")!==(string)getenv("TARGET_SHA")){fwrite(STDERR,"production_sha_mismatch\n");exit(1);} foreach(($j["migrations"]??[]) as $m){if(empty($m["applied"])||empty($m["checksum_ok"])){fwrite(STDERR,"migration_health_failed: ".($m["version"]??"unknown")."\n");exit(1);}} if(empty($j["health"]["manager_visibility_ok"])){fwrite(STDERR,"manager_visibility_health_failed\n");exit(1);} if(empty($j["health"]["admin_project_access_ok"])){fwrite(STDERR,"admin_project_access_health_failed\n");exit(1);} if(empty($j["health"]["website_attribution_ok"])){fwrite(STDERR,"website_attribution_health_failed\n");exit(1);}'
