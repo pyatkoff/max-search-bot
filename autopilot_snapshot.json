@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-09T19:23:43+00:00",
+    "generated_at": "2026-09-09T19:26:44+00:00",
     "production": {
         "sha": "888d42eb3b5d287f67be4a1d3922aa2167548f23",
         "branch": "main"
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-09 18:23:30",
+        "since_utc": "2026-09-09 18:26:29",
         "summary": {
             "sessions": 5,
             "raw_sessions": 5,
@@ -148,7 +148,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-09T19:23:43Z"
+        "reported_at": "2026-09-09T19:26:44Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -156,7 +156,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-09T19:23:24+00:00",
+        "generated_at": "2026-09-09T19:26:23+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -251,7 +251,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-09T19:23:24+00:00",
+        "generated_at": "2026-09-09T19:26:23+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -549,7 +549,7 @@
                 "date": "2026-09-09",
                 "partial": true,
                 "since_utc": "2026-09-08 22:00:00",
-                "until_utc": "2026-09-09 19:23:24",
+                "until_utc": "2026-09-09 19:26:23",
                 "channels": [
                     {
                         "channel": "max",
@@ -654,7 +654,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-09T19:23:41+00:00",
+        "generated_at": "2026-09-09T19:26:41+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
