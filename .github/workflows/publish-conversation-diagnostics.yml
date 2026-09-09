@@ -87,7 +87,7 @@ jobs:
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/architecture_inventory.php --compact" > architecture_inventory.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && {
             printf '%s\\n' 'CRON_METRIKA_ENTRIES';
-            crontab -l 2>/dev/null | grep -E '(^|[[:space:]])([^#[:space:]]*/)?(cron_metrika\\.php|metrika_queue\\.php)([[:space:]]|$)' || true;
+            crontab -l 2>/dev/null | grep -E '(^|[[:space:]])([^#[:space:]]*/)?(cron_metrika\.php|metrika_queue\.php)([[:space:]]|$)' || true;
             printf '%s ' 'QUEUE_BYTES'; stat -c '%s' metrika_offline_queue.csv 2>/dev/null || printf '0'; printf '\\n';
             printf '%s ' 'PROCESSING_BYTES'; stat -c '%s' metrika_offline_processing.csv 2>/dev/null || printf '0'; printf '\\n';
             printf '%s ' 'QUEUE_MTIME'; stat -c '%y' metrika_offline_queue.csv 2>/dev/null || printf 'missing'; printf '\\n';
@@ -154,9 +154,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: encrypted-dialogue-evidence-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ${{ runner.temp }}/dialogue-evidence.age
-            metrika_delivery_diagnostic.txt
+          path: ${{ runner.temp }}/dialogue-evidence.age
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Upload Metrika delivery diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrika-delivery-diagnostic-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: metrika_delivery_diagnostic.txt
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
