@@ -17,6 +17,9 @@ function deploymentOwnershipAssert(bool $condition, string $message): void
 
 deploymentOwnershipAssert(substr_count($production, 'php tools/conversation_db.php migrate') === 1, 'production deploy must be the single automatic migration owner');
 deploymentOwnershipAssert(str_contains($production, "push:\n    branches: [main]"), 'production deploy must remain automatic on main');
+deploymentOwnershipAssert(str_contains($production, 'Ensure Metrika offline uploader cron'), 'production deploy must own the Metrika uploader cron');
+deploymentOwnershipAssert(str_contains($production, 'cron_metrika.php'), 'production deploy must install the existing Metrika uploader');
+deploymentOwnershipAssert(str_contains($production, 'METRIKA_CRON_OUTCOME'), 'deploy telemetry must report the Metrika uploader result');
 
 deploymentOwnershipAssert(!str_contains($diagnostics, 'php tools/conversation_db.php migrate'), 'diagnostics must remain read-only');
 deploymentOwnershipAssert(str_contains($diagnostics, 'workflow_run:'), 'production diagnostics must follow deploy completion');
