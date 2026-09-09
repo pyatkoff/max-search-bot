@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-09T14:42:14+00:00",
+    "generated_at": "2026-09-09T15:51:48+00:00",
     "production": {
         "sha": "cd44fda8b1e7a413858e59ca990b03cf9867f097",
         "branch": "main"
@@ -28,10 +28,10 @@
             "ok": false,
             "warning_after_seconds": 90,
             "stuck_after_seconds": 600,
-            "pending_count": 3,
-            "overdue_count": 3,
-            "stuck_count": 2,
-            "oldest_wait_seconds": 1185,
+            "pending_count": 5,
+            "overdue_count": 5,
+            "stuck_count": 5,
+            "oldest_wait_seconds": 5358,
             "routing_blocked_count": 0
         },
         "push": {
@@ -51,7 +51,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 1,
-                "waiting": 12,
+                "waiting": 14,
                 "assigned_to_others": 49
             },
             {
@@ -59,7 +59,7 @@
                 "is_working": false,
                 "all": 200,
                 "mine": 0,
-                "waiting": 12,
+                "waiting": 14,
                 "assigned_to_others": 49
             },
             {
@@ -67,7 +67,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 24,
-                "waiting": 4,
+                "waiting": 6,
                 "assigned_to_others": 0
             },
             {
@@ -75,7 +75,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 150,
-                "waiting": 11,
+                "waiting": 13,
                 "assigned_to_others": 0
             },
             {
@@ -83,7 +83,7 @@
                 "is_working": true,
                 "all": 200,
                 "mine": 0,
-                "waiting": 3,
+                "waiting": 5,
                 "assigned_to_others": 0
             }
         ]
@@ -99,44 +99,42 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-09 13:42:02",
+        "since_utc": "2026-09-09 14:51:35",
         "summary": {
-            "sessions": 15,
-            "raw_sessions": 15,
+            "sessions": 8,
+            "raw_sessions": 8,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 15,
+                "resolved": 8,
                 "unresolved": 0
             },
-            "started": 15,
-            "needs_collected": 11,
-            "tours_opened": 11,
-            "site_opened": 8,
-            "post_tour_manager_cta_shown": 6,
-            "manager_requested": 6,
-            "manager_replied": 3,
-            "customer_replied_after_manager": 3,
+            "started": 8,
+            "needs_collected": 6,
+            "tours_opened": 6,
+            "site_opened": 5,
+            "post_tour_manager_cta_shown": 5,
+            "manager_requested": 4,
+            "manager_replied": 2,
+            "customer_replied_after_manager": 2,
             "phone_received": 0,
             "manager_response": {
                 "answered_in_90s": 0,
-                "answered_after_90s": 3,
-                "still_unanswered": 3,
-                "measured_responses": 3,
-                "avg_seconds": 2770,
-                "max_seconds": 6822
+                "answered_after_90s": 2,
+                "still_unanswered": 2,
+                "measured_responses": 2,
+                "avg_seconds": 2379,
+                "max_seconds": 4378
             },
             "drop_points": {
-                "collecting_needs": 4,
-                "customer_replied_after_manager": 3,
-                "site_open": 3,
-                "manager_requested": 3,
-                "tours_opened": 2
+                "manager_requested": 2,
+                "customer_replied_after_manager": 2,
+                "collecting_needs": 2,
+                "site_open": 2
             },
             "flags": {
-                "manager_requested_no_reply": 3,
-                "repeated_callback_input": 2,
-                "excessive_turns": 1,
-                "repeated_same_input": 1
+                "manager_requested_no_reply": 2,
+                "repeated_callback_input": 1,
+                "excessive_turns": 1
             }
         }
     },
@@ -154,7 +152,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-09T14:42:14Z"
+        "reported_at": "2026-09-09T15:51:48Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -162,7 +160,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-09T14:41:56+00:00",
+        "generated_at": "2026-09-09T15:51:30+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -244,20 +242,20 @@
             {
                 "date": "2026-09-09",
                 "partial": true,
-                "all_new": 78,
-                "paid_new": 66,
+                "all_new": 82,
+                "paid_new": 70,
                 "without_saved_yclid": 12,
-                "needs_collected": 47,
-                "tours_opened": 46,
-                "site_opened": 35,
-                "manager_requested": 7,
+                "needs_collected": 49,
+                "tours_opened": 48,
+                "site_opened": 37,
+                "manager_requested": 8,
                 "manager_replied": 4
             }
         ]
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-09T14:41:56+00:00",
+        "generated_at": "2026-09-09T15:51:30+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -555,15 +553,15 @@
                 "date": "2026-09-09",
                 "partial": true,
                 "since_utc": "2026-09-08 22:00:00",
-                "until_utc": "2026-09-09 14:41:56",
+                "until_utc": "2026-09-09 15:51:30",
                 "channels": [
                     {
                         "channel": "max",
-                        "active_conversations": 83,
-                        "new_conversations": 78,
+                        "active_conversations": 87,
+                        "new_conversations": 82,
                         "continued_conversations": 5,
-                        "inbound_conversations": 83,
-                        "manager_requested_conversations": 15,
+                        "inbound_conversations": 87,
+                        "manager_requested_conversations": 17,
                         "manager_replied_conversations": 13,
                         "missing_source_conversations": 0
                     },
@@ -605,60 +603,60 @@
         "window_hours": null,
         "since_utc": "2026-09-08 22:00:00",
         "summary": {
-            "sessions": 83,
-            "raw_sessions": 83,
+            "sessions": 87,
+            "raw_sessions": 87,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 83,
+                "resolved": 87,
                 "unresolved": 0
             },
-            "started": 83,
-            "needs_collected": 60,
-            "tours_opened": 57,
-            "site_opened": 44,
-            "post_tour_manager_cta_shown": 30,
-            "manager_requested": 17,
+            "started": 87,
+            "needs_collected": 63,
+            "tours_opened": 60,
+            "site_opened": 47,
+            "post_tour_manager_cta_shown": 33,
+            "manager_requested": 19,
             "manager_replied": 14,
-            "customer_replied_after_manager": 9,
+            "customer_replied_after_manager": 10,
             "phone_received": 2,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 14,
-                "still_unanswered": 3,
+                "still_unanswered": 5,
                 "measured_responses": 14,
                 "avg_seconds": 1828,
                 "max_seconds": 6822
             },
             "drop_points": {
-                "site_open": 32,
-                "collecting_needs": 23,
+                "site_open": 33,
+                "collecting_needs": 24,
                 "tours_opened": 10,
-                "customer_replied_after_manager": 9,
-                "manager_replied": 5,
-                "manager_requested": 3,
+                "customer_replied_after_manager": 10,
+                "manager_requested": 5,
+                "manager_replied": 4,
                 "needs_collected": 1
             },
             "flags": {
-                "excessive_turns": 16,
-                "repeated_callback_input": 12,
+                "excessive_turns": 17,
+                "repeated_callback_input": 13,
+                "manager_requested_no_reply": 5,
                 "repeated_same_input": 3,
-                "manager_requested_no_reply": 3,
                 "rapid_date_reselection": 2
             },
             "calendar_day": {
-                "conversations_started": 78,
-                "needs_collected_from_started": 55,
-                "tours_opened_from_started": 52,
-                "site_opened": 41,
-                "post_tour_manager_cta_shown": 28,
-                "manager_requested": 15,
+                "conversations_started": 82,
+                "needs_collected_from_started": 58,
+                "tours_opened_from_started": 55,
+                "site_opened": 44,
+                "post_tour_manager_cta_shown": 31,
+                "manager_requested": 17,
                 "manager_replied": 12,
-                "customer_replied_after_manager": 8
+                "customer_replied_after_manager": 9
             }
         }
     },
     "architecture": {
-        "generated_at": "2026-09-09T14:42:13+00:00",
+        "generated_at": "2026-09-09T15:51:48+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
