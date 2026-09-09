@@ -1,22 +1,22 @@
 {
     "ok": true,
-    "generated_at": "2026-09-09T19:32:01+00:00",
+    "generated_at": "2026-09-09T20:07:24+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 98,
-        "raw_sessions": 98,
+        "sessions": 100,
+        "raw_sessions": 100,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 98,
+            "resolved": 100,
             "unresolved": 0
         },
-        "started": 98,
-        "needs_collected": 72,
-        "tours_opened": 69,
-        "site_opened": 56,
+        "started": 100,
+        "needs_collected": 74,
+        "tours_opened": 71,
+        "site_opened": 58,
         "post_tour_manager_cta_shown": 40,
         "manager_requested": 23,
         "manager_replied": 22,
@@ -31,7 +31,7 @@
             "max_seconds": 6822
         },
         "drop_points": {
-            "site_open": 38,
+            "site_open": 40,
             "collecting_needs": 26,
             "customer_replied_after_manager": 12,
             "tours_opened": 10,
@@ -40,19 +40,19 @@
             "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 17,
-            "repeated_callback_input": 15,
-            "repeated_same_input": 3,
-            "rapid_date_reselection": 2,
+            "excessive_turns": 18,
+            "repeated_callback_input": 16,
+            "repeated_same_input": 4,
+            "rapid_date_reselection": 3,
             "manager_requested_no_reply": 1,
             "left_waiting_queue_without_manager_reply": 1,
             "manager_taken_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 93,
-            "needs_collected_from_started": 67,
-            "tours_opened_from_started": 64,
-            "site_opened": 53,
+            "conversations_started": 95,
+            "needs_collected_from_started": 69,
+            "tours_opened_from_started": 66,
+            "site_opened": 55,
             "post_tour_manager_cta_shown": 38,
             "manager_requested": 21,
             "manager_replied": 20,
