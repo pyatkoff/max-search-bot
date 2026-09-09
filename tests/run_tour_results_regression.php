@@ -40,7 +40,8 @@ trCheck('final results do not duplicate channel offer',count($model['buttons']),
 trCheck('tour button opens canonical target directly',$model['buttons'][0][0]['url'],$canonical);
 trCheck('tour button preserves YCLID on direct target',parse_url($model['buttons'][0][0]['url'],PHP_URL_QUERY),'from=1&country=4&dateFrom=2026-09-15&dateTo=2026-09-15&daysFrom=9&daysTill=11&count_people=3&child_count=2&child_age%5B%5D=5&child_age%5B%5D=8&stars=4&food=7&yclid=777');
 trCheck('tour button bypasses open_tours redirect',str_contains($model['buttons'][0][0]['url'],'open_tours.php'),false);
-trCheck('final message wording',$model['text'],"🔥 <b>Подходящие туры готовы</b>\n\nМожно посмотреть варианты самостоятельно или продолжить подбор с менеджером.");\n$legacySource = (string)file_get_contents(__DIR__ . '/../maxsearchbaseclass.php');
+trCheck('final message wording',$model['text'],"🔥 <b>Подходящие туры готовы</b>\n\nМожно посмотреть варианты самостоятельно или продолжить подбор с менеджером.");
+$legacySource = (string)file_get_contents(__DIR__ . '/../maxsearchbaseclass.php');
 trCheck('legacy tour button also bypasses open_tours redirect',str_contains($legacySource,"['text'=>'🔥 Открыть туры на сайте','url'=>'https://app.anytoour.ru/open_tours.php"),false);
 trCheck('legacy tour button uses generated canonical target',str_contains($legacySource,"['text'=>'🔥 Открыть туры на сайте','url'=>\$link]"),true);
 
