@@ -22,17 +22,11 @@ class TourResultsService
             );
         }
 
-        $openToursUrl = self::trackedUrl(
-            (string)ProjectConfig::get('search.open_tours_path', '/max-search/open_tours.php'),
-            $chatId,
-            $claimUrl
-        );
-
         return [
             'claim_url' => $claimUrl,
             'text' => self::messageText(),
             'buttons' => [
-                ButtonFactory::row(ButtonFactory::url('🔥 Посмотреть на сайте', $openToursUrl)),
+                ButtonFactory::row(ButtonFactory::url('🔥 Посмотреть на сайте', $claimUrl)),
                 ButtonFactory::row(ButtonFactory::callback('👩‍💼 Подобрать тур с менеджером', 'manager_after_tours')),
                 ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры', 'edit_params')),
             ],
