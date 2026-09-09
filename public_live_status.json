@@ -1,42 +1,49 @@
 {
     "ok": true,
-    "generated_at": "2026-09-09T10:47:23+00:00",
+    "generated_at": "2026-09-09T12:10:09+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 4,
-        "raw_sessions": 4,
+        "sessions": 22,
+        "raw_sessions": 22,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 4,
+            "resolved": 22,
             "unresolved": 0
         },
-        "started": 4,
-        "needs_collected": 4,
-        "tours_opened": 4,
-        "site_opened": 4,
-        "post_tour_manager_cta_shown": 1,
-        "manager_requested": 2,
-        "manager_replied": 2,
-        "customer_replied_after_manager": 1,
-        "phone_received": 0,
+        "started": 22,
+        "needs_collected": 18,
+        "tours_opened": 17,
+        "site_opened": 14,
+        "post_tour_manager_cta_shown": 8,
+        "manager_requested": 6,
+        "manager_replied": 5,
+        "customer_replied_after_manager": 3,
+        "phone_received": 1,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 2,
-            "still_unanswered": 0,
-            "measured_responses": 2,
-            "avg_seconds": 3641,
+            "answered_after_90s": 5,
+            "still_unanswered": 1,
+            "measured_responses": 5,
+            "avg_seconds": 3266,
             "max_seconds": 6822
         },
         "drop_points": {
-            "site_open": 2,
-            "manager_replied": 1,
-            "customer_replied_after_manager": 1
+            "site_open": 10,
+            "collecting_needs": 4,
+            "customer_replied_after_manager": 3,
+            "tours_opened": 2,
+            "manager_replied": 2,
+            "manager_requested": 1
         },
-        "flags": []
+        "flags": {
+            "repeated_callback_input": 2,
+            "excessive_turns": 1,
+            "manager_requested_no_reply": 1
+        }
     },
-    "since_utc": "2026-09-09 09:47:23",
+    "since_utc": "2026-09-09 11:10:09",
     "public_redacted": true
 }
