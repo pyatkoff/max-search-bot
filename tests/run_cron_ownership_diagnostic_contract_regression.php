@@ -22,6 +22,8 @@ cronOwnershipAssert(str_contains($recovery,'subscription_count') && str_contains
 cronOwnershipAssert(!str_contains($recovery,'healthy_cutover_dual'),'canonical recovery must not accept dual MAX ownership');
 
 foreach(['cron_metrika','metrika_offline_queue.csv','metrika_offline_processing.csv','metrika_upload.log','metrika_delivery_diagnostic.txt'] as $needle){cronOwnershipAssert(str_contains($publish,$needle),'production diagnostics must capture Metrika delivery evidence: '.$needle);}
+cronOwnershipAssert(str_contains($publish,'cp architecture_inventory.json ops_status.json autopilot_snapshot.json metrika_delivery_diagnostic.txt "$out_dir/"'),'fresh Metrika diagnostic must survive diagnostics branch checkout');
+cronOwnershipAssert(str_contains($publish,'path: ${{ runner.temp }}/production-diagnostics-out/metrika_delivery_diagnostic.txt'),'artifact upload must use the fresh staged Metrika diagnostic');
 
 $probe='set -euo pipefail; count="$(printf "" | grep -Ec "cron_followup\\.php" || true)"; [[ "$count" == "0" ]]';
 exec('bash -c '.escapeshellarg($probe),$out,$code);
