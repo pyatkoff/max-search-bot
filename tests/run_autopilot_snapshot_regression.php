@@ -12,12 +12,14 @@ $fixtures=[
 'architecture.json'=>['ok'=>true,'schema_version'=>1,'generated_at'=>'2026-08-27T17:00:00Z','areas'=>['handlers'=>['files'=>10,'bytes'=>1000,'code_lines'=>200]],'hotspots'=>[['path'=>'handlers/Big.php','lines'=>900,'bytes'=>10000,'severity'=>'high']], 'signals'=>['runtime_ddl'=>[],'schema_infrastructure_ddl'=>['services/MigrationRunner.php'],'direct_sql_writes'=>['services/Example.php'],'authorization_mentions'=>[],'validation_mentions'=>[]]],
 ];
 $fixtures['production.json']['paid_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','paid_new'=>2,'tours_opened'=>1]]];
+$fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','channels'=>[['channel'=>'telegram','new_conversations'=>3]]]]];
 foreach($fixtures as $name=>$data)file_put_contents($tmp.'/'.$name,json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/compose_autopilot_snapshot.php').' '.implode(' ',array_map('escapeshellarg',array_map(fn($n)=>$tmp.'/'.$n,array_keys($fixtures))));
 exec($cmd,$lines,$code);$raw=implode("\n",$lines);$json=json_decode($raw,true);$passed=0;$failed=0;
 function aCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;}else{echo "FAIL  {$name}\n";$failed++;}}
 aCheck('composer exits successfully',$code===0&&is_array($json)&&!empty($json['ok']));
 aCheck('paid cohort aggregate survives composition',($json['paid_daily']['days'][0]['paid_new']??null)===2);
+aCheck('channel aggregate survives composition',($json['channel_daily']['days'][0]['channels'][0]['new_conversations']??null)===3);
 aCheck('production sha is surfaced',($json['production']['sha']??null)==='abc123');
 aCheck('migration summary is compact and healthy',($json['migrations']['total']??null)===2&&($json['migrations']['pending']??null)===0&&($json['migrations']['checksum_failures']??null)===0);
 aCheck('manager health is surfaced',($json['manager']['response']['pending']??null)===0&&($json['manager']['push'][0]['status']??null)==='healthy');
