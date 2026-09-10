@@ -451,6 +451,16 @@ customer click or Yandex attribution. Old already-sent buttons are not rewritten
 by this generator fix. Confirm required CI and exact deploy evidence in #55 before
 calling this release verified.
 
+
+The follow-on compatibility endpoint `poisk-turov/index.php` restores already-issued
+application-origin links with a temporary, non-cached redirect to the canonical
+website. It preserves the raw query rather than parsing/reserializing it, accepts
+GET/HEAD only and never bootstraps bot state or records analytics. New result URLs
+still go directly to the website. The exact production public HTTP smoke checks
+status, Location, query preservation and no-store without following the redirect;
+this is controlled technical evidence, not a natural customer conversion. Rollback
+is a reviewed forward revert of this endpoint, retaining #771/#772 and containment.
+
 ## Repeated channel invitation incident — 2026-09-10
 
 The owner showed the old pre-results MAX and Telegram subscription buttons inside
