@@ -1,7 +1,7 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-10T12:45:00+00:00",
+    "generated_at": "2026-09-10T12:51:32+00:00",
     "production": {
         "sha": "435af98ae69d63ec4db59c36ddfea9784a6e6aac",
         "branch": "main"
@@ -99,7 +99,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-10 11:44:44",
+        "since_utc": "2026-09-10 11:51:16",
         "summary": {
             "sessions": 12,
             "raw_sessions": 12,
@@ -151,7 +151,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-10T12:44:59Z"
+        "reported_at": "2026-09-10T12:51:32Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -159,7 +159,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-10T12:44:37+00:00",
+        "generated_at": "2026-09-10T12:51:09+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -254,7 +254,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-10T12:44:37+00:00",
+        "generated_at": "2026-09-10T12:51:09+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -552,7 +552,7 @@
                 "date": "2026-09-10",
                 "partial": true,
                 "since_utc": "2026-09-09 22:00:00",
-                "until_utc": "2026-09-10 12:44:37",
+                "until_utc": "2026-09-10 12:51:09",
                 "channels": [
                     {
                         "channel": "max",
@@ -652,7 +652,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-10T12:44:57+00:00",
+        "generated_at": "2026-09-10T12:51:29+00:00",
         "areas": {
             "handlers": {
                 "files": 10,
