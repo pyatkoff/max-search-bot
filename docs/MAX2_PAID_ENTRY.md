@@ -67,3 +67,17 @@ Mini App → subscription is still needed for that end-to-end claim. Neighboring
 
 Rollback is a normal revert PR for the Search greeting integration. Do not revert
 MAX2's webhook cutover, alter its registration or restore its retired handler.
+
+## Channel offers after entry — owner clarification, 2026-09-10
+
+The repeated pre-results MAX/Telegram channel choice belongs only to the website
+online consultant. Native MAX and Telegram conversations must not receive that
+promotion again or wait through its subscription delay. The initial paid MAX
+screen above remains unchanged; this is not a subscription/membership check.
+Post-tour and lead acknowledgements retain their confirmation and return-to-tours
+action without repeating a channel invitation in native messengers.
+
+Use the actual request-scoped IntegrationRegistry messenger for this boundary.
+ProjectConfig may still say provider=max while Telegram and website webhooks use
+their own adapters. Attribution tags do not identify the active transport. Website
+source-level suppression and configured channel choices remain in force.
