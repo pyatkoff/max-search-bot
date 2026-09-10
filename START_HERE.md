@@ -451,6 +451,21 @@ customer click or Yandex attribution. Old already-sent buttons are not rewritten
 by this generator fix. Confirm required CI and exact deploy evidence in #55 before
 calling this release verified.
 
+## Repeated channel invitation incident — 2026-09-10
+
+The owner showed the old pre-results MAX and Telegram subscription buttons inside
+an already-started MAX conversation and clarified that this repeated choice is
+reserved for the website online consultant. PR #772 gates both the pre-results
+offer and post-tour/lead promotion by the actual request-scoped messenger. Native
+MAX/TG preserve preparation, acknowledgements and return-to-tours actions without
+repeated subscription copy or its artificial delay. The paid MAX first invitation
+and AI/wizard chooser remain unchanged. See `docs/MAX2_PAID_ENTRY.md` for policy.
+
+Required adapter-level tests cover MAX, Telegram and website while project config
+still selects MAX. CI and exact production evidence belong in #55; neither tests
+nor deployment alone prove a natural customer interaction. Do not reintroduce the
+old all-transport promotion or infer active transport from attribution metadata.
+
 ## Advertising analytics delivery and direct search links
 
 The owner-confirmed analytics incident is complete through PRs #765–#769 and must
