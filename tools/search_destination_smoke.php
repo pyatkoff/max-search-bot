@@ -20,3 +20,43 @@ if ($url !== $expected || ($wire[0][0]['url'] ?? '') !== $expected) {
 }
 echo "SEARCH_DESTINATION_SMOKE_OK\n";
 echo "fixture_url=" . $url . "\n";
+
+
+// Public compatibility probe: no redirect follow, no website visit, no bot message.
+if (in_array('--http', $argv, true)) {
+    $cases = [
+        ['HEAD', (string)parse_url($expected, PHP_URL_QUERY)],
+        ['GET', 'child_age%5B%5D=5&child_age%5B%5D=8&x=a+b&x=a%20b&yclid=7654321'],
+    ];
+    foreach ($cases as [$method, $query]) {
+        $headers = [];
+        $curl = curl_init('https://app.anytoour.ru/poisk-turov/?' . $query);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_NOBODY => $method === 'HEAD',
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HEADERFUNCTION => static function ($handle, string $line) use (&$headers): int {
+                if (str_contains($line, ':')) {
+                    [$key, $value] = explode(':', $line, 2);
+                    $headers[strtolower(trim($key))] = trim($value);
+                }
+                return strlen($line);
+            },
+        ]);
+        $body = curl_exec($curl);
+        $status = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $errno = curl_errno($curl);
+        curl_close($curl);
+        if ($errno !== 0 || $status !== 302
+            || ($headers['location'] ?? '') !== 'https://anytoour.ru/poisk-turov/?' . $query
+            || ($headers['cache-control'] ?? '') !== 'no-store' || $body !== '') {
+            fwrite(STDERR, "SEARCH_REDIRECT_HTTP_SMOKE_FAILED: method=$method status=$status errno=$errno\n");
+            exit(1);
+        }
+    }
+    echo "SEARCH_REDIRECT_HTTP_SMOKE_OK\n";
+}
