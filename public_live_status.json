@@ -1,46 +1,46 @@
 {
     "ok": true,
-    "generated_at": "2026-09-10T12:56:14+00:00",
+    "generated_at": "2026-09-10T14:30:54+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 13,
-        "raw_sessions": 13,
+        "sessions": 14,
+        "raw_sessions": 14,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 13,
+            "resolved": 14,
             "unresolved": 0
         },
-        "started": 13,
+        "started": 14,
         "needs_collected": 10,
         "tours_opened": 10,
-        "site_opened": 0,
-        "post_tour_manager_cta_shown": 0,
-        "manager_requested": 2,
-        "manager_replied": 2,
-        "customer_replied_after_manager": 1,
+        "site_opened": 1,
+        "post_tour_manager_cta_shown": 1,
+        "manager_requested": 0,
+        "manager_replied": 0,
+        "customer_replied_after_manager": 0,
         "phone_received": 0,
         "manager_response": {
-            "answered_in_90s": 1,
-            "answered_after_90s": 1,
+            "answered_in_90s": 0,
+            "answered_after_90s": 0,
             "still_unanswered": 0,
-            "measured_responses": 2,
-            "avg_seconds": 1924,
-            "max_seconds": 3825
+            "measured_responses": 0,
+            "avg_seconds": null,
+            "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 8,
-            "collecting_needs": 3,
-            "customer_replied_after_manager": 1,
-            "manager_replied": 1
+            "tours_opened": 9,
+            "collecting_needs": 4,
+            "site_open": 1
         },
         "flags": {
+            "excessive_turns": 3,
             "repeated_callback_input": 3,
-            "excessive_turns": 2
+            "rapid_date_reselection": 1
         }
     },
-    "since_utc": "2026-09-10 11:56:14",
+    "since_utc": "2026-09-10 13:30:54",
     "public_redacted": true
 }
