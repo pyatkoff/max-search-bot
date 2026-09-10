@@ -107,6 +107,7 @@ return [
         'php tests/run_max_event_idempotency_inventory_regression.php',
     ],
     'website' => [
+        'php tests/run_search_redirect_regression.php',
         'php tests/run_website_transport_regression.php',
         'php tests/run_website_attribution_health_regression.php',
         'php tests/run_website_production_smoke_regression.php',
