@@ -69,4 +69,22 @@ $savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',
 ], 'yclid-test');
 trCheck('saved dialogue data preserves full supported search context',$savedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test');
 
+// Production application origin must not replace the customer search website.
+define('MAX_SEARCH_PUBLIC_BASE_URL', 'https://app.anytoour.ru/');
+define('MAX_SEARCH_TRACKING_BASE_URL', 'https://app.anytoour.ru/');
+ProjectConfig::resetForTests(null);
+$productionClaim = ['UF_CITY'=>1,'UF_COUNTRY'=>4,'UF_DATE_DEPART'=>'05.10.2026','UF_NIGHTS'=>'7','UF_ADULTS'=>2,'UF_STARS'=>4,'UF_MEAL'=>7];
+$expectedProductionUrl = 'https://anytoour.ru/poisk-turov/?from=1&country=4&dateFrom=2026-10-05&dateTo=2026-10-05&daysFrom=7&daysTill=7&count_people=2&stars=4&food=7&yclid=7654321';
+trCheck('production application base remains independent',ProjectConfig::baseDomain(),'https://app.anytoour.ru');
+trCheck('production tracking base remains independent',ProjectConfig::trackingBaseDomain(),'https://app.anytoour.ru');
+trCheck('owner reported claim uses exact website destination',ProjectConfig::searchUrlFromClaim($productionClaim,'7654321'),$expectedProductionUrl);
+trCheck('claim fallback also uses website destination',ProjectConfig::claimUrl('abc','7654321'),'https://anytoour.ru/poisk-turov/?claim=abc&yclid=7654321');
+$productionModel = TourResultsService::build(-123);
+$expectedModelUrl = str_replace('https://public-search.test','https://anytoour.ru',$canonical);
+trCheck('result button ignores application origin override',$productionModel['buttons'][0][0]['url'],$expectedModelUrl);
+require_once __DIR__ . '/../services/MaxTransport.php';
+$wireButtons = MaxTransport::convertButtons($productionModel['buttons']);
+$wire = json_decode(json_encode($wireButtons,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),true);
+trCheck('MAX wire button retains website origin and all parameters',$wire[0][0]['url'],$expectedModelUrl);
+
 $total=$passed+$failed;echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
