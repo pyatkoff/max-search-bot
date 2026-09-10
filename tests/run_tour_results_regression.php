@@ -50,13 +50,13 @@ ProjectConfig::resetForTests(['messenger'=>['channel_offer'=>[
     'max_url'=>'https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}',
 ]]]);
 $unknown=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'']);
-trCheck('unknown source sees both channels',count($unknown['buttons']),2);
+trCheck('website model with unknown source sees both channels',count($unknown['buttons']),2);
 trCheck('MAX offer preserves yclid and region',$unknown['buttons'][0][0]['url'],'https://max.ru/id9704048781_2_bot?startapp=123456_region_7');
 trCheck('Telegram offer preserves yclid',$unknown['buttons'][1][0]['url'],'https://t.me/Any_tour_bot?startapp=123456');
 $maxTransport=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'max_paid_yandex']);
-trCheck('MAX transport alone does not suppress promo',count($maxTransport['buttons']),2);
+trCheck('MAX attribution tag does not hide website choices',count($maxTransport['buttons']),2);
 $tgTransport=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'telegram_paid_yandex']);
-trCheck('Telegram transport alone does not suppress promo',count($tgTransport['buttons']),2);
+trCheck('Telegram attribution tag does not hide website choices',count($tgTransport['buttons']),2);
 $suppressed=ChannelOfferService::model(['yclid'=>'123456','region_id'=>'7','entry_channel'=>'max_anytour_msk'],'',true);
 trCheck('explicit source policy suppresses all channel buttons',count($suppressed['buttons']),0);
 trCheck('suppressed model records source key',$suppressed['source_key'],'max_anytour_msk');
@@ -68,6 +68,35 @@ $savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',
     'city'=>10,'country'=>11,'date'=>12,'nights'=>13,'adults'=>14,'children'=>15,'child_ages'=>16,'stars'=>17,'meal'=>18,
 ], 'yclid-test');
 trCheck('saved dialogue data preserves full supported search context',$savedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test');
+
+// Channel choice belongs to the website consultant, not messenger delivery.
+// All cases intentionally retain the same project configuration (provider=max).
+require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
+ProjectConfig::resetForTests(null);
+$nativeMessages = [];
+$maxMessenger = new MaxMessengerAdapter(null, static function ($chatId, $text, $buttons) use (&$nativeMessages): bool {
+    $nativeMessages[] = ['text'=>$text,'buttons'=>$buttons]; return true;
+}, 'ai', null, false);
+$telegramMessenger = new TelegramMessengerAdapter(static function ($method, $payload) use (&$nativeMessages): bool {
+    $nativeMessages[] = ['method'=>$method,'payload'=>$payload]; return true;
+}, 'ai', false);
+foreach (['max'=>$maxMessenger,'telegram'=>$telegramMessenger] as $transport => $adapter) {
+    $nativeMessages = [];
+    IntegrationRegistry::useMessenger($adapter);
+    trCheck($transport . ' does not allow repeat promotion',ChannelOfferService::allowsRepeatOffer(),false);
+    trCheck($transport . ' promotion skip succeeds',ChannelOfferService::sendOffer(-123),true);
+    trCheck($transport . ' sends no repeat channel message',count($nativeMessages),0);
+    ChannelOfferService::runBeforeResults(-123,5);
+    trCheck($transport . ' keeps only preparation message',count($nativeMessages),1);
+}
+$websiteMessenger = new WebsiteMessengerAdapter('ai',false);
+IntegrationRegistry::useMessenger($websiteMessenger);
+trCheck('website transport allows channel choice',ChannelOfferService::allowsRepeatOffer(),true);
+trCheck('website offer is delivered',ChannelOfferService::sendOffer(-123),true);
+$websiteOffer = $websiteMessenger->drain();
+trCheck('website receives one channel invitation',count($websiteOffer),1);
+trCheck('website retains both channel choices',array_column(array_merge(...$websiteOffer[0]['buttons']),'text'),['Подписаться в MAX','Подписаться в Telegram']);
+IntegrationRegistry::resetForTests();
 
 // Production application origin must not replace the customer search website.
 define('MAX_SEARCH_PUBLIC_BASE_URL', 'https://app.anytoour.ru/');
