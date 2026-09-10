@@ -266,7 +266,7 @@ class DialogueView
 
     public static function channelOffer($chatId, bool $afterLead = false): bool
     {
-        $model = PostTourService::channelOfferModel($chatId, $afterLead);
+        $model = PostTourService::channelOfferModel($chatId, $afterLead, ChannelOfferService::allowsRepeatOffer());
         return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $model['text'], $model['buttons']);
     }
 
