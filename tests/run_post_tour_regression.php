@@ -56,6 +56,14 @@ ptCheck('telegram channel name',PostTourService::channelName(),'Telegram-кан�
 $tg=PostTourService::channelOfferModel(55,false);
 ptCheck('telegram copy mentions telegram',strpos($tg['text'],'Telegram-канал')!==false,true);
 
+$native = PostTourService::channelOfferModel(55,false,false);
+ptCheck('native followup omits subscription URL',$native['channel_url'],'');
+ptCheck('native followup keeps return-to-tours button',array_column(array_merge(...$native['buttons']),'text'),['🔥 Вернуться к турам']);
+ptCheck('native followup omits subscription copy',str_contains($native['text'],'подпис'),false);
+$nativeLead = PostTourService::channelOfferModel(55,true,false);
+ptCheck('native lead confirmation is preserved',str_contains($nativeLead['text'],'Заявка отправлена'),true);
+ptCheck('native lead confirmation omits channel promo',str_contains($nativeLead['text'],'канал'),false);
+
 MaxSearchApi::$channel='';
 MaxSearchApi::$claim=[];
 $empty=PostTourService::channelOfferModel(55,false);
