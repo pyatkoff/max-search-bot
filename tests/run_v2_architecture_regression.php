@@ -35,7 +35,7 @@ define('MAX_SEARCH_PUBLIC_BASE_URL','https://public.override.test/');
 define('MAX_SEARCH_TRACKING_BASE_URL','https://tracking.override.test/');
 v2check('public base override',ProjectConfig::baseDomain(),'https://public.override.test');
 v2check('tracking base override',ProjectConfig::trackingBaseDomain(),'https://tracking.override.test');
-v2check('canonical search follows public override',ProjectConfig::searchUrl(['from'=>1]),'https://public.override.test/poisk-turov/?from=1');
+v2check('canonical search stays on website despite public override',ProjectConfig::searchUrl(['from'=>1]),'https://example.test/poisk-turov/?from=1');
 
 $base=sys_get_temp_dir().'/max-search-v2-'.uniqid();@mkdir($base,0755,true);
 $state=['departure'=>['city_id'=>1,'city'=>'Москва'],'destination'=>['country_id'=>4,'country'=>'Турция'],'dates'=>['from'=>'10.09.2026','to'=>'12.09.2026'],'nights'=>['min'=>7,'max'=>10],'tourists'=>['adults'=>2,'children'=>1,'children_ages'=>[6]],'budget'=>['max'=>180000,'currency'=>'RUB'],'hotel'=>['stars_min'=>5,'meal'=>'all_inclusive'],'preferences'=>['первая линия','детский клуб'],'negative_preferences'=>['шумный отель'],'meta'=>[]];

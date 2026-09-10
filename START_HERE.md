@@ -430,6 +430,27 @@ standalone start from aborting before its greeting. It does not reconstruct past
 click attribution: advertising cohorts become measurable only from a subsequent
 real start carrying a supported payload. Do not classify missing YCLID as organic.
 
+## Customer search origin incident — 2026-09-10
+
+The owner supplied a complete search URL whose query fields and YCLID were intact,
+but whose origin was `https://app.anytoour.ru`. The earlier #768–#770 checks did
+not prove the runtime-generated destination: their fixture omitted
+`MAX_SEARCH_PUBLIC_BASE_URL`, while the website browser smoke used a manually
+constructed URL without YCLID. Do not cite those checks as end-to-end attribution
+verification.
+
+`ProjectConfig::searchUrl()` must use versioned `search.base_domain` for the
+customer website, independently of the deployment/application override in
+`baseDomain()`. Application and tracking origin overrides remain valid for their
+own callers. The owner-confirmed target is `https://anytoour.ru/poisk-turov/`
+with the original query preserved. `tools/search_destination_smoke.php` loads the
+real production config and asserts the exact supplied fixture through MAX button
+serialization without creating a claim, sending a message or recording a visit.
+A successful smoke proves generation under production config, not a natural
+customer click or Yandex attribution. Old already-sent buttons are not rewritten
+by this generator fix. Confirm required CI and exact deploy evidence in #55 before
+calling this release verified.
+
 ## Advertising analytics delivery and direct search links
 
 The owner-confirmed analytics incident is complete through PRs #765–#769 and must

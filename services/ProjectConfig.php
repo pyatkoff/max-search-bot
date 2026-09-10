@@ -51,7 +51,8 @@ class ProjectConfig
     public static function searchUrl(array $query = []): string
     {
         $path = '/' . trim((string)self::get('search.search_path', '/poisk-turov/'), '/') . '/';
-        $url = self::baseDomain() . $path;
+        // Search belongs to the customer website, not the deployment/application host.
+        $url = rtrim((string)self::get('search.base_domain', ''), '/') . $path;
         $pairs = [];
         foreach ($query as $key => $value) {
             if ($value === null || $value === '' || $value === 0 || $value === '0' || $value === []) continue;

@@ -18,11 +18,19 @@ function liveSeptemberCheck(string $name, $actual, $expected): void
     $failed++;
 }
 
-$r = DateParser::resolveDate('10 сентебря');
+$r = DateParser::resolveDate('10 сентебря 2026');
 liveSeptemberCheck('live typo 10 сентебря resolves', $r['date'] ?? null, '10.09.2026');
-$r = DateParser::resolveDate('9 сентебря');
+$r = DateParser::resolveDate('9 сентебря 2026');
 liveSeptemberCheck('live typo 9 сентебря resolves', $r['date'] ?? null, '09.09.2026');
-$r = DateParser::resolveDate('10 сентября');
+$r = DateParser::resolveDate('10 сентября 2026');
 liveSeptemberCheck('correct spelling remains supported', $r['date'] ?? null, '10.09.2026');
+
+// Yearless inputs must share the ordinary spelling's rolling-year behavior.
+foreach ([9, 10] as $day) {
+    $typo = DateParser::resolveDate($day . ' сентебря');
+    $ordinary = DateParser::resolveDate($day . ' сентября');
+    liveSeptemberCheck('yearless typo preserves day and month ' . $day, substr((string)($typo['date'] ?? ''), 0, 6), sprintf('%02d.09.', $day));
+    liveSeptemberCheck('yearless typo preserves ordinary year policy ' . $day, $typo, $ordinary);
+}
 
 exit($failed ? 1 : 0);

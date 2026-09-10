@@ -26,9 +26,9 @@ define('ANYTOUR_DATA_DB_NAME', '');
 define('ANYTOUR_DATA_DB_USER', '');
 define('ANYTOUR_DATA_DB_PASSWORD', '');
 
-// Deployment-specific public hosts. Leave empty to use project.php legacy
-// defaults. Standby/cutover hosts can override these without changing shared
-// project identity or forcing the old production host to move early.
+// Deployment-specific application/tracking hosts. Leave empty to use project.php
+// defaults. These do not override the customer search destination: searchUrl()
+// uses search.base_domain in project.php.
 define('MAX_SEARCH_PUBLIC_BASE_URL', '');
 define('MAX_SEARCH_TRACKING_BASE_URL', '');
 
