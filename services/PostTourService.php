@@ -57,10 +57,10 @@ class PostTourService
         ];
     }
 
-    public static function channelOfferModel($chatId, bool $afterLead = false): array
+    public static function channelOfferModel($chatId, bool $afterLead = false, bool $offerChannel = true): array
     {
         $buttons = [];
-        $channelUrl = (string)MaxSearchApi::buildChannelMiniappUrl($chatId);
+        $channelUrl = $offerChannel ? (string)MaxSearchApi::buildChannelMiniappUrl($chatId) : '';
         if ($channelUrl !== '') {
             $tracked = TourResultsService::trackedUrl(
                 (string)ProjectConfig::get('messenger.open_channel_path', '/max-search/open_channel.php'),
@@ -84,6 +84,12 @@ class PostTourService
         $text = $afterLead
             ? "✅ <b>Заявка отправлена</b>\n\nМенеджер получил параметры вашего отдыха и свяжется с вами.\n\nА пока можно заглянуть в наш {$channelName} — там публикуем хорошие цены и горящие предложения."
             : "🌴 <b>Отлично!</b>\n\nЕсли хотите следить за хорошими ценами и горящими предложениями, подписывайтесь на наш {$channelName}.";
+
+        if (!$offerChannel) {
+            $text = $afterLead
+                ? "✅ <b>Заявка отправлена</b>\n\nМенеджер получил параметры вашего отдыха и свяжется с вами."
+                : "🌴 <b>Отлично!</b>\n\nМожно вернуться к подборке туров.";
+        }
 
         return [
             'text' => $text,

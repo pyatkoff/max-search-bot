@@ -6,7 +6,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/TrafficAttributionService.php';
 
 /**
- * Owns the channel offer policy at paid MAX entry and before results.
+ * Owns paid MAX entry and the website-only channel offer before results.
  * The offer is advisory only: it never blocks or changes tour-search/manager routing.
  */
 class ChannelOfferService
@@ -51,9 +51,9 @@ class ChannelOfferService
     }
 
     /**
-     * Promotion is suppressed only by an explicit source policy.
-     * Transport alone is never enough: paid Yandex traffic may legitimately land in MAX/TG.
-     * Missing source, unknown source or unavailable DB fail open and keep both offers visible.
+     * Additional source-level suppression for eligible website offers and paid MAX entry.
+     * Messenger repeats are suppressed separately by the actual request transport.
+     * Missing/unknown source or unavailable DB does not invent a source restriction.
      */
     public static function sourceSuppressesOffer(array $meta): bool
     {
@@ -99,8 +99,15 @@ class ChannelOfferService
         );
     }
 
+    /** Alternate webhooks override IntegrationRegistry without changing ProjectConfig. */
+    public static function allowsRepeatOffer(): bool
+    {
+        return IntegrationRegistry::messenger() instanceof WebsiteMessengerAdapter;
+    }
+
     public static function sendOffer($chatId): bool
     {
+        if (!self::allowsRepeatOffer()) return true;
         $meta = [];
         $yclid = '';
         try { $meta = (array)MaxSearchApi::getTrafficMeta($chatId); } catch (Throwable $e) {}
@@ -122,6 +129,8 @@ class ChannelOfferService
     public static function runBeforeResults($chatId, ?int $resultDelaySeconds = null): void
     {
         self::sendPreparing($chatId);
+        // MAX/TG already have their entry flow; do not repeat promotion or its delay.
+        if (!self::allowsRepeatOffer()) return;
         sleep(3);
         self::sendOffer($chatId);
         $total = $resultDelaySeconds ?? random_int(5, 8);
