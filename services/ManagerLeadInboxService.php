@@ -44,6 +44,16 @@ class ManagerLeadInboxService
         return array_map(static fn($item)=>$item['row'],$indexed);
     }
 
+    /** Keep task urgency within each group, with unanswered owned conversations first. */
+    public static function sortMine(array $rows): array
+    {
+        $pending=[];$other=[];
+        foreach(self::sortOperational($rows) as $row){
+            if(!empty($row['awaiting_manager_reply']))$pending[]=$row;else $other[]=$row;
+        }
+        return array_merge($pending,$other);
+    }
+
     public static function filter(array $rows,string $outcome='',string $search='',string $taskFilter=''): array
     {
         $outcome=trim($outcome);if(!in_array($outcome,['','open','won','lost'],true))$outcome='';$search=trim($search);$taskFilter=trim($taskFilter);if(!in_array($taskFilter,['','action','overdue','today','planned','pinned','none'],true))$taskFilter='';

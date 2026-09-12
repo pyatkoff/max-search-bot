@@ -26,7 +26,7 @@ tfCheck('restored task filter also restores manager work queue before first list
 tfCheck('pipeline module no longer owns inbox filter lifecycle',strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'bindFilters')===false);
 tfCheck('inbox sends task filter',strpos($inbox,'lead_task_filter:S.leadTaskFilter')!==false);
 tfCheck('pipeline API passes task filter to projection',strpos($api,"(string)(\$data['lead_task_filter']??'')")!==false);
-tfCheck('unfiltered manager work queue keeps canonical operational ordering at API boundary',strpos($api,"if(\$queue==='mine'&&trim(\$taskFilter)==='')\$rows=ManagerLeadInboxService::sortOperational(\$rows)")!==false);
+tfCheck('manager work queue prioritizes replies through inbox owner at API boundary',strpos($api,"if(\$queue==='mine')\$rows=ManagerLeadInboxService::sortMine(\$rows)")!==false);
 tfCheck('explicit task filters reuse canonical operational ordering',strpos($projection,"return \$taskFilter===''?\$filtered:self::sortOperational(\$filtered);")!==false);
 tfCheck('LeadTaskService owns operational rank and state business rule',strpos($taskService,'public static function operationalRank')!==false&&strpos($taskService,'public static function operationalState')!==false&&strpos($projection,'public static function operationalTaskRank')===false&&strpos($projection,'public static function operationalTaskState')===false);
 tfCheck('inbox projection delegates open-lead task semantics to LeadTaskService',strpos($taskService,'public static function operationalProjection')!==false&&strpos($projection,'LeadTaskService::operationalProjection($rowsForLead)')!==false&&strpos($projection,'LeadTaskService::operationalProjection([])')!==false);
