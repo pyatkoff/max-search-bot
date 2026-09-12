@@ -1,45 +1,47 @@
 {
     "ok": true,
-    "generated_at": "2026-09-12T17:16:39+00:00",
+    "generated_at": "2026-09-12T19:27:55+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 11,
-        "raw_sessions": 11,
+        "sessions": 12,
+        "raw_sessions": 12,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 11,
+            "resolved": 12,
             "unresolved": 0
         },
-        "started": 11,
-        "needs_collected": 7,
-        "tours_opened": 7,
-        "site_opened": 1,
-        "post_tour_manager_cta_shown": 1,
-        "manager_requested": 4,
-        "manager_replied": 4,
+        "started": 12,
+        "needs_collected": 11,
+        "tours_opened": 11,
+        "site_opened": 0,
+        "post_tour_manager_cta_shown": 2,
+        "manager_requested": 1,
+        "manager_replied": 1,
         "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 4,
+            "answered_after_90s": 1,
             "still_unanswered": 0,
-            "measured_responses": 4,
-            "avg_seconds": 1063,
-            "max_seconds": 1782
+            "measured_responses": 1,
+            "avg_seconds": 2803,
+            "max_seconds": 2803
         },
         "drop_points": {
-            "collecting_needs": 4,
-            "manager_replied": 3,
-            "tours_opened": 3,
+            "tours_opened": 10,
+            "collecting_needs": 1,
             "customer_replied_after_manager": 1
         },
         "flags": {
-            "repeated_callback_input": 2
+            "excessive_turns": 2,
+            "repeated_callback_input": 2,
+            "rapid_date_reselection": 1,
+            "repeated_same_input": 1
         }
     },
-    "since_utc": "2026-09-12 16:16:39",
+    "since_utc": "2026-09-12 18:27:55",
     "public_redacted": true
 }
