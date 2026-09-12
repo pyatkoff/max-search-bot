@@ -54,7 +54,7 @@ if($action==='list'){
     $rows=ManagerLeadInboxService::decorate($rows);
     $taskFilter=(string)($data['lead_task_filter']??'');
     $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),$taskFilter);
-    if($queue==='mine'&&trim($taskFilter)==='')$rows=ManagerLeadInboxService::sortOperational($rows);
+    if($queue==='mine')$rows=ManagerLeadInboxService::sortMine($rows);
     foreach($rows as &$row)$row['can_edit_pipeline']=ManagerHttp::canEditConversation($row,$m);
     unset($row);
     ManagerHttp::respond(['ok'=>true,'conversations'=>array_slice($rows,0,100)]);

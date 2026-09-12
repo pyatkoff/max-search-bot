@@ -169,3 +169,52 @@ test('1440px pipeline admin uses multi-column editor and bounded content width',
   expect(wrap.width).toBeLessThanOrEqual(1180);
   expect(Math.min(...inputs)).toBeGreaterThanOrEqual(200);
 });
+
+for (const width of [390, 430, 768, 1440]) {
+  test(`${width}px My conversations keep reply markers after reading`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-activity-fixture.html');
+    await page.evaluate(() => {
+      document.querySelector('.inboxList').id = 'inboxList';
+      window.WorkspaceV2 = {
+        S: { queue: 'mine', current: 1, leadTaskFilter: '' },
+        $: id => document.getElementById(id),
+        esc: value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+        statusText: () => 'Менеджер', outcomeText: () => '', formatWait: () => '',
+      };
+    });
+    await page.addScriptTag({ url: 'http://127.0.0.1:4173/manager/assets/workspace-v2-inbox.js' });
+    await page.evaluate(() => {
+      window.replyRows = [
+        { id: 1, display_name: 'Анна', manager_name: 'Светлана', awaiting_manager_reply: 1, unread_count: 2, last_text: 'Подскажите стоимость, пожалуйста.', operational_task_due_state: 'none' },
+        { id: 2, display_name: 'Михаил', manager_name: 'Светлана', awaiting_manager_reply: 1, unread_count: 0, last_text: 'Жду вашего ответа.', operational_task_due_state: 'upcoming' },
+        { id: 3, display_name: 'Ирина', manager_name: 'Светлана', awaiting_manager_reply: 0, unread_count: 0, last_text: 'Отправила варианты.', last_sender_type: 'manager', operational_task_due_state: 'today' },
+      ];
+      window.WorkspaceV2Inbox.renderList(window.replyRows);
+    });
+    await expect(page.locator('.taskQueueSection').first()).toHaveText('Ждут ответа · 2');
+    await expect(page.locator('.leadReplyStatus')).toHaveCount(2);
+    await expect(page.locator('.needsReply')).toHaveCount(2);
+    await page.evaluate(() => window.WorkspaceV2Inbox.markRead(1));
+    await expect(page.locator('.unreadBadge')).toHaveCount(0);
+    await expect(page.locator('[data-conversation-id="1"] .leadReplyStatus')).toHaveText('Ждёт ответа');
+    await expectNoHorizontalOverflow(page);
+    for (const badge of await page.locator('.leadReplyStatus').all()) {
+      const b = await rect(badge);
+      expect(b.width).toBeGreaterThan(70);
+      expect(b.x + b.width).toBeLessThanOrEqual(width);
+    }
+    await page.screenshot({ path: `visual-artifacts/mine-pending-${width}.png`, fullPage: true });
+    await page.evaluate(() => {
+      window.replyRows[0].awaiting_manager_reply = 0;
+      window.WorkspaceV2Inbox.renderList([window.replyRows[1], window.replyRows[2], window.replyRows[0]]);
+    });
+    await expect(page.locator('[data-conversation-id="1"] .leadReplyStatus')).toHaveCount(0);
+    await expect(page.locator('.leadReplyStatus')).toHaveCount(1);
+    await page.evaluate(() => {
+      window.WorkspaceV2.S.queue = 'all';
+      window.WorkspaceV2Inbox.renderList(window.replyRows);
+    });
+    await expect(page.locator('.leadReplyStatus, .taskQueueSection.reply')).toHaveCount(0);
+  });
+}
