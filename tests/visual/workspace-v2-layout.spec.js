@@ -218,3 +218,29 @@ for (const width of [390, 430, 768, 1440]) {
     await expect(page.locator('.leadReplyStatus, .taskQueueSection.reply')).toHaveCount(0);
   });
 }
+
+for (const width of [390, 1440]) {
+  test(`${width}px filtered My refresh keeps cards on pipeline failure`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('http://127.0.0.1:4173/tests/visual/workspace-v2-inbox-load-failure-fixture.html');
+    const before = await page.locator('#inboxList').innerHTML();
+    await page.evaluate(() => {
+      window.fallbackCalls = 0;
+      window.WorkspaceV2 = {
+        S: { queue: 'mine', leadSearch: 'Анна', viewMode: 'list' },
+        $: id => document.getElementById(id),
+        esc: value => String(value), statusText: () => '', outcomeText: () => '', formatWait: () => '',
+        pipe: async () => ({ ok: false, http_status: 500 }),
+        api: async () => { window.fallbackCalls++; return { ok: true, conversations: [{ id: 999, display_name: 'Unrelated lead' }] }; },
+      };
+    });
+    await page.addScriptTag({ url: 'http://127.0.0.1:4173/manager/assets/workspace-v2-inbox.js' });
+    expect(await page.evaluate(() => window.WorkspaceV2Inbox.load())).toBe(false);
+    expect(await page.evaluate(() => window.fallbackCalls)).toBe(0);
+    expect(await page.locator('#inboxList').innerHTML()).toBe(before);
+    await expect(page.locator('#inboxList')).toHaveAttribute('data-stale', 'true');
+    await expect(page.locator('#inboxLoadStatus')).toContainText('Показаны последние загруженные данные.');
+    await expect(page.getByRole('button', { name: 'Повторить', exact: true })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+}
