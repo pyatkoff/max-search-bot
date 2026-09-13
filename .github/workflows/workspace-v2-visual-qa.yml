@@ -87,7 +87,7 @@ jobs:
           npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$adminAudit" visual-artifacts/admin-audit-1440.png
           npx playwright screenshot --browser chromium --viewport-size='390,844' --full-page "$pipelineAdmin" visual-artifacts/pipeline-admin-390.png
           npx playwright screenshot --browser chromium --viewport-size='1440,1000' --full-page "$pipelineAdmin" visual-artifacts/pipeline-admin-1440.png
-          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 30
+          test "$(find visual-artifacts -type f -name '*.png' | wc -l)" -eq 34
           find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
 
       - name: Upload visual evidence
@@ -97,3 +97,4 @@ jobs:
           path: visual-artifacts/*.png
           if-no-files-found: error
           retention-days: 14
+
