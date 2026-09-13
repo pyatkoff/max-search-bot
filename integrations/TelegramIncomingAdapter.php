@@ -44,10 +44,40 @@ class TelegramIncomingAdapter
             $externalUserId,
             $externalUserId,
             $messageId,
-            (string)($message['text'] ?? ''),
+            (string)($message['text'] ?? $message['caption'] ?? ''),
             self::normalizedUser($from),
-            $update
+            $update,
+            self::mediaAttachments($message)
         );
+    }
+
+    /** Telegram forwards retain media on the message itself, not forward_origin. */
+    private static function mediaAttachments(array $message): array
+    {
+        $photo = null;
+        foreach ((array)($message['photo'] ?? []) as $size) {
+            if (!is_array($size) || empty($size['file_id'])) continue;
+            if ($photo === null || (int)($size['width'] ?? 0) * (int)($size['height'] ?? 0) > (int)($photo['width'] ?? 0) * (int)($photo['height'] ?? 0)) $photo = $size;
+        }
+        $items = $photo ? [['image', $photo, 'Фото.jpg']] : [];
+        // animation also carries document for compatibility; store it only once.
+        foreach (['animation'=>'video', 'video'=>'video', 'video_note'=>'video', 'voice'=>'audio', 'audio'=>'audio', 'document'=>'file', 'sticker'=>'file'] as $key=>$type) {
+            $file = $message[$key] ?? null;
+            if (!is_array($file) || empty($file['file_id'])) continue;
+            if ($key === 'sticker' && empty($file['is_animated'])) $type = empty($file['is_video']) ? 'image' : 'video';
+            $items[] = [$type, $file, ['video'=>'Видео', 'audio'=>'Аудио', 'image'=>'Стикер.webp', 'file'=>'Файл'][$type]];
+            break;
+        }
+        $attachments = [];
+        foreach ($items as [$type, $file, $name]) {
+            $attachments[] = [
+                'type'=>$type, 'provider'=>'telegram',
+                'telegram_file_id'=>(string)$file['file_id'],
+                'name'=>(string)($file['file_name'] ?? $name),
+                'size'=>max(0, (int)($file['file_size'] ?? 0)),
+            ];
+        }
+        return $attachments;
     }
 
     private static function normalizedUser(array $from): array

@@ -25,13 +25,28 @@ class ManagerMessageMediaService
         }
         foreach ($messages as &$message) {
             $attachments = $mediaById[(int)($message['id'] ?? 0)] ?? [];
-            $message['attachments'] = $attachments;
+            $message['attachments'] = self::publicAttachments((int)($message['id'] ?? 0), $attachments);
             if ($attachments && self::isSyntheticAttachmentPreview($message, $attachments)) {
                 $message['text'] = '';
             }
         }
         unset($message);
         return $messages;
+    }
+
+    public static function publicAttachments(int $messageId, array $attachments): array
+    {
+        foreach ($attachments as $index=>&$attachment) {
+            if (($attachment['provider'] ?? '') !== 'telegram') continue;
+            // Never expose bot credentials or Telegram file identifiers in the UI.
+            $attachment = [
+                'type'=>(string)($attachment['type'] ?? 'file'),
+                'name'=>(string)($attachment['name'] ?? 'Вложение'),
+                'url'=>'media-file.php?message_id='.$messageId.'&attachment='.$index,
+            ];
+        }
+        unset($attachment);
+        return $attachments;
     }
 
     public static function isSyntheticAttachmentPreview(array $message, array $attachments): bool
