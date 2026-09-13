@@ -117,7 +117,7 @@ try {ManagerTelegramMediaService::open(array_replace($attachment,['size'=>Manage
 catch(RuntimeException $e){mediaEqual($e->getCode(),413,'large file has explicit limit error');}
 mediaEqual($count,0,'known oversized file never calls Telegram');
 $endpoint=file_get_contents(__DIR__.'/../manager/media-file.php');
+mediaEqual(strpos($endpoint,"'/config.php'")<strpos($endpoint,'ManagerHttp::requireManager()'),true,'endpoint configures DB before authenticated lookup');
 mediaEqual(strpos($endpoint,'ManagerHttp::requireManager()')<strpos($endpoint,'ManagerTelegramMediaService::attachment'),true,'endpoint authenticates before media lookup');
 mediaEqual(str_contains($endpoint,"session_write_close()"),true,'download releases session lock');
 echo "Telegram incoming media regression passed\n";
-

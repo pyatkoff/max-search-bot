@@ -1,5 +1,6 @@
 <?php
 $baseDir=dirname(__DIR__);
+require_once $baseDir.'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
 require_once $baseDir.'/services/ManagerMediaCache.php';
@@ -8,7 +9,6 @@ ManagerHttp::start();
 $manager=ManagerHttp::requireManager();
 $managerId=ManagerHttp::managerId();
 if (isset($_GET['message_id'])) {
-    require_once $baseDir.'/config.php';
     require_once $baseDir.'/services/ManagerTelegramMediaService.php';
     header('Cache-Control: private, no-store');
     header('X-Content-Type-Options: nosniff');
