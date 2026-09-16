@@ -100,7 +100,7 @@ if($action==='detail'){
             try{
                 $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages']);
                 if($summary!==''){
-                    $d['messages'][]=['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),'created_at'=>(string)($d['conversation']['last_message_at']??''),'attachments'=>[]];
+                    $d['messages'][]=['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),'created_at'=>(string)($d['conversation']['last_message_at']??''),'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages'])];
                 }
             }catch(Throwable $ignored){}
         }
