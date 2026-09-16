@@ -127,7 +127,7 @@ function renderAttachments(root,items){
       if(!safePhotoUrl(url)){n=document.createElement('span');n.textContent='Фото недоступно';wrap.appendChild(n);return}
       const preview=photoLink(url,a.name,'Увеличить фото');preview.classList.add('photoPreview');
       n=document.createElement('img');n.loading='lazy';n.alt=a.name||'Изображение';
-      n.onerror=()=>{const text=document.createElement('span');text.textContent='Не удалось загрузить: '+(a.name||'Изображение')+'. Открыть файл';n.replaceWith(text)};
+      n.onerror=()=>{const text=document.createElement('span');text.textContent='Не удалось загрузить: '+(a.name||'Изображение')+'. Открыть файл';preview.setAttribute('aria-label',text.textContent);n.replaceWith(text)};
       n.src=url;preview.appendChild(n);wrap.appendChild(preview);
       const open=photoLink(url,a.name,'Открыть фото');open.textContent='Открыть фото';wrap.appendChild(open);return;
     }
