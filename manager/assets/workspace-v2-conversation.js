@@ -42,7 +42,13 @@ function deliverySuspended(){return String(S.detail?.delivery_failure?.category|
 function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||accessLost;if(file)file.disabled=busy||suspended||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||accessLost})}
 function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||accessLost})}
 function applyInteractionState(){applyComposerState();applyActionState()}
-function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=String(f.message||f.error_message||'Сообщение клиенту не доставлено.');el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
+// A failed request is not proof that the recipient did not receive the message.
+// Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
+function sendFailureNotice(failure,fallback=''){
+  if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category))return String(fallback||failure.message||'Отправка отклонена.');
+  return 'Отправка не подтверждена. Проверьте переписку перед повторной попыткой, чтобы не отправить сообщение дважды.';
+}
+function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,String(f.message||f.error_message||''));el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
 function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
@@ -219,30 +225,43 @@ async function change(a){
   finally{setBusy(false)}
 }
 async function sendReply(){
-  if(busy||deliverySuspended())return;
-  if(accessLost)return;
+  if(busy||deliverySuspended()||accessLost||S.authExpired)return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  const manager=Number(S.manager?.id),authGeneration=S.authGeneration;
+  const sameSession=()=>!S.authExpired&&S.authGeneration===authGeneration&&Number(S.manager?.id)===manager;
+  const sameTarget=()=>sameSession()&&Number(S.current)===target;
+  const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile))return;
   setBusy(true);setReplyStatus('Отправляем сообщение…');
   try{
-    let j;if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
-    const stillCurrent=openSeq===generation&&Number(S.current)===target;
-    if(!j?.ok){
+    let j;
+    try{
+      if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
+    }catch(e){
+      if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error');
+      return;
+    }
+    if(j?.ok!==true){
       const failure=j?.failure||null;
-      if(stillCurrent&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
-      if(stillCurrent&&!S.authExpired)setReplyStatus(j?.error_message||failure?.message||'Не удалось отправить сообщение','error');
-      return
+      if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
+      if(currentAttempt())setReplyStatus(sendFailureNotice(failure,j?.error_message),'error');
+      return;
     }
-    if(owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
-    if(stillCurrent){
+    if(sameSession()&&owner===replySessionOwner&&owner===manager&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+    if(currentAttempt()){
       if($('replyText').value===draftText)$('replyText').value='';autoGrow();
-      const refreshed=await open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
-      if(refreshed){const statusGeneration=openSeq;setReplyStatus('Отправлено','success');setTimeout(()=>{if(!busy&&Number(S.current)===target&&openSeq===statusGeneration)setReplyStatus()},1400)}
+      setReplyStatus('Отправлено','success');
+      // Sending already succeeded. A later history/render failure cannot reverse that result.
+      let refreshed=false,refreshGeneration=openSeq;
+      try{
+        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
+        refreshGeneration=openSeq;refreshed=await refreshing;
+      }catch(e){}
+      if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
     }
-    await window.WorkspaceV2Inbox?.load({preserveScroll:true})
-  }catch(e){
-    if(!S.authExpired&&openSeq===generation&&Number(S.current)===target)setReplyStatus('Не удалось отправить сообщение','error')
+    // Inbox owns its refresh errors; they are not message-delivery failures.
+    if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
   }finally{setBusy(false)}
 }
 function bind(){if(bound)return;bound=true;const form=$('composer'),reply=$('replyText');form.onsubmit=async e=>{e.preventDefault();await sendReply()};reply.addEventListener('input',()=>{saveDraft();autoGrow()});reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))}

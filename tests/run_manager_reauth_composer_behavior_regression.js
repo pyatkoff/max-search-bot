@@ -187,5 +187,67 @@ test('pending protected request is discarded across account switch',async()=>{
   old.resolve(response({ok:true,counts:{mine:{count:99}}}));const result=await pending;
   assert.equal(result.ok,false);assert.equal(result.error,'stale_session');
 });
+
+// Send requests below are handled by the in-memory fetch above; no network I/O.
+for(const result of ['network','invalid','unknown','temporary'])test('unconfirmed '+result+' preserves draft/file and does not resend',async()=>{
+  const h=createHarness();await h.start();await h.draft('Synthetic reply');const file={name:'fixture.png'};h.setFile(file);
+  h.window.WorkspaceV2Media.send=async()=>{if(result==='network')throw new Error('Synthetic connection loss');return result==='invalid'?{ok:false,error:'invalid_response'}:{ok:false,failure:{category:result,message:'Сообщение не доставлено'}};};
+  let sends=0;const send=h.window.WorkspaceV2Media.send;h.window.WorkspaceV2Media.send=async()=>{sends++;return send();};
+  await h.C.sendReply();
+  assert.match(h.ids.get('replyStatus').textContent,/Отправка не подтверждена/);
+  if(['unknown','temporary'].includes(result))assert.match(h.ids.get('deliveryFailure').textContent,/Отправка не подтверждена/);
+  assert.equal(h.ids.get('replyText').value,'Synthetic reply');assert.equal(h.getFile(),file);assert.equal(sends,1);assert.equal(h.ids.get('sendReply').disabled,false);
+});
+for(const category of ['suspended','blocked','unavailable','unsupported'])test('known '+category+' reason remains visible without retries',async()=>{
+  const h=createHarness();await h.start();await h.draft();
+  h.setHook((url,r)=>r.action==='send'?response({ok:false,error_message:'Synthetic known reason',failure:{category,message:'Synthetic known reason'}},409):null);
+  await h.C.sendReply();assert.equal(h.ids.get('replyStatus').textContent,'Synthetic known reason');assert.equal(h.ids.get('deliveryFailure').textContent,'Synthetic known reason');
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.ids.get('sendReply').disabled,category==='suspended');
+});
+for(const mode of ['detail-error','detail-throw','inbox-throw','render-throw'])test('accepted send remains confirmed after '+mode,async()=>{
+  const h=createHarness();await h.start();await h.draft('Confirmed synthetic reply');
+  h.setHook((url,r)=>{
+    if(r.action==='send')return response({ok:true});
+    if(url==='api.php'&&r.action==='detail'){
+      if(mode==='detail-error')return response({ok:false},500);
+      if(mode==='detail-throw')throw new Error('Synthetic history outage');
+    }
+    return null;
+  });
+  if(mode==='inbox-throw')h.window.WorkspaceV2Inbox.load=async()=>{throw new Error('Synthetic Inbox outage');};
+  if(mode==='render-throw')h.window.WorkspaceV2LeadCard.render=()=>{throw new Error('Synthetic render failure');};
+  await h.C.sendReply();
+  assert.match(h.ids.get('replyStatus').textContent,/^Отправлено/);
+  assert.doesNotMatch(h.ids.get('replyStatus').textContent,/не подтверждена|Не удалось отправить/);
+  assert.equal(h.ids.get('replyText').value,'');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+});
+test('successful send and refresh reports sent without inferring client reading',async()=>{
+  const h=createHarness();await h.start();await h.draft('Synthetic text');h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);
+  await h.C.sendReply();assert.equal(h.ids.get('replyStatus').textContent,'Отправлено');
+  const sends=h.calls.filter(r=>r.action==='send');assert.equal(sends.length,1);assert.equal(sends[0].conversation_id,101);assert.equal(sends[0].text,'Synthetic text');
+  assert.equal(h.W.S.detail.messages.length,0); // no invented message/receipt in history
+});
+test('late confirmed send after navigation cannot clear another draft or set its status',async()=>{
+  const h=createHarness();await h.start();await h.draft('Old draft');const pending=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='send'?(entered.resolve(),pending.promise):null);
+  const sending=h.C.sendReply();await entered.promise;await h.C.open(102);await h.draft('New conversation draft');
+  h.ids.get('replyStatus').textContent='New conversation feedback';pending.resolve(response({ok:true}));await sending;
+  assert.equal(h.W.S.current,102);assert.equal(h.ids.get('replyText').value,'New conversation draft');assert.equal(h.ids.get('replyStatus').textContent,'New conversation feedback');
+});
+test('late send after reauthentication cannot display old-account feedback',async()=>{
+  const h=createHarness();await h.start();await h.draft('Old draft');const pending=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='send'?(entered.resolve(),pending.promise):null);
+  const sending=h.C.sendReply();await entered.promise;h.W.showAuthRecovery();h.setHook(null);await h.login();await h.draft('Recovered draft');
+  h.ids.get('replyStatus').textContent='Recovered feedback';pending.resolve(response({ok:true}));await sending;
+  assert.equal(h.ids.get('replyText').value,'Recovered draft');assert.equal(h.ids.get('replyStatus').textContent,'Recovered feedback');
+});
+test('newer navigation during post-send refresh owns the new screen and draft',async()=>{
+  const h=createHarness();await h.start();await h.draft('Old draft');const pending=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='send'?response({ok:true}):url==='api.php'&&r.action==='detail'&&r.conversation_id===101?(entered.resolve(),pending.promise):null);
+  const sending=h.C.sendReply();await entered.promise;await h.C.open(102);await h.draft('New draft');h.ids.get('replyStatus').textContent='New feedback';
+  pending.resolve(response({ok:false},500));await sending;
+  assert.equal(h.W.S.current,102);assert.equal(h.ids.get('replyText').value,'New draft');assert.equal(h.ids.get('replyStatus').textContent,'New feedback');
+});
+
 module.exports={createHarness,response,deferred,hidden,assertNoMutations};
 if(require.main===module)(async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})()
