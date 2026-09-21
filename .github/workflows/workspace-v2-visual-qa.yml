@@ -45,7 +45,7 @@ jobs:
           exit 1
 
       - name: Assert responsive layout contracts
-        run: npx playwright test tests/visual/workspace-v2-layout.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js --reporter=line --workers=1
 
       - name: Capture responsive screenshots
         shell: bash
@@ -94,7 +94,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: workspace-v2-visual-${{ github.sha }}
-          path: visual-artifacts/*.png
+          path: |
+            visual-artifacts/*.png
+            send-feedback-artifacts/*.png
           if-no-files-found: error
           retention-days: 14
-

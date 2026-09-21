@@ -248,8 +248,9 @@ async function sendReply(){
       if(currentAttempt())setReplyStatus(sendFailureNotice(failure,j?.error_message),'error');
       return;
     }
-    if(sameSession()&&owner===replySessionOwner&&owner===manager&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
-    if(currentAttempt()){
+    if(sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+    const stillCurrent=currentAttempt();
+    if(stillCurrent){
       if($('replyText').value===draftText)$('replyText').value='';autoGrow();
       setReplyStatus('Отправлено','success');
       // Sending already succeeded. A later history/render failure cannot reverse that result.
