@@ -32,6 +32,42 @@ class ManagerHandoffContextService
     }
 
     /**
+     * Reuse public media from the already-authorized, hydrated transcript only.
+     * Keep original URLs: the synthetic summary is not a stored message and its
+     * ID 0 must never be used to resolve a Telegram file. Do not copy private
+     * provider references or manufacture a URL for a token-only attachment.
+     */
+    public static function customerAttachments(array $messages): array
+    {
+        $items = [];
+        $seen = [];
+        $labels = ['image'=>'Фото','video'=>'Видео','audio'=>'Аудио','file'=>'Файл'];
+        foreach ($messages as $message) {
+            if (!is_array($message)
+                || (int)($message['id'] ?? 0) <= 0
+                || ($message['direction'] ?? '') !== 'inbound'
+                || ($message['sender_type'] ?? '') !== 'customer') {
+                continue;
+            }
+            foreach ((array)($message['attachments'] ?? []) as $index => $attachment) {
+                if (!is_array($attachment)) continue;
+                $type = $attachment['type'] ?? null;
+                $url = $attachment['url'] ?? null;
+                if (!is_string($type) || !isset($labels[$type]) || !is_string($url)) continue;
+                if (!preg_match('~^(?:https://|media-file\.php\?)~i', $url)
+                    || preg_match('/[\x00-\x20\x7f]/', $url)) continue;
+                $key = (int)$message['id'] . ':' . (string)$index;
+                if (isset($seen[$key])) continue;
+                $seen[$key] = true;
+                $name = is_string($attachment['name'] ?? null) ? $attachment['name'] : '';
+                $items[] = ['type'=>$type, 'url'=>$url, 'name'=>$name !== '' ? $name : $labels[$type]];
+            }
+        }
+        // Detail is chronological; keep only the twenty most recent attachments.
+        return array_slice($items, -20);
+    }
+
+    /**
      * Preserve the tourist's own wording for the manager. Callback payloads are
      * implementation details and are deliberately omitted, but genuine typed
      * messages (including short answers such as "Октябрь" or "3х разовое") stay.

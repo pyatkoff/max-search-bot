@@ -86,6 +86,59 @@ mrCheck('no manager reply is detected before handoff response',ManagerHandoffCon
 $messages[]=['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте'];
 mrCheck('manager reply suppresses first-response context injection',ManagerHandoffContextService::hasManagerReply($messages),true);
 
+// Synthetic fixtures only. URLs have already passed conversation authorization
+// and ManagerMessageMediaService::hydrate; never rebuild them with summary ID 0.
+$projectMedia=static function(array $rows):array{
+    return method_exists(ManagerHandoffContextService::class,'customerAttachments')
+        ? ManagerHandoffContextService::customerAttachments($rows) : [];
+};
+$photo=['type'=>'image','url'=>'media-file.php?message_id=41&attachment=2','name'=>'Фото'];
+$maxPhoto=['type'=>'image','url'=>'https://media.example.test/photo.jpg?fixture=1','name'=>'Вариант тура'];
+$mediaMessages=[
+    ['id'=>41,'direction'=>'inbound','sender_type'=>'customer','text'=>'📎 Фото','attachments'=>[
+        $photo+['provider'=>'telegram','file_id'=>'private-fixture-id','token'=>'private-fixture-token'],
+    ]],
+    ['id'=>42,'direction'=>'inbound','sender_type'=>'customer','text'=>'Подпись к фото','attachments'=>[$maxPhoto]],
+    ['id'=>43,'direction'=>'outbound','sender_type'=>'manager','text'=>'Ответ','attachments'=>[$photo]],
+    ['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>'Сводка','attachments'=>[$photo]],
+    ['id'=>44,'direction'=>'inbound','sender_type'=>'customer','text'=>'📎 Фото','attachments'=>[['type'=>'image','token'=>'no-download-url']]],
+    ['id'=>45,'direction'=>'inbound','sender_type'=>'customer','text'=>'Фото','attachments'=>[['type'=>'image','url'=>'javascript:alert(1)']]],
+    ['id'=>46,'direction'=>'inbound','sender_type'=>'customer','text'=>'Кнопка','attachments'=>[['type'=>'inline_keyboard','url'=>'https://example.test/']]],
+    ['id'=>0,'direction'=>'inbound','sender_type'=>'customer','text'=>'Нет сохранённого ID','attachments'=>[$photo]],
+    ['id'=>47,'direction'=>'inbound','sender_type'=>'unknown','text'=>'Не турист','attachments'=>[$photo]],
+];
+$mediaBefore=$mediaMessages;
+mrCheck('handoff exposes original Telegram and MAX customer photos',$projectMedia($mediaMessages),[$photo,$maxPhoto]);
+mrCheck('handoff media projection does not mutate original messages',$mediaMessages,$mediaBefore);
+mrCheck('text-only handoff remains attachment-free',$projectMedia($messages),[]);
+mrCheck('missing URL never becomes an apparently downloadable attachment',$projectMedia([$mediaMessages[4]]),[]);
+mrCheck('unsafe URL is not copied into summary media',$projectMedia([$mediaMessages[5]]),[]);
+mrCheck('synthetic or unsaved message cannot own summary media',$projectMedia([$mediaMessages[3],$mediaMessages[7]]),[]);
+mrCheck('duplicate source message does not duplicate summary media',$projectMedia([$mediaMessages[0],$mediaMessages[0]]),[$photo]);
+$album=[
+    ['type'=>'image','url'=>'media-file.php?message_id=51&attachment=0','name'=>'Первое фото'],
+    ['type'=>'image','url'=>'media-file.php?message_id=51&attachment=3','name'=>'Второе фото'],
+];
+mrCheck('captionless album retains original source indices and ordering',$projectMedia([
+    ['id'=>51,'direction'=>'inbound','sender_type'=>'customer','text'=>'','attachments'=>$album],
+]),$album);
+$otherMedia=[];
+foreach(['video','audio','file'] as $index=>$type){
+    $otherMedia[]=['type'=>$type,'url'=>'media-file.php?message_id=52&attachment='.$index,'name'=>$type];
+}
+mrCheck('other supported customer attachments remain openable',$projectMedia([
+    ['id'=>52,'direction'=>'inbound','sender_type'=>'customer','text'=>'','attachments'=>$otherMedia],
+]),$otherMedia);
+$many=[];
+for($i=101;$i<=125;$i++){
+    $many[]=['id'=>$i,'direction'=>'inbound','sender_type'=>'customer','text'=>'📎 Фото','attachments'=>[
+        ['type'=>'image','url'=>'media-file.php?message_id='.$i.'&attachment=0','name'=>'Фото'],
+    ]];
+}
+$bounded=$projectMedia($many);
+mrCheck('summary media is bounded to twenty recent attachments',count($bounded),20);
+mrCheck('bounded media retains newest originals without synthetic IDs',array_column($bounded,'url'),array_map(static function($id){return'media-file.php?message_id='.$id.'&attachment=0';},range(106,125)));
+
 $managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
 $callbackActionSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');
 $dispatchSource = (string)file_get_contents(__DIR__ . '/../services/ManagerHandoffDispatchService.php');
@@ -105,5 +158,6 @@ mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSou
 mrCheck('manager detail labels saved tourist request',strpos($managerApiSource,'📋 Запрос туриста для менеджера')!==false,true);
 mrCheck('manager detail appends explicit first reply guidance',strpos($managerApiSource,'ManagerHandoffContextService::firstReplyGuidance()')!==false,true);
 mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'!ManagerHandoffContextService::hasManagerReply')!==false,true);
+mrCheck('manager summary delegates already-hydrated attachments to canonical context owner',strpos($managerApiSource,'ManagerHandoffContextService::customerAttachments')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

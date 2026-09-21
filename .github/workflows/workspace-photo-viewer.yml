@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'manager/assets/workspace-v2-conversation.*'
+      - 'services/ManagerHandoffContextService.php'
+      - 'services/ManagerMessageMediaService.php'
+      - 'manager/api.php'
+      - 'tests/visual/workspace-handoff-media.spec.js'
+      - 'tests/visual/fixtures/handoff-media.php'
       - 'tests/visual/workspace-v2-photo-viewer.spec.js'
       - 'tests/visual/workspace-v2-fixture.html'
       - '.github/workflows/workspace-photo-viewer.yml'
@@ -23,6 +28,11 @@ jobs:
         browser: [chromium, webkit]
     steps:
       - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring
+          coverage: none
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -39,7 +49,7 @@ jobs:
           done
           exit 1
       - name: Test photo taps and lifecycle
-        run: npx playwright test tests/visual/workspace-v2-photo-viewer.spec.js --browser=${{ matrix.browser }} --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-v2-photo-viewer.spec.js tests/visual/workspace-handoff-media.spec.js --browser=${{ matrix.browser }} --reporter=line --workers=1
       - name: Upload synthetic photo evidence
         if: always()
         uses: actions/upload-artifact@v4
