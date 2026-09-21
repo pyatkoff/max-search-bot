@@ -5,6 +5,7 @@ require_once __DIR__.'/../services/ConversationStateRepository.php';
 require_once __DIR__.'/../services/NeedApplicationService.php';
 require_once __DIR__.'/../services/NeedProgressionService.php';
 require_once __DIR__.'/../services/IntegrationRegistry.php';
+require_once __DIR__.'/../services/OptionalBudgetPromptService.php';
 
 /** Capture explicit budget only inside the controller's existing self-service AI branch. */
 final class AiBudgetHandler
@@ -25,6 +26,36 @@ final class AiBudgetHandler
         }
         if (!$resolved['only_budget']) return false;
         NeedProgressionService::advance($chatId);
+        return true;
+    }
+
+    /**
+     * A completed check remains a button-confirmation surface. Only a definite
+     * budget-only clarification may mutate state here; mixed text stays on the
+     * existing check guidance path without partially applying its money clause.
+     */
+    public static function handleCheck($chatId, string $text): bool
+    {
+        if (!RuntimeStorage::usesMysql()) return false;
+
+        $resolved=NeedValueResolver::resolve('budget',$text);
+        if (empty($resolved['recognized']) || empty($resolved['only_budget'])) return false;
+
+        try {
+            $applied=NeedApplicationService::applyParameters($chatId,['budget_update'=>[
+                'snapshot'=>ConversationStateRepository::budgetSnapshot($chatId,(int)MaxSearchApi::$statusStart),
+                'changes'=>$resolved['value'],
+            ]]);
+        } catch (Throwable $e) {
+            $applied=[];
+        }
+
+        if (empty($applied['budget'])) {
+            IntegrationRegistry::messenger()->send($chatId,'Не удалось сохранить бюджет. Его можно повторить или сообщить менеджеру.');
+            return true;
+        }
+
+        OptionalBudgetPromptService::sendSavedConfirmation($chatId);
         return true;
     }
 }
