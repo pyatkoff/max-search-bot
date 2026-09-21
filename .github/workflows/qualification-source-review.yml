@@ -1,0 +1,33 @@
+name: Qualification source review archive
+on:
+  push:
+    branches: [tools/qualification-source-780-20260921-1415]
+permissions:
+  contents: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 5d7de1e1725245138e0642c6d1d82ef791e3a6b2
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Archive tracked source and existing budget diff only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 5d7de1e1725245138e0642c6d1d82ef791e3a6b2
+          mkdir -p "$RUNNER_TEMP/qualification-source"
+          git archive --format=tar.gz HEAD > "$RUNNER_TEMP/qualification-source/main.tar.gz"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/qualification-source/blobs.txt"
+          git diff --binary d21887e2436aa6bc92d8bc70d8d3fd4681cd5d87 aeec382913916e81195d554dd2a2bfd704b3155c > "$RUNNER_TEMP/qualification-source/budget-781.patch"
+          printf '%s\n' 5d7de1e1725245138e0642c6d1d82ef791e3a6b2 > "$RUNNER_TEMP/qualification-source/main.sha"
+          cd "$RUNNER_TEMP/qualification-source" && sha256sum main.tar.gz budget-781.patch blobs.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qualification-source-780-5d7de1e
+          path: ${{ runner.temp }}/qualification-source/
+          retention-days: 1
+          if-no-files-found: error
