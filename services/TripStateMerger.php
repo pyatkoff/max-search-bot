@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/TripBudgetPolicy.php';
+
 class TripStateMerger
 {
     /**
@@ -27,7 +29,12 @@ class TripStateMerger
             $state['destination']['country_id'] = null;
         }
 
+        $budgetChanges = array_intersect_key($normalizedChanges, array_flip(['budget.max', 'budget.currency', 'budget.basis']));
+        if ($budgetChanges !== []) {
+            $state['budget'] = TripBudgetPolicy::apply(is_array($state['budget'] ?? null) ? $state['budget'] : [], $budgetChanges);
+        }
         foreach ($normalizedChanges as $path => $value) {
+            if (array_key_exists($path, $budgetChanges)) continue;
             self::set($state, $path, $value);
         }
 
@@ -45,7 +52,7 @@ class TripStateMerger
             'dates.from', 'dates.to', 'dates.month', 'dates.flexible_days',
             'nights.min', 'nights.max',
             'tourists.adults', 'tourists.children', 'tourists.children_ages',
-            'budget.max', 'budget.currency',
+            'budget.max', 'budget.currency', 'budget.basis',
             'hotel.stars_min', 'hotel.meal', 'hotel.line',
             'preferences', 'negative_preferences',
         ];
