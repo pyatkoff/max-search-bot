@@ -168,6 +168,56 @@ abCheck('actual controller persists amount',MaxSearchApi::getAiSearchContext($ch
 abCheck('one next-field response, no repeated budget question',count($messenger->sent)-$sentBefore,1);
 abCheck('known basis is not questioned',str_contains(end($messenger->sent)[1],'на человека'),false);
 abCheck('only existing start/AI statuses in fresh session',MaxSearchApi::getCurentStatus($chat),76);
+
+// Optional clarification is additive: a known budget suppresses it, an unknown
+// budget offers one skippable message and never creates a new dialogue status.
+$sentBefore=count($messenger->sent);
+abCheck('known budget suppresses optional clarification',OptionalBudgetPromptService::sendIfMissing($chat),false);
+abCheck('known budget emits no extra message',count($messenger->sent),$sentBefore);
+abApply($chat,'Бюджет без ограничений');
+$statusBefore=MaxSearchApi::getCurentStatus($chat);
+$sentBefore=count($messenger->sent);
+abCheck('unknown budget gets one optional clarification',OptionalBudgetPromptService::sendIfMissing($chat),true);
+abCheck('optional clarification sends exactly one message',count($messenger->sent),$sentBefore+1);
+abCheck('optional clarification says it is not required',str_contains(end($messenger->sent)[1],'Бюджет — необязательно'),true);
+abCheck('optional clarification shows personal wording without asking basis',str_contains(end($messenger->sent)[1],'до 90 тыс. на человека'),true);
+abCheck('optional clarification does not change dialogue status',MaxSearchApi::getCurentStatus($chat),$statusBefore);
+$progressionSource=(string)file_get_contents($root.'/services/NeedProgressionService.php');
+abCheck('AI completion sends optional clarification only after successful check',
+    str_contains($progressionSource,'$checkSent = DialogueView::check($chatId);')
+    && str_contains($progressionSource,'if ($checkSent) OptionalBudgetPromptService::sendIfMissing($chatId);'),true);
+
+// The completed check accepts only a definite budget-only clarification. It uses
+// the same canonical application owner and stays in check; mixed text cannot be
+// partially applied and therefore keeps the old check guidance truthful.
+MaxSearchApi::setStatus($chat,MaxSearchApi::$statusCheck);
+$sentBefore=count($messenger->sent);
+$checkBudget=IncomingMessage::text('max',42002,$chat,'check-budget-total','до 280 тысяч');
+abCheck('check consumes definite budget-only input',$controller->handleIncomingMessage($checkBudget),true);
+abCheck('check saves whole-party budget by default',MaxSearchApi::getAiSearchContext($chat)['budget']['max']??null,280000);
+abCheck('check keeps default total basis',MaxSearchApi::getAiSearchContext($chat)['budget']['basis']??null,'total');
+abCheck('check budget clarification keeps check status',MaxSearchApi::getCurentStatus($chat),MaxSearchApi::$statusCheck);
+abCheck('check budget confirmation sends one message',count($messenger->sent),$sentBefore+1);
+abCheck('check budget confirmation says whole party',str_contains(end($messenger->sent)[1],'280 000 RUB на всех'),true);
+$checkPersonal=IncomingMessage::text('max',42003,$chat,'check-budget-personal','до 90 тыс на человека');
+abCheck('check accepts explicit personal budget',$controller->handleIncomingMessage($checkPersonal),true);
+abCheck('check stores personal amount without multiplication',MaxSearchApi::getAiSearchContext($chat)['budget']['max']??null,90000);
+abCheck('check stores explicit personal basis',MaxSearchApi::getAiSearchContext($chat)['budget']['basis']??null,'per_person');
+abCheck('personal confirmation is explicit',str_contains(end($messenger->sent)[1],'90 000 RUB на человека'),true);
+$beforeMixed=MaxSearchApi::getAiSearchContext($chat)['budget'];
+$sentBefore=count($messenger->sent);
+$mixed=IncomingMessage::text('max',42004,$chat,'check-budget-mixed','Бюджет 300 тыс, первая линия');
+abCheck('mixed check text remains handled by existing guidance',$controller->handleIncomingMessage($mixed),true);
+abCheck('mixed check text does not partially mutate budget',MaxSearchApi::getAiSearchContext($chat)['budget'],$beforeMixed);
+abCheck('mixed check text sends one guidance response',count($messenger->sent),$sentBefore+1);
+abCheck('mixed check text keeps truthful unchanged copy',str_contains(end($messenger->sent)[1],'Параметры пока не изменены'),true);
+$clear=IncomingMessage::text('max',42005,$chat,'check-budget-clear','Бюджет без ограничений');
+abCheck('check accepts explicit budget clear',$controller->handleIncomingMessage($clear),true);
+abCheck('check clear removes active budget',isset(MaxSearchApi::getAiSearchContext($chat)['budget']),false);
+abCheck('check clear confirmation is explicit',str_contains(end($messenger->sent)[1],'Ограничение по бюджету снято'),true);
+abApply($chat,'До 250 тысяч');
+MaxSearchApi::setStatus($chat,MaxSearchApi::$statusAi);
+
 // Exercise the real shadow observer without an external AI call. A stale
 // shadow budget must not override the standalone source, including its clear.
 $shadowPath='tests/.budget-shadow-'.bin2hex(random_bytes(6));

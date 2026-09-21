@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/DialogueView.php';
 require_once __DIR__ . '/MissingFieldQuestionService.php';
+require_once __DIR__ . '/OptionalBudgetPromptService.php';
 
 /**
  * Canonical progression boundary after trip-need state has been mutated.
@@ -18,7 +19,8 @@ class NeedProgressionService
             : [];
 
         if (empty($missing)) {
-            DialogueView::check($chatId);
+            $checkSent = DialogueView::check($chatId);
+            if ($checkSent) OptionalBudgetPromptService::sendIfMissing($chatId);
             return [
                 'complete' => true,
                 'missing' => [],
