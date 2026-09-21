@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../services/ManagerAvailabilityService.php';
 require_once __DIR__ . '/../services/ManagerRequestService.php';
 require_once __DIR__ . '/../services/ManagerPhoneFallbackService.php';
+require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 $passed=0;$failed=0;
 function mpfCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
@@ -21,11 +22,24 @@ mpfCheck('fallback copy offers phone without claiming it is mandatory',strpos(Ma
 mpfCheck('outside-hours copy promises next working period',strpos(ManagerRequestService::outsideHoursMessageText(),'следующий рабочий период')!==false,true);
 mpfCheck('outside-hours copy preserves self-service route',strpos(ManagerRequestService::outsideHoursMessageText(),'вернуться к вариантам туров')!==false,true);
 
+// Fresh private evidence showed an ordinary chat sentence after the optional
+// five-minute phone fallback being rejected as a malformed phone number. Keep
+// the regression synthetic: chat text means "keep waiting", while phone-looking
+// input retains the existing strict +7 format contract.
+$phoneTextKind = new ReflectionMethod(StateMessageHandler::class, 'phoneTextKind');
+$phoneTextKind->setAccessible(true);
+mpfCheck('synthetic keep-waiting text is not a phone attempt',$phoneTextKind->invoke(null,'Буду ждать здесь'),'non_phone');
+mpfCheck('other ordinary chat text is not a phone attempt',$phoneTextKind->invoke(null,'Хорошо, подожду ответ'),'non_phone');
+mpfCheck('strict +7 phone remains valid',$phoneTextKind->invoke(null,'+71234567890'),'valid_phone');
+mpfCheck('bare eleven-digit phone-looking input still gets format guidance',$phoneTextKind->invoke(null,'81234567890'),'invalid_phone');
+mpfCheck('malformed +7 phone-looking input still gets format guidance',$phoneTextKind->invoke(null,'+71234'),'invalid_phone');
+
 $serviceSource=(string)file_get_contents(__DIR__ . '/../services/ManagerPhoneFallbackService.php');
 $dispatchSource=(string)file_get_contents(__DIR__ . '/../services/ManagerHandoffDispatchService.php');
 $callbackSource=(string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');
 $viewSource=(string)file_get_contents(__DIR__ . '/../services/DialogueView.php');
 $cronSource=(string)file_get_contents(__DIR__ . '/../cron_followup.php');
+$stateSource=(string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 mpfCheck('service considers waiting and already-taken conversations',strpos($serviceSource,"c.status IN ('waiting_manager','manager')")!==false,true);
 mpfCheck('candidate query applies five-minute cutoff before limit',strpos($serviceSource,'e.created_at<=FROM_UNIXTIME(?)')!==false,true);
 mpfCheck('terminal fallback attempts are excluded before candidate limit',strpos($serviceSource,"terminal.event_type IN ('manager_phone_fallback_sent','manager_phone_fallback_failed')")!==false && strpos($serviceSource,"JSON_EXTRACT(terminal.payload_json,'$.request_event_id')")!==false,true);
@@ -43,5 +57,6 @@ mpfCheck('working-hours branch keeps initial handoff phone-free',strpos($dispatc
 mpfCheck('outside hours select truthful handoff copy',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false && strpos($viewSource,'outside_hours_text')!==false,true);
 mpfCheck('cron executes manager phone fallback',strpos($cronSource,'ManagerPhoneFallbackService::runDue($now)')!==false,true);
 mpfCheck('cron reports fallback outcome',strpos($cronSource,'manager_phone_sent=')!==false,true);
+mpfCheck('phone-state chat text keeps phone optional instead of showing format error',strpos($stateSource,"if(\$phoneKind === 'non_phone')")!==false && strpos($stateSource,'номер телефона необязателен')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
