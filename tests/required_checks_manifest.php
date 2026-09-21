@@ -135,6 +135,7 @@ return [
         'php tests/run_manager_delivery_failure_regression.php',
         'php tests/run_manager_delivery_snapshot_regression.php',
         'php tests/run_manager_delivery_panel_regression.php',
+        'php tests/run_manager_message_delivery_regression.php',
         'php tests/run_manager_response_health_regression.php',
         'php tests/run_manager_push_health_regression.php',
         'php tests/run_manager_client_transport_inventory_regression.php',

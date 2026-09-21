@@ -158,7 +158,30 @@ function renderMessageBody(body,m){
   }
   body.appendChild(document.createTextNode(text.slice(offset)));
 }
-function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const who=m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=who==='customer'?'Турист':who==='manager'?'Менеджер':'AI';n.className='msg '+who;n.dataset.sender=who;const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);const body=document.createElement('div');body.className='msgBody';renderMessageBody(body,m);n.appendChild(body);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=m.created_at||'';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom)}
+// This is a stored server projection, not a guess from message order or local read state.
+function renderMessageDelivery(root,m,expanded){
+  const d=m.delivery,channel=d?.channel;
+  if(m.direction!=='outbound'||m.sender_type!=='manager'||Number(m.id)<=0
+    ||!['max','telegram','website'].includes(channel)||d?.read!=='unavailable')return;
+  let label,explanation;
+  const name=channel==='max'?'MAX':'Telegram';
+  if(d.state==='accepted'&&channel!=='website'){
+    label='Отправлено';explanation=name+' подтвердил приём сообщения. Это не подтверждение доставки на устройство или прочтения клиентом.';
+  }else if(d.state==='stored'&&channel==='website'){
+    label='В чате сайта';explanation='Сообщение сохранено для чата сайта. Это не подтверждает, что клиент открыл чат или прочитал сообщение.';
+  }else{
+    label='Статус не сохранён';explanation='Для этого сообщения нет сохранённого подтверждения отправки. Это не означает, что оно не доставлено. Не отправляйте его повторно только из-за отсутствия отметки.';
+  }
+  const details=document.createElement('details');details.className='messageDelivery';details.dataset.deliveryId=String(m.id);
+  details.open=expanded.has(String(m.id));
+  const summary=document.createElement('summary');summary.textContent=label;
+  summary.setAttribute('aria-label',label+'. О доставке и прочтении');
+  const info=document.createElement('div');info.className='messageDeliveryInfo';info.textContent=explanation;
+  const read=document.createElement('div');read.className='messageReadUnavailable';
+  read.textContent=channel==='website'?'Статус прочтения в чате сайта не передаётся.':'Статус прочтения: '+name+' не передаёт его через используемый API бота.';
+  details.appendChild(summary);details.appendChild(info);details.appendChild(read);root.appendChild(details);
+}
+function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const expanded=new Set([...(document.querySelectorAll?.('#messages .messageDelivery[open]')||[])].map(el=>el.dataset.deliveryId));const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const who=m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=who==='customer'?'Турист':who==='manager'?'Менеджер':'AI';n.className='msg '+who;n.dataset.sender=who;const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);const body=document.createElement('div');body.className='msgBody';renderMessageBody(body,m);n.appendChild(body);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=m.created_at||'';n.appendChild(meta);renderMessageDelivery(n,m,expanded);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom)}
 function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;$('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ')}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}

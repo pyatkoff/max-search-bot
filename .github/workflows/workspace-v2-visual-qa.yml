@@ -20,6 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup PHP for synthetic message receipts
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_sqlite, sqlite3
+          coverage: none
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -45,10 +52,10 @@ jobs:
           exit 1
 
       - name: Assert responsive layout contracts
-        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-message-delivery.spec.js --reporter=line --workers=1
 
       - name: Check send feedback in WebKit
-        run: npx playwright test tests/visual/workspace-send-feedback.spec.js --browser=webkit --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-message-delivery.spec.js --browser=webkit --reporter=line --workers=1
 
       - name: Capture responsive screenshots
         shell: bash
@@ -100,5 +107,6 @@ jobs:
           path: |
             visual-artifacts/*.png
             send-feedback-artifacts/*.png
+            delivery-status-artifacts/*.png
           if-no-files-found: error
           retention-days: 14
