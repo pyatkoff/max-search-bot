@@ -72,7 +72,7 @@ class ManagerPushService
         }
     }
 
-    public static function notifyConversation(int $conversationId,string $body='Клиент написал в диалог'): void
+    public static function notifyConversation(int $conversationId,string $body='Клиент написал в диалог',string $externalMessageId=''): void
     {
         $dispatchId=self::dispatchId();
         try{
@@ -94,6 +94,14 @@ class ManagerPushService
             $title=trim((string)($c['display_name']??'')); if($title==='')$title='Новый диалог AnyTour';
             $ctx=array_values(array_filter([(string)($c['project_name']??$c['project_key']??''),(string)($c['source_name']??''),strtoupper((string)($c['channel']??''))]));
             $payload=json_encode(['title'=>$title,'body'=>($ctx?implode(' · ',$ctx).' — ':'').$body,'conversationId'=>$conversationId,'url'=>'./'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            // Read-only correlation is best effort and cannot prevent an existing push.
+            $incomingId=0;
+            if($externalMessageId!==''){
+                try{
+                    $arrival=$pdo->prepare("SELECT id FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 1");
+                    $arrival->execute([$conversationId,$externalMessageId]);$incomingId=(int)$arrival->fetchColumn();
+                }catch(Throwable $ignored){}
+            }
             $in=implode(',',array_fill(0,count($managers),'?'));
             $q=$pdo->prepare("SELECT * FROM manager_push_subscriptions WHERE manager_id IN ($in)"); $q->execute($managers);
             $subs=$q->fetchAll();$subscribed=[];
@@ -102,7 +110,17 @@ class ManagerPushService
                 foreach($managers as $managerId){if(isset($subscribed[(int)$managerId]))continue;try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)$managerId],null,'warning');}catch(Throwable $ignored){}}
             }
             foreach($subs as $sub){
-                try{self::send($sub,(string)$payload,$conversationId,$dispatchId);}
+                try{
+                    $deliveryPayload=$payload;
+                    if($incomingId>0){
+                        $notification=json_decode((string)$payload,true);
+                        $notification['incomingMessageId']=$incomingId;
+                        $notification['notificationManagerId']=(int)$sub['manager_id'];
+                        $notification['notificationKind']='customer_message';
+                        $deliveryPayload=json_encode($notification,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+                    }
+                    self::send($sub,(string)$deliveryPayload,$conversationId,$dispatchId);
+                }
                 catch(Throwable $e){if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_exception',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)($sub['manager_id']??0),'subscription_id'=>(int)($sub['id']??0),'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}}}
             }
         }catch(Throwable $e){ if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','notify_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'error'=>$e->getMessage()],null,'warning');}catch(Throwable $ignored){}} }

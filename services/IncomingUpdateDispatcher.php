@@ -60,7 +60,7 @@ class IncomingUpdateDispatcher
             }
 
             if (!$allow) {
-                ManagerPushService::notifyConversation((int)$ownership['id'], $status === 'manager' ? 'Клиент ответил в вашем диалоге' : 'Новое сообщение в заявке');
+                ManagerPushService::notifyConversation((int)$ownership['id'], $status === 'manager' ? 'Клиент ответил в вашем диалоге' : 'Новое сообщение в заявке', in_array($type, ['message','contact'], true) ? (string)($incoming['message_id'] ?? '') : '');
                 DiagnosticLogger::log('incoming_dispatch','manager_owned',['platform'=>$platform,'type'=>$type,'status'=>$status],$chatId);
                 return true;
             }
