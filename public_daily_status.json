@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-09-21T15:35:27+00:00",
+    "generated_at": "2026-09-21T16:29:27+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 101,
-        "raw_sessions": 101,
+        "sessions": 106,
+        "raw_sessions": 106,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 101,
+            "resolved": 106,
             "unresolved": 0
         },
-        "started": 101,
-        "needs_collected": 76,
-        "tours_opened": 74,
+        "started": 106,
+        "needs_collected": 80,
+        "tours_opened": 78,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 3,
-        "manager_requested": 11,
+        "post_tour_manager_cta_shown": 4,
+        "manager_requested": 12,
         "manager_replied": 11,
         "customer_replied_after_manager": 7,
         "phone_received": 1,
@@ -31,23 +31,24 @@
             "max_seconds": 5682
         },
         "drop_points": {
-            "tours_opened": 64,
-            "collecting_needs": 25,
+            "tours_opened": 67,
+            "collecting_needs": 26,
             "customer_replied_after_manager": 7,
             "manager_replied": 4,
-            "needs_collected": 1
+            "needs_collected": 1,
+            "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 17,
+            "excessive_turns": 18,
             "repeated_callback_input": 12
         },
         "calendar_day": {
-            "conversations_started": 83,
-            "needs_collected_from_started": 60,
-            "tours_opened_from_started": 58,
+            "conversations_started": 88,
+            "needs_collected_from_started": 64,
+            "tours_opened_from_started": 62,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 2,
-            "manager_requested": 5,
+            "post_tour_manager_cta_shown": 3,
+            "manager_requested": 6,
             "manager_replied": 5,
             "customer_replied_after_manager": 3
         }
