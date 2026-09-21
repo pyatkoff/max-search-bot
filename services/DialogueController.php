@@ -68,6 +68,11 @@ class DialogueController
             && MaxSearchApi::getLastClaimForChat($chatId)) {
             return DialogueView::tourLinkHelp($chatId);
         }
+        // Budget is the only optional free-text clarification accepted on the
+        // completed check surface. Mixed text is deliberately not partially applied.
+        if ($status == MaxSearchApi::$statusCheck && AiBudgetHandler::handleCheck($chatId, $text)) {
+            return true;
+        }
         // The check summary already owns the guarded "show_tours" action. Answer
         // a bounded price question with guidance to that existing control; do not
         // start a search, invent a price, or mutate the saved parameters.
