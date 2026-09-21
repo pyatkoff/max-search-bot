@@ -15,6 +15,27 @@ class ProjectAccessService
         self::$schemaReady = true;
     }
 
+    /**
+     * Initialize metadata-only callers without the legacy project UPSERT.
+     * Verify its exact postcondition instead; never repair config/access here.
+     * All manager/project/source authorization queries still run normally.
+     */
+    public static function initializeReadOnly(): void
+    {
+        if (self::$schemaReady) return;
+        $key = ProjectConfig::projectId();
+        $name = (string)ProjectConfig::get('brand.name', $key);
+        $q = ConversationDb::connection()->prepare('SELECT id,display_name,is_active FROM projects WHERE project_key=? LIMIT 1');
+        $q->execute([$key]);
+        $project = $q->fetch();
+        if (!$project || (int)($project['id'] ?? 0) <= 0
+            || (int)($project['is_active'] ?? 0) !== 1
+            || (string)($project['display_name'] ?? '') !== ($name !== '' ? $name : $key)) {
+            throw new RuntimeException('read_only_project_not_ready');
+        }
+        self::$schemaReady = true;
+    }
+
     public static function ensureCurrentProject(): int
     {
         $pdo = ConversationDb::connection();

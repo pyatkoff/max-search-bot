@@ -28,7 +28,7 @@ function ensureAuthRecovery(){
   return overlay;
 }
 function showAuthRecovery(message='Сессия менеджера истекла. Войдите снова, чтобы продолжить.'){
-  if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
+  if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   $('managerAuthMessage').textContent=message;
@@ -55,6 +55,7 @@ async function request(url,action,data={}){
 }
 const api=(action,data={})=>request('api.php',action,data);
 const pipe=(action,data={})=>request('pipeline-api.php',action,data);
+const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
 function statusText(s){return{ai:'AI',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Закрыт'}[s]||s||''}
 function outcomeText(s){return S.pipeline.outcomes[s]||{open:'В работе',won:'Продажа',lost:'Отказ'}[s]||'В работе'}
 function formatWait(seconds){const s=Math.max(0,Number(seconds||0));if(s<60)return'<1 мин';const m=Math.floor(s/60);if(m<60)return`${m} мин`;const h=Math.floor(m/60),r=m%60;return`${h} ч${r?` ${r} мин`:''}`}
@@ -62,6 +63,7 @@ function val(v){return(v===null||v===undefined||v==='')?'—':String(v)}
 function tripField(label,value){return`<div class="field"><span class="label">${esc(label)}</span><span class="value">${esc(val(value))}</span></div>`}
 function applyIdentity(me){
   S.csrf=me.csrf||'';S.manager=me.manager||null;S.projects=Array.isArray(me.projects)?me.projects:[];
+  window.WorkspaceV2Sound?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
@@ -114,5 +116,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
+window.WorkspaceV2={S,$,esc,api,pipe,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
 })();

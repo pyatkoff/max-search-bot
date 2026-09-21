@@ -6,6 +6,7 @@ on:
     paths:
       - 'manager/**'
       - 'services/ManagerIncomingNotificationService.php'
+      - 'services/ProjectAccessService.php'
       - 'services/ManagerPushService.php'
       - 'services/IncomingUpdateDispatcher.php'
       - 'tests/notification-sound/**'
@@ -38,6 +39,10 @@ jobs:
         run: |
           npm install --no-save --package-lock=false @playwright/test@1.55.0
           npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Sound controller unit regression
+        run: node tests/notification-sound/client.unit.js
+      - name: Read-only authentication bootstrap regression
+        run: php tests/notification-sound/bootstrap-readonly.php
       - name: Read-only feed regression
         run: php tests/notification-sound/feed.php
       - name: Start static fixtures
@@ -52,15 +57,6 @@ jobs:
       - name: Touch, audio scheduling and deduplication
         if: success() || failure()
         run: npx playwright test tests/visual/workspace-sound.spec.js --browser=${{ matrix.browser }} --reporter=line --workers=1
-      - name: Archive exact public test sources
-        if: always() && matrix.browser == 'chromium'
-        run: git archive --format=zip --output=sound-source.zip HEAD
-      - uses: actions/upload-artifact@v4
-        if: always() && matrix.browser == 'chromium'
-        with:
-          name: sound-public-source-${{ github.sha }}
-          path: sound-source.zip
-          retention-days: 1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -68,3 +64,28 @@ jobs:
           path: sound-evidence/*.png
           if-no-files-found: ignore
           retention-days: 7
+
+  native-mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: sound-local-test-only
+          MYSQL_DATABASE: sound_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psound-local-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          coverage: none
+      - name: Native read-only auth and delayed commit ordering
+        env:
+          SOUND_MYSQL_TEST: '1'
+        run: php tests/notification-sound/feed.php

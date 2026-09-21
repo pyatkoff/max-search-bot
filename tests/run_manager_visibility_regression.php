@@ -65,6 +65,47 @@ mvCheck('production gate checks manager visibility',strpos($diagnostics,'manager
 mvCheck('live diagnostics waits for current deployed sha',strpos($liveDiagnostics,'Wait for production SHA')!==false && strpos($liveDiagnostics,'EXPECTED_SHA: ${{ github.sha }}')!==false);
 mvCheck('live diagnostics fails stale production sha',strpos($liveDiagnostics,'production_sha_mismatch')!==false);
 
+// Synthetic reproduction of the Sept21 capped-count false alarm. No live IDs.
+require_once $base.'/services/ManagerVisibilityHealth.php';
+$working=['id'=>7,'is_working'=>true];
+$row=static fn(int $id,?int $owner,string $at='2026-09-21 10:00:00'):array=>[
+    'id'=>$id,'manager_id'=>$owner,'status'=>$owner===null?'waiting_manager':'manager',
+    'last_message_at'=>$at,'started_at'=>$at,
+];
+$all=[];$mine=[];
+for($i=1;$i<=200;$i++)$mine[]=$row($i,7);
+for($i=1;$i<=16;$i++)$all[]=$row($i,7);
+for($i=201;$i<=384;$i++)$all[]=$row($i,null);
+$waiting=array_merge(array_slice($mine,0,8),[$row(201,null)]);
+$legacyAlarm=count($waiting)>0&&count($all)<=count($mine);
+$check=ManagerVisibilityHealth::assess($working,$all,$mine,$waiting);
+mvCheck('legacy count comparison reproduces the live 200/200 false alarm',$legacyAlarm);
+mvCheck('200 All and 200 Mine do not imply identical visible conversations',$check['ok']===true&&$check['all_not_in_mine_count']===184);
+mvCheck('own unanswered assignments do not inflate unassigned expectations',$check['unassigned_waiting_count']===1&&$check['seen_in_all_count']===1);
+mvCheck('only own waiting has no collapse defect',ManagerVisibilityHealth::assess($working,[$row(1,7)],[$row(1,7)],[$row(1,7)])['ok']===true);
+$missing=ManagerVisibilityHealth::assess($working,[$row(1,7)],[$row(1,7)],[$row(2,null)]);
+mvCheck('real missing unassigned waiting fails the gate',$missing['ok']===false&&$missing['missing_in_window_count']===1);
+mvCheck('empty All with visible waiting fails closed',ManagerVisibilityHealth::assess($working,[],[],[$row(2,null)])['ok']===false);
+$partial=ManagerVisibilityHealth::assess($working,[$row(1,7),$row(3,null)],[$row(1,7)],[$row(2,null)]);
+mvCheck('some visible unassigned rows cannot hide another missing waiting row',$partial['ok']===false);
+$older=ManagerVisibilityHealth::assess($working,$mine,$mine,[$row(401,null,'2026-09-20 10:00:00')]);
+mvCheck('older waiting outside a full newest-first page is explained',$older['ok']===true&&$older['outside_page_count']===1);
+$newer=ManagerVisibilityHealth::assess($working,$mine,$mine,[$row(401,null,'2026-09-22 10:00:00')]);
+mvCheck('full page never excuses a missing newer waiting row',$newer['ok']===false);
+$tied=ManagerVisibilityHealth::assess($working,$mine,$mine,[$row(401,null)]);
+mvCheck('non-unique sort boundary tie is not mistaken for missing access',$tied['ok']===true&&$tied['outside_page_count']===1);
+mvCheck('uncapped older missing waiting is not waived',ManagerVisibilityHealth::assess($working,[$row(1,7)],[],[$row(401,null,'2026-09-20 10:00:00')])['ok']===false);
+$badTimes=$mine;$badTimes[0]['last_message_at']='';
+mvCheck('malformed page timestamps cannot excuse missing rows',ManagerVisibilityHealth::assess($working,$badTimes,$mine,[$row(401,null,'2026-09-20 10:00:00')])['ok']===false);
+mvCheck('malformed sample IDs fail closed',ManagerVisibilityHealth::assess($working,[['id'=>0]],[],[])['ok']===false);
+mvCheck('duplicate sample IDs fail closed',ManagerVisibilityHealth::assess($working,[$row(1,7),$row(1,7)],[],[])['ok']===false);
+mvCheck('off-shift expectation remains unchanged',ManagerVisibilityHealth::assess(['is_working'=>false],[],[],[$row(1,null)])['ok']===true);
+$before=[$all,$mine,$waiting];ManagerVisibilityHealth::assess($working,$all,$mine,$waiting);
+mvCheck('assessment never mutates source lists',$before===[$all,$mine,$waiting]);
+mvCheck('assessment returns only aggregate evidence',!str_contains(json_encode($check),'manager_id')&&!str_contains(json_encode($check),'last_message_at'));
+mvCheck('snapshot delegates the visibility invariant to the tested assessor',str_contains($productionSnapshot,'ManagerVisibilityHealth::assess($manager,$all,$mine,$waiting)'));
+mvCheck('old capped-count predicate is not an independent health owner',!str_contains($productionSnapshot,"\$entry['all']<=\$entry['mine']"));
+
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
