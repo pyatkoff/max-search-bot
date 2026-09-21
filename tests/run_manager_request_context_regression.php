@@ -23,6 +23,7 @@ ctxCheck('missing script name falls back to root manager path',ManagerRequestCon
 $source=(string)file_get_contents(dirname(__DIR__).'/services/ManagerRequestContext.php');
 $http=(string)file_get_contents(dirname(__DIR__).'/manager/lib/ManagerHttp.php');
 $api=(string)file_get_contents(dirname(__DIR__).'/manager/api.php');
+$handoff=(string)file_get_contents(dirname(__DIR__).'/services/ManagerHandoffContextService.php');
 $workspace=(string)file_get_contents(dirname(__DIR__).'/manager/index.php');
 $admin=(string)file_get_contents(dirname(__DIR__).'/manager/admin.php');
 $adminJs=(string)file_get_contents(dirname(__DIR__).'/manager/assets/admin.js');
@@ -35,6 +36,9 @@ ctxCheck('Manager HTTP boundary delegates manager csrf and admin lookup',strpos(
 ctxCheck('main manager API delegates request lifecycle to Manager HTTP boundary',strpos($api,"require_once __DIR__ . '/lib/ManagerHttp.php'")!==false&&strpos($api,'ManagerHttp::startJson();')!==false&&strpos($api,'ManagerHttp::body();')!==false&&strpos($api,'ManagerHttp::requireManager();')!==false&&strpos($api,'ManagerHttp::csrf(true)')!==false&&strpos($api,'ManagerHttp::requireCsrf($data);')!==false&&strpos($api,'ManagerHttp::requireAdmin($m);')!==false&&strpos($api,'ManagerHttp::isAdmin($m);')!==false&&strpos($api,'ManagerRequestContext::')===false);
 ctxCheck('login and me still return csrf tokens',substr_count($api,"'csrf'=>ManagerHttp::csrf(true)")>=2);
 ctxCheck('manager lifecycle actions remain intact',strpos($api,"\$action==='take'")!==false&&strpos($api,"\$action==='release'")!==false&&strpos($api,"\$action==='close'")!==false&&strpos($api,"\$action==='reopen'")!==false&&strpos($api,"\$action==='send'")!==false);
+ctxCheck('first reply guidance forbids repeated known budget',strpos($handoff,'Если бюджет уже указан в сводке, не спрашивайте его повторно')!==false);
+ctxCheck('unknown budget guidance stays optional',strpos($handoff,'одним необязательным вопросом')!==false&&strpos($handoff,'не задерживайте предложение')!==false);
+ctxCheck('known hotel wishes are not requested again',strpos($handoff,'Особые пожелания не переспрашивайте, когда они уже есть выше')!==false);
 ctxCheck('canonical Manager shell delegates session through Manager HTTP boundary',strpos($workspace,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($workspace,'ManagerHttp::start();')!==false&&strpos($workspace,'ManagerRequestContext::')===false&&strpos($workspace,'session_set_cookie_params')===false&&strpos($workspace,'session_start()')===false);
 ctxCheck('admin shell delegates session through Manager HTTP boundary',strpos($admin,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($admin,'ManagerHttp::start();')!==false&&strpos($admin,'ManagerRequestContext::')===false&&strpos($admin,'session_set_cookie_params')===false&&strpos($admin,'session_start()')===false);
 ctxCheck('routing shell delegates session through Manager HTTP boundary',strpos($routing,"require_once __DIR__.'/lib/ManagerHttp.php'")!==false&&strpos($routing,'ManagerHttp::start();')!==false&&strpos($routing,'ManagerRequestContext::')===false&&strpos($routing,'session_set_cookie_params')===false&&strpos($routing,'session_start()')===false);
