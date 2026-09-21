@@ -1,0 +1,65 @@
+name: Qualification native test runtime (tools only)
+on:
+  push:
+    branches: [tools/qualification-native-runtime-20260921]
+permissions:
+  contents: read
+jobs:
+  runtime:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: f1f0ddc5a15fed00df57edcb316dc1776ce276ac
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, sqlite3, pdo_mysql, mbstring, curl
+          coverage: none
+      - name: Package standard runtime binaries and exact public source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = f1f0ddc5a15fed00df57edcb316dc1776ce276ac
+          php -r 'foreach(["pdo_sqlite","pdo_mysql","mbstring"] as $e) if(!extension_loaded($e)) exit(1);'
+          mkdir -p "$RUNNER_TEMP/native-review/bin" "$RUNNER_TEMP/native-review/lib" "$RUNNER_TEMP/native-review/extensions" "$RUNNER_TEMP/native-review/share"
+          export OUT="$RUNNER_TEMP/native-review"
+          python3 - <<'PY'
+          import pathlib,subprocess,os,shutil,re
+          out=pathlib.Path(os.environ['OUT'])
+          php=pathlib.Path(shutil.which('php')).resolve()
+          shutil.copy2(php,out/'bin/php')
+          ext=pathlib.Path(subprocess.check_output([str(php),'-r','echo ini_get("extension_dir");'],text=True))
+          objects=[php]
+          for name in ('pdo','pdo_sqlite','sqlite3','mysqlnd','pdo_mysql','mbstring','curl'):
+              p=ext/(name+'.so')
+              if p.exists():
+                  shutil.copy2(p,out/'extensions'/p.name);objects.append(p)
+          mysql=shutil.which('mysqld')
+          if mysql:
+              p=pathlib.Path(mysql).resolve();shutil.copy2(p,out/'bin/mysqld');objects.append(p)
+              if pathlib.Path('/usr/share/mysql').exists():shutil.copytree('/usr/share/mysql',out/'share/mysql')
+          # Runtime shared libraries only. No /etc, home, environment, DB files or credentials.
+          seen=set()
+          for obj in objects:
+              deps=subprocess.run(['ldd',str(obj)],capture_output=True,text=True,check=True).stdout
+              for name,path in re.findall(r'^\s*(\S+)\s+=>\s+(/\S+)',deps,re.M):
+                  if name in seen or name in {'libc.so.6','libm.so.6','libpthread.so.0','librt.so.1','libdl.so.2','libresolv.so.2'}:continue
+                  seen.add(name);shutil.copy2(path,out/'lib'/name)
+          (out/'VERSIONS.txt').write_text(subprocess.check_output([str(php),'-v'],text=True)+'\n'+subprocess.check_output([str(php),'-m'],text=True)+'\n'+(subprocess.check_output([mysql,'--version'],text=True) if mysql else 'MySQL binary unavailable\n'))
+          PY
+          git archive --format=tar.gz HEAD > "$OUT/main.tar.gz"
+          git ls-tree -r HEAD > "$OUT/blobs.txt"
+          printf '%s\n' f1f0ddc5a15fed00df57edcb316dc1776ce276ac > "$OUT/main.sha"
+          (cd "$OUT"; find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/native-review.tar.gz" native-review
+          sha256sum "$RUNNER_TEMP/native-review.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qualification-native-runtime-f1f0ddc
+          path: ${{ runner.temp }}/native-review.tar.gz
+          retention-days: 1
+          if-no-files-found: error
