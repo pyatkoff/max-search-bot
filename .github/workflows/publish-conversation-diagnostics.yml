@@ -1,10 +1,11 @@
 # TEMPORARY INVESTIGATION BRANCH ONLY. Never merge over the canonical publisher.
-# No deployment, server file writes, business mutations or raw evidence uploads.
 name: Inspect capped manager visibility read-only
 on:
   push:
     branches: [diagnose/visibility-capped-list-evidence]
-    paths: ['.github/workflows/publish-conversation-diagnostics.yml']
+    paths:
+      - '.github/workflows/publish-conversation-diagnostics.yml'
+      - 'tools/diagnostics/visibility_capped_list_probe.php'
 permissions:
   contents: read
 concurrency:
@@ -20,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Verify authoritative main without changing it
+      - name: Verify authoritative main and syntax
         shell: bash
         run: |
           set -euo pipefail
@@ -28,6 +29,7 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
           actual=$(git ls-remote origin refs/heads/main | cut -f1)
           test "$actual" = "$EXPECTED_SHA"
+          php -l tools/diagnostics/visibility_capped_list_probe.php
       - name: Prepare existing authorized diagnostic key
         env:
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -43,7 +45,7 @@ jobs:
           fi
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
-      - name: Capture numeric visibility evidence on unchanged production
+      - name: Capture numeric evidence without changing production
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -57,63 +59,14 @@ jobs:
           remote="$DEPLOY_USER@$DEPLOY_HOST"
           deployed=$(ssh "${ssh_opts[@]}" "$remote" "cd '$root' && git rev-parse HEAD")
           test "$deployed" = "$EXPECTED_SHA"
-          ssh "${ssh_opts[@]}" "$remote" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php -d display_errors=0 -d log_errors=0" > "$RUNNER_TEMP/visibility-counts.json" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          $pdo=null;
-          try {
-              require getcwd().'/config.php';
-              require getcwd().'/services/ManagerConversationService.php';
-              $pdo=ConversationDb::connection();
-              $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-              $pdo->exec('SET TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              $managers=$pdo->query('SELECT id,role,is_working FROM managers WHERE is_active=1 ORDER BY id LIMIT 21')->fetchAll();
-              if(count($managers)>20)throw new RuntimeException('bound');
-              $report=[];
-              foreach($managers as $manager){
-                  $id=(int)$manager['id'];
-                  $all=ManagerConversationService::list($id,'all',200,'*');
-                  $mine=ManagerConversationService::list($id,'mine',200,'*');
-                  $waiting=ManagerConversationService::list($id,'waiting',200,'*');
-                  $allIds=array_fill_keys(array_map('intval',array_column($all,'id')),true);
-                  $mineIds=array_fill_keys(array_map('intval',array_column($mine,'id')),true);
-                  $counts=['all'=>count($all),'mine'=>count($mine),'waiting'=>count($waiting),'all_not_in_mine'=>count(array_diff_key($allIds,$mineIds)),'mine_not_in_all'=>count(array_diff_key($mineIds,$allIds)),'all_unassigned'=>0,'all_assigned_other'=>0,'waiting_own'=>0,'waiting_unassigned'=>0,'waiting_unassigned_in_all'=>0,'waiting_unassigned_missing_older'=>0,'waiting_unassigned_missing_tied'=>0,'waiting_unassigned_missing_newer'=>0];
-                  $cutoff='';
-                  foreach($all as $row){
-                      $owner=(int)($row['manager_id']??0);
-                      if($owner<=0)$counts['all_unassigned']++;
-                      elseif($owner!==$id)$counts['all_assigned_other']++;
-                      $activity=(string)($row['last_message_at']??$row['started_at']??'');
-                      if($cutoff===''||strcmp($activity,$cutoff)<0)$cutoff=$activity;
-                  }
-                  foreach($waiting as $row){
-                      $owner=(int)($row['manager_id']??0);
-                      if($owner===$id){$counts['waiting_own']++;continue;}
-                      if($owner>0)continue;
-                      $counts['waiting_unassigned']++;
-                      if(isset($allIds[(int)$row['id']])){$counts['waiting_unassigned_in_all']++;continue;}
-                      $activity=(string)($row['last_message_at']??$row['started_at']??'');
-                      $order=strcmp($activity,$cutoff);
-                      $counts['waiting_unassigned_missing_'.($order<0?'older':($order===0?'tied':'newer'))]++;
-                  }
-                  $report[]=['role'=>($manager['role']==='admin'?'admin':'manager'),'is_working'=>(bool)$manager['is_working'],'legacy_alarm'=>(bool)$manager['is_working']&&count($waiting)>0&&count($all)<=count($mine)]+$counts;
-              }
-              $pdo->rollBack();
-              echo json_encode(['capture_ok'=>true,'generated_at'=>gmdate('c'),'purpose'=>'investigation_only_not_release_acceptance','list_limit'=>200,'active_manager_count'=>count($managers),'rows'=>$report],JSON_THROW_ON_ERROR|JSON_PRETTY_PRINT)."\n";
-          } catch(Throwable $e) {
-              if($pdo instanceof PDO && $pdo->inTransaction())$pdo->rollBack();
-              fwrite(STDERR,"visibility_inspection_failed_no_private_details\n");
-              exit(1);
-          }
-          PHP
+          ssh "${ssh_opts[@]}" "$remote" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php -d display_errors=0 -d log_errors=0" < tools/diagnostics/visibility_capped_list_probe.php > "$RUNNER_TEMP/visibility-counts.json"
           deployed_after=$(ssh "${ssh_opts[@]}" "$remote" "cd '$root' && git rev-parse HEAD")
           test "$deployed_after" = "$EXPECTED_SHA"
           actual=$(git ls-remote origin refs/heads/main | cut -f1)
           test "$actual" = "$EXPECTED_SHA"
           echo "verified_unchanged_main_and_production=$EXPECTED_SHA"
           cat "$RUNNER_TEMP/visibility-counts.json"
-          # This is evidence, never a replacement for the failed production gate.
+          # Evidence only. This run cannot satisfy the canonical production gate.
       - name: Remove ephemeral key and numeric evidence
         if: always()
         shell: bash
