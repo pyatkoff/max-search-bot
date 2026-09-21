@@ -1,0 +1,7 @@
+.workspaceSound{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0;color:var(--ws-text-secondary,#52606d)}
+.workspaceSound button{min-height:44px;padding:7px 10px;border:1px solid var(--ws-border,#d9e2e9);border-radius:10px;background:var(--ws-surface,#fff);color:var(--ws-text,#202a33);font:inherit;font-size:12px;cursor:pointer;touch-action:manipulation}
+.workspaceSound button[aria-pressed="true"]{background:var(--ws-accent-soft,#eaf3fb);border-color:var(--ws-accent,#1769aa)}
+.workspaceSound button:focus-visible{outline:3px solid var(--ws-accent,#1769aa);outline-offset:2px}
+.workspaceSound button:disabled{opacity:.65;cursor:wait}
+.workspaceSound [role="status"]{flex-basis:100%;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+@media(max-width:520px){.workspaceSound{margin:6px 0;gap:5px}.workspaceSound button{flex:1;min-width:0;font-size:11px}.workspaceSound [role="status"]{font-size:10px}}

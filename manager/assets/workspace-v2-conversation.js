@@ -2,6 +2,7 @@
 const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=false,accessLost=false;const drafts=new Map();
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0;
+let photoViewer=null;
 function validId(value){return Number.isSafeInteger(value)&&value>0}
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
 function persistReplySession(){
@@ -14,6 +15,7 @@ function persistReplySession(){
 }
 function activateReplySession(managerId){
   managerId=Number(managerId||0);
+  if(managerId!==replySessionOwner)closePhotoViewer(false);
   if(!validId(managerId)){drafts.clear();replySessionOwner=0;savedSelection=0;removeReplySession();return 0}
   if(replySessionOwner===managerId)return savedSelection;
   drafts.clear();replySessionOwner=managerId;savedSelection=0;
@@ -40,7 +42,13 @@ function deliverySuspended(){return String(S.detail?.delivery_failure?.category|
 function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||accessLost;if(file)file.disabled=busy||suspended||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||accessLost})}
 function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||accessLost})}
 function applyInteractionState(){applyComposerState();applyActionState()}
-function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=String(f.message||f.error_message||'Сообщение клиенту не доставлено.');el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
+// A failed request is not proof that the recipient did not receive the message.
+// Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
+function sendFailureNotice(failure,fallback=''){
+  if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category))return String(fallback||failure.message||'Отправка отклонена.');
+  return 'Отправка не подтверждена. Проверьте переписку перед повторной попыткой, чтобы не отправить сообщение дважды.';
+}
+function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,String(f.message||f.error_message||''));el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
 function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
@@ -51,7 +59,7 @@ function addQuickReply(text){
   reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
   saveDraft();autoGrow();reply.focus();
 }
-function suspendForAuthRecovery(){openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -59,9 +67,82 @@ function resetForIdentityChange(){
   ['conversationTitle','conversationAvatar','conversationState','conversationMeta','conversationActions','deliveryFailure','composerLocked'].forEach(id=>{$(id)?.replaceChildren()});
   $('deliveryFailure')?.classList.add('hidden');$('composerLocked')?.classList.add('hidden');
 }
+function closePhotoViewer(restoreFocus=true){
+  const view=photoViewer;if(!view)return;photoViewer=null;
+  clearTimeout(view.timer);
+  if(view.image){view.image.onload=null;view.image.onerror=null;view.image.removeAttribute('src')}
+  window.removeEventListener('popstate',view.leave);window.removeEventListener('pagehide',view.leave);
+  view.dialog.remove();
+  if(restoreFocus&&view.opener?.isConnected&&!S.authExpired&&!accessLost)view.opener.focus({preventScroll:true});
+}
+function safePhotoUrl(url){
+  if(!url||/[\u0000-\u0020\u007f]/.test(url))return false;
+  try{const parsed=new URL(url,window.location.href);return !parsed.username&&!parsed.password&&(parsed.protocol==='https:'||(parsed.protocol==='http:'&&parsed.origin===window.location.origin))}catch(e){return false}
+}
+function openPhotoViewer(url,name,opener){
+  if(S.authExpired||accessLost){setLoadStatus('Войдите в кабинет и откройте доступный диалог заново.','error');return true}
+  if(!safePhotoUrl(url))return false;
+  const dialog=document.createElement('dialog');
+  // A real same-tab link remains usable when native dialogs are unavailable.
+  if(typeof dialog.showModal!=='function')return false;
+  closePhotoViewer(false);
+  const view={dialog,opener,url,conversation:S.current,manager:S.manager?.id,auth:S.authGeneration,image:null,timer:0,leave:()=>closePhotoViewer(false)};
+  photoViewer=view;dialog.className='photoViewer';dialog.setAttribute('aria-label','Просмотр фото');
+  const bar=document.createElement('div');bar.className='photoViewerBar';
+  const title=document.createElement('strong');title.textContent='Просмотр фото';bar.appendChild(title);
+  const zoom=document.createElement('button');zoom.type='button';zoom.textContent='Увеличить';zoom.disabled=true;zoom.setAttribute('aria-pressed','false');bar.appendChild(zoom);
+  const close=document.createElement('button');close.type='button';close.textContent='Закрыть';close.setAttribute('aria-label','Закрыть фото');close.onclick=()=>closePhotoViewer();bar.appendChild(close);
+  const status=document.createElement('div');status.className='photoViewerStatus';status.setAttribute('role','status');
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Повторить';retry.hidden=true;
+  const stage=document.createElement('div');stage.className='photoViewerStage';stage.tabIndex=0;stage.setAttribute('aria-label','Фотография');
+  dialog.append(bar,status,retry,stage);document.body.appendChild(dialog);
+  const current=()=>photoViewer===view&&!S.authExpired&&!accessLost&&S.current===view.conversation&&S.manager?.id===view.manager&&S.authGeneration===view.auth;
+  function load(){
+    if(!current()){closePhotoViewer(false);return}
+    clearTimeout(view.timer);
+    if(view.image){view.image.onload=null;view.image.onerror=null;view.image.removeAttribute('src')}
+    const image=document.createElement('img');view.image=image;image.alt=name||'Фото';image.hidden=true;
+    stage.replaceChildren(image);stage.classList.remove('zoomed');status.textContent='Загружаем фото…';retry.hidden=true;zoom.disabled=true;zoom.textContent='Увеличить';zoom.setAttribute('aria-pressed','false');
+    const active=()=>current()&&view.image===image;
+    const failed=()=>{if(!active())return;clearTimeout(view.timer);image.hidden=true;zoom.disabled=true;status.textContent='Не удалось загрузить фото. Проверьте соединение и доступ к диалогу, затем повторите попытку.';retry.hidden=false};
+    image.onload=()=>{if(!active())return;clearTimeout(view.timer);image.hidden=false;status.textContent='';retry.hidden=true;zoom.disabled=false};
+    image.onerror=failed;view.timer=setTimeout(failed,20000);image.src=url;
+  }
+  retry.onclick=load;
+  zoom.onclick=()=>{if(!current()||!view.image?.naturalWidth)return;const expanded=stage.classList.toggle('zoomed');view.image.style.width=expanded?view.image.naturalWidth+'px':'';zoom.textContent=expanded?'Уместить':'Увеличить';zoom.setAttribute('aria-pressed',String(expanded))};
+  dialog.addEventListener('cancel',event=>{event.preventDefault();closePhotoViewer()});
+  dialog.addEventListener('close',()=>{if(photoViewer===view)closePhotoViewer()});
+  dialog.addEventListener('keydown',event=>event.stopPropagation());
+  window.addEventListener('popstate',view.leave);window.addEventListener('pagehide',view.leave);
+  try{dialog.showModal();close.focus({preventScroll:true});load();return true}catch(e){closePhotoViewer(false);return false}
+}
+function photoLink(url,name,label){
+  const link=document.createElement('a');link.href=url;link.className='photoOpen';link.setAttribute('aria-label',label);
+  link.onclick=event=>{if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;if(openPhotoViewer(url,name,link))event.preventDefault()};
+  return link;
+}
 function looksLikeImage(a,url){const probe=String(a?.name||url||'').split('?')[0].toLowerCase();return a?.type==='image'||/\.(png|jpe?g|gif|webp|bmp|avif)$/.test(probe)}
 function mediaFallback(node,a,url,label='Вложение'){node.onerror=()=>{const link=document.createElement('a');link.textContent='Не удалось загрузить: '+(a?.name||label)+'. Открыть файл';if(url){link.href=url;link.target='_blank';link.rel='noopener'}node.replaceWith(link)}}
-function renderAttachments(root,items){if(!Array.isArray(items)||!items.length)return;const wrap=document.createElement('div');wrap.className='attachments';items.forEach(a=>{const url=String(a?.url||'');let n;if((a.type==='image'||looksLikeImage(a,url))&&url){n=document.createElement('img');n.src=url;n.loading='lazy';n.alt=a?.name||'Изображение';mediaFallback(n,a,url,'Изображение')}else if(a.type==='video'&&url){n=document.createElement('video');n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}else if(a.type==='audio'&&url){n=document.createElement('audio');n.src=url;n.controls=true;mediaFallback(n,a,url,'Аудио')}else{n=document.createElement('a');n.textContent='📎 '+(a.name||'Вложение');if(url){n.href=url;n.target='_blank';n.rel='noopener'}}wrap.appendChild(n);if(n.tagName==='IMG'){const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener';open.textContent='Открыть фото';wrap.appendChild(open)}});root.appendChild(wrap)}
+function renderAttachments(root,items){
+  if(!Array.isArray(items)||!items.length)return;
+  const wrap=document.createElement('div');wrap.className='attachments';
+  items.forEach(a=>{
+    if(!a)return;
+    const url=String(a.url||'');let n;
+    if((a.type==='image'||looksLikeImage(a,url))&&url){
+      if(!safePhotoUrl(url)){n=document.createElement('span');n.textContent='Фото недоступно';wrap.appendChild(n);return}
+      const preview=photoLink(url,a.name,'Увеличить фото');preview.classList.add('photoPreview');
+      n=document.createElement('img');n.loading='lazy';n.alt=a.name||'Изображение';
+      n.onerror=()=>{const text=document.createElement('span');text.textContent='Не удалось загрузить: '+(a.name||'Изображение')+'. Открыть файл';preview.setAttribute('aria-label',text.textContent);n.replaceWith(text)};
+      n.src=url;preview.appendChild(n);wrap.appendChild(preview);
+      const open=photoLink(url,a.name,'Открыть фото');open.textContent='Открыть фото';wrap.appendChild(open);return;
+    }
+    if(a.type==='video'&&url){n=document.createElement('video');n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}
+    else if(a.type==='audio'&&url){n=document.createElement('audio');n.src=url;n.controls=true;mediaFallback(n,a,url,'Аудио')}
+    else{n=document.createElement('a');n.textContent='📎 '+(a.name||'Вложение');if(url){n.href=url;n.target='_blank';n.rel='noopener'}}
+    wrap.appendChild(n);
+  });root.appendChild(wrap);
+}
 function renderMessageBody(body,m){
   body.textContent=m.text||'';
   if(m.sender_type!=='ai')return;
@@ -77,7 +158,7 @@ function renderMessageBody(body,m){
   }
   body.appendChild(document.createTextNode(text.slice(offset)));
 }
-function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){const box=$('messages'),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const who=m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=who==='customer'?'Турист':who==='manager'?'Менеджер':'AI';n.className='msg '+who;n.dataset.sender=who;const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);const body=document.createElement('div');body.className='msgBody';renderMessageBody(body,m);n.appendChild(body);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=m.created_at||'';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom)}
+function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const who=m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=who==='customer'?'Турист':who==='manager'?'Менеджер':'AI';n.className='msg '+who;n.dataset.sender=who;const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);const body=document.createElement('div');body.className='msgBody';renderMessageBody(body,m);n.appendChild(body);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=m.created_at||'';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom)}
 function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;$('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ')}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
@@ -90,7 +171,7 @@ async function refreshVisible(){
     const d=await api('detail',{conversation_id:target});
     if(!stillCurrent())return false;
     if(!d?.ok){
-      if([403,404].includes(d?.http_status)){accessLost=true;forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный лид в списке.')}
+      if([403,404].includes(d?.http_status)){closePhotoViewer(false);accessLost=true;forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный лид в списке.')}
       else setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');
       return false;
     }
@@ -110,6 +191,7 @@ async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;
   if(!target)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
+  if(switching)closePhotoViewer(false);
   const seq=++openSeq;opening=seq;refreshEpoch++;setRefreshStatus();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем лид…':'Обновляем диалог…','loading');
@@ -144,31 +226,60 @@ async function change(a){
 }
 async function sendReply(){
   if(busy||deliverySuspended())return;
-  if(accessLost)return;
+  if(accessLost||S.authExpired)return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  const manager=Number(S.manager?.id),authGeneration=S.authGeneration;
+  const sameSession=()=>!S.authExpired&&S.authGeneration===authGeneration&&Number(S.manager?.id)===manager;
+  const sameTarget=()=>sameSession()&&Number(S.current)===target;
+  const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile))return;
+  // The panel describes the latest attempt, not an unresolved older warning.
+  // The existing suspended-recipient guard above is unchanged.
+  renderDeliveryFailure(null);
   setBusy(true);setReplyStatus('Отправляем сообщение…');
   try{
-    let j;if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
-    const stillCurrent=openSeq===generation&&Number(S.current)===target;
-    if(!j?.ok){
-      const failure=j?.failure||null;
-      if(stillCurrent&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
-      if(stillCurrent&&!S.authExpired)setReplyStatus(j?.error_message||failure?.message||'Не удалось отправить сообщение','error');
-      return
+    let j;
+    try{
+      if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
+    }catch(e){
+      if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error');
+      return;
     }
-    if(owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+    if(j?.ok!==true){
+      const failure=j?.failure||null;
+      if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
+      if(currentAttempt())setReplyStatus(sendFailureNotice(failure,j?.error_message),'error');
+      return;
+    }
+    if(sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+    const stillCurrent=currentAttempt();
     if(stillCurrent){
       if($('replyText').value===draftText)$('replyText').value='';autoGrow();
-      const refreshed=await open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
-      if(refreshed){const statusGeneration=openSeq;setReplyStatus('Отправлено','success');setTimeout(()=>{if(!busy&&Number(S.current)===target&&openSeq===statusGeneration)setReplyStatus()},1400)}
+      setReplyStatus('Отправлено','success');
+      // Sending already succeeded. A later history/render failure cannot reverse that result.
+      let refreshed=false,refreshGeneration=openSeq;
+      try{
+        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
+        refreshGeneration=openSeq;refreshed=await refreshing;
+      }catch(e){}
+      if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
     }
-    await window.WorkspaceV2Inbox?.load({preserveScroll:true})
-  }catch(e){
-    if(!S.authExpired&&openSeq===generation&&Number(S.current)===target)setReplyStatus('Не удалось отправить сообщение','error')
+    // Inbox owns its refresh errors; they are not message-delivery failures.
+    if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
   }finally{setBusy(false)}
 }
-function bind(){if(bound)return;bound=true;const form=$('composer'),reply=$('replyText');form.onsubmit=async e=>{e.preventDefault();await sendReply()};reply.addEventListener('input',()=>{saveDraft();autoGrow()});reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))}
+function bind(){
+  if(bound)return;bound=true;
+  const form=$('composer'),reply=$('replyText');
+  form.onsubmit=async e=>{e.preventDefault();await sendReply()};
+  // Focusing the send button can collapse mobile quick replies between down/up,
+  // moving the native click target. Keep pointer focus stable; keyboard focus and
+  // the native click/submit remain unchanged. Never send from a pointer-down event.
+  $('sendReply')?.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});
+  reply.addEventListener('input',()=>{saveDraft();autoGrow()});
+  reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
+  document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
+}
 window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
 })();

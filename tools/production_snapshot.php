@@ -9,6 +9,7 @@ require_once $baseDir.'/services/LegacyPaidYclidReader.php';
 require_once $baseDir.'/services/RuntimeBootstrap.php';
 require_once $baseDir.'/services/MigrationRunner.php';
 require_once $baseDir.'/services/ManagerConversationService.php';
+require_once $baseDir.'/services/ManagerVisibilityHealth.php';
 require_once $baseDir.'/services/ManagerDeliveryStateService.php';
 require_once $baseDir.'/services/LeadTaskService.php';
 require_once $baseDir.'/services/CallbackGeneration.php';
@@ -210,11 +211,13 @@ try{
             'waiting'=>count($waiting),
             'assigned_to_others'=>$otherAssigned,
         ];
+        $visibilityCheck=ManagerVisibilityHealth::assess($manager,$all,$mine,$waiting);
+        $entry['sample_check']=$visibilityCheck;
         $snapshot['manager_visibility'][]=$entry;
-        if($entry['is_working'] && $entry['waiting']>0 && $entry['all']<=$entry['mine']){
+        if(!$visibilityCheck['ok']){
             $snapshot['health']['manager_visibility_ok']=false;
             $snapshot['health']['manager_visibility_anomalies'][]=[
-                'manager_id'=>$id,'login'=>$entry['login'],'reason'=>'working_manager_all_collapsed_to_mine','all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
+                'manager_id'=>$id,'login'=>$entry['login'],'reason'=>$visibilityCheck['reason'],'all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
             ];
         }
     }

@@ -1,0 +1,93 @@
+name: Workspace incoming sound
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'manager/**'
+      - 'services/ManagerIncomingNotificationService.php'
+      - 'services/ProjectAccessService.php'
+      - 'services/ManagerPushService.php'
+      - 'services/IncomingUpdateDispatcher.php'
+      - 'tests/notification-sound/**'
+      - 'tests/visual/workspace-sound.spec.js'
+      - '.github/workflows/workspace-sound.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sound:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite
+          coverage: none
+      - name: Install browser
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Sound controller unit regression
+        run: node tests/notification-sound/client.unit.js
+      - name: Read-only authentication bootstrap regression
+        run: php tests/notification-sound/bootstrap-readonly.php
+      - name: Read-only feed regression
+        run: php tests/notification-sound/feed.php
+      - name: Start static fixtures
+        if: success() || failure()
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/sound-server.log" 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Touch, audio scheduling and deduplication
+        if: success() || failure()
+        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=${{ matrix.browser }} --reporter=line --workers=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sound-evidence-${{ matrix.browser }}-${{ github.sha }}
+          path: sound-evidence/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+
+  native-mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: sound-local-test-only
+          MYSQL_DATABASE: sound_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psound-local-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+          coverage: none
+      - name: Native read-only auth and delayed commit ordering
+        env:
+          SOUND_MYSQL_TEST: '1'
+        run: |
+          php tests/notification-sound/feed.php
+          php tests/notification-sound/http.php
