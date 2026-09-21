@@ -171,18 +171,17 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusPhone)
             {
-                $phone = $message['text'];
-                $error = false;
-                if(strlen($phone)!=12 || strpos($phone,"+7")!==0)
-                    $error = true;
-                else
+                $phone = trim((string)($message['text'] ?? ''));
+                $phoneKind = self::phoneTextKind($phone);
+                if($phoneKind === 'non_phone')
                 {
-                    $subPhone = substr($phone,2);
-                    preg_match('/[^\d]{1,}/', $subPhone, $checkArray);
-                    if(is_array($checkArray) && count($checkArray)>0)
-                        $error = true;
+                    self::send(
+                        $chat_id,
+                        "Хорошо, можно продолжить ждать ответ здесь — номер телефона необязателен. Если решите оставить номер, отправьте его в формате +71234567890."
+                    );
+                    return;
                 }
-                if($error)
+                if($phoneKind === 'invalid_phone')
                     self::send($chat_id,"Не получилось распознать номер. Напишите его в формате +71234567890.");
                 else
                 {
@@ -215,6 +214,25 @@ class StateMessageHandler
             '/(?:\bхоч(?:у|ем)\b|\bпоед(?:у|ем|ет)\b|\bвылет\w*\b|\bтур\w*\b|\bноч\w*\b|\bвзросл\w*\b|\bреб[её]н\w*\b|\bдет\w*\b|\bянвар\w*\b|\bфеврал\w*\b|\bмарт\w*\b|\bапрел\w*\b|\bма[йя]\w*\b|\bиюн\w*\b|\bиюл\w*\b|\bавгуст\w*\b|\bсентябр\w*\b|\bоктябр\w*\b|\bноябр\w*\b|\bдекабр\w*\b|\b\d{1,2}[.\/-]\d{1,2}\b)/ui',
             $text
         );
+    }
+
+    /**
+     * The fallback explicitly allows the tourist to keep waiting in chat. Only
+     * phone-looking input should therefore receive a phone-format error.
+     */
+    private static function phoneTextKind(string $text): string
+    {
+        $text = trim($text);
+        if(preg_match('/^\+7\d{10}$/D', $text) === 1)
+            return 'valid_phone';
+
+        $digits = preg_replace('/\D/', '', $text);
+        if(is_string($digits) && strlen($digits) >= 9)
+            return 'invalid_phone';
+        if(strpos($text, '+7') === 0)
+            return 'invalid_phone';
+
+        return 'non_phone';
     }
 
     private static function routeFreeTextToAi($message, $chatId): void
