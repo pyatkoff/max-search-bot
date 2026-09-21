@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/RuntimeStorage.php';
 require_once __DIR__ . '/MysqlDialogueStateRepository.php';
+require_once __DIR__ . '/TripBudgetPolicy.php';
 
 /**
  * Dialogue-state repository with a compatibility bridge from legacy Bitrix HL
@@ -185,11 +186,47 @@ class ConversationStateRepository
         $result = [];
         foreach ($rows as $row) {
             $status = $row['UF_STATUS'] ?? null;
-            if ($status == $statusStart) break;
+            if ($status == $statusStart) {
+                $budget = TripBudgetPolicy::fromStartValue($row['UF_VALUE'] ?? null);
+                if ($budget !== null && !empty($budget['max'])) $result['_budget'] = $budget;
+                break;
+            }
             if ($status != $statusCheck && empty($result[$status])) {
                 $result[$status] = $row['UF_VALUE'] ?? null;
             }
         }
         return $result;
     }
+
+    /** Optional budget is attached to the existing start, not a wizard status. */
+    public static function budgetSnapshot($chatId, int $startStatus = 64): array
+    {
+        if (!RuntimeStorage::usesMysql()) return [];
+        $row=MysqlDialogueStateRepository::startValue($chatId,$startStatus);
+        if (!$row) return [];
+        $budget=TripBudgetPolicy::fromStartValue($row['UF_VALUE']??null);
+        if ($budget===null) return [];
+        return ['start_id'=>(int)$row['ID'],'raw'=>$row['UF_VALUE']??null,'budget'=>$budget];
+    }
+
+    public static function applyBudget($chatId, array $update, int $startStatus = 64): bool
+    {
+        if (!RuntimeStorage::usesMysql() || !is_array($update['snapshot']??null)
+            || !is_array($update['changes']??null)) return false;
+        $snapshot=$update['snapshot'];$changes=$update['changes'];
+        $current=self::budgetSnapshot($chatId,$startStatus);
+        if (!$current || $current!==$snapshot || $changes===[]
+            || array_diff(array_keys($changes),['budget.max','budget.currency','budget.basis'])!==[]) return false;
+        foreach ($changes as $key=>$v) {
+            if ($key==='budget.max' && $v!==null && TripBudgetPolicy::amount($v)===null) return false;
+            if ($key==='budget.currency' && TripBudgetPolicy::currency($v)===null) return false;
+            if ($key==='budget.basis' && !in_array($v,['total','per_person'],true)) return false;
+        }
+        if (!array_key_exists('budget.max',$changes) && empty($current['budget']['max'])) return false;
+        $budget=TripBudgetPolicy::apply($current['budget'],$changes);
+        $raw=TripBudgetPolicy::toStartValue($budget);
+        if ($raw===$current['raw']) return true;
+        return MysqlDialogueStateRepository::compareStartValue($chatId,$startStatus,$current['start_id'],$current['raw'],$raw);
+    }
+
 }

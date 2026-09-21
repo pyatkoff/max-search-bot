@@ -5,6 +5,7 @@ require_once __DIR__ . '/ChildAgesParser.php';
 require_once __DIR__ . '/StarsParser.php';
 require_once __DIR__ . '/MealParser.php';
 require_once __DIR__ . '/NightsParser.php';
+require_once __DIR__ . '/BudgetParser.php';
 
 /**
  * Canonical deterministic need-value resolution boundary.
@@ -23,6 +24,12 @@ class NeedValueResolver
     public static function resolve(string $field, string $text, array $context = []): array
     {
         $field = trim($field);
+
+        if ($field === 'budget') {
+            $parsed = BudgetParser::parse($text);
+            return array_merge(self::result($parsed !== null, $parsed['changes'] ?? null, 'deterministic:budget_parser'),
+                ['only_budget'=>$parsed['only_budget'] ?? false]);
+        }
 
         if ($field === 'adults') {
             $value = AdultsParser::parse($text);

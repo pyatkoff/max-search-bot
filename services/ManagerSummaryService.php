@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/TripBudgetPolicy.php';
+
 class ManagerSummaryService
 {
     public static function build(array $state, array $userContext = []): string
@@ -30,7 +32,16 @@ class ManagerSummaryService
             $lines[] = 'Туристы: ' . implode(' + ', $people);
         }
 
-        if (!empty($state['budget']['max'])) $lines[] = 'Бюджет: до ' . number_format((float)$state['budget']['max'], 0, '.', ' ') . ' ' . (string)($state['budget']['currency'] ?? 'RUB');
+        $budget = is_array($state['budget'] ?? null) ? $state['budget'] : [];
+        $amount = TripBudgetPolicy::amount($budget['max'] ?? null);
+        if ($amount !== null) {
+            $currency = TripBudgetPolicy::currency($budget['currency'] ?? 'RUB');
+            $basis = TripBudgetPolicy::basis($budget);
+            $basisLabel = $basis === 'total' ? 'на всех' : ($basis === 'per_person' ? 'на человека' : '(основание требует уточнения)');
+            $precision = floor((float)$amount) == $amount ? 0 : 2;
+            $lines[] = 'Бюджет: до ' . number_format((float)$amount, $precision, '.', ' ') . ' '
+                . ($currency ?? '(валюта требует уточнения)') . ' ' . $basisLabel;
+        }
         if (!empty($state['hotel']['stars_min'])) $lines[] = 'Отель: от ' . (int)$state['hotel']['stars_min'] . '★';
         if (!empty($state['hotel']['meal'])) $lines[] = 'Питание: ' . (string)$state['hotel']['meal'];
         if (!empty($state['preferences'])) $lines[] = 'Пожелания: ' . implode(', ', (array)$state['preferences']);

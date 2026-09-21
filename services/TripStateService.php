@@ -72,6 +72,7 @@ class TripStateService
             'child_ages'=>$current['child_ages'] ?? null,
             'stars'=>array_key_exists('stars', $current) ? self::intOrNull($current['stars']) : null,
             'meal'=>self::stringOrNull($current['meal'] ?? null),
+            'budget'=>is_array($current['budget'] ?? null) ? $current['budget'] : null,
             'storage'=>'legacy_ai_context',
         ]);
     }
@@ -90,7 +91,7 @@ class TripStateService
                 'children'=>array_key_exists('children', $v) ? $v['children'] : null,
                 'children_ages'=>self::parseAges($v['child_ages'] ?? null),
             ],
-            'budget'=>['max'=>null,'currency'=>'RUB'],
+            'budget'=>$v['budget'] ?? ['max'=>null,'currency'=>'RUB'],
             'hotel'=>['stars_min'=>$v['stars'] ?? null,'meal'=>$v['meal'] ?? null,'line'=>null],
             'preferences'=>[],
             'negative_preferences'=>[],

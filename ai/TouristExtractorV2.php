@@ -34,6 +34,7 @@ class TouristExtractorV2
 - tourists.children_ages
 - budget.max
 - budget.currency
+- budget.basis
 - hotel.stars_min
 - hotel.meal
 - hotel.line
@@ -53,7 +54,11 @@ class TouristExtractorV2
 - Возраст детей возвращай массивом целых чисел 0..17.
 - Ночи: одно число => min=max; диапазон => min/max. «На неделю» => 7/7.
 - Даты возвращай DD.MM.YYYY, только если дата достаточно определена. Если назван только месяц — dates.month="YYYY-MM" и не выдумывай число.
-- Бюджет «до 180 тысяч» => budget.max=180000, budget.currency="RUB".
+- Бюджет «до 180 тысяч» => budget.max=180000, budget.currency="RUB". Сумму не умножай на количество туристов.
+- Бюджет по умолчанию общий на всех; уточнение «на всех или на человека?» не требуется. Сам дефолт применяет backend, не добавляй budget.basis без явного указания в сообщении.
+- budget.basis: total|per_person. Только явное «на человека», «на одного», «с каждого» о бюджете => per_person; явное «на всех», «общий бюджет» => total. Условия другого платежа (экскурсия, доплата) не меняют основание бюджета тура.
+- «До 90 тысяч на человека» => budget.max=90000, budget.currency="RUB", budget.basis="per_person". Не рассчитывай общий бюджет за взрослых и детей.
+- При исправлении только суммы верни только новую сумму/явно названную валюту; ранее явно заданное основание сохраняет backend. При снятии ограничения бюджета верни budget.max=null, не выдумывай новую сумму.
 - hotel.meal: any|all_inclusive|breakfast|half_board|full_board.
 - «первая линия», «детский клуб», «тихий отель» и подобное складывай в preferences. Явные нежелательные свойства — в negative_preferences.
 - Не подставляй бизнес-дефолты (Москва, 4*, all inclusive). Это задача backend.
@@ -82,7 +87,7 @@ PROMPT;
             'departure.city','destination.country','destination.region','destination.resort',
             'dates.from','dates.to','dates.month','dates.flexible_days',
             'nights.min','nights.max','tourists.adults','tourists.children','tourists.children_ages',
-            'budget.max','budget.currency','hotel.stars_min','hotel.meal','hotel.line',
+            'budget.max','budget.currency','budget.basis','hotel.stars_min','hotel.meal','hotel.line',
             'preferences','negative_preferences'
         ];
         $out = [];

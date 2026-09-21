@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/NeedValueResolver.php';
+require_once __DIR__ . '/ConversationStateRepository.php';
 
 /**
  * Canonical boundary between deterministic need-value resolution and trip-state application.
@@ -17,14 +18,26 @@ class NeedApplicationService
             return array_merge($resolved, ['applied'=>false]);
         }
 
-        $applied = self::applyParameters($chatId, [$field=>$resolved['value']]);
+        $params = [$field=>$resolved['value']];
+        if ($field === 'budget') {
+            $params = ['budget_update'=>[
+                'snapshot'=>ConversationStateRepository::budgetSnapshot($chatId, (int)MaxSearchApi::$statusStart),
+                'changes'=>$resolved['value'],
+            ]];
+        }
+        $applied = self::applyParameters($chatId, $params);
         return array_merge($resolved, ['applied'=>!empty($applied[$field])]);
     }
 
     public static function applyParameters($chatId, array $params): array
     {
         if (empty($params) || !class_exists('MaxSearchApi')) return [];
-        $applied = MaxSearchApi::applyAiParameters($chatId, $params);
-        return is_array($applied) ? $applied : [];
+        $budgetApplied = [];
+        if (array_key_exists('budget_update', $params)) {
+            if (is_array($params['budget_update']) && ConversationStateRepository::applyBudget($chatId, $params['budget_update'], (int)MaxSearchApi::$statusStart)) $budgetApplied['budget'] = true;
+            unset($params['budget_update']);
+        }
+        $applied = $params === [] ? [] : MaxSearchApi::applyAiParameters($chatId, $params);
+        return array_merge(is_array($applied) ? $applied : [], $budgetApplied);
     }
 }
