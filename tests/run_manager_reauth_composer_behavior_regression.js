@@ -221,6 +221,15 @@ for(const mode of ['detail-error','detail-throw','inbox-throw','render-throw'])t
   assert.doesNotMatch(h.ids.get('replyStatus').textContent,/не подтверждена|Не удалось отправить/);
   assert.equal(h.ids.get('replyText').value,'');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
 });
+test('a new accepted attempt does not display an older uncertain warning',async()=>{
+  const h=createHarness();await h.start();await h.draft('Synthetic reply');
+  h.setHook((url,r)=>r.action==='send'?response({ok:false,failure:{category:'unknown',message:'Old uncertainty'}},409):null);
+  await h.C.sendReply();assert.match(h.ids.get('deliveryFailure').textContent,/Отправка не подтверждена/);
+  h.setHook((url,r)=>r.action==='send'?response({ok:true}):url==='api.php'&&r.action==='detail'?response({ok:false},500):null);
+  await h.C.sendReply();assert.match(h.ids.get('replyStatus').textContent,/^Отправлено/);
+  assert.equal(h.ids.get('deliveryFailure').classList.contains('hidden'),true);
+  assert.equal(h.calls.filter(r=>r.action==='send').length,2);
+});
 test('successful send and refresh reports sent without inferring client reading',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic text');h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);
   await h.C.sendReply();assert.equal(h.ids.get('replyStatus').textContent,'Отправлено');
@@ -247,6 +256,18 @@ test('newer navigation during post-send refresh owns the new screen and draft',a
   const sending=h.C.sendReply();await entered.promise;await h.C.open(102);await h.draft('New draft');h.ids.get('replyStatus').textContent='New feedback';
   pending.resolve(response({ok:false},500));await sending;
   assert.equal(h.W.S.current,102);assert.equal(h.ids.get('replyText').value,'New draft');assert.equal(h.ids.get('replyStatus').textContent,'New feedback');
+});
+
+for(const mode of ['navigation','new-session'])test('late rejected send cannot paint '+mode+' feedback',async()=>{
+  const h=createHarness();await h.start();await h.draft('Old draft');const pending=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='send'?(entered.resolve(),pending.promise):null);
+  const sending=h.C.sendReply();await entered.promise;
+  if(mode==='navigation')await h.C.open(102);
+  else{h.W.showAuthRecovery();h.setHook(null);await h.login();}
+  await h.draft('Current draft');h.ids.get('replyStatus').textContent='Current feedback';
+  pending.resolve(response({ok:false,error_message:'Stale refusal',failure:{category:'blocked',message:'Stale refusal'}},409));await sending;
+  assert.equal(h.ids.get('replyText').value,'Current draft');assert.equal(h.ids.get('replyStatus').textContent,'Current feedback');
+  assert.notEqual(h.W.S.detail.delivery_failure?.message,'Stale refusal');
 });
 
 module.exports={createHarness,response,deferred,hidden,assertNoMutations};

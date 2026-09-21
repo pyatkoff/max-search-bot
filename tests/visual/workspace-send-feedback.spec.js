@@ -70,6 +70,7 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
     expect(clicks.filter(e=>e.target==='sendReply')).toHaveLength(2);
     await expect(page.locator('#replyStatus')).toHaveText('Отправлено. Переписку пока не удалось обновить.');
     await expect(page.locator('#replyText')).toHaveValue('');
+    await expect(page.locator('#deliveryFailure')).toBeHidden();
     expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(2);
     expect(await page.locator('#messages').innerHTML()).toBe(before);await assertFits(page,width);
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-confirmed.png`});

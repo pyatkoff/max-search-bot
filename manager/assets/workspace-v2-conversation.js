@@ -234,6 +234,9 @@ async function sendReply(){
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
   const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile))return;
+  // The panel describes the latest attempt, not an unresolved older warning.
+  // The existing suspended-recipient guard above is unchanged.
+  renderDeliveryFailure(null);
   setBusy(true);setReplyStatus('Отправляем сообщение…');
   try{
     let j;
