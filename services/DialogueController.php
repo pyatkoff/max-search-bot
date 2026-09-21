@@ -10,6 +10,7 @@ require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
 require_once __DIR__ . '/../handlers/AiDateHandler.php';
 require_once __DIR__ . '/../handlers/AiMessageHandler.php';
+require_once __DIR__ . '/../handlers/AiBudgetHandler.php';
 require_once __DIR__ . '/../handlers/AiShortAnswerHandler.php';
 require_once __DIR__ . '/../handlers/AiShadowObserver.php';
 require_once __DIR__ . '/../handlers/V2EarlyActionHandler.php';
@@ -79,6 +80,7 @@ class DialogueController
             return DialogueView::checkTextGuidance($chatId);
         }
         if ($status == MaxSearchApi::$statusAi || !$status || $status == MaxSearchApi::$statusStart) {
+            if (AiBudgetHandler::handle($chatId, $text)) return true;
             DepartureCityResolver::resolveAndStore($chatId, $text);
             DestinationAreaResolver::resolveAndStore($chatId, $text);
             DestinationResolver::resolveAndStore($chatId, $text);

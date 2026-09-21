@@ -40,6 +40,7 @@ return [
         'php tests/run_regression.php',
         'php tests/run_ai_context_regression.php',
         'php tests/run_trip_state_regression.php',
+        'php tests/run_active_budget_regression.php',
         'php tests/run_messenger_adapters_regression.php',
         'php tests/run_telegram_webhook_regression.php',
         'php tools/telegram_smoke_test.php',

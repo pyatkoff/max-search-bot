@@ -25,6 +25,8 @@ class AiSearchContextService
         if (!empty($saved[$status['nights']])) $out['nights'] = (string)$saved[$status['nights']];
         if (!empty($saved[$status['date']])) $out['date'] = (string)$saved[$status['date']];
 
+        if (is_array($saved['_budget'] ?? null)) $out['budget'] = $saved['_budget'];
+
         return $out;
     }
 

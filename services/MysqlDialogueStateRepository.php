@@ -97,4 +97,21 @@ final class MysqlDialogueStateRepository
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: false;
     }
+
+    public static function startValue($chatId, int $statusId): array
+    {
+        return self::latestStatusRow($chatId,$statusId) ?: [];
+    }
+
+    /** CAS uses byte-exact values, independent of case-insensitive/padded text collations. */
+    public static function compareStartValue($chatId, int $statusId, int $startId, $old, string $new): bool
+    {
+        $sql='UPDATE runtime_dialogue_state SET value_text = ? WHERE project_key = ? AND chat_id = ? AND status_id = ? AND id = ?'
+            . " AND HEX(COALESCE(value_text, '')) = HEX(?) AND id = (SELECT latest.id FROM"
+            . ' (SELECT MAX(id) AS id FROM runtime_dialogue_state WHERE project_key = ? AND chat_id = ? AND status_id = ?) latest)';
+        $stmt=self::pdo()->prepare($sql);
+        $stmt->execute([$new,self::projectKey(),(string)$chatId,$statusId,$startId,(string)$old,self::projectKey(),(string)$chatId,$statusId]);
+        return $stmt->rowCount()===1;
+    }
+
 }
