@@ -139,7 +139,8 @@ helpCheck('blank check text remains harmless', helpDispatch('   '), true);
 helpCheck('blank check text sends nothing', $messenger->sent, []);
 
 helpCheck('phone input path still handles message', helpDispatch('Подборка не открывается',75), true);
-helpCheck('phone path is not replaced by help', strpos($messenger->sent[0]['text'] ?? '', 'распознать номер') !== false, true);
+helpCheck('phone-state chat text keeps phone optional', strpos($messenger->sent[0]['text'] ?? '', 'номер телефона необязателен') !== false, true);
+helpCheck('phone state is not replaced by post-tour link help', strpos($messenger->sent[0]['text'] ?? '', 'Посмотреть на сайте') === false, true);
 helpCheck('unrelated wizard state stays untouched', helpDispatch('Ссылка не работает',67), true);
 helpCheck('adults wizard is not intercepted', $messenger->sent, []);
 
