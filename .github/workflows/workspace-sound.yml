@@ -88,4 +88,6 @@ jobs:
       - name: Native read-only auth and delayed commit ordering
         env:
           SOUND_MYSQL_TEST: '1'
-        run: php tests/notification-sound/feed.php
+        run: |
+          php tests/notification-sound/feed.php
+          php tests/notification-sound/http.php
