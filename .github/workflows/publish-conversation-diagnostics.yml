@@ -2,12 +2,9 @@
 # No deployment, server file writes, business mutations or raw evidence uploads.
 name: Inspect capped manager visibility read-only
 on:
-  workflow_dispatch:
-    inputs:
-      expected_main_sha:
-        description: Exact currently deployed main SHA; must match authoritative main
-        required: true
-        type: string
+  push:
+    branches: [diagnose/visibility-capped-list-evidence]
+    paths: ['.github/workflows/publish-conversation-diagnostics.yml']
 permissions:
   contents: read
 concurrency:
@@ -17,13 +14,13 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    env:
+      EXPECTED_SHA: d21887e2436aa6bc92d8bc70d8d3fd4681cd5d87
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Verify authoritative main without changing it
-        env:
-          EXPECTED_SHA: ${{ inputs.expected_main_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -48,7 +45,6 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
       - name: Capture numeric visibility evidence on unchanged production
         env:
-          EXPECTED_SHA: ${{ inputs.expected_main_sha }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
