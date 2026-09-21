@@ -1,0 +1,35 @@
+name: Budget source workcopy (code only)
+on:
+  push:
+    branches: [audit/budget-working-copy-780-20260921]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: c1235a1f99519f45033edb521d117233a4207fb4
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Archive exact tracked sources and existing budget patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = c1235a1f99519f45033edb521d117233a4207fb4
+          mkdir -p "$RUNNER_TEMP/source-workcopy"
+          git archive --format=tar HEAD > "$RUNNER_TEMP/source-workcopy/main.tar"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/source-workcopy/main-tree.txt"
+          git fetch --depth 1 origin aeec382913916e81195d554dd2a2bfd704b3155c
+          git archive --format=tar aeec382913916e81195d554dd2a2bfd704b3155c ai/TouristExtractorV2.php services/TripBudgetPolicy.php services/TripStateMerger.php services/ManagerSummaryService.php tests/run_trip_state_regression.php > "$RUNNER_TEMP/source-workcopy/budget-781.tar"
+          git ls-tree -r aeec382913916e81195d554dd2a2bfd704b3155c > "$RUNNER_TEMP/source-workcopy/budget-781-tree.txt"
+          cd "$RUNNER_TEMP/source-workcopy"
+          sha256sum *.tar *.txt > checksums.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: budget-code-only-${{ github.run_id }}
+          path: ${{ runner.temp }}/source-workcopy/
+          retention-days: 1
+          if-no-files-found: error
