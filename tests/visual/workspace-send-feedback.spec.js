@@ -66,7 +66,8 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-unconfirmed.png`});
     await page.evaluate(()=>{window.fixtureResult={ok:true};});
     await page.locator('#sendReply').tap();
-    console.log('SYNTHETIC_SEND_TRACE',width,await page.evaluate(()=>JSON.stringify({calls:fixtureCalls.map(c=>c.action),events:fixtureTouches})));
+    const clicks=await page.evaluate(()=>fixtureTouches.filter(e=>e.type==='click'));
+    expect(clicks.filter(e=>e.target==='sendReply')).toHaveLength(2);
     await expect(page.locator('#replyStatus')).toHaveText('Отправлено. Переписку пока не удалось обновить.');
     await expect(page.locator('#replyText')).toHaveValue('');
     expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(2);
@@ -92,4 +93,15 @@ test('successful send is not relabelled when only the Inbox refresh throws',asyn
   await expect(page.locator('#replyStatus')).toHaveText('Отправлено');
   await expect(page.locator('#replyText')).toHaveValue('');
   expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);expect(unexpected).toEqual([]);
+});
+
+for(const key of ['Enter','Space'])test('keyboard '+key+' submits once without pointer events',async({page})=>{
+  const unexpected=await setup(page);
+  await page.evaluate(()=>{window.fixtureResult={ok:true};window.fixtureHistoryFails=false;});
+  await page.locator('#sendReply').focus();
+  await page.keyboard.press(key);
+  await expect(page.locator('#replyStatus')).toHaveText('Отправлено');
+  expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);
+  expect(await page.evaluate(()=>fixtureTouches.some(e=>['touchstart','mousedown'].includes(e.type)))).toBe(false);
+  expect(unexpected).toEqual([]);
 });

@@ -225,7 +225,8 @@ async function change(a){
   finally{setBusy(false)}
 }
 async function sendReply(){
-  if(busy||deliverySuspended()||accessLost||S.authExpired)return;
+  if(busy||deliverySuspended())return;
+  if(accessLost||S.authExpired)return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
   const manager=Number(S.manager?.id),authGeneration=S.authGeneration;
@@ -265,6 +266,17 @@ async function sendReply(){
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
   }finally{setBusy(false)}
 }
-function bind(){if(bound)return;bound=true;const form=$('composer'),reply=$('replyText');form.onsubmit=async e=>{e.preventDefault();await sendReply()};reply.addEventListener('input',()=>{saveDraft();autoGrow()});reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))}
+function bind(){
+  if(bound)return;bound=true;
+  const form=$('composer'),reply=$('replyText');
+  form.onsubmit=async e=>{e.preventDefault();await sendReply()};
+  // Focusing the send button can collapse mobile quick replies between down/up,
+  // moving the native click target. Keep pointer focus stable; keyboard focus and
+  // the native click/submit remain unchanged. Never send from a pointer-down event.
+  $('sendReply')?.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});
+  reply.addEventListener('input',()=>{saveDraft();autoGrow()});
+  reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
+  document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
+}
 window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
 })();
