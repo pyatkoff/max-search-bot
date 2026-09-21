@@ -20,6 +20,8 @@ async function setup(page){
       const el=document.createElement('div');el.id=id;el.className=id+' hidden';document.getElementById('composer').before(el);
     }
     document.getElementById('sendReply').type='submit';
+    window.fixtureTouches=[];
+    for(const type of ['touchstart','touchend','mousedown','mouseup','click','focusin','focusout','submit'])document.addEventListener(type,e=>{const b=document.getElementById('sendReply').getBoundingClientRect();window.fixtureTouches.push({type,target:e.target.id||e.target.tagName,top:b.top,focused:document.activeElement?.id});},true);
     window.fixtureCalls=[];window.fixtureResult={ok:false,failure:{category:'unknown',message:'Сообщение не доставлено'}};
     window.fixtureHistoryFails=true;
     const conversation={id:11,manager_id:7,status:'manager',channel:'max',display_name:'Пример диалога'};
@@ -64,6 +66,7 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-unconfirmed.png`});
     await page.evaluate(()=>{window.fixtureResult={ok:true};});
     await page.locator('#sendReply').tap();
+    console.log('SYNTHETIC_SEND_TRACE',width,await page.evaluate(()=>JSON.stringify({calls:fixtureCalls.map(c=>c.action),events:fixtureTouches})));
     await expect(page.locator('#replyStatus')).toHaveText('Отправлено. Переписку пока не удалось обновить.');
     await expect(page.locator('#replyText')).toHaveValue('');
     expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(2);
