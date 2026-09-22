@@ -35,7 +35,7 @@ final class TripContextMetadataPolicy
         if (!self::validBudget($value['budget'])) return null;
         $preferences = self::normalizeList($value['preferences'] ?? null);
         $negative = self::normalizeList($value['negative_preferences'] ?? null);
-        if ($preferences === null || $negative === null) return null;
+        if ($preferences === null || $negative === null || array_intersect($preferences, $negative) !== []) return null;
         return ['budget'=>$value['budget'], 'preferences'=>$preferences, 'negative_preferences'=>$negative];
     }
 
@@ -59,11 +59,20 @@ final class TripContextMetadataPolicy
         if (array_diff(array_keys($changes), ['preferences','negative_preferences']) !== []) return null;
         $next = self::normalizeContext($context);
         if ($next === null) return null;
+
+        $incoming = [];
         foreach (['preferences','negative_preferences'] as $key) {
             if (!array_key_exists($key, $changes)) continue;
-            $incoming = self::normalizeList($changes[$key]);
-            if ($incoming === null) return null;
-            foreach ($incoming as $item) {
+            $normalized = self::normalizeList($changes[$key]);
+            if ($normalized === null) return null;
+            $incoming[$key] = $normalized;
+        }
+        if (array_intersect($incoming['preferences'] ?? [], $incoming['negative_preferences'] ?? []) !== []) return null;
+
+        foreach ($incoming as $key=>$items) {
+            $opposite = $key === 'preferences' ? 'negative_preferences' : 'preferences';
+            foreach ($items as $item) {
+                $next[$opposite] = array_values(array_filter($next[$opposite], static fn(string $v): bool => $v !== $item));
                 if (!in_array($item, $next[$key], true)) $next[$key][] = $item;
             }
             if (count($next[$key]) > self::MAX_ITEMS) return null;
@@ -78,7 +87,7 @@ final class TripContextMetadataPolicy
         if (!is_array($budget) || !self::validBudget($budget)) return null;
         $preferences = self::normalizeList($context['preferences'] ?? []);
         $negative = self::normalizeList($context['negative_preferences'] ?? []);
-        if ($preferences === null || $negative === null) return null;
+        if ($preferences === null || $negative === null || array_intersect($preferences, $negative) !== []) return null;
         return ['budget'=>$budget, 'preferences'=>$preferences, 'negative_preferences'=>$negative];
     }
 
