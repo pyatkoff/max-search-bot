@@ -77,6 +77,7 @@ class MaxSearchApi
     public static array $transitions = [];
     public static array $directSaves = [];
     public static array $funnelEvents = [];
+    public static array $aiSearchContexts = [];
 
     public static function getCurentStatus($chatId): int { return self::$currentStatus; }
     public static function deletePrevMessage($chatId, $withButtons = false): void {}
@@ -96,6 +97,8 @@ class MaxSearchApi
         return $values;
     }
     public static function formatSavedData(array $data): array { return []; }
+    public static function getAiMissingFields($chatId): array { return []; }
+    public static function getAiSearchContext($chatId): array { return self::$aiSearchContexts[$chatId] ?? []; }
     public static function funnelLog($chatId, $event, array $data = []): void { self::$funnelEvents[] = [$event, $data]; }
     public static function saveLastValue($chatId, $status, $value): bool
     {
@@ -135,6 +138,7 @@ function dateCallbackReset(int $chatId, bool $withStep = true): DateCallbackMess
     MaxSearchApi::$transitions = [];
     MaxSearchApi::$directSaves = [];
     MaxSearchApi::$funnelEvents = [];
+    MaxSearchApi::$aiSearchContexts = [];
     DateCallbackFakeData::$adds = 0;
     DateCallbackFakeData::$updates = 0;
     DateCallbackFakeData::$rows = [
@@ -159,6 +163,8 @@ foreach ($dates as $date) {
     dateCallbackCheck("{$payload} stores exact date", MaxSearchApi::getSavedData($chatId)[MaxSearchApi::$statusDate] ?? null, $date);
     dateCallbackCheck("{$payload} advances once to check", MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
     dateCallbackCheck("{$payload} renders check once", count($messenger->buttons), 1);
+    dateCallbackCheck("{$payload} unknown budget gets one optional clarification", count($messenger->sent), 1);
+    dateCallbackCheck("{$payload} optional clarification remains skippable", strpos($messenger->sent[0][1] ?? '', 'Бюджет — необязательно') !== false, true);
     dateCallbackCheck("{$payload} updates once", DateCallbackFakeData::$updates, 1);
     dateCallbackCheck("{$payload} does not insert", count(DateCallbackFakeData::$rows), $before);
     dateCallbackCheck("{$payload} avoids add", DateCallbackFakeData::$adds, 0);
@@ -168,9 +174,16 @@ foreach ($dates as $date) {
     dateCallbackCheck("duplicate {$payload} is consumed", WizardCallbackAction::handle($chatId, $payload), true);
     dateCallbackCheck("duplicate {$payload} does not update", DateCallbackFakeData::$updates, 1);
     dateCallbackCheck("duplicate {$payload} does not rerender", count($messenger->buttons), 1);
+    dateCallbackCheck("duplicate {$payload} does not repeat optional clarification", count($messenger->sent), 1);
     dateCallbackCheck("duplicate {$payload} does not advance", MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
     $chatId++;
 }
+
+$messenger = dateCallbackReset(1404);
+MaxSearchApi::$aiSearchContexts[1404] = ['budget'=>['max'=>250000, 'currency'=>'RUB', 'basis'=>'total']];
+dateCallbackCheck('known-budget date callback is consumed', WizardCallbackAction::handle(1404, 'pick_date_31.12.2030'), true);
+dateCallbackCheck('known-budget date callback reaches check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
+dateCallbackCheck('known-budget date callback suppresses optional clarification', $messenger->sent, []);
 
 dateCallbackReset(1410);
 MaxSearchApi::$currentStatus = MaxSearchApi::$statusCheck;
@@ -221,6 +234,7 @@ dateCallbackCheck('date edit payload is consumed', WizardCallbackAction::handle(
 dateCallbackCheck('date edit stores exact value', MaxSearchApi::getSavedData(1430)[MaxSearchApi::$statusDate] ?? null, '31.12.2030');
 dateCallbackCheck('date edit returns once to check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 dateCallbackCheck('date edit renders check once', count($messenger->buttons), 1);
+dateCallbackCheck('date edit does not enter optional budget progression', $messenger->sent, []);
 dateCallbackCheck('date edit clears edit mode', MaxSearchApi::$editMode, '');
 dateCallbackCheck('date edit updates one date row', DateCallbackFakeData::$updates, 1);
 dateCallbackCheck('date edit logs search-ready once', MaxSearchApi::$funnelEvents, [['search_ready', []]]);
@@ -231,8 +245,9 @@ dateCallbackCheck('action parses callback through date value contract', substr_c
 dateCallbackCheck('action applies date through update-only boundary', strpos($source, 'MaxSearchApi::$statusDate,') !== false && strpos($source, '$date') !== false, true);
 dateCallbackCheck('action has no direct date callback write', strpos($source, "MaxSearchApi::saveLastValue(\$chatId, MaxSearchApi::\$statusDate, str_replace('pick_date_', '', \$q))") === false, true);
 dateCallbackCheck('action keeps dedicated expected-status guard', strpos($source, "'date_selection'") !== false && strpos($source, '(int)MaxSearchApi::$statusDate') !== false, true);
+dateCallbackCheck('successful non-edit date callback uses canonical progression', strpos($source, 'NeedProgressionService::advance($chatId);') !== false, true);
 
-foreach (array_merge(range(1400, 1403), [1410, 1411, 1412], range(1420, 1426), [1430]) as $cleanupChatId) {
+foreach (array_merge(range(1400, 1404), [1410, 1411, 1412], range(1420, 1426), [1430]) as $cleanupChatId) {
     EditFlowService::clearSnapshot($cleanupChatId);
     @unlink(InteractionGuard::lockPath($cleanupChatId, 'date_selection'));
 }
