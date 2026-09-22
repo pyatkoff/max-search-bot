@@ -113,7 +113,7 @@ class AiMessageHandler
                     $simpleLocal = !empty($route['simple']);
 
                     if ($simpleLocal && empty($missingLocal) && $hadCurrentBeforeLocal && !empty($appliedLocal)) {
-                        DialogueView::check($chat_id);
+                        NeedProgressionService::advance($chat_id);
                         return;
                     }
 
