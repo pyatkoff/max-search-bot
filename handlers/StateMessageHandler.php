@@ -24,14 +24,15 @@ class StateMessageHandler
             // source-bounded contracts for the other wizard steps remain intact.
             if($status==MaxSearchApi::$statusAdults)
             {
-                $resolved = NeedValueResolver::resolve('adults', (string)($message['text'] ?? ''));
-                if(!empty($resolved['recognized']))
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'adults',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusAdults
+                );
+                if(!empty($result['recognized']))
                 {
-                    if(!ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusAdults,
-                        (string)((int)$resolved['value'])
-                    )) return;
+                    if(empty($result['applied'])) return;
                     MaxSearchApi::showChildButtons($chat_id);
                 }
                 else
