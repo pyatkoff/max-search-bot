@@ -6,6 +6,7 @@ require_once __DIR__ . '/StarsParser.php';
 require_once __DIR__ . '/MealParser.php';
 require_once __DIR__ . '/NightsParser.php';
 require_once __DIR__ . '/BudgetParser.php';
+require_once __DIR__ . '/DateValueContract.php';
 
 /**
  * Canonical deterministic need-value resolution boundary.
@@ -60,6 +61,11 @@ class NeedValueResolver
         if ($field === 'nights') {
             $value = NightsParser::parse($text);
             return self::result($value !== '', $value !== '' ? $value : null, 'deterministic:nights_parser');
+        }
+
+        if ($field === 'date') {
+            $value = DateValueContract::fromStorageValue($text);
+            return self::result($value !== null, $value, 'deterministic:date_value_contract');
         }
 
         return self::result(false, null, 'unsupported');
