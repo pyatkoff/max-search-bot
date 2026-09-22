@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/ChildAgeValueContract.php';
 
 class TripStateService
 {
@@ -87,9 +88,12 @@ class TripStateService
         $date = $v['date'] ?? null;
         $nights = self::parseRange($v['nights'] ?? null, 1, 28);
         $children = array_key_exists('children', $v) ? $v['children'] : null;
-        $childAges = $children !== null && (int)$children === 0
-            ? []
-            : self::parseAges($v['child_ages'] ?? null);
+        if ($children !== null) {
+            $childAges = ChildAgeValueContract::fromStorage($v['child_ages'] ?? null, (int)$children);
+            if ($childAges === null) $childAges = [];
+        } else {
+            $childAges = self::parseAges($v['child_ages'] ?? null);
+        }
         return [
             'departure'=>['city_id'=>$v['city_id'] ?? null,'city'=>$v['city'] ?? null],
             'destination'=>['country_id'=>$v['country_id'] ?? null,'country'=>$v['country'] ?? null,'region'=>null,'resort'=>null],
