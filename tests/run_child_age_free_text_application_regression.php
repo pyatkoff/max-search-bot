@@ -225,8 +225,8 @@ $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.
 childAgeFreeTextCheck('handler parses age through executable legacy contract', substr_count($source, 'ChildAgeValueContract::parseLegacyInput') === 1, true);
 childAgeFreeTextCheck('handler projects age through executable storage contract', substr_count($source, 'ChildAgeValueContract::toStorage') === 1, true);
 $ageStart = strpos($source, 'elseif($status==MaxSearchApi::$statusAge)');
-$nightsStart = $ageStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusNights)', $ageStart);
-$ageSource = $ageStart === false || $nightsStart === false ? '' : substr($source, $ageStart, $nightsStart - $ageStart);
+$starsStart = $ageStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusStars)', $ageStart);
+$ageSource = $ageStart === false || $starsStart === false ? '' : substr($source, $ageStart, $starsStart - $ageStart);
 childAgeFreeTextCheck('handler applies age through one update-only boundary', substr_count($ageSource, 'ExistingWizardStepApplicationService::apply(') === 1, true);
 childAgeFreeTextCheck('handler no longer writes age directly', strpos($source, 'MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge') === false, true);
 
