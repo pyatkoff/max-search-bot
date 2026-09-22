@@ -5,6 +5,7 @@ declare(strict_types=1);
 class MaxSearchApi
 {
     public static array $applyCalls = [];
+    public static int $statusStart = 64;
 
     public static function applyAiParameters($chatId, array $params): array
     {
@@ -61,6 +62,14 @@ nasCheck('AI completion boundary applies through application service', strpos($c
 nasCheck('AI message local parameter application uses application service', strpos($aiMessageSource, '$appliedLocal = NeedApplicationService::applyParameters($chat_id, $localParams);') !== false, true);
 nasCheck('AI completion boundary advances through progression service', strpos($completionSource, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false, true);
 nasCheck('AI message no longer applies parameters through MaxSearchApi directly', strpos($aiMessageSource, 'MaxSearchApi::applyAiParameters') === false, true);
+
+$applicationSource = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
+$shadowSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShadowObserver.php');
+nasCheck('preference promotion stays inside canonical application service', strpos($applicationSource, 'applyExtractedPreferences') !== false, true);
+nasCheck('preference promotion requires explicit confidence threshold', strpos($applicationSource, 'EXTRACTED_PREFERENCE_CONFIDENCE') !== false, true);
+nasCheck('preference promotion writes through conversation repository', strpos($applicationSource, 'ConversationStateRepository::applyPreferences') !== false, true);
+nasCheck('shadow observer promotes wishes through application boundary', strpos($shadowSource, 'NeedApplicationService::applyExtractedPreferences') !== false, true);
+nasCheck('shadow observer does not write canonical preferences directly', strpos($shadowSource, 'ConversationStateRepository::applyPreferences') === false, true);
 
 $resolverPaths = [
     'departure city' => __DIR__ . '/../services/DepartureCityResolver.php',
