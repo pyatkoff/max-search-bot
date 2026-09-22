@@ -64,10 +64,13 @@ trCheck('suppressed model records policy',$suppressed['suppressed'],true);
 trCheck('offer copy',$unknown['text'],'А пока можете подписаться на наш канал — там публикуем горящие туры и интересные снижения цен 🔥');
 
 ProjectConfig::resetForTests(['search'=>['base_domain'=>'https://public-search.test','search_path'=>'/poisk-turov/']]);
-$savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6',17=>5,18=>3],[
+$savedMap = [
     'city'=>10,'country'=>11,'date'=>12,'nights'=>13,'adults'=>14,'children'=>15,'child_ages'=>16,'stars'=>17,'meal'=>18,
-], 'yclid-test');
+];
+$savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6',17=>5,18=>3],$savedMap, 'yclid-test');
 trCheck('saved dialogue data preserves full supported search context',$savedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test');
+$staleAgesUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6, 9',17=>5,18=>3],$savedMap, 'yclid-test');
+trCheck('search handoff does not guess which stale child age remains after count correction',$staleAgesUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&stars=5&food=3&yclid=yclid-test');
 
 // Channel choice belongs to the website consultant, not messenger delivery.
 // All cases intentionally retain the same project configuration (provider=max).

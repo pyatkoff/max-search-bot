@@ -78,6 +78,19 @@ $noAges['tourists']['children'] = 2;
 $noAges['tourists']['children_ages'] = [6];
 tsCheck('missing child ages detected', TripStateService::searchMissing($noAges), ['children_ages']);
 
+$staleExtraAgesSaved = $saved;
+$staleExtraAgesSaved[68] = 1;
+$staleExtraAgesSaved[69] = '5, 8';
+$staleExtraAges = TripStateService::fromSaved(
+    $staleExtraAgesSaved,
+    $status,
+    static function ($id) { return (int)$id === 17 ? 'Калининград' : false; },
+    static function ($id) { return (int)$id === 4 ? 'Турция' : false; }
+);
+tsCheck('positive child-count correction suppresses stale extra ages', $staleExtraAges['tourists']['children_ages'], []);
+tsCheck('stale extra ages make child ages genuinely missing', TripStateService::searchMissing($staleExtraAges), ['children_ages']);
+tsCheck('stale extra ages keep search fail closed', TripStateService::isSearchReady($staleExtraAges), false);
+
 $merged = TripStateMerger::merge($state, [
     'country'=>'Египет',
     'tourists.children'=>1,
