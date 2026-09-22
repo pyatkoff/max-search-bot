@@ -5,6 +5,7 @@ declare(strict_types=1);
 class MaxSearchApi
 {
     public static array $applyCalls = [];
+    public static int $statusStart = 64;
 
     public static function applyAiParameters($chatId, array $params): array
     {
@@ -49,6 +50,23 @@ $multi = NeedApplicationService::applyParameters(77, ['children'=>1,'child_ages'
 nasCheck('multi-field clarification remains supported', $multi, ['children'=>1,'child_ages'=>[6]]);
 nasCheck('multi-field clarification is one atomic application call', MaxSearchApi::$applyCalls[0], ['chat_id'=>77,'params'=>['children'=>1,'child_ages'=>[6]]]);
 
+$preferenceFilter = new ReflectionMethod(NeedApplicationService::class, 'acceptedExtractedPreferences');
+$preferenceFilter->setAccessible(true);
+$accepted = $preferenceFilter->invoke(null,
+    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель']],
+    ['preferences'=>0.95,'negative_preferences'=>0.90]
+);
+nasCheck('high-confidence explicit wishes are eligible for canonical application', $accepted, [
+    'preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель'],
+]);
+$rejected = $preferenceFilter->invoke(null,
+    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель']],
+    ['preferences'=>0.89,'negative_preferences'=>1.01]
+);
+nasCheck('low or invalid confidence is not promoted', $rejected, []);
+$scalar = $preferenceFilter->invoke(null, ['preferences'=>'тихий отель'], ['preferences'=>0.99]);
+nasCheck('unstructured model preference is not promoted', $scalar, []);
+
 $handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 nasCheck('short-answer handler uses application service', strpos($handlerSource, 'NeedApplicationService::resolveAndApply') !== false, true);
 nasCheck('specialized multi-field children path uses application service', strpos($handlerSource, 'NeedApplicationService::applyParameters') !== false, true);
@@ -61,6 +79,14 @@ nasCheck('AI completion boundary applies through application service', strpos($c
 nasCheck('AI message local parameter application uses application service', strpos($aiMessageSource, '$appliedLocal = NeedApplicationService::applyParameters($chat_id, $localParams);') !== false, true);
 nasCheck('AI completion boundary advances through progression service', strpos($completionSource, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false, true);
 nasCheck('AI message no longer applies parameters through MaxSearchApi directly', strpos($aiMessageSource, 'MaxSearchApi::applyAiParameters') === false, true);
+
+$applicationSource = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
+$shadowSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShadowObserver.php');
+nasCheck('preference promotion stays inside canonical application service', strpos($applicationSource, 'applyExtractedPreferences') !== false, true);
+nasCheck('preference promotion requires explicit confidence threshold', strpos($applicationSource, 'EXTRACTED_PREFERENCE_CONFIDENCE') !== false, true);
+nasCheck('preference promotion writes through conversation repository', strpos($applicationSource, 'ConversationStateRepository::applyPreferences') !== false, true);
+nasCheck('shadow observer promotes wishes through application boundary', strpos($shadowSource, 'NeedApplicationService::applyExtractedPreferences') !== false, true);
+nasCheck('shadow observer does not write canonical preferences directly', strpos($shadowSource, 'ConversationStateRepository::applyPreferences') === false, true);
 
 $resolverPaths = [
     'departure city' => __DIR__ . '/../services/DepartureCityResolver.php',

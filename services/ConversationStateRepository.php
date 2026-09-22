@@ -3,6 +3,7 @@
 require_once __DIR__ . '/RuntimeStorage.php';
 require_once __DIR__ . '/MysqlDialogueStateRepository.php';
 require_once __DIR__ . '/TripBudgetPolicy.php';
+require_once __DIR__ . '/TripContextMetadataPolicy.php';
 
 /**
  * Dialogue-state repository with a compatibility bridge from legacy Bitrix HL
@@ -187,8 +188,12 @@ class ConversationStateRepository
         foreach ($rows as $row) {
             $status = $row['UF_STATUS'] ?? null;
             if ($status == $statusStart) {
-                $budget = TripBudgetPolicy::fromStartValue($row['UF_VALUE'] ?? null);
-                if ($budget !== null && !empty($budget['max'])) $result['_budget'] = $budget;
+                $context = TripContextMetadataPolicy::fromStartValue($row['UF_VALUE'] ?? null);
+                if ($context !== null) {
+                    if (!empty($context['budget']['max'])) $result['_budget'] = $context['budget'];
+                    if (!empty($context['preferences'])) $result['_preferences'] = $context['preferences'];
+                    if (!empty($context['negative_preferences'])) $result['_negative_preferences'] = $context['negative_preferences'];
+                }
                 break;
             }
             if ($status != $statusCheck && empty($result[$status])) {
@@ -198,35 +203,76 @@ class ConversationStateRepository
         return $result;
     }
 
+    /** Versioned metadata is attached to the existing start row, never a wizard status. */
+    public static function contextMetadataSnapshot($chatId, int $startStatus = 64): array
+    {
+        if (!RuntimeStorage::usesMysql()) return [];
+        $row = MysqlDialogueStateRepository::startValue($chatId, $startStatus);
+        if (!$row) return [];
+        $context = TripContextMetadataPolicy::fromStartValue($row['UF_VALUE'] ?? null);
+        if ($context === null) return [];
+        return ['start_id'=>(int)$row['ID'], 'raw'=>$row['UF_VALUE'] ?? null, 'context'=>$context];
+    }
+
     /** Optional budget is attached to the existing start, not a wizard status. */
     public static function budgetSnapshot($chatId, int $startStatus = 64): array
     {
-        if (!RuntimeStorage::usesMysql()) return [];
-        $row=MysqlDialogueStateRepository::startValue($chatId,$startStatus);
-        if (!$row) return [];
-        $budget=TripBudgetPolicy::fromStartValue($row['UF_VALUE']??null);
-        if ($budget===null) return [];
-        return ['start_id'=>(int)$row['ID'],'raw'=>$row['UF_VALUE']??null,'budget'=>$budget];
+        $snapshot = self::contextMetadataSnapshot($chatId, $startStatus);
+        if (!$snapshot) return [];
+        return ['start_id'=>$snapshot['start_id'], 'raw'=>$snapshot['raw'], 'budget'=>$snapshot['context']['budget']];
+    }
+
+    public static function preferenceSnapshot($chatId, int $startStatus = 64): array
+    {
+        $snapshot = self::contextMetadataSnapshot($chatId, $startStatus);
+        if (!$snapshot) return [];
+        return [
+            'start_id'=>$snapshot['start_id'],
+            'raw'=>$snapshot['raw'],
+            'preferences'=>$snapshot['context']['preferences'],
+            'negative_preferences'=>$snapshot['context']['negative_preferences'],
+        ];
     }
 
     public static function applyBudget($chatId, array $update, int $startStatus = 64): bool
     {
-        if (!RuntimeStorage::usesMysql() || !is_array($update['snapshot']??null)
-            || !is_array($update['changes']??null)) return false;
-        $snapshot=$update['snapshot'];$changes=$update['changes'];
-        $current=self::budgetSnapshot($chatId,$startStatus);
-        if (!$current || $current!==$snapshot || $changes===[]
-            || array_diff(array_keys($changes),['budget.max','budget.currency','budget.basis'])!==[]) return false;
+        if (!RuntimeStorage::usesMysql() || !is_array($update['snapshot'] ?? null)
+            || !is_array($update['changes'] ?? null)) return false;
+        $snapshot = $update['snapshot'];
+        $changes = $update['changes'];
+        $current = self::budgetSnapshot($chatId, $startStatus);
+        if (!$current || $current !== $snapshot || $changes === []
+            || array_diff(array_keys($changes), ['budget.max','budget.currency','budget.basis']) !== []) return false;
         foreach ($changes as $key=>$v) {
-            if ($key==='budget.max' && $v!==null && TripBudgetPolicy::amount($v)===null) return false;
-            if ($key==='budget.currency' && TripBudgetPolicy::currency($v)===null) return false;
-            if ($key==='budget.basis' && !in_array($v,['total','per_person'],true)) return false;
+            if ($key === 'budget.max' && $v !== null && TripBudgetPolicy::amount($v) === null) return false;
+            if ($key === 'budget.currency' && TripBudgetPolicy::currency($v) === null) return false;
+            if ($key === 'budget.basis' && !in_array($v, ['total','per_person'], true)) return false;
         }
-        if (!array_key_exists('budget.max',$changes) && empty($current['budget']['max'])) return false;
-        $budget=TripBudgetPolicy::apply($current['budget'],$changes);
-        $raw=TripBudgetPolicy::toStartValue($budget);
-        if ($raw===$current['raw']) return true;
-        return MysqlDialogueStateRepository::compareStartValue($chatId,$startStatus,$current['start_id'],$current['raw'],$raw);
+        if (!array_key_exists('budget.max', $changes) && empty($current['budget']['max'])) return false;
+        $metadata = TripContextMetadataPolicy::fromStartValue($current['raw']);
+        if ($metadata === null) return false;
+        $metadata['budget'] = TripBudgetPolicy::apply($metadata['budget'], $changes);
+        $raw = TripContextMetadataPolicy::toStartValue($metadata);
+        if ($raw === (string)($current['raw'] ?? '')) return true;
+        return MysqlDialogueStateRepository::compareStartValue($chatId, $startStatus, $current['start_id'], $current['raw'], $raw);
+    }
+
+    public static function applyPreferences($chatId, array $update, int $startStatus = 64): bool
+    {
+        if (!RuntimeStorage::usesMysql() || !is_array($update['snapshot'] ?? null)
+            || !is_array($update['changes'] ?? null)) return false;
+        $snapshot = $update['snapshot'];
+        $changes = $update['changes'];
+        $current = self::preferenceSnapshot($chatId, $startStatus);
+        if (!$current || $current !== $snapshot || $changes === []
+            || array_diff(array_keys($changes), ['preferences','negative_preferences']) !== []) return false;
+        $metadata = TripContextMetadataPolicy::fromStartValue($current['raw']);
+        if ($metadata === null) return false;
+        $next = TripContextMetadataPolicy::applyPreferences($metadata, $changes);
+        if ($next === null) return false;
+        $raw = TripContextMetadataPolicy::toStartValue($next);
+        if ($raw === (string)($current['raw'] ?? '')) return true;
+        return MysqlDialogueStateRepository::compareStartValue($chatId, $startStatus, $current['start_id'], $current['raw'], $raw);
     }
 
 }

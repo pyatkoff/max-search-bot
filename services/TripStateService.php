@@ -35,6 +35,9 @@ class TripStateService
             'child_ages'=>$saved[$status['child_ages']] ?? null,
             'stars'=>self::intOrNull($saved[$status['stars']] ?? null),
             'meal'=>self::mealFromStorage($saved[$status['meal']] ?? null),
+            'budget'=>is_array($saved['_budget'] ?? null) ? $saved['_budget'] : null,
+            'preferences'=>$saved['_preferences'] ?? [],
+            'negative_preferences'=>$saved['_negative_preferences'] ?? [],
             'storage'=>'legacy_hl',
         ]);
     }
@@ -73,6 +76,8 @@ class TripStateService
             'stars'=>array_key_exists('stars', $current) ? self::intOrNull($current['stars']) : null,
             'meal'=>self::stringOrNull($current['meal'] ?? null),
             'budget'=>is_array($current['budget'] ?? null) ? $current['budget'] : null,
+            'preferences'=>$current['preferences'] ?? [],
+            'negative_preferences'=>$current['negative_preferences'] ?? [],
             'storage'=>'legacy_ai_context',
         ]);
     }
@@ -93,8 +98,8 @@ class TripStateService
             ],
             'budget'=>$v['budget'] ?? ['max'=>null,'currency'=>'RUB'],
             'hotel'=>['stars_min'=>$v['stars'] ?? null,'meal'=>$v['meal'] ?? null,'line'=>null],
-            'preferences'=>[],
-            'negative_preferences'=>[],
+            'preferences'=>self::stringList($v['preferences'] ?? []),
+            'negative_preferences'=>self::stringList($v['negative_preferences'] ?? []),
             'meta'=>['storage'=>$v['storage'] ?? 'unknown','version'=>1],
         ];
     }
@@ -115,6 +120,8 @@ class TripStateService
                 : ($state['nights']['min'] . '-' . $state['nights']['max']);
         }
         if (!empty($state['dates']['from'])) $out['date'] = $state['dates']['from'];
+        if (!empty($state['preferences'])) $out['preferences'] = array_values($state['preferences']);
+        if (!empty($state['negative_preferences'])) $out['negative_preferences'] = array_values($state['negative_preferences']);
         return $out;
     }
 
@@ -175,6 +182,18 @@ class TripStateService
             if ($age >= 0 && $age <= 17) $ages[] = $age;
         }
         return $ages;
+    }
+
+    private static function stringList($value): array
+    {
+        if (!is_array($value)) $value = [$value];
+        $out = [];
+        foreach ($value as $item) {
+            if (!is_scalar($item)) continue;
+            $item = trim((string)$item);
+            if ($item !== '' && !in_array($item, $out, true)) $out[] = $item;
+        }
+        return $out;
     }
 
     private static function monthFromDate(?string $date): ?string

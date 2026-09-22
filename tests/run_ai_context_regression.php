@@ -42,6 +42,8 @@ $saved = [
     71=>7,
     72=>'7-9',
     73=>'28.08.2026',
+    '_preferences'=>['тихий отель','первая линия'],
+    '_negative_preferences'=>['шумный отель'],
 ];
 $context = AiSearchContextService::contextFromSaved(
     $saved,
@@ -54,6 +56,8 @@ aiCheck('context country', $context['country'] ?? null, 'Турция');
 aiCheck('context adults', $context['adults'] ?? null, 2);
 aiCheck('context zero children preserved', $context['children'] ?? null, 0);
 aiCheck('context meal mapping', $context['meal'] ?? null, 'all_inclusive');
+aiCheck('context exposes saved wishes', $context['preferences'] ?? null, ['тихий отель','первая линия']);
+aiCheck('context exposes saved exclusions', $context['negative_preferences'] ?? null, ['шумный отель']);
 aiCheck('complete context has no missing fields', AiSearchContextService::missingFromSaved($saved, $status), []);
 
 $withChild = $saved;

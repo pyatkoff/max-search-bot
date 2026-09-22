@@ -51,6 +51,40 @@ $duplicates = [
 $latest = ConversationStateRepository::savedDataFromRows($duplicates, 64, 74);
 stateCheck('newest non-empty status wins', $latest[67] ?? null, '2');
 
+$budget = ['max'=>250000,'currency'=>'RUB','basis'=>'total','basis_source'=>'product_default'];
+$legacyBudgetRaw = TripBudgetPolicy::toStartValue($budget);
+$legacyBudget = ConversationStateRepository::savedDataFromRows([
+    ['UF_STATUS'=>64,'UF_VALUE'=>$legacyBudgetRaw],
+], 64, 74);
+stateCheck('legacy budget envelope remains readable', $legacyBudget['_budget'] ?? null, $budget);
+stateCheck('legacy budget envelope has no invented wishes', $legacyBudget['_preferences'] ?? [], []);
+
+$context = TripContextMetadataPolicy::applyPreferences(
+    ['budget'=>$budget,'preferences'=>[],'negative_preferences'=>[]],
+    ['preferences'=>['тихий отель','первая линия'],'negative_preferences'=>['шумный отель']]
+);
+$contextRaw = TripContextMetadataPolicy::toStartValue($context ?? []);
+$contextSaved = ConversationStateRepository::savedDataFromRows([
+    ['UF_STATUS'=>64,'UF_VALUE'=>$contextRaw],
+], 64, 74);
+stateCheck('context envelope preserves budget', $contextSaved['_budget'] ?? null, $budget);
+stateCheck('context envelope exposes wishes', $contextSaved['_preferences'] ?? null, ['тихий отель','первая линия']);
+stateCheck('context envelope exposes exclusions', $contextSaved['_negative_preferences'] ?? null, ['шумный отель']);
+
+$extended = TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['детский клуб','тихий отель']]);
+stateCheck('preference changes append instead of replacing earlier wishes', $extended['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
+$polarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['первая линия']]);
+stateCheck('explicit negative correction removes same positive wish', $polarity['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('explicit negative correction becomes exclusion', $polarity['negative_preferences'] ?? null, ['шумный отель','первая линия']);
+$restored = TripContextMetadataPolicy::applyPreferences($polarity ?? [], ['preferences'=>['первая линия']]);
+stateCheck('explicit positive correction removes same exclusion', $restored['negative_preferences'] ?? null, ['шумный отель']);
+stateCheck('same-message contradictory polarity fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
+    'preferences'=>['первая линия'],'negative_preferences'=>['первая линия'],
+]), null);
+stateCheck('invalid preference value fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['ok', str_repeat('x', 121)]]), null);
+stateCheck('unknown start payload still stays unowned', TripContextMetadataPolicy::fromStartValue('legacy-start'), null);
+stateCheck('budget-only serialization remains legacy-compatible', TripContextMetadataPolicy::toStartValue(['budget'=>$budget,'preferences'=>[],'negative_preferences'=>[]]), $legacyBudgetRaw);
+
 stateCheck(
     'pre-start row is not reused by a new dialogue',
     ConversationStateRepository::shouldReuseValueRow(10, 20),
@@ -75,8 +109,10 @@ stateCheck(
 $source = (string)file_get_contents(__DIR__ . '/../services/ConversationStateRepository.php');
 $saveMethod = '';
 $lastMethod = '';
+$preferenceMethod = '';
 if (preg_match('/public static function saveLastValue\(.*?\n    \}/s', $source, $m)) $saveMethod = $m[0];
 if (preg_match('/public static function lastValue\(.*?\n    \}/s', $source, $m)) $lastMethod = $m[0];
+if (preg_match('/public static function applyPreferences\(.*?\n    \}/s', $source, $m)) $preferenceMethod = $m[0];
 stateCheck(
     'saveLastValue enforces current-session boundary',
     strpos($saveMethod, 'shouldReuseValueRow') !== false,
@@ -92,6 +128,8 @@ stateCheck(
     strpos($lastMethod, "'ID','UF_VALUE'") !== false,
     true
 );
+stateCheck('preference write uses byte-exact current-start CAS', strpos($preferenceMethod, 'compareStartValue') !== false, true);
+stateCheck('preference write never inserts a new start row', strpos($preferenceMethod, 'addStatus') === false && strpos($preferenceMethod, 'upsertValue') === false, true);
 
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
