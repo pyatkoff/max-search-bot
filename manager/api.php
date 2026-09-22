@@ -10,6 +10,7 @@ require_once $baseDir . '/services/ManagerOutboundService.php';
 require_once $baseDir . '/services/ManagerDeliveryStateService.php';
 require_once $baseDir . '/services/ManagerMessageMediaService.php';
 require_once $baseDir . '/services/ManagerHandoffContextService.php';
+require_once $baseDir . '/services/ManagerHandoffEventContextService.php';
 require_once $baseDir . '/services/ProjectAccessService.php';
 require_once $baseDir . '/services/RoutingAdminService.php';
 require_once $baseDir . '/services/AdminDirectoryService.php';
@@ -98,7 +99,8 @@ if($action==='detail'){
         $chatId=$d['conversation']['external_chat_id']??null;
         if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
             try{
-                $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages']);
+                $handoffContext=ManagerHandoffEventContextService::latestManagerRequest($conversationId);
+                $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages'],$handoffContext);
                 if($summary!==''){
                     $d['messages'][]=['id'=>0,'direction'=>'outbound','sender_type'=>'ai','text'=>"📋 Запрос туриста для менеджера\n".$summary."\n\n".ManagerHandoffContextService::firstReplyGuidance(),'created_at'=>(string)($d['conversation']['last_message_at']??''),'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages'])];
                 }
