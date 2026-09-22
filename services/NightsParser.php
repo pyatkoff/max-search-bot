@@ -27,13 +27,13 @@ class NightsParser
         }
 
         // Short two-number replies are a natural range answer to the nights question.
-        // Accept whitespace, dash and comma separators. The comma form is contextual to
-        // this resolver, so "3,4" means 3-4 nights rather than a decimal number. Keep
-        // dotted/slashed values (for example "1.10") invalid so an accidentally entered
-        // date is never reinterpreted as nights. A short day suffix is also accepted for
-        // live phrases such as "2,3 д" because the surrounding question already fixes
-        // the semantic field to trip duration.
-        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})(?:\s*-\s*|\s*,\s*|\s+)(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?|д|дн(?:я|ей)?))?$/ui', $normalized, $m)) {
+        // Accept whitespace, dash, comma and repeated-dot separators. The comma and
+        // repeated-dot forms are contextual to this resolver, so "3,4" and live typo
+        // "8..9" mean ranges. A single dot/slash (for example "1.10") stays invalid
+        // so an accidentally entered date is never reinterpreted as nights. A short
+        // day suffix is also accepted for live phrases such as "2,3 д" because the
+        // surrounding question already fixes the semantic field to trip duration.
+        if (preg_match('/^(?:(?:на|от)\s+)?(\d{1,2})(?:\s*-\s*|\s*,\s*|\s*\.{2,}\s*|\s+)(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?|д|дн(?:я|ей)?))?$/ui', $normalized, $m)) {
             $from = (int)$m[1];
             $to = (int)$m[2];
             if ($from >= 1 && $to >= $from && $to <= 28) {
