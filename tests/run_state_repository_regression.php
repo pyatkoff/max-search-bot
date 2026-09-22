@@ -73,6 +73,14 @@ stateCheck('context envelope exposes exclusions', $contextSaved['_negative_prefe
 
 $extended = TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['детский клуб','тихий отель']]);
 stateCheck('preference changes append instead of replacing earlier wishes', $extended['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
+$polarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['первая линия']]);
+stateCheck('explicit negative correction removes same positive wish', $polarity['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('explicit negative correction becomes exclusion', $polarity['negative_preferences'] ?? null, ['шумный отель','первая линия']);
+$restored = TripContextMetadataPolicy::applyPreferences($polarity ?? [], ['preferences'=>['первая линия']]);
+stateCheck('explicit positive correction removes same exclusion', $restored['negative_preferences'] ?? null, ['шумный отель']);
+stateCheck('same-message contradictory polarity fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
+    'preferences'=>['первая линия'],'negative_preferences'=>['первая линия'],
+]), null);
 stateCheck('invalid preference value fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['ok', str_repeat('x', 121)]]), null);
 stateCheck('unknown start payload still stays unowned', TripContextMetadataPolicy::fromStartValue('legacy-start'), null);
 stateCheck('budget-only serialization remains legacy-compatible', TripContextMetadataPolicy::toStartValue(['budget'=>$budget,'preferences'=>[],'negative_preferences'=>[]]), $legacyBudgetRaw);
