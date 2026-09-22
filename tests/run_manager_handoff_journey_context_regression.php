@@ -30,6 +30,17 @@ mhjCheck('known budget remains visible alongside journey context',strpos($after,
 mhjCheck('positive preference remains separate',strpos($after,'Пожелания: спокойный отель')!==false,true);
 mhjCheck('negative preference remains separate',strpos($after,'Не подходит: шумные вечеринки')!==false,true);
 
+$partial=ManagerHandoffContextService::build(['city'=>'Москва','children'=>0],[],[]);
+mhjCheck('early handoff lists only missing required search essentials',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, состав туристов')!==false,true);
+mhjCheck('early handoff does not turn optional hotel wishes into mandatory unknowns',strpos($partial,'звёз')===false&&strpos($partial,'питани')===false,true);
+
+$missingAges=ManagerHandoffContextService::build([
+    'city'=>'Москва','country'=>'Турция','adults'=>2,'children'=>1,
+    'nights'=>'7','date'=>'10.10.2026',
+],[],[]);
+mhjCheck('positive child count exposes only missing current ages',strpos($missingAges,'Не указано для поиска: возраст детей')!==false,true);
+mhjCheck('known party with missing ages is not mislabeled as wholly unknown',strpos($missingAges,'Не указано для поиска: состав туристов')===false,true);
+
 $eventSource=(string)file_get_contents(__DIR__ . '/../services/ManagerHandoffEventContextService.php');
 $apiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 $callbackSource=(string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');
