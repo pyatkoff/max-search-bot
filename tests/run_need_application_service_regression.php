@@ -50,6 +50,23 @@ $multi = NeedApplicationService::applyParameters(77, ['children'=>1,'child_ages'
 nasCheck('multi-field clarification remains supported', $multi, ['children'=>1,'child_ages'=>[6]]);
 nasCheck('multi-field clarification is one atomic application call', MaxSearchApi::$applyCalls[0], ['chat_id'=>77,'params'=>['children'=>1,'child_ages'=>[6]]]);
 
+$preferenceFilter = new ReflectionMethod(NeedApplicationService::class, 'acceptedExtractedPreferences');
+$preferenceFilter->setAccessible(true);
+$accepted = $preferenceFilter->invoke(null,
+    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель']],
+    ['preferences'=>0.95,'negative_preferences'=>0.90]
+);
+nasCheck('high-confidence explicit wishes are eligible for canonical application', $accepted, [
+    'preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель'],
+]);
+$rejected = $preferenceFilter->invoke(null,
+    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель']],
+    ['preferences'=>0.89,'negative_preferences'=>1.01]
+);
+nasCheck('low or invalid confidence is not promoted', $rejected, []);
+$scalar = $preferenceFilter->invoke(null, ['preferences'=>'тихий отель'], ['preferences'=>0.99]);
+nasCheck('unstructured model preference is not promoted', $scalar, []);
+
 $handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 nasCheck('short-answer handler uses application service', strpos($handlerSource, 'NeedApplicationService::resolveAndApply') !== false, true);
 nasCheck('specialized multi-field children path uses application service', strpos($handlerSource, 'NeedApplicationService::applyParameters') !== false, true);
