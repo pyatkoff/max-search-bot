@@ -6,6 +6,7 @@ require_once __DIR__ . '/../services/TripStateService.php';
 require_once __DIR__ . '/../services/TripStateMerger.php';
 require_once __DIR__ . '/../services/RulesEngine.php';
 require_once __DIR__ . '/../services/ShadowDialogueService.php';
+require_once __DIR__ . '/../services/ManagerSummaryService.php';
 
 $passed = 0;
 $failed = 0;
@@ -26,6 +27,8 @@ $state = TripStateService::fromLegacyAiContext([
     'children'=>0,
     'nights'=>'7-10',
     'date'=>'10.09.2026',
+    'preferences'=>['тихий отель'],
+    'negative_preferences'=>['шумный отель'],
 ],
     static function($name){ return ['ID'=>1]; },
     static function($name){ return ['ID'=>4]; }
@@ -34,7 +37,11 @@ $state = TripStateService::fromLegacyAiContext([
 sdCheck('legacy city resolved', $state['departure']['city_id'], 1);
 sdCheck('legacy country resolved', $state['destination']['country_id'], 4);
 sdCheck('legacy children zero kept', $state['tourists']['children'], 0);
+sdCheck('legacy active wishes reach trip state', $state['preferences'], ['тихий отель']);
+sdCheck('legacy active exclusions reach trip state', $state['negative_preferences'], ['шумный отель']);
 sdCheck('legacy state search ready', TripStateService::isSearchReady($state), true);
+sdCheck('manager summary labels wishes separately', str_contains(ManagerSummaryService::build($state), 'Пожелания: тихий отель'), true);
+sdCheck('manager summary labels exclusions separately', str_contains(ManagerSummaryService::build($state), 'Не подходит: шумный отель'), true);
 
 $result = ShadowDialogueService::evaluate(123, 'А давайте Египет и с ребёнком 8 лет', $state, [
     'intent'=>'change_parameters',
@@ -49,8 +56,22 @@ $result = ShadowDialogueService::evaluate(123, 'А давайте Египет �
 sdCheck('shadow changes destination', $result['new_state']['destination']['country'], 'Египет');
 sdCheck('shadow changes children', $result['new_state']['tourists']['children'], 1);
 sdCheck('shadow keeps child age', $result['new_state']['tourists']['children_ages'], [8]);
+sdCheck('unrelated change preserves earlier wish', $result['new_state']['preferences'], ['тихий отель']);
 // No MaxSearchApi is loaded in this deterministic test, so a new country name has no resolved id.
 sdCheck('shadow missing destination without directory resolver', in_array('destination', $result['decision']['missing'], true), true);
+
+$withNewWish = ShadowDialogueService::evaluate(123, 'И ещё первая линия', $state, [
+    'intent'=>'change_parameters',
+    'changes'=>['preferences'=>['первая линия']],
+    'confidence'=>['preferences'=>0.98],
+], false);
+sdCheck('new extracted wish appends instead of replacing', $withNewWish['new_state']['preferences'], ['тихий отель','первая линия']);
+$withDuplicate = ShadowDialogueService::evaluate(123, 'Тихий отель тоже важен', $withNewWish['new_state'], [
+    'intent'=>'change_parameters',
+    'changes'=>['preferences'=>['тихий отель']],
+    'confidence'=>['preferences'=>0.99],
+], false);
+sdCheck('duplicate wish stays deduplicated', $withDuplicate['new_state']['preferences'], ['тихий отель','первая линия']);
 
 $result = ShadowDialogueService::evaluate(123, 'Соедините с менеджером', $state, [
     'intent'=>'manager_request','changes'=>[],'confidence'=>[]
