@@ -41,6 +41,8 @@ class ManagerSummaryService
             $precision = floor((float)$amount) == $amount ? 0 : 2;
             $lines[] = 'Бюджет: до ' . number_format((float)$amount, $precision, '.', ' ') . ' '
                 . ($currency ?? '(валюта требует уточнения)') . ' ' . $basisLabel;
+        } else {
+            $lines[] = 'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)';
         }
         if (!empty($state['hotel']['stars_min'])) $lines[] = 'Отель: от ' . (int)$state['hotel']['stars_min'] . '★';
         if (!empty($state['hotel']['meal'])) $lines[] = 'Питание: ' . (string)$state['hotel']['meal'];
