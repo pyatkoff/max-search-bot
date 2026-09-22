@@ -155,6 +155,9 @@ if ($todayDay > 1) {
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $aiShortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+$nightsStart = strpos($source, 'elseif($status==MaxSearchApi::$statusNights)');
+$dateStart = $nightsStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusDate)', $nightsStart);
+$nightsSource = ($nightsStart !== false && $dateStart !== false) ? substr($source, $nightsStart, $dateStart - $nightsStart) : '';
 $guards = [
     'country fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($country))') !== false,
     'city fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($city))') !== false,
@@ -165,8 +168,8 @@ $guards = [
     'wizard child step keeps existing-step status id' => strpos($source, "'children',\n                    (string)(\$message['text'] ?? ''),\n                    (int)MaxSearchApi::\$statusChild") !== false,
     'zero children advances without age question' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($source, 'MaxSearchApi::showStarsButtons($chat_id);') !== false,
     'positive child count advances to ages' => strpos($source, 'MaxSearchApi::showAgeButtons($chat_id,$children);') !== false,
-    'wizard nights uses deterministic resolver' => strpos($source, "NeedValueResolver::resolve('nights'") !== false,
-    'wizard nights uses existing-step application boundary' => strpos($source, 'ExistingWizardStepApplicationService::apply(') !== false,
+    'wizard nights uses canonical resolver/application boundary' => $nightsSource !== '' && strpos($nightsSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false && strpos($nightsSource, "'nights'") !== false && strpos($nightsSource, 'NeedValueResolver::resolve') === false,
+    'wizard nights keeps existing-step status id' => $nightsSource !== '' && strpos($nightsSource, '(int)MaxSearchApi::$statusNights') !== false && strpos($nightsSource, 'ExistingWizardStepApplicationService::apply') === false,
     'AI short nights uses NeedApplicationService boundary' => strpos($aiShortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false,
     'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
     'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
