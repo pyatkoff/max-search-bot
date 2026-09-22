@@ -21,7 +21,10 @@ class NightsParser
             return '7';
         }
 
-        if (preg_match('/^(?:на\s+)?(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
+        // A short approximation is still a definite single duration in the
+        // context of the explicit nights question. Keep minimum-only "от N"
+        // separate because it does not provide an upper bound.
+        if (preg_match('/^(?:(?:на|примерно)\s+)?(\d{1,2})(?:\s*(?:ноч(?:ь|и|ей)?))?$/ui', $normalized, $m)) {
             $value = (int)$m[1];
             return ($value >= 1 && $value <= 28) ? (string)$value : '';
         }
