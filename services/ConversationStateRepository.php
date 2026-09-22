@@ -196,7 +196,8 @@ class ConversationStateRepository
                 }
                 break;
             }
-            if ($status != $statusCheck && empty($result[$status])) {
+            if ($status != $statusCheck
+                && (!array_key_exists($status, $result) || $result[$status] === null || $result[$status] === '')) {
                 $result[$status] = $row['UF_VALUE'] ?? null;
             }
         }
