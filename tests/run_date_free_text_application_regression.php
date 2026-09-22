@@ -76,6 +76,7 @@ class MaxSearchApi
     public static array $transitions = [];
     public static array $directSaves = [];
     public static array $funnelEvents = [];
+    public static array $aiSearchContexts = [];
 
     public static function deletePrevMessage($chatId, $withButtons = false): void {}
     public static function setStatus($chatId, $status): void { self::$transitions[] = (int)$status; }
@@ -90,6 +91,8 @@ class MaxSearchApi
         return $values;
     }
     public static function formatSavedData(array $data): array { return []; }
+    public static function getAiMissingFields($chatId): array { return []; }
+    public static function getAiSearchContext($chatId): array { return self::$aiSearchContexts[$chatId] ?? []; }
     public static function funnelLog($chatId, $event, array $data = []): void { self::$funnelEvents[] = [$event, $data]; }
     public static function saveLastValue($chatId, $status, $value): bool
     {
@@ -128,6 +131,7 @@ function dateFreeTextReset(int $chatId, bool $withStep = true, bool $preStart = 
     MaxSearchApi::$transitions = [];
     MaxSearchApi::$directSaves = [];
     MaxSearchApi::$funnelEvents = [];
+    MaxSearchApi::$aiSearchContexts = [];
     DateFreeTextFakeData::$adds = 0;
     DateFreeTextFakeData::$updates = 0;
     DateFreeTextFakeData::$rows = $preStart
@@ -164,8 +168,16 @@ foreach ($cases as [$label, $chatId, $text, $expected]) {
     dateFreeTextCheck("{$label} avoids add", DateFreeTextFakeData::$adds, 0);
     dateFreeTextCheck("{$label} advances once to check", MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
     dateFreeTextCheck("{$label} renders check once", count($messenger->buttons), 1);
+    dateFreeTextCheck("{$label} unknown budget gets one optional clarification", count($messenger->sent), 1);
+    dateFreeTextCheck("{$label} optional clarification remains skippable", strpos($messenger->sent[0][1] ?? '', 'Бюджет — необязательно') !== false, true);
     dateFreeTextCheck("{$label} direct write is only check generation", array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
 }
+
+$messenger = dateFreeTextReset(1506);
+MaxSearchApi::$aiSearchContexts[1506] = ['budget'=>['max'=>250000, 'currency'=>'RUB', 'basis'=>'total']];
+StateMessageHandler::handle(['text'=>'31.12.2030'], 1506, MaxSearchApi::$statusDate);
+dateFreeTextCheck('known budget still reaches check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
+dateFreeTextCheck('known budget suppresses optional clarification', $messenger->sent, []);
 
 $messenger = dateFreeTextReset(1510);
 AiDateHandler::rememberMonth(1510, 12, 2030);
@@ -212,6 +224,7 @@ dateFreeTextCheck('date edit stores exact value', MaxSearchApi::getSavedData(153
 dateFreeTextCheck('date edit updates once', DateFreeTextFakeData::$updates, 1);
 dateFreeTextCheck('date edit returns once to check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 dateFreeTextCheck('date edit renders check once', count($messenger->buttons), 1);
+dateFreeTextCheck('date edit does not enter optional budget progression', $messenger->sent, []);
 dateFreeTextCheck('date edit clears mode', MaxSearchApi::$editMode, '');
 dateFreeTextCheck('date edit direct write is only check generation', array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
 
@@ -222,10 +235,11 @@ $dateSource = $dateStart === false || $phoneStart === false ? '' : substr($sourc
 dateFreeTextCheck('handler preserves pending-before-full resolution order', strpos($dateSource, 'AiDateHandler::resolvePendingShortDate') < strpos($dateSource, 'AiDateHandler::rememberMonthFromText'), true);
 dateFreeTextCheck('handler projects through one date value contract', substr_count($dateSource, 'DateValueContract::fromStorageValue') === 1, true);
 dateFreeTextCheck('handler applies through one update-only boundary', substr_count($dateSource, 'ExistingWizardStepApplicationService::apply(') === 1, true);
+dateFreeTextCheck('handler advances successful non-edit date through canonical progression', substr_count($dateSource, 'NeedProgressionService::advance($chat_id);') === 1, true);
 dateFreeTextCheck('handler no longer directly writes date', strpos($dateSource, 'MaxSearchApi::saveLastValue') === false, true);
 dateFreeTextCheck('handler adds no message-path interaction guard', strpos($dateSource, 'InteractionGuard') === false, true);
 
-foreach (array_merge(range(1500, 1503), [1510, 1511, 1512, 1520, 1521, 1530]) as $cleanupChatId) {
+foreach (array_merge(range(1500, 1506), [1510, 1511, 1512, 1520, 1521, 1530]) as $cleanupChatId) {
     EditFlowService::clearSnapshot($cleanupChatId);
     AiDateHandler::clear($cleanupChatId);
 }
