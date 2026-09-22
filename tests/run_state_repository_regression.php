@@ -51,6 +51,20 @@ $duplicates = [
 $latest = ConversationStateRepository::savedDataFromRows($duplicates, 64, 74);
 stateCheck('newest non-empty status wins', $latest[67] ?? null, '2');
 
+$zeroCorrection = ConversationStateRepository::savedDataFromRows([
+    ['UF_STATUS'=>68, 'UF_VALUE'=>'0'],
+    ['UF_STATUS'=>68, 'UF_VALUE'=>'2'],
+    ['UF_STATUS'=>64, 'UF_VALUE'=>'start'],
+], 64, 74);
+stateCheck('newest explicit zero child correction beats older nonzero value', $zeroCorrection[68] ?? null, '0');
+
+$blankPrompt = ConversationStateRepository::savedDataFromRows([
+    ['UF_STATUS'=>68, 'UF_VALUE'=>''],
+    ['UF_STATUS'=>68, 'UF_VALUE'=>'2'],
+    ['UF_STATUS'=>64, 'UF_VALUE'=>'start'],
+], 64, 74);
+stateCheck('newest blank prompt still falls back to older answered value', $blankPrompt[68] ?? null, '2');
+
 $budget = ['max'=>250000,'currency'=>'RUB','basis'=>'total','basis_source'=>'product_default'];
 $legacyBudgetRaw = TripBudgetPolicy::toStartValue($budget);
 $legacyBudget = ConversationStateRepository::savedDataFromRows([
