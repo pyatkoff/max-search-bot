@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/NeedValueResolver.php';
 require_once __DIR__ . '/ConversationStateRepository.php';
+require_once __DIR__ . '/AiSearchContextService.php';
+require_once __DIR__ . '/ExistingWizardStepApplicationService.php';
 
 /**
  * Canonical boundary between deterministic need-value resolution and trip-state application.
@@ -29,6 +31,50 @@ class NeedApplicationService
         }
         $applied = self::applyParameters($chatId, $params);
         return array_merge($resolved, ['applied'=>!empty($applied[$field])]);
+    }
+
+    /**
+     * Resolve one deterministic wizard answer and apply it only to an already
+     * existing step in the current dialogue session. This preserves the explicit
+     * wizard's update-only/fail-closed semantics while keeping mutation behind
+     * the canonical application boundary.
+     */
+    public static function resolveAndApplyExistingWizardStep(
+        $chatId,
+        string $field,
+        string $text,
+        int $statusId,
+        array $context = []
+    ): array {
+        $resolved = NeedValueResolver::resolve($field, $text, $context);
+        if (empty($resolved['recognized'])) {
+            return array_merge($resolved, ['applied'=>false, 'storage_value'=>null]);
+        }
+
+        $storageValue = $resolved['value'];
+        if ($field === 'meal') {
+            $normalized = AiSearchContextService::normalizeParameters(
+                ['meal'=>(string)$storageValue],
+                static function($name){ return null; },
+                static function($name){ return null; }
+            );
+            $storageValue = $normalized['meal'] ?? null;
+        }
+
+        if ($storageValue === null || $storageValue === '') {
+            return array_merge($resolved, ['applied'=>false, 'storage_value'=>null]);
+        }
+
+        $applied = ExistingWizardStepApplicationService::apply(
+            $chatId,
+            $statusId,
+            (string)$storageValue
+        );
+
+        return array_merge($resolved, [
+            'applied'=>$applied,
+            'storage_value'=>(string)$storageValue,
+        ]);
     }
 
     /**
