@@ -72,22 +72,6 @@ class StateMessageHandler
                     self::send($chat_id,"Не нашла это направление в поиске. Проверьте название или выберите одну из популярных стран.");
 
             }
-            elseif($status==MaxSearchApi::$statusAdults)
-            {
-                $resolved = NeedValueResolver::resolve('adults', (string)($message['text'] ?? ''));
-                if(!empty($resolved['recognized']))
-                {
-                    if(!ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusAdults,
-                        (string)((int)$resolved['value'])
-                    )) return;
-                    MaxSearchApi::showChildButtons($chat_id);
-                }
-                else
-                    self::send($chat_id,"Не получилось определить количество взрослых. Напишите число от 1 до 6 — например: 2 или «двое».");
-
-            }
             elseif($status==MaxSearchApi::$statusChild)
             {
                 $resolved = NeedValueResolver::resolve('children', (string)($message['text'] ?? ''));
@@ -144,6 +128,22 @@ class StateMessageHandler
                     else
                         self::send($chat_id,"К сожалению возраст детей указан неверно. Пожалуйста, введите ".$childCount." числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.");
                 }
+
+            }
+            elseif($status==MaxSearchApi::$statusAdults)
+            {
+                $resolved = NeedValueResolver::resolve('adults', (string)($message['text'] ?? ''));
+                if(!empty($resolved['recognized']))
+                {
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusAdults,
+                        (string)((int)$resolved['value'])
+                    )) return;
+                    MaxSearchApi::showChildButtons($chat_id);
+                }
+                else
+                    self::send($chat_id,"Не получилось определить количество взрослых. Напишите число от 1 до 6 — например: 2 или «двое».");
 
             }
             elseif($status==MaxSearchApi::$statusNights)
