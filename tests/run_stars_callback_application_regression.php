@@ -107,6 +107,7 @@ class MaxSearchApi
 }
 
 require_once __DIR__ . '/../actions/callbacks/WizardCallbackAction.php';
+require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 final class StarsCallbackMessenger implements MessengerInterface
 {
@@ -192,12 +193,60 @@ starsCallbackCheck('missing stars step makes no update', StarsCallbackFakeData::
 starsCallbackCheck('missing stars step renders no next view', count($messenger->buttons), 0);
 starsCallbackCheck('missing stars step makes no transition', MaxSearchApi::$transitions, []);
 
+$messenger = starsCallbackReset(710);
+StateMessageHandler::handle(['text'=>'4 звезды'], 710, MaxSearchApi::$statusStars);
+starsCallbackCheck('free-text stars stores canonical minimum', MaxSearchApi::getSavedData(710)[MaxSearchApi::$statusStars] ?? null, '4');
+starsCallbackCheck('free-text stars advances exactly once to meal', MaxSearchApi::$transitions, [MaxSearchApi::$statusMeal]);
+starsCallbackCheck('free-text stars renders meal once', count($messenger->buttons), 1);
+starsCallbackCheck('free-text stars updates the step exactly once', StarsCallbackFakeData::$updates, 1);
+starsCallbackCheck('free-text stars avoids legacy direct write', MaxSearchApi::$directSaves, []);
+starsCallbackCheck('free-text stars sends no validation hint', count($messenger->sent), 0);
+
+$messenger = starsCallbackReset(711);
+StateMessageHandler::handle(['text'=>'4 или 5 звезд'], 711, MaxSearchApi::$statusStars);
+starsCallbackCheck('natural alternatives use minimum acceptable category', MaxSearchApi::getSavedData(711)[MaxSearchApi::$statusStars] ?? null, '4');
+starsCallbackCheck('natural alternatives progress to meal', MaxSearchApi::$transitions, [MaxSearchApi::$statusMeal]);
+
+$messenger = starsCallbackReset(712);
+StateMessageHandler::handle(['text'=>'не важно'], 712, MaxSearchApi::$statusStars);
+starsCallbackCheck('no stars preference preserves existing any-category semantics', MaxSearchApi::getSavedData(712)[MaxSearchApi::$statusStars] ?? null, '1');
+starsCallbackCheck('no stars preference progresses to meal', MaxSearchApi::$transitions, [MaxSearchApi::$statusMeal]);
+
+$messenger = starsCallbackReset(713);
+StateMessageHandler::handle(['text'=>'шесть звезд'], 713, MaxSearchApi::$statusStars);
+starsCallbackCheck('invalid free-text stars preserves stored value', MaxSearchApi::getSavedData(713)[MaxSearchApi::$statusStars] ?? null, '3');
+starsCallbackCheck('invalid free-text stars makes no update', StarsCallbackFakeData::$updates, 0);
+starsCallbackCheck('invalid free-text stars makes no transition', MaxSearchApi::$transitions, []);
+starsCallbackCheck('invalid free-text stars renders no meal view', count($messenger->buttons), 0);
+starsCallbackCheck('invalid free-text stars gets one bounded hint', count($messenger->sent), 1);
+
+$messenger = starsCallbackReset(714);
+MaxSearchApi::$editMode = 'stars';
+StateMessageHandler::handle(['text'=>'5 звезд'], 714, MaxSearchApi::$statusStars);
+starsCallbackCheck('edit free-text stars stores exact value', MaxSearchApi::getSavedData(714)[MaxSearchApi::$statusStars] ?? null, '5');
+starsCallbackCheck('edit free-text stars returns to check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
+starsCallbackCheck('edit free-text stars renders check once', count($messenger->buttons), 1);
+starsCallbackCheck('edit free-text stars does not also render meal', count($messenger->buttons), 1);
+starsCallbackCheck('edit free-text stars clears edit mode', MaxSearchApi::$editMode, '');
+
+$messenger = starsCallbackReset(715, false);
+$before = count(StarsCallbackFakeData::$rows);
+StateMessageHandler::handle(['text'=>'4 звезды'], 715, MaxSearchApi::$statusStars);
+starsCallbackCheck('missing free-text stars step is not inserted', count(StarsCallbackFakeData::$rows), $before);
+starsCallbackCheck('missing free-text stars step does not call add', StarsCallbackFakeData::$adds, 0);
+starsCallbackCheck('missing free-text stars step makes no update', StarsCallbackFakeData::$updates, 0);
+starsCallbackCheck('missing free-text stars step makes no transition', MaxSearchApi::$transitions, []);
+starsCallbackCheck('missing free-text stars step renders no next view', count($messenger->buttons), 0);
+starsCallbackCheck('missing free-text stars step sends no false success hint', count($messenger->sent), 0);
+
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
+$stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 starsCallbackCheck('action applies stars through update-only boundary', strpos($source, '$stars = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusStars,') !== false, true);
 starsCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 starsCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
+starsCallbackCheck('free-text stars uses canonical resolver and update-only boundary', strpos($stateSource, "NeedValueResolver::resolve('stars'") !== false && strpos($stateSource, 'MaxSearchApi::$statusStars,') !== false, true);
 
-foreach ([700, 701, 702, 703] as $chatId) {
+foreach ([700, 701, 702, 703, 710, 711, 712, 713, 714, 715] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
 }
