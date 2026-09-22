@@ -8,6 +8,7 @@ final class TripContextMetadataPolicy
     private const KIND = 'trip_context_v1';
     private const MAX_ITEMS = 10;
     private const MAX_ITEM_CHARS = 120;
+    private const MAX_ENVELOPE_BYTES = 8192;
 
     public static function empty(): array
     {
@@ -18,7 +19,7 @@ final class TripContextMetadataPolicy
     public static function fromStartValue($raw): ?array
     {
         if ($raw === null || $raw === '') return self::empty();
-        if (!is_string($raw) || strlen($raw) > 4096) return null;
+        if (!is_string($raw) || strlen($raw) > self::MAX_ENVELOPE_BYTES) return null;
 
         $legacyBudget = TripBudgetPolicy::fromStartValue($raw);
         if ($legacyBudget !== null) {
