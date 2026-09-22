@@ -174,7 +174,7 @@ $guards = [
     'wizard date uses exact value contract' => strpos($source, 'DateValueContract::fromStorageValue($date)') !== false,
     'wizard date uses existing-step application boundary' => strpos($source, 'MaxSearchApi::$statusDate,') !== false && strpos($source, '$dateValue') !== false,
     'wizard date no longer directly writes a value' => strpos($source, 'MaxSearchApi::saveLastValue($chat_id, MaxSearchApi::$statusDate, $date);') === false,
-    'resolved date reaches check screen' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($source, 'DialogueView::check($chat_id);') !== false,
+    'resolved date reaches canonical progression' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($source, 'NeedProgressionService::advance($chat_id);') !== false,
 ];
 foreach ($guards as $label => $ok) {
     if ($ok) { echo "PASS  {$label}\n"; $passed++; }
