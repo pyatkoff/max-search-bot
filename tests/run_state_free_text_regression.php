@@ -30,6 +30,29 @@ foreach ($tests as [$text, $expected, $label]) {
     }
 }
 
+// A natural answer to the explicit child-count question must use the same
+// deterministic resolver as the AI collector instead of disappearing silently.
+$childrenFreeTextTests = [
+    ['Нет', 0, 'live natural no-children answer'],
+    ['без детей', 0, 'natural no-children phrase'],
+    ['1 ребёнок', 1, 'one child phrase'],
+    ['двое детей', 2, 'word child count'],
+    ['3', 3, 'plain child count'],
+    ['четверо', null, 'unsupported child count is rejected'],
+];
+foreach ($childrenFreeTextTests as [$text, $expected, $label]) {
+    $resolved = NeedValueResolver::resolve('children', $text);
+    $actual = !empty($resolved['recognized']) ? (int)$resolved['value'] : null;
+    if ($actual === $expected) { echo "PASS  {$label}\n"; $passed++; }
+    else {
+        echo "FAIL  {$label}\n";
+        echo '      text: ' . $text . "\n";
+        echo '      expected: ' . var_export($expected, true) . "\n";
+        echo '      actual:   ' . var_export($actual, true) . "\n";
+        $failed++;
+    }
+}
+
 // Keep exact live nights phrases in required CI. Conversation 308 exposed the
 // prefixed range "От 7-9"; conversation 484 exposed the natural short range
 // "8 9"; conversation 555 exposed comma-separated short ranges such as "3,4".
@@ -130,6 +153,11 @@ $guards = [
     'city fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($city))') !== false,
     'free text switches to AI status' => strpos($source, 'MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);') !== false,
     'free text reaches AiMessageHandler' => strpos($source, 'AiMessageHandler::handle($message, $chatId);') !== false,
+    'wizard child step accepts free text' => strpos($source, 'elseif($status==MaxSearchApi::$statusChild)') !== false,
+    'wizard child step uses deterministic resolver' => strpos($source, "NeedValueResolver::resolve('children'") !== false,
+    'wizard child step uses existing-step application boundary' => strpos($source, 'MaxSearchApi::$statusChild,') !== false && strpos($source, '(string)$children') !== false,
+    'zero children advances without age question' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($source, 'MaxSearchApi::showStarsButtons($chat_id);') !== false,
+    'positive child count advances to ages' => strpos($source, 'MaxSearchApi::showAgeButtons($chat_id,$children);') !== false,
     'wizard nights uses deterministic resolver' => strpos($source, "NeedValueResolver::resolve('nights'") !== false,
     'wizard nights uses existing-step application boundary' => strpos($source, 'ExistingWizardStepApplicationService::apply(') !== false,
     'AI short nights uses NeedApplicationService boundary' => strpos($aiShortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false,
