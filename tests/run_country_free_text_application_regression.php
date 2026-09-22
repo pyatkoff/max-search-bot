@@ -255,8 +255,10 @@ countryFreeTextCheck('country edit direct write is only check generation', array
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $countryStart = strpos($source, 'elseif($status==MaxSearchApi::$statusContryChoose)');
+$childStart = $countryStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusChild)', $countryStart);
 $ageStart = $countryStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusAge)', $countryStart);
-$countrySource = $countryStart === false || $ageStart === false ? '' : substr($source, $countryStart, $ageStart - $countryStart);
+$countryEnd = $childStart !== false ? $childStart : $ageStart;
+$countrySource = $countryStart === false || $countryEnd === false ? '' : substr($source, $countryStart, $countryEnd - $countryStart);
 countryFreeTextCheck('handler preserves exact directory lookup owner', substr_count($countrySource, 'MaxSearchApi::getCountryByName($country)') === 1, true);
 countryFreeTextCheck('handler normalizes through one value contract call', substr_count($countrySource, 'CountryValueContract::fromDirectoryId') === 1, true);
 countryFreeTextCheck('handler applies through one update-only boundary', substr_count($countrySource, 'ExistingWizardStepApplicationService::apply(') === 1, true);
