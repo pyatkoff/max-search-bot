@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-21T23:56:10+00:00",
+    "generated_at": "2026-09-22T01:13:53+00:00",
     "production": {
-        "sha": "f120edfe15bffad3a6a419d1ce039f6b3eac70fe",
+        "sha": "ad59a7847d281df8940872f64a2acd76195b8f76",
         "branch": "main"
     },
     "migrations": {
@@ -161,18 +161,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-21 22:55:58",
+        "since_utc": "2026-09-22 00:13:42",
         "summary": {
-            "sessions": 3,
-            "raw_sessions": 3,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 3,
+                "resolved": 0,
                 "unresolved": 0
             },
-            "started": 3,
-            "needs_collected": 3,
-            "tours_opened": 3,
+            "started": 0,
+            "needs_collected": 0,
+            "tours_opened": 0,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
@@ -187,9 +187,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "tours_opened": 3
-            },
+            "drop_points": [],
             "flags": []
         }
     },
@@ -198,7 +196,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "f120edfe15bffad3a6a419d1ce039f6b3eac70fe",
+        "sha": "ad59a7847d281df8940872f64a2acd76195b8f76",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -207,7 +205,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-21T23:56:10Z"
+        "reported_at": "2026-09-22T01:13:53Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -215,7 +213,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-21T23:55:49+00:00",
+        "generated_at": "2026-09-22T01:13:33+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -310,7 +308,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-21T23:55:49+00:00",
+        "generated_at": "2026-09-22T01:13:33+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -608,7 +606,7 @@
                 "date": "2026-09-22",
                 "partial": true,
                 "since_utc": "2026-09-21 22:00:00",
-                "until_utc": "2026-09-21 23:55:49",
+                "until_utc": "2026-09-22 01:13:33",
                 "channels": [
                     {
                         "channel": "max",
@@ -699,12 +697,12 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-21T23:56:07+00:00",
+        "generated_at": "2026-09-22T01:13:50+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 51834,
-                "code_lines": 1080
+                "bytes": 53380,
+                "code_lines": 1109
             },
             "actions": {
                 "files": 9,
@@ -712,9 +710,9 @@
                 "code_lines": 601
             },
             "services": {
-                "files": 155,
-                "bytes": 631718,
-                "code_lines": 13427
+                "files": 156,
+                "bytes": 643613,
+                "code_lines": 13666
             },
             "integrations": {
                 "files": 11,
@@ -743,8 +741,8 @@
             },
             "tests": {
                 "files": 241,
-                "bytes": 1403847,
-                "code_lines": 17922
+                "bytes": 1411378,
+                "code_lines": 18007
             },
             "tools": {
                 "files": 46,
@@ -790,6 +788,12 @@
                 "severity": "observe"
             },
             {
+                "path": "services/ConversationStateRepository.php",
+                "lines": 279,
+                "bytes": 11822,
+                "severity": "observe"
+            },
+            {
                 "path": "actions/callbacks/WizardCallbackAction.php",
                 "lines": 278,
                 "bytes": 11852,
@@ -805,12 +809,6 @@
                 "path": "tests/run_manager_reauth_composer_behavior_regression.js",
                 "lines": 275,
                 "bytes": 22003,
-                "severity": "observe"
-            },
-            {
-                "path": "tools/production_snapshot.php",
-                "lines": 275,
-                "bytes": 20693,
                 "severity": "observe"
             }
         ],
