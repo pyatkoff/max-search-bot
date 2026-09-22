@@ -3,6 +3,7 @@ require_once dirname(__DIR__, 2) . '/services/DialogueView.php';
 require_once dirname(__DIR__, 2) . '/services/WizardStepView.php';
 require_once dirname(__DIR__, 2) . '/services/EditFlowService.php';
 require_once dirname(__DIR__, 2) . '/services/InteractionGuard.php';
+require_once dirname(__DIR__, 2) . '/services/NeedProgressionService.php';
 require_once dirname(__DIR__, 2) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__, 2) . '/services/DepartureCityValueContract.php';
 require_once dirname(__DIR__, 2) . '/services/CountryValueContract.php';
@@ -42,7 +43,7 @@ class WizardCallbackAction
                     $date
                 )) return true;
                 if (EditFlowService::finishIfNeeded($chatId, 'date')) return true;
-                DialogueView::check($chatId);
+                NeedProgressionService::advance($chatId);
                 return true;
             },
             static function (int $currentStatus) use ($chatId, $q): void {
