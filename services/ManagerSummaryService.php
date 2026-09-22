@@ -37,8 +37,12 @@ class ManagerSummaryService
             if ($ages) $people[] = 'возраст: ' . implode(', ', $ages);
             $lines[] = 'Туристы: ' . implode(' + ', $people);
         }
-        if ($adults === null || $children === null) {
+        if ($adults === null && $children === null) {
             $unknown[] = 'состав туристов';
+        } elseif ($adults === null) {
+            $unknown[] = 'количество взрослых';
+        } elseif ($children === null) {
+            $unknown[] = 'количество детей';
         } elseif ((int)$children > 0 && count($ages) !== (int)$children) {
             $unknown[] = 'возраст детей';
         }
