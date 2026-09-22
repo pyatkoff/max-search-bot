@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/ChildAgeValueContract.php';
 
 class AiSearchContextService
 {
@@ -15,8 +16,21 @@ class AiSearchContextService
             if ($country !== false && $country !== '') $out['country'] = $country;
         }
         if (!empty($saved[$status['adults']])) $out['adults'] = (int)$saved[$status['adults']];
-        if (array_key_exists($status['children'], $saved)) $out['children'] = (int)$saved[$status['children']];
-        if (!empty($saved[$status['child_ages']])) $out['child_ages'] = (string)$saved[$status['child_ages']];
+
+        $children = null;
+        if (array_key_exists($status['children'], $saved)) {
+            $children = (int)$saved[$status['children']];
+            $out['children'] = $children;
+        }
+        if (!empty($saved[$status['child_ages']])) {
+            if ($children === null) {
+                // Preserve legacy context when the child count itself is not yet known.
+                $out['child_ages'] = (string)$saved[$status['child_ages']];
+            } else {
+                $ages = ChildAgeValueContract::fromStorage($saved[$status['child_ages']], $children);
+                if (is_array($ages) && $ages !== []) $out['child_ages'] = implode(', ', $ages);
+            }
+        }
         if (!empty($saved[$status['stars']])) $out['stars'] = (int)$saved[$status['stars']];
         if (!empty($saved[$status['meal']])) {
             $mealMap = ['999'=>'any','7'=>'all_inclusive','3'=>'breakfast','4'=>'half_board','5'=>'full_board'];
@@ -44,8 +58,12 @@ class AiSearchContextService
         if (empty($saved[$status['adults']])) $missing[] = 'adults';
         if (!array_key_exists($status['children'], $saved)) {
             $missing[] = 'children';
-        } elseif ((int)$saved[$status['children']] > 0 && empty($saved[$status['child_ages']])) {
-            $missing[] = 'child_ages';
+        } else {
+            $children = (int)$saved[$status['children']];
+            if ($children > 0
+                && ChildAgeValueContract::fromStorage($saved[$status['child_ages']] ?? null, $children) === null) {
+                $missing[] = 'child_ages';
+            }
         }
         if (empty($saved[$status['stars']])) $missing[] = 'stars';
         if (empty($saved[$status['meal']])) $missing[] = 'meal';
