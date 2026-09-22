@@ -107,6 +107,7 @@ class MaxSearchApi
 }
 
 require_once __DIR__ . '/../actions/callbacks/WizardCallbackAction.php';
+require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 final class MealCallbackMessenger implements MessengerInterface
 {
@@ -202,12 +203,61 @@ mealCallbackCheck('back from nights keeps stored meal value', MaxSearchApi::getS
 mealCallbackCheck('back from nights renders nights once', count($messenger->buttons), 1);
 mealCallbackCheck('back from nights does not update meal', MealCallbackFakeData::$updates, 0);
 
+$messenger = mealCallbackReset(810);
+StateMessageHandler::handle(['text'=>'всё включено'], 810, MaxSearchApi::$statusMeal);
+mealCallbackCheck('free-text all inclusive stores exact directory id', MaxSearchApi::getSavedData(810)[MaxSearchApi::$statusMeal] ?? null, '7');
+mealCallbackCheck('free-text all inclusive advances exactly once to nights', MaxSearchApi::$transitions, [MaxSearchApi::$statusNights]);
+mealCallbackCheck('free-text all inclusive renders nights once', count($messenger->buttons), 1);
+mealCallbackCheck('free-text all inclusive updates the step exactly once', MealCallbackFakeData::$updates, 1);
+mealCallbackCheck('free-text all inclusive avoids legacy direct write', MaxSearchApi::$directSaves, []);
+mealCallbackCheck('free-text all inclusive sends no validation hint', count($messenger->sent), 0);
+
+$messenger = mealCallbackReset(811);
+StateMessageHandler::handle(['text'=>'завтрак'], 811, MaxSearchApi::$statusMeal);
+mealCallbackCheck('free-text breakfast stores exact directory id', MaxSearchApi::getSavedData(811)[MaxSearchApi::$statusMeal] ?? null, '3');
+mealCallbackCheck('free-text breakfast advances to nights', MaxSearchApi::$transitions, [MaxSearchApi::$statusNights]);
+
+$messenger = mealCallbackReset(812);
+StateMessageHandler::handle(['text'=>'не важно'], 812, MaxSearchApi::$statusMeal);
+mealCallbackCheck('free-text no-preference preserves exact 999 id', MaxSearchApi::getSavedData(812)[MaxSearchApi::$statusMeal] ?? null, '999');
+mealCallbackCheck('free-text no-preference advances to nights', MaxSearchApi::$transitions, [MaxSearchApi::$statusNights]);
+
+$messenger = mealCallbackReset(813);
+StateMessageHandler::handle(['text'=>'ультра всё включено'], 813, MaxSearchApi::$statusMeal);
+mealCallbackCheck('unknown free-text meal preserves stored value', MaxSearchApi::getSavedData(813)[MaxSearchApi::$statusMeal] ?? null, '3');
+mealCallbackCheck('unknown free-text meal makes no update', MealCallbackFakeData::$updates, 0);
+mealCallbackCheck('unknown free-text meal makes no transition', MaxSearchApi::$transitions, []);
+mealCallbackCheck('unknown free-text meal renders no nights view', count($messenger->buttons), 0);
+mealCallbackCheck('unknown free-text meal gets one bounded hint', count($messenger->sent), 1);
+
+$messenger = mealCallbackReset(814);
+MaxSearchApi::$editMode = 'meal';
+StateMessageHandler::handle(['text'=>'полупансион'], 814, MaxSearchApi::$statusMeal);
+mealCallbackCheck('edit free-text meal stores exact directory id', MaxSearchApi::getSavedData(814)[MaxSearchApi::$statusMeal] ?? null, '4');
+mealCallbackCheck('edit free-text meal returns to check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
+mealCallbackCheck('edit free-text meal renders check once', count($messenger->buttons), 1);
+mealCallbackCheck('edit free-text meal does not also render nights', count($messenger->buttons), 1);
+mealCallbackCheck('edit free-text meal clears edit mode', MaxSearchApi::$editMode, '');
+
+$messenger = mealCallbackReset(815, false);
+$before = count(MealCallbackFakeData::$rows);
+StateMessageHandler::handle(['text'=>'полный пансион'], 815, MaxSearchApi::$statusMeal);
+mealCallbackCheck('missing free-text meal step is not inserted', count(MealCallbackFakeData::$rows), $before);
+mealCallbackCheck('missing free-text meal step does not call add', MealCallbackFakeData::$adds, 0);
+mealCallbackCheck('missing free-text meal step makes no update', MealCallbackFakeData::$updates, 0);
+mealCallbackCheck('missing free-text meal step makes no transition', MaxSearchApi::$transitions, []);
+mealCallbackCheck('missing free-text meal step renders no next view', count($messenger->buttons), 0);
+mealCallbackCheck('missing free-text meal step sends no false success hint', count($messenger->sent), 0);
+
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
+$stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 mealCallbackCheck('action applies meal through update-only boundary', strpos($source, '$meal = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusMeal,') !== false, true);
 mealCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 mealCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
+mealCallbackCheck('free-text meal uses canonical resolver and storage normalizer', strpos($stateSource, "NeedValueResolver::resolve('meal'") !== false && strpos($stateSource, 'AiSearchContextService::normalizeParameters(') !== false, true);
+mealCallbackCheck('free-text meal uses update-only application boundary', strpos($stateSource, 'MaxSearchApi::$statusMeal,') !== false && strpos($stateSource, 'ExistingWizardStepApplicationService::apply(') !== false, true);
 
-foreach ([800, 801, 802, 803, 804, 805] as $chatId) {
+foreach ([800, 801, 802, 803, 804, 805, 810, 811, 812, 813, 814, 815] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
 }
