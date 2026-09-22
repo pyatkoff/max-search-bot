@@ -118,6 +118,7 @@ return [
     ],
     'manager' => [
         'php tests/run_manager_request_regression.php',
+        'php tests/run_manager_handoff_journey_context_regression.php',
         'php tests/run_handoff_policy_inventory_regression.php',
         'php tests/run_manager_outside_hours_handoff_regression.php',
         'php tests/run_outside_hours_queue_repair_regression.php',
