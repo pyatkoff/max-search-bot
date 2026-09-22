@@ -5,6 +5,7 @@ require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
 require_once dirname(__DIR__) . '/services/NeedApplicationService.php';
+require_once dirname(__DIR__) . '/services/NeedProgressionService.php';
 require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__) . '/services/ChildAgeValueContract.php';
 require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
@@ -242,7 +243,7 @@ class StateMessageHandler
                         $dateValue
                     )) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'date'))
-                        DialogueView::check($chat_id);
+                        NeedProgressionService::advance($chat_id);
                 }
                 else
                     self::send($chat_id,"Не получилось распознать дату. Напишите, например: 8 ноября, 08.11 или выберите дату в календаре.");
