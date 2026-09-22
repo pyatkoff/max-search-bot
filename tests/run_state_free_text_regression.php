@@ -56,13 +56,16 @@ foreach ($childrenFreeTextTests as [$text, $expected, $label]) {
 // Keep exact live nights phrases in required CI. Conversation 308 exposed the
 // prefixed range "От 7-9"; conversation 484 exposed the natural short range
 // "8 9"; conversation 555 exposed comma-separated short ranges such as "3,4";
-// a fresh #780 history exposed repeated-dot shorthand "8..9". These must not
-// force the tourist to re-enter an otherwise unambiguous duration.
+// a fresh #780 history exposed repeated-dot shorthand "8..9"; a later protected
+// #780 history exposed an explicit approximation prefix before one valid count.
+// These must not force the tourist to re-enter an otherwise unambiguous duration.
 $nightsTests = [
     ['6', '6', 'plain nights'],
     ['На 6', '6', 'live MAX phrase На 6'],
     ['6 ночей', '6', 'nights with noun'],
     ['на 6 ночей', '6', 'natural nights phrase'],
+    ['примерно 5', '5', 'approximate single nights'],
+    ['примерно 5 ночей', '5', 'approximate single nights with noun'],
     ['7-10', '7-10', 'plain nights range'],
     ['на 7–10 ночей', '7-10', 'natural range with en dash'],
     ['От 7-9', '7-9', 'live AI phrase prefixed range'],
@@ -84,6 +87,7 @@ $nightsTests = [
     ['неделя', '7', 'week synonym'],
     ['на неделю', '7', 'natural week synonym'],
     ['29', '', 'reject too many nights'],
+    ['примерно 29', '', 'reject approximate value above nights limit'],
     ['10-7', '', 'reject reversed range'],
 ];
 foreach ($nightsTests as [$text, $expected, $label]) {
