@@ -31,8 +31,21 @@ mhjCheck('positive preference remains separate',strpos($after,'Пожелани�
 mhjCheck('negative preference remains separate',strpos($after,'Не подходит: шумные вечеринки')!==false,true);
 
 $partial=ManagerHandoffContextService::build(['city'=>'Москва','children'=>0],[],[]);
-mhjCheck('early handoff lists only missing required search essentials',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, состав туристов')!==false,true);
+mhjCheck('early handoff lists only genuinely missing required search essentials',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, количество взрослых')!==false,true);
+mhjCheck('known child count is not hidden behind a generic party gap',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, состав туристов')===false,true);
 mhjCheck('early handoff does not turn optional hotel wishes into mandatory unknowns',strpos($partial,'звёз')===false&&strpos($partial,'питани')===false,true);
+
+$missingChildren=ManagerHandoffContextService::build([
+    'city'=>'Москва','country'=>'Турция','adults'=>2,
+    'nights'=>'7','date'=>'10.10.2026',
+],[],[]);
+mhjCheck('known adults expose only missing child count',strpos($missingChildren,'Не указано для поиска: количество детей')!==false,true);
+mhjCheck('known adults are not relabeled as wholly unknown party',strpos($missingChildren,'Не указано для поиска: состав туристов')===false,true);
+
+$missingParty=ManagerHandoffContextService::build([
+    'city'=>'Москва','country'=>'Турция','nights'=>'7','date'=>'10.10.2026',
+],[],[]);
+mhjCheck('fully unknown party keeps concise composition label',strpos($missingParty,'Не указано для поиска: состав туристов')!==false,true);
 
 $missingAges=ManagerHandoffContextService::build([
     'city'=>'Москва','country'=>'Турция','adults'=>2,'children'=>1,
