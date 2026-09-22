@@ -9,7 +9,7 @@ require_once __DIR__ . '/ManagerSummaryService.php';
  */
 class ManagerHandoffContextService
 {
-    public static function build(array $aiContext, array $messages): string
+    public static function build(array $aiContext, array $messages, array $handoffContext = []): string
     {
         $state = TripStateService::fromLegacyAiContext($aiContext);
         $summary = trim(ManagerSummaryService::build($state));
@@ -18,6 +18,14 @@ class ManagerHandoffContextService
 
         if ($note !== '') {
             $summary .= ($summary !== '' ? "\n" : '') . 'Дополнение туриста: ' . $note;
+        }
+
+        if (!empty($handoffContext['from_tours'])) {
+            $summary .= ($summary !== '' ? "\n" : '')
+                . 'Показано/реакция: запрос менеджера сделан после экрана с турами; '
+                . 'конкретный просмотр, выбор или реакция не зафиксированы.';
+            $summary .= "\nСледующее действие: продолжить от уже показанной выдачи; "
+                . 'реакцию на варианты уточнять только если она нужна, чтобы изменить следующее предложение.';
         }
 
         $parts = [];
