@@ -121,6 +121,12 @@ aiCompletionCheck('handler no longer directly advances child age branch', strpos
 aiCompletionCheck('completion service resolves field through application boundary', strpos($service, 'NeedApplicationService::resolveAndApply($chatId, $field, $text, $context)') !== false);
 aiCompletionCheck('resolved completion advances only after recognized applied value', strpos($service, "if (empty(\$resolution['recognized']) || empty(\$resolution['applied']))") !== false && strpos($service, "'advanced' => false") !== false && strpos($service, "['advanced' => true]") !== false);
 aiCompletionCheck('child-age caller remains compatible through advanced flag', strpos($handler, "if (!empty(\$ageResult['advanced']))") !== false);
+$localCompletionBranch = "if (\$simpleLocal && empty(\$missingLocal) && \$hadCurrentBeforeLocal && !empty(\$appliedLocal)) {";
+$localCompletionOffset = strpos($handler, $localCompletionBranch);
+aiCompletionCheck('simple local completion branch still exists', $localCompletionOffset !== false);
+$localCompletionSlice = $localCompletionOffset === false ? '' : substr($handler, $localCompletionOffset, 260);
+aiCompletionCheck('simple local completion uses canonical progression', strpos($localCompletionSlice, 'NeedProgressionService::advance($chat_id);') !== false);
+aiCompletionCheck('simple local completion no longer bypasses progression to check view', strpos($localCompletionSlice, 'DialogueView::check($chat_id);') === false);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
