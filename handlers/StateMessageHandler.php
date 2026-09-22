@@ -155,14 +155,15 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusStars)
             {
-                $resolved = NeedValueResolver::resolve('stars', (string)($message['text'] ?? ''));
-                if(!empty($resolved['recognized']))
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'stars',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusStars
+                );
+                if(!empty($result['recognized']))
                 {
-                    if(!ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusStars,
-                        (string)((int)$resolved['value'])
-                    )) return;
+                    if(empty($result['applied'])) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'stars'))
                         WizardStepView::meal($chat_id);
                 }
