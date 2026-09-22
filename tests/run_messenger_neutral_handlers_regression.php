@@ -37,7 +37,7 @@ mnhCheck('NeedProgressionService completes through DialogueView::check', strpos(
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
 mnhCheck('AiMessageHandler has no direct MaxSend', strpos($aiMessageSource, 'MaxSearchApi::MaxSend(') === false, true);
 mnhCheck('AiMessageHandler has no legacy showCheckButtons completion', strpos($aiMessageSource, 'MaxSearchApi::showCheckButtons(') === false, true);
-mnhCheck('AiMessageHandler completes through DialogueView::check', strpos($aiMessageSource, 'DialogueView::check(') !== false, true);
+mnhCheck('AiMessageHandler completion is owned by NeedProgressionService', strpos($aiMessageSource, 'DialogueView::check(') === false && strpos($aiMessageSource, 'NeedProgressionService::advance(') !== false, true);
 
 mnhCheck('AiShortAnswerHandler routes deterministic meal/nights through NeedApplicationService', strpos($shortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false, true);
 mnhCheck('AiShortAnswerHandler has no direct NightsParser call', strpos($shortSource, 'NightsParser::parse(') === false, true);
