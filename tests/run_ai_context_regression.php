@@ -65,6 +65,29 @@ $withChild[68] = 1;
 unset($withChild[69]);
 aiCheck('child age required only when children > 0', AiSearchContextService::missingFromSaved($withChild, $status), ['child_ages']);
 
+$mismatchedAges = $saved;
+$mismatchedAges[68] = 1;
+$mismatchedAges[69] = '5, 8';
+$mismatchedContext = AiSearchContextService::contextFromSaved(
+    $mismatchedAges,
+    $status,
+    static fn($id) => $id === 17 ? 'Калининград' : false,
+    static fn($id) => $id === 4 ? 'Турция' : false
+);
+aiCheck('corrected child count suppresses stale extra ages from AI context', array_key_exists('child_ages', $mismatchedContext), false);
+aiCheck('corrected child count requires fresh exact ages', AiSearchContextService::missingFromSaved($mismatchedAges, $status), ['child_ages']);
+
+$exactAges = $mismatchedAges;
+$exactAges[69] = '5';
+$exactContext = AiSearchContextService::contextFromSaved(
+    $exactAges,
+    $status,
+    static fn($id) => $id === 17 ? 'Калининград' : false,
+    static fn($id) => $id === 4 ? 'Турция' : false
+);
+aiCheck('exact corrected child ages remain in AI context', $exactContext['child_ages'] ?? null, '5');
+aiCheck('exact corrected child ages complete the need', AiSearchContextService::missingFromSaved($exactAges, $status), []);
+
 $normalized = AiSearchContextService::normalizeParameters(
     [
         'city'=>'Калининград',
