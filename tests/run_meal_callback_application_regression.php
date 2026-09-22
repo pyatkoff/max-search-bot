@@ -251,11 +251,13 @@ mealCallbackCheck('missing free-text meal step sends no false success hint', cou
 
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 $stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$applicationSource = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
 mealCallbackCheck('action applies meal through update-only boundary', strpos($source, '$meal = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusMeal,') !== false, true);
 mealCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 mealCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
-mealCallbackCheck('free-text meal uses canonical resolver and storage normalizer', strpos($stateSource, "NeedValueResolver::resolve('meal'") !== false && strpos($stateSource, 'AiSearchContextService::normalizeParameters(') !== false, true);
-mealCallbackCheck('free-text meal uses update-only application boundary', strpos($stateSource, 'MaxSearchApi::$statusMeal,') !== false && strpos($stateSource, 'ExistingWizardStepApplicationService::apply(') !== false, true);
+mealCallbackCheck('free-text handler delegates to canonical need application boundary', strpos($stateSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep(') !== false, true);
+mealCallbackCheck('need application boundary owns deterministic resolution and meal storage normalization', strpos($applicationSource, 'NeedValueResolver::resolve($field, $text, $context)') !== false && strpos($applicationSource, "if ($field === 'meal')") !== false && strpos($applicationSource, 'AiSearchContextService::normalizeParameters(') !== false, true);
+mealCallbackCheck('need application boundary preserves update-only wizard application', strpos($applicationSource, 'ExistingWizardStepApplicationService::apply(') !== false, true);
 
 foreach ([800, 801, 802, 803, 804, 805, 810, 811, 812, 813, 814, 815] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
