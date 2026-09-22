@@ -1,27 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-09-22T18:09:32+00:00",
+    "generated_at": "2026-09-22T19:06:13+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 188,
-        "raw_sessions": 188,
+        "sessions": 201,
+        "raw_sessions": 201,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 188,
+            "resolved": 201,
             "unresolved": 0
         },
-        "started": 188,
-        "needs_collected": 135,
-        "tours_opened": 126,
+        "started": 201,
+        "needs_collected": 142,
+        "tours_opened": 133,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 3,
         "manager_requested": 13,
         "manager_replied": 12,
         "customer_replied_after_manager": 8,
-        "phone_received": 4,
+        "phone_received": 5,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 5,
@@ -31,22 +31,22 @@
             "max_seconds": 9862
         },
         "drop_points": {
-            "tours_opened": 115,
-            "collecting_needs": 53,
+            "tours_opened": 122,
+            "collecting_needs": 59,
             "customer_replied_after_manager": 8,
             "needs_collected": 7,
             "manager_replied": 4,
             "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 34,
-            "repeated_callback_input": 17,
+            "excessive_turns": 36,
+            "repeated_callback_input": 18,
             "rapid_date_reselection": 3
         },
         "calendar_day": {
-            "conversations_started": 172,
-            "needs_collected_from_started": 122,
-            "tours_opened_from_started": 114,
+            "conversations_started": 185,
+            "needs_collected_from_started": 129,
+            "tours_opened_from_started": 121,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 3,
             "manager_requested": 5,
