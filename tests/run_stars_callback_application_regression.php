@@ -241,10 +241,23 @@ starsCallbackCheck('missing free-text stars step sends no false success hint', c
 
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 $stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$starsStateStart = strpos($stateSource, 'elseif($status==MaxSearchApi::$statusStars)');
+$starsStateEnd = strpos($stateSource, 'elseif($status==MaxSearchApi::$statusMeal)', $starsStateStart === false ? 0 : $starsStateStart);
+$starsStateBlock = ($starsStateStart !== false && $starsStateEnd !== false)
+    ? substr($stateSource, $starsStateStart, $starsStateEnd - $starsStateStart)
+    : '';
 starsCallbackCheck('action applies stars through update-only boundary', strpos($source, '$stars = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusStars,') !== false, true);
 starsCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 starsCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
-starsCallbackCheck('free-text stars uses canonical resolver and update-only boundary', strpos($stateSource, "NeedValueResolver::resolve('stars'") !== false && strpos($stateSource, 'MaxSearchApi::$statusStars,') !== false, true);
+starsCallbackCheck(
+    'free-text stars uses canonical resolver/application owner',
+    $starsStateBlock !== ''
+        && strpos($starsStateBlock, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false
+        && strpos($starsStateBlock, "'stars'") !== false
+        && strpos($starsStateBlock, 'NeedValueResolver::resolve') === false
+        && strpos($starsStateBlock, 'ExistingWizardStepApplicationService::apply') === false,
+    true
+);
 
 foreach ([700, 701, 702, 703, 710, 711, 712, 713, 714, 715] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
