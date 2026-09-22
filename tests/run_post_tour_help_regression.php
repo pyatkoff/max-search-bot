@@ -141,8 +141,10 @@ helpCheck('blank check text sends nothing', $messenger->sent, []);
 helpCheck('phone input path still handles message', helpDispatch('Подборка не открывается',75), true);
 helpCheck('phone-state chat text keeps phone optional', strpos($messenger->sent[0]['text'] ?? '', 'номер телефона необязателен') !== false, true);
 helpCheck('phone state is not replaced by post-tour link help', strpos($messenger->sent[0]['text'] ?? '', 'Посмотреть на сайте') === false, true);
-helpCheck('unrelated wizard state stays untouched', helpDispatch('Ссылка не работает',67), true);
-helpCheck('adults wizard is not intercepted', $messenger->sent, []);
+helpCheck('unrelated wizard state stays handled by its owner', helpDispatch('Ссылка не работает',67), true);
+helpCheck('adults wizard keeps its own validation response', count($messenger->sent), 1);
+helpCheck('adults wizard is not replaced by post-tour link help', strpos($messenger->sent[0]['text'] ?? '', 'количество взрослых') !== false && strpos($messenger->sent[0]['text'] ?? '', 'Посмотреть на сайте') === false, true);
+helpCheck('adults wizard status remains unchanged on invalid text', MaxSearchApi::$status, 67);
 
 helpCheck('shared Telegram controller gives help', helpDispatch('Ссылка не работает',74,'telegram'), true);
 helpCheck('Telegram gets one platform-neutral answer', count($messenger->sent), 1);

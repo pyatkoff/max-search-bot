@@ -114,6 +114,7 @@ class MaxSearchApi
 }
 
 require_once __DIR__ . '/../actions/callbacks/WizardCallbackAction.php';
+require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 $failed = 0;
 function adultsCallbackCheck(string $name, $actual, $expected): void
@@ -182,12 +183,32 @@ adultsCallbackCheck('missing adults step makes no update', AdultsCallbackFakeDat
 adultsCallbackCheck('missing adults step renders no next view', MaxSearchApi::$childViews, []);
 adultsCallbackCheck('missing adults step makes no transition', MaxSearchApi::$transitions, []);
 
+// Real customer wording from #746: the canonical parser already recognizes this
+// as two adults. The explicit wizard must apply it through the same update-only
+// step boundary instead of silently ignoring free text.
+adultsCallbackReset(603);
+StateMessageHandler::handle(['text'=>'Я и жена'], 603, MaxSearchApi::$statusAdults);
+adultsCallbackCheck('free-text live spouse answer stores two adults', MaxSearchApi::getSavedData(603)[MaxSearchApi::$statusAdults] ?? null, '2');
+adultsCallbackCheck('free-text live spouse answer advances once to children', MaxSearchApi::$transitions, [MaxSearchApi::$statusChild]);
+adultsCallbackCheck('free-text live spouse answer renders children once', MaxSearchApi::$childViews, [603]);
+adultsCallbackCheck('free-text live spouse answer updates current step exactly once', AdultsCallbackFakeData::$updates, 1);
+adultsCallbackCheck('free-text live spouse answer avoids legacy direct write', MaxSearchApi::$directSaves, []);
+
+adultsCallbackReset(604, false);
+$beforeFreeTextMissing = count(AdultsCallbackFakeData::$rows);
+StateMessageHandler::handle(['text'=>'Я и жена'], 604, MaxSearchApi::$statusAdults);
+adultsCallbackCheck('missing free-text adults step is not inserted', count(AdultsCallbackFakeData::$rows), $beforeFreeTextMissing);
+adultsCallbackCheck('missing free-text adults step does not call add', AdultsCallbackFakeData::$adds, 0);
+adultsCallbackCheck('missing free-text adults step makes no update', AdultsCallbackFakeData::$updates, 0);
+adultsCallbackCheck('missing free-text adults step renders no next view', MaxSearchApi::$childViews, []);
+adultsCallbackCheck('missing free-text adults step makes no transition', MaxSearchApi::$transitions, []);
+
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 adultsCallbackCheck('action applies adults through update-only boundary', strpos($source, '$adults = str_replace') !== false && strpos($source, 'MaxSearchApi::$statusAdults,') !== false, true);
 adultsCallbackCheck('action keeps the shared forward lock', strpos($source, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false, true);
 adultsCallbackCheck('action keeps stale check inside the shared lock', strpos($source, 'self::staleForwardCallback($chatId, $q)') !== false, true);
 
-foreach ([600, 601, 602] as $chatId) {
+foreach ([600, 601, 602, 603, 604] as $chatId) {
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
 }
 

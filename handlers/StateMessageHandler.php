@@ -18,6 +18,25 @@ class StateMessageHandler
 {
     public static function handle($message, $chat_id, $status)
     {
+            // Adults is an independent early-return owner so the established
+            // source-bounded contracts for the other wizard steps remain intact.
+            if($status==MaxSearchApi::$statusAdults)
+            {
+                $resolved = NeedValueResolver::resolve('adults', (string)($message['text'] ?? ''));
+                if(!empty($resolved['recognized']))
+                {
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusAdults,
+                        (string)((int)$resolved['value'])
+                    )) return;
+                    MaxSearchApi::showChildButtons($chat_id);
+                }
+                else
+                    self::send($chat_id,"Не получилось определить количество взрослых. Напишите число от 1 до 6 — например: 2 или «двое».");
+                return;
+            }
+
             if($status==MaxSearchApi::$statusCityChoose)
             {
                 $city = trim($message['text']);
