@@ -43,6 +43,33 @@ sdCheck('legacy state search ready', TripStateService::isSearchReady($state), tr
 sdCheck('manager summary labels wishes separately', str_contains(ManagerSummaryService::build($state), 'Пожелания: тихий отель'), true);
 sdCheck('manager summary labels exclusions separately', str_contains(ManagerSummaryService::build($state), 'Не подходит: шумный отель'), true);
 
+$status = [
+    'city'=>65,
+    'country'=>66,
+    'adults'=>67,
+    'children'=>68,
+    'child_ages'=>69,
+    'stars'=>70,
+    'meal'=>71,
+    'nights'=>72,
+    'date'=>73,
+];
+$zeroChildrenWithStoredAges = TripStateService::fromSaved([
+    65=>'1',
+    66=>'4',
+    67=>'2',
+    68=>'0',
+    69=>'8, 11',
+    72=>'7',
+    73=>'10.09.2026',
+], $status,
+    static function($id){ return (int)$id === 1 ? 'Москва' : false; },
+    static function($id){ return (int)$id === 4 ? 'Турция' : false; }
+);
+sdCheck('zero children suppress preserved stored ages in trip projection', $zeroChildrenWithStoredAges['tourists']['children_ages'], []);
+sdCheck('zero children manager brief does not revive preserved ages', str_contains(ManagerSummaryService::build($zeroChildrenWithStoredAges), 'возраст:'), false);
+sdCheck('zero children legacy AI projection does not revive preserved ages', array_key_exists('child_ages', TripStateService::toLegacyAiContext($zeroChildrenWithStoredAges)), false);
+
 $result = ShadowDialogueService::evaluate(123, 'А давайте Египет и с ребёнком 8 лет', $state, [
     'intent'=>'change_parameters',
     'changes'=>[
