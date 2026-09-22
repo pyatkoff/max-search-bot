@@ -152,7 +152,25 @@ class ManagerHandoffContextService
 
     private static function isCallback(string $text): bool
     {
-        return (bool)preg_match('/^[a-z][a-z0-9_]*(?:[-.][a-z0-9_]+)*$/i', $text);
+        $payload = trim($text);
+        if (preg_match('/^g1_[a-f0-9]{8}_(.+)$/', $payload, $m)) {
+            $payload = trim((string)$m[1]);
+        }
+
+        if (in_array($payload, [
+            'ai_start','search_options','start_search',
+            'manager_request','manager_after_tours','phone_manual',
+            'show_tours','tours_checked','tours_found',
+            'edit_params','restart','back_phone',
+        ], true)) {
+            return true;
+        }
+
+        foreach (['pick_','adults_','child_','star_','meal_','nights_','month_change_','back_','edit_','finish'] as $prefix) {
+            if (strpos($payload, $prefix) === 0) return true;
+        }
+
+        return false;
     }
 
     private static function isPhone(string $text): bool
