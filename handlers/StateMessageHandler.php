@@ -191,26 +191,24 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusNights)
             {
-                $resolved = NeedValueResolver::resolve('nights', (string)$message['text']);
-                if(!empty($resolved['recognized']))
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'nights',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusNights
+                );
+                if(!empty($result['recognized']))
                 {
-                    $applied = ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusNights,
-                        $resolved['value']
-                    );
-                    if($applied)
-                    {
-                        if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
-                            DialogueTransitionObserver::observe(
-                                $chat_id,
-                                (int)MaxSearchApi::$statusNights,
-                                (int)MaxSearchApi::$statusDate,
-                                'forward',
-                                'free_text_nights'
-                            );
-                            DialogueView::calendar($chat_id,date("m"),date("Y"));
-                        }
+                    if(empty($result['applied'])) return;
+                    if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
+                        DialogueTransitionObserver::observe(
+                            $chat_id,
+                            (int)MaxSearchApi::$statusNights,
+                            (int)MaxSearchApi::$statusDate,
+                            'forward',
+                            'free_text_nights'
+                        );
+                        DialogueView::calendar($chat_id,date("m"),date("Y"));
                     }
                 }
                 else
