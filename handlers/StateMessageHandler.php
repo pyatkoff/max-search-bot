@@ -149,6 +149,23 @@ class StateMessageHandler
                 }
 
             }
+            elseif($status==MaxSearchApi::$statusStars)
+            {
+                $resolved = NeedValueResolver::resolve('stars', (string)($message['text'] ?? ''));
+                if(!empty($resolved['recognized']))
+                {
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusStars,
+                        (string)((int)$resolved['value'])
+                    )) return;
+                    if(!EditFlowService::finishIfNeeded($chat_id,'stars'))
+                        WizardStepView::meal($chat_id);
+                }
+                else
+                    self::send($chat_id,"Не получилось определить категорию отеля. Напишите от 1 до 5 звёзд — например: 4, «от 4★» или «не важно».");
+
+            }
             elseif($status==MaxSearchApi::$statusNights)
             {
                 $resolved = NeedValueResolver::resolve('nights', (string)$message['text']);
