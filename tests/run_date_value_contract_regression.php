@@ -80,6 +80,7 @@ foreach ($invalidPayloads as $payload) {
 $service = (string)file_get_contents(__DIR__ . '/../services/DateValueContract.php');
 $callback = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 $handler = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$resolver = (string)file_get_contents(__DIR__ . '/../services/NeedValueResolver.php');
 $aiPolicy = (string)file_get_contents(__DIR__ . '/../services/AiDateContextService.php');
 $application = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
 $nativeDate = (string)file_get_contents(__DIR__ . '/../services/NativeDateService.php');
@@ -98,9 +99,11 @@ dateValueCheck(
     true
 );
 dateValueCheck(
-    'contract is connected only at the date callback and wizard free-text boundaries',
+    'contract is connected only at the date callback and canonical wizard resolver boundaries',
     substr_count($callback, 'DateValueContract::fromCallbackPayload($q)') === 1
-        && substr_count($handler, 'DateValueContract::fromStorageValue($date)') === 1
+        && substr_count($resolver, 'DateValueContract::fromStorageValue($text)') === 1
+        && strpos($handler, 'DateValueContract::fromStorageValue') === false
+        && strpos($handler, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false
         && strpos($aiPolicy, 'DateValueContract') === false
         && strpos($application, 'DateValueContract') === false
         && strpos($nativeDate, 'DateValueContract') === false,

@@ -120,7 +120,17 @@ $nightsUnknown = NeedValueResolver::resolve('nights', 'от 7');
 nvrCheck('minimum-only nights stays unresolved', $nightsUnknown['recognized'], false);
 nvrCheck('minimum-only nights has no invented value', $nightsUnknown['value'], null);
 
-$unsupported = NeedValueResolver::resolve('date', '12 октября');
+$date = NeedValueResolver::resolve('date', '31.12.2030');
+nvrCheck('canonical stored date is recognized', $date['recognized'], true);
+nvrCheck('canonical stored date is preserved exactly', $date['value'], '31.12.2030');
+nvrCheck('date source is exact value contract', $date['source'], 'deterministic:date_value_contract');
+nvrCheck('date deterministic confidence', $date['confidence'], 1.0);
+$dateInvalid = NeedValueResolver::resolve('date', '31.02.2030');
+nvrCheck('calendar-invalid stored date stays unresolved', $dateInvalid['recognized'], false);
+$dateNatural = NeedValueResolver::resolve('date', '12 октября');
+nvrCheck('resolver does not take over natural date parsing', $dateNatural['recognized'], false);
+
+$unsupported = NeedValueResolver::resolve('resort', 'Анталья');
 nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
     'recognized' => false,
     'value' => null,

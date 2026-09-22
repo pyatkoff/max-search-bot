@@ -158,6 +158,8 @@ $aiShortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswer
 $nightsStart = strpos($source, 'elseif($status==MaxSearchApi::$statusNights)');
 $dateStart = $nightsStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusDate)', $nightsStart);
 $nightsSource = ($nightsStart !== false && $dateStart !== false) ? substr($source, $nightsStart, $dateStart - $nightsStart) : '';
+$phoneStart = $dateStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusPhone)', $dateStart);
+$dateSource = ($dateStart !== false && $phoneStart !== false) ? substr($source, $dateStart, $phoneStart - $dateStart) : '';
 $guards = [
     'country fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($country))') !== false,
     'city fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($city))') !== false,
@@ -171,13 +173,13 @@ $guards = [
     'wizard nights uses canonical resolver/application boundary' => $nightsSource !== '' && strpos($nightsSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false && strpos($nightsSource, "'nights'") !== false && strpos($nightsSource, 'NeedValueResolver::resolve') === false,
     'wizard nights keeps existing-step status id' => $nightsSource !== '' && strpos($nightsSource, '(int)MaxSearchApi::$statusNights') !== false && strpos($nightsSource, 'ExistingWizardStepApplicationService::apply') === false,
     'AI short nights uses NeedApplicationService boundary' => strpos($aiShortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false,
-    'date state accepts free-text path' => strpos($source, 'elseif($status==MaxSearchApi::$statusDate)') !== false,
-    'date state uses pending short-date resolver' => strpos($source, 'AiDateHandler::resolvePendingShortDate(') !== false,
-    'date state resolves natural month text' => strpos($source, 'AiDateHandler::rememberMonthFromText(') !== false,
-    'wizard date uses exact value contract' => strpos($source, 'DateValueContract::fromStorageValue($date)') !== false,
-    'wizard date uses existing-step application boundary' => strpos($source, 'MaxSearchApi::$statusDate,') !== false && strpos($source, '$dateValue') !== false,
-    'wizard date no longer directly writes a value' => strpos($source, 'MaxSearchApi::saveLastValue($chat_id, MaxSearchApi::$statusDate, $date);') === false,
-    'resolved date reaches canonical progression' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($source, 'NeedProgressionService::advance($chat_id);') !== false,
+    'date state accepts free-text path' => $dateSource !== '',
+    'date state uses pending short-date resolver' => strpos($dateSource, 'AiDateHandler::resolvePendingShortDate(') !== false,
+    'date state resolves natural month text' => strpos($dateSource, 'AiDateHandler::rememberMonthFromText(') !== false,
+    'wizard date uses canonical resolver/application boundary' => strpos($dateSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false && strpos($dateSource, "'date'") !== false && strpos($dateSource, 'DateValueContract::fromStorageValue') === false,
+    'wizard date keeps existing-step status id' => strpos($dateSource, '(int)MaxSearchApi::$statusDate') !== false && strpos($dateSource, 'ExistingWizardStepApplicationService::apply') === false,
+    'wizard date no longer directly writes a value' => strpos($dateSource, 'MaxSearchApi::saveLastValue') === false,
+    'resolved date reaches canonical progression' => strpos($dateSource, "EditFlowService::finishIfNeeded(\$chat_id,'date')") !== false && strpos($dateSource, 'NeedProgressionService::advance($chat_id);') !== false,
 ];
 foreach ($guards as $label => $ok) {
     if ($ok) { echo "PASS  {$label}\n"; $passed++; }
