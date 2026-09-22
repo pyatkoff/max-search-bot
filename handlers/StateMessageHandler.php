@@ -72,6 +72,30 @@ class StateMessageHandler
                     self::send($chat_id,"Не нашла это направление в поиске. Проверьте название или выберите одну из популярных стран.");
 
             }
+            elseif($status==MaxSearchApi::$statusChild)
+            {
+                $resolved = NeedValueResolver::resolve('children', (string)($message['text'] ?? ''));
+                if(!empty($resolved['recognized']))
+                {
+                    $children = (int)$resolved['value'];
+                    if(!ExistingWizardStepApplicationService::apply(
+                        $chat_id,
+                        MaxSearchApi::$statusChild,
+                        (string)$children
+                    )) return;
+
+                    if($children===0)
+                    {
+                        if(!EditFlowService::finishIfNeeded($chat_id,'tourists'))
+                            MaxSearchApi::showStarsButtons($chat_id);
+                    }
+                    else
+                        MaxSearchApi::showAgeButtons($chat_id,$children);
+                }
+                else
+                    self::send($chat_id,"Не получилось определить количество детей. Напишите «нет», «без детей» или число от 1 до 3.");
+
+            }
             elseif($status==MaxSearchApi::$statusAge)
             {
                 $error = false;
