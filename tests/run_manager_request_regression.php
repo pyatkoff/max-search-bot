@@ -90,6 +90,7 @@ $guidance=ManagerHandoffContextService::firstReplyGuidance();
 mrCheck('first reply guidance says verbatim tourist messages are visible',strpos($guidance,'дословные сообщения туриста')!==false,true);
 mrCheck('first reply guidance forbids asking tourist to repeat needs',strpos($guidance,'Не просите туриста повторять уже указанные пожелания')!==false,true);
 mrCheck('first reply guidance points manager to missing budget or details',strpos($guidance,'бюджет')!==false,true);
+mrCheck('first reply guidance does not pretend budget and wishes are site filters',strpos($guidance,'не подтверждает их применение как фильтров')!==false,true);
 mrCheck('no manager reply is detected before handoff response',ManagerHandoffContextService::hasManagerReply($messages),false);
 $messages[]=['direction'=>'outbound','sender_type'=>'manager','text'=>'Здравствуйте'];
 mrCheck('manager reply suppresses first-response context injection',ManagerHandoffContextService::hasManagerReply($messages),true);
