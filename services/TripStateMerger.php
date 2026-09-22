@@ -35,6 +35,10 @@ class TripStateMerger
         }
         foreach ($normalizedChanges as $path => $value) {
             if (array_key_exists($path, $budgetChanges)) continue;
+            if (in_array($path, ['preferences','negative_preferences'], true)) {
+                $state[$path] = self::mergePreferenceList((array)($state[$path] ?? []), $value);
+                continue;
+            }
             self::set($state, $path, $value);
         }
 
@@ -88,6 +92,12 @@ class TripStateMerger
 
         if ($path === 'dates.from' && empty($state['dates']['to'])) $state['dates']['to'] = $value;
         if ($path === 'nights.min' && empty($state['nights']['max'])) $state['nights']['max'] = $value;
+    }
+
+    private static function mergePreferenceList(array $existing, $incoming): array
+    {
+        $incoming = is_array($incoming) ? $incoming : [$incoming];
+        return array_merge($existing, $incoming);
     }
 
     private static function normalizeTourists(array &$state): void
