@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-22T01:59:21+00:00",
+    "generated_at": "2026-09-22T02:50:57+00:00",
     "production": {
-        "sha": "aee21b38055b16870e7fabf0e36f98119a1c9ad4",
+        "sha": "0c522f9b4ca7f876656c189c54353607067b9ea3",
         "branch": "main"
     },
     "migrations": {
@@ -161,16 +161,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-22 00:59:10",
+        "since_utc": "2026-09-22 01:50:42",
         "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 2,
+                "resolved": 0,
                 "unresolved": 0
             },
-            "started": 2,
+            "started": 0,
             "needs_collected": 0,
             "tours_opened": 0,
             "site_opened": 0,
@@ -187,9 +187,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "collecting_needs": 2
-            },
+            "drop_points": [],
             "flags": []
         }
     },
@@ -198,7 +196,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "aee21b38055b16870e7fabf0e36f98119a1c9ad4",
+        "sha": "0c522f9b4ca7f876656c189c54353607067b9ea3",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -207,7 +205,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-22T01:59:21Z"
+        "reported_at": "2026-09-22T02:50:57Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -215,7 +213,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-22T01:59:01+00:00",
+        "generated_at": "2026-09-22T02:50:32+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -310,7 +308,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-22T01:59:01+00:00",
+        "generated_at": "2026-09-22T02:50:32+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -608,7 +606,7 @@
                 "date": "2026-09-22",
                 "partial": true,
                 "since_utc": "2026-09-21 22:00:00",
-                "until_utc": "2026-09-22 01:59:01",
+                "until_utc": "2026-09-22 02:50:32",
                 "channels": [
                     {
                         "channel": "max",
@@ -700,7 +698,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-22T01:59:19+00:00",
+        "generated_at": "2026-09-22T02:50:54+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -714,8 +712,8 @@
             },
             "services": {
                 "files": 156,
-                "bytes": 643813,
-                "code_lines": 13668
+                "bytes": 644425,
+                "code_lines": 13686
             },
             "integrations": {
                 "files": 11,
@@ -744,8 +742,8 @@
             },
             "tests": {
                 "files": 241,
-                "bytes": 1411844,
-                "code_lines": 18013
+                "bytes": 1412592,
+                "code_lines": 18021
             },
             "tools": {
                 "files": 46,
