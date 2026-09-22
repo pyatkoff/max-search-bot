@@ -123,11 +123,17 @@ tsCheck('stop intent stops', $decision['action'], RulesEngine::STOP);
 require_once __DIR__ . '/../services/ManagerSummaryService.php';
 $budgetBase = $state;
 $budgetBase['tourists'] = ['adults'=>2, 'children'=>1, 'children_ages'=>[7]];
+tsCheck(
+    'missing budget is explicitly optional in manager summary',
+    strpos(ManagerSummaryService::build($budgetBase), 'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)') !== false,
+    true
+);
 $totalBudget = TripStateMerger::merge($budgetBase, ['budget.max'=>250000]);
 tsCheck('budget defaults to whole party', $totalBudget['budget']['basis'] ?? null, 'total');
 tsCheck('budget default has product provenance', $totalBudget['budget']['basis_source'] ?? null, 'product_default');
 tsCheck('budget amount is not multiplied by tourists', $totalBudget['budget']['max'], 250000);
 tsCheck('whole party basis appears in manager summary', strpos(ManagerSummaryService::build($totalBudget), 'Бюджет: до 250 000 RUB на всех') !== false, true);
+tsCheck('known budget suppresses unknown marker', strpos(ManagerSummaryService::build($totalBudget), 'Не указано: бюджет') === false, true);
 $morePeople = TripStateMerger::merge($totalBudget, ['tourists.adults'=>3]);
 tsCheck('changing party keeps total budget', $morePeople['budget'], $totalBudget['budget']);
 $personBudget = TripStateMerger::merge($budgetBase, ['budget.max'=>90000, 'budget.basis'=>'per_person']);
