@@ -75,7 +75,7 @@ nasCheck('short-answer handler no longer mutates through MaxSearchApi directly',
 $stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 nasCheck(
     'wizard child free text resolves and applies through canonical application service',
-    preg_match("/NeedApplicationService::resolveAndApplyExistingWizardStep\\s*\\(\\s*\\$chat_id\\s*,\\s*'children'/", $stateSource) === 1,
+    strpos($stateSource, "NeedApplicationService::resolveAndApplyExistingWizardStep(\n                    \$chat_id,\n                    'children',") !== false,
     true
 );
 nasCheck(
