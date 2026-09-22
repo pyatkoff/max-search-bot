@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/ChildAgeValueContract.php';
 
 final class TourSearchHandoffService
 {
@@ -68,17 +69,8 @@ final class TourSearchHandoffService
     private static function childAgeValues($value, int $children): array
     {
         if ($children < 1) return [];
-        if (is_array($value)) $parts = $value;
-        else $parts = preg_split('/\s*[,;]\s*/u', trim((string)$value), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        $ages = [];
-        foreach ($parts as $part) {
-            $raw = trim((string)$part);
-            if ($raw === '' || !preg_match('/^\d{1,2}$/', $raw)) continue;
-            $age = (int)$raw;
-            if ($age >= 0 && $age <= 17) $ages[] = $age;
-            if (count($ages) >= $children) break;
-        }
-        return $ages;
+        $ages = ChildAgeValueContract::fromStorage($value, $children);
+        return is_array($ages) ? $ages : [];
     }
 
     private static function dateValue($value): string
