@@ -121,6 +121,14 @@ dcrCheck('pending short date uses canonical application boundary', strpos($messa
 dcrCheck('pending short date uses canonical progression boundary', strpos($messageHandler, 'NeedProgressionService::advance($chat_id)') !== false);
 dcrCheck('message handler no longer writes pending date directly', strpos($messageHandler, 'MaxSearchApi::saveLastValue') === false && strpos($messageHandler, 'MaxSearchApi::$statusDate') === false);
 
+$stateHandler = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$dateBranchStart = strpos($stateHandler, 'elseif($status==MaxSearchApi::$statusDate)');
+$dateBranchEnd = $dateBranchStart === false ? false : strpos($stateHandler, 'elseif($status==MaxSearchApi::$statusPhone)', $dateBranchStart);
+$dateBranch = ($dateBranchStart === false || $dateBranchEnd === false) ? '' : substr($stateHandler, $dateBranchStart, $dateBranchEnd - $dateBranchStart);
+dcrCheck('explicit wizard date branch exists', $dateBranch !== '');
+dcrCheck('explicit wizard date completion uses canonical progression', strpos($dateBranch, 'NeedProgressionService::advance($chat_id);') !== false);
+dcrCheck('explicit wizard date completion no longer bypasses optional-budget progression', strpos($dateBranch, 'DialogueView::check($chat_id);') === false);
+
 DateContextResolver::clear($chatId);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);
