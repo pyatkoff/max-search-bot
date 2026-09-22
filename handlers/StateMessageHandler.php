@@ -96,15 +96,16 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusChild)
             {
-                $resolved = NeedValueResolver::resolve('children', (string)($message['text'] ?? ''));
-                if(!empty($resolved['recognized']))
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'children',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusChild
+                );
+                if(!empty($result['recognized']))
                 {
-                    $children = (int)$resolved['value'];
-                    if(!ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusChild,
-                        (string)$children
-                    )) return;
+                    if(empty($result['applied'])) return;
+                    $children = (int)$result['value'];
 
                     if($children===0)
                     {

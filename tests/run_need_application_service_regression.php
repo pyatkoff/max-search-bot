@@ -72,6 +72,18 @@ nasCheck('short-answer handler uses application service', strpos($handlerSource,
 nasCheck('specialized multi-field children path uses application service', strpos($handlerSource, 'NeedApplicationService::applyParameters') !== false, true);
 nasCheck('short-answer handler no longer mutates through MaxSearchApi directly', strpos($handlerSource, 'MaxSearchApi::applyAiParameters') === false, true);
 
+$stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+nasCheck(
+    'wizard child free text resolves and applies through canonical application service',
+    strpos($stateSource, "NeedApplicationService::resolveAndApplyExistingWizardStep(\n                    \$chat_id,\n                    'children',") !== false,
+    true
+);
+nasCheck(
+    'wizard child free text has no direct resolver bypass',
+    strpos($stateSource, "NeedValueResolver::resolve('children'") === false,
+    true
+);
+
 $aiMessageSource = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php');
 $completionSource = (string)file_get_contents(__DIR__ . '/../services/AiNeedCompletionService.php');
 nasCheck('AI message final parameter application uses completion boundary', strpos($aiMessageSource, 'AiNeedCompletionService::applyAndAdvance') !== false, true);
