@@ -4,6 +4,7 @@ require_once __DIR__ . '/../services/TripStateRepository.php';
 require_once __DIR__ . '/../services/ShadowDialogueService.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/RuntimeStorage.php';
+require_once __DIR__ . '/../services/NeedApplicationService.php';
 
 class AiShadowObserver
 {
@@ -20,21 +21,49 @@ class AiShadowObserver
 
             // A fresh legacy context means a new selection was started (including ai_start).
             // Do not carry budget/preferences from the previous trip across that boundary.
-            if (empty(array_diff_key($legacy, ['budget'=>true]))) {
+            if (empty(array_diff_key($legacy, ['budget'=>true,'preferences'=>true,'negative_preferences'=>true]))) {
                 TripStateRepository::delete($chatId, dirname(__DIR__));
                 $stored = [];
             } else {
                 $stored = TripStateRepository::load($chatId, dirname(__DIR__));
             }
             $state = TripStateRepository::overlay($legacyState, $stored);
-            // Standalone budget has one authoritative owner: the current start row.
-            // A cached model value must not undo an amount correction or clear.
+
+            // Standalone active metadata has one authoritative owner. Cached shadow
+            // values must not undo a budget correction, clear, or accepted wish list.
             $canonicalBudget = RuntimeStorage::usesMysql() ? $legacyState['budget'] : null;
             if ($canonicalBudget !== null) $state['budget'] = $canonicalBudget;
+            if (RuntimeStorage::usesMysql()) {
+                $state['preferences'] = (array)($legacyState['preferences'] ?? []);
+                $state['negative_preferences'] = (array)($legacyState['negative_preferences'] ?? []);
+            }
+
             $result = ShadowDialogueService::run($chatId, $message, $state);
             if ($canonicalBudget !== null && is_array($result['new_state'] ?? null)) {
                 $result['new_state']['budget'] = $canonicalBudget;
             }
+
+            if (RuntimeStorage::usesMysql()) {
+                try {
+                    NeedApplicationService::applyExtractedPreferences(
+                        $chatId,
+                        (array)($result['extracted']['changes'] ?? []),
+                        (array)($result['extracted']['confidence'] ?? [])
+                    );
+                } catch (Throwable $e) {
+                    DiagnosticLogger::error('dialogue_v2_shadow', 'preference_persist_failed', [
+                        'error_type'=>get_class($e),
+                    ], $chatId);
+                }
+                // Read back canonical metadata after the guarded application. Rejected,
+                // stale or low-confidence model values are not allowed to live in shadow.
+                $active = (array)MaxSearchApi::getAiSearchContext($chatId);
+                if (is_array($result['new_state'] ?? null)) {
+                    $result['new_state']['preferences'] = array_values((array)($active['preferences'] ?? []));
+                    $result['new_state']['negative_preferences'] = array_values((array)($active['negative_preferences'] ?? []));
+                }
+            }
+
             if (!empty($result['new_state']) && is_array($result['new_state'])) {
                 TripStateRepository::save($chatId, $result['new_state'], dirname(__DIR__));
             }
