@@ -38,14 +38,7 @@ class NeedApplicationService
     public static function applyExtractedPreferences($chatId, array $changes, array $confidence): bool
     {
         if (!class_exists('MaxSearchApi')) return false;
-        $accepted = [];
-        foreach (['preferences','negative_preferences'] as $key) {
-            if (!array_key_exists($key, $changes) || !is_array($changes[$key]) || $changes[$key] === []) continue;
-            $score = $confidence[$key] ?? null;
-            if ((!is_int($score) && !is_float($score)) || !is_finite((float)$score)
-                || (float)$score < self::EXTRACTED_PREFERENCE_CONFIDENCE || (float)$score > 1.0) continue;
-            $accepted[$key] = $changes[$key];
-        }
+        $accepted = self::acceptedExtractedPreferences($changes, $confidence);
         if ($accepted === []) return false;
         $applied = self::applyParameters($chatId, ['preferences_update'=>[
             'snapshot'=>ConversationStateRepository::preferenceSnapshot($chatId, (int)MaxSearchApi::$statusStart),
@@ -72,5 +65,18 @@ class NeedApplicationService
         }
         $applied = $params === [] ? [] : MaxSearchApi::applyAiParameters($chatId, $params);
         return array_merge(is_array($applied) ? $applied : [], $metadataApplied);
+    }
+
+    private static function acceptedExtractedPreferences(array $changes, array $confidence): array
+    {
+        $accepted = [];
+        foreach (['preferences','negative_preferences'] as $key) {
+            if (!array_key_exists($key, $changes) || !is_array($changes[$key]) || $changes[$key] === []) continue;
+            $score = $confidence[$key] ?? null;
+            if ((!is_int($score) && !is_float($score)) || !is_finite((float)$score)
+                || (float)$score < self::EXTRACTED_PREFERENCE_CONFIDENCE || (float)$score > 1.0) continue;
+            $accepted[$key] = $changes[$key];
+        }
+        return $accepted;
     }
 }
