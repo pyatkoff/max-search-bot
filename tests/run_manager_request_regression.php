@@ -62,9 +62,13 @@ $aiContext=[
 ];
 $messages=[
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'pick_date_30.08.2026'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'g1_deadbeef_show_tours'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'Октябрь'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'3х разовое'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'Хочу спокойный отель 18+ со средней территорией'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Dubai'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'ok'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Rixos'],
     ['direction'=>'inbound','sender_type'=>'customer','text'=>'79158966837'],
 ];
 $summary=ManagerHandoffContextService::build($aiContext,$messages);
@@ -76,7 +80,11 @@ mrCheck('raw transcript is explicitly labelled',strpos($summary,'🗣 Что п�
 mrCheck('raw transcript preserves short month answer',strpos($summary,'• Октябрь')!==false,true);
 mrCheck('raw transcript preserves exact meal wording',strpos($summary,'• 3х разовое')!==false,true);
 mrCheck('raw transcript preserves meaningful customer wording',strpos($summary,'• Хочу спокойный отель 18+ со средней территорией')!==false,true);
+mrCheck('raw transcript preserves genuine Latin destination text',strpos($summary,'• Dubai')!==false,true);
+mrCheck('raw transcript preserves genuine short Latin acknowledgement',strpos($summary,'• ok')!==false,true);
+mrCheck('raw transcript preserves genuine Latin hotel token',strpos($summary,'• Rixos')!==false,true);
 mrCheck('raw transcript excludes callback payloads',strpos($summary,'pick_date_30.08.2026')===false,true);
+mrCheck('raw transcript excludes generated callback payloads',strpos($summary,'g1_deadbeef_show_tours')===false,true);
 mrCheck('phone is not misclassified as free-text note',strpos($summary,'Дополнение туриста: 79158966837')===false,true);
 $guidance=ManagerHandoffContextService::firstReplyGuidance();
 mrCheck('first reply guidance says verbatim tourist messages are visible',strpos($guidance,'дословные сообщения туриста')!==false,true);
@@ -147,11 +155,11 @@ mrCheck('callback manager action delegates presentation to shared dispatch',strp
 mrCheck('callback no longer bypasses availability with direct manager request view',strpos($callbackActionSource,'DialogueView::managerRequest($chatId, self::userName($query), $afterTours)')===false,true);
 mrCheck('shared dispatch checks live manager availability',strpos($dispatchSource,'ManagerAvailabilityService::anyWorkingForConversation')!==false,true);
 mrCheck('shared dispatch gates availability lookup by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
-mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"\$model['working_wait_text']")!==false,true);
-mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"\$managerAvailable ? \$model['online_text'] : \$model['working_wait_text']")!==false,true);
-mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false,true);
+mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"$model['working_wait_text']")!==false,true);
+mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"$managerAvailable ? $model['online_text'] : $model['working_wait_text']")!==false,true);
+mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"$fromTours,\n                true")!==false,true);
 mrCheck('five-minute fallback remains separate from initial handoff',strpos($dispatchSource,'ManagerPhoneFallbackService')===false,true);
-mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>\$handoff['manager_available']")!==false,true);
+mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>$handoff['manager_available']")!==false,true);
 
 $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
