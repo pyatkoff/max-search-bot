@@ -4,7 +4,7 @@ require_once dirname(__DIR__) . '/services/WizardStepView.php';
 require_once dirname(__DIR__) . '/services/EditFlowService.php';
 require_once dirname(__DIR__) . '/services/IntegrationRegistry.php';
 require_once dirname(__DIR__) . '/services/NeedValueResolver.php';
-require_once dirname(__DIR__) . '/services/AiSearchContextService.php';
+require_once dirname(__DIR__) . '/services/NeedApplicationService.php';
 require_once dirname(__DIR__) . '/services/ExistingWizardStepApplicationService.php';
 require_once dirname(__DIR__) . '/services/ChildAgeValueContract.php';
 require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
@@ -169,21 +169,15 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusMeal)
             {
-                $resolved = NeedValueResolver::resolve('meal', (string)($message['text'] ?? ''));
-                if(!empty($resolved['recognized']))
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'meal',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusMeal
+                );
+                if(!empty($result['recognized']))
                 {
-                    $normalized = AiSearchContextService::normalizeParameters(
-                        ['meal'=>(string)$resolved['value']],
-                        static function($name){ return null; },
-                        static function($name){ return null; }
-                    );
-                    $meal = $normalized['meal'] ?? null;
-                    if($meal===null) return;
-                    if(!ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusMeal,
-                        (string)$meal
-                    )) return;
+                    if(empty($result['applied'])) return;
                     if(!EditFlowService::finishIfNeeded($chat_id,'meal'))
                         WizardStepView::nights($chat_id);
                 }
