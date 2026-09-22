@@ -26,6 +26,12 @@ class AiSearchContextService
         if (!empty($saved[$status['date']])) $out['date'] = (string)$saved[$status['date']];
 
         if (is_array($saved['_budget'] ?? null)) $out['budget'] = $saved['_budget'];
+        if (is_array($saved['_preferences'] ?? null) && $saved['_preferences'] !== []) {
+            $out['preferences'] = array_values($saved['_preferences']);
+        }
+        if (is_array($saved['_negative_preferences'] ?? null) && $saved['_negative_preferences'] !== []) {
+            $out['negative_preferences'] = array_values($saved['_negative_preferences']);
+        }
 
         return $out;
     }
