@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-22T22:54:30+00:00",
+    "generated_at": "2026-09-22T23:59:08+00:00",
     "production": {
-        "sha": "1829151f15344e2926743052942916f6913daff6",
+        "sha": "cd143582047c27b246236f99aecbe4930d873b14",
         "branch": "main"
     },
     "migrations": {
@@ -161,7 +161,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-22 21:54:18",
+        "since_utc": "2026-09-22 22:58:56",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -196,7 +196,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "1829151f15344e2926743052942916f6913daff6",
+        "sha": "cd143582047c27b246236f99aecbe4930d873b14",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -205,7 +205,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-22T22:54:30Z"
+        "reported_at": "2026-09-22T23:59:08Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -213,7 +213,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-22T22:54:08+00:00",
+        "generated_at": "2026-09-22T23:58:47+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -308,7 +308,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-22T22:54:08+00:00",
+        "generated_at": "2026-09-22T23:58:47+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -606,7 +606,7 @@
                 "date": "2026-09-23",
                 "partial": true,
                 "since_utc": "2026-09-22 22:00:00",
-                "until_utc": "2026-09-22 22:54:08",
+                "until_utc": "2026-09-22 23:58:47",
                 "channels": [
                     {
                         "channel": "max",
@@ -695,7 +695,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-22T22:54:28+00:00",
+        "generated_at": "2026-09-22T23:59:05+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -709,8 +709,8 @@
             },
             "services": {
                 "files": 157,
-                "bytes": 651864,
-                "code_lines": 13858
+                "bytes": 652068,
+                "code_lines": 13862
             },
             "integrations": {
                 "files": 11,
@@ -739,8 +739,8 @@
             },
             "tests": {
                 "files": 242,
-                "bytes": 1444252,
-                "code_lines": 18414
+                "bytes": 1445372,
+                "code_lines": 18427
             },
             "tools": {
                 "files": 46,
