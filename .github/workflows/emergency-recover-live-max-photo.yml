@@ -70,14 +70,25 @@ jobs:
               if(is_array($value)) foreach($value as $v) $collectUrls($v);
           };
           $bestPath='';$bestSize=0;$bestMime='';
+          echo "ANCHOR=1 ROWS=".count($rows)."\n";
 
           foreach($rows as $row){
+              $offset=(int)$row['id']-(int)$anchor['id'];
               $meta=json_decode((string)($row['metadata_json']??''),true);
+              $metaAttachments=is_array($meta['attachments']??null)?$meta['attachments']:[];
+              $metaTypes=[];foreach($metaAttachments as $a)if(is_array($a))$metaTypes[]=(string)($a['type']??'');
+              echo "ROW offset={$offset} text_len=".strlen((string)($row['text']??''))." mid=".((string)($row['external_message_id']??'')!==''?'1':'0')." meta_count=".count($metaAttachments)." meta_types=".implode(',',$metaTypes)."\n";
               if(is_array($meta)) $collectUrls($meta['attachments']??[]);
               $mid=trim((string)($row['external_message_id']??''));
               if($mid!==''){
                   $remote=MaxTransport::request(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,'GET','/messages/'.rawurlencode($mid),[],null,null);
-                  if(is_array($remote)) $collectUrls($remote);
+                  if(is_array($remote)){
+                      $types=[];$tokens=0;$walk=function($v) use (&$walk,&$types,&$tokens):void{if(!is_array($v))return;if(isset($v['type'])&&is_scalar($v['type']))$types[]=(string)$v['type'];if(isset($v['token'])&&is_scalar($v['token'])&&trim((string)$v['token'])!=='')$tokens++;foreach($v as $x)if(is_array($x))$walk($x);};$walk($remote);
+                      $beforeUrlCount=count($urls);$collectUrls($remote);
+                      echo " API=1 types=".implode(',',array_values(array_unique($types)))." tokens={$tokens} urls=".(count($urls)-$beforeUrlCount)."\n";
+                  } else {
+                      $err=MaxTransport::lastError();echo " API=0 category=".(string)($err['category']??'unknown')." http=".(int)($err['http_code']??0)."\n";
+                  }
               }
               foreach(array_values(array_unique($urls)) as $url){
                   $tmp='/tmp/recovered-candidate-'.bin2hex(random_bytes(4)).'.bin';
