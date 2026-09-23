@@ -68,7 +68,41 @@ class NeedValueResolver
             return self::result($value !== null, $value, 'deterministic:date_value_contract');
         }
 
+        if ($field === 'date_flexibility') {
+            $value = self::dateFlexibilityChanges($text);
+            return self::result($value !== null, $value, 'deterministic:date_flexibility');
+        }
+
         return self::result(false, null, 'unsupported');
+    }
+
+    /**
+     * Explicit date-flexibility wording is manager context, not a search range.
+     * Keep this deliberately narrow: if the same turn contains an actual date,
+     * the ordinary date parser owns it and we do not silently keep the old date.
+     */
+    private static function dateFlexibilityChanges(string $text): ?array
+    {
+        $text = trim((string)(preg_replace('/\s+/u', ' ', $text) ?? $text));
+        if ($text === '') return null;
+
+        if (preg_match('/(?:\b\d{1,2}[.\/-]\d{1,2}(?:[.\/-]\d{2,4})?\b|\b(?:январ\w*|феврал\w*|март\w*|апрел\w*|ма[йя]\w*|июн\w*|июл\w*|август\w*|сентябр\w*|октябр\w*|ноябр\w*|декабр\w*)\b)/ui', $text)) {
+            return null;
+        }
+
+        $strict = preg_match(
+            '/(?:дат(?:а|у|ы)?\s+(?:не\s+)?(?:сдвигать|двигать|переносить)|дат(?:а|ы)?\s+(?:строг\w*|фиксирован\w*)|только\s+(?:эта|эти)\s+дат\w*)/ui',
+            $text
+        ) === 1;
+        if ($strict) return ['preferences_remove'=>['даты можно сдвигать']];
+
+        $flexible = preg_match(
+            '/(?:дат(?:а|ы)?\s+(?:можно\s+)?(?:сдвигать|сдвинуть|двигать|подвигать|перенести|гибк\w*)|дат(?:а|ы)?\s+не\s+принципиал\w*|по\s+датам\s+(?:гибк\w*|не\s+принципиал\w*))/ui',
+            $text
+        ) === 1;
+        if ($flexible) return ['preferences'=>['даты можно сдвигать']];
+
+        return null;
     }
 
     private static function result(bool $recognized, $value, string $source): array
