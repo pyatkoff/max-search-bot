@@ -59,13 +59,33 @@ $accepted = $preferenceFilter->invoke(null,
 nasCheck('high-confidence explicit wishes are eligible for canonical application', $accepted, [
     'preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель'],
 ]);
+$acceptedRemoval = $preferenceFilter->invoke(null,
+    ['preferences_remove'=>['первая линия'],'negative_preferences_remove'=>['шумный отель']],
+    ['preferences_remove'=>0.97,'negative_preferences_remove'=>0.92]
+);
+nasCheck('high-confidence neutral wish corrections are eligible for canonical application', $acceptedRemoval, [
+    'preferences_remove'=>['первая линия'],'negative_preferences_remove'=>['шумный отель'],
+]);
 $rejected = $preferenceFilter->invoke(null,
-    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель']],
-    ['preferences'=>0.89,'negative_preferences'=>1.01]
+    ['preferences'=>['тихий отель'],'negative_preferences'=>['шумный отель'],'preferences_remove'=>['первая линия']],
+    ['preferences'=>0.89,'negative_preferences'=>1.01,'preferences_remove'=>0.89]
 );
 nasCheck('low or invalid confidence is not promoted', $rejected, []);
-$scalar = $preferenceFilter->invoke(null, ['preferences'=>'тихий отель'], ['preferences'=>0.99]);
-nasCheck('unstructured model preference is not promoted', $scalar, []);
+$scalar = $preferenceFilter->invoke(null, ['preferences_remove'=>'первая линия'], ['preferences_remove'=>0.99]);
+nasCheck('unstructured model preference removal is not promoted', $scalar, []);
+
+require_once __DIR__ . '/../ai/TouristExtractorV2.php';
+$extractorFilter = new ReflectionMethod(TouristExtractorV2::class, 'filterChanges');
+$extractorFilter->setAccessible(true);
+$filteredCorrection = $extractorFilter->invoke(null, [
+    'preferences_remove'=>['первая линия'],
+    'negative_preferences_remove'=>['шумный отель'],
+    'unsupported_remove'=>['не должно пройти'],
+]);
+nasCheck('extractor allowlist carries neutral preference corrections only through explicit keys', $filteredCorrection, [
+    'preferences_remove'=>['первая линия'],
+    'negative_preferences_remove'=>['шумный отель'],
+]);
 
 $handlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
 nasCheck('short-answer handler uses application service', strpos($handlerSource, 'NeedApplicationService::resolveAndApply') !== false, true);
