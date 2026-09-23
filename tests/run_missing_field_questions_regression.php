@@ -14,8 +14,19 @@ class MissingQuestionTestMessenger implements MessengerInterface {
 }
 class MaxSearchApi {
     public static $statusAi = 76;
+    public static $statusDate = 73;
+    public static $statusCheck = 74;
     public static array $statuses = [];
+    public static array $lastValues = [];
     public static function setStatus($chatId,$status,$mess=false){ self::$statuses[]=[(int)$chatId,(int)$status]; }
+    public static function getAiMissingFields($chatId): array { return []; }
+    public static function getLastValue($chatId,$status){ return self::$lastValues[$status] ?? false; }
+    public static function funnelLog($chatId,$event,$meta=[]): void {}
+    public static function deletePrevMessage($chatId): void {}
+    public static function getSavedData($chatId): array { return []; }
+    public static function formatSavedData(array $saved): array { return []; }
+    public static function saveLastValue($chatId,$status,$value){ self::$lastValues[$status]=$value; return true; }
+    public static function getAiSearchContext($chatId): array { return []; }
 }
 require_once __DIR__ . '/../services/MissingFieldQuestionService.php';
 
@@ -50,6 +61,20 @@ mfqCheck('NeedProgressionService reads canonical missing-field order', strpos($p
 mfqCheck('NeedProgressionService completes through DialogueView', strpos($progressionSource,'DialogueView::check($chatId)') !== false, true);
 mfqCheck('NeedProgressionService asks through shared question service', strpos($progressionSource,'MissingFieldQuestionService::sendForMissing($chatId, $missing, $questionOptions)') !== false, true);
 mfqCheck('NeedProgressionService exposes selected next field', strpos($progressionSource,"'next_field' => (string)\$missing[0]") !== false, true);
+mfqCheck('NeedProgressionService reuses current check row for one-time optional budget prompt', strpos($progressionSource,'MaxSearchApi::getLastValue($chatId, MaxSearchApi::$statusCheck) !== false') !== false, true);
+
+// The first complete check may offer the skippable budget clarification once.
+// Re-completing the same start-session after a correction must not send it again.
+require_once __DIR__ . '/../services/NeedProgressionService.php';
+$optionalBefore = count($m->sent);
+NeedProgressionService::advance(321);
+mfqCheck('first completed check offers optional budget once', count($m->sent), $optionalBefore + 1);
+mfqCheck('first optional budget copy remains skippable', strpos($m->sent[$optionalBefore][1] ?? '', 'Бюджет — необязательно') !== false, true);
+NeedProgressionService::advance(321);
+mfqCheck('second completed check in same session does not repeat optional budget', count($m->sent), $optionalBefore + 1);
+MaxSearchApi::$lastValues = [];
+NeedProgressionService::advance(321);
+mfqCheck('fresh start boundary can offer optional budget again', count($m->sent), $optionalBefore + 2);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
