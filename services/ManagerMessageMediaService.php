@@ -18,17 +18,22 @@ class ManagerMessageMediaService
         $mediaById = [];
         foreach ($q->fetchAll() as $row) {
             $meta = json_decode((string)($row['metadata_json'] ?? ''), true);
-            if (!is_array($meta) || empty($meta['attachments']) || !is_array($meta['attachments'])) continue;
+            if (!is_array($meta)) continue;
+            $linked=self::publicLinkedMessage((array)($meta['linked_message']??[]));
+            $attachments=!empty($meta['attachments'])&&is_array($meta['attachments'])?$meta['attachments']:[];
+            if(!$attachments && !$linked) continue;
             $mediaById[(int)$row['id']] = [
                 'channel'=>(string)($row['channel'] ?? ''),
                 'direction'=>(string)($row['direction'] ?? ''),
-                'attachments'=>array_values(array_filter($meta['attachments'], static function ($attachment) {
+                'linked_message'=>$linked,
+                'attachments'=>array_values(array_filter($attachments, static function ($attachment) {
                     return is_array($attachment) && in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true);
                 })),
             ];
         }
         foreach ($messages as &$message) {
-            $media = $mediaById[(int)($message['id'] ?? 0)] ?? ['channel'=>'','direction'=>'','attachments'=>[]];
+            $media = $mediaById[(int)($message['id'] ?? 0)] ?? ['channel'=>'','direction'=>'','attachments'=>[],'linked_message'=>[]];
+            if(!empty($media['linked_message'])) $message['linked_message']=$media['linked_message'];
             $attachments = $media['attachments'];
             $message['attachments'] = self::publicAttachments(
                 (int)($message['id'] ?? 0),
@@ -42,6 +47,20 @@ class ManagerMessageMediaService
         }
         unset($message);
         return $messages;
+    }
+
+    private static function publicLinkedMessage(array $linked): array
+    {
+        $type=(string)($linked['type']??'');
+        if(!in_array($type,['reply','forward'],true)) return [];
+        $out=['type'=>$type];
+        $mid=trim((string)($linked['mid']??''));
+        if($mid!=='' && preg_match('/^(?:mid\.)?[A-Za-z0-9_-]+$/D',$mid)) $out['mid']=$mid;
+        $name=trim((string)($linked['sender_name']??''));
+        if($name!=='') $out['sender_name']=mb_substr($name,0,160,'UTF-8');
+        $text=trim((string)($linked['text']??''));
+        if($text!=='') $out['text']=mb_substr($text,0,500,'UTF-8');
+        return $out;
     }
 
     public static function publicAttachments(int $messageId, array $attachments, string $channel = '', string $direction = ''): array

@@ -47,6 +47,8 @@ $forwardIncoming=MaxIncomingAdapter::fromUpdate($forwardUpdate);
 mediaCheck('MAX forward context retained',$forwardIncoming['linked_message']['type']??null,'forward');
 mediaCheck('forwarded MAX video retained',$forwardIncoming['attachments'][0]['type']??null,'video');
 mediaCheck('forwarded MAX video token retained',$forwardIncoming['attachments'][0]['token']??null,'video-token');
+$linkedProjection=ManagerMessageMediaService::hydrate([['id'=>991,'direction'=>'inbound','sender_type'=>'customer','text'=>'Этот вариант']]);
+
 $nestedUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.media.2','attachments'=>[
     ['type'=>'image','payload'=>['photos'=>[['token'=>'nested-token','url'=>'https://cdn.example/nested-photo.jpg']]]],
 ]]]];
@@ -118,6 +120,7 @@ mediaCheck('recorder stores attachments in metadata', strpos($recorderSource, '$
 mediaCheck('manager detail hydrates media metadata', strpos($apiSource, 'ManagerMessageMediaService::hydrate') !== false, true);
 mediaCheck('Workspace V2 renders image media', strpos($conversationUiSource, "a.type==='image'") !== false && strpos($conversationUiSource, "document.createElement('img')") !== false && strpos($conversationUiSource, 'n.loading=\'lazy\'') !== false, true);
 mediaCheck('Workspace V2 renders video media', strpos($conversationUiSource, "a.type==='video'") !== false && strpos($conversationUiSource, "document.createElement('video')") !== false && strpos($conversationUiSource, 'n.controls=true') !== false, true);
+mediaCheck('Workspace V2 renders linked reply context', strpos($conversationUiSource, 'renderLinkedMessage') !== false && strpos($conversationUiSource, 'Ответ на сообщение') !== false && strpos($conversationUiSource, 'Пересланное сообщение') !== false, true);
 mediaCheck('Workspace V2 renders audio media', strpos($conversationUiSource, "a.type==='audio'") !== false && strpos($conversationUiSource, "document.createElement('audio')") !== false && strpos($conversationUiSource, 'n.controls=true') !== false, true);
 mediaCheck('Workspace V2 renders files as safe links', strpos($conversationUiSource, "document.createElement('a')") !== false && strpos($conversationUiSource, "n.target='_blank'") !== false && strpos($conversationUiSource, "n.rel='noopener'") !== false, true);
 mediaCheck('MAX media flow starts with uploads endpoint', strpos($transportSource, "'/uploads'") !== false && strpos($transportSource, '[\'type\'=>$type]') !== false, true);
