@@ -38,19 +38,21 @@
     "accepted_count_must_equal_children": true,
     "current_input_separators": [
       "space",
-      "comma"
+      "comma",
+      "semicolon",
+      "natural conjunction"
     ],
-    "current_parser": "ChildAgeValueContract::parseLegacyInput",
-    "confirmed_separator_repair": "Repeated internal ASCII spaces between digits in comma-free input form one separator; they must not add a zero-age child. Other legacy separator semantics are unchanged.",
-    "current_projection": "ChildAgeValueContract::toStorage",
-    "current_application": "ExistingWizardStepApplicationService::apply",
+    "current_parser": "NeedValueResolver::resolve(child_ages) -> ChildAgesParser::parse",
+    "confirmed_separator_repair": "Natural age wording such as '5 и 12' is accepted with exact child-count context; numeric date/range pairs such as '05.07' or '5-7' fail closed instead of being guessed as ages.",
+    "current_projection": "NeedApplicationService::resolveAndApplyExistingWizardStep -> ChildAgeValueContract::toStorage",
+    "current_application": "NeedApplicationService::resolveAndApplyExistingWizardStep -> ExistingWizardStepApplicationService::apply",
     "current_application_result_is_checked": true,
     "target_application": "ExistingWizardStepApplicationService::apply",
-    "target_projection_required": false,
+    "target_projection_required": true,
     "resolver_output_representation": "integer_array",
     "application_input_representation": "comma_space_joined_decimal_string",
     "projection_contract": "ChildAgeValueContract::toStorage",
-    "parser_parity_contract": "ChildAgeValueContract::parseLegacyInput",
+    "parser_parity_contract": "ChildAgesParser::parse",
     "target_update_existing_only": true,
     "target_insert_if_missing": false,
     "target_transition_on_failed_apply": false
@@ -106,12 +108,13 @@
       "runtime_migration_completed": true,
       "authorized_scope": "StateMessageHandler statusAge free-text branch only",
       "contract_production_green_pr": 687,
+      "canonical_resolver_application_completed": true,
       "blocker": null,
       "completed_before_runtime": [
         "executable projection contract from integer array to exact storage string",
-        "behavior parity contract for current accepted and rejected free-text separators",
-        "production-green verification of the executable contract",
-        "separate START_HERE authorization for runtime wiring"
+        "canonical deterministic child-age resolver with child-count context",
+        "update-only fail-closed application through NeedApplicationService",
+        "date/range ambiguity rejection without guessing ages"
       ],
       "required_before_runtime": []
     }
