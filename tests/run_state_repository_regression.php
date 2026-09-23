@@ -100,7 +100,8 @@ stateCheck('same-message add and neutral removal fail closed', TripContextMetada
 
 $caseNeutral = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences_remove'=>['ПЕРВАЯ ЛИНИЯ']]);
 stateCheck('neutral correction matches active wish across letter case', $caseNeutral['preferences'] ?? null, ['тихий отель','детский клуб']);
-stateCheck('case-insensitive neutral correction leaves a different property untouched', $caseNeutral['preferences'] ?? null, ['тихий отель','детский клуб']);
+$differentNeutral = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences_remove'=>['ВТОРАЯ ЛИНИЯ']]);
+stateCheck('case-insensitive neutral correction leaves a different property untouched', $differentNeutral['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
 $caseDuplicate = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences'=>['ТИХИЙ ОТЕЛЬ']]);
 stateCheck('case-variant repeat does not duplicate an active wish', $caseDuplicate['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
 stateCheck('case-variant same-message add and neutral removal fail closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
