@@ -1,0 +1,230 @@
+name: Sync legacy Bitrix lead receiver
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lead-receiver.php'
+      - 'services/RuntimeBootstrap.php'
+      - '.github/workflows/sync-legacy-lead-receiver.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: legacy-bitrix-lead-receiver-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Prepare legacy and canonical SSH keys
+        env:
+          LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          write_key() {
+            local raw="$1" out="$2" decoded
+            if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+              if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+            else
+              decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+              [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "Invalid SSH key"; exit 1; }
+              printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+            fi
+            chmod 600 "$out"; ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$LEGACY_KEY" "$RUNNER_TEMP/legacy_key"
+          write_key "$CANONICAL_KEY" "$RUNNER_TEMP/canonical_key"
+
+      - name: Wait for exact canonical production SHA
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          remote="$USER@$HOST"
+          for attempt in $(seq 1 40); do
+            deployed="$(ssh "${opts[@]}" "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
+            if [[ "$deployed" == "$EXPECTED_SHA" ]]; then echo "CANONICAL_SHA_VERIFIED=$deployed"; exit 0; fi
+            sleep 5
+          done
+          echo "Canonical production did not reach exact SHA" >&2
+          exit 1
+
+      - name: Discover retained legacy receiver
+        id: receiver
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          remote="$USER@$HOST"
+          url="$(
+            ssh "${opts[@]}" "$remote" '
+              set -euo pipefail
+              shopt -s nullglob
+              receivers=("$HOME"/www/*/max-search/lead-receiver.php)
+              [[ "${#receivers[@]}" == "1" ]]
+              receiver="${receivers[0]}"
+              grep -Fq "max-search-hmac-bitrix-lead" "$receiver"
+              domain="$(basename "$(dirname "$(dirname "$receiver")")")"
+              [[ "$domain" =~ ^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]
+              printf "https://%s/max-search/lead-receiver.php" "$domain"
+            '
+          )"
+          [[ "$url" == https://* ]]
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "LEGACY_RECEIVER_DISCOVERY=OK"
+
+      - name: Install exact receiver bootstrap with rollback
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          remote="$USER@$HOST"
+          receiver_tmp="/tmp/max-search-lead-receiver-$EXPECTED_SHA.php"
+          bootstrap_tmp="/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php"
+          scp "${opts[@]}" lead-receiver.php "$remote:$receiver_tmp"
+          scp "${opts[@]}" services/RuntimeBootstrap.php "$remote:$bootstrap_tmp"
+          ssh "${opts[@]}" "$remote" "
+            set -euo pipefail
+            shopt -s nullglob
+            receivers=(\"\$HOME\"/www/*/max-search/lead-receiver.php)
+            [[ \"\${#receivers[@]}\" == \"1\" ]]
+            receiver=\"\${receivers[0]}\"
+            root=\"\$(dirname \"\$receiver\")\"
+            runtime=\"\$root/services/RuntimeBootstrap.php\"
+            rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
+            rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
+            runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+            cp \"\$receiver\" \"\$rb_receiver\"
+            rm -f \"\$rb_runtime\" \"\$runtime_absent\"
+            if [[ -f \"\$runtime\" ]]; then cp \"\$runtime\" \"\$rb_runtime\"; else : > \"\$runtime_absent\"; fi
+            rollback(){
+              cp \"\$rb_receiver\" \"\$receiver\" || true
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\" || true; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
+            }
+            trap rollback ERR
+            install -m 0644 '$receiver_tmp' \"\$receiver\"
+            install -m 0644 '$bootstrap_tmp' \"\$runtime\"
+            php -l \"\$receiver\" >/dev/null
+            php -l \"\$runtime\" >/dev/null
+            grep -Fq 'RuntimeBootstrap::boot' \"\$receiver\"
+            trap - ERR
+          "
+          echo "LEGACY_RECEIVER_FILES_INSTALLED=OK"
+
+      - name: Verify legacy receiver and canonical HMAC bridge
+        env:
+          URL: ${{ steps.receiver.outputs.url }}
+          LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
+          LEGACY_USER: ${{ secrets.DEPLOY_USER }}
+          CANONICAL_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CANONICAL_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          legacy_opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          canonical_opts=(-i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          rollback_legacy(){
+            ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
+              set -euo pipefail
+              shopt -s nullglob
+              receivers=(\"\$HOME\"/www/*/max-search/lead-receiver.php)
+              [[ \"\${#receivers[@]}\" == \"1\" ]]
+              receiver=\"\${receivers[0]}\"; root=\"\$(dirname \"\$receiver\")\"
+              runtime=\"\$root/services/RuntimeBootstrap.php\"
+              rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
+              rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
+              runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+              [[ -f \"\$rb_receiver\" ]] && cp \"\$rb_receiver\" \"\$receiver\"
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\"; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
+            " || true
+          }
+          trap rollback_legacy ERR
+          code="$(curl -sS -o "$RUNNER_TEMP/legacy-receiver.json" -w '%{http_code}' --max-time 30 "$URL")"
+          [[ "$code" == "200" ]]
+          grep -Fq 'max-search-hmac-bitrix-lead' "$RUNNER_TEMP/legacy-receiver.json"
+          ssh "${canonical_opts[@]}" "$CANONICAL_USER@$CANONICAL_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/lead_bridge_probe.php | grep -Fq "LEAD_BRIDGE_PROBE=OK"'
+          trap - ERR
+          echo "LEGACY_RECEIVER_SYNC=VERIFIED_BACKUP_RETAINED"
+
+      - name: Wait for natural Telegram retry to clear
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
+          LEGACY_USER: ${{ secrets.DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          legacy_opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          remote="$USER@$HOST"
+          rollback_legacy(){
+            ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
+              set -euo pipefail
+              shopt -s nullglob
+              receivers=(\"\$HOME\"/www/*/max-search/lead-receiver.php)
+              [[ \"\${#receivers[@]}\" == \"1\" ]]
+              receiver=\"\${receivers[0]}\"; root=\"\$(dirname \"\$receiver\")\"
+              runtime=\"\$root/services/RuntimeBootstrap.php\"
+              rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
+              rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
+              runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+              [[ -f \"\$rb_receiver\" ]] && cp \"\$rb_receiver\" \"\$receiver\"
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\"; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
+              rm -f \"\$rb_receiver\" \"\$rb_runtime\" \"\$runtime_absent\"
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.php /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php
+            " || true
+          }
+          commit_legacy(){
+            ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
+              set -euo pipefail
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.bak /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.php /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php
+            "
+          }
+          trap rollback_legacy ERR
+          for attempt in $(seq 1 60); do
+            if ssh "${opts[@]}" "$remote" '
+              set -e
+              cd /var/www/anytoour/data/www/app.anytoour.ru
+              out="$(php tools/telegram_webhook_status.php)"
+              printf "%s\n" "$out" | grep -Fq "\"ok\": true"
+              printf "%s\n" "$out" | grep -Fq "\"pending_update_count\": 0"
+            '; then
+              ssh "${opts[@]}" "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
+              commit_legacy
+              trap - ERR
+              echo "TELEGRAM_PENDING_UPDATE_COUNT=0"
+              echo "LEGACY_RECEIVER_SYNC=COMMITTED"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Telegram pending update did not clear after legacy receiver bootstrap" >&2
+          rollback_legacy
+          trap - ERR
+          exit 1
