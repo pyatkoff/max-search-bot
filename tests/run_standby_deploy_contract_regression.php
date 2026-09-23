@@ -10,6 +10,7 @@ $repair=(string)file_get_contents($base.'/tools/repair_standby_external_config.p
 $cleanup=(string)file_get_contents($base.'/tools/standby_cleanup_runtime_config.php');
 $leadRepairTool=(string)file_get_contents($base.'/tools/repair_lead_receiver_config.php');
 $leadRepairWorkflow=(string)file_get_contents($base.'/.github/workflows/repair-lead-receiver-config.yml');
+$legacyReceiverSync=(string)file_get_contents($base.'/.github/workflows/sync-legacy-lead-receiver.yml');
 require_once $base.'/services/LeadReceiverConfigEditor.php';
 $passed=0;$failed=0;
 function standbyCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
@@ -69,6 +70,12 @@ standbyCheck('lead receiver repair waits for exact production sha',strpos($leadR
 standbyCheck('lead receiver repair verifies read-only bridge auth before committing config',strpos($leadRepairWorkflow,'php tools/lead_bridge_probe.php')!==false&&strpos($leadRepairWorkflow,'standalone_readiness.php')!==false&&strpos($leadRepairWorkflow,'--commit')!==false);
 standbyCheck('lead receiver repair never sends a synthetic lead',strpos($leadRepairWorkflow,'lead-receiver.php')!==false&&strpos($leadRepairWorkflow,'CURLOPT_POST')===false&&strpos($leadRepairWorkflow,'--data')===false);
 standbyCheck('lead receiver repair waits for natural Telegram retry and uses non-invasive smoke',strpos($leadRepairWorkflow,'pending_update_count')!==false&&strpos($leadRepairWorkflow,'telegram_start_smoke.php')!==false);
+standbyCheck('legacy receiver sync uses exact source checkout and both bounded ssh owners',strpos($legacyReceiverSync,'ref: ${{ github.sha }}')!==false&&strpos($legacyReceiverSync,'secrets.DEPLOY_SSH_KEY')!==false&&strpos($legacyReceiverSync,'secrets.STANDBY_DEPLOY_SSH_KEY')!==false&&strpos($legacyReceiverSync,'ConnectTimeout=10')!==false);
+standbyCheck('legacy receiver sync discovers only max-search receiver without hardcoded retired host',strpos($legacyReceiverSync,'*/max-search/lead-receiver.php')!==false&&strpos($legacyReceiverSync,'LEGACY_RECEIVER_DISCOVERY=OK')!==false);
+standbyCheck('legacy receiver sync copies only receiver bootstrap files',strpos($legacyReceiverSync,'scp "${opts[@]}" lead-receiver.php')!==false&&strpos($legacyReceiverSync,'scp "${opts[@]}" services/RuntimeBootstrap.php')!==false);
+standbyCheck('legacy receiver sync is rollbackable before verification',strpos($legacyReceiverSync,'rollback_legacy')!==false&&strpos($legacyReceiverSync,'max-search-lead-receiver-$EXPECTED_SHA.bak')!==false);
+standbyCheck('legacy receiver sync verifies public GET and canonical HMAC without synthetic POST',strpos($legacyReceiverSync,'LEAD_BRIDGE_PROBE=OK')!==false&&strpos($legacyReceiverSync,'curl -sS -o')!==false&&strpos($legacyReceiverSync,'--data')===false&&strpos($legacyReceiverSync,'CURLOPT_POST')===false);
+standbyCheck('legacy receiver sync waits for natural Telegram retry',strpos($legacyReceiverSync,'pending_update_count')!==false&&strpos($legacyReceiverSync,'telegram_start_smoke.php')!==false);
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
