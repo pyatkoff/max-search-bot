@@ -42,6 +42,14 @@ sdCheck('legacy active exclusions reach trip state', $state['negative_preference
 sdCheck('legacy state search ready', TripStateService::isSearchReady($state), true);
 sdCheck('manager summary labels wishes separately', str_contains(ManagerSummaryService::build($state), 'Пожелания: тихий отель'), true);
 sdCheck('manager summary labels exclusions separately', str_contains(ManagerSummaryService::build($state), 'Не подходит: шумный отель'), true);
+$anyStars = $state;
+$anyStars['hotel']['stars_min'] = 1;
+$anyStarsSummary = ManagerSummaryService::build($anyStars);
+sdCheck('manager brief preserves explicit no-star-preference semantics', str_contains($anyStarsSummary, 'Категория отеля: не важна'), true);
+sdCheck('manager brief does not turn no-star-preference sentinel into a 1-star wish', str_contains($anyStarsSummary, 'Отель: от 1★'), false);
+$fourStars = $state;
+$fourStars['hotel']['stars_min'] = 4;
+sdCheck('manager brief preserves real minimum-star preference', str_contains(ManagerSummaryService::build($fourStars), 'Отель: от 4★'), true);
 
 $status = [
     'city'=>65,
