@@ -77,6 +77,28 @@ foreach ($childrenFreeTextTests as [$text, $expected, $label]) {
     }
 }
 
+// If count and age are supplied in the same answer to the child-count step,
+// keep the whole turn instead of rejecting the extra age and asking twice.
+$childDetailsRoutingTests = [
+    ['1 ребёнок 7 лет', true, 'child count plus age routes complete child details'],
+    ['ребёнок, 7 лет', true, 'singular child plus age routes complete child details'],
+    ['2 детей 5 и 9 лет', true, 'multiple children with ages routes complete child details'],
+    ['1 ребёнок', false, 'count-only child answer stays deterministic wizard value'],
+    ['7 лет', false, 'age-only text does not invent child count'],
+    ['нужен детский клуб для 7 лет', false, 'hotel child-friendly wish is not party composition'],
+];
+foreach ($childDetailsRoutingTests as [$text, $expected, $label]) {
+    $actual = StateMessageHandler::shouldRouteChildDetailsToAi($text);
+    if ($actual === $expected) { echo "PASS  {$label}\n"; $passed++; }
+    else {
+        echo "FAIL  {$label}\n";
+        echo '      text: ' . $text . "\n";
+        echo '      expected: ' . var_export($expected, true) . "\n";
+        echo '      actual:   ' . var_export($actual, true) . "\n";
+        $failed++;
+    }
+}
+
 // Keep exact live nights phrases in required CI. Conversation 308 exposed the
 // prefixed range "От 7-9"; conversation 484 exposed the natural short range
 // "8 9"; conversation 555 exposed comma-separated short ranges such as "3,4";
@@ -192,8 +214,9 @@ $guards = [
     'wizard adults checks multi-field party composition before single-field apply' => strpos($source, 'if(self::shouldRoutePartyCompositionToAi($adultText))') !== false,
     'party composition routing uses canonical adults resolution' => strpos($source, "NeedValueResolver::resolve('adults', \$text)") !== false,
     'wizard child step accepts free text' => strpos($source, 'elseif($status==MaxSearchApi::$statusChild)') !== false,
+    'wizard child checks combined child details before single-field apply' => strpos($source, 'if(self::shouldRouteChildDetailsToAi($childText))') !== false,
     'wizard child step uses canonical resolver/application boundary' => strpos($source, "NeedApplicationService::resolveAndApplyExistingWizardStep(\n                    \$chat_id,\n                    'children',") !== false,
-    'wizard child step keeps existing-step status id' => strpos($source, "'children',\n                    (string)(\$message['text'] ?? ''),\n                    (int)MaxSearchApi::\$statusChild") !== false,
+    'wizard child step keeps existing-step status id' => strpos($source, "'children',\n                    \$childText,\n                    (int)MaxSearchApi::\$statusChild") !== false,
     'zero children advances without age question' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($source, 'MaxSearchApi::showStarsButtons($chat_id);') !== false,
     'positive child count advances to ages' => strpos($source, 'MaxSearchApi::showAgeButtons($chat_id,$children);') !== false,
     'wizard nights uses canonical resolver/application boundary' => $nightsSource !== '' && strpos($nightsSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false && strpos($nightsSource, "'nights'") !== false && strpos($nightsSource, 'NeedValueResolver::resolve') === false,
