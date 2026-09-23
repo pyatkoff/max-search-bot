@@ -35,7 +35,7 @@ final class TripContextMetadataPolicy
         if (!self::validBudget($value['budget'])) return null;
         $preferences = self::normalizeList($value['preferences'] ?? null);
         $negative = self::normalizeList($value['negative_preferences'] ?? null);
-        if ($preferences === null || $negative === null || array_intersect($preferences, $negative) !== []) return null;
+        if ($preferences === null || $negative === null || self::listsOverlap($preferences, $negative)) return null;
         return ['budget'=>$value['budget'], 'preferences'=>$preferences, 'negative_preferences'=>$negative];
     }
 
@@ -103,7 +103,7 @@ final class TripContextMetadataPolicy
         if (!is_array($budget) || !self::validBudget($budget)) return null;
         $preferences = self::normalizeList($context['preferences'] ?? []);
         $negative = self::normalizeList($context['negative_preferences'] ?? []);
-        if ($preferences === null || $negative === null || array_intersect($preferences, $negative) !== []) return null;
+        if ($preferences === null || $negative === null || self::listsOverlap($preferences, $negative)) return null;
         return ['budget'=>$budget,'preferences'=>$preferences,'negative_preferences'=>$negative];
     }
 
@@ -127,7 +127,7 @@ final class TripContextMetadataPolicy
             if ($item === '' || preg_match('/[\x00-\x1f\x7f]/u', $item)) return null;
             $length = function_exists('mb_strlen') ? mb_strlen($item, 'UTF-8') : strlen($item);
             if ($length > self::MAX_ITEM_CHARS) return null;
-            if (!in_array($item, $out, true)) $out[] = $item;
+            if (!self::containsEquivalent($out, $item)) $out[] = $item;
         }
         return $out;
     }
