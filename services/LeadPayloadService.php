@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/NativeDateService.php';
+
 class LeadPayloadService
 {
     public static function peopleString(array $claim)
@@ -19,6 +21,14 @@ class LeadPayloadService
         $value = (string)($mealMap[(string)$meal] ?? '');
         if ($value === '') return '';
         return function_exists('ToLower') ? ToLower($value) : (function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value));
+    }
+
+    public static function departureDates(array $claim, ?DateTimeImmutable $today = null): string
+    {
+        $departureDate = trim((string)($claim['UF_DATE_DEPART'] ?? ''));
+        if (!NativeDateService::isTodayOrFuture($departureDate, $today)) return '';
+        $window = NativeDateService::leadWindow($departureDate, $today);
+        return $window['from'] . ' - ' . $window['to'];
     }
 
     public static function comments(array $data)
