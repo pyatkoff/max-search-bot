@@ -39,7 +39,6 @@ jobs:
           require $root.'/services/ConversationDb.php';
           require $root.'/services/MaxInboundMediaArchiveService.php';
           require $root.'/integrations/MaxIncomingAdapter.php';
-          require $root.'/integrations/MaxInboundMediaDownloadAdapter.php';
 
           $pdo=ConversationDb::connection();
           $q=$pdo->prepare("SELECT id,conversation_id FROM messages
