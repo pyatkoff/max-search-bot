@@ -45,6 +45,18 @@ $unknown = NeedApplicationService::resolveAndApply(42, 'nights', 'от 7');
 nasCheck('unrecognized value is not applied', $unknown['applied'], false);
 nasCheck('unrecognized value causes zero mutations', count(MaxSearchApi::$applyCalls), 0);
 
+$flexibility = NeedValueResolver::resolve('date_flexibility', 'Даты можно сдвигать');
+nasCheck('explicit date flexibility is recognized deterministically', $flexibility['recognized'], true);
+nasCheck('date flexibility becomes an existing trip wish change', $flexibility['value'], ['preferences'=>['даты можно сдвигать']]);
+nasCheck('date flexibility resolver source is explicit', $flexibility['source'], 'deterministic:date_flexibility');
+$strictDate = NeedValueResolver::resolve('date_flexibility', 'Дату не сдвигать');
+nasCheck('explicit fixed-date correction is recognized', $strictDate['recognized'], true);
+nasCheck('fixed-date correction neutrally removes flexibility wish', $strictDate['value'], ['preferences_remove'=>['даты можно сдвигать']]);
+$dateAndFlexibility = NeedValueResolver::resolve('date_flexibility', '8 октября, даты можно сдвигать');
+nasCheck('turn with an actual date is left to the ordinary date owner', $dateAndFlexibility['recognized'], false);
+$notFlexibility = NeedValueResolver::resolve('date_flexibility', 'не знаю');
+nasCheck('unrelated date answer does not invent flexibility', $notFlexibility['recognized'], false);
+
 MaxSearchApi::$applyCalls = [];
 $multi = NeedApplicationService::applyParameters(77, ['children'=>1,'child_ages'=>[6]]);
 nasCheck('multi-field clarification remains supported', $multi, ['children'=>1,'child_ages'=>[6]]);
@@ -119,6 +131,14 @@ nasCheck('preference promotion requires explicit confidence threshold', strpos($
 nasCheck('preference promotion writes through conversation repository', strpos($applicationSource, 'ConversationStateRepository::applyPreferences') !== false, true);
 nasCheck('shadow observer promotes wishes through application boundary', strpos($shadowSource, 'NeedApplicationService::applyExtractedPreferences') !== false, true);
 nasCheck('shadow observer does not write canonical preferences directly', strpos($shadowSource, 'ConversationStateRepository::applyPreferences') === false, true);
+nasCheck('date flexibility uses the same preference snapshot/application boundary', strpos($applicationSource, "if (\$field === 'date_flexibility')") !== false && strpos($applicationSource, 'ConversationStateRepository::preferenceSnapshot') !== false && strpos($applicationSource, "'preferences_update'=>[") !== false, true);
+
+$dateHandlerSource = (string)file_get_contents(__DIR__ . '/../handlers/AiDateHandler.php');
+nasCheck('date wrapper checks explicit flexibility before ordinary short-date resolution', strpos($dateHandlerSource, 'resolveExplicitFlexibilityEdit($chatId, $text)') < strpos($dateHandlerSource, 'DateContextResolver::resolvePendingShortDate($chatId, $text)'), true);
+nasCheck('date flexibility applies through canonical need application service', strpos($dateHandlerSource, "NeedApplicationService::resolveAndApply(\$chatId, 'date_flexibility', \$text)") !== false, true);
+nasCheck('date flexibility reuses the pre-edit exact date snapshot', strpos($dateHandlerSource, 'EditFlowService::captureSnapshot($chatId, false)') !== false && strpos($dateHandlerSource, 'MaxSearchApi::$statusDate') !== false, true);
+nasCheck('date flexibility validates preserved date through canonical resolver', strpos($dateHandlerSource, "NeedValueResolver::resolve('date', \$previous)") !== false, true);
+nasCheck('date flexibility wrapper does not mutate search URL or Tourvisor', strpos($dateHandlerSource, 'SearchRequestBuilder') === false && strpos($dateHandlerSource, 'Tourvisor') === false && strpos($dateHandlerSource, 'dateFrom') === false && strpos($dateHandlerSource, 'dateTo') === false, true);
 
 $resolverPaths = [
     'departure city' => __DIR__ . '/../services/DepartureCityResolver.php',
