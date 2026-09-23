@@ -8,6 +8,27 @@ require_once __DIR__.'/../integrations/TelegramMessengerAdapter.php';
 
 class ManagerMessageEditService
 {
+    public static function editableForConversation(int $conversationId,int $managerId): array
+    {
+        if($conversationId<=0||$managerId<=0) return [];
+        if(!ManagerConversationService::detail($conversationId,$managerId)) return [];
+        try{
+            $pdo=ConversationDb::connection();
+            $q=$pdo->prepare("SELECT id,metadata_json FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager' AND created_at>=UTC_TIMESTAMP()-INTERVAL 5 MINUTE ORDER BY id DESC LIMIT 30");
+            $q->execute([$conversationId]);$out=[];
+            foreach($q->fetchAll() as $row){
+                $policy=ManagerMessageEditPolicy::inspect((int)$row['id'],$managerId);
+                if(empty($policy['allowed'])) continue;
+                $meta=json_decode((string)($row['metadata_json']??''),true);if(!is_array($meta))$meta=[];
+                $attachments=is_array($meta['attachments']??null)?$meta['attachments']:[];
+                if($attachments&&in_array((string)$policy['channel'],['max','telegram'],true)) continue;
+                $remaining=max(0,ManagerMessageEditPolicy::WINDOW_SECONDS-(int)($policy['age_seconds']??ManagerMessageEditPolicy::WINDOW_SECONDS));
+                $out[]=['message_id'=>(int)$row['id'],'remaining_seconds'=>$remaining];
+            }
+            return $out;
+        }catch(Throwable $e){return [];}
+    }
+
     public static function edit(int $messageId,int $managerId,string $text): array
     {
         $text=trim($text);
