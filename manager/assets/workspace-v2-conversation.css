@@ -25,3 +25,7 @@
 .photoViewerStage.zoomed img{max-width:none;max-height:none;margin:0 auto}
 .photoViewer [hidden]{display:none!important}
 @media(max-width:900px){.photoViewer{width:100%;height:100vh;height:100dvh;border-radius:0}.photoViewerBar{padding-top:max(8px,env(safe-area-inset-top))}.photoViewerBar strong{font-size:13px}.photoViewer button{padding:8px 10px}}
+
+.linkedMessage{margin:0 0 7px;padding:7px 9px;border-left:3px solid currentColor;border-radius:5px;background:rgba(127,127,127,.10);font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.linkedMessageLabel{font-size:10px;text-transform:uppercase;letter-spacing:.03em;opacity:.7}
+.linkedMessageSender{font-weight:600;margin-top:2px}.linkedMessageText{margin-top:2px;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
