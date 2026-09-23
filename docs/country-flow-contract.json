@@ -116,8 +116,8 @@
     "resort_hint_owner": "DestinationHintService::seedCountry",
     "implicit_country_default": false,
     "turkey_egypt_defaults": {
-      "meal_when_missing": "all_inclusive",
-      "stars_when_missing": 4
+      "meal_when_missing": null,
+      "stars_when_missing": null
     },
     "application": "NeedApplicationService::applyParameters",
     "storage_semantics": "upsert",
