@@ -8,6 +8,10 @@ function check_web($ok, $name) { global $tests, $failed; $tests++; if ($ok) echo
 $session = str_repeat('a', 48);
 $chatId = -1700000001;
 
+$reply = WebsiteIncomingAdapter::fromPayload(['action'=>'message','message_id'=>'m-reply','text'=>'Этот вариант','reply_to_id'=>321], $session, $chatId);
+check_web(($reply['linked_message']['type'] ?? '') === 'reply', 'website reply context retained');
+check_web(($reply['linked_message']['mid'] ?? '') === 'webmsg-321', 'website reply target retained');
+
 $start = WebsiteIncomingAdapter::fromPayload(['action'=>'start','message_id'=>'m1'], $session, $chatId);
 check_web(($start['platform'] ?? '') === 'website', 'start platform');
 check_web(($start['text'] ?? '') === '/start', 'start maps to slash start');
