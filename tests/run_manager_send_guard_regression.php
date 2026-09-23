@@ -24,8 +24,8 @@ msgGuardCheck('manager adapters disable ambiguous chat-based transcript mirrorin
 msgGuardCheck('successful delivery mirrors text to the exact conversation',strpos($outbound,'ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText')!==false&&strpos($recorder,'public static function outboundForConversation(int $conversationId')!==false&&strpos($recorder,"'outbound',\$senderType,\$senderId,\$platform")!==false);
 $maxAdapter=(string)file_get_contents(dirname(__DIR__).'/integrations/MaxMessengerAdapter.php');
 msgGuardCheck('MAX adapter retains provider message id for accepted manager sends',strpos($maxAdapter,'lastExternalMessageId')!==false&&strpos($maxAdapter,"['message_id'] ?? ''")!==false);
-msgGuardCheck('exact conversation mirror stores external provider message id',strpos($recorder,'external_message_id,text,metadata_json')!==false&&strpos($recorder,"$externalMessageId !== '' ? $externalMessageId : null")!==false);
-msgGuardCheck('manager MAX text and media pass provider identity into exact mirror',substr_count($outbound,"$channel==='max'?$adapter->lastExternalMessageId()")===2);
+msgGuardCheck('exact conversation mirror stores external provider message id',strpos($recorder,'external_message_id,text,metadata_json')!==false&&strpos($recorder,"\$externalMessageId !== '' ? \$externalMessageId : null")!==false);
+msgGuardCheck('manager MAX text and media pass provider identity into exact mirror',substr_count($outbound,"\$channel==='max'?\$adapter->lastExternalMessageId()")===2);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
