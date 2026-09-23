@@ -32,7 +32,7 @@ msgGuardCheck('provider channels require external message identity',strpos($edit
 msgGuardCheck('website participates in common edit policy',strpos($editPolicy,"['max','telegram','website']")!==false);
 msgGuardCheck('MAX adapter retains provider message id for accepted manager sends',strpos($maxAdapter,'lastExternalMessageId')!==false&&strpos($maxAdapter,"['message_id'] ?? ''")!==false);
 msgGuardCheck('exact conversation mirror stores external provider message id',strpos($recorder,'external_message_id,text,metadata_json')!==false&&strpos($recorder,"\$externalMessageId !== '' ? \$externalMessageId : null")!==false);
-msgGuardCheck('manager MAX text and media pass provider identity into exact mirror',substr_count($outbound,"\$channel==='max'?\$adapter->lastExternalMessageId()")===2);
+msgGuardCheck('manager MAX and Telegram text/media pass provider identity into exact mirror',substr_count($outbound,"in_array(\$channel,['max','telegram'],true)?\$adapter->lastExternalMessageId()")===2);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
