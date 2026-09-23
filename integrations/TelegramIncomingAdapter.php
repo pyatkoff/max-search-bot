@@ -47,8 +47,48 @@ class TelegramIncomingAdapter
             (string)($message['text'] ?? $message['caption'] ?? ''),
             self::normalizedUser($from),
             $update,
-            self::mediaAttachments($message)
+            self::mediaAttachments($message),
+            self::linkedMessage($message)
         );
+    }
+
+    private static function linkedMessage(array $message): array
+    {
+        $reply=is_array($message['reply_to_message']??null)?$message['reply_to_message']:null;
+        if($reply){
+            $out=['type'=>'reply'];
+            $mid=trim((string)($reply['message_id']??''));
+            if($mid!=='') $out['mid']=$mid;
+            $from=is_array($reply['from']??null)?$reply['from']:[];
+            $name=trim(implode(' ',array_filter([(string)($from['first_name']??''),(string)($from['last_name']??'')])));
+            if($name!=='') $out['sender_name']=mb_substr($name,0,160,'UTF-8');
+            $text=trim((string)($reply['text']??$reply['caption']??''));
+            if($text!=='') $out['text']=mb_substr($text,0,500,'UTF-8');
+            $summary=self::attachmentSummary($reply);if($summary)$out['attachments']=$summary;
+            return $out;
+        }
+        $origin=is_array($message['forward_origin']??null)?$message['forward_origin']:null;
+        if(!$origin) return [];
+        $out=['type'=>'forward'];
+        $name='';
+        if(is_array($origin['sender_user']??null)){
+            $u=$origin['sender_user'];$name=trim(implode(' ',array_filter([(string)($u['first_name']??''),(string)($u['last_name']??'')])));
+        } elseif(!empty($origin['sender_user_name'])) $name=trim((string)$origin['sender_user_name']);
+        elseif(!empty($origin['chat']['title'])) $name=trim((string)$origin['chat']['title']);
+        if($name!=='')$out['sender_name']=mb_substr($name,0,160,'UTF-8');
+        return $out;
+    }
+
+    private static function attachmentSummary(array $message): array
+    {
+        $items=self::mediaAttachments($message);$out=[];
+        foreach($items as $item){
+            if(!is_array($item))continue;
+            $type=(string)($item['type']??'file');if(!in_array($type,['image','video','audio','file'],true))continue;
+            $out[]=['type'=>$type,'name'=>mb_substr(trim((string)($item['name']??'')),0,180,'UTF-8')];
+            if(count($out)>=4)break;
+        }
+        return $out;
     }
 
     /** Telegram forwards retain media on the message itself, not forward_origin. */
