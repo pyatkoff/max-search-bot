@@ -60,7 +60,7 @@ jobs:
 
           $q=$pdo->prepare("SELECT id,conversation_id,external_message_id,text,metadata_json FROM messages
               WHERE conversation_id=? AND direction='inbound' AND sender_type='customer'
-              ORDER BY ABS(id-?), id ASC LIMIT 16");
+              ORDER BY ABS(CAST(id AS SIGNED)-CAST(? AS SIGNED)), id ASC LIMIT 16");
           $q->execute([(int)$anchor['conversation_id'],(int)$anchor['id']]);
           $rows=$q->fetchAll(PDO::FETCH_ASSOC);
 
