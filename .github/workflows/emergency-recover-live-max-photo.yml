@@ -1,0 +1,147 @@
+name: Emergency recover live MAX photo
+
+on:
+  push:
+    branches: [fix/max-live-media-recovery-20260923]
+    paths:
+      - '.github/workflows/emergency-recover-live-max-photo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ddfad0adb5ea28a6c8bbadd1bd6dbcf59f4922d6
+          persist-credentials: false
+
+      - name: Prepare SSH key
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$RUNNER_TEMP/recover_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s\n' "$raw" | tr -d '\r' > "$key"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]]
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key"
+          fi
+          chmod 600 "$key"
+
+      - name: Build read-only recovery helper
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/recover_live_photo.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          require $root.'/config.php';
+          require $root.'/services/ConversationDb.php';
+          require $root.'/services/MaxTransport.php';
+          require $root.'/services/MaxTlsConfig.php';
+          require $root.'/maxsearchclass.php';
+
+          $pdo=ConversationDb::connection();
+          $q=$pdo->prepare("SELECT id,conversation_id,external_message_id,text,metadata_json FROM messages
+              WHERE channel='max' AND direction='inbound' AND sender_type='customer'
+                AND text LIKE ? AND text LIKE ? AND text LIKE ?
+              ORDER BY id DESC LIMIT 1");
+          $q->execute(['%предложение%','%3-5.10%','%вылет%']);
+          $anchor=$q->fetch(PDO::FETCH_ASSOC);
+          if(!$anchor){fwrite(STDERR,"anchor_not_found\n");exit(20);}
+
+          $q=$pdo->prepare("SELECT id,conversation_id,external_message_id,text,metadata_json FROM messages
+              WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND id>=?
+              ORDER BY id ASC LIMIT 8");
+          $q->execute([(int)$anchor['conversation_id'],(int)$anchor['id']]);
+          $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+
+          $urls=[];
+          $collect=function($value) use (&$collect,&$urls): void {
+              if(is_array($value)){
+                  foreach($value as $k=>$v){
+                      if(is_string($v) && preg_match('#^https://#i',trim($v)) && preg_match('/(?:url|photo|image|download|source)/i',(string)$k)){
+                          $urls[]=trim($v);
+                      }
+                      $collect($v);
+                  }
+              }
+          };
+
+          foreach($rows as $row){
+              $meta=json_decode((string)($row['metadata_json']??''),true);
+              if(is_array($meta)) $collect($meta['attachments']??[]);
+              $mid=trim((string)($row['external_message_id']??''));
+              if($mid!==''){
+                  $remote=MaxTransport::request(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,'GET','/messages/'.rawurlencode($mid),[],null,null);
+                  if(is_array($remote)) $collect($remote);
+              }
+              foreach(array_values(array_unique($urls)) as $url){
+                  $ch=curl_init($url);
+                  $fp=fopen('/tmp/recovered-live-client-photo.bin','w+b');
+                  curl_setopt_array($ch,MaxTlsConfig::curlOptions(false));
+                  curl_setopt($ch,CURLOPT_FILE,$fp);
+                  curl_setopt($ch,CURLOPT_FOLLOWLOCATION,true);
+                  curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,10);
+                  curl_setopt($ch,CURLOPT_TIMEOUT,60);
+                  curl_setopt($ch,CURLOPT_MAXREDIRS,3);
+                  $ok=curl_exec($ch);
+                  $http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);
+                  $ctype=(string)curl_getinfo($ch,CURLINFO_CONTENT_TYPE);
+                  curl_close($ch);
+                  fflush($fp);$size=ftell($fp);fclose($fp);
+                  if($ok!==false && $http>=200 && $http<300 && $size>0){
+                      $mime=strtolower(trim(explode(';',$ctype)[0]??''));
+                      if(!str_starts_with($mime,'image/')){
+                          $fi=new finfo(FILEINFO_MIME_TYPE);$mime=(string)$fi->file('/tmp/recovered-live-client-photo.bin');
+                      }
+                      if(str_starts_with($mime,'image/')){
+                          $ext=['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp','image/tiff'=>'tif','image/heic'=>'heic'][$mime]??'img';
+                          rename('/tmp/recovered-live-client-photo.bin','/tmp/recovered-live-client-photo.'.$ext);
+                          file_put_contents('/tmp/recovered-live-client-photo.path','/tmp/recovered-live-client-photo.'.$ext);
+                          echo "RECOVERED=1\nMIME={$mime}\nBYTES={$size}\n";
+                          exit(0);
+                      }
+                  }
+                  @unlink('/tmp/recovered-live-client-photo.bin');
+              }
+              $urls=[];
+          }
+          fwrite(STDERR,"photo_not_recovered\n");
+          exit(21);
+          PHP
+
+      - name: Recover exact live photo from MAX
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/recover_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          remote="$DEPLOY_USER@$DEPLOY_HOST"
+          scp "${opts[@]}" "$RUNNER_TEMP/recover_live_photo.php" "$remote:/tmp/recover_live_photo.php"
+          ssh "${opts[@]}" "$remote" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "ddfad0adb5ea28a6c8bbadd1bd6dbcf59f4922d6"; php /tmp/recover_live_photo.php; rm -f /tmp/recover_live_photo.php'
+          path="$(ssh "${opts[@]}" "$remote" 'cat /tmp/recovered-live-client-photo.path')"
+          case "$path" in /tmp/recovered-live-client-photo.*) ;; *) echo invalid_path >&2; exit 1;; esac
+          scp "${opts[@]}" "$remote:$path" "$RUNNER_TEMP/$(basename "$path")"
+          ssh "${opts[@]}" "$remote" "rm -f '$path' /tmp/recovered-live-client-photo.path"
+          ls -l "$RUNNER_TEMP"/recovered-live-client-photo.*
+
+      - name: Upload recovered client photo
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-live-client-photo
+          path: ${{ runner.temp }}/recovered-live-client-photo.*
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
