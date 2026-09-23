@@ -1,0 +1,139 @@
+name: Repair production lead receiver target
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/LeadReceiverConfigEditor.php'
+      - 'tools/repair_lead_receiver_config.php'
+      - '.github/workflows/repair-lead-receiver-config.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-lead-receiver-repair
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Prepare legacy and canonical SSH keys
+        env:
+          LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          write_key() {
+            local raw="$1" out="$2" decoded
+            if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+              if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+            else
+              decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+              [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "Invalid SSH key"; exit 1; }
+              printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+            fi
+            chmod 600 "$out"
+            ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$LEGACY_KEY" "$RUNNER_TEMP/legacy_key"
+          write_key "$CANONICAL_KEY" "$RUNNER_TEMP/canonical_key"
+
+      - name: Wait for exact canonical production SHA
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$USER@$HOST"
+          for attempt in $(seq 1 40); do
+            deployed="$(ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
+            if [[ "$deployed" == "$EXPECTED_SHA" ]]; then echo "CANONICAL_SHA_VERIFIED=$deployed"; exit 0; fi
+            sleep 5
+          done
+          echo "Canonical production did not reach exact SHA" >&2
+          exit 1
+
+      - name: Discover the retained Bitrix lead receiver
+        id: legacy_receiver
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$USER@$HOST"
+          receiver="$(
+            ssh -i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" '
+              set -euo pipefail
+              mapfile -t files < <(find "$HOME/www" -maxdepth 4 -type f -path "*/max-search/lead-receiver.php" -print)
+              [[ "${#files[@]}" == "1" ]]
+              file="${files[0]}"
+              php -l "$file" >/dev/null
+              grep -Fq "max-search-hmac-bitrix-lead" "$file"
+              grep -Fq "BitrixLeadDeliveryGateway::create" "$file"
+              domain="$(basename "$(dirname "$(dirname "$file")")")"
+              [[ "$domain" =~ ^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]
+              printf "https://%s/max-search/lead-receiver.php" "$domain"
+            '
+          )"
+          [[ "$receiver" == https://* ]]
+          echo "receiver_url=$receiver" >> "$GITHUB_OUTPUT"
+          code="$(curl -sS -o "$RUNNER_TEMP/legacy-receiver-health.json" -w '%{http_code}' --max-time 30 "$receiver")"
+          [[ "$code" == "200" ]]
+          grep -Fq 'max-search-hmac-bitrix-lead' "$RUNNER_TEMP/legacy-receiver-health.json"
+          echo "LEGACY_LEAD_RECEIVER_DISCOVERY=OK"
+
+      - name: Repair canonical receiver target and verify bridge auth
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          RECEIVER_URL: ${{ steps.legacy_receiver.outputs.receiver_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$USER@$HOST"
+          printf -v qurl '%q' "$RECEIVER_URL"
+          ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" "
+            set -euo pipefail
+            cd /var/www/anytoour/data/www/app.anytoour.ru
+            export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1
+            rollback(){ php tools/repair_lead_receiver_config.php --rollback >/dev/null 2>&1 || true; }
+            trap rollback ERR
+            php tools/repair_lead_receiver_config.php --apply $qurl
+            php tools/lead_bridge_probe.php
+            php tools/standalone_readiness.php | grep -qx 'STANDALONE_READY=YES'
+            php tools/repair_lead_receiver_config.php --commit
+            trap - ERR
+          "
+          echo "LEAD_RECEIVER_REPAIR=VERIFIED"
+
+      - name: Wait for pending Telegram retry to clear
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$USER@$HOST"
+          for attempt in $(seq 1 60); do
+            if ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" '
+              set -e
+              cd /var/www/anytoour/data/www/app.anytoour.ru
+              out="$(php tools/telegram_webhook_status.php)"
+              printf "%s" "$out" | php -r '''$d=json_decode(stream_get_contents(STDIN),true);$p=(array)($d["telegram_bot_token"]??[]);$w=(array)($p["webhook"]??[]);exit(!empty($p["ok"])&&(int)($w["pending_update_count"]??-1)===0?0:1);'''
+            '; then
+              ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
+              echo "TELEGRAM_PENDING_UPDATE_COUNT=0"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Telegram pending update did not clear after verified bridge repair" >&2
+          exit 1
