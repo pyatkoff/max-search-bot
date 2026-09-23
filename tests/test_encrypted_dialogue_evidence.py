@@ -48,8 +48,9 @@ class EvidenceTests(unittest.TestCase):
         messages = report["sessions"][0]["messages"]
         self.assertIn("Египет на 7 ночей, 2 взрослых", messages[0]["text"])
         self.assertEqual(messages[1]["text"], "SYNTHETIC_PRIVATE_MESSAGE")
+        message_bytes=json.dumps(messages,ensure_ascii=False).encode("utf-8")
         for secret in (b"987654", b"private-login", b"hidden-user", b"999", b"example.org", b"@contact"):
-            self.assertNotIn(secret, data)
+            self.assertNotIn(secret, message_bytes)
 
     def test_test_sessions_and_unflagged_sessions_are_excluded(self):
         report = fixture()
