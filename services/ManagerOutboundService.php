@@ -4,6 +4,7 @@ require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
+require_once __DIR__ . '/ManagerMessageDeliveryService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
@@ -58,7 +59,7 @@ class ManagerOutboundService
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey]);
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey,'manager_send_receipt'=>ManagerMessageDeliveryService::accepted($channel)]);
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
@@ -94,7 +95,7 @@ class ManagerOutboundService
             $preview=$safeCaption!==''?$safeCaption:ConversationRecorder::attachmentPreview([['type'=>$type]]);
             $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
-            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]]);
+            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment],'manager_send_receipt'=>ManagerMessageDeliveryService::accepted($channel)]);
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key'],'media_type'=>$type]);
             MetrikaConversionGoalService::managerReply($conversationId);
             return true;
