@@ -87,6 +87,17 @@ stateCheck('context envelope exposes exclusions', $contextSaved['_negative_prefe
 
 $extended = TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['детский клуб','тихий отель']]);
 stateCheck('preference changes append instead of replacing earlier wishes', $extended['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
+$neutralWish = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences_remove'=>['первая линия']]);
+stateCheck('neutral correction removes an active wish', $neutralWish['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('neutral wish correction does not invent an exclusion', $neutralWish['negative_preferences'] ?? null, ['шумный отель']);
+$neutralNegative = TripContextMetadataPolicy::applyPreferences($neutralWish ?? [], ['negative_preferences_remove'=>['шумный отель']]);
+stateCheck('neutral correction can remove an active exclusion', $neutralNegative['negative_preferences'] ?? null, []);
+stateCheck('neutral exclusion correction does not invent a wish', $neutralNegative['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('removing an absent item is idempotent', TripContextMetadataPolicy::applyPreferences($neutralNegative ?? [], ['preferences_remove'=>['первая линия']]), $neutralNegative);
+stateCheck('same-message add and neutral removal fail closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
+    'preferences'=>['первая линия'],'preferences_remove'=>['первая линия'],
+]), null);
+
 $polarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['первая линия']]);
 stateCheck('explicit negative correction removes same positive wish', $polarity['preferences'] ?? null, ['тихий отель','детский клуб']);
 stateCheck('explicit negative correction becomes exclusion', $polarity['negative_preferences'] ?? null, ['шумный отель','первая линия']);
@@ -144,6 +155,7 @@ stateCheck(
 );
 stateCheck('preference write uses byte-exact current-start CAS', strpos($preferenceMethod, 'compareStartValue') !== false, true);
 stateCheck('preference write never inserts a new start row', strpos($preferenceMethod, 'addStatus') === false && strpos($preferenceMethod, 'upsertValue') === false, true);
+stateCheck('preference write accepts neutral removals without a second store', strpos($preferenceMethod, "'preferences_remove','negative_preferences_remove'") !== false, true);
 
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
