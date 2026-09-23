@@ -23,6 +23,14 @@ mhjCheck('before-results handoff does not invent shown tours',strpos($before,'П
 mhjCheck('before-results handoff does not invent a reaction step',strpos($before,'Следующее действие: продолжить от уже показанной выдачи')===false,true);
 mhjCheck('before-results handoff gives a concrete no-repeat next action',strpos($before,'Следующее действие: не повторять известное; уточнить только перечисленное в «Не указано для поиска», если оно есть, и перейти к первому подходящему предложению.')!==false,true);
 
+$correctedMessages=[
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Нужен спокойный отель, без шумных вечеринок'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Нет, неважно'],
+];
+$corrected=ManagerHandoffContextService::build($context,$correctedMessages,[]);
+mhjCheck('newer short correction prevents stale long note from being relabeled as current addition',strpos($corrected,'Дополнение туриста: Нужен спокойный отель, без шумных вечеринок')===false,true);
+mhjCheck('newer short correction remains visible in customer transcript',strpos($corrected,'• Нет, неважно')!==false,true);
+
 $after=ManagerHandoffContextService::build($context,$messages,['from_tours'=>true]);
 mhjCheck('post-results handoff is explicit',strpos($after,'Показано/реакция: запрос менеджера сделан после экрана с турами')!==false,true);
 mhjCheck('post-results handoff keeps exact viewed variant unknown',strpos($after,'конкретный просмотр, выбор или реакция не зафиксированы')!==false,true);
