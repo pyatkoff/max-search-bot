@@ -70,10 +70,10 @@ class ManagerMessageEditService
             $json=json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if($json===false) return ['ok'=>false,'error'=>'metadata_encode_failed'];
             $u=$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=? AND conversation_id=?');
-            $u->execute([$safe,$json,$messageId,(int)$policy['conversation_id']]);
+            $u->execute([$text,$json,$messageId,(int)$policy['conversation_id']]);
             if($u->rowCount()<1) return ['ok'=>false,'error'=>'storage_update_failed'];
             ConversationControlService::event((int)$policy['conversation_id'],'manager_message_edited','manager',$managerId,['channel'=>$channel,'message_id'=>$messageId]);
-            return ['ok'=>true,'message_id'=>$messageId,'text'=>$safe,'edited'=>true];
+            return ['ok'=>true,'message_id'=>$messageId,'text'=>$text,'edited'=>true];
         }catch(Throwable $e){
             return ['ok'=>false,'error'=>'edit_failed'];
         }
