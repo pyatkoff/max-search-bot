@@ -23,6 +23,14 @@ class NeedApplicationService
             return array_merge($resolved, ['applied'=>false]);
         }
 
+        if ($field === 'date_flexibility') {
+            $applied = self::applyParameters($chatId, ['preferences_update'=>[
+                'snapshot'=>ConversationStateRepository::preferenceSnapshot($chatId, (int)MaxSearchApi::$statusStart),
+                'changes'=>$resolved['value'],
+            ]]);
+            return array_merge($resolved, ['applied'=>!empty($applied['preferences'])]);
+        }
+
         $params = [$field=>$resolved['value']];
         if ($field === 'budget') {
             $params = ['budget_update'=>[
