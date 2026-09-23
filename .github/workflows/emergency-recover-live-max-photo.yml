@@ -59,30 +59,30 @@ jobs:
           if(!$anchor){fwrite(STDERR,"anchor_not_found\n");exit(20);}
 
           $q=$pdo->prepare("SELECT id,conversation_id,external_message_id,text,metadata_json FROM messages
-              WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND id>=?
-              ORDER BY id ASC LIMIT 8");
+              WHERE conversation_id=? AND direction='inbound' AND sender_type='customer'
+              ORDER BY ABS(id-?), id ASC LIMIT 16");
           $q->execute([(int)$anchor['conversation_id'],(int)$anchor['id']]);
           $rows=$q->fetchAll(PDO::FETCH_ASSOC);
 
           $urls=[];
-          $collect=function($value) use (&$collect,&$urls): void {
-              if(is_array($value)){
-                  foreach($value as $k=>$v){
-                      if(is_string($v) && preg_match('#^https://#i',trim($v)) && preg_match('/(?:url|photo|image|download|source)/i',(string)$k)){
-                          $urls[]=trim($v);
-                      }
-                      $collect($v);
-                  }
-              }
+          $collectUrls=function($value) use (&$collectUrls,&$urls): void {
+              if(is_string($value) && preg_match('#^https://#i',trim($value))){$urls[]=trim($value);return;}
+              if(is_array($value)) foreach($value as $v) $collectUrls($v);
+          };
+          $collectMedia=function($value) use (&$collectMedia,&$collectUrls): void {
+              if(!is_array($value)) return;
+              $type=strtolower(trim((string)($value['type']??'')));
+              if(in_array($type,['image','photo','share'],true)) $collectUrls($value);
+              foreach($value as $v) if(is_array($v)) $collectMedia($v);
           };
 
           foreach($rows as $row){
               $meta=json_decode((string)($row['metadata_json']??''),true);
-              if(is_array($meta)) $collect($meta['attachments']??[]);
+              if(is_array($meta)) $collectMedia($meta['attachments']??[]);
               $mid=trim((string)($row['external_message_id']??''));
               if($mid!==''){
                   $remote=MaxTransport::request(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,'GET','/messages/'.rawurlencode($mid),[],null,null);
-                  if(is_array($remote)) $collect($remote);
+                  if(is_array($remote)) $collectMedia($remote);
               }
               foreach(array_values(array_unique($urls)) as $url){
                   $ch=curl_init($url);
