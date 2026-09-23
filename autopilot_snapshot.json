@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-23T03:03:02+00:00",
+    "generated_at": "2026-09-23T03:57:54+00:00",
     "production": {
-        "sha": "9a11c3a19ff278b00faa54df11e5e8a2f96f2a3a",
+        "sha": "c597e652481fc48eb28a4676db55ba109f6f6b88",
         "branch": "main"
     },
     "migrations": {
@@ -161,16 +161,16 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-23 02:02:43",
+        "since_utc": "2026-09-23 02:57:42",
         "summary": {
-            "sessions": 2,
-            "raw_sessions": 2,
+            "sessions": 4,
+            "raw_sessions": 4,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 2,
+                "resolved": 4,
                 "unresolved": 0
             },
-            "started": 2,
+            "started": 4,
             "needs_collected": 2,
             "tours_opened": 2,
             "site_opened": 0,
@@ -188,6 +188,7 @@
                 "max_seconds": null
             },
             "drop_points": {
+                "collecting_needs": 2,
                 "tours_opened": 2
             },
             "flags": []
@@ -198,7 +199,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "9a11c3a19ff278b00faa54df11e5e8a2f96f2a3a",
+        "sha": "c597e652481fc48eb28a4676db55ba109f6f6b88",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -207,7 +208,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-23T03:03:02Z"
+        "reported_at": "2026-09-23T03:57:54Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -215,7 +216,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T03:02:32+00:00",
+        "generated_at": "2026-09-23T03:57:32+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -297,11 +298,11 @@
             {
                 "date": "2026-09-23",
                 "partial": true,
-                "all_new": 6,
-                "paid_new": 6,
+                "all_new": 9,
+                "paid_new": 9,
                 "without_saved_yclid": 0,
-                "needs_collected": 5,
-                "tours_opened": 4,
+                "needs_collected": 7,
+                "tours_opened": 6,
                 "site_opened": 0,
                 "manager_requested": 0,
                 "manager_replied": 0
@@ -310,7 +311,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T03:02:32+00:00",
+        "generated_at": "2026-09-23T03:57:32+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -608,14 +609,14 @@
                 "date": "2026-09-23",
                 "partial": true,
                 "since_utc": "2026-09-22 22:00:00",
-                "until_utc": "2026-09-23 03:02:32",
+                "until_utc": "2026-09-23 03:57:32",
                 "channels": [
                     {
                         "channel": "max",
-                        "active_conversations": 8,
-                        "new_conversations": 6,
-                        "continued_conversations": 2,
-                        "inbound_conversations": 7,
+                        "active_conversations": 12,
+                        "new_conversations": 9,
+                        "continued_conversations": 3,
+                        "inbound_conversations": 10,
                         "manager_requested_conversations": 0,
                         "manager_replied_conversations": 0,
                         "missing_source_conversations": 0
@@ -658,16 +659,16 @@
         "window_hours": null,
         "since_utc": "2026-09-22 22:00:00",
         "summary": {
-            "sessions": 8,
-            "raw_sessions": 8,
+            "sessions": 12,
+            "raw_sessions": 12,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 8,
+                "resolved": 12,
                 "unresolved": 0
             },
-            "started": 8,
-            "needs_collected": 7,
-            "tours_opened": 6,
+            "started": 12,
+            "needs_collected": 9,
+            "tours_opened": 8,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 0,
@@ -683,8 +684,8 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 6,
-                "collecting_needs": 1,
+                "tours_opened": 8,
+                "collecting_needs": 3,
                 "needs_collected": 1
             },
             "flags": {
@@ -692,9 +693,9 @@
                 "repeated_callback_input": 2
             },
             "calendar_day": {
-                "conversations_started": 6,
-                "needs_collected_from_started": 5,
-                "tours_opened_from_started": 4,
+                "conversations_started": 9,
+                "needs_collected_from_started": 7,
+                "tours_opened_from_started": 6,
                 "site_opened": 0,
                 "post_tour_manager_cta_shown": 0,
                 "manager_requested": 0,
@@ -704,7 +705,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-23T03:02:59+00:00",
+        "generated_at": "2026-09-23T03:57:52+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -718,8 +719,8 @@
             },
             "services": {
                 "files": 157,
-                "bytes": 653339,
-                "code_lines": 13886
+                "bytes": 654666,
+                "code_lines": 13908
             },
             "integrations": {
                 "files": 11,
@@ -748,8 +749,8 @@
             },
             "tests": {
                 "files": 242,
-                "bytes": 1447903,
-                "code_lines": 18443
+                "bytes": 1450590,
+                "code_lines": 18476
             },
             "tools": {
                 "files": 46,
@@ -803,7 +804,7 @@
             {
                 "path": "services/ConversationStateRepository.php",
                 "lines": 280,
-                "bytes": 11908,
+                "bytes": 11959,
                 "severity": "observe"
             },
             {
