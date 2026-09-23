@@ -19,7 +19,15 @@ class NeedProgressionService
             : [];
 
         if (empty($missing)) {
+            // The optional budget clarification belongs to the first completed
+            // check of the current start-session only. Reusing the existing
+            // statusCheck row avoids a second prompt after later corrections
+            // without introducing another piece of dialogue/product state.
+            $hadCompletedCheck = class_exists('MaxSearchApi')
+                && method_exists('MaxSearchApi', 'getLastValue')
+                && MaxSearchApi::getLastValue($chatId, MaxSearchApi::$statusCheck) !== false;
             $checkSent = DialogueView::check($chatId);
+            if ($hadCompletedCheck) $checkSent = false;
             if ($checkSent) OptionalBudgetPromptService::sendIfMissing($chatId);
             return [
                 'complete' => true,
