@@ -57,6 +57,9 @@ $protectedMax=ManagerMessageMediaService::publicAttachments(77,[['type'=>'image'
 mediaCheck('inbound MAX photo uses protected local endpoint',$protectedMax[0]['url']??null,'media-file.php?message_id=77&attachment=0');
 mediaCheck('MAX token is not projected to browser',str_contains(json_encode($protectedMax),'private-token'),false);
 mediaCheck('MAX provider URL is not projected to browser',str_contains(json_encode($protectedMax),'provider.example'),false);
+$protectedVideo=ManagerMessageMediaService::publicAttachments(79,[['type'=>'video','provider'=>'max','token'=>'video-private']],'max','inbound');
+mediaCheck('inbound MAX video uses protected local endpoint',$protectedVideo[0]['url']??null,'media-file.php?message_id=79&attachment=0');
+mediaCheck('MAX video token is not projected to browser',str_contains(json_encode($protectedVideo),'video-private'),false);
 $maxOutbound=ManagerMessageMediaService::publicAttachments(78,[['type'=>'image','provider'=>'max','url'=>'https://provider.example/out.jpg']],'max','outbound');
 mediaCheck('outbound MAX preview contract remains unchanged',$maxOutbound[0]['url']??null,'https://provider.example/out.jpg');
 
@@ -71,16 +74,16 @@ $messageFetcher=static function(string $mid)use(&$messageCalls){
     return ['body'=>['attachments'=>[['type'=>'image','payload'=>['token'=>'saved-token','url'=>'https://cdn.max.test/recovered.png']]]]];
 };
 $mediaFetcher=static function(string $url,int $limit)use(&$mediaCalls,$png){$mediaCalls[]=[$url,$limit];return maxMediaStream($png);};
-$local=MaxInboundMediaArchiveService::archiveImage(42,0,'saved-mid',['type'=>'image','provider'=>'max','token'=>'saved-token'],$messageFetcher,$mediaFetcher);
+$local=MaxInboundMediaArchiveService::archiveMedia(42,0,'saved-mid',['type'=>'image','provider'=>'max','token'=>'saved-token'],$messageFetcher,$mediaFetcher);
 mediaCheck('token-only MAX image resolves saved message once',$messageCalls,['saved-mid']);
 mediaCheck('resolved MAX photo downloads provider URL',$mediaCalls[0][0]??null,'https://cdn.max.test/recovered.png');
-mediaCheck('MAX photo archive uses official 50MB image bound',$mediaCalls[0][1]??null,MaxInboundMediaArchiveService::MAX_IMAGE_BYTES);
+mediaCheck('MAX media archive uses bounded 50MB fetch',$mediaCalls[0][1]??null,MaxInboundMediaArchiveService::MAX_MEDIA_BYTES);
 mediaCheck('MAX photo has private local descriptor',isset($local['id'])&&preg_match('/^[a-f0-9]{32}$/D',(string)$local['id'])===1,true);
 $localFile=is_array($local)?MaxInboundMediaArchiveService::openLocal($local):null;
 mediaCheck('archived MAX photo MIME is detected from bytes',$localFile['mime']??null,'image/png');
 mediaCheck('archived MAX photo bytes survive provider independence',is_array($localFile)?stream_get_contents($localFile['stream']):null,$png);
 if(is_array($localFile)&&is_resource($localFile['stream']??null))fclose($localFile['stream']);
-$bad=MaxInboundMediaArchiveService::archiveImage(43,0,'saved-mid',['type'=>'image','url'=>'https://cdn.max.test/not-image'],static fn()=>null,static fn()=>maxMediaStream('<html>not an image</html>'));
+$bad=MaxInboundMediaArchiveService::archiveMedia(43,0,'saved-mid',['type'=>'image','url'=>'https://cdn.max.test/not-image'],static fn()=>null,static fn()=>maxMediaStream('<html>not an image</html>'));
 mediaCheck('active non-image payload is never archived as photo',$bad,null);
 if(is_dir($tmpDir)){foreach((array)glob($tmpDir.'/*') as $file)@unlink($file);@rmdir($tmpDir);}putenv('MAX_SEARCH_INCOMING_MEDIA_DIR');
 
@@ -122,10 +125,11 @@ mediaCheck('outbound history stores preview URL', strpos($maxAdapterSource, '$me
 mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SECONDS = 604800') !== false && strpos($cacheSource, 'self::prune()') !== false, true);
 mediaCheck('preview endpoint uses shared authenticated manager context', strpos($fileEndpointSource, "require_once __DIR__.'/lib/ManagerHttp.php'") !== false && strpos($fileEndpointSource, 'ManagerHttp::start();') !== false && strpos($fileEndpointSource, 'ManagerHttp::requireManager();') !== false && strpos($fileEndpointSource, 'ManagerHttp::managerId();') !== false && strpos($fileEndpointSource, 'ManagerRequestContext::') === false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
-mediaCheck('MAX photo endpoint uses authorized provider service',strpos($fileEndpointSource,'ManagerMaxMediaService::attachment')!==false&&strpos($fileEndpointSource,'ManagerMaxMediaService::open')!==false,true);
+mediaCheck('MAX media endpoint uses authorized provider service',strpos($fileEndpointSource,'ManagerMaxMediaService::attachment')!==false&&strpos($fileEndpointSource,'ManagerMaxMediaService::open')!==false,true);
 mediaCheck('MAX inbound archive delegates provider transport',strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMessage')!==false&&strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMedia')!==false,true);
 mediaCheck('MAX inbound download adapter keeps strict TLS',strpos($maxDownloadAdapterSource,'MaxTlsConfig::strictCurlOptions()')!==false,true);
-mediaCheck('MAX inbound archive runs after response flush when FPM supports it',strpos($maxHandlerSource,'fastcgi_finish_request')!==false&&strpos($maxHandlerSource,'archiveRecordedMessage')!==false,true);
+mediaCheck('MAX video token resolver is provider-owned',strpos($maxDownloadAdapterSource,"'/videos/'.rawurlencode($token)")!==false,true);
+mediaCheck('MAX inbound media archive runs after response flush when FPM supports it',strpos($maxHandlerSource,'fastcgi_finish_request')!==false&&strpos($maxHandlerSource,'archiveRecordedMessage')!==false,true);
 mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
