@@ -101,7 +101,7 @@ jobs:
                   if($ok!==false && $http>=200 && $http<300 && $size>0 && $size<=52428800){
                       $mime=strtolower(trim(explode(';',$ctype)[0]??''));
                       if(!str_starts_with($mime,'image/')){$fi=new finfo(FILEINFO_MIME_TYPE);$mime=(string)$fi->file($tmp);}
-                      if(str_starts_with($mime,'image/') && $size>$bestSize){
+                      if((str_starts_with($mime,'image/')||str_starts_with($mime,'video/')) && $size>$bestSize){
                           if($bestPath!=='')@unlink($bestPath);
                           $bestPath=$tmp;$bestSize=$size;$bestMime=$mime;$tmp='';
                       }
@@ -111,7 +111,7 @@ jobs:
               $urls=[];
           }
           if($bestPath!==''){
-              $ext=['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp','image/tiff'=>'tif','image/heic'=>'heic'][$bestMime]??'img';
+              $ext=['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp','image/tiff'=>'tif','image/heic'=>'heic','video/mp4'=>'mp4','video/quicktime'=>'mov','video/webm'=>'webm','video/x-matroska'=>'mkv'][$bestMime]??(str_starts_with($bestMime,'video/')?'video':'img');
               $final='/tmp/recovered-live-client-photo.'.$ext;rename($bestPath,$final);file_put_contents('/tmp/recovered-live-client-photo.path',$final);
               echo "RECOVERED=1\nMIME={$bestMime}\nBYTES={$bestSize}\n";exit(0);
           }
@@ -139,7 +139,7 @@ jobs:
       - name: Upload recovered client photo
         uses: actions/upload-artifact@v4
         with:
-          name: recovered-live-client-photo
+          name: recovered-live-client-media
           path: ${{ runner.temp }}/recovered-live-client-photo.*
           if-no-files-found: error
           retention-days: 1
