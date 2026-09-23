@@ -1,0 +1,101 @@
+name: Backfill live MAX forwarded video
+on:
+  push:
+    branches: [ops/backfill-live-max-video-20260923]
+    paths: ['.github/workflows/backfill-live-max-video.yml']
+permissions:
+  contents: read
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 038d2d4202e2e69cb1f167d600c8b32ed17fa669
+          persist-credentials: false
+      - name: Prepare SSH
+        env:
+          KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail; umask 077; key="$RUNNER_TEMP/key"; raw="$KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s\n' "$raw" | tr -d '\r' > "$key"; fi
+          else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Backfill exact live conversation media
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/backfill.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          require $root.'/config.php';
+          require $root.'/services/ConversationDb.php';
+          require $root.'/services/MaxInboundMediaArchiveService.php';
+          require $root.'/integrations/MaxIncomingAdapter.php';
+          require $root.'/integrations/MaxInboundMediaDownloadAdapter.php';
+
+          $pdo=ConversationDb::connection();
+          $q=$pdo->prepare("SELECT id,conversation_id FROM messages
+            WHERE channel='max' AND direction='inbound' AND sender_type='customer'
+              AND text LIKE ? AND text LIKE ? AND text LIKE ?
+            ORDER BY id DESC LIMIT 2");
+          $q->execute(['%предложение%','%3-5.10%','%вылет%']);
+          $anchors=$q->fetchAll(PDO::FETCH_ASSOC);
+          if(count($anchors)!==1){fwrite(STDERR,'anchor_count='.count($anchors)."\n");exit(20);}
+          $anchor=$anchors[0];
+
+          $q=$pdo->prepare("SELECT id,external_message_id,metadata_json FROM messages
+            WHERE conversation_id=? AND channel='max' AND direction='inbound' AND sender_type='customer'
+              AND id BETWEEN ? AND ?
+            ORDER BY ABS(CAST(id AS SIGNED)-CAST(? AS SIGNED)),id ASC");
+          $q->execute([(int)$anchor['conversation_id'],max(1,(int)$anchor['id']-8),(int)$anchor['id']+3,(int)$anchor['id']]);
+          $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+          $candidates=[];
+          foreach($rows as $row){
+            $mid=trim((string)($row['external_message_id']??''));
+            if($mid==='')continue;
+            $remote=MaxInboundMediaDownloadAdapter::fetchMessage($mid);
+            if(!is_array($remote))continue;
+            $message=$remote['message']??($remote['messages'][0]??$remote);
+            if(!is_array($message))continue;
+            $update=['message'=>$message];
+            $media=MaxIncomingAdapter::mediaAttachments($update);
+            $videos=array_values(array_filter($media,static fn($a)=>is_array($a)&&(string)($a['type']??'')==='video'));
+            if($videos)$candidates[]=['row'=>$row,'mid'=>$mid,'attachments'=>$media];
+          }
+          if(count($candidates)!==1){fwrite(STDERR,'video_candidate_count='.count($candidates)."\n");exit(21);}
+          $candidate=$candidates[0];$row=$candidate['row'];
+          $meta=json_decode((string)($row['metadata_json']??''),true);if(!is_array($meta))$meta=[];
+          $existing=is_array($meta['attachments']??null)?$meta['attachments']:[];
+          if(!$existing){
+            $meta['attachments']=$candidate['attachments'];
+            $json=json_encode($meta,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            if($json===false)exit(22);
+            $u=$pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=?');
+            $u->execute([$json,(int)$row['id']]);
+          }
+          $changed=MaxInboundMediaArchiveService::archiveRecordedMessage($candidate['mid']);
+          $q=$pdo->prepare('SELECT metadata_json FROM messages WHERE id=?');$q->execute([(int)$row['id']]);
+          $after=json_decode((string)$q->fetchColumn(),true);
+          $attachments=(array)($after['attachments']??[]);
+          $local=false;$type='';
+          foreach($attachments as $a){if(!is_array($a))continue;if((string)($a['type']??'')==='video'){$type='video';$local=!empty($a['local_media']['id']);break;}}
+          if(!$local){fwrite(STDERR,"local_video_missing changed={$changed}\n");exit(23);}
+          echo "backfill_ok=1 type={$type} local=1\n";
+          PHP
+          opts=(-i "$RUNNER_TEMP/key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          remote="$USER@$HOST"; root='/var/www/anytoour/data/www/app.anytoour.ru'
+          prod="$(ssh "${opts[@]}" "$remote" "cd '$root' && git rev-parse HEAD")"
+          test "$prod" = "038d2d4202e2e69cb1f167d600c8b32ed17fa669"
+          scp "${opts[@]}" "$RUNNER_TEMP/backfill.php" "$remote:/tmp/backfill-live-max-video.php"
+          ssh "${opts[@]}" "$remote" "cd '$root' && php /tmp/backfill-live-max-video.php; rc=\$?; rm -f /tmp/backfill-live-max-video.php; exit \$rc"
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/key" "$RUNNER_TEMP/backfill.php"
