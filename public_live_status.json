@@ -1,50 +1,47 @@
 {
     "ok": true,
-    "generated_at": "2026-09-23T18:23:00+00:00",
+    "generated_at": "2026-09-23T18:27:38+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 24,
-        "raw_sessions": 24,
+        "sessions": 21,
+        "raw_sessions": 21,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 24,
+            "resolved": 21,
             "unresolved": 0
         },
-        "started": 24,
-        "needs_collected": 18,
-        "tours_opened": 16,
+        "started": 21,
+        "needs_collected": 16,
+        "tours_opened": 14,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 5,
+        "manager_requested": 4,
         "manager_replied": 4,
         "customer_replied_after_manager": 1,
-        "phone_received": 0,
+        "phone_received": 1,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 4,
-            "still_unanswered": 1,
+            "still_unanswered": 0,
             "measured_responses": 4,
-            "avg_seconds": 6354,
+            "avg_seconds": 4621,
             "max_seconds": 8726
         },
         "drop_points": {
-            "tours_opened": 13,
-            "collecting_needs": 6,
+            "tours_opened": 11,
+            "collecting_needs": 5,
             "manager_replied": 3,
             "customer_replied_after_manager": 1,
-            "manager_requested": 1
+            "needs_collected": 1
         },
         "flags": {
-            "excessive_turns": 7,
-            "repeated_callback_input": 3,
-            "manager_requested_no_reply": 1,
-            "left_waiting_queue_without_manager_reply": 1,
-            "manager_taken_no_reply": 1
+            "excessive_turns": 6,
+            "repeated_callback_input": 2
         }
     },
-    "since_utc": "2026-09-23 17:23:00",
+    "since_utc": "2026-09-23 17:27:38",
     "public_redacted": true
 }
