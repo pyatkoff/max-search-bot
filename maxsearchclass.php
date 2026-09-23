@@ -129,9 +129,7 @@ class MaxSearchApi extends MaxSearchBase
         $name=(string)($claim['UF_NAME']??''); $createdAt=date('d.m.Y H:i:s');
         $from=static::getCityByID($claim['UF_CITY']??0); $country=static::getCountryByID($claim['UF_COUNTRY']??0);
         $people=LeadPayloadService::peopleString($claim); $meal=LeadPayloadService::mealString($claim,static::getMealArr());
-        $departureDate=trim((string)($claim['UF_DATE_DEPART']??''));
-        $dateWindow=NativeDateService::isTodayOrFuture($departureDate)?NativeDateService::leadWindow($departureDate):null;
-        $dates=is_array($dateWindow)?$dateWindow['from'].' - '.$dateWindow['to']:'';
+        $dates=LeadPayloadService::departureDates($claim);
         $leadData=['name'=>$name,'phone'=>$phone,'clean_phone'=>static::cleanPhone($phone),'created_at'=>$createdAt,'from'=>$from,'country'=>$country,'people'=>$people,'stars'=>$claim['UF_STARS']??'','meal'=>$meal,'dates'=>$dates,'nights'=>$claim['UF_NIGHTS']??'','status'=>(int)ProjectConfig::get('leads.status_id',static::$claimStatusIDQueue)];
         $uon=(int)ProjectConfig::get('leads.uon_source_id',static::$uonSourceId); if($uon>0)$leadData['source']=$uon;
         if(static::$isAnyOnline){$projectMarker=ProjectMarkerService::anytourOnline();if($projectMarker!==null)$leadData['is_anytour_online']=$projectMarker;}
