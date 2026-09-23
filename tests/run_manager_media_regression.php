@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
+require_once __DIR__ . '/../integrations/TelegramIncomingAdapter.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
 require_once __DIR__ . '/../services/ManagerOutboundService.php';
 require_once __DIR__ . '/../services/ManagerMessageMediaService.php';
