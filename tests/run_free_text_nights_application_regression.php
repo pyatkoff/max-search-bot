@@ -74,14 +74,47 @@ class MaxSearchApi
     public static string $editMode = '';
     public static array $transitions = [];
     public static array $directSaves = [];
+    public static array $aiApplyCalls = [];
 
-    public static function deletePrevMessage($chatId): void {}
+    public static function deletePrevMessage($chatId, $withButtons = false): void {}
     public static function setStatus($chatId, $status): void { self::$transitions[] = $status; }
     public static function getEditMode($chatId): string { return self::$editMode; }
     public static function setEditMode($chatId, $field): void { self::$editMode = (string)$field; }
-    public static function getSavedData($chatId): array { return [self::$statusNights => self::storedValue($chatId)]; }
+    public static function getSavedData($chatId): array
+    {
+        $values = [];
+        foreach (FreeTextNightsFakeData::$rows as $row) {
+            if (($row['UF_CHAT_ID'] ?? null) == $chatId) {
+                $values[$row['UF_STATUS']] = $row['UF_VALUE'] ?? null;
+            }
+        }
+        return $values;
+    }
     public static function formatSavedData(array $data): array { return []; }
+    public static function getAiSearchContext($chatId): array { return []; }
+    public static function getAiMissingFields($chatId): array
+    {
+        $saved = self::getSavedData($chatId);
+        return array_key_exists(self::$statusDate, $saved) ? [] : ['date'];
+    }
     public static function funnelLog($chatId, $event, array $data = []): void {}
+    public static function applyAiParameters($chatId, array $params): array
+    {
+        self::$aiApplyCalls[] = ['chat_id'=>$chatId, 'params'=>$params];
+        $applied = [];
+        if (array_key_exists('date', $params)) {
+            $nextId = 1;
+            foreach (FreeTextNightsFakeData::$rows as $row) $nextId = max($nextId, (int)($row['ID'] ?? 0) + 1);
+            FreeTextNightsFakeData::$rows[] = [
+                'ID'=>$nextId,
+                'UF_CHAT_ID'=>$chatId,
+                'UF_STATUS'=>self::$statusDate,
+                'UF_VALUE'=>(string)$params['date'],
+            ];
+            $applied['date'] = (string)$params['date'];
+        }
+        return $applied;
+    }
     public static function saveLastValue($chatId, $status, $value): bool
     {
         self::$directSaves[] = [$chatId, $status, $value];
@@ -129,10 +162,12 @@ function freeTextNightsReset(int $chatId, bool $withStep = true, bool $stale = f
 {
     global $freeTextNightsTransitionLog;
     EditFlowService::clearSnapshot($chatId);
+    AiDateHandler::clear($chatId);
     @unlink($freeTextNightsTransitionLog);
     MaxSearchApi::$editMode = '';
     MaxSearchApi::$transitions = [];
     MaxSearchApi::$directSaves = [];
+    MaxSearchApi::$aiApplyCalls = [];
     FreeTextNightsFakeData::$adds = 0;
     FreeTextNightsFakeData::$rows = $stale
         ? [
@@ -183,6 +218,22 @@ foreach ([
     freeTextNightsCheck("{$text} observer keeps free-text scope", $transitionEvents[0]['data']['scope'] ?? null, 'free_text_nights');
 }
 
+$combinedYear = 10 < (int)date('n') ? ((int)date('Y') + 1) : (int)date('Y');
+$combinedDate = sprintf('03.10.%04d', $combinedYear);
+$messenger = freeTextNightsReset(150);
+StateMessageHandler::handle(['text'=>'7 ночей, вылет 3 октября'], 150, MaxSearchApi::$statusNights);
+$combinedSaved = MaxSearchApi::getSavedData(150);
+freeTextNightsCheck('combined answer stores nights from the same turn', $combinedSaved[MaxSearchApi::$statusNights] ?? null, '7');
+freeTextNightsCheck('combined answer stores explicit departure date from the same turn', $combinedSaved[MaxSearchApi::$statusDate] ?? null, $combinedDate);
+freeTextNightsCheck('combined answer applies date through canonical multi-field boundary', MaxSearchApi::$aiApplyCalls, [['chat_id'=>150, 'params'=>['date'=>$combinedDate]]]);
+freeTextNightsCheck('combined answer skips the repeated date calendar and reaches check', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
+freeTextNightsCheck('combined answer renders one check view', count($messenger->buttons), 1);
+freeTextNightsCheck('combined answer does not emit a fake nights-to-date observation', freeTextNightsTransitionEvents(), []);
+freeTextNightsCheck('combined answer direct write is only check generation', array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
+freeTextNightsCheck('date alone is not a combined answer', StateMessageHandler::resolveCombinedNightsDate('3 октября'), []);
+freeTextNightsCheck('nights alone is not a combined answer', StateMessageHandler::resolveCombinedNightsDate('7 ночей'), []);
+freeTextNightsCheck('week plus date uses existing week semantics', StateMessageHandler::resolveCombinedNightsDate('на неделю, вылет 3 октября'), ['nights'=>'7', 'date'=>$combinedDate]);
+
 $messenger = freeTextNightsReset(200);
 StateMessageHandler::handle(['text'=>'не знаю'], 200, MaxSearchApi::$statusNights);
 freeTextNightsCheck('invalid text keeps the step value', MaxSearchApi::getSavedData(200)[MaxSearchApi::$statusNights] ?? null, '6');
@@ -223,6 +274,7 @@ freeTextNightsCheck(
         && strpos($nightsSource, 'ExistingWizardStepApplicationService::apply') === false,
     true
 );
+freeTextNightsCheck('combined date uses canonical application boundary', strpos($nightsSource, 'NeedApplicationService::applyParameters') !== false, true);
 freeTextNightsCheck('handler no longer parses nights directly', strpos($source, 'NightsParser::parse('), false);
 
 EditFlowService::clearSnapshot(300);

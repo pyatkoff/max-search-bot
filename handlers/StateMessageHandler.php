@@ -12,6 +12,7 @@ require_once dirname(__DIR__) . '/services/DialogueTransitionObserver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityResolver.php';
 require_once dirname(__DIR__) . '/services/DepartureCityValueContract.php';
 require_once dirname(__DIR__) . '/services/CountryValueContract.php';
+require_once dirname(__DIR__) . '/services/DateParser.php';
 require_once __DIR__ . '/AiDateHandler.php';
 require_once __DIR__ . '/AiMessageHandler.php';
 
@@ -203,25 +204,52 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusNights)
             {
+                $nightsText = (string)($message['text'] ?? '');
+                $combinedNightsDate = self::resolveCombinedNightsDate($nightsText);
+                if($combinedNightsDate !== [])
+                {
+                    $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                        $chat_id,
+                        'nights',
+                        $combinedNightsDate['nights'],
+                        (int)MaxSearchApi::$statusNights
+                    );
+                    if(empty($result['recognized']) || empty($result['applied'])) return;
+
+                    // Date is the next wizard value and does not exist yet, so the
+                    // canonical upsert boundary is intentional here. It retains the
+                    // existing AI/future-date policy instead of inventing a second
+                    // date writer inside this handler.
+                    $dateApplied = NeedApplicationService::applyParameters(
+                        $chat_id,
+                        ['date'=>$combinedNightsDate['date']]
+                    );
+                    if(!empty($dateApplied['date']))
+                    {
+                        AiDateHandler::clear($chat_id);
+                        if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                            NeedProgressionService::advance($chat_id);
+                        return;
+                    }
+
+                    // If the date cannot be applied under the existing date policy,
+                    // keep the accepted nights and fall back to the normal calendar.
+                    if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                        self::showDateAfterNights($chat_id);
+                    return;
+                }
+
                 $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
                     $chat_id,
                     'nights',
-                    (string)($message['text'] ?? ''),
+                    $nightsText,
                     (int)MaxSearchApi::$statusNights
                 );
                 if(!empty($result['recognized']))
                 {
                     if(empty($result['applied'])) return;
-                    if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
-                        DialogueTransitionObserver::observe(
-                            $chat_id,
-                            (int)MaxSearchApi::$statusNights,
-                            (int)MaxSearchApi::$statusDate,
-                            'forward',
-                            'free_text_nights'
-                        );
-                        DialogueView::calendar($chat_id,date("m"),date("Y"));
-                    }
+                    if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                        self::showDateAfterNights($chat_id);
                 }
                 else
                     self::send($chat_id,"К сожалению диапазон ночей указан неверно. Пожалуйста, укажите число или диапазон от 1 до 28 — например: 6, на 6 ночей или 7-10 ночей.");
@@ -346,6 +374,52 @@ class StateMessageHandler
         if (!$hasChild) return false;
 
         return preg_match('/\b(?:[0-9]|1[0-7])\s*(?:лет|год|года)\b/ui', $text) === 1;
+    }
+
+    /**
+     * Preserve only an explicit combined duration + departure date answer. The
+     * nights fragment still goes through NeedValueResolver and the date through
+     * the existing DateParser; this helper does not broaden either value grammar.
+     */
+    public static function resolveCombinedNightsDate($text): array
+    {
+        $text = trim((string)$text);
+        if ($text === '') return [];
+
+        $date = DateParser::resolveDate($text);
+        if (empty($date['date'])) return [];
+
+        $nightsText = '';
+        if (preg_match(
+            '/(?<!\d)(?:(?:на|от|примерно)\s+)?\d{1,2}(?:(?:\s*[-–—]\s*|\s*,\s*|\s*\.{2,}\s*|\s+)\d{1,2})?\s+ноч(?:ь|и|ей)?\b/ui',
+            $text,
+            $match
+        )) {
+            $nightsText = trim((string)$match[0]);
+        } elseif (preg_match('/\b(?:на\s+)?недел(?:я|ю|ьку)\b/ui', $text, $match)) {
+            $nightsText = trim((string)$match[0]);
+        }
+        if ($nightsText === '') return [];
+
+        $nights = NeedValueResolver::resolve('nights', $nightsText);
+        if (empty($nights['recognized'])) return [];
+
+        return [
+            'nights'=>(string)$nights['value'],
+            'date'=>(string)$date['date'],
+        ];
+    }
+
+    private static function showDateAfterNights($chatId): void
+    {
+        DialogueTransitionObserver::observe(
+            $chatId,
+            (int)MaxSearchApi::$statusNights,
+            (int)MaxSearchApi::$statusDate,
+            'forward',
+            'free_text_nights'
+        );
+        DialogueView::calendar($chatId,date("m"),date("Y"));
     }
 
     /**
