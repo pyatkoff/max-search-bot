@@ -46,6 +46,11 @@ $forwardUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id
 $forwardIncoming=MaxIncomingAdapter::fromUpdate($forwardUpdate);
 mediaCheck('MAX forward context retained',$forwardIncoming['linked_message']['type']??null,'forward');
 mediaCheck('forwarded MAX video retained',$forwardIncoming['attachments'][0]['type']??null,'video');
+$tgReply=['message'=>['message_id'=>11,'from'=>['id'=>7,'first_name'=>'Клиент'],'text'=>'Этот нравится','reply_to_message'=>['message_id'=>10,'from'=>['id'=>99,'first_name'=>'Менеджер'],'caption'=>'Отель A','photo'=>[['file_id'=>'p1','width'=>100,'height'=>100]]]]];
+$tgIncoming=TelegramIncomingAdapter::fromUpdate($tgReply);
+mediaCheck('Telegram reply context retained',$tgIncoming['linked_message']['type']??null,'reply');
+mediaCheck('Telegram reply target retained',$tgIncoming['linked_message']['mid']??null,'10');
+mediaCheck('Telegram replied photo summarized',$tgIncoming['linked_message']['attachments'][0]['type']??null,'image');
 mediaCheck('forwarded MAX video token retained',$forwardIncoming['attachments'][0]['token']??null,'video-token');
 $linkedProjection=ManagerMessageMediaService::hydrate([['id'=>991,'direction'=>'inbound','sender_type'=>'customer','text'=>'Этот вариант']]);
 
