@@ -69,6 +69,16 @@ class MaxIncomingAdapter
         if($name!=='') $result['sender_name']=mb_substr($name,0,160,'UTF-8');
         $text=trim((string)($link['message']['body']['text']??$link['body']['text']??$link['text']??''));
         if($text!=='') $result['text']=mb_substr($text,0,500,'UTF-8');
+        $linkedMessage=is_array($link['message']??null)?$link['message']:[];
+        $summary=[];
+        foreach((array)($linkedMessage['body']['attachments']??$linkedMessage['attachments']??[]) as $a){
+            if(!is_array($a))continue;$t=strtolower(trim((string)($a['type']??'')));
+            if(!in_array($t,['image','video','audio','file'],true))continue;
+            $payload=is_array($a['payload']??null)?$a['payload']:[];
+            $name=trim((string)($a['name']??$a['filename']??$payload['name']??$payload['filename']??''));
+            $summary[]=['type'=>$t,'name'=>mb_substr($name,0,180,'UTF-8')];if(count($summary)>=4)break;
+        }
+        if($summary)$result['attachments']=$summary;
         return $result;
     }
 
