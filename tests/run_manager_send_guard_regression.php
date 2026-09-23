@@ -22,6 +22,10 @@ msgGuardCheck('advisory lock is released in finally',strpos($outbound,'finally')
 msgGuardCheck('media path is not subject to text duplicate guard',substr_count($outbound,'ManagerSendGuardService::acquire')===1&&substr_count($outbound,'ManagerSendGuardService::isImmediateDuplicate')===1);
 msgGuardCheck('manager adapters disable ambiguous chat-based transcript mirroring',strpos($outbound,"new MaxMessengerAdapter(null, null, 'manager', null, false)")!==false&&strpos($outbound,"new TelegramMessengerAdapter(null, 'manager', false)")!==false&&strpos($outbound,"new WebsiteMessengerAdapter('manager', false)")!==false);
 msgGuardCheck('successful delivery mirrors text to the exact conversation',strpos($outbound,'ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText')!==false&&strpos($recorder,'public static function outboundForConversation(int $conversationId')!==false&&strpos($recorder,"'outbound',\$senderType,\$senderId,\$platform")!==false);
+$maxAdapter=(string)file_get_contents(dirname(__DIR__).'/integrations/MaxMessengerAdapter.php');
+msgGuardCheck('MAX adapter retains provider message id for accepted manager sends',strpos($maxAdapter,'lastExternalMessageId')!==false&&strpos($maxAdapter,"['message_id'] ?? ''")!==false);
+msgGuardCheck('exact conversation mirror stores external provider message id',strpos($recorder,'external_message_id,text,metadata_json')!==false&&strpos($recorder,"$externalMessageId !== '' ? $externalMessageId : null")!==false);
+msgGuardCheck('manager MAX text and media pass provider identity into exact mirror',substr_count($outbound,"$channel==='max'?$adapter->lastExternalMessageId()")===2);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
