@@ -53,25 +53,46 @@ final class TripContextMetadataPolicy
         return $raw;
     }
 
-    /** Extractor lists are incremental because its contract contains only new-message changes. */
+    /**
+     * Extractor lists are incremental because its contract contains only new-message changes.
+     * Removal keys are neutral corrections: they delete an exact active item without turning it
+     * into the opposite polarity. This lets "больше не важно" differ from "не хочу".
+     */
     public static function applyPreferences(array $context, array $changes): ?array
     {
-        if (array_diff(array_keys($changes), ['preferences','negative_preferences']) !== []) return null;
+        $allowed = ['preferences','negative_preferences','preferences_remove','negative_preferences_remove'];
+        if (array_diff(array_keys($changes), $allowed) !== []) return null;
         $next = self::normalizeContext($context);
         if ($next === null) return null;
 
         $incoming = [];
-        foreach (['preferences','negative_preferences'] as $key) {
+        foreach ($allowed as $key) {
             if (!array_key_exists($key, $changes)) continue;
             $normalized = self::normalizeList($changes[$key]);
             if ($normalized === null) return null;
             $incoming[$key] = $normalized;
         }
         if (array_intersect($incoming['preferences'] ?? [], $incoming['negative_preferences'] ?? []) !== []) return null;
+        if (array_intersect($incoming['preferences'] ?? [], $incoming['preferences_remove'] ?? []) !== []) return null;
+        if (array_intersect($incoming['negative_preferences'] ?? [], $incoming['negative_preferences_remove'] ?? []) !== []) return null;
 
-        foreach ($incoming as $key=>$items) {
+        foreach (($incoming['preferences_remove'] ?? []) as $item) {
+            $next['preferences'] = array_values(array_filter(
+                $next['preferences'],
+                static fn(string $v): bool => $v !== $item
+            ));
+        }
+        foreach (($incoming['negative_preferences_remove'] ?? []) as $item) {
+            $next['negative_preferences'] = array_values(array_filter(
+                $next['negative_preferences'],
+                static fn(string $v): bool => $v !== $item
+            ));
+        }
+
+        foreach (['preferences','negative_preferences'] as $key) {
+            if (!array_key_exists($key, $incoming)) continue;
             $opposite = $key === 'preferences' ? 'negative_preferences' : 'preferences';
-            foreach ($items as $item) {
+            foreach ($incoming[$key] as $item) {
                 $next[$opposite] = array_values(array_filter($next[$opposite], static fn(string $v): bool => $v !== $item));
                 if (!in_array($item, $next[$key], true)) $next[$key][] = $item;
             }
@@ -88,7 +109,7 @@ final class TripContextMetadataPolicy
         $preferences = self::normalizeList($context['preferences'] ?? []);
         $negative = self::normalizeList($context['negative_preferences'] ?? []);
         if ($preferences === null || $negative === null || array_intersect($preferences, $negative) !== []) return null;
-        return ['budget'=>$budget, 'preferences'=>$preferences, 'negative_preferences'=>$negative];
+        return ['budget'=>$budget,'preferences'=>$preferences,'negative_preferences'=>$negative];
     }
 
     private static function validBudget(array $budget): bool
