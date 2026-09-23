@@ -19,6 +19,10 @@ function rbCheck(string $name, $actual, $expected): void
     $failed++;
 }
 
+$bootstrapSource=(string)file_get_contents(__DIR__.'/../services/RuntimeBootstrap.php');
+rbCheck('legacy bootstrap entrypoint avoids PHP 7.1 nullable syntax',str_contains($bootstrapSource,'boot(?string'),false);
+rbCheck('legacy bootstrap entrypoint avoids PHP 7.1 void return syntax',preg_match('/function\\s+boot\\([^)]*\\)\\s*:\\s*void/',$bootstrapSource)===1,false);
+
 rbCheck('standalone defaults false', RuntimeBootstrap::isStandalone(), false);
 
 $thrown = false;
