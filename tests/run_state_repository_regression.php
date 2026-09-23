@@ -108,6 +108,28 @@ stateCheck('case-variant same-message add and neutral removal fail closed', Trip
     'preferences'=>['Первая линия'],'preferences_remove'=>['первая линия'],
 ]), null);
 
+$persistedCaseDuplicateRaw = json_encode([
+    'kind'=>'trip_context_v1',
+    'budget'=>$budget,
+    'preferences'=>['Первая линия','первая линия'],
+    'negative_preferences'=>[],
+], JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
+$persistedCaseDuplicate = TripContextMetadataPolicy::fromStartValue($persistedCaseDuplicateRaw);
+stateCheck('persisted case-variant duplicate normalizes to first display spelling', $persistedCaseDuplicate['preferences'] ?? null, ['Первая линия']);
+
+$persistedCaseOverlapRaw = json_encode([
+    'kind'=>'trip_context_v1',
+    'budget'=>$budget,
+    'preferences'=>['Первая линия'],
+    'negative_preferences'=>['первая линия'],
+], JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
+stateCheck('persisted case-variant positive-negative overlap fails closed', TripContextMetadataPolicy::fromStartValue($persistedCaseOverlapRaw), null);
+stateCheck('in-memory case-variant positive-negative overlap fails closed', TripContextMetadataPolicy::applyPreferences([
+    'budget'=>$budget,
+    'preferences'=>['Первая линия'],
+    'negative_preferences'=>['первая линия'],
+], ['preferences_remove'=>['другое условие']]), null);
+
 $polarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['первая линия']]);
 stateCheck('explicit negative correction removes same positive wish', $polarity['preferences'] ?? null, ['тихий отель','детский клуб']);
 stateCheck('explicit negative correction becomes exclusion', $polarity['negative_preferences'] ?? null, ['шумный отель','первая линия']);
