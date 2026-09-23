@@ -74,7 +74,7 @@ $messages=[
 $summary=ManagerHandoffContextService::build($aiContext,$messages);
 mrCheck('handoff summary includes route',strpos($summary,'Маршрут: Москва → Египет')!==false,true);
 mrCheck('handoff summary includes tourists',strpos($summary,'Туристы: 1 взр. + 0 реб.')!==false,true);
-mrCheck('handoff summary includes hotel and meal',strpos($summary,'Отель: от 4★')!==false&&strpos($summary,'Питание: all_inclusive')!==false,true);
+mrCheck('handoff summary includes hotel and meal',strpos($summary,'Отель: от 4★')!==false&&strpos($summary,'Питание: Всё включено')!==false,true);
 mrCheck('handoff summary preserves meaningful free-text note',strpos($summary,'Дополнение туриста: Хочу спокойный отель 18+ со средней территорией')!==false,true);
 mrCheck('raw transcript is explicitly labelled',strpos($summary,'🗣 Что писал турист')!==false,true);
 mrCheck('raw transcript preserves short month answer',strpos($summary,'• Октябрь')!==false,true);
