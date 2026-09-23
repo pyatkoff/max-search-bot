@@ -26,7 +26,7 @@
     "storage_field": "wizard_status_value",
     "stored_representation": "DD.MM.YYYY_string",
     "canonical_wizard_value": "one_orientational_departure_date",
-    "search_window": "presentation_and_lead_windows_are_plus_or_minus_3_days_as_a_technical_convention_while_search_query_uses_the_single_date_for_dateFrom_and_dateTo",
+    "search_window": "customer_confirmation_and_search_query_use_the_single_selected_date;_the_existing_lead_window_remains_a_separate_plus_or_minus_3_day_technical_behavior",
     "flexibility_policy": "customer_date_flexibility_is_unknown_unless_explicitly_supplied_and_must_not_be_inferred_from_the_technical_plus_or_minus_3_day_window"
   },
   "executable_value_contract": {
@@ -123,7 +123,8 @@
     "month_navigation_payload": "month_change_MM.YYYY",
     "back_payload": "back_nights",
     "back_destination": "nights",
-    "calendar_send_success_status": "statusDate"
+    "calendar_send_success_status": "statusDate",
+    "customer_copy": "selected_date_is_the_exact_search_date;_date_flexibility_must_be_supplied_separately"
   },
   "edit_and_back": {
     "edit_date": {
@@ -148,7 +149,8 @@
     "search_parameters": ["dateFrom", "dateTo"],
     "search_value": "TourSearchHandoffService_dateValue_normalized_to_YYYY-MM-DD",
     "invalid_search_value": "empty_string",
-    "summary": "SearchDateSummary_formats_selected_date_and_plus_or_minus_3_day_window_with_lower_bound_clamped_to_today",
+    "summary": "SearchDateSummary_formats_the_selected_date_and_states_that_search_uses_that_date_without_inventing_customer_flexibility",
+    "lead_window": "NativeDateService_leadWindow_remains_plus_or_minus_3_days_as_existing_lead_behavior_and_is_not_evidence_of_customer_flexibility",
     "trip_state": "dates.from_and_dates.to_equal_stored_value_dates.month_is_YYYY-MM_and_flexible_days_is_null_until_explicitly_supplied"
   },
   "migration_readiness": {
@@ -162,7 +164,7 @@
     "runtime behavior changes outside date selection callback and wizard free text",
     "callback payload changes",
     "date parsing changes",
-    "calendar UX changes",
+    "calendar navigation, callback payload and selection mechanics",
     "stored date representation changes",
     "URL or Tourvisor projection changes",
     "Yandex Metrica or goal changes",
