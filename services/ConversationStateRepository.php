@@ -266,7 +266,7 @@ class ConversationStateRepository
         $changes = $update['changes'];
         $current = self::preferenceSnapshot($chatId, $startStatus);
         if (!$current || $current !== $snapshot || $changes === []
-            || array_diff(array_keys($changes), ['preferences','negative_preferences']) !== []) return false;
+            || array_diff(array_keys($changes), ['preferences','negative_preferences','preferences_remove','negative_preferences_remove']) !== []) return false;
         $metadata = TripContextMetadataPolicy::fromStartValue($current['raw']);
         if ($metadata === null) return false;
         $next = TripContextMetadataPolicy::applyPreferences($metadata, $changes);

@@ -40,6 +40,8 @@ class TouristExtractorV2
 - hotel.line
 - preferences
 - negative_preferences
+- preferences_remove
+- negative_preferences_remove
 
 Правила:
 - Возвращай только параметры, которые реально следуют из НОВОГО сообщения. Не копируй старое состояние в changes.
@@ -61,6 +63,9 @@ class TouristExtractorV2
 - При исправлении только суммы верни только новую сумму/явно названную валюту; ранее явно заданное основание сохраняет backend. При снятии ограничения бюджета верни budget.max=null, не выдумывай новую сумму.
 - hotel.meal: any|all_inclusive|breakfast|half_board|full_board.
 - «первая линия», «детский клуб», «тихий отель» и подобное складывай в preferences. Явные нежелательные свойства — в negative_preferences.
+- Если турист явно говорит, что ранее желательное свойство больше не важно/не обязательно, верни точное ранее названное свойство в preferences_remove и НЕ добавляй его в negative_preferences. Пример: при прежнем preferences=["первая линия"] фраза «первая линия больше не важна» => preferences_remove=["первая линия"].
+- Если турист явно снимает прежний запрет/исключение, верни точное свойство в negative_preferences_remove и НЕ добавляй его в preferences. Пример: при прежнем negative_preferences=["шумный отель"] фраза «шумный отель уже не проблема» => negative_preferences_remove=["шумный отель"].
+- Не очищай пожелания по неопределённому «неважно», если из нового сообщения нельзя однозначно понять, какое именно ранее названное свойство снимается.
 - Не подставляй бизнес-дефолты (Москва, 4*, all inclusive). Это задача backend.
 - Не сочиняй цену, наличие, рейсы или отели.
 - confidence — объект только для реально изменённых полей; значения 0..1.
@@ -88,7 +93,7 @@ PROMPT;
             'dates.from','dates.to','dates.month','dates.flexible_days',
             'nights.min','nights.max','tourists.adults','tourists.children','tourists.children_ages',
             'budget.max','budget.currency','budget.basis','hotel.stars_min','hotel.meal','hotel.line',
-            'preferences','negative_preferences'
+            'preferences','negative_preferences','preferences_remove','negative_preferences_remove'
         ];
         $out = [];
         foreach ($changes as $key=>$value) {
