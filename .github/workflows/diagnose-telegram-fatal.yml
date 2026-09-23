@@ -1,0 +1,31 @@
+name: Diagnose Telegram fatal
+on:
+  push:
+    branches: [diag-telegram-fatal-20260923]
+    paths: ['.github/workflows/diagnose-telegram-fatal.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Prepare SSH
+        env:
+          KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail; umask 077; key="$RUNNER_TEMP/key"; raw="$KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s\n' "$raw" | tr -d '\r' > "$key"; fi
+          else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Read latest sanitized Telegram fatal
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$USER@$HOST" \
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php -r '\''$f="structured_events.log";$lines=@file($f,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)?:[];$out=[];foreach(array_reverse(array_slice($lines,-2000)) as $line){$j=json_decode($line,true);if(!is_array($j)||($j["component"]??"")!=="telegram_webhook"||($j["event"]??"")!=="fatal")continue;$d=(array)($j["data"]??[]);$out[]=["ts"=>$j["ts"]??null,"error"=>mb_substr((string)($d["error"]??""),0,500),"file"=>basename((string)($d["file"]??"")),"line"=>(int)($d["line"]??0)];if(count($out)>=5)break;}echo json_encode(["fatal"=>$out],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT),"\n";'\'''
