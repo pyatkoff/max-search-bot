@@ -6,7 +6,7 @@ require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/MaxInboundMediaArchiveService.php';
 require_once __DIR__.'/ProjectConfig.php';
 
-/** Authorized manager access to saved inbound MAX photos. */
+/** Authorized manager access to saved inbound MAX media. */
 final class ManagerMaxMediaService
 {
     public static function attachment(int $messageId, int $index, int $managerId): ?array
@@ -21,7 +21,7 @@ final class ManagerMaxMediaService
         $meta = json_decode((string)($row['metadata_json'] ?? ''), true);
         $items = array_values(array_filter((array)($meta['attachments'] ?? []), static fn($a)=>is_array($a) && in_array((string)($a['type'] ?? ''), ['image','video','audio','file'], true)));
         $attachment = $items[$index] ?? null;
-        if (!is_array($attachment) || (string)($attachment['type'] ?? '') !== 'image') return null;
+        if (!is_array($attachment) || !in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) return null;
         return ['message_id'=>$messageId,'attachment'=>$index];
     }
 
