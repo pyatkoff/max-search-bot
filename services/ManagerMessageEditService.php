@@ -21,7 +21,6 @@ class ManagerMessageEditService
                 if(empty($policy['allowed'])) continue;
                 $meta=json_decode((string)($row['metadata_json']??''),true);if(!is_array($meta))$meta=[];
                 $attachments=is_array($meta['attachments']??null)?$meta['attachments']:[];
-                if($attachments&&(string)$policy['channel']==='max') continue;
                 $remaining=max(0,ManagerMessageEditPolicy::WINDOW_SECONDS-(int)($policy['age_seconds']??ManagerMessageEditPolicy::WINDOW_SECONDS));
                 $out[]=['message_id'=>(int)$row['id'],'remaining_seconds'=>$remaining];
             }
@@ -45,7 +44,6 @@ class ManagerMessageEditService
             if(!is_array($metadata)) $metadata=[];
             $attachments=is_array($metadata['attachments']??null)?$metadata['attachments']:[];
             $channel=(string)$policy['channel'];
-            if($attachments && $channel==='max') return ['ok'=>false,'error'=>'media_edit_not_supported'];
 
             $detail=ManagerConversationService::detail((int)$policy['conversation_id'],$managerId);
             if(!$detail) return ['ok'=>false,'error'=>'conversation_not_found'];
