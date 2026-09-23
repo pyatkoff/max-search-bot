@@ -11,6 +11,7 @@ $root=dirname(__DIR__);
 $guard=(string)file_get_contents($root.'/services/ManagerSendGuardService.php');
 $outbound=(string)file_get_contents($root.'/services/ManagerOutboundService.php');
 $recorder=(string)file_get_contents($root.'/services/ConversationRecorder.php');
+$maxAdapter=(string)file_get_contents($root.'/integrations/MaxMessengerAdapter.php');
 
 msgGuardCheck('lock key is scoped by conversation and manager',ManagerSendGuardService::lockKey(207,5)==='manager-send:207:5'&&ManagerSendGuardService::lockKey(207,4)!==ManagerSendGuardService::lockKey(207,5));
 msgGuardCheck('guard uses a bounded immediate duplicate window',strpos($guard,'DUPLICATE_WINDOW_SECONDS = 3')!==false&&strpos($guard,"sender_type='manager'")!==false&&strpos($guard,"direction='outbound'")!==false);
