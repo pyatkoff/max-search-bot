@@ -3,6 +3,7 @@ require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 require_once __DIR__ . '/../services/IncomingUpdateDispatcher.php';
 require_once __DIR__ . '/../services/IncomingUpdateDeduplicator.php';
 require_once __DIR__ . '/../services/TrafficAttributionService.php';
+require_once __DIR__ . '/../services/MaxInboundMediaArchiveService.php';
 
 class MaxUpdateHandler
 {
@@ -47,6 +48,7 @@ class MaxUpdateHandler
         $user = MaxIncomingAdapter::user($update);
         $userId = (int)($user['user_id'] ?? $user['id'] ?? 0);
         $internalId = $userId > 0 ? -$userId : $userId;
+        $archiveExternalMessageId = '';
 
         if ($type === 'bot_started' && $userId) {
             $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
@@ -75,10 +77,27 @@ class MaxUpdateHandler
             if ($incoming) {
                 $dispatcher = new IncomingUpdateDispatcher();
                 $dispatcher->dispatch($incoming);
+                if ($type === 'message_created') {
+                    foreach ((array)($incoming['attachments'] ?? []) as $attachment) {
+                        if (is_array($attachment) && (string)($attachment['type'] ?? '') === 'image') {
+                            $archiveExternalMessageId = trim((string)($incoming['message_id'] ?? ''));
+                            break;
+                        }
+                    }
+                }
             }
         }
 
         http_response_code(200);
         echo 'ok';
+
+        // Do not make MAX wait for a potentially slow media download. The customer
+        // message is already recorded and the 200 response is flushed first in FPM.
+        // If archival fails, the authenticated media endpoint can retry from saved mid.
+        if ($archiveExternalMessageId !== '') {
+            if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request();
+            try { MaxInboundMediaArchiveService::archiveRecordedMessage($archiveExternalMessageId); }
+            catch (Throwable $ignored) {}
+        }
     }
 }

@@ -63,7 +63,7 @@ class MaxIncomingAdapter
             $type = strtolower(trim((string)($attachment['type'] ?? '')));
             if (!in_array($type, ['image','video','audio','file'], true)) continue;
             $payload = is_array($attachment['payload'] ?? null) ? $attachment['payload'] : [];
-            $item = ['type'=>$type];
+            $item = ['type'=>$type,'provider'=>'max'];
             foreach (['url','token'] as $key) {
                 $value = trim((string)($payload[$key] ?? ''));
                 if ($value !== '') $item[$key] = $value;
@@ -80,15 +80,19 @@ class MaxIncomingAdapter
             if ($size > 0) $item['size'] = $size;
             $transcription = trim((string)($attachment['transcription'] ?? $payload['transcription'] ?? ''));
             if ($transcription !== '') $item['transcription'] = $transcription;
-            if ($type === 'image' && empty($item['token']) && !empty($payload['photos']) && is_array($payload['photos'])) {
+            if ($type === 'image' && !empty($payload['photos']) && is_array($payload['photos'])) {
                 foreach ($payload['photos'] as $photo) {
                     if (!is_array($photo)) continue;
-                    $token = trim((string)($photo['token'] ?? ''));
-                    if ($token !== '') { $item['token'] = $token; break; }
+                    foreach (['url','token'] as $key) {
+                        if (!empty($item[$key])) continue;
+                        $value = trim((string)($photo[$key] ?? ''));
+                        if ($value !== '') $item[$key] = $value;
+                    }
+                    if (!empty($item['url']) && !empty($item['token'])) break;
                 }
             }
             // Keep only usable media. A type-only placeholder cannot be opened or
-            // forwarded, so surfacing it as successful media would be misleading.
+            // recovered, so surfacing it as successful media would be misleading.
             if (!empty($item['url']) || !empty($item['token'])) $out[] = $item;
         }
         return $out;
