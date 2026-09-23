@@ -165,8 +165,10 @@ $accepted = [
     ['0  7', 2, '0, 7'],
     ['3,7', 2, '3, 7'],
     ['3, 7', 2, '3, 7'],
-    ['3 4, 7', 2, '3, 7'],
-    ['3, 7 8', 2, '3, 7'],
+    ['3 и 7', 2, '3, 7'],
+    ['детям 3 и 7 лет', 2, '3, 7'],
+    ['3;7', 2, '3, 7'],
+    ["3\t7", 2, '3, 7'],
 ];
 foreach ($accepted as $index => [$text, $children, $stored]) {
     $chatId = 1100 + $index;
@@ -182,7 +184,7 @@ foreach ($accepted as $index => [$text, $children, $stored]) {
     childAgeFreeTextCheck("{$text} avoids legacy direct write", MaxSearchApi::$directSaves, []);
 }
 
-foreach (['3 и 7', '3;7', '3/7', '3-7', "3\t7", '3', '3, 18', '10  18', '2016, 2012'] as $index => $text) {
+foreach (['3/7', '3-7', '03.07', '3', '3, 18', '10  18', '2016, 2012', '3 4, 7', '3, 7 8'] as $index => $text) {
     $chatId = 1200 + $index;
     $messenger = childAgeFreeTextReset($chatId);
     StateMessageHandler::handle(['text'=>$text], $chatId, MaxSearchApi::$statusAge);
@@ -198,7 +200,7 @@ StateMessageHandler::handle(['text'=>'18'], 1300, MaxSearchApi::$statusAge);
 childAgeFreeTextCheck('single-child error keeps exact singular prompt', $messenger->sent[0][1] ?? '', 'К сожалению возраст ребенка указан неверно. Пожалуйста, введите 1 число в диапазоне от 0 до 17.');
 
 foreach ([['missing', 1301, false], ['pre-start', 1302, true]] as [$label, $chatId, $preStart]) {
-    foreach (['5, 12', '5  12'] as $text) {
+    foreach (['5, 12', '5 и 12'] as $text) {
         $messenger = childAgeFreeTextReset($chatId, 2, $label !== 'missing', $preStart);
         $before = ChildAgeFreeTextFakeData::$rows;
         StateMessageHandler::handle(['text'=>$text], $chatId, MaxSearchApi::$statusAge);
@@ -213,7 +215,7 @@ foreach ([['missing', 1301, false], ['pre-start', 1302, true]] as [$label, $chat
 
 $messenger = childAgeFreeTextReset(1400);
 EditFlowService::begin(1400, 'tourists');
-StateMessageHandler::handle(['text'=>'5  12'], 1400, MaxSearchApi::$statusAge);
+StateMessageHandler::handle(['text'=>'5 и 12'], 1400, MaxSearchApi::$statusAge);
 childAgeFreeTextCheck('tourists edit stores exact ages', MaxSearchApi::getSavedData(1400)[MaxSearchApi::$statusAge] ?? null, '5, 12');
 childAgeFreeTextCheck('tourists edit returns to check once', MaxSearchApi::$transitions, [MaxSearchApi::$statusCheck]);
 childAgeFreeTextCheck('tourists edit renders check once', count($messenger->buttons), 1);
@@ -222,12 +224,16 @@ childAgeFreeTextCheck('tourists edit updates only age value', ChildAgeFreeTextFa
 childAgeFreeTextCheck('tourists edit legacy write is check generation only', array_column(MaxSearchApi::$directSaves, 1), [MaxSearchApi::$statusCheck]);
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
-childAgeFreeTextCheck('handler parses age through executable legacy contract', substr_count($source, 'ChildAgeValueContract::parseLegacyInput') === 1, true);
-childAgeFreeTextCheck('handler projects age through executable storage contract', substr_count($source, 'ChildAgeValueContract::toStorage') === 1, true);
+$application = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
 $ageStart = strpos($source, 'elseif($status==MaxSearchApi::$statusAge)');
 $starsStart = $ageStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusStars)', $ageStart);
 $ageSource = $ageStart === false || $starsStart === false ? '' : substr($source, $ageStart, $starsStart - $ageStart);
-childAgeFreeTextCheck('handler applies age through one update-only boundary', substr_count($ageSource, 'ExistingWizardStepApplicationService::apply(') === 1, true);
+childAgeFreeTextCheck('handler resolves and applies ages through canonical application service', strpos($ageSource, "NeedApplicationService::resolveAndApplyExistingWizardStep(\n                    \$chat_id,\n                    'child_ages',") !== false, true);
+childAgeFreeTextCheck('handler passes exact current child count as resolver context', strpos($ageSource, "['children'=>\$childCount]") !== false, true);
+childAgeFreeTextCheck('handler no longer owns legacy age parsing', strpos($ageSource, 'ChildAgeValueContract::parseLegacyInput') === false, true);
+childAgeFreeTextCheck('handler no longer owns age storage projection', strpos($ageSource, 'ChildAgeValueContract::toStorage') === false, true);
+childAgeFreeTextCheck('handler has no direct age application bypass', strpos($ageSource, 'ExistingWizardStepApplicationService::apply(') === false, true);
+childAgeFreeTextCheck('application boundary owns exact child-age storage projection', strpos($application, "elseif (\$field === 'child_ages')") !== false && strpos($application, 'ChildAgeValueContract::toStorage($storageValue, $childrenCount)') !== false, true);
 childAgeFreeTextCheck('handler no longer writes age directly', strpos($source, 'MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge') === false, true);
 
 EditFlowService::clearSnapshot(1400);

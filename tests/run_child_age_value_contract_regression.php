@@ -66,8 +66,19 @@ childAgeValueCheck('rejects out-of-range resolver value', ChildAgeValueContract:
 
 $service = (string)file_get_contents(__DIR__ . '/../services/ChildAgeValueContract.php');
 $handler = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
+$resolver = (string)file_get_contents(__DIR__ . '/../services/NeedValueResolver.php');
+$application = (string)file_get_contents(__DIR__ . '/../services/NeedApplicationService.php');
 childAgeValueCheck('contract has no runtime mutation dependency', strpos($service, 'MaxSearchApi') === false && strpos($service, 'saveLastValue') === false && strpos($service, 'ExistingWizardStepApplicationService') === false, true);
-childAgeValueCheck('runtime uses only the executable parser and projector', substr_count($handler, 'ChildAgeValueContract::parseLegacyInput') === 1 && substr_count($handler, 'ChildAgeValueContract::toStorage') === 1, true);
+childAgeValueCheck(
+    'runtime routes canonical parser and executable projector through resolver/application owners',
+    strpos($handler, 'ChildAgeValueContract::parseLegacyInput') === false
+        && strpos($handler, 'ChildAgeValueContract::toStorage') === false
+        && strpos($handler, "'child_ages',") !== false
+        && strpos($handler, 'NeedApplicationService::resolveAndApplyExistingWizardStep(') !== false
+        && strpos($resolver, 'ChildAgesParser::parse($text, $childrenCount)') !== false
+        && strpos($application, 'ChildAgeValueContract::toStorage($storageValue, $childrenCount)') !== false,
+    true
+);
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
