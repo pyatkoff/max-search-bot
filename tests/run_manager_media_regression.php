@@ -38,6 +38,15 @@ mediaCheck('MAX provider is explicit', $incoming['attachments'][0]['provider'] ?
 mediaCheck('video token retained', $incoming['attachments'][1]['token'] ?? null, 'vid.1');
 mediaCheck('audio transcription retained', $incoming['attachments'][2]['transcription'] ?? null, 'голос');
 mediaCheck('file name retained', $incoming['attachments'][3]['name'] ?? null, 'offer.pdf');
+$replyUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.reply','text'=>'Этот вариант'],'link'=>['type'=>'reply','mid'=>'mid.offer','sender'=>['name'=>'Менеджер'],'message'=>['body'=>['text'=>'Отель A']]]]];
+$replyIncoming=MaxIncomingAdapter::fromUpdate($replyUpdate);
+mediaCheck('MAX reply context type retained',$replyIncoming['linked_message']['type']??null,'reply');
+mediaCheck('MAX reply context mid retained',$replyIncoming['linked_message']['mid']??null,'mid.offer');
+$forwardUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.forward','text'=>''],'link'=>['type'=>'forward','mid'=>'mid.source','message'=>['body'=>['attachments'=>[['type'=>'video','payload'=>['token'=>'video-token']]]]]]]];
+$forwardIncoming=MaxIncomingAdapter::fromUpdate($forwardUpdate);
+mediaCheck('MAX forward context retained',$forwardIncoming['linked_message']['type']??null,'forward');
+mediaCheck('forwarded MAX video retained',$forwardIncoming['attachments'][0]['type']??null,'video');
+mediaCheck('forwarded MAX video token retained',$forwardIncoming['attachments'][0]['token']??null,'video-token');
 $nestedUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.media.2','attachments'=>[
     ['type'=>'image','payload'=>['photos'=>[['token'=>'nested-token','url'=>'https://cdn.example/nested-photo.jpg']]]],
 ]]]];

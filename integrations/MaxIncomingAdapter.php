@@ -27,7 +27,8 @@ class MaxIncomingAdapter
                 $text,
                 $normalizedUser,
                 $update,
-                self::mediaAttachments($update)
+                self::mediaAttachments($update),
+                self::linkedMessage($update)
             );
         }
 
@@ -54,9 +55,30 @@ class MaxIncomingAdapter
         return [];
     }
 
+    public static function linkedMessage(array $update): array
+    {
+        $link=$update['message']['link']??null;
+        if(!is_array($link)) return [];
+        $type=strtolower(trim((string)($link['type']??'')));
+        if(!in_array($type,['reply','forward'],true)) return [];
+        $mid=trim((string)($link['mid']??$link['message_id']??''));
+        $result=['type'=>$type];
+        if($mid!=='' && preg_match('/^(?:mid\.)?[A-Za-z0-9_-]+$/D',$mid)) $result['mid']=$mid;
+        $sender=is_array($link['sender']??null)?$link['sender']:[];
+        $name=trim((string)($sender['name']??''));
+        if($name!=='') $result['sender_name']=mb_substr($name,0,160,'UTF-8');
+        $text=trim((string)($link['message']['body']['text']??$link['body']['text']??$link['text']??''));
+        if($text!=='') $result['text']=mb_substr($text,0,500,'UTF-8');
+        return $result;
+    }
+
     public static function mediaAttachments(array $update): array
     {
         $attachments = $update['message']['body']['attachments'] ?? $update['message']['attachments'] ?? [];
+        if(!$attachments){
+            $linked=$update['message']['link']['message']??null;
+            if(is_array($linked)) $attachments=$linked['body']['attachments']??$linked['attachments']??[];
+        }
         $out = [];
         foreach ((array)$attachments as $attachment) {
             if (!is_array($attachment)) continue;
