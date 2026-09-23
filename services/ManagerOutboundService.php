@@ -58,7 +58,8 @@ class ManagerOutboundService
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey]);
+                $externalMessageId=$channel==='max' && method_exists($adapter,'lastMessageId')?$adapter->lastMessageId():'';
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey],$externalMessageId);
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
