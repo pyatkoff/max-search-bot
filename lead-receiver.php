@@ -20,6 +20,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/services/BitrixLeadDeliveryGateway.php';
 require_once __DIR__ . '/services/ProjectMarkerService.php';
 require_once __DIR__ . '/services/LeadBridgeConfig.php';
+require_once __DIR__ . '/services/RuntimeBootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $probe = trim((string)($_GET['probe'] ?? ''));
@@ -50,6 +51,12 @@ $data = json_decode($raw, true);
 $element = is_array($data) && isset($data['element']) && is_array($data['element']) ? $data['element'] : null;
 if (!$element || empty($element['IBLOCK_ID']) || empty($element['PROPERTY_VALUES']) || !is_array($element['PROPERTY_VALUES'])) {
     lead_receiver_out(['ok' => false, 'error' => 'Invalid lead payload'], 422);
+}
+
+try {
+    RuntimeBootstrap::boot((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+} catch (Throwable $e) {
+    lead_receiver_out(['ok' => false, 'error' => 'Bitrix bootstrap unavailable'], 500);
 }
 
 $currentMarker = $element['PROPERTY_VALUES']['IS_ANYTOUR_ONLINE'] ?? null;
