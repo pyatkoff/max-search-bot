@@ -164,23 +164,47 @@ jobs:
           [[ "$code" == "200" ]]
           grep -Fq 'max-search-hmac-bitrix-lead' "$RUNNER_TEMP/legacy-receiver.json"
           ssh "${canonical_opts[@]}" "$CANONICAL_USER@$CANONICAL_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/lead_bridge_probe.php | grep -Fq "LEAD_BRIDGE_PROBE=OK"'
-          ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
-            set -euo pipefail
-            rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.bak /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
-            rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.php /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php
-          "
           trap - ERR
-          echo "LEGACY_RECEIVER_SYNC=VERIFIED"
+          echo "LEGACY_RECEIVER_SYNC=VERIFIED_BACKUP_RETAINED"
 
       - name: Wait for natural Telegram retry to clear
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
+          LEGACY_USER: ${{ secrets.DEPLOY_USER }}
+          EXPECTED_SHA: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
           opts=(-i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          legacy_opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
           remote="$USER@$HOST"
+          rollback_legacy(){
+            ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
+              set -euo pipefail
+              shopt -s nullglob
+              receivers=(\"\$HOME\"/www/*/max-search/lead-receiver.php)
+              [[ \"\${#receivers[@]}\" == \"1\" ]]
+              receiver=\"\${receivers[0]}\"; root=\"\$(dirname \"\$receiver\")\"
+              runtime=\"\$root/services/RuntimeBootstrap.php\"
+              rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
+              rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
+              runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+              [[ -f \"\$rb_receiver\" ]] && cp \"\$rb_receiver\" \"\$receiver\"
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\"; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
+              rm -f \"\$rb_receiver\" \"\$rb_runtime\" \"\$runtime_absent\"
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.php /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php
+            " || true
+          }
+          commit_legacy(){
+            ssh "${legacy_opts[@]}" "$LEGACY_USER@$LEGACY_HOST" "
+              set -euo pipefail
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.bak /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
+              rm -f /tmp/max-search-lead-receiver-$EXPECTED_SHA.php /tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.php
+            "
+          }
+          trap rollback_legacy ERR
           for attempt in $(seq 1 60); do
             if ssh "${opts[@]}" "$remote" '
               set -e
@@ -190,10 +214,15 @@ jobs:
               printf "%s\n" "$out" | grep -Fq "\"pending_update_count\": 0"
             '; then
               ssh "${opts[@]}" "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
+              commit_legacy
+              trap - ERR
               echo "TELEGRAM_PENDING_UPDATE_COUNT=0"
+              echo "LEGACY_RECEIVER_SYNC=COMMITTED"
               exit 0
             fi
             sleep 10
           done
           echo "Telegram pending update did not clear after legacy receiver bootstrap" >&2
+          rollback_legacy
+          trap - ERR
           exit 1
