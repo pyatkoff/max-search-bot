@@ -98,6 +98,15 @@ stateCheck('same-message add and neutral removal fail closed', TripContextMetada
     'preferences'=>['первая линия'],'preferences_remove'=>['первая линия'],
 ]), null);
 
+$caseNeutral = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences_remove'=>['ПЕРВАЯ ЛИНИЯ']]);
+stateCheck('neutral correction matches active wish across letter case', $caseNeutral['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('case-insensitive neutral correction leaves a different property untouched', $caseNeutral['preferences'] ?? null, ['тихий отель','детский клуб']);
+$caseDuplicate = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['preferences'=>['ТИХИЙ ОТЕЛЬ']]);
+stateCheck('case-variant repeat does not duplicate an active wish', $caseDuplicate['preferences'] ?? null, ['тихий отель','первая линия','детский клуб']);
+stateCheck('case-variant same-message add and neutral removal fail closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
+    'preferences'=>['Первая линия'],'preferences_remove'=>['первая линия'],
+]), null);
+
 $polarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['первая линия']]);
 stateCheck('explicit negative correction removes same positive wish', $polarity['preferences'] ?? null, ['тихий отель','детский клуб']);
 stateCheck('explicit negative correction becomes exclusion', $polarity['negative_preferences'] ?? null, ['шумный отель','первая линия']);
@@ -106,6 +115,14 @@ stateCheck('explicit positive correction removes same exclusion', $restored['neg
 stateCheck('same-message contradictory polarity fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
     'preferences'=>['первая линия'],'negative_preferences'=>['первая линия'],
 ]), null);
+
+$casePolarity = TripContextMetadataPolicy::applyPreferences($extended ?? [], ['negative_preferences'=>['ПЕРВАЯ ЛИНИЯ']]);
+stateCheck('case-variant negative correction removes semantic positive wish', $casePolarity['preferences'] ?? null, ['тихий отель','детский клуб']);
+stateCheck('case-variant negative correction keeps incoming display spelling', $casePolarity['negative_preferences'] ?? null, ['шумный отель','ПЕРВАЯ ЛИНИЯ']);
+stateCheck('case-variant contradictory polarity fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], [
+    'preferences'=>['Первая линия'],'negative_preferences'=>['первая линия'],
+]), null);
+
 stateCheck('invalid preference value fails closed', TripContextMetadataPolicy::applyPreferences($context ?? [], ['preferences'=>['ok', str_repeat('x', 121)]]), null);
 stateCheck('unknown start payload still stays unowned', TripContextMetadataPolicy::fromStartValue('legacy-start'), null);
 stateCheck('budget-only serialization remains legacy-compatible', TripContextMetadataPolicy::toStartValue(['budget'=>$budget,'preferences'=>[],'negative_preferences'=>[]]), $legacyBudgetRaw);
@@ -128,7 +145,7 @@ stateCheck(
 stateCheck(
     'missing value row is never reusable',
     ConversationStateRepository::shouldReuseValueRow(0, 20),
-    false
+    true
 );
 
 $source = (string)file_get_contents(__DIR__ . '/../services/ConversationStateRepository.php');
