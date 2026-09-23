@@ -64,7 +64,7 @@ jobs:
           $q->execute([(int)$anchor['conversation_id'],(int)$anchor['id']]);
           $rows=$q->fetchAll(PDO::FETCH_ASSOC);
 
-          $urls=[];
+          $urls=[];$videoTokens=[];
           $collectUrls=function($value) use (&$collectUrls,&$urls): void {
               if(is_string($value) && preg_match('#^https://#i',trim($value))){$urls[]=trim($value);return;}
               if(is_array($value)) foreach($value as $v) $collectUrls($v);
@@ -94,6 +94,11 @@ jobs:
                       $err=MaxTransport::lastError();echo " API=0 category=".(string)($err['category']??'unknown')." http=".(int)($err['http_code']??0)."\n";
                   }
               }
+              foreach(array_values(array_unique($videoTokens)) as $videoToken){
+                  $video=MaxTransport::request(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,'GET','/videos/'.rawurlencode($videoToken),[],null,null);
+                  if(is_array($video)){$collectUrls($video);echo " VIDEO_INFO=1\n";}else{$err=MaxTransport::lastError();echo " VIDEO_INFO=0 http=".(int)($err['http_code']??0)."\n";}
+              }
+              $videoTokens=[];
               foreach(array_values(array_unique($urls)) as $url){
                   $tmp='/tmp/recovered-candidate-'.bin2hex(random_bytes(4)).'.bin';
                   $ch=curl_init($url);$fp=fopen($tmp,'w+b');
