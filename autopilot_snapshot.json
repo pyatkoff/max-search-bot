@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-23T16:29:03+00:00",
+    "generated_at": "2026-09-23T16:32:43+00:00",
     "production": {
-        "sha": "7f620bb9e78cf441198d332205ca1732d475f344",
+        "sha": "bb4d4526bd41d73ed88975d1df589db218167dea",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 5163,
+            "oldest_wait_seconds": 5383,
             "routing_blocked_count": 0
         },
         "push": {
@@ -178,7 +178,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-23 15:28:48",
+        "since_utc": "2026-09-23 15:32:28",
         "summary": {
             "sessions": 10,
             "raw_sessions": 10,
@@ -222,7 +222,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "7f620bb9e78cf441198d332205ca1732d475f344",
+        "sha": "bb4d4526bd41d73ed88975d1df589db218167dea",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -231,7 +231,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-23T16:29:03Z"
+        "reported_at": "2026-09-23T16:32:43Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -239,7 +239,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T16:28:36+00:00",
+        "generated_at": "2026-09-23T16:32:16+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -334,7 +334,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T16:28:36+00:00",
+        "generated_at": "2026-09-23T16:32:16+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -632,7 +632,7 @@
                 "date": "2026-09-23",
                 "partial": true,
                 "since_utc": "2026-09-22 22:00:00",
-                "until_utc": "2026-09-23 16:28:36",
+                "until_utc": "2026-09-23 16:32:16",
                 "channels": [
                     {
                         "channel": "max",
@@ -736,12 +736,12 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-23T16:29:00+00:00",
+        "generated_at": "2026-09-23T16:32:40+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
-                "bytes": 60190,
-                "code_lines": 1247
+                "bytes": 61394,
+                "code_lines": 1276
             },
             "actions": {
                 "files": 9,
@@ -780,8 +780,8 @@
             },
             "tests": {
                 "files": 242,
-                "bytes": 1476052,
-                "code_lines": 18739
+                "bytes": 1477417,
+                "code_lines": 18762
             },
             "tools": {
                 "files": 46,
@@ -791,15 +791,15 @@
         },
         "hotspots": [
             {
-                "path": "services/InteractionGuard.php",
-                "lines": 354,
-                "bytes": 14318,
+                "path": "handlers/StateMessageHandler.php",
+                "lines": 381,
+                "bytes": 18279,
                 "severity": "observe"
             },
             {
-                "path": "handlers/StateMessageHandler.php",
-                "lines": 352,
-                "bytes": 17075,
+                "path": "services/InteractionGuard.php",
+                "lines": 354,
+                "bytes": 14318,
                 "severity": "observe"
             },
             {
