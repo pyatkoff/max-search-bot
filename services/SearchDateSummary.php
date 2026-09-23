@@ -1,6 +1,6 @@
 <?php
 
-/** Presentation-only formatter for the preferred departure date and its search window. */
+/** Presentation-only formatter for the selected departure date used by search handoff. */
 class SearchDateSummary
 {
     public static function line($rawDate, ?DateTimeImmutable $today = null): ?string
@@ -12,15 +12,8 @@ class SearchDateSummary
         $date = self::parseDate($rawDate, $zone);
         if (!$date) return null;
 
-        $today = $today ?: new DateTimeImmutable('today', $zone);
-        $today = $today->setTimezone($zone)->setTime(0, 0, 0);
         $date = $date->setTimezone($zone)->setTime(0, 0, 0);
-        $from = $date->modify('-3 days');
-        if ($from < $today) $from = $today;
-        $to = $date->modify('+3 days');
-
-        return '📅 Вылет ' . $date->format('d.m.Y')
-            . ' · ищем ' . $from->format('d.m') . '–' . $to->format('d.m.Y');
+        return '📅 Вылет ' . $date->format('d.m.Y') . ' · поиск на эту дату';
     }
 
     public static function replaceDateLine(array $summary, $rawDate, ?DateTimeImmutable $today = null): array
@@ -42,7 +35,10 @@ class SearchDateSummary
     {
         foreach (['!d.m.Y', '!Y-m-d', '!d.m.Y H:i:s', '!Y-m-d H:i:s'] as $format) {
             $date = DateTimeImmutable::createFromFormat($format, $rawDate, $zone);
-            if ($date instanceof DateTimeImmutable) return $date;
+            $errors = DateTimeImmutable::getLastErrors();
+            if ($date && ($errors === false || (($errors['warning_count'] ?? 0) === 0 && ($errors['error_count'] ?? 0) === 0))) {
+                return $date;
+            }
         }
         try {
             return new DateTimeImmutable($rawDate, $zone);
