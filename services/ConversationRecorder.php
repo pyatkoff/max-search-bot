@@ -41,6 +41,8 @@ class ConversationRecorder
 
             $metadata = ['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey];
             if ($attachments) $metadata['attachments'] = $attachments;
+            $linked=(array)($incoming['linked_message']??[]);
+            if(in_array((string)($linked['type']??''),['reply','forward'],true)) $metadata['linked_message']=$linked;
             $meta = self::json($metadata);
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
