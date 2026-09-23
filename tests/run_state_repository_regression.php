@@ -145,7 +145,7 @@ stateCheck(
 stateCheck(
     'missing value row is never reusable',
     ConversationStateRepository::shouldReuseValueRow(0, 20),
-    true
+    false
 );
 
 $source = (string)file_get_contents(__DIR__ . '/../services/ConversationStateRepository.php');
