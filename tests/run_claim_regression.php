@@ -39,8 +39,6 @@ ccheck('native claim code rejects non-positive length', $threw, true);
 $maxSearchSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
 ccheck('claim creation delegates to native generator', strpos($maxSearchSource, 'ClaimCodeGenerator::generate(10)') !== false, true);
 ccheck('claim creation no longer calls Bitrix randString', strpos($maxSearchSource, 'randString(') === false, true);
-ccheck('phone handoff does not throw when departure date is absent', strpos($maxSearchSource,"NativeDateService::isTodayOrFuture(\$departureDate)?NativeDateService::leadWindow(\$departureDate):null")!==false,true);
-ccheck('phone handoff preserves unknown departure as empty lead field', strpos($maxSearchSource,"\$dates=is_array(\$dateWindow)?\$dateWindow['from'].' - '.\$dateWindow['to']:'';")!==false,true);
 
 StandaloneYclidRegressionApi::$trafficMeta = ['yclid'=>' 123456789 '];
 ccheck('standalone latest yclid uses persisted traffic attribution without Bitrix', StandaloneYclidRegressionApi::getLatestYclid(-123), '123456789');
@@ -66,6 +64,12 @@ $claim = ['UF_ADULTS'=>2,'UF_CHILD'=>2,'UF_AGE'=>'5, 8','UF_MEAL'=>7];
 ccheck('people string with children', LeadPayloadService::peopleString($claim), 'Взрослых: 2; Детей: 2(5, 8)');
 ccheck('meal string lowercases mapped meal', LeadPayloadService::mealString($claim, ['7'=>'ВСЕ ВКЛЮЧЕНО']), 'все включено');
 ccheck('meal 999 becomes any', LeadPayloadService::mealString(['UF_MEAL'=>999], ['999'=>'ЛЮБОЕ']), 'любое');
+
+$handoffToday = new DateTimeImmutable('2026-09-01');
+ccheck('phone handoff keeps missing departure date empty', LeadPayloadService::departureDates([], $handoffToday), '');
+ccheck('phone handoff keeps invalid departure date empty', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'not-a-date'], $handoffToday), '');
+ccheck('phone handoff keeps past departure date empty', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'31.08.2026'], $handoffToday), '');
+ccheck('phone handoff preserves valid plus-minus-three-day window', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'10.09.2026'], $handoffToday), '07.09.2026 - 13.09.2026');
 
 $data = [
     'name'=>'Test User','phone'=>'+79990000000','clean_phone'=>'79990000000',
