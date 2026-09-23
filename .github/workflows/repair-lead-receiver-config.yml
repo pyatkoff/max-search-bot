@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: production-lead-receiver-repair
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   repair:
@@ -53,7 +53,7 @@ jobs:
           set -euo pipefail
           remote="$USER@$HOST"
           for attempt in $(seq 1 40); do
-            deployed="$(ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
+            deployed="$(ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && git rev-parse HEAD' 2>/dev/null || true)"
             if [[ "$deployed" == "$EXPECTED_SHA" ]]; then echo "CANONICAL_SHA_VERIFIED=$deployed"; exit 0; fi
             sleep 5
           done
@@ -70,9 +70,10 @@ jobs:
           set -euo pipefail
           remote="$USER@$HOST"
           receiver="$(
-            ssh -i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" '
+            ssh -i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" '
               set -euo pipefail
-              mapfile -t files < <(find "$HOME/www" -maxdepth 4 -type f -path "*/max-search/lead-receiver.php" -print)
+              shopt -s nullglob
+              files=("$HOME"/www/*/max-search/lead-receiver.php)
               [[ "${#files[@]}" == "1" ]]
               file="${files[0]}"
               php -l "$file" >/dev/null
@@ -100,7 +101,7 @@ jobs:
           set -euo pipefail
           remote="$USER@$HOST"
           printf -v qurl '%q' "$RECEIVER_URL"
-          ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" "
+          ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" "
             set -euo pipefail
             cd /var/www/anytoour/data/www/app.anytoour.ru
             export MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1
@@ -123,13 +124,13 @@ jobs:
           set -euo pipefail
           remote="$USER@$HOST"
           for attempt in $(seq 1 60); do
-            if ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" '
+            if ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" '
               set -e
               cd /var/www/anytoour/data/www/app.anytoour.ru
               out="$(php tools/telegram_webhook_status.php)"
               printf "%s" "$out" | php -r '''$d=json_decode(stream_get_contents(STDIN),true);$p=(array)($d["telegram_bot_token"]??[]);$w=(array)($p["webhook"]??[]);exit(!empty($p["ok"])&&(int)($w["pending_update_count"]??-1)===0?0:1);'''
             '; then
-              ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
+              ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
               echo "TELEGRAM_PENDING_UPDATE_COUNT=0"
               exit 0
             fi
