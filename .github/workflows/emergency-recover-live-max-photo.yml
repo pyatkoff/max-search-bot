@@ -47,7 +47,6 @@ jobs:
           require $root.'/config.php';
           require $root.'/services/ConversationDb.php';
           require $root.'/services/MaxTransport.php';
-          require $root.'/services/MaxTlsConfig.php';
           require $root.'/maxsearchclass.php';
 
           $pdo=ConversationDb::connection();
