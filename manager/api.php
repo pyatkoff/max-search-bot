@@ -7,6 +7,7 @@ require_once $baseDir . '/services/ManagerAvailabilityService.php';
 require_once $baseDir . '/services/ManagerConversationService.php';
 require_once $baseDir . '/services/ManagerQueueProjectionService.php';
 require_once $baseDir . '/services/ManagerOutboundService.php';
+require_once $baseDir . '/services/ManagerMessageEditService.php';
 require_once $baseDir . '/services/ManagerDeliveryStateService.php';
 require_once $baseDir . '/services/ManagerMessageMediaService.php';
 require_once $baseDir . '/services/ManagerHandoffContextService.php';
@@ -128,5 +129,12 @@ if($action==='send'){
     if($ok) out(['ok'=>true]);
     $failure=ManagerOutboundService::lastFailure();
     out(['ok'=>false,'error'=>'delivery_failed','failure'=>$failure,'error_message'=>$failure?ManagerOutboundService::failureNotice($failure):'Сообщение не доставлено'],409);
+}
+if($action==='edit_message'){
+    $r=ManagerMessageEditService::edit((int)($data['message_id']??0),(int)$m['id'],(string)($data['text']??''));
+    if(!empty($r['ok'])) out($r);
+    $error=(string)($r['error']??'edit_failed');
+    $status=in_array($error,['not_owner','not_manager_message'],true)?403:(in_array($error,['not_found','conversation_not_found'],true)?404:($error==='empty_text'?422:409));
+    out($r,$status);
 }
 out(['ok'=>false,'error'=>'unknown_action'],400);
