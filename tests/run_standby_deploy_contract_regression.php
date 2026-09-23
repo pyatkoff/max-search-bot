@@ -8,6 +8,9 @@ $production=(string)file_get_contents($base.'/.github/workflows/deploy.yml');
 $switch=(string)file_get_contents($base.'/tools/standby_enable_standalone.php');
 $repair=(string)file_get_contents($base.'/tools/repair_standby_external_config.php');
 $cleanup=(string)file_get_contents($base.'/tools/standby_cleanup_runtime_config.php');
+$leadRepairTool=(string)file_get_contents($base.'/tools/repair_lead_receiver_config.php');
+$leadRepairWorkflow=(string)file_get_contents($base.'/.github/workflows/repair-lead-receiver-config.yml');
+require_once $base.'/services/LeadReceiverConfigEditor.php';
 $passed=0;$failed=0;
 function standbyCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
@@ -43,6 +46,29 @@ standbyCheck('production binds sync to workflow sha',strpos($production,'EXPECTE
 standbyCheck('production does not depend on server github fetch',strpos($production,'git fetch origin main')===false&&strpos($production,'git@github.com')===false);
 standbyCheck('production verifies resulting exact sha',strpos($production,'git rev-parse HEAD')!==false&&strpos($production,"= '\$EXPECTED_SHA'")!==false);
 
+standbyCheck('lead receiver editor accepts exact legacy receiver shape',LeadReceiverConfigEditor::validateUrl('https://legacy.example/max-search/lead-receiver.php')['host']==='legacy.example');
+$badTargets=[
+    'http://legacy.example/max-search/lead-receiver.php',
+    'https://app.anytoour.ru/max-search/lead-receiver.php',
+    'https://legacy.example/lead-receiver.php',
+    'https://legacy.example/max-search/lead-receiver.php?x=1',
+];
+foreach($badTargets as $target){
+    $rejected=false;try{LeadReceiverConfigEditor::validateUrl($target);}catch(InvalidArgumentException $e){$rejected=true;}
+    standbyCheck('lead receiver editor rejects unsafe target '.md5($target),$rejected);
+}
+$sample="<?php\ndefine('KEEP_SECRET','secret-value');\ndefine('MAX_SEARCH_LEAD_RECEIVER_URL','https://wrong.example/max-search/lead-receiver.php');\n?>\n";
+$rewritten=LeadReceiverConfigEditor::rewrite($sample,'https://legacy.example/max-search/lead-receiver.php');
+standbyCheck('lead receiver rewrite preserves unrelated config',strpos($rewritten,"define('KEEP_SECRET','secret-value');")!==false);
+standbyCheck('lead receiver rewrite owns only one target definition',substr_count($rewritten,'MAX_SEARCH_LEAD_RECEIVER_URL')===1&&LeadReceiverConfigEditor::directValue($rewritten)==='https://legacy.example/max-search/lead-receiver.php');
+standbyCheck('lead receiver repair tool is cli and write guarded',strpos($leadRepairTool,"PHP_SAPI !== 'cli'")!==false&&strpos($leadRepairTool,'MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE')!==false);
+standbyCheck('lead receiver repair tool mutates only external config target',strpos($leadRepairTool,"'/var/www/anytoour/data/config/max-search.php'")!==false&&strpos($leadRepairTool,'LeadReceiverConfigEditor::rewrite')!==false&&strpos($leadRepairTool,'MAX_SEARCH_LEAD_BRIDGE_SECRET')===false);
+standbyCheck('lead receiver repair tool is lint gated atomic and rollbackable',strpos($leadRepairTool,'failed PHP lint')!==false&&strpos($leadRepairTool,'rename($tmp, $config)')!==false&&strpos($leadRepairTool,'--rollback')!==false&&strpos($leadRepairTool,'--commit')!==false);
+standbyCheck('lead receiver repair discovers existing legacy receiver rather than embedding retired host',strpos($leadRepairWorkflow,'*/max-search/lead-receiver.php')!==false&&strpos($leadRepairWorkflow,'LEGACY_LEAD_RECEIVER_DISCOVERY=OK')!==false);
+standbyCheck('lead receiver repair waits for exact production sha',strpos($leadRepairWorkflow,'EXPECTED_SHA: ${{ github.sha }}')!==false&&strpos($leadRepairWorkflow,'CANONICAL_SHA_VERIFIED=')!==false);
+standbyCheck('lead receiver repair verifies read-only bridge auth before committing config',strpos($leadRepairWorkflow,'php tools/lead_bridge_probe.php')!==false&&strpos($leadRepairWorkflow,'standalone_readiness.php')!==false&&strpos($leadRepairWorkflow,'--commit')!==false);
+standbyCheck('lead receiver repair never sends a synthetic lead',strpos($leadRepairWorkflow,'lead-receiver.php')!==false&&strpos($leadRepairWorkflow,'CURLOPT_POST')===false&&strpos($leadRepairWorkflow,'--data')===false);
+standbyCheck('lead receiver repair waits for natural Telegram retry and uses non-invasive smoke',strpos($leadRepairWorkflow,'pending_update_count')!==false&&strpos($leadRepairWorkflow,'telegram_start_smoke.php')!==false);
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
