@@ -258,15 +258,31 @@ class StateMessageHandler
             elseif($status==MaxSearchApi::$statusDate)
             {
                 $text = trim((string)($message['text'] ?? ''));
-                $date = AiDateHandler::resolvePendingShortDate($chat_id, $text);
-                if($date === '')
+                $combinedNightsDate = self::resolveCombinedNightsDate($text);
+                $date = '';
+                if($combinedNightsDate !== [])
                 {
-                    $resolved = AiDateHandler::rememberMonthFromText($chat_id, $text);
-                    $date = (string)($resolved['date'] ?? '');
-                    if($date === '' && !empty($resolved['month']) && !empty($resolved['year']))
+                    $nightsResult = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                        $chat_id,
+                        'nights',
+                        $combinedNightsDate['nights'],
+                        (int)MaxSearchApi::$statusNights
+                    );
+                    if(empty($nightsResult['recognized']) || empty($nightsResult['applied'])) return;
+                    $date = $combinedNightsDate['date'];
+                }
+                else
+                {
+                    $date = AiDateHandler::resolvePendingShortDate($chat_id, $text);
+                    if($date === '')
                     {
-                        DialogueView::calendar($chat_id, (int)$resolved['month'], (int)$resolved['year']);
-                        return;
+                        $resolved = AiDateHandler::rememberMonthFromText($chat_id, $text);
+                        $date = (string)($resolved['date'] ?? '');
+                        if($date === '' && !empty($resolved['month']) && !empty($resolved['year']))
+                        {
+                            DialogueView::calendar($chat_id, (int)$resolved['month'], (int)$resolved['year']);
+                            return;
+                        }
                     }
                 }
 
@@ -284,6 +300,7 @@ class StateMessageHandler
                         return;
                     }
                     if(empty($result['applied'])) return;
+                    if($combinedNightsDate !== []) AiDateHandler::clear($chat_id);
                     if(!EditFlowService::finishIfNeeded($chat_id,'date'))
                         NeedProgressionService::advance($chat_id);
                 }
@@ -377,9 +394,11 @@ class StateMessageHandler
     }
 
     /**
-     * Preserve only an explicit combined duration + departure date answer. The
-     * nights fragment still goes through NeedValueResolver and the date through
-     * the existing DateParser; this helper does not broaden either value grammar.
+     * Preserve only an explicit combined duration + departure date answer, whether
+     * the tourist is currently answering the nights step or correcting both values
+     * from the date step. The nights fragment still goes through NeedValueResolver
+     * and the date through the existing DateParser; this helper does not broaden
+     * either value grammar.
      */
     public static function resolveCombinedNightsDate($text): array
     {
