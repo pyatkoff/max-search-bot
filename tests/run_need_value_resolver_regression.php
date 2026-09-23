@@ -130,6 +130,22 @@ nvrCheck('calendar-invalid stored date stays unresolved', $dateInvalid['recogniz
 $dateNatural = NeedValueResolver::resolve('date', '12 октября');
 nvrCheck('resolver does not take over natural date parsing', $dateNatural['recognized'], false);
 
+$budgetPersonalPrefix = NeedValueResolver::resolve('budget', 'Бюджет на человека до 90 тыс');
+nvrCheck('budget basis before amount is recognized', $budgetPersonalPrefix['recognized'], true);
+nvrCheck('budget basis before amount keeps the amount', $budgetPersonalPrefix['value']['budget.max'] ?? null, 90000);
+nvrCheck('budget basis before amount keeps explicit personal basis', $budgetPersonalPrefix['value']['budget.basis'] ?? null, 'per_person');
+
+$budgetTotalPrefix = NeedValueResolver::resolve('budget', 'Бюджет на всех до 250 тыс');
+nvrCheck('whole-party budget basis before amount is recognized', $budgetTotalPrefix['recognized'], true);
+nvrCheck('whole-party budget basis before amount stays total', $budgetTotalPrefix['value']['budget.basis'] ?? null, 'total');
+
+$budgetContradictoryBasis = NeedValueResolver::resolve('budget', 'Бюджет на человека 90 тыс на всех');
+nvrCheck('contradictory budget basis stays unresolved', $budgetContradictoryBasis['recognized'], false);
+$budgetSubsetPrefix = NeedValueResolver::resolve('budget', 'Бюджет на взрослого до 90 тыс');
+nvrCheck('subset budget basis before amount stays unresolved', $budgetSubsetPrefix['recognized'], false);
+$budgetPerNightPrefix = NeedValueResolver::resolve('budget', 'Бюджет на человека 90 тыс за ночь');
+nvrCheck('per-night budget stays unresolved with prefix basis', $budgetPerNightPrefix['recognized'], false);
+
 $unsupported = NeedValueResolver::resolve('resort', 'Анталья');
 nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
     'recognized' => false,
