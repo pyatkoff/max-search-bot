@@ -54,6 +54,8 @@ mediaCheck('Telegram reply target retained',$tgIncoming['linked_message']['mid']
 mediaCheck('Telegram replied photo summarized',$tgIncoming['linked_message']['attachments'][0]['type']??null,'image');
 mediaCheck('forwarded MAX video token retained',$forwardIncoming['attachments'][0]['token']??null,'video-token');
 $linkedProjection=ManagerMessageMediaService::hydrate([['id'=>991,'direction'=>'inbound','sender_type'=>'customer','text'=>'Этот вариант']]);
+$mediaServiceSource=(string)file_get_contents(__DIR__.'/../services/ManagerMessageMediaService.php');
+mediaCheck('workspace projection retains linked attachment summaries',strpos($mediaServiceSource,"if(\$summary)\$out['attachments']=\$summary;")!==false,true);
 
 $nestedUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.media.2','attachments'=>[
     ['type'=>'image','payload'=>['photos'=>[['token'=>'nested-token','url'=>'https://cdn.example/nested-photo.jpg']]]],
