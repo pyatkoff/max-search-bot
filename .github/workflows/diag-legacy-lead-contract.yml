@@ -1,0 +1,52 @@
+name: Diagnose legacy lead contract
+on:
+  push:
+    branches: [diag/legacy-lead-contract-20260924]
+    paths:
+      - 'tools/legacy_lead_contract_probe.php'
+      - '.github/workflows/diag-legacy-lead-contract.yml'
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax
+        run: php -l tools/legacy_lead_contract_probe.php
+      - name: Prepare legacy SSH
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          raw="$KEY"; out="$RUNNER_TEMP/legacy_key"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]]
+            printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+          fi
+          chmod 600 "$out"; ssh-keygen -y -f "$out" >/dev/null
+      - name: Inspect Bitrix lead contract read-only
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2)
+          remote="$USER@$HOST"
+          scp "${opts[@]}" tools/legacy_lead_contract_probe.php "$remote:/tmp/legacy_lead_contract_probe.php"
+          ssh "${opts[@]}" "$remote" '
+            set -euo pipefail
+            shopt -s nullglob
+            receivers=("$HOME"/www/*/max-search/lead-receiver.php)
+            [[ "${#receivers[@]}" == "1" ]]
+            receiver="${receivers[0]}"
+            domain_root="$(dirname "$(dirname "$receiver")")"
+            php /tmp/legacy_lead_contract_probe.php "$domain_root"
+            rm -f /tmp/legacy_lead_contract_probe.php
+          '
