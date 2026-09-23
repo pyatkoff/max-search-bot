@@ -32,7 +32,7 @@ rbCheck('legacy missing prolog fails explicitly', $thrown, true);
 $tmpRoot = sys_get_temp_dir() . '/max-search-runtime-bootstrap-' . bin2hex(random_bytes(4));
 $prologDir = $tmpRoot . '/bitrix/modules/main/include';
 mkdir($prologDir, 0777, true);
-file_put_contents($prologDir . '/prolog_before.php', "<?php \\$GLOBALS['runtime_bootstrap_fixture_loaded'] = true;\n");
+file_put_contents($prologDir . '/prolog_before.php', '<?php $GLOBALS[\'runtime_bootstrap_fixture_loaded\'] = true;' . "\n");
 unset($GLOBALS['runtime_bootstrap_fixture_loaded']);
 RuntimeBootstrap::boot($tmpRoot);
 rbCheck('legacy bootstrap executes supplied prolog', $GLOBALS['runtime_bootstrap_fixture_loaded'] ?? false, true);
