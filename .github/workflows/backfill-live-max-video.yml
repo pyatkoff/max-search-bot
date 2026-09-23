@@ -66,6 +66,10 @@ jobs:
             if(!is_array($message))continue;
             $update=['message'=>$message];
             $media=MaxIncomingAdapter::mediaAttachments($update);
+            if(!$media){
+              $linked=$message['link']['message']??null;
+              if(is_array($linked)) $media=MaxIncomingAdapter::mediaAttachments(['message'=>$linked]);
+            }
             $videos=array_values(array_filter($media,static fn($a)=>is_array($a)&&(string)($a['type']??'')==='video'));
             if($videos)$candidates[]=['row'=>$row,'mid'=>$mid,'attachments'=>$media];
           }
