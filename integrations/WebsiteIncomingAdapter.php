@@ -33,6 +33,9 @@ class WebsiteIncomingAdapter
 
         $text = trim((string)($payload['text'] ?? ''));
         if ($text === '') return null;
-        return IncomingMessage::text('website', $sessionId, $chatId, $messageId, $text, $user, $payload);
+        $linked=[];
+        $replyTo=max(0,(int)($payload['reply_to_id']??0));
+        if($replyTo>0) $linked=['type'=>'reply','mid'=>'webmsg-'.$replyTo];
+        return IncomingMessage::text('website', $sessionId, $chatId, $messageId, $text, $user, $payload, [], $linked);
     }
 }
