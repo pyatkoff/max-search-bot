@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $http=(string)file_get_contents($root.'/manager/lib/ManagerHttp.php');
 $api=(string)file_get_contents($root.'/manager/api.php');
+$editService=(string)file_get_contents($root.'/services/ManagerMessageEditService.php');
 $push=(string)file_get_contents($root.'/manager/push.php');
 $status=(string)file_get_contents($root.'/manager/push-status.php');
 $pushEnable=(string)file_get_contents($root.'/manager/push-enable.php');
