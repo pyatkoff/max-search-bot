@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-09-23T15:52:30+00:00",
+    "generated_at": "2026-09-23T15:57:20+00:00",
     "production": {
-        "sha": "c6ee8e2206eba0e07117c49e366c5f75b1ff7aac",
+        "sha": "68e753fa80113f19774be9eb00f4aa2c4f3a469d",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 2970,
+            "oldest_wait_seconds": 3260,
             "routing_blocked_count": 0
         },
         "push": {
@@ -178,18 +178,18 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-09-23 14:52:15",
+        "since_utc": "2026-09-23 14:57:05",
         "summary": {
-            "sessions": 11,
-            "raw_sessions": 11,
+            "sessions": 10,
+            "raw_sessions": 10,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 11,
+                "resolved": 10,
                 "unresolved": 0
             },
-            "started": 11,
-            "needs_collected": 9,
-            "tours_opened": 7,
+            "started": 10,
+            "needs_collected": 8,
+            "tours_opened": 6,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 4,
@@ -205,7 +205,7 @@
                 "max_seconds": null
             },
             "drop_points": {
-                "tours_opened": 4,
+                "tours_opened": 3,
                 "manager_requested": 2,
                 "collecting_needs": 2,
                 "needs_collected": 1,
@@ -224,7 +224,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "c6ee8e2206eba0e07117c49e366c5f75b1ff7aac",
+        "sha": "68e753fa80113f19774be9eb00f4aa2c4f3a469d",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -233,7 +233,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-09-23T15:52:30Z"
+        "reported_at": "2026-09-23T15:57:20Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -241,7 +241,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T15:52:03+00:00",
+        "generated_at": "2026-09-23T15:56:53+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -336,7 +336,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-09-23T15:52:03+00:00",
+        "generated_at": "2026-09-23T15:56:53+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -634,7 +634,7 @@
                 "date": "2026-09-23",
                 "partial": true,
                 "since_utc": "2026-09-22 22:00:00",
-                "until_utc": "2026-09-23 15:52:03",
+                "until_utc": "2026-09-23 15:56:53",
                 "channels": [
                     {
                         "channel": "max",
@@ -738,7 +738,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-09-23T15:52:27+00:00",
+        "generated_at": "2026-09-23T15:57:18+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -752,8 +752,8 @@
             },
             "services": {
                 "files": 159,
-                "bytes": 678764,
-                "code_lines": 14404
+                "bytes": 679741,
+                "code_lines": 14423
             },
             "integrations": {
                 "files": 12,
@@ -762,8 +762,8 @@
             },
             "manager": {
                 "files": 58,
-                "bytes": 373212,
-                "code_lines": 2259
+                "bytes": 374566,
+                "code_lines": 2272
             },
             "website": {
                 "files": 4,
@@ -782,8 +782,8 @@
             },
             "tests": {
                 "files": 242,
-                "bytes": 1473085,
-                "code_lines": 18706
+                "bytes": 1473535,
+                "code_lines": 18709
             },
             "tools": {
                 "files": 46,
@@ -823,15 +823,15 @@
                 "severity": "observe"
             },
             {
-                "path": "tests/visual/workspace-v2-layout.spec.js",
-                "lines": 288,
-                "bytes": 29831,
+                "path": "manager/assets/workspace-v2-conversation.js",
+                "lines": 295,
+                "bytes": 31752,
                 "severity": "observe"
             },
             {
-                "path": "manager/assets/workspace-v2-conversation.js",
-                "lines": 286,
-                "bytes": 30873,
+                "path": "tests/visual/workspace-v2-layout.spec.js",
+                "lines": 288,
+                "bytes": 29831,
                 "severity": "observe"
             },
             {
