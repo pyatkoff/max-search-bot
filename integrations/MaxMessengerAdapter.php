@@ -62,6 +62,13 @@ class MaxMessengerAdapter implements MessengerInterface
         return $this->lastExternalMessageId;
     }
 
+    public function editText($messageId, string $text): bool
+    {
+        $messageId=trim((string)$messageId);$text=trim($text);
+        if($messageId===''||$text===''||!class_exists('MaxSearchApi')||!defined('MAX_SEARCH_TOKEN')) return false;
+        return MaxTransport::editMessage(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,$messageId,$text,dirname(__DIR__).'/tmp_max_search.txt');
+    }
+
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
     {
         $buttons = [
