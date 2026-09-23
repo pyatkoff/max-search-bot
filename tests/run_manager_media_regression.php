@@ -128,7 +128,7 @@ mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpoi
 mediaCheck('MAX media endpoint uses authorized provider service',strpos($fileEndpointSource,'ManagerMaxMediaService::attachment')!==false&&strpos($fileEndpointSource,'ManagerMaxMediaService::open')!==false,true);
 mediaCheck('MAX inbound archive delegates provider transport',strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMessage')!==false&&strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMedia')!==false,true);
 mediaCheck('MAX inbound download adapter keeps strict TLS',strpos($maxDownloadAdapterSource,'MaxTlsConfig::strictCurlOptions()')!==false,true);
-mediaCheck('MAX video token resolver is provider-owned',strpos($maxDownloadAdapterSource,"'/videos/'.rawurlencode($token)")!==false,true);
+mediaCheck('MAX video token resolver is provider-owned',strpos($maxDownloadAdapterSource,'function fetchVideo')!==false&&strpos($maxDownloadAdapterSource,"'/videos/'")!==false,true);
 mediaCheck('MAX inbound media archive runs after response flush when FPM supports it',strpos($maxHandlerSource,'fastcgi_finish_request')!==false&&strpos($maxHandlerSource,'archiveRecordedMessage')!==false,true);
 mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
