@@ -61,6 +61,13 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $this->request('editMessageText',['chat_id'=>$chatId,'message_id'=>$messageId,'text'=>$text,'parse_mode'=>'HTML']);
     }
 
+    public function editCaption($chatId, $messageId, string $text): bool
+    {
+        $messageId=(int)$messageId;$text=trim($text);
+        if($messageId<=0||$text==='')return false;
+        return $this->request('editMessageCaption',['chat_id'=>$chatId,'message_id'=>$messageId,'caption'=>$text,'parse_mode'=>'HTML']);
+    }
+
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
     {
         $contactPayload = [
