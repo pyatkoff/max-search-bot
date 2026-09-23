@@ -56,7 +56,8 @@ final class TripContextMetadataPolicy
     /**
      * Extractor lists are incremental because its contract contains only new-message changes.
      * Removal keys are neutral corrections: they delete an exact active item without turning it
-     * into the opposite polarity. This lets "больше не важно" differ from "не хочу".
+     * into the opposite polarity. Identity ignores harmless letter-case differences while the
+     * originally stored/displayed spelling remains untouched.
      */
     public static function applyPreferences(array $context, array $changes): ?array
     {
@@ -72,29 +73,23 @@ final class TripContextMetadataPolicy
             if ($normalized === null) return null;
             $incoming[$key] = $normalized;
         }
-        if (array_intersect($incoming['preferences'] ?? [], $incoming['negative_preferences'] ?? []) !== []) return null;
-        if (array_intersect($incoming['preferences'] ?? [], $incoming['preferences_remove'] ?? []) !== []) return null;
-        if (array_intersect($incoming['negative_preferences'] ?? [], $incoming['negative_preferences_remove'] ?? []) !== []) return null;
+        if (self::listsOverlap($incoming['preferences'] ?? [], $incoming['negative_preferences'] ?? [])) return null;
+        if (self::listsOverlap($incoming['preferences'] ?? [], $incoming['preferences_remove'] ?? [])) return null;
+        if (self::listsOverlap($incoming['negative_preferences'] ?? [], $incoming['negative_preferences_remove'] ?? [])) return null;
 
         foreach (($incoming['preferences_remove'] ?? []) as $item) {
-            $next['preferences'] = array_values(array_filter(
-                $next['preferences'],
-                static fn(string $v): bool => $v !== $item
-            ));
+            $next['preferences'] = self::withoutEquivalent($next['preferences'], $item);
         }
         foreach (($incoming['negative_preferences_remove'] ?? []) as $item) {
-            $next['negative_preferences'] = array_values(array_filter(
-                $next['negative_preferences'],
-                static fn(string $v): bool => $v !== $item
-            ));
+            $next['negative_preferences'] = self::withoutEquivalent($next['negative_preferences'], $item);
         }
 
         foreach (['preferences','negative_preferences'] as $key) {
             if (!array_key_exists($key, $incoming)) continue;
             $opposite = $key === 'preferences' ? 'negative_preferences' : 'preferences';
             foreach ($incoming[$key] as $item) {
-                $next[$opposite] = array_values(array_filter($next[$opposite], static fn(string $v): bool => $v !== $item));
-                if (!in_array($item, $next[$key], true)) $next[$key][] = $item;
+                $next[$opposite] = self::withoutEquivalent($next[$opposite], $item);
+                if (!self::containsEquivalent($next[$key], $item)) $next[$key][] = $item;
             }
             if (count($next[$key]) > self::MAX_ITEMS) return null;
         }
@@ -135,5 +130,37 @@ final class TripContextMetadataPolicy
             if (!in_array($item, $out, true)) $out[] = $item;
         }
         return $out;
+    }
+
+    private static function identityKey(string $item): string
+    {
+        $item = trim((string)(preg_replace('/\s+/u', ' ', $item) ?? $item));
+        return function_exists('mb_strtolower') ? mb_strtolower($item, 'UTF-8') : strtolower($item);
+    }
+
+    private static function containsEquivalent(array $items, string $needle): bool
+    {
+        $identity = self::identityKey($needle);
+        foreach ($items as $item) {
+            if (self::identityKey((string)$item) === $identity) return true;
+        }
+        return false;
+    }
+
+    private static function withoutEquivalent(array $items, string $needle): array
+    {
+        $identity = self::identityKey($needle);
+        return array_values(array_filter(
+            $items,
+            static fn(string $item): bool => self::identityKey($item) !== $identity
+        ));
+    }
+
+    private static function listsOverlap(array $left, array $right): bool
+    {
+        foreach ($left as $item) {
+            if (self::containsEquivalent($right, (string)$item)) return true;
+        }
+        return false;
     }
 }
