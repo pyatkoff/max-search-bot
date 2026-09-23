@@ -36,11 +36,11 @@ foreach ($tests as [$text, $expected, $label]) {
 $partyCompositionRoutingTests = [
     ['2 взрослых и ребёнок 7 лет', true, 'adult answer with child and age routes full party composition'],
     ['2 взрослых без детей', true, 'adult answer with explicit no-children routes full party composition'],
-    ['двое взрослых, детей нет', true, 'word adult count with explicit no children routes full composition'],
+    ['двое взрослых и детей нет', true, 'word adult count with explicit no children routes full composition'],
     ['2 взрослых', false, 'adult-only answer stays deterministic wizard value'],
     ['двое', false, 'short adult-only answer stays deterministic wizard value'],
     ['ребёнок 7 лет', false, 'child-only text does not bypass missing adult answer'],
-    ['2 взрослых, нужен детский клуб', false, 'hotel child-friendly wish is not child composition'],
+    ['2 взрослых и нужен детский клуб', false, 'hotel child-friendly wish is not child composition'],
 ];
 foreach ($partyCompositionRoutingTests as [$text, $expected, $label]) {
     $actual = StateMessageHandler::shouldRoutePartyCompositionToAi($text);
