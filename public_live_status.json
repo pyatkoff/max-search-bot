@@ -1,51 +1,49 @@
 {
     "ok": true,
-    "generated_at": "2026-09-23T14:59:57+00:00",
+    "generated_at": "2026-09-23T15:51:02+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 16,
-        "raw_sessions": 16,
+        "sessions": 12,
+        "raw_sessions": 12,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 16,
+            "resolved": 12,
             "unresolved": 0
         },
-        "started": 16,
-        "needs_collected": 13,
-        "tours_opened": 10,
+        "started": 12,
+        "needs_collected": 9,
+        "tours_opened": 7,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 1,
-        "manager_requested": 7,
-        "manager_replied": 6,
-        "customer_replied_after_manager": 3,
+        "post_tour_manager_cta_shown": 0,
+        "manager_requested": 4,
+        "manager_replied": 2,
+        "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 4,
-            "still_unanswered": 1,
-            "measured_responses": 4,
-            "avg_seconds": 5947,
-            "max_seconds": 11030
+            "answered_after_90s": 0,
+            "still_unanswered": 2,
+            "measured_responses": 0,
+            "avg_seconds": null,
+            "max_seconds": null
         },
         "drop_points": {
             "tours_opened": 4,
-            "manager_replied": 3,
-            "customer_replied_after_manager": 3,
             "collecting_needs": 3,
-            "needs_collected": 2,
-            "manager_requested": 1
+            "manager_requested": 2,
+            "needs_collected": 1,
+            "manager_replied": 1,
+            "customer_replied_after_manager": 1
         },
         "flags": {
-            "excessive_turns": 1,
-            "manager_requested_no_reply": 1,
-            "left_waiting_queue_without_manager_reply": 1,
-            "manager_taken_no_reply": 1,
-            "repeated_callback_input": 1
+            "manager_requested_no_reply": 2,
+            "repeated_callback_input": 1,
+            "excessive_turns": 1
         }
     },
-    "since_utc": "2026-09-23 13:59:57",
+    "since_utc": "2026-09-23 14:51:02",
     "public_redacted": true
 }
