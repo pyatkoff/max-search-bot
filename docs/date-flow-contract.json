@@ -26,7 +26,8 @@
     "storage_field": "wizard_status_value",
     "stored_representation": "DD.MM.YYYY_string",
     "canonical_wizard_value": "one_orientational_departure_date",
-    "search_window": "presentation_and_lead_windows_are_plus_or_minus_3_days_while_search_query_uses_the_single_date_for_dateFrom_and_dateTo"
+    "search_window": "presentation_and_lead_windows_are_plus_or_minus_3_days_as_a_technical_convention_while_search_query_uses_the_single_date_for_dateFrom_and_dateTo",
+    "flexibility_policy": "customer_date_flexibility_is_unknown_unless_explicitly_supplied_and_must_not_be_inferred_from_the_technical_plus_or_minus_3_day_window"
   },
   "executable_value_contract": {
     "owner": "services/DateValueContract.php",
@@ -148,7 +149,7 @@
     "search_value": "TourSearchHandoffService_dateValue_normalized_to_YYYY-MM-DD",
     "invalid_search_value": "empty_string",
     "summary": "SearchDateSummary_formats_selected_date_and_plus_or_minus_3_day_window_with_lower_bound_clamped_to_today",
-    "trip_state": "dates.from_and_dates.to_equal_stored_value_dates.month_is_YYYY-MM_and_flexible_days_is_3_when_date_present"
+    "trip_state": "dates.from_and_dates.to_equal_stored_value_dates.month_is_YYYY-MM_and_flexible_days_is_null_until_explicitly_supplied"
   },
   "migration_readiness": {
     "runtime_migration_allowed": false,
