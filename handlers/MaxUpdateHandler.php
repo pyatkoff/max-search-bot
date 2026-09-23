@@ -79,7 +79,7 @@ class MaxUpdateHandler
                 $dispatcher->dispatch($incoming);
                 if ($type === 'message_created') {
                     foreach ((array)($incoming['attachments'] ?? []) as $attachment) {
-                        if (is_array($attachment) && (string)($attachment['type'] ?? '') === 'image') {
+                        if (is_array($attachment) && in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) {
                             $archiveExternalMessageId = trim((string)($incoming['message_id'] ?? ''));
                             break;
                         }
