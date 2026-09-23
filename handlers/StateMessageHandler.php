@@ -120,32 +120,23 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusAge)
             {
-                $error = false;
-                $childCount = MaxSearchApi::getLastValue($chat_id,MaxSearchApi::$statusChild);
-                $ageOut = ChildAgeValueContract::parseLegacyInput(
-                    (string)$message['text'],
-                    (int)$childCount
+                $childCount = (int)MaxSearchApi::getLastValue($chat_id,MaxSearchApi::$statusChild);
+                $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                    $chat_id,
+                    'child_ages',
+                    (string)($message['text'] ?? ''),
+                    (int)MaxSearchApi::$statusAge,
+                    ['children'=>$childCount]
                 );
-                if($ageOut===null)
-                    $error = true;
+                if(!empty($result['recognized']))
+                {
+                    if(empty($result['applied'])) return;
+                    if(!EditFlowService::finishIfNeeded($chat_id,'tourists'))
+                        MaxSearchApi::showStarsButtons($chat_id);
+                }
                 else
                 {
-                    $ageValue = ChildAgeValueContract::toStorage($ageOut, (int)$childCount);
-                    if($ageValue===null)
-                        $error = true;
-                    elseif(ExistingWizardStepApplicationService::apply(
-                        $chat_id,
-                        MaxSearchApi::$statusAge,
-                        $ageValue
-                    ))
-                    {
-                        if(!EditFlowService::finishIfNeeded($chat_id,'tourists'))
-                            MaxSearchApi::showStarsButtons($chat_id);
-                    }
-                }
-                if($error)
-                {
-                    if(intval($childCount)==1)
+                    if($childCount===1)
                         self::send($chat_id,"К сожалению возраст ребенка указан неверно. Пожалуйста, введите 1 число в диапазоне от 0 до 17.");
                     else
                         self::send($chat_id,"К сожалению возраст детей указан неверно. Пожалуйста, введите ".$childCount." числа через разделитель (пробел или запятая) в диапазоне от 0 до 17.");
