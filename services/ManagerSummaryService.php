@@ -61,7 +61,10 @@ class ManagerSummaryService
         } else {
             $lines[] = 'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)';
         }
-        if (!empty($state['hotel']['stars_min'])) $lines[] = 'Отель: от ' . (int)$state['hotel']['stars_min'] . '★';
+        if (!empty($state['hotel']['stars_min'])) {
+            $stars = (int)$state['hotel']['stars_min'];
+            $lines[] = $stars === 1 ? 'Категория отеля: не важна' : 'Отель: от ' . $stars . '★';
+        }
         if (!empty($state['hotel']['meal'])) $lines[] = 'Питание: ' . self::mealLabel((string)$state['hotel']['meal']);
         if (!empty($state['preferences'])) $lines[] = 'Пожелания: ' . implode(', ', (array)$state['preferences']);
         if (!empty($state['negative_preferences'])) $lines[] = 'Не подходит: ' . implode(', ', (array)$state['negative_preferences']);
