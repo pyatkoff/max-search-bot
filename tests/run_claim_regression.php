@@ -65,6 +65,12 @@ ccheck('people string with children', LeadPayloadService::peopleString($claim), 
 ccheck('meal string lowercases mapped meal', LeadPayloadService::mealString($claim, ['7'=>'ВСЕ ВКЛЮЧЕНО']), 'все включено');
 ccheck('meal 999 becomes any', LeadPayloadService::mealString(['UF_MEAL'=>999], ['999'=>'ЛЮБОЕ']), 'любое');
 
+$handoffToday = new DateTimeImmutable('2026-09-01');
+ccheck('phone handoff keeps missing departure date empty', LeadPayloadService::departureDates([], $handoffToday), '');
+ccheck('phone handoff keeps invalid departure date empty', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'not-a-date'], $handoffToday), '');
+ccheck('phone handoff keeps past departure date empty', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'31.08.2026'], $handoffToday), '');
+ccheck('phone handoff preserves valid plus-minus-three-day window', LeadPayloadService::departureDates(['UF_DATE_DEPART'=>'10.09.2026'], $handoffToday), '07.09.2026 - 13.09.2026');
+
 $data = [
     'name'=>'Test User','phone'=>'+79990000000','clean_phone'=>'79990000000',
     'created_at'=>'23.08.2026 12:00:00','from'=>'Калининград','country'=>'Турция',
