@@ -108,6 +108,8 @@ jobs:
                   curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,8);curl_setopt($ch,CURLOPT_TIMEOUT,45);curl_setopt($ch,CURLOPT_MAXREDIRS,3);
                   $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$ctype=(string)curl_getinfo($ch,CURLINFO_CONTENT_TYPE);
                   curl_close($ch);fflush($fp);$size=ftell($fp);fclose($fp);
+                  $host=(string)(parse_url($url,PHP_URL_HOST)??'');$pathPart=(string)(parse_url($url,PHP_URL_PATH)??'');$extHint=strtolower((string)pathinfo($pathPart,PATHINFO_EXTENSION));
+                  echo "  CAND host=".preg_replace('/^[^.]+\./','*.',$host)." ext={$extHint} http={$http} ctype=".strtolower(trim(explode(';',$ctype)[0]??''))." bytes={$size}\n";
                   if($ok!==false && $http>=200 && $http<300 && $size>0 && $size<=52428800){
                       $mime=strtolower(trim(explode(';',$ctype)[0]??''));
                       if(!str_starts_with($mime,'image/')){$fi=new finfo(FILEINFO_MIME_TYPE);$mime=(string)$fi->file($tmp);}
