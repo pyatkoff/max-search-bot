@@ -9,7 +9,7 @@ final class RuntimeBootstrap
         return defined('MAX_SEARCH_STANDALONE_RUNTIME') && MAX_SEARCH_STANDALONE_RUNTIME === true;
     }
 
-    public static function boot(?string $legacyDocumentRoot = null): void
+    public static function boot($legacyDocumentRoot = null)
     {
         if (self::isStandalone()) {
             return;
