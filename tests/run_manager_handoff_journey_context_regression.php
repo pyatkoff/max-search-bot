@@ -43,7 +43,7 @@ mhjCheck('negative preference remains separate',strpos($after,'Не подход
 $partial=ManagerHandoffContextService::build(['city'=>'Москва','children'=>0],[],[]);
 mhjCheck('early handoff lists only genuinely missing required search essentials',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, количество взрослых')!==false,true);
 mhjCheck('known child count is not hidden behind a generic party gap',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, состав туристов')===false,true);
-mhjCheck('early handoff does not turn optional hotel wishes into mandatory unknowns',strpos($partial,'звёз')===false&&strpos($partial,'питани')===false,true);
+mhjCheck('early handoff separates optional hotel unknowns from required search gaps',strpos($partial,'Не указано (необязательно): категория отеля, питание. Уточнять только если это нужно для следующего предложения.')!==false,true);
 mhjCheck('early handoff next action refers only to required-search gap',strpos($partial,'уточнить только перечисленное в «Не указано для поиска»')!==false,true);
 mhjCheck('optional budget stays separate from required-search gap',strpos($partial,'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)')!==false,true);
 
