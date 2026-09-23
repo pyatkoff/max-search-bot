@@ -83,6 +83,13 @@ $messenger = new TelegramMessengerAdapter(static function($method, $payload) use
 maCheck('Telegram injected sender works', $messenger->send(456, 'Привет'), true);
 maCheck('Telegram injected method', $calls[0][0] ?? null, 'sendMessage');
 maCheck('Telegram injected chat id', $calls[0][1]['chat_id'] ?? null, 456);
+$idCalls=[];
+$idMessenger=new TelegramMessengerAdapter(static function($method,$payload) use (&$idCalls){$idCalls[]=[$method,$payload];return ['ok'=>true,'result'=>['message_id'=>9123]];},'manager',false);
+maCheck('Telegram manager send retains provider message id',$idMessenger->send(456,'Тест'),true);
+maCheck('Telegram retained provider message id',$idMessenger->lastExternalMessageId(),'9123');
+maCheck('Telegram edit transport works',$idMessenger->editText(456,9123,'Исправлено'),true);
+maCheck('Telegram edit targets exact message',$idCalls[1][0]??null,'editMessageText');
+maCheck('Telegram edit exact id',$idCalls[1][1]['message_id']??null,9123);
 
 maCheck('Telegram contact request works', $messenger->sendContactRequest(456, 'Телефон?', 'phone_manual', 'back_check'), true);
 maCheck('Telegram contact request uses two messages', count($calls), 3);
