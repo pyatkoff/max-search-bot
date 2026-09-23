@@ -39,6 +39,8 @@ ccheck('native claim code rejects non-positive length', $threw, true);
 $maxSearchSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
 ccheck('claim creation delegates to native generator', strpos($maxSearchSource, 'ClaimCodeGenerator::generate(10)') !== false, true);
 ccheck('claim creation no longer calls Bitrix randString', strpos($maxSearchSource, 'randString(') === false, true);
+ccheck('phone handoff does not throw when departure date is absent', strpos($maxSearchSource,"NativeDateService::isTodayOrFuture(\$departureDate)?NativeDateService::leadWindow(\$departureDate):null")!==false,true);
+ccheck('phone handoff preserves unknown departure as empty lead field', strpos($maxSearchSource,"\$dates=is_array(\$dateWindow)?\$dateWindow['from'].' - '.\$dateWindow['to']:'';")!==false,true);
 
 StandaloneYclidRegressionApi::$trafficMeta = ['yclid'=>' 123456789 '];
 ccheck('standalone latest yclid uses persisted traffic attribution without Bitrix', StandaloneYclidRegressionApi::getLatestYclid(-123), '123456789');
