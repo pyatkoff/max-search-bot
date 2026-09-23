@@ -13,7 +13,7 @@ require_once __DIR__.'/../integrations/MaxInboundMediaDownloadAdapter.php';
  */
 final class MaxInboundMediaArchiveService
 {
-    public const MAX_IMAGE_BYTES = 50 * 1024 * 1024;
+    public const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
 
     /** Best-effort post-response archive for a newly recorded inbound MAX message. */
     public static function archiveRecordedMessage(string $externalMessageId, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): int
@@ -32,11 +32,11 @@ final class MaxInboundMediaArchiveService
         $changed = 0;
 
         foreach ($attachments as $key => $attachment) {
-            if (!is_array($attachment) || (string)($attachment['type'] ?? '') !== 'image') continue;
+            if (!is_array($attachment) || !in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) continue;
             if (self::localDescriptorAvailable((array)($attachment['local_media'] ?? []))) continue;
             $index = self::publicIndexForKey($attachments, $key);
             if ($index < 0) continue;
-            $local = self::archiveImage((int)$row['id'], $index, $externalMessageId, $attachment, $messageFetcher, $mediaFetcher);
+            $local = self::archiveMedia((int)$row['id'], $index, $externalMessageId, $attachment, $messageFetcher, $mediaFetcher);
             if ($local === null) continue;
             $attachments[$key]['local_media'] = $local;
             $changed++;
@@ -53,9 +53,9 @@ final class MaxInboundMediaArchiveService
      * Resolve/download/store one MAX photo. Injectable fetchers keep the contract
      * testable without touching MAX or customer data.
      */
-    public static function archiveImage(int $messageId, int $index, string $externalMessageId, array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): ?array
+    public static function archiveMedia(int $messageId, int $index, string $externalMessageId, array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): ?array
     {
-        if ($messageId <= 0 || $index < 0 || $index > 20 || (string)($attachment['type'] ?? '') !== 'image') return null;
+        if ($messageId <= 0 || $index < 0 || $index > 20 || !in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) return null;
         $known = (array)($attachment['local_media'] ?? []);
         if (self::localDescriptorAvailable($known)) return $known;
 
@@ -69,11 +69,18 @@ final class MaxInboundMediaArchiveService
                 if (is_array($remote)) $urls = self::urls($remote);
             }
         }
+        if (!$urls && (string)($attachment['type'] ?? '') === 'video') {
+            $token=trim((string)($attachment['token'] ?? ''));
+            if($token!==''){
+                $video=MaxInboundMediaDownloadAdapter::fetchVideo($token);
+                if(is_array($video)) $urls=self::urls($video);
+            }
+        }
         if (!$urls) return null;
 
         $fetchMedia = $mediaFetcher ?? [self::class, 'fetchMedia'];
         foreach ($urls as $url) {
-            $stream = $fetchMedia($url, self::MAX_IMAGE_BYTES);
+            $stream = $fetchMedia($url, self::MAX_MEDIA_BYTES);
             if (!is_resource($stream)) continue;
             try {
                 $descriptor = self::storeStream($messageId, $index, $attachment + (is_array($remote) ? $remote : []), $stream);
@@ -92,7 +99,7 @@ final class MaxInboundMediaArchiveService
                 $remote = self::matchingRemoteAttachment($remoteMessage, $index, $attachment);
                 foreach (is_array($remote) ? self::urls($remote) : [] as $url) {
                     if (in_array($url, $urls, true)) continue;
-                    $stream = $fetchMedia($url, self::MAX_IMAGE_BYTES);
+                    $stream = $fetchMedia($url, self::MAX_MEDIA_BYTES);
                     if (!is_resource($stream)) continue;
                     try {
                         $descriptor = self::storeStream($messageId, $index, $attachment + $remote, $stream);
@@ -120,13 +127,13 @@ final class MaxInboundMediaArchiveService
         $key = $keys[$index] ?? null;
         if ($key === null || !is_array($meta['attachments'][$key] ?? null)) return null;
         $attachment = $meta['attachments'][$key];
-        if ((string)($attachment['type'] ?? '') !== 'image') return null;
+        if (!in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) return null;
 
         $local = (array)($attachment['local_media'] ?? []);
         $file = self::openLocal($local);
         if ($file !== null) return $file;
 
-        $local = self::archiveImage($messageId, $index, (string)($row['external_message_id'] ?? ''), $attachment, $messageFetcher, $mediaFetcher);
+        $local = self::archiveMedia($messageId, $index, (string)($row['external_message_id'] ?? ''), $attachment, $messageFetcher, $mediaFetcher);
         if ($local === null) return null;
         $meta['attachments'][$key]['local_media'] = $local;
         self::updateMetadata($messageId, $meta);
@@ -141,12 +148,12 @@ final class MaxInboundMediaArchiveService
         $path = self::dir().'/'.$id.'.bin';
         if (!is_file($path) || !is_readable($path)) return null;
         $size = (int)filesize($path);
-        if ($size <= 0 || $size > self::MAX_IMAGE_BYTES || $size !== (int)($descriptor['size'] ?? $size)) return null;
+        if ($size <= 0 || $size > self::MAX_MEDIA_BYTES || $size !== (int)($descriptor['size'] ?? $size)) return null;
         $stream = fopen($path, 'rb');
         if (!is_resource($stream)) return null;
         $probe = (string)fread($stream, 8192);
         rewind($stream);
-        $mime = self::imageMime($probe);
+        $mime = self::mediaMime($probe, (string)($descriptor['type'] ?? 'image'));
         if ($mime === null) { fclose($stream); return null; }
         $name = self::safeName((string)($descriptor['name'] ?? 'Фото'));
         return ['stream'=>$stream,'size'=>$size,'mime'=>$mime,'inline'=>true,'name'=>$name];
@@ -156,10 +163,10 @@ final class MaxInboundMediaArchiveService
     {
         $stat = fstat($stream);
         $size = (int)($stat['size'] ?? 0);
-        if ($size <= 0 || $size > self::MAX_IMAGE_BYTES) return null;
+        if ($size <= 0 || $size > self::MAX_MEDIA_BYTES) return null;
         $probe = (string)fread($stream, 8192);
         rewind($stream);
-        $mime = self::imageMime($probe);
+        $mime = self::mediaMime($probe, (string)($attachment['type'] ?? 'file'));
         if ($mime === null) return null;
 
         $dir = self::dir();
@@ -177,14 +184,14 @@ final class MaxInboundMediaArchiveService
                 if ($chunk === false) return null;
                 if ($chunk === '') break;
                 $written += strlen($chunk);
-                if ($written > self::MAX_IMAGE_BYTES || fwrite($out, $chunk) !== strlen($chunk)) return null;
+                if ($written > self::MAX_MEDIA_BYTES || fwrite($out, $chunk) !== strlen($chunk)) return null;
             }
         } finally {
             fclose($out);
         }
         if ($written !== $size || !@rename($tmp, $path)) { @unlink($tmp); return null; }
         @chmod($path, 0600);
-        return ['version'=>1,'id'=>$id,'size'=>$size,'mime'=>$mime,'name'=>self::safeName((string)($attachment['name'] ?? 'Фото'))];
+        return ['version'=>1,'id'=>$id,'size'=>$size,'mime'=>$mime,'type'=>(string)($attachment['type'] ?? 'file'),'name'=>self::safeName((string)($attachment['name'] ?? 'Вложение'))];
     }
 
     private static function updateMetadata(int $messageId, array $meta): void
@@ -234,12 +241,12 @@ final class MaxInboundMediaArchiveService
         $wantedToken = trim((string)($saved['token'] ?? ''));
         if ($wantedToken !== '') {
             foreach ($items as $item) {
-                if ((string)($item['type'] ?? '') !== 'image') continue;
+                if ((string)($item['type'] ?? '') !== (string)($saved['type'] ?? '')) continue;
                 if (self::containsToken($item, $wantedToken)) return $item;
             }
         }
         $candidate = $items[$index] ?? null;
-        return is_array($candidate) && (string)($candidate['type'] ?? '') === 'image' ? $candidate : null;
+        return is_array($candidate) && (string)($candidate['type'] ?? '') === (string)($saved['type'] ?? '') ? $candidate : null;
     }
 
     private static function containsToken($value, string $token): bool
@@ -277,11 +284,15 @@ final class MaxInboundMediaArchiveService
             && !empty($parts['host']) && empty($parts['user']) && empty($parts['pass']);
     }
 
-    private static function imageMime(string $probe): ?string
+    private static function mediaMime(string $probe, string $type): ?string
     {
         if ($probe === '') return null;
-        $mime = (string)(new finfo(FILEINFO_MIME_TYPE))->buffer($probe);
-        return in_array($mime, ['image/jpeg','image/png','image/gif','image/webp','image/tiff','image/bmp','image/heic','image/heif'], true) ? $mime : null;
+        $mime=(string)(new finfo(FILEINFO_MIME_TYPE))->buffer($probe);
+        if($type==='image') return str_starts_with($mime,'image/') ? $mime : null;
+        if($type==='video') return str_starts_with($mime,'video/') ? $mime : null;
+        if($type==='audio') return str_starts_with($mime,'audio/') ? $mime : null;
+        if($type==='file') return !in_array($mime,['text/html','application/xhtml+xml'],true) ? $mime : null;
+        return null;
     }
 
     private static function safeName(string $name): string

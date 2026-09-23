@@ -52,8 +52,8 @@ class ManagerMessageMediaService
             $protectedTelegram=$provider==='telegram';
             // Historical MAX rows predate provider tagging. Channel+direction is
             // authoritative and lets those already-recorded photos be recovered.
-            $protectedMaxImage=$channel==='max' && $direction==='inbound' && $type==='image';
-            if (!$protectedTelegram && !$protectedMaxImage) continue;
+            $protectedMaxMedia=$channel==='max' && $direction==='inbound' && in_array($type,['image','video','audio','file'],true);
+            if (!$protectedTelegram && !$protectedMaxMedia) continue;
             // Never expose provider tokens/file identifiers or expiring provider
             // URLs in the browser. The authenticated endpoint resolves/archives it.
             $attachment = [
