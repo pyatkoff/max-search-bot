@@ -69,6 +69,14 @@ class MaxTransport
         return self::request($baseUrl, $token, 'DELETE', '/messages', ['message_id'=>$messageId], null, $logFile);
     }
 
+    public static function editMessage($baseUrl, $token, $messageId, string $text, $logFile = null): bool
+    {
+        $messageId=trim((string)$messageId);$text=trim($text);
+        if($messageId===''||$text==='') return false;
+        $res=self::request($baseUrl,$token,'PUT','/messages',['message_id'=>$messageId],['text'=>$text,'format'=>'html'],$logFile);
+        return $res!==false;
+    }
+
     public static function send($baseUrl, $token, $chatId, $text, $logFile = null)
     {
         $res = self::request($baseUrl,$token,'POST','/messages',['user_id'=>self::externalUserId($chatId)],['text'=>(string)$text, 'format'=>'html'],$logFile);
