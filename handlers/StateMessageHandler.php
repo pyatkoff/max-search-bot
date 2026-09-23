@@ -23,10 +23,22 @@ class StateMessageHandler
             // source-bounded contracts for the other wizard steps remain intact.
             if($status==MaxSearchApi::$statusAdults)
             {
+                $adultText = (string)($message['text'] ?? '');
+                // A tourist can answer the adults question with the whole party
+                // composition. Do not commit only the adults fragment and then
+                // ask again for child data that is already present in this turn.
+                // The existing AI collector deterministically pre-seeds these
+                // fields through NeedApplicationService before any external AI.
+                if(self::shouldRoutePartyCompositionToAi($adultText))
+                {
+                    self::routeFreeTextToAi($message,$chat_id);
+                    return;
+                }
+
                 $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
                     $chat_id,
                     'adults',
-                    (string)($message['text'] ?? ''),
+                    $adultText,
                     (int)MaxSearchApi::$statusAdults
                 );
                 if(!empty($result['recognized']))
@@ -286,6 +298,25 @@ class StateMessageHandler
             '/(?:\bхоч(?:у|ем)\b|\bпоед(?:у|ем|ет)\b|\bвылет\w*\b|\bтур\w*\b|\bноч\w*\b|\bвзросл\w*\b|\bреб[её]н\w*\b|\bдет\w*\b|\bянвар\w*\b|\bфеврал\w*\b|\bмарт\w*\b|\bапрел\w*\b|\bма[йя]\w*\b|\bиюн\w*\b|\bиюл\w*\b|\bавгуст\w*\b|\bсентябр\w*\b|\bоктябр\w*\b|\bноябр\w*\b|\bдекабр\w*\b|\b\d{1,2}[.\/-]\d{1,2}\b)/ui',
             $text
         );
+    }
+
+    /**
+     * At the adults step, route only an actual multi-field party answer. Adult-only
+     * replies stay on the deterministic wizard path; hotel words such as "детский"
+     * are not treated as a child count.
+     */
+    public static function shouldRoutePartyCompositionToAi($text): bool
+    {
+        $text = trim((string)$text);
+        if ($text === '') return false;
+
+        $adult = NeedValueResolver::resolve('adults', $text);
+        if (empty($adult['recognized'])) return false;
+
+        return preg_match(
+            '/(?:\bбез\s+детей\b|\bдет(?:и|ей)\b|\bреб[её]н(?:ок|ка|ку|ком|ки|ков)\b)/ui',
+            $text
+        ) === 1;
     }
 
     /**

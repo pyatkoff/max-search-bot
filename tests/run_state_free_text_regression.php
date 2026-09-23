@@ -30,6 +30,30 @@ foreach ($tests as [$text, $expected, $label]) {
     }
 }
 
+// At the explicit adults step, a message that also contains child composition
+// must be handed to the existing full-request collector instead of committing
+// only the adults fragment and immediately asking for children again.
+$partyCompositionRoutingTests = [
+    ['2 взрослых и ребёнок 7 лет', true, 'adult answer with child and age routes full party composition'],
+    ['2 взрослых без детей', true, 'adult answer with explicit no-children routes full party composition'],
+    ['двое взрослых и детей нет', true, 'word adult count with explicit no children routes full composition'],
+    ['2 взрослых', false, 'adult-only answer stays deterministic wizard value'],
+    ['двое', false, 'short adult-only answer stays deterministic wizard value'],
+    ['ребёнок 7 лет', false, 'child-only text does not bypass missing adult answer'],
+    ['2 взрослых и нужен детский клуб', false, 'hotel child-friendly wish is not child composition'],
+];
+foreach ($partyCompositionRoutingTests as [$text, $expected, $label]) {
+    $actual = StateMessageHandler::shouldRoutePartyCompositionToAi($text);
+    if ($actual === $expected) { echo "PASS  {$label}\n"; $passed++; }
+    else {
+        echo "FAIL  {$label}\n";
+        echo '      text: ' . $text . "\n";
+        echo '      expected: ' . var_export($expected, true) . "\n";
+        echo '      actual:   ' . var_export($actual, true) . "\n";
+        $failed++;
+    }
+}
+
 // A natural answer to the explicit child-count question must use the same
 // deterministic resolver as the AI collector instead of disappearing silently.
 $childrenFreeTextTests = [
@@ -165,6 +189,8 @@ $guards = [
     'city fallback invokes free-text routing' => strpos($source, 'elseif(self::shouldRouteFreeTextToAi($city))') !== false,
     'free text switches to AI status' => strpos($source, 'MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);') !== false,
     'free text reaches AiMessageHandler' => strpos($source, 'AiMessageHandler::handle($message, $chatId);') !== false,
+    'wizard adults checks multi-field party composition before single-field apply' => strpos($source, 'if(self::shouldRoutePartyCompositionToAi($adultText))') !== false,
+    'party composition routing uses canonical adults resolution' => strpos($source, "NeedValueResolver::resolve('adults', \$text)") !== false,
     'wizard child step accepts free text' => strpos($source, 'elseif($status==MaxSearchApi::$statusChild)') !== false,
     'wizard child step uses canonical resolver/application boundary' => strpos($source, "NeedApplicationService::resolveAndApplyExistingWizardStep(\n                    \$chat_id,\n                    'children',") !== false,
     'wizard child step keeps existing-step status id' => strpos($source, "'children',\n                    (string)(\$message['text'] ?? ''),\n                    (int)MaxSearchApi::\$statusChild") !== false,
