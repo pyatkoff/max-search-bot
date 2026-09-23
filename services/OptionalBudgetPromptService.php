@@ -45,6 +45,53 @@ final class OptionalBudgetPromptService
         return (bool)IntegrationRegistry::messenger()->send($chatId, $text);
     }
 
+    /**
+     * A tourist may explicitly decline this one optional clarification without
+     * creating another dialogue field or silently changing the search contract.
+     * Keep the classifier deliberately narrow: generic preference retractions
+     * such as "не важно" belong to their own owner and are not budget skips.
+     */
+    public static function isExplicitSkipText(string $text): bool
+    {
+        if (!preg_match('//u', $text)) return false;
+        $normalized = trim($text);
+        $normalized = function_exists('mb_strtolower')
+            ? mb_strtolower($normalized, 'UTF-8')
+            : strtolower($normalized);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?: $normalized;
+        $normalized = trim($normalized, " \t\n\r\0\x0B.,!?…");
+
+        return in_array($normalized, [
+            'не знаю',
+            'пока не знаю',
+            'бюджет не знаю',
+            'бюджет пока не знаю',
+            'не определился',
+            'не определилась',
+            'не определились',
+            'пока не определился',
+            'пока не определилась',
+            'пока не определились',
+            'не определился с бюджетом',
+            'не определилась с бюджетом',
+            'не определились с бюджетом',
+            'с бюджетом не определился',
+            'с бюджетом не определилась',
+            'с бюджетом не определились',
+            'по бюджету не определился',
+            'по бюджету не определилась',
+            'по бюджету не определились',
+        ], true);
+    }
+
+    public static function sendSkippedConfirmation($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->send(
+            $chatId,
+            "💰 Хорошо, бюджет пока не фиксируем. Можно сразу открыть туры или обратиться к менеджеру кнопками в сообщении с параметрами."
+        );
+    }
+
     public static function budgetLine(array $context): ?string
     {
         $budget = is_array($context['budget'] ?? null) ? $context['budget'] : [];
