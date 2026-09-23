@@ -8,6 +8,7 @@ class TelegramMessengerAdapter implements MessengerInterface
     private $sendCallable;
     private $senderType;
     private $recordOutbound;
+    private $lastExternalMessageId = '';
 
     public function __construct(?callable $sendCallable = null, string $senderType = 'ai', bool $recordOutbound = true)
     {
@@ -46,6 +47,18 @@ class TelegramMessengerAdapter implements MessengerInterface
         if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
         if ($this->recordOutbound) ConversationRecorder::outbound('telegram',$chatId,$preview,$this->senderType,['attachments'=>[$attachment]]);
         return true;
+    }
+
+    public function lastExternalMessageId(): string
+    {
+        return $this->lastExternalMessageId;
+    }
+
+    public function editText($chatId, $messageId, string $text): bool
+    {
+        $messageId=(int)$messageId;$text=trim($text);
+        if($messageId<=0||$text==='')return false;
+        return $this->request('editMessageText',['chat_id'=>$chatId,'message_id'=>$messageId,'text'=>$text,'parse_mode'=>'HTML']);
     }
 
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool
@@ -95,7 +108,9 @@ class TelegramMessengerAdapter implements MessengerInterface
     private function request(string $method, array $payload): bool
     {
         if ($this->sendCallable) {
-            $ok = (bool)call_user_func($this->sendCallable, $method, $payload);
+            $result=call_user_func($this->sendCallable,$method,$payload);
+            $this->lastExternalMessageId=is_array($result)?trim((string)($result['result']['message_id']??$result['message_id']??'')):'';
+            $ok=(bool)$result;
             if ($ok && $this->recordOutbound && $method === 'sendMessage' && isset($payload['chat_id'])) {
                 ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
             }
@@ -126,6 +141,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         $response = curl_exec($ch);
         $errno = curl_errno($ch); $error = curl_error($ch); $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); curl_close($ch);
         $decoded = is_string($response) ? json_decode($response, true) : null;
+        $this->lastExternalMessageId=is_array($decoded)?trim((string)($decoded['result']['message_id']??'')):'';
         $ok = $response !== false && !$errno && $http >= 200 && $http < 300 && is_array($decoded) && !empty($decoded['ok']);
         $details = ['method'=>$method,'http'=>$http,'ok'=>$ok];
         if ($errno) $details['curl_errno']=$errno;
