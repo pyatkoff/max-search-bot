@@ -60,6 +60,22 @@ aiCheck('context exposes saved wishes', $context['preferences'] ?? null, ['ти�
 aiCheck('context exposes saved exclusions', $context['negative_preferences'] ?? null, ['шумный отель']);
 aiCheck('complete context has no missing fields', AiSearchContextService::missingFromSaved($saved, $status), []);
 
+$withoutHotelRefinements = $saved;
+unset($withoutHotelRefinements[70], $withoutHotelRefinements[71]);
+aiCheck(
+    'AI completion does not require optional stars or meal',
+    AiSearchContextService::missingFromSaved($withoutHotelRefinements, $status),
+    []
+);
+$withoutHotelContext = AiSearchContextService::contextFromSaved(
+    $withoutHotelRefinements,
+    $status,
+    static fn($id) => $id === 17 ? 'Калининград' : false,
+    static fn($id) => $id === 4 ? 'Турция' : false
+);
+aiCheck('optional stars stay unknown instead of invented', array_key_exists('stars', $withoutHotelContext), false);
+aiCheck('optional meal stays unknown instead of invented', array_key_exists('meal', $withoutHotelContext), false);
+
 $withChild = $saved;
 $withChild[68] = 1;
 unset($withChild[69]);
