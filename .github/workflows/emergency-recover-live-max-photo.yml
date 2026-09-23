@@ -98,6 +98,7 @@ jobs:
                   $tmp='/tmp/recovered-candidate-'.bin2hex(random_bytes(4)).'.bin';
                   $ch=curl_init($url);$fp=fopen($tmp,'w+b');
                   curl_setopt_array($ch,MaxTlsConfig::curlOptions(false));
+                  curl_setopt($ch,CURLOPT_HTTPHEADER,['Authorization: '.MAX_SEARCH_TOKEN,'Accept: */*']);
                   curl_setopt($ch,CURLOPT_FILE,$fp);curl_setopt($ch,CURLOPT_FOLLOWLOCATION,true);
                   curl_setopt($ch,CURLOPT_CONNECTTIMEOUT,8);curl_setopt($ch,CURLOPT_TIMEOUT,45);curl_setopt($ch,CURLOPT_MAXREDIRS,3);
                   $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$ctype=(string)curl_getinfo($ch,CURLINFO_CONTENT_TYPE);
