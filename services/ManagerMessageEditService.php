@@ -8,6 +8,27 @@ require_once __DIR__.'/../integrations/TelegramMessengerAdapter.php';
 
 class ManagerMessageEditService
 {
+    public static function editableForConversation(int $conversationId,int $managerId): array
+    {
+        if($conversationId<=0||$managerId<=0) return [];
+        if(!ManagerConversationService::detail($conversationId,$managerId)) return [];
+        try{
+            $pdo=ConversationDb::connection();
+            $q=$pdo->prepare("SELECT id,metadata_json FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager' AND created_at>=UTC_TIMESTAMP()-INTERVAL 5 MINUTE ORDER BY id DESC LIMIT 30");
+            $q->execute([$conversationId]);$out=[];
+            foreach($q->fetchAll() as $row){
+                $policy=ManagerMessageEditPolicy::inspect((int)$row['id'],$managerId);
+                if(empty($policy['allowed'])) continue;
+                $meta=json_decode((string)($row['metadata_json']??''),true);if(!is_array($meta))$meta=[];
+                $attachments=is_array($meta['attachments']??null)?$meta['attachments']:[];
+                if($attachments&&(string)$policy['channel']==='max') continue;
+                $remaining=max(0,ManagerMessageEditPolicy::WINDOW_SECONDS-(int)($policy['age_seconds']??ManagerMessageEditPolicy::WINDOW_SECONDS));
+                $out[]=['message_id'=>(int)$row['id'],'remaining_seconds'=>$remaining];
+            }
+            return $out;
+        }catch(Throwable $e){return [];}
+    }
+
     public static function edit(int $messageId,int $managerId,string $text): array
     {
         $text=trim($text);
@@ -24,7 +45,7 @@ class ManagerMessageEditService
             if(!is_array($metadata)) $metadata=[];
             $attachments=is_array($metadata['attachments']??null)?$metadata['attachments']:[];
             $channel=(string)$policy['channel'];
-            if($attachments && in_array($channel,['max','telegram'],true)) return ['ok'=>false,'error'=>'media_edit_not_supported'];
+            if($attachments && $channel==='max') return ['ok'=>false,'error'=>'media_edit_not_supported'];
 
             $detail=ManagerConversationService::detail((int)$policy['conversation_id'],$managerId);
             if(!$detail) return ['ok'=>false,'error'=>'conversation_not_found'];
@@ -36,7 +57,10 @@ class ManagerMessageEditService
                 if(!$adapter->editText((string)$policy['external_message_id'],$safe)) return ['ok'=>false,'error'=>'provider_edit_failed'];
             } elseif($channel==='telegram'){
                 $adapter=new TelegramMessengerAdapter(null,'manager',false);
-                if(!$adapter->editText($conversation['external_chat_id'],(int)$policy['external_message_id'],$safe)) return ['ok'=>false,'error'=>'provider_edit_failed'];
+                $edited=$attachments
+                    ? $adapter->editCaption($conversation['external_chat_id'],(int)$policy['external_message_id'],$safe)
+                    : $adapter->editText($conversation['external_chat_id'],(int)$policy['external_message_id'],$safe);
+                if(!$edited) return ['ok'=>false,'error'=>'provider_edit_failed'];
             } elseif($channel!=='website') {
                 return ['ok'=>false,'error'=>'unsupported_channel'];
             }
