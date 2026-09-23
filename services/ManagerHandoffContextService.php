@@ -150,11 +150,12 @@ class ManagerHandoffContextService
             $text = trim((string)($message['text'] ?? ''));
             if ($text === '' || self::isCallback($text) || self::isPhone($text)) continue;
 
-            // Only the latest genuine typed customer message may be promoted as an
-            // extra note. If that newest text is short, do not search backwards and
-            // relabel an older, potentially superseded request as the current addition.
+            // Explicit short retractions must stop the backward note heuristic:
+            // otherwise an older request can be presented as the current addition.
+            if (self::isExplicitNoteRetraction($text)) return '';
+
             $length = function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
-            if ($length < 18 || !preg_match('/\s/u', $text)) return '';
+            if ($length < 18 || !preg_match('/\s/u', $text)) continue;
 
             if ($length > 500) {
                 $text = function_exists('mb_substr')
@@ -164,6 +165,22 @@ class ManagerHandoffContextService
             return preg_replace('/\s+/u', ' ', $text) ?: $text;
         }
         return '';
+    }
+
+    private static function isExplicitNoteRetraction(string $text): bool
+    {
+        $normalized = trim($text);
+        $normalized = function_exists('mb_strtolower')
+            ? mb_strtolower($normalized, 'UTF-8')
+            : strtolower($normalized);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?: $normalized;
+        $normalized = trim($normalized, " \t\n\r\0\x0B.!?");
+
+        return in_array($normalized, [
+            'неважно', 'не важно',
+            'уже неважно', 'уже не важно',
+            'нет, неважно', 'нет, не важно',
+        ], true);
     }
 
     private static function isCallback(string $text): bool
