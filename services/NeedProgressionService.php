@@ -26,7 +26,8 @@ class NeedProgressionService
             $hadCompletedCheck = class_exists('MaxSearchApi')
                 && method_exists('MaxSearchApi', 'getLastValue')
                 && MaxSearchApi::getLastValue($chatId, MaxSearchApi::$statusCheck) !== false;
-            $checkSent = DialogueView::check($chatId) && !$hadCompletedCheck;
+            $checkSent = DialogueView::check($chatId);
+            if ($hadCompletedCheck) $checkSent = false;
             if ($checkSent) OptionalBudgetPromptService::sendIfMissing($chatId);
             return [
                 'complete' => true,
