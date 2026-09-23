@@ -76,6 +76,8 @@ standbyCheck('legacy receiver sync copies only receiver bootstrap files',strpos(
 standbyCheck('legacy receiver sync is rollbackable before verification',strpos($legacyReceiverSync,'rollback_legacy')!==false&&strpos($legacyReceiverSync,'max-search-lead-receiver-$EXPECTED_SHA.bak')!==false);
 standbyCheck('legacy receiver sync verifies public GET and canonical HMAC without synthetic POST',strpos($legacyReceiverSync,'LEAD_BRIDGE_PROBE=OK')!==false&&strpos($legacyReceiverSync,'curl -sS -o')!==false&&strpos($legacyReceiverSync,'--data')===false&&strpos($legacyReceiverSync,'CURLOPT_POST')===false);
 standbyCheck('legacy receiver sync waits for natural Telegram retry',strpos($legacyReceiverSync,'pending_update_count')!==false&&strpos($legacyReceiverSync,'telegram_start_smoke.php')!==false);
+standbyCheck('legacy receiver sync retains rollback until Telegram confirmation',strpos($legacyReceiverSync,'LEGACY_RECEIVER_SYNC=VERIFIED_BACKUP_RETAINED')!==false&&strpos($legacyReceiverSync,'LEGACY_RECEIVER_SYNC=COMMITTED')!==false&&strpos($legacyReceiverSync,'runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent')!==false);
+standbyCheck('legacy receiver sync rolls back when natural retry never clears',strpos($legacyReceiverSync,'Telegram pending update did not clear after legacy receiver bootstrap')!==false&&strpos($legacyReceiverSync,'rollback_legacy')!==false);
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
