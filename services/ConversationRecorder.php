@@ -71,15 +71,15 @@ class ConversationRecorder
     }
 
     /** Mirror an outbound message when the owning conversation is already known. */
-    public static function outboundForConversation(int $conversationId, string $platform, string $text, string $senderType = 'ai', $senderId = null, array $metadata = []): bool
+    public static function outboundForConversation(int $conversationId, string $platform, string $text, string $senderType = 'ai', $senderId = null, array $metadata = [], string $externalMessageId = ''): bool
     {
         try {
             if (!ConversationDb::isConfigured() || $conversationId <= 0) return false;
             $platform = strtolower(trim($platform));
             if ($platform === '') return false;
             $pdo = ConversationDb::connection();
-            $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,text,metadata_json) VALUES (?,?,?,?,?,?,?)');
-            $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$text,self::json($metadata)]);
+            $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,text,metadata_json,external_message_id) VALUES (?,?,?,?,?,?,?,?)');
+            $stmt->execute([$conversationId,'outbound',$senderType,$senderId,$platform,$text,self::json($metadata),trim($externalMessageId)!==''?trim($externalMessageId):null]);
             self::touch($conversationId);
             return true;
         } catch (Throwable $e) {
