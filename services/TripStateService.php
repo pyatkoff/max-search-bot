@@ -97,7 +97,7 @@ class TripStateService
         return [
             'departure'=>['city_id'=>$v['city_id'] ?? null,'city'=>$v['city'] ?? null],
             'destination'=>['country_id'=>$v['country_id'] ?? null,'country'=>$v['country'] ?? null,'region'=>null,'resort'=>null],
-            'dates'=>['from'=>$date,'to'=>$date,'month'=>self::monthFromDate($date),'flexible_days'=>$date ? 3 : 0],
+            'dates'=>['from'=>$date,'to'=>$date,'month'=>self::monthFromDate($date),'flexible_days'=>null],
             'nights'=>['min'=>$nights['min'],'max'=>$nights['max']],
             'tourists'=>[
                 'adults'=>$v['adults'] ?? null,

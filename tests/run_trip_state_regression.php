@@ -64,6 +64,7 @@ tsCheck('children ages empty for zero children', $state['tourists']['children_ag
 tsCheck('night range min', $state['nights']['min'], 7);
 tsCheck('night range max', $state['nights']['max'], 10);
 tsCheck('date month normalized', $state['dates']['month'], '2026-09');
+tsCheck('exact date does not invent customer flexibility', $state['dates']['flexible_days'], null);
 tsCheck('meal converted from storage', $state['hotel']['meal'], 'all_inclusive');
 tsCheck('search is ready without stars/meal requirement', TripStateService::isSearchReady($state), true);
 tsCheck('search missing is empty', TripStateService::searchMissing($state), []);
@@ -105,6 +106,9 @@ tsCheck('merger updates child ages alias', $merged['tourists']['children_ages'],
 tsCheck('merger stores budget', $merged['budget']['max'], 180000);
 tsCheck('merger deduplicates preferences', $merged['preferences'], ['детский клуб','первая линия']);
 tsCheck('merger ignores unknown path', isset($merged['unsupported']), false);
+
+$explicitFlex = TripStateMerger::merge($state, ['dates.flexible_days'=>2]);
+tsCheck('explicit date flexibility remains representable', $explicitFlex['dates']['flexible_days'], 2);
 
 $decision = RulesEngine::decide('tour_search', $state);
 tsCheck('ready search action', $decision['action'], RulesEngine::OPEN_SEARCH);
