@@ -21,11 +21,13 @@ $messages=[
 $before=ManagerHandoffContextService::build($context,$messages,[]);
 mhjCheck('before-results handoff does not invent shown tours',strpos($before,'Показано/реакция:')===false,true);
 mhjCheck('before-results handoff does not invent a reaction step',strpos($before,'Следующее действие: продолжить от уже показанной выдачи')===false,true);
+mhjCheck('before-results handoff gives a concrete no-repeat next action',strpos($before,'Следующее действие: не повторять известное; уточнить только перечисленное в «Не указано для поиска», если оно есть, и перейти к первому подходящему предложению.')!==false,true);
 
 $after=ManagerHandoffContextService::build($context,$messages,['from_tours'=>true]);
 mhjCheck('post-results handoff is explicit',strpos($after,'Показано/реакция: запрос менеджера сделан после экрана с турами')!==false,true);
 mhjCheck('post-results handoff keeps exact viewed variant unknown',strpos($after,'конкретный просмотр, выбор или реакция не зафиксированы')!==false,true);
 mhjCheck('post-results next action is conditional, not a mandatory new questionnaire item',strpos($after,'реакцию на варианты уточнять только если она нужна')!==false,true);
+mhjCheck('post-results handoff does not fall back to pre-results next action',strpos($after,'уточнить только перечисленное в «Не указано для поиска»')===false,true);
 mhjCheck('known budget remains visible alongside journey context',strpos($after,'Бюджет: до 250 000 RUB на всех')!==false,true);
 mhjCheck('positive preference remains separate',strpos($after,'Пожелания: спокойный отель')!==false,true);
 mhjCheck('negative preference remains separate',strpos($after,'Не подходит: шумные вечеринки')!==false,true);
@@ -34,6 +36,8 @@ $partial=ManagerHandoffContextService::build(['city'=>'Москва','children'=
 mhjCheck('early handoff lists only genuinely missing required search essentials',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, количество взрослых')!==false,true);
 mhjCheck('known child count is not hidden behind a generic party gap',strpos($partial,'Не указано для поиска: направление, дата вылета, количество ночей, состав туристов')===false,true);
 mhjCheck('early handoff does not turn optional hotel wishes into mandatory unknowns',strpos($partial,'звёз')===false&&strpos($partial,'питани')===false,true);
+mhjCheck('early handoff next action refers only to required-search gap',strpos($partial,'уточнить только перечисленное в «Не указано для поиска»')!==false,true);
+mhjCheck('optional budget stays separate from required-search gap',strpos($partial,'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)')!==false,true);
 
 $missingChildren=ManagerHandoffContextService::build([
     'city'=>'Москва','country'=>'Турция','adults'=>2,
