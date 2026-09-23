@@ -107,10 +107,20 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusChild)
             {
+                $childText = (string)($message['text'] ?? '');
+                // A tourist can naturally answer the child-count question with
+                // count and age in one turn. Preserve the whole turn through the
+                // existing collector instead of rejecting the extra age detail.
+                if(self::shouldRouteChildDetailsToAi($childText))
+                {
+                    self::routeFreeTextToAi($message,$chat_id);
+                    return;
+                }
+
                 $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
                     $chat_id,
                     'children',
-                    (string)($message['text'] ?? ''),
+                    $childText,
                     (int)MaxSearchApi::$statusChild
                 );
                 if(!empty($result['recognized']))
@@ -317,6 +327,25 @@ class StateMessageHandler
             '/(?:\bбез\s+детей\b|\bдет(?:и|ей)\b|\bреб[её]н(?:ок|ка|ку|ком|ки|ков)\b)/ui',
             $text
         ) === 1;
+    }
+
+    /**
+     * At the child-count step, an explicit age belongs to the same party answer.
+     * Route only when real child wording and an age expression are both present;
+     * ordinary count-only answers remain on the deterministic single-field path.
+     */
+    public static function shouldRouteChildDetailsToAi($text): bool
+    {
+        $text = trim((string)$text);
+        if ($text === '') return false;
+
+        $hasChild = preg_match(
+            '/(?:\bдет(?:и|ей)\b|\bреб[её]н(?:ок|ка|ку|ком|ки|ков)\b)/ui',
+            $text
+        ) === 1;
+        if (!$hasChild) return false;
+
+        return preg_match('/\b(?:[0-9]|1[0-7])\s*(?:лет|год|года)\b/ui', $text) === 1;
     }
 
     /**
