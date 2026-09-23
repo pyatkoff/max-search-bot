@@ -150,8 +150,11 @@ class ManagerHandoffContextService
             $text = trim((string)($message['text'] ?? ''));
             if ($text === '' || self::isCallback($text) || self::isPhone($text)) continue;
 
+            // Only the latest genuine typed customer message may be promoted as an
+            // extra note. If that newest text is short, do not search backwards and
+            // relabel an older, potentially superseded request as the current addition.
             $length = function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
-            if ($length < 18 || !preg_match('/\s/u', $text)) continue;
+            if ($length < 18 || !preg_match('/\s/u', $text)) return '';
 
             if ($length > 500) {
                 $text = function_exists('mb_substr')
