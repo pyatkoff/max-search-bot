@@ -78,8 +78,9 @@ class NeedApplicationService
     }
 
     /**
-     * Promote only explicitly extracted, high-confidence wishes into canonical
-     * active metadata. The model still does not own state or progression.
+     * Promote only explicitly extracted, high-confidence wish changes into canonical
+     * active metadata. The model still does not own state or progression. Neutral
+     * removals are separate from opposite-polarity additions.
      */
     public static function applyExtractedPreferences($chatId, array $changes, array $confidence): bool
     {
@@ -116,7 +117,7 @@ class NeedApplicationService
     private static function acceptedExtractedPreferences(array $changes, array $confidence): array
     {
         $accepted = [];
-        foreach (['preferences','negative_preferences'] as $key) {
+        foreach (['preferences','negative_preferences','preferences_remove','negative_preferences_remove'] as $key) {
             if (!array_key_exists($key, $changes) || !is_array($changes[$key]) || $changes[$key] === []) continue;
             $score = $confidence[$key] ?? null;
             if ((!is_int($score) && !is_float($score)) || !is_finite((float)$score)
