@@ -9,6 +9,7 @@ ManagerHttp::start();
 $manager=ManagerHttp::requireManager();
 $managerId=ManagerHttp::managerId();
 if (isset($_GET['message_id'])) {
+    require_once $baseDir.'/services/ManagerMaxMediaService.php';
     require_once $baseDir.'/services/ManagerTelegramMediaService.php';
     header('Cache-Control: private, no-store');
     header('X-Content-Type-Options: nosniff');
@@ -17,12 +18,23 @@ if (isset($_GET['message_id'])) {
     $index = filter_var($_GET['attachment'] ?? 0, FILTER_VALIDATE_INT);
     $file = null;
     try {
-        $attachment = $messageId !== false && $index !== false ? ManagerTelegramMediaService::attachment($messageId, $index, $managerId) : null;
+        $attachment = null;
+        $provider = '';
+        if ($messageId !== false && $index !== false) {
+            $attachment = ManagerMaxMediaService::attachment($messageId, $index, $managerId);
+            if ($attachment) $provider = 'MAX';
+            else {
+                $attachment = ManagerTelegramMediaService::attachment($messageId, $index, $managerId);
+                if ($attachment) $provider = 'Telegram';
+            }
+        }
         if (!$attachment) { http_response_code(404); echo 'Вложение недоступно.'; exit; }
-        // Release the session lock before a potentially slow Telegram download.
+        // Release the session lock before a potentially slow provider recovery/download.
         if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
-        $file = ManagerTelegramMediaService::open($attachment);
-        if (!$file) { http_response_code(502); echo 'Не удалось загрузить вложение из Telegram. Повторите попытку.'; exit; }
+        $file = $provider === 'MAX'
+            ? ManagerMaxMediaService::open($attachment)
+            : ManagerTelegramMediaService::open($attachment);
+        if (!$file) { http_response_code(502); echo 'Не удалось загрузить вложение. Повторите попытку.'; exit; }
         header('Content-Type: '.$file['mime']);
         header('Content-Length: '.$file['size']);
         header('Content-Disposition: '.($file['inline'] ? 'inline' : 'attachment').'; filename="attachment"; filename*=UTF-8\'\''.rawurlencode($file['name']));
@@ -30,7 +42,7 @@ if (isset($_GET['message_id'])) {
     } catch (Throwable $e) {
         $large = $e->getCode() === 413;
         http_response_code($large ? 413 : 502);
-        echo $large ? 'Файл больше 20 МБ: Telegram Bot API не позволяет его скачать.' : 'Не удалось загрузить вложение из Telegram. Повторите попытку.';
+        echo $large ? 'Файл слишком большой для защищённого просмотра.' : 'Не удалось загрузить вложение. Повторите попытку.';
     } finally {
         if (is_array($file) && is_resource($file['stream'] ?? null)) fclose($file['stream']);
     }
