@@ -128,7 +128,8 @@ jobs:
               set -e
               cd /var/www/anytoour/data/www/app.anytoour.ru
               out="$(php tools/telegram_webhook_status.php)"
-              printf "%s" "$out" | php -r '''$d=json_decode(stream_get_contents(STDIN),true);$p=(array)($d["telegram_bot_token"]??[]);$w=(array)($p["webhook"]??[]);exit(!empty($p["ok"])&&(int)($w["pending_update_count"]??-1)===0?0:1);'''
+              printf "%s\n" "$out" | grep -Fq '"ok": true'
+              printf "%s\n" "$out" | grep -Fq '"pending_update_count": 0'
             '; then
               ssh -i "$RUNNER_TEMP/canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 "$remote" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php | grep -Fq "TELEGRAM START SMOKE: OK"'
               echo "TELEGRAM_PENDING_UPDATE_COUNT=0"
