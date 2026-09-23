@@ -115,12 +115,13 @@ jobs:
             runtime=\"\$root/services/RuntimeBootstrap.php\"
             rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
             rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
-            had_runtime=0
+            runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
             cp \"\$receiver\" \"\$rb_receiver\"
-            if [[ -f \"\$runtime\" ]]; then cp \"\$runtime\" \"\$rb_runtime\"; had_runtime=1; fi
+            rm -f \"\$rb_runtime\" \"\$runtime_absent\"
+            if [[ -f \"\$runtime\" ]]; then cp \"\$runtime\" \"\$rb_runtime\"; else : > \"\$runtime_absent\"; fi
             rollback(){
               cp \"\$rb_receiver\" \"\$receiver\" || true
-              if [[ \"\$had_runtime\" == \"1\" ]]; then cp \"\$rb_runtime\" \"\$runtime\" || true; else rm -f \"\$runtime\"; fi
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\" || true; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
             }
             trap rollback ERR
             install -m 0644 '$receiver_tmp' \"\$receiver\"
@@ -155,8 +156,9 @@ jobs:
               runtime=\"\$root/services/RuntimeBootstrap.php\"
               rb_receiver=/tmp/max-search-lead-receiver-$EXPECTED_SHA.bak
               rb_runtime=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.bak
+              runtime_absent=/tmp/max-search-runtime-bootstrap-$EXPECTED_SHA.absent
               [[ -f \"\$rb_receiver\" ]] && cp \"\$rb_receiver\" \"\$receiver\"
-              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\"; fi
+              if [[ -f \"\$rb_runtime\" ]]; then cp \"\$rb_runtime\" \"\$runtime\"; elif [[ -f \"\$runtime_absent\" ]]; then rm -f \"\$runtime\"; fi
             " || true
           }
           trap rollback_legacy ERR
