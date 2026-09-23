@@ -154,7 +154,7 @@ class DialogueView
         $buttons = CalendarViewModel::buttons($model);
         return self::sendAndStatus(
             $chatId,
-            "📅 <b>Когда хотите вылететь?</b>\n\nШаг 7 из 7 · Выберите ориентировочную дату. В поиске посмотрим даты рядом с ней.",
+            "📅 <b>Когда хотите вылететь?</b>\n\nШаг 7 из 7 · Выберите дату вылета. Поиск откроется на эту дату; если даты можно сдвигать, напишите об этом отдельно.",
             $buttons,
             MaxSearchApi::$statusDate,
             false
