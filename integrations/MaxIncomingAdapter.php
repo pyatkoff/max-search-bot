@@ -75,6 +75,10 @@ class MaxIncomingAdapter
     public static function mediaAttachments(array $update): array
     {
         $attachments = $update['message']['body']['attachments'] ?? $update['message']['attachments'] ?? [];
+        if(!$attachments){
+            $linked=$update['message']['link']['message']??null;
+            if(is_array($linked)) $attachments=$linked['body']['attachments']??$linked['attachments']??[];
+        }
         $out = [];
         foreach ((array)$attachments as $attachment) {
             if (!is_array($attachment)) continue;
