@@ -58,7 +58,7 @@ class ManagerOutboundService
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey],$channel==='max'?$adapter->lastExternalMessageId():'');
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
@@ -94,7 +94,7 @@ class ManagerOutboundService
             $preview=$safeCaption!==''?$safeCaption:ConversationRecorder::attachmentPreview([['type'=>$type]]);
             $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
-            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]],$channel==='max'?$adapter->lastExternalMessageId():'');
+            ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key'],'media_type'=>$type]);
             MetrikaConversionGoalService::managerReply($conversationId);
             return true;
