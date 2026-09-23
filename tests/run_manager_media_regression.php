@@ -98,6 +98,7 @@ $cacheSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMediaCac
 $fileEndpointSource = (string)file_get_contents(__DIR__ . '/../manager/media-file.php');
 $mediaHydratorSource = (string)file_get_contents(__DIR__ . '/../services/ManagerMessageMediaService.php');
 $maxArchiveSource = (string)file_get_contents(__DIR__ . '/../services/MaxInboundMediaArchiveService.php');
+$maxDownloadAdapterSource = (string)file_get_contents(__DIR__ . '/../integrations/MaxInboundMediaDownloadAdapter.php');
 $maxHandlerSource = (string)file_get_contents(__DIR__ . '/../handlers/MaxUpdateHandler.php');
 $contextSource = (string)file_get_contents(__DIR__ . '/../services/ManagerRequestContext.php');
 mediaCheck('MAX adapter passes normalized media to IncomingMessage', strpos($adapterSource, 'self::mediaAttachments($update)') !== false, true);
@@ -122,7 +123,8 @@ mediaCheck('preview cache uses bounded retention', strpos($cacheSource, 'TTL_SEC
 mediaCheck('preview endpoint uses shared authenticated manager context', strpos($fileEndpointSource, "require_once __DIR__.'/lib/ManagerHttp.php'") !== false && strpos($fileEndpointSource, 'ManagerHttp::start();') !== false && strpos($fileEndpointSource, 'ManagerHttp::requireManager();') !== false && strpos($fileEndpointSource, 'ManagerHttp::managerId();') !== false && strpos($fileEndpointSource, 'ManagerRequestContext::') === false, true);
 mediaCheck('preview endpoint checks conversation visibility', strpos($fileEndpointSource, 'ManagerConversationService::detail') !== false, true);
 mediaCheck('MAX photo endpoint uses authorized provider service',strpos($fileEndpointSource,'ManagerMaxMediaService::attachment')!==false&&strpos($fileEndpointSource,'ManagerMaxMediaService::open')!==false,true);
-mediaCheck('MAX inbound archive keeps strict TLS',strpos($maxArchiveSource,'MaxTlsConfig::strictCurlOptions()')!==false,true);
+mediaCheck('MAX inbound archive delegates provider transport',strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMessage')!==false&&strpos($maxArchiveSource,'MaxInboundMediaDownloadAdapter::fetchMedia')!==false,true);
+mediaCheck('MAX inbound download adapter keeps strict TLS',strpos($maxDownloadAdapterSource,'MaxTlsConfig::strictCurlOptions()')!==false,true);
 mediaCheck('MAX inbound archive runs after response flush when FPM supports it',strpos($maxHandlerSource,'fastcgi_finish_request')!==false&&strpos($maxHandlerSource,'archiveRecordedMessage')!==false,true);
 mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
