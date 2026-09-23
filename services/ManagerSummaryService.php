@@ -62,7 +62,7 @@ class ManagerSummaryService
             $lines[] = 'Не указано: бюджет (необязательно; уточнять только если нужен до первого предложения)';
         }
         if (!empty($state['hotel']['stars_min'])) $lines[] = 'Отель: от ' . (int)$state['hotel']['stars_min'] . '★';
-        if (!empty($state['hotel']['meal'])) $lines[] = 'Питание: ' . (string)$state['hotel']['meal'];
+        if (!empty($state['hotel']['meal'])) $lines[] = 'Питание: ' . self::mealLabel((string)$state['hotel']['meal']);
         if (!empty($state['preferences'])) $lines[] = 'Пожелания: ' . implode(', ', (array)$state['preferences']);
         if (!empty($state['negative_preferences'])) $lines[] = 'Не подходит: ' . implode(', ', (array)$state['negative_preferences']);
 
@@ -73,5 +73,18 @@ class ManagerSummaryService
         if ($tracking) $lines[] = 'Источник: ' . implode(', ', $tracking);
 
         return implode("\n", $lines);
+    }
+
+    private static function mealLabel(string $value): string
+    {
+        $value = trim($value);
+        $labels = [
+            'any'=>'Любое',
+            'all_inclusive'=>'Всё включено',
+            'breakfast'=>'Завтрак',
+            'half_board'=>'Полупансион',
+            'full_board'=>'Полный пансион',
+        ];
+        return $labels[$value] ?? $value;
     }
 }
