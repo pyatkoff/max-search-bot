@@ -53,8 +53,10 @@ final class BudgetParser
             || preg_match('/^\s*,?\s*(?:или|либо)\b/iu',$after)
             || preg_match('/(?<![\pL\pN])'.$number.'\s*(?:'.$unit.'|'.$currency.')(?![\pL\pN])/iu',$before.' '.$after)) return null;
         // A price for just an adult/child/subset is not the total-party default.
-        // Unsupported currency names must not silently become RUB either.
-        if (preg_match('/^\s*(?:(?:на|за|для)\s+(?:одного\s+)?(?:взросл|реб[её]н|двоих|троих|четверых|пятерых|\d)|взросл|реб[её]н|[A-Z]{3}\b|юан|дирхам|бат\b)/iu',$after)) return null;
+        // Check both sides of the captured amount so prefix wording cannot be
+        // mistaken for the whole-party product default.
+        if (preg_match('/(?:^|[\s,;])(?:бюджет\s*)?(?:на|за|для)\s+(?:одного\s+)?(?:взросл\pL*|реб[её]н\pL*|двоих|троих|четверых|пятерых|\d+)\s*$/iu',$before)
+            || preg_match('/^\s*(?:(?:на|за|для)\s+(?:одного\s+)?(?:взросл|реб[её]н|двоих|троих|четверых|пятерых|\d)|взросл|реб[её]н|[A-Z]{3}\b|юан|дирхам|бат\b)/iu',$after)) return null;
 
         // No partial capture of a range, per-night amount, or negated ceiling.
         if (preg_match('/(?:не\s*|от\s*)$/iu', $before)
