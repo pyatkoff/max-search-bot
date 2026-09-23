@@ -24,7 +24,9 @@ final class BudgetParser
         $money = '(?<amount>'.$number.')\s*(?<unit>'.$unit.')?\s*(?<currency>'.$currency.')?(?:\s*(?<basis>'.$qualifier.'))?';
         // A named budget can occur in a rich request. Otherwise require a complete
         // money clause (possibly after a comma/semicolon), not arbitrary price text.
-        $labelled = '/(?<![\pL\pN])(?:общий\s+)?бюджет\s*:?\s*(?:(?:до|не более|не больше|максимум)\s*)?'.$money.'(?=$|[\s,;.!?])/iu';
+        // Explicit whole-trip basis may be stated either before or after the amount:
+        // "бюджет на человека до 90 тыс" and "до 90 тыс на человека" are equivalent.
+        $labelled = '/(?<![\pL\pN])(?:общий\s+)?бюджет\s*:?\s*(?:(?<basis_before>'.$qualifier.')\s*)?(?:(?:до|не более|не больше|максимум)\s*)?'.$money.'(?=$|[\s,;.!?])/iu';
         if (preg_match_all($labelled, $text, $matches, PREG_SET_ORDER|PREG_OFFSET_CAPTURE) === 1) {
             $m=$matches[0];
         } else {
@@ -59,6 +61,9 @@ final class BudgetParser
             || preg_match('/(?:от|с)\s+'.$number.'\s*(?:'.$unit.')?\s*$/iu', $before)
             || preg_match('/^\s*(?:[-–—]\s*\d|(?:за|в)\s+(?:ноч|день|сут)|на\s+(?:ноч|день|сут))/iu', $after)
             || preg_match('/(?:экскурс|доплат|страхов|депозит|стоимост|стоит)/iu', $before.$after)) return null;
+        $basisBefore=$m['basis_before'][0]??'';
+        $basisAfter=$m['basis'][0]??'';
+        if ($basisBefore!=='' && $basisAfter!=='' && self::personal($basisBefore)!==self::personal($basisAfter)) return null;
         $amount=(float)str_replace([' ', ','], ['', '.'], $m['amount'][0]);
         $scale=$m['unit'][0]??'';
         if (preg_match('/^т/iu',$scale)) $amount*=1000;
@@ -74,7 +79,8 @@ final class BudgetParser
         if ($cur!=='') {
             $changes['budget.currency']=preg_match('/^(?:EUR|евро|€)$/iu',$cur)?'EUR':(preg_match('/^(?:USD|доллар|\$)/iu',$cur)?'USD':'RUB');
         }
-        if (($m['basis'][0]??'')!=='') $changes['budget.basis']=self::personal($m['basis'][0])?'per_person':'total';
+        if ($basisAfter!=='') $changes['budget.basis']=self::personal($basisAfter)?'per_person':'total';
+        elseif ($basisBefore!=='') $changes['budget.basis']=self::personal($basisBefore)?'per_person':'total';
         elseif (preg_match('/^общий\s+бюджет/iu',ltrim($span))) $changes['budget.basis']='total';
         $rest=trim($before.' '.$after," \t\r\n,;.!?");
         $only=$rest==='' || preg_match('/^(?:нет|да|тогда|давайте|теперь|лучше)$/iu',$rest)===1;
