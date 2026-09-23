@@ -138,6 +138,13 @@ tsCheck('stop intent stops', $decision['action'], RulesEngine::STOP);
 // Owner rule #780: budgets are for the whole party unless explicitly qualified.
 // These are synthetic model/summary cases, not a production dialogue sample.
 require_once __DIR__ . '/../services/ManagerSummaryService.php';
+$mealSummary = ManagerSummaryService::build($state);
+tsCheck('manager summary renders canonical meal as human label', strpos($mealSummary, 'Питание: Всё включено') !== false, true);
+tsCheck('manager summary does not expose canonical meal token', strpos($mealSummary, 'Питание: all_inclusive') === false, true);
+$legacyMealState = TripStateService::fromLegacyAiContext(['meal'=>'half_board']);
+tsCheck('legacy AI handoff meal also renders as human label', strpos(ManagerSummaryService::build($legacyMealState), 'Питание: Полупансион') !== false, true);
+$unknownMealState = TripStateService::fromLegacyAiContext(['meal'=>'supplier_future_code']);
+tsCheck('unknown future meal value stays visible instead of being hidden', strpos(ManagerSummaryService::build($unknownMealState), 'Питание: supplier_future_code') !== false, true);
 $budgetBase = $state;
 $budgetBase['tourists'] = ['adults'=>2, 'children'=>1, 'children_ages'=>[7]];
 tsCheck(
