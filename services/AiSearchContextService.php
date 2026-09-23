@@ -65,8 +65,9 @@ class AiSearchContextService
                 $missing[] = 'child_ages';
             }
         }
-        if (empty($saved[$status['stars']])) $missing[] = 'stars';
-        if (empty($saved[$status['meal']])) $missing[] = 'meal';
+        // Stars and meal are useful refinements, not search prerequisites. The
+        // explicit step-by-step wizard may still ask them, while the AI path
+        // should finish once the parameters required to open a valid search are known.
         if (empty($saved[$status['nights']])) $missing[] = 'nights';
         if (empty($saved[$status['date']])) $missing[] = 'date';
         return $missing;
