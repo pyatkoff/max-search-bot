@@ -21,7 +21,7 @@ tgMediaCheck('manager outbound media keeps ownership guard',strpos($outbound,"(i
 tgMediaCheck('manager outbound media selects non-mirroring adapters before exact conversation persistence',strpos($outbound,"\$channel==='max'?new MaxMessengerAdapter(null,null,'manager',null,false)")!==false&&strpos($outbound,"new TelegramMessengerAdapter(null,'manager',false)")!==false&&strpos($outbound,'ConversationRecorder::outboundForConversation($conversationId,$channel,$preview')!==false&&strpos($outbound,"if(\$channel==='max')")!==false&&strpos($outbound,'unresolvedSuspendedFailure')!==false);
 tgMediaCheck('manager media lifecycle and manager-reply conversion remain shared',strpos($outbound,"['channel'=>\$channel")!==false&&strpos($outbound,'MetrikaConversionGoalService::managerReply($conversationId)')!==false);
 tgMediaCheck('existing Workspace composer sends the same upload request for Telegram and MAX',strpos($ui,"fetch('media-upload.php'")!==false&&strpos($ui,"data.append('conversation_id'")!==false&&strpos($upload,'ManagerOutboundService::sendMedia')!==false);
-tgMediaCheck('Telegram media captions have exact edit transport',strpos($telegramAdapter,'editMessageCaption')!==false&&strpos($telegramAdapter,"'message_id'=>\$messageId")!==false&&strpos($telegramAdapter,"'caption'=>\$text")!==false);
+tgMediaCheck('Telegram media captions have exact edit transport',strpos($adapter,'editMessageCaption')!==false&&strpos($adapter,"'message_id'=>\$messageId")!==false&&strpos($adapter,"'caption'=>\$text")!==false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
