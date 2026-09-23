@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (!defined('MAX_SEARCH_RUNTIME_STORAGE')) define('MAX_SEARCH_RUNTIME_STORAGE', 'mysql');
+
 require_once __DIR__ . '/../contracts/MessengerInterface.php';
 require_once __DIR__ . '/../services/IntegrationRegistry.php';
 
@@ -32,8 +34,10 @@ class MaxSearchApi
         $statusPhone=75, $statusAi=76;
     public static int $status = 74;
     public static array $claim = ['UF_CODE'=>'synthetic-existing-claim'];
+    public static array $aiContext = [];
     public static function getCurentStatus($chatId) { return self::$status; }
     public static function getLastClaimForChat($chatId) { return self::$claim; }
+    public static function getAiSearchContext($chatId): array { return self::$aiContext; }
     public static function __callStatic($method, $args)
     {
         throw new RuntimeException('Unexpected state/search/lead operation: ' . $method);
@@ -52,10 +56,11 @@ function helpCheck(string $name, $actual, $expected): void
 $messenger = new PostTourHelpMessenger();
 IntegrationRegistry::resetForTests($messenger, null, null);
 $controller = new DialogueController();
-function helpDispatch(string $text, int $status = 74, string $platform = 'max'): ?bool
+function helpDispatch(string $text, int $status = 74, string $platform = 'max', array $aiContext = []): ?bool
 {
     global $messenger, $controller;
     MaxSearchApi::$status = $status;
+    MaxSearchApi::$aiContext = $aiContext;
     $messenger->sent = [];
     try {
         return $controller->handleIncomingMessage([
@@ -113,6 +118,25 @@ foreach (['max', 'telegram'] as $platform) {
         helpCheck('guidance never echoes customer text or invents URL', strpos(json_encode($sent), 'http') === false && strpos($sent['text'] ?? '', $phrase) === false, true);
     }
 }
+
+// The optional budget question is explicitly skippable. A direct decline on the
+// completed check must not fall through to unrelated parameter-edit guidance,
+// create state, or reinterpret "не знаю" as a new budget value.
+foreach (['Не знаю', 'Пока не определился', 'По бюджету не определились'] as $phrase) {
+    helpCheck('unknown budget skip is handled', helpDispatch($phrase,74,'max',[]), true);
+    helpCheck('unknown budget skip sends one answer', count($messenger->sent), 1);
+    helpCheck('unknown budget skip preserves check status', MaxSearchApi::$status, 74);
+    $sent = $messenger->sent[0] ?? [];
+    helpCheck('skip confirmation leaves budget unspecified', strpos($sent['text'] ?? '', 'бюджет пока не фиксируем') !== false, true);
+    helpCheck('skip confirmation points to existing tour or manager controls', strpos($sent['text'] ?? '', 'открыть туры') !== false && strpos($sent['text'] ?? '', 'менеджеру') !== false, true);
+    helpCheck('skip confirmation creates no new callback side action', $sent['buttons'] ?? null, []);
+}
+$knownBudgetContext = ['budget'=>['max'=>250000,'currency'=>'RUB','basis'=>'total']];
+helpCheck('generic decline does not clear a known budget', helpDispatch('Не знаю',74,'max',$knownBudgetContext), true);
+helpCheck('known budget decline keeps generic check guidance', strpos($messenger->sent[0]['text'] ?? '', 'Параметры пока не изменены') !== false, true);
+helpCheck('known budget decline is not acknowledged as a budget skip', strpos($messenger->sent[0]['text'] ?? '', 'бюджет пока не фиксируем') === false, true);
+helpCheck('unrelated retraction is not treated as budget skip', helpDispatch('Не важно',74,'max',[]), true);
+helpCheck('unrelated retraction keeps generic check guidance', strpos($messenger->sent[0]['text'] ?? '', 'Параметры пока не изменены') !== false, true);
 
 // Fresh production evidence: in the completed check state, "Цена" and
 // "Какая цена" received generic parameter-edit guidance. Point only these

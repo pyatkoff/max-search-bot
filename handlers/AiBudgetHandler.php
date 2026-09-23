@@ -38,6 +38,21 @@ final class AiBudgetHandler
     {
         if (!RuntimeStorage::usesMysql()) return false;
 
+        // The one optional budget clarification may be declined explicitly.
+        // Consume that reply only while the active budget is still unknown: a
+        // later generic "не знаю" must never erase or contradict a known budget.
+        if (OptionalBudgetPromptService::isExplicitSkipText($text)) {
+            try {
+                $context=(array)MaxSearchApi::getAiSearchContext($chatId);
+            } catch (Throwable $e) {
+                return false;
+            }
+            if (OptionalBudgetPromptService::budgetLine($context) === null) {
+                OptionalBudgetPromptService::sendSkippedConfirmation($chatId);
+                return true;
+            }
+        }
+
         $resolved=NeedValueResolver::resolve('budget',$text);
         if (empty($resolved['recognized']) || empty($resolved['only_budget'])) return false;
 
