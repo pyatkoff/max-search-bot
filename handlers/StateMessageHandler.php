@@ -234,16 +234,8 @@ class StateMessageHandler
 
                     // If the date cannot be applied under the existing date policy,
                     // keep the accepted nights and fall back to the normal calendar.
-                    if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
-                        DialogueTransitionObserver::observe(
-                            $chat_id,
-                            (int)MaxSearchApi::$statusNights,
-                            (int)MaxSearchApi::$statusDate,
-                            'forward',
-                            'free_text_nights'
-                        );
-                        DialogueView::calendar($chat_id,date("m"),date("Y"));
-                    }
+                    if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                        self::showDateAfterNights($chat_id);
                     return;
                 }
 
@@ -256,16 +248,8 @@ class StateMessageHandler
                 if(!empty($result['recognized']))
                 {
                     if(empty($result['applied'])) return;
-                    if(!EditFlowService::finishIfNeeded($chat_id,'nights')) {
-                        DialogueTransitionObserver::observe(
-                            $chat_id,
-                            (int)MaxSearchApi::$statusNights,
-                            (int)MaxSearchApi::$statusDate,
-                            'forward',
-                            'free_text_nights'
-                        );
-                        DialogueView::calendar($chat_id,date("m"),date("Y"));
-                    }
+                    if(!EditFlowService::finishIfNeeded($chat_id,'nights'))
+                        self::showDateAfterNights($chat_id);
                 }
                 else
                     self::send($chat_id,"К сожалению диапазон ночей указан неверно. Пожалуйста, укажите число или диапазон от 1 до 28 — например: 6, на 6 ночей или 7-10 ночей.");
@@ -424,6 +408,18 @@ class StateMessageHandler
             'nights'=>(string)$nights['value'],
             'date'=>(string)$date['date'],
         ];
+    }
+
+    private static function showDateAfterNights($chatId): void
+    {
+        DialogueTransitionObserver::observe(
+            $chatId,
+            (int)MaxSearchApi::$statusNights,
+            (int)MaxSearchApi::$statusDate,
+            'forward',
+            'free_text_nights'
+        );
+        DialogueView::calendar($chatId,date("m"),date("Y"));
     }
 
     /**
