@@ -3,6 +3,7 @@ require_once __DIR__ . '/NeedValueResolver.php';
 require_once __DIR__ . '/ConversationStateRepository.php';
 require_once __DIR__ . '/AiSearchContextService.php';
 require_once __DIR__ . '/ExistingWizardStepApplicationService.php';
+require_once __DIR__ . '/ChildAgeValueContract.php';
 
 /**
  * Canonical boundary between deterministic need-value resolution and trip-state application.
@@ -59,6 +60,11 @@ class NeedApplicationService
                 static function($name){ return null; }
             );
             $storageValue = $normalized['meal'] ?? null;
+        } elseif ($field === 'child_ages') {
+            $childrenCount = (int)($context['children'] ?? 0);
+            $storageValue = is_array($storageValue)
+                ? ChildAgeValueContract::toStorage($storageValue, $childrenCount)
+                : null;
         }
 
         if ($storageValue === null || $storageValue === '') {
