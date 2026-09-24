@@ -63,6 +63,12 @@ $source = (string)file_get_contents(__DIR__ . '/../handlers/AiMessageHandler.php
 abdCheck('handler uses defaults service', strpos($source, 'AiBusinessDefaultsService::apply($ai, $userText, $current)') !== false, true);
 abdCheck('handler no longer owns Turkey Egypt defaults', strpos($source, "in_array(\$countryKey, ['турция','египет'], true)") === false, true);
 
+$router = (string)file_get_contents(__DIR__ . '/../ai/AiRouter.php');
+abdCheck('AI prompt does not claim Turkey Egypt implicit refinements', strpos($router, 'Для Турции и Египта при отсутствии явного выбора питания приложение поставит all_inclusive, а stars=4') === false, true);
+abdCheck('AI prompt keeps missing stars explicit unknown', strpos($router, 'Если категория не названа, оставь stars=null: не подставляй категорию по стране.') !== false, true);
+abdCheck('AI prompt keeps missing meal explicit unknown', strpos($router, 'Если питание не названо, оставь meal=null: не подставляй питание по стране.') !== false, true);
+abdCheck('AI prompt does not suppress optional refinements via old defaults', strpos($router, 'для Турции/Египта 4★ и all inclusive') === false, true);
+
 echo "\n--------------------------\n";
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);
