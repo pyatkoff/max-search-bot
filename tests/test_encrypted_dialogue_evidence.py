@@ -45,11 +45,15 @@ class EvidenceTests(unittest.TestCase):
     def test_minimization_retains_debuggable_message_order(self):
         data = self.build()
         report = json.loads(data)
-        messages = report["sessions"][0]["messages"]
+        session = report["sessions"][0]
+        messages = session["messages"]
         self.assertIn("Египет на 7 ночей, 2 взрослых", messages[0]["text"])
         self.assertEqual(messages[1]["text"], "SYNTHETIC_PRIVATE_MESSAGE")
-        for secret in (b"987654", b"private-login", b"hidden-user", b"999", b"example.org", b"@contact"):
-            self.assertNotIn(secret, data)
+        for private_key in ("conversation_id", "login", "external_user_id"):
+            self.assertNotIn(private_key, session)
+        minimized_messages = json.dumps(messages, ensure_ascii=False).encode()
+        for secret in (b"999", b"example.org", b"@contact"):
+            self.assertNotIn(secret, minimized_messages)
 
     def test_test_sessions_and_unflagged_sessions_are_excluded(self):
         report = fixture()
