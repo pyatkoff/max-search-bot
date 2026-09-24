@@ -1,45 +1,45 @@
 {
     "ok": true,
-    "generated_at": "2026-09-24T15:15:51+00:00",
+    "generated_at": "2026-09-24T19:18:22+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 17,
-        "raw_sessions": 17,
+        "sessions": 14,
+        "raw_sessions": 14,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 17,
+            "resolved": 14,
             "unresolved": 0
         },
-        "started": 17,
-        "needs_collected": 13,
-        "tours_opened": 13,
+        "started": 14,
+        "needs_collected": 11,
+        "tours_opened": 9,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 2,
-        "manager_requested": 3,
-        "manager_replied": 3,
-        "customer_replied_after_manager": 3,
+        "post_tour_manager_cta_shown": 0,
+        "manager_requested": 0,
+        "manager_replied": 0,
+        "customer_replied_after_manager": 0,
         "phone_received": 0,
         "manager_response": {
-            "answered_in_90s": 1,
-            "answered_after_90s": 1,
+            "answered_in_90s": 0,
+            "answered_after_90s": 0,
             "still_unanswered": 0,
-            "measured_responses": 2,
-            "avg_seconds": 1961,
-            "max_seconds": 3848
+            "measured_responses": 0,
+            "avg_seconds": null,
+            "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 10,
-            "collecting_needs": 4,
-            "customer_replied_after_manager": 3
+            "tours_opened": 9,
+            "collecting_needs": 3,
+            "needs_collected": 2
         },
         "flags": {
-            "repeated_callback_input": 5,
-            "excessive_turns": 1
+            "excessive_turns": 1,
+            "repeated_callback_input": 1
         }
     },
-    "since_utc": "2026-09-24 14:15:51",
+    "since_utc": "2026-09-24 18:18:22",
     "public_redacted": true
 }
