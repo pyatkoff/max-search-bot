@@ -128,6 +128,42 @@ foreach ($cases as $name => [$data, $text, $current, $countryChanged, $regionCha
     }
 }
 
+$turkey = ['UF_CID'=>4, 'UF_NAME'=>'Турция'];
+$egypt = ['UF_CID'=>3, 'UF_NAME'=>'Египет'];
+$countryChoiceCases = [
+    'explicit new country choice replaces already saved country' => [$turkey, $egypt, 'Давайте Египет', $egypt],
+    'explicit now-country correction replaces already saved country' => [$turkey, $egypt, 'Нет, теперь Египет', $egypt],
+    'destination preposition can explicitly replace already saved country' => [$turkey, $egypt, 'Тогда в Египет', $egypt],
+    'negative country mention does not overwrite saved country' => [$turkey, $egypt, 'Не Египет', $turkey],
+    'hard negative country mention does not overwrite saved country' => [$turkey, $egypt, 'Только не Египет', $turkey],
+    'neutral country question does not overwrite saved country' => [$turkey, $egypt, 'А Египет?', $turkey],
+    'positive country mention is accepted when country was unknown' => [null, $egypt, 'Хочу Египет', $egypt],
+    'negative country mention stays unknown when country was unknown' => [null, $egypt, 'Не Египет', null],
+];
+
+if (!method_exists(DestinationResolver::class, 'selectCountryCandidate')) {
+    foreach ($countryChoiceCases as $name => $_) {
+        echo "FAIL  {$name}\n";
+        echo "      missing intent-aware country candidate selection\n";
+        $failed++;
+    }
+} else {
+    $countrySelector = new ReflectionMethod(DestinationResolver::class, 'selectCountryCandidate');
+    $countrySelector->setAccessible(true);
+    foreach ($countryChoiceCases as $name => [$currentCountry, $mentionedCountry, $text, $expected]) {
+        $actual = $countrySelector->invoke(null, $currentCountry, $mentionedCountry, $text);
+        $ok = $actual === $expected;
+        if ($ok) {
+            echo "PASS  {$name}\n";
+        } else {
+            echo "FAIL  {$name}\n";
+            echo '      expected: ' . json_encode($expected, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n";
+            echo '      actual:   ' . json_encode($actual, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n";
+            $failed++;
+        }
+    }
+}
+
 $runtimeChecks = [
     'resolver applies explicit destination conditions through canonical need application' => str_contains($source, 'NeedApplicationService::applyExtractedPreferences'),
     'resolver does not add another destination metadata store' => !str_contains($source, "'_destination_preferences'") && !str_contains($source, 'destination_preferences.json'),
@@ -141,7 +177,7 @@ foreach ($runtimeChecks as $name => $ok) {
     }
 }
 
-$total = count($checks) + count($cases) + count($runtimeChecks);
+$total = count($checks) + count($cases) + count($countryChoiceCases) + count($runtimeChecks);
 echo "\n--------------------------\n";
 echo 'TOTAL ' . $total . ' | PASS ' . ($total - $failed) . ' | FAIL ' . $failed . "\n";
 exit($failed > 0 ? 1 : 0);
