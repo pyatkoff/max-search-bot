@@ -32,9 +32,11 @@ final class TripBudgetPolicy
             $next['basis_source'] = 'extracted';
         }
 
-        // A cleared budget must not carry a personal basis into a later amount.
+        // An explicit clear starts the next budget from a clean semantic state:
+        // neither a personal basis nor a hidden old currency may leak into a
+        // later unqualified amount.
         if (array_key_exists('budget.max', $changes) && $changes['budget.max'] === null) {
-            unset($next['basis'], $next['basis_source']);
+            unset($next['currency'], $next['basis'], $next['basis_source']);
             return $next;
         }
         if (self::amount($next['max'] ?? null) !== null) {
