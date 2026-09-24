@@ -209,12 +209,29 @@ $completePartyState = [
 ];
 MaxSearchApi::$saved = $completePartyState;
 NeedApplicationService::applyParameters(42, ['children'=>0]);
-aiCheck('changing child count invalidates historical ages', MaxSearchApi::$saved[69] ?? null, '');
+aiCheck(
+    'changing child count invalidates historical ages',
+    MaxSearchApi::$saved[69] ?? null,
+    ChildAgeValueContract::INVALIDATED_STORAGE
+);
 NeedApplicationService::applyParameters(42, ['children'=>1]);
 aiCheck(
     'returning to an old child count does not revive historical ages',
     AiSearchContextService::missingFromSaved(MaxSearchApi::$saved, $status),
     ['child_ages']
+);
+
+$tombstonedRows = [
+    ['ID'=>4, 'UF_STATUS'=>69, 'UF_VALUE'=>ChildAgeValueContract::INVALIDATED_STORAGE],
+    ['ID'=>3, 'UF_STATUS'=>68, 'UF_VALUE'=>'1'],
+    ['ID'=>2, 'UF_STATUS'=>69, 'UF_VALUE'=>'6'],
+    ['ID'=>1, 'UF_STATUS'=>64, 'UF_VALUE'=>''],
+];
+$tombstonedSaved = ConversationStateRepository::savedDataFromRows($tombstonedRows, 64, 74);
+aiCheck(
+    'non-empty age invalidation shadows older age rows in saved-data projection',
+    $tombstonedSaved[69] ?? null,
+    ChildAgeValueContract::INVALIDATED_STORAGE
 );
 
 MaxSearchApi::$saved = $completePartyState;
