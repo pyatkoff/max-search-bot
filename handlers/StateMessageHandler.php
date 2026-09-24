@@ -168,10 +168,39 @@ class StateMessageHandler
             }
             elseif($status==MaxSearchApi::$statusStars)
             {
+                $starsText = (string)($message['text'] ?? '');
+                $combinedStarsMeal = self::resolveCombinedStarsMeal($starsText);
+                if($combinedStarsMeal !== [])
+                {
+                    $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
+                        $chat_id,
+                        'stars',
+                        $combinedStarsMeal['stars_text'],
+                        (int)MaxSearchApi::$statusStars
+                    );
+                    if(empty($result['recognized']) || empty($result['applied'])) return;
+
+                    $mealResult = NeedApplicationService::resolveAndApply(
+                        $chat_id,
+                        'meal',
+                        $combinedStarsMeal['meal_text']
+                    );
+                    if(empty($mealResult['recognized']) || empty($mealResult['applied']))
+                    {
+                        if(!EditFlowService::finishIfNeeded($chat_id,'stars'))
+                            WizardStepView::meal($chat_id);
+                        return;
+                    }
+
+                    if(!EditFlowService::finishIfNeeded($chat_id,'stars'))
+                        NeedProgressionService::advance($chat_id);
+                    return;
+                }
+
                 $result = NeedApplicationService::resolveAndApplyExistingWizardStep(
                     $chat_id,
                     'stars',
-                    (string)($message['text'] ?? ''),
+                    $starsText,
                     (int)MaxSearchApi::$statusStars
                 );
                 if(!empty($result['recognized']))
@@ -391,6 +420,46 @@ class StateMessageHandler
         if (!$hasChild) return false;
 
         return preg_match('/\b(?:[0-9]|1[0-7])\s*(?:лет|год|года)\b/ui', $text) === 1;
+    }
+
+    /**
+     * Preserve one explicit stars + meal answer supplied at the stars step. We do
+     * not broaden either parser: each side of a natural separator must resolve to
+     * exactly one of the two canonical fields. Ambiguous phrases such as "не важно"
+     * remain on the ordinary one-field path instead of inventing intent.
+     */
+    public static function resolveCombinedStarsMeal($text): array
+    {
+        $text = trim((string)$text);
+        if ($text === '') return [];
+
+        if (!preg_match_all('/(?:,|;|\s+и\s+)/ui', $text, $matches, PREG_OFFSET_CAPTURE)) return [];
+        $candidates = [];
+        foreach (($matches[0] ?? []) as $separator) {
+            $token = (string)($separator[0] ?? '');
+            $offset = (int)($separator[1] ?? -1);
+            if ($token === '' || $offset < 0) continue;
+
+            $left = trim(substr($text, 0, $offset));
+            $right = trim(substr($text, $offset + strlen($token)));
+            if ($left === '' || $right === '') continue;
+
+            $leftStars = NeedValueResolver::resolve('stars', $left);
+            $leftMeal = NeedValueResolver::resolve('meal', $left);
+            $rightStars = NeedValueResolver::resolve('stars', $right);
+            $rightMeal = NeedValueResolver::resolve('meal', $right);
+
+            if (!empty($leftStars['recognized']) && empty($leftMeal['recognized'])
+                && !empty($rightMeal['recognized']) && empty($rightStars['recognized'])) {
+                $candidates[] = ['stars_text'=>$left, 'meal_text'=>$right];
+            } elseif (!empty($leftMeal['recognized']) && empty($leftStars['recognized'])
+                && !empty($rightStars['recognized']) && empty($rightMeal['recognized'])) {
+                $candidates[] = ['stars_text'=>$right, 'meal_text'=>$left];
+            }
+        }
+
+        if (count($candidates) !== 1) return [];
+        return $candidates[0];
     }
 
     /**
