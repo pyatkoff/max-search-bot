@@ -78,6 +78,10 @@ $savedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',
 trCheck('saved dialogue data preserves full supported search context',$savedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&child_age%5B%5D=6&stars=5&food=3&yclid=yclid-test');
 $staleAgesUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7-9',14=>2,15=>1,16=>'6, 9',17=>5,18=>3],$savedMap, 'yclid-test');
 trCheck('search handoff does not guess which stale child age remains after count correction',$staleAgesUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=9&count_people=2&child_count=1&stars=5&food=3&yclid=yclid-test');
+$anyMealSavedUrl = ProjectConfig::searchUrlFromSavedData([10=>2,11=>8,12=>'2026-10-03',13=>'7',14=>2,15=>0,17=>4,18=>999],$savedMap, 'yclid-test');
+trCheck('saved any-meal choice does not become a website meal filter',$anyMealSavedUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=7&count_people=2&stars=4&yclid=yclid-test');
+$anyMealClaimUrl = ProjectConfig::searchUrlFromClaim(['UF_CITY'=>2,'UF_COUNTRY'=>8,'UF_DATE_DEPART'=>'2026-10-03','UF_NIGHTS'=>'7','UF_ADULTS'=>2,'UF_STARS'=>4,'UF_MEAL'=>999], 'yclid-test');
+trCheck('claim any-meal choice does not become a website meal filter',$anyMealClaimUrl,'https://public-search.test/poisk-turov/?from=2&country=8&dateFrom=2026-10-03&dateTo=2026-10-03&daysFrom=7&daysTill=7&count_people=2&stars=4&yclid=yclid-test');
 
 // Channel choice belongs to the website consultant, not messenger delivery.
 // All cases intentionally retain the same project configuration (provider=max).
