@@ -20,7 +20,7 @@ final class TourSearchHandoffService
             'child_count' => $children,
             'child_age' => self::childAgeValues($savedData[$statusMap['child_ages']] ?? '', $children),
             'stars' => self::positiveInt($savedData[$statusMap['stars']] ?? 0),
-            'food' => self::positiveInt($savedData[$statusMap['meal']] ?? 0),
+            'food' => self::searchMealFilterValue($savedData[$statusMap['meal']] ?? 0),
             'yclid' => $yclid,
         ];
     }
@@ -42,7 +42,7 @@ final class TourSearchHandoffService
             'child_count' => $children,
             'child_age' => self::childAgeValues($claim['UF_AGE'] ?? '', $children),
             'stars' => self::positiveInt($claim['UF_STARS'] ?? 0),
-            'food' => self::positiveInt($claim['UF_MEAL'] ?? 0),
+            'food' => self::searchMealFilterValue($claim['UF_MEAL'] ?? 0),
             'yclid' => $yclid,
         ];
     }
@@ -51,6 +51,12 @@ final class TourSearchHandoffService
     {
         $value = (int)$value;
         return $value > 0 ? $value : 0;
+    }
+
+    private static function searchMealFilterValue($value): int
+    {
+        $meal = self::positiveInt($value);
+        return $meal === 999 ? 0 : $meal;
     }
 
     private static function rangeValues($value): array
