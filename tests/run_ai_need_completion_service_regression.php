@@ -128,6 +128,15 @@ $localCompletionSlice = $localCompletionOffset === false ? '' : substr($handler,
 aiCompletionCheck('simple local completion uses canonical progression', strpos($localCompletionSlice, 'NeedProgressionService::advance($chat_id);') !== false);
 aiCompletionCheck('simple local completion no longer bypasses progression to check view', strpos($localCompletionSlice, 'DialogueView::check($chat_id);') === false);
 
+$errorBranch = "if (!is_array(\$ai) || !empty(\$ai['_error'])) {";
+$errorOffset = strpos($handler, $errorBranch);
+aiCompletionCheck('AI error branch still exists', $errorOffset !== false);
+$errorSlice = $errorOffset === false ? '' : substr($handler, $errorOffset, 520);
+aiCompletionCheck('AI error rechecks missing fields after local preseed', strpos($errorSlice, '$missingAfterError=MaxSearchApi::getAiMissingFields($chat_id);') !== false);
+aiCompletionCheck('AI error completes through canonical progression when nothing is missing', strpos($errorSlice, "if (empty(\$missingAfterError)) {\n                        NeedProgressionService::advance(\$chat_id);") !== false);
+aiCompletionCheck('AI error preserves missing-field question when qualification is incomplete', strpos($errorSlice, 'MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterError);') !== false);
+aiCompletionCheck('AI error does not bypass progression to direct check view', strpos($errorSlice, 'DialogueView::check($chat_id);') === false);
+
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
 
