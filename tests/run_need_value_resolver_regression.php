@@ -38,6 +38,11 @@ $adultsPairWithExtraIntent = NeedValueResolver::resolve('adults', 'Я и жен�
 nvrCheck('spouse pair with extra party detail stays unresolved', $adultsPairWithExtraIntent['recognized'], false);
 $adultsUnknown = NeedValueResolver::resolve('adults', 'семеро');
 nvrCheck('out of range adults stays unresolved', $adultsUnknown['recognized'], false);
+$adultsNegated = NeedValueResolver::resolve('adults', 'не 2 взрослых');
+nvrCheck('negated adult count is not persisted as a fact', $adultsNegated['recognized'], false);
+$adultsCorrection = NeedValueResolver::resolve('adults', 'не 2 взрослых, а 3 взрослых');
+nvrCheck('explicit adult correction is recognized', $adultsCorrection['recognized'], true);
+nvrCheck('explicit adult correction keeps positive replacement', $adultsCorrection['value'], 3);
 
 $childrenNone = NeedValueResolver::resolve('children', 'без детей');
 nvrCheck('children none phrase recognized', $childrenNone['recognized'], true);
