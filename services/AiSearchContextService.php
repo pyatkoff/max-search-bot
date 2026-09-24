@@ -115,7 +115,12 @@ class AiSearchContextService
             if ($value >= 0 && $value <= 3) $out['children'] = $value;
         }
 
-        if (!empty($p['child_ages'])) {
+        if (array_key_exists('child_ages', $p) && is_array($p['child_ages']) && $p['child_ages'] === []) {
+            // A changed child count must shadow historical ages with a non-empty
+            // invalidation marker; an empty value would let saved-data projection
+            // fall back to an older age row from the same dialogue session.
+            $out['child_ages'] = ChildAgeValueContract::INVALIDATED_STORAGE;
+        } elseif (!empty($p['child_ages'])) {
             $ages = is_array($p['child_ages']) ? $p['child_ages'] : preg_split('/[\s,;]+/', (string)$p['child_ages']);
             $clean = [];
             foreach ((array)$ages as $age) {
