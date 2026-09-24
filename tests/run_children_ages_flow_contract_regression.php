@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+require_once $root . '/services/ChildAgesParser.php';
 $contract = json_decode((string)file_get_contents($root . '/docs/children-ages-flow-contract.json'), true);
 $callback = (string)file_get_contents($root . '/actions/callbacks/WizardCallbackAction.php');
 $handler = (string)file_get_contents($root . '/handlers/StateMessageHandler.php');
@@ -47,6 +48,10 @@ childrenAgesContractCheck('children callback remains under shared forward guard'
 childrenAgesContractCheck('current age parser bounds every value to 0 through 17', strpos($ageParser, 'if ($age < 0 || $age > 17) return null;') !== false);
 childrenAgesContractCheck('current age parser requires exact child count', strpos($ageParser, 'if (count($ages) !== $childrenCount) return null;') !== false);
 childrenAgesContractCheck('current age parser rejects numeric date/range pairs', strpos($ageParser, "preg_match('/\\b\\d{1,2}\\s*[-–—\\/.]\\s*\\d{1,2}\\b/u', \$lower)") !== false);
+childrenAgesContractCheck('rejected-only child age stays unresolved', ChildAgesParser::parse('не 6 лет', 1) === null);
+childrenAgesContractCheck('explicit child age correction prefers positive replacement', ChildAgesParser::parse('не 6 лет, а 8 лет', 1) === [8]);
+childrenAgesContractCheck('multi-child age correction preserves replacement cardinality', ChildAgesParser::parse('не 6 и 10 лет, а 8 и 10 лет', 2) === [8, 10]);
+childrenAgesContractCheck('direct natural child ages remain deterministic', ChildAgesParser::parse('5 и 12', 2) === [5, 12]);
 childrenAgesContractCheck('current age storage uses exact projector through canonical update-only application', strpos($handler, 'ChildAgeValueContract::toStorage') === false && strpos($handler, 'MaxSearchApi::saveLastValue($chat_id,MaxSearchApi::$statusAge') === false && strpos($application, 'ChildAgeValueContract::toStorage($storageValue, $childrenCount)') !== false && ($contract['child_ages']['current_application'] ?? null) === 'NeedApplicationService::resolveAndApplyExistingWizardStep -> ExistingWizardStepApplicationService::apply');
 childrenAgesContractCheck('valid ages finish tourists edit or continue to stars', strpos($handler, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($handler, 'MaxSearchApi::showStarsButtons($chat_id)') !== false);
 childrenAgesContractCheck('deterministic child-age resolver requires child-count context', strpos($resolver, "if (\$field === 'child_ages')") !== false && strpos($resolver, "\$childrenCount = (int)(\$context['children'] ?? 0);") !== false);
