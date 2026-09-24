@@ -31,7 +31,7 @@ jobs:
           write_key() {
             local raw="$1" out="$2" decoded
             if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-              if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+              if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
             else
               decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
               [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo "Invalid SSH key"; exit 1; }
