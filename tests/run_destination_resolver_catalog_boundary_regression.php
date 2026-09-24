@@ -21,6 +21,127 @@ foreach ($checks as $name => $ok) {
     }
 }
 
+require_once __DIR__ . '/../services/DestinationResolver.php';
+$projection = new ReflectionMethod(DestinationResolver::class, 'destinationPreferenceChanges');
+$projection->setAccessible(true);
+
+$cases = [
+    'explicit hotel choice becomes canonical preference' => [
+        ['hotel'=>'Rixos Premium Tekirova', 'region'=>'Кемер'],
+        'Хочу отель Rixos Premium Tekirova',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        ['preferences'=>['Отель: Rixos Premium Tekirova']],
+    ],
+    'hard hotel condition stays visibly hard' => [
+        ['hotel'=>'Rixos Premium Tekirova', 'region'=>'Кемер'],
+        'Только Rixos Premium Tekirova, обязательно этот отель',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        ['preferences'=>['Обязательно — отель: Rixos Premium Tekirova']],
+    ],
+    'explicit hotel exclusion stays negative' => [
+        ['hotel'=>'Rixos Premium Tekirova', 'region'=>'Кемер'],
+        'Не хочу отель Rixos Premium Tekirova',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        ['negative_preferences'=>['Исключить отель: Rixos Premium Tekirova']],
+    ],
+    'neutral hotel question does not invent a preference' => [
+        ['hotel'=>'Rixos Premium Tekirova', 'region'=>'Кемер'],
+        'Что скажете про отель Rixos Premium Tekirova?',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        [],
+    ],
+    'new hotel replaces only previous resolver-owned hotel condition' => [
+        ['hotel'=>'Akka Antedon', 'region'=>'Кемер'],
+        'Давайте отель Akka Antedon',
+        [
+            'preferences'=>['первая линия', 'Отель: Rixos Premium Tekirova'],
+            'negative_preferences'=>['шумный отель'],
+        ],
+        false,
+        false,
+        [
+            'preferences'=>['Отель: Akka Antedon'],
+            'preferences_remove'=>['Отель: Rixos Premium Tekirova'],
+        ],
+    ],
+    'hotel no longer important removes old hotel without making it forbidden' => [
+        ['hotel'=>'', 'region'=>'Кемер'],
+        'Отель уже не важен, можно любой',
+        [
+            'preferences'=>['Отель: Rixos Premium Tekirova'],
+            'negative_preferences'=>[],
+        ],
+        false,
+        false,
+        ['preferences_remove'=>['Отель: Rixos Premium Tekirova']],
+    ],
+    'explicit resort is kept for manager context' => [
+        ['hotel'=>'', 'region'=>'Кемер'],
+        'Хочу в Кемер',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        ['preferences'=>['Курорт/район: Кемер']],
+    ],
+    'hard resort condition stays visibly hard' => [
+        ['hotel'=>'', 'region'=>'Кемер'],
+        'Только Кемер',
+        ['preferences'=>[], 'negative_preferences'=>[]],
+        false,
+        false,
+        ['preferences'=>['Обязательно — курорт/район: Кемер']],
+    ],
+    'country correction clears only resolver-owned resort and hotel labels' => [
+        ['hotel'=>'', 'region'=>''],
+        'Давайте Египет',
+        [
+            'preferences'=>['первая линия', 'Курорт/район: Кемер', 'Обязательно — отель: Rixos Premium Tekirova'],
+            'negative_preferences'=>['Исключить курорт/район: Белек', 'без шумной дороги'],
+        ],
+        true,
+        false,
+        [
+            'preferences_remove'=>['Курорт/район: Кемер', 'Обязательно — отель: Rixos Premium Tekirova'],
+            'negative_preferences_remove'=>['Исключить курорт/район: Белек'],
+        ],
+    ],
+];
+
+foreach ($cases as $name => [$data, $text, $current, $countryChanged, $regionChanged, $expected]) {
+    $actual = $projection->invoke(null, $data, $text, $current, $countryChanged, $regionChanged);
+    $ok = $actual === $expected;
+    if ($ok) {
+        echo "PASS  {$name}\n";
+    } else {
+        echo "FAIL  {$name}\n";
+        echo '      expected: ' . json_encode($expected, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n";
+        echo '      actual:   ' . json_encode($actual, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) . "\n";
+        $failed++;
+    }
+}
+
+$runtimeChecks = [
+    'resolver applies explicit destination conditions through canonical need application' => str_contains($source, 'NeedApplicationService::applyExtractedPreferences'),
+    'resolver does not add another destination metadata store' => !str_contains($source, "'_destination_preferences'") && !str_contains($source, 'destination_preferences.json'),
+];
+foreach ($runtimeChecks as $name => $ok) {
+    if ($ok) {
+        echo "PASS  {$name}\n";
+    } else {
+        echo "FAIL  {$name}\n";
+        $failed++;
+    }
+}
+
+$total = count($checks) + count($cases) + count($runtimeChecks);
 echo "\n--------------------------\n";
-echo 'TOTAL ' . count($checks) . ' | PASS ' . (count($checks) - $failed) . ' | FAIL ' . $failed . "\n";
+echo 'TOTAL ' . $total . ' | PASS ' . ($total - $failed) . ' | FAIL ' . $failed . "\n";
 exit($failed > 0 ? 1 : 0);
