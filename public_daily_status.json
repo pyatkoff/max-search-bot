@@ -1,27 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-09-26T01:41:23+00:00",
+    "generated_at": "2026-09-26T07:51:19+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 9,
-        "raw_sessions": 9,
+        "sessions": 38,
+        "raw_sessions": 38,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 9,
+            "resolved": 38,
             "unresolved": 0
         },
-        "started": 9,
-        "needs_collected": 6,
-        "tours_opened": 6,
+        "started": 38,
+        "needs_collected": 26,
+        "tours_opened": 24,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 0,
-        "manager_requested": 0,
+        "post_tour_manager_cta_shown": 1,
+        "manager_requested": 1,
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
-        "phone_received": 0,
+        "phone_received": 2,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -31,20 +31,23 @@
             "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 6,
-            "collecting_needs": 3
+            "tours_opened": 24,
+            "collecting_needs": 11,
+            "needs_collected": 2,
+            "manager_requested": 1
         },
         "flags": {
-            "excessive_turns": 2,
-            "repeated_callback_input": 1
+            "excessive_turns": 10,
+            "repeated_callback_input": 3,
+            "rapid_date_reselection": 2
         },
         "calendar_day": {
-            "conversations_started": 7,
-            "needs_collected_from_started": 4,
-            "tours_opened_from_started": 4,
+            "conversations_started": 33,
+            "needs_collected_from_started": 21,
+            "tours_opened_from_started": 19,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 0,
-            "manager_requested": 0,
+            "post_tour_manager_cta_shown": 1,
+            "manager_requested": 1,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
