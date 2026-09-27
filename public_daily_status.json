@@ -1,24 +1,24 @@
 {
     "ok": true,
-    "generated_at": "2026-09-27T01:34:06+00:00",
+    "generated_at": "2026-09-27T08:21:06+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 3,
-        "raw_sessions": 3,
+        "sessions": 62,
+        "raw_sessions": 62,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 3,
+            "resolved": 62,
             "unresolved": 0
         },
-        "started": 3,
-        "needs_collected": 3,
-        "tours_opened": 3,
+        "started": 62,
+        "needs_collected": 47,
+        "tours_opened": 45,
         "site_opened": 0,
-        "post_tour_manager_cta_shown": 0,
-        "manager_requested": 0,
+        "post_tour_manager_cta_shown": 2,
+        "manager_requested": 1,
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
@@ -31,18 +31,26 @@
             "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 3
+            "tours_opened": 44,
+            "collecting_needs": 15,
+            "needs_collected": 2,
+            "manager_requested": 1
         },
-        "flags": [],
+        "flags": {
+            "excessive_turns": 22,
+            "repeated_callback_input": 14,
+            "rapid_date_reselection": 2,
+            "repeated_same_input": 2
+        },
         "calendar_day": {
-            "conversations_started": 3,
-            "needs_collected_from_started": 3,
-            "tours_opened_from_started": 3,
+            "conversations_started": 60,
+            "needs_collected_from_started": 45,
+            "tours_opened_from_started": 43,
             "site_opened": 0,
-            "post_tour_manager_cta_shown": 0,
-            "manager_requested": 0,
+            "post_tour_manager_cta_shown": 1,
+            "manager_requested": 1,
             "manager_replied": 0,
-            "customer_replied_after_manager": 0
+            "customer_replied_after_manager": 1
         }
     },
     "local_date": "2026-09-27",
