@@ -31,9 +31,11 @@ function handoffInventoryCheck(bool $condition, string $message): void
 [$currentCode, $currentOutput] = handoffInventoryRun($tool, true);
 $current = json_decode($currentOutput, true);
 handoffInventoryCheck($currentCode === 0 && is_array($current) && !empty($current['ok']), 'current handoff policy inventory is complete');
-handoffInventoryCheck(($current['summary']['caller_groups'] ?? 0) === 13, 'inventory owns the exact current caller-group baseline');
-handoffInventoryCheck(($current['summary']['occurrences'] ?? 0) === 14, 'inventory owns the exact current occurrence baseline');
+handoffInventoryCheck(($current['summary']['caller_groups'] ?? 0) === 14, 'inventory owns the exact current caller-group baseline');
+handoffInventoryCheck(($current['summary']['occurrences'] ?? 0) === 15, 'inventory owns the exact current occurrence baseline');
 handoffInventoryCheck(($current['summary']['policy_surfaces'] ?? 0) === 5, 'inventory records every current policy surface');
+$reentryCallers = array_values(array_filter($current['callers'] ?? [], static fn(array $caller): bool => ($caller['path'] ?? '') === 'services/SourceHandlingService.php' && ($caller['receiver'] ?? '') === 'ManagerAvailabilityService' && ($caller['method'] ?? '') === 'withinWorkingHours'));
+handoffInventoryCheck(count($reentryCallers) === 1 && $reentryCallers[0]['classification'] === 'decision' && $reentryCallers[0]['occurrences'] === 1, 'deferred MAX reentry has one classified canonical working-window check');
 
 $policy = $current['policy'] ?? [];
 handoffInventoryCheck(($policy['timezone'] ?? null) === ManagerAvailabilityService::BUSINESS_TIMEZONE, 'inventory timezone matches the canonical runtime constant');
