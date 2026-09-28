@@ -6,6 +6,10 @@ require_once __DIR__.'/../services/TrafficAttributionService.php';
 $passed=0;$failed=0;
 function mpCheck(string $name,$actual,$expected):void{global $passed,$failed;if($actual===$expected){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n  expected=".var_export($expected,true)."\n  actual=".var_export($actual,true)."\n";$failed++;}
 
+$direct=TrafficAttributionService::parseStartPayload('max_anytour_msk1');
+mpCheck('legacy direct MAX source payload identifies source',$direct['entry_channel']??null,'max_anytour_msk1');
+mpCheck('legacy direct MAX source payload has no invented yclid',$direct['yclid']??null,'');
+
 $entry=TrafficAttributionService::parseStartPayload('entry_max_1');
 mpCheck('entry-only payload identifies MAX entry channel',$entry['entry_channel']??null,'max_1');
 mpCheck('entry-only payload has no invented yclid',$entry['yclid']??null,'');
