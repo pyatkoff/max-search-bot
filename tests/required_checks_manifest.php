@@ -146,6 +146,7 @@ return [
         'php tests/run_handoff_integrity_health_regression.php',
         'php tests/run_manager_assignment_integrity_regression.php',
         'php tests/run_manager_media_regression.php',
+        'php tests/run_manager_conversation_health_regression.php',
         'php tests/run_manager_telegram_media_regression.php',
         'php tests/run_telegram_incoming_media_regression.php',
         'php tests/run_manager_send_guard_regression.php',
