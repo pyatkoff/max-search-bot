@@ -120,6 +120,10 @@ $legacyMirror=strpos($maxHandler,"class_exists('Bitrix\\\\Main\\\\Loader')");
 mpCheck('MAX paid start stores canonical standalone attribution before legacy mirror',$trafficSave!==false&&$legacyMirror!==false&&$trafficSave<$legacyMirror,true);
 mpCheck('MAX paid start gates legacy YCLID mirror on Bitrix availability',str_contains($maxHandler,"if (\$yclid !== '' && class_exists('Bitrix\\\\Main\\\\Loader')) MaxSearchApi::addYclid"),true);
 
+$startPolicyExit=0;
+passthru(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/max_start_source_policy.php'),$startPolicyExit);
+mpCheck('MAX deep-link applies configured source start policy',$startPolicyExit,0);
+
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

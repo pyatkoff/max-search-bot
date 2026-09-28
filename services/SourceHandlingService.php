@@ -25,6 +25,7 @@ class SourceHandlingService
             $chatId=$incoming['user']['chat_id']??0;
             $type=(string)($incoming['type']??'');
             if($platform===''||!$chatId)return false;
+            $maxStart=$platform==='max'&&$type==='bot_started';
 
             $row=self::conversation($platform,$chatId);
             if(!$row)return false;
@@ -37,9 +38,22 @@ class SourceHandlingService
                 return false;
             }
 
+            // Existing dispatcher ownership must still receive replies and contacts.
+            // Keep Back above this check so its saved self-service choice is restored.
+            if($platform==='max'&&!$maxStart&&in_array((string)$row['status'],['manager','waiting_manager'],true))return false;
+
             $choice=self::latestChoice((int)$row['id']);
-            if($choice===self::AI)return false;
-            if($choice===self::MANAGER)return true;
+            // A new explicit MAX source entry must not inherit an obsolete AI choice.
+            if($choice===self::AI&&!$maxStart)return false;
+            if($choice===self::MANAGER){
+                if($platform==='max'&&!$maxStart){
+                    if($type==='contact'||$callback==='phone_manual')return false;
+                    if($type==='message'&&class_exists('MaxSearchApi')&&isset(MaxSearchApi::$statusPhone)
+                        &&method_exists('MaxSearchApi','getCurentStatus')
+                        &&MaxSearchApi::getCurentStatus($chatId)==MaxSearchApi::$statusPhone)return false;
+                }
+                return true;
+            }
 
             if($mode===self::ASK){
                 if($callback===self::CHOICE_AI){
@@ -53,7 +67,7 @@ class SourceHandlingService
                     return true;
                 }
                 if(self::wasPrompted((int)$row['id']))return true;
-                if($type!=='message'&&$type!=='contact')return false;
+                if($type!=='message'&&$type!=='contact'&&!$maxStart)return false;
                 if(self::sendChoicePrompt($chatId)){
                     ConversationRecorder::eventByChat($platform,$chatId,'source_handling_prompted',['mode'=>self::ASK],'system');
                     return true;
@@ -114,8 +128,8 @@ class SourceHandlingService
 
     private static function conversation(string $platform,$chatId): ?array
     {
-        $q=ConversationDb::connection()->prepare("SELECT c.id,c.status,COALESCE(s.handling_mode,'ai') AS handling_mode FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.channel=? AND c.external_chat_id=? AND c.status<>? ORDER BY c.id DESC LIMIT 1");
-        $q->execute([$platform,(string)$chatId,'closed']);
+        $q=ConversationDb::connection()->prepare("SELECT c.id,c.status,COALESCE(s.handling_mode,'ai') AS handling_mode FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.project_key=? AND c.channel=? AND c.external_chat_id=? AND c.status<>? ORDER BY c.id DESC LIMIT 1");
+        $q->execute([ProjectConfig::projectId(),$platform,(string)$chatId,'closed']);
         $row=$q->fetch();
         return$row?:null;
     }
