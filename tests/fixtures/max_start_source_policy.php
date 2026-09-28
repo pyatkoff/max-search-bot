@@ -28,6 +28,7 @@ class MaxSearchApi {
     public static function setEditMode(...$args){}
     public static function showStart($chat,$meta=[]){self::$greetings[]=compact('chat','meta');return true;}
 }
+class ManagerAvailabilityService { public static function withinWorkingHours(){return ManagerHandoffDispatchService::$workingHours;} }
 class ManagerHandoffDispatchService {
     public static $calls=[],$applied=0,$available=true,$workingHours=true;
     public static function dispatch($chat,$platform,$name,$fromTours){$q=ConversationDb::connection()->prepare("SELECT source_id,entry_channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);self::$calls[]=$q->fetch();if(!self::$workingHours)MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusPhone;return ['sent'=>true,'manager_available'=>self::$available,'within_working_hours'=>self::$workingHours,'queue_waiting'=>self::$workingHours];}
@@ -126,6 +127,53 @@ try{
     $tg=fixtureIncoming(990006);$tg['platform']='telegram';
     startCheck('MAX start hook cannot change Telegram source behavior',MaxStartSourcePolicy::apply($tg,'max_anytour_msk1'),false);
     startCheck('no source configuration rows created',(int)$pdo->query('SELECT COUNT(*) FROM conversation_sources')->fetchColumn(),8);
+
+    // Both owner-reported links must refresh an already-owned legacy-main dialogue.
+    $fixtureUser=991100;
+    foreach(['max_anytour_msk1','max_anytour_msk'] as $key){
+        foreach(['manager','waiting_manager'] as $status){
+            $id=$fixtureUser++;
+            ConversationRecorder::inbound(fixtureIncoming($id,'max:anytour-main','message'));
+            $q=$pdo->prepare("UPDATE conversations SET status=?,manager_id=?,entry_channel='' WHERE external_chat_id=?");
+            $q->execute([$status,$status==='manager'?7:null,(string)-$id]);
+            $owned=fixtureConversation($id);$calls=count(ManagerHandoffDispatchService::$calls);$resets=count(MaxSearchApi::$resets);
+            $messages=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
+            fixtureStart($id,$key);fixtureStart($id,$key);
+            $after=fixtureConversation($id);$label=$key.' / '.$status;
+            startCheck('owned reentry refreshes exact entry: '.$label,$after['entry_channel'],$key);
+            startCheck('owned reentry preserves routing source: '.$label,$after['source_id'],$owned['source_id']);
+            startCheck('owned reentry preserves manager: '.$label,$after['manager_id'],$owned['manager_id']);
+            startCheck('owned reentry preserves status: '.$label,$after['status'],$status);
+            startCheck('owned reentry sends no new handoff: '.$label,count(ManagerHandoffDispatchService::$calls),$calls);
+            startCheck('owned reentry never resets dialogue: '.$label,count(MaxSearchApi::$resets),$resets);
+            startCheck('owned reentry preserves transcript: '.$label,$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messages);
+        }
+    }
+    foreach(['max_anytour_msk1','max_anytour_msk'] as $key){
+        $id=$fixtureUser++;ManagerHandoffDispatchService::$workingHours=false;
+        fixtureStart($id,$key);$calls=count(ManagerHandoffDispatchService::$calls);fixtureStart($id,$key);
+        startCheck('night repeat sends no second offer: '.$key,count(ManagerHandoffDispatchService::$calls),$calls);
+        startCheck('night offer leaves queue inactive: '.$key,fixtureConversation($id)['status'],'ai');
+        ManagerHandoffDispatchService::$workingHours=true;ManagerHandoffDispatchService::$available=false;
+        SourceHandlingService::handle(fixtureIncoming($id,$key,'contact'));
+        startCheck('contact is not a new start: '.$key,count(ManagerHandoffDispatchService::$calls),$calls);
+        fixtureStart($id,$key);fixtureStart($id,$key);
+        startCheck('day reentry resumes once after night: '.$key,count(ManagerHandoffDispatchService::$calls),$calls+1);
+        startCheck('day reentry queues even with no online manager: '.$key,fixtureConversation($id)['status'],'waiting_manager');
+        startCheck('day reentry retains exact attribution: '.$key,fixtureConversation($id)['entry_channel'],$key);
+        ManagerHandoffDispatchService::$available=true;
+    }
+    // No speculative re-dispatch without explicit most-recent outside-hours evidence.
+    foreach([null,[],['within_working_hours'=>true],['within_working_hours'=>0],['within_working_hours'=>'false']] as $latest){
+        $id=$fixtureUser++;ConversationRecorder::inbound(fixtureIncoming($id,'max_anytour_msk1','message'));
+        ConversationRecorder::eventByChat('max',-$id,'source_handling_choice',['choice'=>'manager']);
+        if($latest!==null){
+            ConversationRecorder::eventByChat('max',-$id,'manager_request',['within_working_hours'=>false]);
+            ConversationRecorder::eventByChat('max',-$id,'manager_request',$latest);
+        }
+        $calls=count(ManagerHandoffDispatchService::$calls);fixtureStart($id);
+        startCheck('ambiguous or superseded night evidence cannot redispatch: '.json_encode($latest),count(ManagerHandoffDispatchService::$calls),$calls);
+    }
 
     $before=count(MaxSearchApi::$greetings);$pdo->exec('DROP TABLE customers');
     fixtureStart(990007);

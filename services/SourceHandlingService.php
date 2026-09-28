@@ -46,6 +46,12 @@ class SourceHandlingService
             // A new explicit MAX source entry must not inherit an obsolete AI choice.
             if($choice===self::AI&&!$maxStart)return false;
             if($choice===self::MANAGER){
+                // A previous outside-hours offer is not an active manager handoff.
+                if($maxStart&&$mode===self::MANAGER&&(string)$row['status']==='ai'
+                    &&self::deferredStartCanResume((int)$row['id'])){
+                    self::handoff($incoming,$platform,$chatId,'source_policy');
+                    return true;
+                }
                 if($platform==='max'&&!$maxStart){
                     if($type==='contact'||$callback==='phone_manual')return false;
                     if($type==='message'&&class_exists('MaxSearchApi')&&isset(MaxSearchApi::$statusPhone)
@@ -85,6 +91,17 @@ class SourceHandlingService
         }catch(Throwable $e){
             return false;
         }
+    }
+
+    private static function deferredStartCanResume(int $conversationId): bool
+    {
+        // The existing availability service remains the only work-window owner.
+        if(!class_exists('ManagerAvailabilityService')||!ManagerAvailabilityService::withinWorkingHours())return false;
+        $q=ConversationDb::connection()->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='manager_request' ORDER BY id DESC LIMIT 1");
+        $q->execute([$conversationId]);
+        $payload=json_decode((string)$q->fetchColumn(),true);
+        return is_array($payload)&&array_key_exists('within_working_hours',$payload)
+            &&$payload['within_working_hours']===false;
     }
 
     private static function handoff(array $incoming,string $platform,$chatId,string $reason): void
