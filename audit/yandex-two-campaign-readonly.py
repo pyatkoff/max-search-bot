@@ -108,13 +108,13 @@ def run():
             q=urllib.request.Request(url,data=data,headers=headers,method='POST' if direct else 'GET')
             try:
                 with opener.open(q,timeout=20) as r:
-                    status=r.status; rh=r.headers; raw=r.read(4000001)
+                    status=r.status; rh=r.headers; raw=r.read(16000001)
             except urllib.error.HTTPError as e:
-                status=e.code; rh=e.headers; raw=e.read(4000001)
+                status=e.code; rh=e.headers; raw=e.read(16000001)
             except Exception:
                 raise Stop('HTTPS_READ_FAILED') from None
             result['requests'].append({'endpoint':path,'http':status,'request_id':rh.get('RequestId')})
-            if len(raw)>4000000: raise Stop('RESPONSE_TOO_LARGE')
+            if len(raw)>16000000: raise Stop('RESPONSE_TOO_LARGE')
             if status in (201,202,429,500,502,503,504):
                 wait=rh.get('retryIn',rh.get('Retry-After','3'))
                 wait=int(wait) if re.fullmatch('[0-9]{1,4}',wait) else 3
@@ -202,25 +202,25 @@ def run():
     columns=['Date','CampaignId','AdGroupId','Query','CriterionType','MatchedKeyword','MatchType','Impressions','Clicks','Cost','Conversions']
     expected=columns[:-1]+['Conversions_'+str(g)+'_'+model for g in goals]
     seen=set(); complete=False
-    for page in range(40):
+    for page in range(2):
         params={'SelectionCriteria':{'DateFrom':first.isoformat(),'DateTo':last.isoformat(),
             'Filter':[{'Field':'CampaignId','Operator':'IN','Values':[str(CID)]}]},
             'FieldNames':columns,'Goals':list(map(str,goals)),'AttributionModels':[model],
-            'Page':{'Limit':2000,'Offset':page*2000},
+            'Page':{'Limit':50000,'Offset':page*50000},
             'OrderBy':[{'Field':k,'SortOrder':'ASCENDING'} for k in columns[:7]],
             'ReportType':'SEARCH_QUERY_PERFORMANCE_REPORT','DateRangeType':'CUSTOM_DATE','Format':'TSV','IncludeVAT':'NO'}
         params['ReportName']='AnyTour-private-query-'+hashlib.sha256(json.dumps(params,sort_keys=True).encode()).hexdigest()[:20]
         reader=csv.DictReader(io.StringIO(req('reports',{'params':params},report=True)),delimiter='\t')
         if reader.fieldnames!=expected: raise Stop('REPORT_COLUMNS_MISMATCH')
         batch=list(reader)
-        if len(batch)>2000: raise Stop('PAGE_LIMIT_VIOLATED')
+        if len(batch)>50000: raise Stop('PAGE_LIMIT_VIOLATED')
         for row in batch:
             if set(row)!=set(expected) or ident(row['CampaignId'])!=CID: raise Stop('QUERY_SCOPE_MISMATCH')
             key=tuple(row[k] for k in columns[:7])
             if key in seen: raise Stop('DUPLICATE_OR_DRIFTING_PAGE')
             seen.add(key)
         result['query_rows'].extend(batch)
-        if len(batch)<2000: complete=True; break
+        if len(batch)<50000: complete=True; break
     result['query_collection_complete']=complete
     if not complete: result['errors'].append({'code':'QUERY_PAGE_BUDGET_REACHED'})
     result['status']='COLLECTED' if not result['errors'] else 'PARTIAL'

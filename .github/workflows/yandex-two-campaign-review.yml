@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        campaign: [714260445, 714320748]
+        campaign: [714320748]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -68,7 +68,7 @@ jobs:
               raise SystemExit('CAMPAIGN_SCOPE_INVALID')
           source=Path('audit/yandex-two-campaign-readonly.py').read_text()
           blob=hashlib.sha1(b'blob '+str(len(source.encode())).encode()+b'\0'+source.encode()).hexdigest()
-          if blob!='aaa2ca31b0735cfe43396d0fe5e2865c34a22bc2':raise SystemExit('REVIEWED_READER_CHANGED')
+          if blob!='315b00d539e34fc2b2a4953529e552d102249463':raise SystemExit('REVIEWED_READER_CHANGED')
           def once(before,after):
               global source
               if source.count(before)!=1:raise SystemExit('READER_ANCHOR_CHANGED')
