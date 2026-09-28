@@ -8,22 +8,6 @@ require_once __DIR__ . '/../services/MaxStartSourcePolicy.php';
 
 class MaxUpdateHandler
 {
-    public static function handleStarted(array $update): void
-    {
-        $user=MaxIncomingAdapter::user($update);$userId=(int)($user['user_id']??$user['id']??0);if(!$userId)return;
-        $internalId=$userId>0?-$userId:$userId;
-        $payload=trim((string)($update['payload']??$update['start_payload']??''));$meta=TrafficAttributionService::parseStartPayload($payload);
-        $yclid=(string)($meta['yclid']??'');$region=(string)($meta['region_id']??'');$campaign=(string)($meta['campaign_id']??'');$entry=(string)($meta['entry_channel']??'');
-        TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry);
-        if($yclid!==''&&class_exists('Bitrix\\Main\\Loader'))MaxSearchApi::addYclid($internalId,$yclid);
-        MaxSearchApi::funnelLog($internalId,'bot_started',['payload'=>$payload,'entry_channel'=>$entry]);
-        $incoming=['platform'=>'max','type'=>'bot_started','source_key'=>$entry,'user'=>['chat_id'=>$internalId,'external_user_id'=>$userId,'first_name'=>(string)($user['first_name']??$user['name']??''),'last_name'=>(string)($user['last_name']??''),'username'=>(string)($user['username']??'')]];
-        if(MaxStartSourcePolicy::apply($incoming,$entry))return;
-        MaxSearchApi::cancelToursFollowup($internalId);MaxSearchApi::deleteAllStatus($internalId);MaxSearchApi::setEditMode($internalId,'');
-        if(class_exists('AiShadowObserver'))AiShadowObserver::clear($internalId);if(class_exists('DestinationResolver'))DestinationResolver::clear($internalId);
-        MaxSearchApi::showStart($internalId,$meta);
-    }
-
     public static function handle()
     {
         $content = file_get_contents('php://input');
@@ -64,7 +48,6 @@ class MaxUpdateHandler
 
         $user = MaxIncomingAdapter::user($update);
         $userId = (int)($user['user_id'] ?? $user['id'] ?? 0);
-        $internalId = $userId > 0 ? -$userId : $userId;
         $archiveExternalMessageId = '';
 
         if ($type === 'bot_started' && $userId) {
@@ -97,5 +80,43 @@ class MaxUpdateHandler
             try { MaxInboundMediaArchiveService::archiveRecordedMessage($archiveExternalMessageId); }
             catch (Throwable $ignored) {}
         }
+    }
+
+    /** Called only after the webhook's secret, shadow and update-deduplication checks. */
+    public static function handleStarted(array $update): void
+    {
+        $user = MaxIncomingAdapter::user($update);
+        $userId = (int)($user['user_id'] ?? $user['id'] ?? 0);
+        if (!$userId) return;
+        $internalId = $userId > 0 ? -$userId : $userId;
+        $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
+        $meta=TrafficAttributionService::parseStartPayload($payload);
+        $yclid=(string)($meta['yclid']??'');
+        $region=(string)($meta['region_id']??'');
+        $campaign=(string)($meta['campaign_id']??'');
+        $entry=(string)($meta['entry_channel']??'');
+
+        // Keep the existing attribution and paid-entry renderer unchanged.
+        TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry);
+        if ($yclid !== '' && class_exists('Bitrix\\Main\\Loader')) MaxSearchApi::addYclid($internalId, $yclid);
+        MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload,'entry_channel'=>$entry]);
+
+        $incoming = [
+            'platform'=>'max','type'=>'bot_started','source_key'=>$entry,
+            'user'=>[
+                'chat_id'=>$internalId,'external_user_id'=>$userId,
+                'first_name'=>(string)($user['first_name']??$user['name']??''),
+                'last_name'=>(string)($user['last_name']??''),
+                'username'=>(string)($user['username']??''),
+            ],
+        ];
+        if (MaxStartSourcePolicy::apply($incoming,$entry)) return;
+
+        MaxSearchApi::cancelToursFollowup($internalId);
+        MaxSearchApi::deleteAllStatus($internalId);
+        MaxSearchApi::setEditMode($internalId, '');
+        if (class_exists('AiShadowObserver')) AiShadowObserver::clear($internalId);
+        if (class_exists('DestinationResolver')) DestinationResolver::clear($internalId);
+        MaxSearchApi::showStart($internalId, $meta);
     }
 }
