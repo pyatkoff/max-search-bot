@@ -85,6 +85,7 @@ jobs:
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/export_handoff_snapshot.php" > handoff.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/website_production_smoke.php" > website_smoke.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/source_attribution_production_smoke.php" > source_attribution_smoke.json
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/manager_conversation_health.php" > manager_conversation_health.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/architecture_inventory.php --compact" > architecture_inventory.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && {
             printf '%s\\n' 'CRON_METRIKA_ENTRIES';
