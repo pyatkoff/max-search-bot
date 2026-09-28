@@ -61,7 +61,9 @@ class DialogueView
     public static function aiStart($chatId): bool
     {
         MaxSearchApi::deletePrevMessage($chatId);
-        $buttons = ButtonFactory::rows(ButtonFactory::row(ButtonFactory::callback('ПО ШАГАМ','start_search')));
+        // Keep AI mode focused. The canonical start/chooser already owns the wizard action;
+        // duplicating it here leaves two active buttons for the same start_search action after restart.
+        $buttons = [];
         return self::sendAndStatus($chatId,
             "Опишите поездку одним сообщением или несколькими.\n\nНапример: «Хотим из Москвы в Турцию в конце сентября, 2 взрослых и ребёнок 6 лет, 9–11 ночей, отель от 4★, всё включено».\n\nЯ уточню только то, чего не хватает.",
             $buttons,
