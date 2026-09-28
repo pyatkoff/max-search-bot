@@ -39,7 +39,7 @@ PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogger','IntegrationRegistry','ManagerHandoffDispatchService','ConversationAttributionService','IncomingUpdateDispatcher','IncomingUpdateDeduplicator','MaxInboundMediaArchiveService'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 file_put_contents($tmp.'/integrations/MaxIncomingAdapter.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
-foreach(['services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
+foreach(['services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
 $passed=0;$failed=0;
 function startCheck(string $name,$actual,$expected):void{global $passed,$failed;if($actual===$expected){echo 'PASS '.$name.PHP_EOL;$passed++;}else{echo 'FAIL '.$name.' expected='.json_encode($expected).' actual='.json_encode($actual).PHP_EOL;$failed++;}}
 function fixtureIncoming(int $user,string $source='max_anytour_msk1',string $type='bot_started'):array{return ['platform'=>'max','type'=>$type,'source_key'=>$source,'text'=>'fixture','user'=>['chat_id'=>-$user,'external_user_id'=>$user,'first_name'=>'Synthetic','last_name'=>'Tester','username'=>'fixture']];}
@@ -47,7 +47,7 @@ function fixtureStart(int $user,string $source='max_anytour_msk1'):void{MaxUpdat
 function fixtureConversation(int $user):array{$q=ConversationDb::connection()->prepare("SELECT * FROM conversations WHERE project_key='anytour' AND channel='max' AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([(string)-$user]);return $q->fetch()?:[];}
 try{
     require $tmp.'/handlers/MaxUpdateHandler.php';
-    if(!method_exists(MaxUpdateHandler::class,'handleStarted')||!method_exists(SourceHandlingService::class,'handleStart'))throw new RuntimeException('MAX bot_started does not invoke the source start policy');
+    if(!method_exists(MaxUpdateHandler::class,'handleStarted'))throw new RuntimeException('MAX bot_started does not expose tested start boundary');
     $pdo=new PDO('sqlite::memory:');$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);$pdo->sqliteCreateFunction('NOW',static fn()=>gmdate('Y-m-d H:i:s'));ConversationDb::$pdo=$pdo;IntegrationRegistry::$m=new FixtureMessenger();
     $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT);INSERT INTO projects VALUES(1,'anytour'),(2,'other');
     CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,project_id INTEGER,source_key TEXT,channel TEXT,handling_mode TEXT,is_active INTEGER);
@@ -104,7 +104,7 @@ try{
 
     foreach(['max_unknown','max_fixture_inactive','max_fixture_wrong_channel','max_fixture_other_project','max_fixture_ai',''] as $key){
         $before=(int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
-        startCheck('non-manager or invalid source leaves legacy start unchanged: '.$key,SourceHandlingService::handleStart(fixtureIncoming(990100,$key)),false);
+        startCheck('non-manager or invalid source leaves legacy start unchanged: '.$key,MaxStartSourcePolicy::apply(fixtureIncoming(990100,$key),$key),false);
         startCheck('invalid/AI source creates no conversation: '.$key,(int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn(),$before);
     }
     $before=count(MaxSearchApi::$greetings);
@@ -113,7 +113,7 @@ try{
     startCheck('paid campaign remains unchanged',MaxSearchApi::$greetings[$before]['meta']['campaign_id'],'42');
     startCheck('paid region remains unchanged',MaxSearchApi::$greetings[$before]['meta']['region_id'],'213');
     $tg=fixtureIncoming(990006);$tg['platform']='telegram';
-    startCheck('MAX start hook cannot change Telegram source behavior',SourceHandlingService::handleStart($tg),false);
+    startCheck('MAX start hook cannot change Telegram source behavior',MaxStartSourcePolicy::apply($tg,'max_anytour_msk1'),false);
     startCheck('no source configuration rows created',(int)$pdo->query('SELECT COUNT(*) FROM conversation_sources')->fetchColumn(),7);
 
     $before=count(MaxSearchApi::$greetings);$pdo->exec('DROP TABLE customers');
