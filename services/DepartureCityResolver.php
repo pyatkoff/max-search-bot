@@ -47,6 +47,12 @@ class DepartureCityResolver
 
     public static function bestMatch(string $lowerText, array $rows)
     {
+        // In the free AI/start path the resolver is a pre-application helper, not
+        // a dialogue-intent engine. A bare direct departure remains a valid fact,
+        // but a neutral availability question must stay uncommitted for the AI to
+        // answer instead of silently rewriting the canonical search city.
+        if (self::isNeutralDepartureQuestion($lowerText)) return false;
+
         $best = null;
         $bestLen = 0;
         foreach ($rows as $row) {
@@ -59,7 +65,20 @@ class DepartureCityResolver
                 $formLower = function_exists('mb_strtolower') ? mb_strtolower($form, 'UTF-8') : strtolower($form);
                 if ($formLower === '') continue;
                 $quoted = preg_quote($formLower, '/');
-                if (!preg_match('/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'.$quoted.'(?=$|[\s,.;!?])/ui', $lowerText)) continue;
+                if (!preg_match(
+                    '/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'.$quoted.'(?=$|[\s,.;!?])/ui',
+                    $lowerText,
+                    $match,
+                    PREG_OFFSET_CAPTURE
+                )) continue;
+
+                // Reject only a negation attached to this concrete departure
+                // marker. This still lets “не из Москвы, а из Калининграда” skip
+                // Moscow and positively resolve Kaliningrad later in the message.
+                $offset = isset($match[0][1]) ? (int)$match[0][1] : 0;
+                $before = rtrim(substr($lowerText, 0, $offset));
+                if (preg_match('/(?:^|\s)(?:только\s+)?не$/ui', $before)) continue;
+
                 $len = function_exists('mb_strlen') ? mb_strlen($formLower, 'UTF-8') : strlen($formLower);
                 if ($len > $bestLen) {
                     $bestLen = $len;
@@ -109,6 +128,16 @@ class DepartureCityResolver
         }
 
         return count($matches) === 1 ? reset($matches) : false;
+    }
+
+    private static function isNeutralDepartureQuestion(string $text): bool
+    {
+        if (!preg_match('/[?？]\s*$/u', $text)) return false;
+
+        return preg_match(
+            '/^\s*(?:а\s+)?(?:(?:можно|есть|получится|бывает)\s+)?(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+/ui',
+            $text
+        ) === 1;
     }
 
     private static function tokens(string $text): array
