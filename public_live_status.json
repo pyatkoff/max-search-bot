@@ -1,19 +1,19 @@
 {
     "ok": true,
-    "generated_at": "2026-09-27T22:21:23+00:00",
+    "generated_at": "2026-09-28T00:54:38+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 0,
-        "raw_sessions": 0,
+        "sessions": 2,
+        "raw_sessions": 2,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 0,
+            "resolved": 2,
             "unresolved": 0
         },
-        "started": 0,
+        "started": 2,
         "needs_collected": 0,
         "tours_opened": 0,
         "site_opened": 0,
@@ -30,9 +30,11 @@
             "avg_seconds": null,
             "max_seconds": null
         },
-        "drop_points": [],
+        "drop_points": {
+            "collecting_needs": 2
+        },
         "flags": []
     },
-    "since_utc": "2026-09-27 21:21:23",
+    "since_utc": "2026-09-27 23:54:38",
     "public_redacted": true
 }
