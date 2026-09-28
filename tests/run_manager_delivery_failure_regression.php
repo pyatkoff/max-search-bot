@@ -35,6 +35,10 @@ $adapterStart=strpos($outbound,'$adapter = new MaxMessengerAdapter',$guardStart=
 $guardSegment=($guardStart!==false && $adapterStart!==false)?substr($outbound,$guardStart,$adapterStart-$guardStart):'';
 mdCheck('suppressed retry returns before transport and does not write another failure event',strpos($guardSegment,'return false;')!==false && strpos($guardSegment,'manager_message_failed')===false);
 
+$restartExit=0;
+passthru(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/max_restart_delivery.php'),$restartExit);
+mdCheck('MAX source restart restores explicit manager delivery without auto-send',$restartExit===0);
+
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
