@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ManagerConversationService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/ManagerSendGuardService.php';
+require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
@@ -95,7 +96,7 @@ class ManagerOutboundService
             $attachment=['type'=>$type,'name'=>$fileName,'mime_type'=>$mimeType];
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
             ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
-            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key'],'media_type'=>$type]);
+            ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>$projectKey,'media_type'=>$type]);
             MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
@@ -120,11 +121,13 @@ class ManagerOutboundService
     {
         try {
             $pdo=ConversationDb::connection();
-            $q=$pdo->prepare("SELECT created_at,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='manager_message_failed' ORDER BY id DESC LIMIT 20");
-            $q->execute([$conversationId]);$suspendedAt=null;
-            foreach($q->fetchAll() as $row){$payload=json_decode((string)($row['payload_json']??''),true);if(is_array($payload)&&(string)($payload['category']??'')==='suspended'){$suspendedAt=(string)($row['created_at']??'');break;}}
+            $q=$pdo->prepare("SELECT id,created_at,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='manager_message_failed' ORDER BY id DESC LIMIT 20");
+            $q->execute([$conversationId]);$suspendedAt=null;$suspendedId=0;
+            foreach($q->fetchAll() as $row){$payload=json_decode((string)($row['payload_json']??''),true);if(is_array($payload)&&(string)($payload['category']??'')==='suspended'){$suspendedAt=(string)($row['created_at']??'');$suspendedId=(int)$row['id'];break;}}
             if(!$suspendedAt)return null;
             $q=$pdo->prepare("SELECT created_at FROM messages WHERE conversation_id=? AND direction='inbound' AND sender_type='customer' AND created_at>? ORDER BY id DESC LIMIT 1");$q->execute([$conversationId,$suspendedAt]);if($q->fetchColumn())return null;
+            $restarted=ManagerDeliveryStateService::maxRestartsAfter([$conversationId=>$suspendedId]);
+            if(!empty($restarted[$conversationId]))return null;
             return ['category'=>'suspended','http_code'=>403,'message'=>'Диалог MAX приостановлен: пользователь остановил или заблокировал бота. Повторная отправка доступна после нового сообщения или запуска бота пользователем.','channel'=>'max','project_key'=>$projectKey,'suppressed_retry'=>true];
         } catch(Throwable $e) { return null; }
     }
