@@ -40,7 +40,12 @@ final class MaxStartSourcePolicy
             $q=$pdo->prepare("SELECT id,status,manager_id,source_id FROM conversations WHERE project_key=? AND channel='max' AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1");
             $q->execute([$project,(string)$chat,'closed']);
             $existing=$q->fetch();
-            if($existing&&((int)($existing['manager_id']??0)>0||in_array((string)$existing['status'],['manager','waiting_manager'],true)))return true;
+            if($existing&&((int)($existing['manager_id']??0)>0||in_array((string)$existing['status'],['manager','waiting_manager'],true))){
+                // Refresh entry attribution without changing the assigned source or manager.
+                $q=$pdo->prepare("UPDATE conversations SET entry_channel=? WHERE id=? AND project_key=? AND channel='max' AND status<>'closed'");
+                $q->execute([$sourceKey,(int)$existing['id'],$project]);
+                return true;
+            }
 
             // A platform start is an event, not text written by the tourist.
             $start=$incoming;
