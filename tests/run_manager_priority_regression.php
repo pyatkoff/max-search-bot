@@ -112,6 +112,9 @@ mpCheck('admin exposes base priority control',str_contains($admin,'Базовы�
 mpCheck('admin exposes MAX entry channel rule',str_contains($admin,'MAX-канал входа'),true);
 mpCheck('admin API saves priority rules',str_contains($api,"\$action==='save_priority_rule'"),true);
 mpCheck('incoming dispatcher syncs traffic attribution',str_contains($dispatcher,'ConversationAttributionService::syncByChat($platform,$chatId)'),true);
+$attribution=(string)file_get_contents($base.'/services/ConversationAttributionService.php');
+mpCheck('MAX entry attribution resolves canonical source id',str_contains($attribution,'RoutingAccessService::sourceId($project,$entry,$platform)'),true);
+mpCheck('MAX entry attribution repairs active conversation source id',str_contains($attribution,'source_id=CASE WHEN ?>0 THEN ? ELSE source_id END'),true);
 $trafficSave=strpos($maxHandler,'TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry)');
 $legacyMirror=strpos($maxHandler,"class_exists('Bitrix\\\\Main\\\\Loader')");
 mpCheck('MAX paid start stores canonical standalone attribution before legacy mirror',$trafficSave!==false&&$legacyMirror!==false&&$trafficSave<$legacyMirror,true);
