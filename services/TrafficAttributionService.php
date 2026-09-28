@@ -21,6 +21,13 @@ class TrafficAttributionService
         $out=['yclid'=>'','region_id'=>'','campaign_id'=>'','entry_channel'=>'','raw'=>$raw];
         if($clean==='')return$out;
 
+        // Legacy published MAX source links pass the canonical source key directly
+        // as ?start=max_anytour_*. Keep those links backward-compatible.
+        if(preg_match('/^max_anytour_[a-z0-9_-]{1,48}$/i',$clean)){
+            $out['entry_channel']=strtolower($clean);
+            return$out;
+        }
+
         if(preg_match('/^(\d{6,})_region_([^_]*)_campaign_([^_]*)/i',$clean,$m)){
             $out['yclid']=$m[1]??'';$out['region_id']=$m[2]??'';$out['campaign_id']=$m[3]??'';
         }elseif(preg_match('/^(\d{6,})_key_(.*?)_(\d+)_campaign_([^_]+)/i',$clean,$m)){

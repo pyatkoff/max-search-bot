@@ -222,4 +222,7 @@ foreach ([$chat,$chat-1] as $testChat) @unlink(InteractionGuard::lockPath($testC
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
+$dialogueViewSource=(string)file_get_contents(__DIR__.'/../services/DialogueView.php');
+dvCheck('AI prompt does not duplicate canonical wizard action',strpos($dialogueViewSource,"ButtonFactory::callback('ПО ШАГАМ','start_search')")===false,true);
+
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

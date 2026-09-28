@@ -35,6 +35,10 @@ twCheck('Webhook rejects wrong secret', TelegramWebhookHandler::secretAccepted('
 twCheck('Deep-link payload builds configured source candidates', TelegramStartSourceResolver::candidateKeys('tg_anytour_msk'), ['tg_anytour_msk','tg:anytour-msk','telegram:anytour-msk']);
 $knownSources=['tg:anytour-msk'=>true,'telegram:anytour-main'=>true];
 $lookup=static fn(string $key): string => !empty($knownSources[$key]) ? $key : '';
+$directKnownSources=['tg_anytour_msk'=>true,'tg_anytour_msk2'=>true,'telegram:anytour-main'=>true];
+$directLookup=static fn(string $key): string => !empty($directKnownSources[$key]) ? $key : '';
+twCheck('Published tg_anytour_msk link keeps exact canonical source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_anytour_msk'],$directLookup), 'tg_anytour_msk');
+twCheck('Published tg_anytour_msk2 link keeps exact canonical source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_anytour_msk2'],$directLookup), 'tg_anytour_msk2');
 twCheck('Deep-link tg_anytour_msk resolves to existing Telegram source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_anytour_msk'],$lookup), 'tg:anytour-msk');
 twCheck('Unknown deep-link source falls back to configured source', TelegramStartSourceResolver::resolve(['text'=>'/start tg_unknown_place'],$lookup), 'telegram:anytour-main');
 twCheck('Non-start message cannot change source', TelegramStartSourceResolver::resolve(['text'=>'tg_anytour_msk'],$lookup), 'telegram:anytour-main');
