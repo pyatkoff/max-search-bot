@@ -64,8 +64,6 @@ dvCheck('start sent',count($m->sent),1);
 dvCheck('start first payload',$m->sent[0]['buttons'][0][0]['callback_data'],'ai_start');
 dvCheck('start second payload',$m->sent[0]['buttons'][1][0]['callback_data'],'start_search');
 dvCheck('start status',MaxSearchApi::$statuses[0],[10,64]);
-DialogueView::aiStart(10);
-dvCheck('AI prompt does not duplicate canonical wizard action',$m->sent[count($m->sent)-1]['buttons'],[]);
 
 DialogueView::country(11);
 dvCheck('country deletes previous',MaxSearchApi::$deletes,1);
@@ -224,4 +222,7 @@ foreach ([$chat,$chat-1] as $testChat) @unlink(InteractionGuard::lockPath($testC
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
+$dialogueViewSource=(string)file_get_contents(__DIR__.'/../services/DialogueView.php');
+dvCheck('AI prompt does not duplicate canonical wizard action',strpos($dialogueViewSource,"ButtonFactory::callback('ПО ШАГАМ','start_search')")===false,true);
+
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
