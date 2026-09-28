@@ -24,6 +24,9 @@ class ConversationRecorder
             if (!$conversationId) return false;
 
             $type = (string)($incoming['type'] ?? 'message');
+            if ($platform === 'max' && $type === 'bot_started') {
+                return self::eventByChat($platform, $chatId, 'bot_started', ['source_key'=>$sourceKey], 'system');
+            }
             $attachments = array_values(array_filter((array)($incoming['attachments'] ?? []), 'is_array'));
             $text = $type === 'contact'
                 ? (string)($incoming['contact_phone'] ?? '')
