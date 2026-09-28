@@ -40,6 +40,9 @@ class DateContextResolver
 
         $month = (int)$pending['month'];
         $year = (int)$pending['year'];
+        // A remembered current month can still resolve to a day that has already
+        // passed (for example "в конце сентября" on September 28). Keep the
+        // existing future-date policy by moving that resolved day to next year.
         $normalized = function_exists('mb_strtolower')
             ? mb_strtolower(trim($text), 'UTF-8')
             : strtolower(trim($text));
@@ -75,6 +78,7 @@ class DateContextResolver
 
         if ($day <= 0) return '';
 
+        if ($year === (int)date('Y') && $month === (int)date('n') && $day < (int)date('j')) $year++;
         $date = DateParser::buildDate($day, $month, $year);
         if ($date !== '') PendingMonthStore::clear($chatId);
 
