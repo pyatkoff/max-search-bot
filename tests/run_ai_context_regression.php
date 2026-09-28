@@ -147,6 +147,101 @@ $storage = AiSearchContextService::storageMap($status);
 aiCheck('storage map country', $storage['country'] ?? null, 66);
 aiCheck('storage map date', $storage['date'] ?? null, 73);
 
+class MaxSearchApi
+{
+    public static int $statusStart = 64;
+    public static int $statusCityChoose = 65;
+    public static int $statusContryChoose = 66;
+    public static int $statusAdults = 67;
+    public static int $statusChild = 68;
+    public static int $statusAge = 69;
+    public static int $statusStars = 70;
+    public static int $statusMeal = 71;
+    public static int $statusNights = 72;
+    public static int $statusDate = 73;
+    public static array $saved = [];
+
+    public static function getSavedData($chatId): array
+    {
+        return self::$saved;
+    }
+
+    public static function applyAiParameters($chatId, array $params): array
+    {
+        $status = [
+            'city'=>self::$statusCityChoose,
+            'country'=>self::$statusContryChoose,
+            'adults'=>self::$statusAdults,
+            'children'=>self::$statusChild,
+            'child_ages'=>self::$statusAge,
+            'stars'=>self::$statusStars,
+            'meal'=>self::$statusMeal,
+            'nights'=>self::$statusNights,
+            'date'=>self::$statusDate,
+        ];
+        $normalized = AiSearchContextService::normalizeParameters(
+            $params,
+            static fn($name) => null,
+            static fn($name) => null,
+            static fn($date) => true
+        );
+        $storageMap = AiSearchContextService::storageMap($status);
+        $applied = [];
+        foreach ($normalized as $field=>$value) {
+            if (!isset($storageMap[$field])) continue;
+            self::$saved[$storageMap[$field]] = $value;
+            $applied[$field] = true;
+        }
+        return $applied;
+    }
+}
+
+require_once __DIR__ . '/../services/NeedApplicationService.php';
+
+$completePartyState = [
+    65=>17,
+    66=>4,
+    67=>2,
+    68=>1,
+    69=>'6',
+    72=>'7',
+    73=>'15.10.2026',
+];
+MaxSearchApi::$saved = $completePartyState;
+NeedApplicationService::applyParameters(42, ['children'=>0]);
+aiCheck(
+    'changing child count invalidates historical ages',
+    MaxSearchApi::$saved[69] ?? null,
+    ChildAgeValueContract::INVALIDATED_STORAGE
+);
+NeedApplicationService::applyParameters(42, ['children'=>1]);
+aiCheck(
+    'returning to an old child count does not revive historical ages',
+    AiSearchContextService::missingFromSaved(MaxSearchApi::$saved, $status),
+    ['child_ages']
+);
+
+$tombstonedRows = [
+    ['ID'=>4, 'UF_STATUS'=>69, 'UF_VALUE'=>ChildAgeValueContract::INVALIDATED_STORAGE],
+    ['ID'=>3, 'UF_STATUS'=>68, 'UF_VALUE'=>'1'],
+    ['ID'=>2, 'UF_STATUS'=>69, 'UF_VALUE'=>'6'],
+    ['ID'=>1, 'UF_STATUS'=>64, 'UF_VALUE'=>''],
+];
+$tombstonedSaved = ConversationStateRepository::savedDataFromRows($tombstonedRows, 64, 74);
+aiCheck(
+    'non-empty age invalidation shadows older age rows in saved-data projection',
+    $tombstonedSaved[69] ?? null,
+    ChildAgeValueContract::INVALIDATED_STORAGE
+);
+
+MaxSearchApi::$saved = $completePartyState;
+NeedApplicationService::applyParameters(42, ['children'=>1]);
+aiCheck('same child count restatement preserves known age', MaxSearchApi::$saved[69] ?? null, '6');
+
+MaxSearchApi::$saved = $completePartyState;
+NeedApplicationService::applyParameters(42, ['children'=>2, 'child_ages'=>[4, 8]]);
+aiCheck('fresh ages supplied with a changed count win', MaxSearchApi::$saved[69] ?? null, '4, 8');
+
 $total = $passed + $failed;
 echo "\n---------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
