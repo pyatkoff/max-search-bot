@@ -40,8 +40,8 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
     $path=$root.'/funnel.csv';
     if(!is_file($path)||is_link($path)||filesize($path)>134217728)throw new RuntimeException('journal_unavailable_or_limit');
     $fh=fopen($path,'rb');if(!$fh)throw new RuntimeException('journal_open_failed');$head=fgetcsv($fh);$idx=array_flip($head?:[]);
-    foreach(['DateTime','ChatID','CampaignID','Event'] as $key)if(!isset($idx[$key]))throw new RuntimeException('journal_header');
-    $offers=[];$events=[];$malformed=0;$order=0;
+    foreach(['DateTime','ChatID','YclidText','CampaignID','Event'] as $key)if(!isset($idx[$key]))throw new RuntimeException('journal_header');
+    $offers=[];$events=[];$join=[];$joinMissingYclid=0;$malformed=0;$order=0;
     while(($row=fgetcsv($fh))!==false){
         $order++;
         if(count($row)!==count($head)){$malformed++;continue;}
@@ -53,6 +53,19 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
         $k=$row[$idx['Event']];
         if($k==='channel_offer_start')$offers[]=['chat'=>$chat,'cid'=>$cid,'ts'=>$ts,'order'=>$order];
         if(in_array($k,['ai_start','show_tours','search_ready'],true))$events[$chat][]=['ts'=>$ts,'kind'=>$k,'cid'=>$cid,'origin'=>'journal'];
+        if(in_array($k,['bot_started','channel_offer_start','search_ready','show_tours'],true)){
+            $yclid=trim((string)$row[$idx['YclidText']]);
+            if($yclid==='')$joinMissingYclid++;
+            else{
+                $hk=hash('sha256','max-funnel-v1|'.$yclid);
+                if(!isset($join[$hk]))$join[$hk]=['campaigns'=>[],'bot_started'=>false,'offer'=>false,'parameters_ready'=>false,'show_tours'=>false];
+                $join[$hk]['campaigns'][$cid]=true;
+                if($k==='bot_started')$join[$hk]['bot_started']=true;
+                elseif($k==='channel_offer_start')$join[$hk]['offer']=true;
+                elseif($k==='search_ready')$join[$hk]['parameters_ready']=true;
+                elseif($k==='show_tours')$join[$hk]['show_tours']=true;
+            }
+        }
     }
     fclose($fh);if($malformed)throw new RuntimeException('malformed_journal_rows');
     if(count($offers)>10000)throw new RuntimeException('offer_limit');
@@ -122,6 +135,8 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
         }
     }
     foreach($seenCampaign as $set)if(count($set)>1)$out['cross_campaign_users']++;
+    foreach($join as &$j){$j['campaigns']=array_keys($j['campaigns']);sort($j['campaigns']);}unset($j);ksort($join);
+    $out['cross_system_yclid_sha256']=$join;$out['cross_system_missing_yclid_metric_rows']=$joinMissingYclid;
     return $out;
 }
 if(defined('START_SCREEN_TEST'))return;
