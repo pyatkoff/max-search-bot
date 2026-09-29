@@ -98,3 +98,8 @@ Target baseline viewports for automated visual evidence: 390, 430, 768 and 1440 
 - issue #55 — current roadmap/checkpoints, not a permanent knowledge dump.
 
 When rules conflict, production safety and explicit current user instructions win.
+
+
+## Owner correction — 2026-09-29
+
+Every explicit manager request (button, recognized text or manager-first source) enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.

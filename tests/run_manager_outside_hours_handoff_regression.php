@@ -17,9 +17,9 @@ function ohCheck(string $name, $actual, $expected): void
 }
 
 ohCheck('sent working-hours handoff enters active queue', ManagerHandoffDispatchService::shouldQueueWaiting(true, true), true);
-ohCheck('failed working-hours handoff does not enter queue', ManagerHandoffDispatchService::shouldQueueWaiting(false, true), false);
-ohCheck('sent outside-hours contact offer does not enter queue', ManagerHandoffDispatchService::shouldQueueWaiting(true, false), false);
-ohCheck('failed outside-hours contact offer does not enter queue', ManagerHandoffDispatchService::shouldQueueWaiting(false, false), false);
+ohCheck('failed working-hours confirmation retains queue', ManagerHandoffDispatchService::shouldQueueWaiting(false, true), true);
+ohCheck('sent outside-hours request enters queue', ManagerHandoffDispatchService::shouldQueueWaiting(true, false), true);
+ohCheck('failed outside-hours confirmation retains queue', ManagerHandoffDispatchService::shouldQueueWaiting(false, false), true);
 
 $queueCalls=[];
 $markWaiting=static function(string $platform,$chatId,array $payload)use(&$queueCalls):bool{
@@ -39,12 +39,17 @@ $sourcePolicy = (string)file_get_contents(__DIR__ . '/../services/SourceHandling
 ohCheck('callback waiting transition delegates the dispatch queue decision', strpos($callbackSource, 'ManagerHandoffDispatchService::applyQueueDecision($handoff') !== false, true);
 ohCheck('AI waiting transition delegates the dispatch queue decision', strpos($aiSource, 'ManagerHandoffDispatchService::applyQueueDecision($handoff') !== false, true);
 ohCheck('AI outside-hours lifecycle is recorded as deferred not active request', strpos($aiSource, "'manager_request_deferred'") !== false, true);
-ohCheck('dispatch owns the queue decision', strpos($dispatchSource, "'queue_waiting'=>self::shouldQueueWaiting") !== false, true);
+ohCheck('dispatch owns the queue decision', strpos($dispatchSource, "'queue_waiting'=>true") !== false, true);
 ohCheck('dispatch owns application of the queue decision', strpos($dispatchSource, 'function applyQueueDecision') !== false && strpos($dispatchSource, "if (empty(\$handoff['queue_waiting'])) return false") !== false, true);
 ohCheck('all handoff entrypoints delegate queue application to one owner',substr_count($aiSource,'ManagerHandoffDispatchService::applyQueueDecision')===1&&substr_count($callbackSource,'ManagerHandoffDispatchService::applyQueueDecision')===1&&substr_count($sourcePolicy,'ManagerHandoffDispatchService::applyQueueDecision')===1,true);
 ohCheck('handoff entrypoints no longer mutate waiting state directly',strpos($aiSource,'ConversationControlService::markWaitingByChat')===false&&strpos($callbackSource,'ConversationControlService::markWaitingByChat')===false&&strpos($sourcePolicy,'ConversationControlService::markWaitingByChat')===false,true);
 ohCheck('AI path still records the handoff before applying its queue transition',strpos($aiSource,'ConversationRecorder::eventByChat')<strpos($aiSource,'ManagerHandoffDispatchService::applyQueueDecision'),true);
 ohCheck('source-policy path still records the handoff before applying its queue transition',strpos($sourcePolicy,'ConversationRecorder::eventByChat')<strpos($sourcePolicy,'ManagerHandoffDispatchService::applyQueueDecision'),true);
+
+$fixtureOutput=[]; $fixtureCode=0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/manager_queue_delivery.php').' 2>&1',$fixtureOutput,$fixtureCode);
+echo implode(PHP_EOL,$fixtureOutput).PHP_EOL;
+ohCheck('real dispatch and durable queue regression', $fixtureCode, 0);
 
 $total = $passed + $failed;
 echo "\n--------------------------\n";
