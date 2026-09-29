@@ -67,3 +67,8 @@ Do not automatically change manager shift state to improve queue health. Push he
 ## Owner correction — 2026-09-29
 
 Every explicit manager request (button, recognized text or manager-first source) enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.
+
+
+## Owner correction — quiet manager waiting (2026-09-29)
+
+After the initial manager-entry greeting, ordinary customer messages go to the existing manager/queue and trigger manager notification without a bot reply. This includes legacy phone-step conversations and typed phone numbers. Automatic five-minute phone offers are disabled; no scheduled bot followup should ask for a number while a manager is awaited. Explicit contact/manual-phone actions remain customer initiated. This supersedes the older automatic phone fallback policy.

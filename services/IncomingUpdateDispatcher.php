@@ -54,8 +54,6 @@ class IncomingUpdateDispatcher
                         ConversationControlService::resumeAiByChat($platform, $chatId, 'handoff_cancelled');
                         $allow = true;
                     }
-                } elseif ($type === 'message' && class_exists('MaxSearchApi')) {
-                    try { $allow = MaxSearchApi::getCurentStatus($chatId) == MaxSearchApi::$statusPhone; } catch (Throwable $ignored) {}
                 }
             }
 

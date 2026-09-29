@@ -10,6 +10,12 @@ require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 $passed=0;$failed=0;
 function mpfCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
 
+mpfCheck('automatic phone followups are disabled by owner policy',ManagerPhoneFallbackService::AUTOMATIC_ENABLED,false);
+mpfCheck('scheduled fallback sends nothing',ManagerPhoneFallbackService::runDue()['sent'],0);
+mpfCheck('scheduler reports disabled policy',ManagerPhoneFallbackService::runDue()['disabled'],true);
+mpfCheck('disabled candidate discovery touches no runtime database',ManagerPhoneFallbackService::dueCandidates(time()),[]);
+mpfCheck('already selected candidates cannot send after policy change',ManagerPhoneFallbackService::processCandidate(['conversation_id'=>1,'external_chat_id'=>'synthetic']), 'skipped');
+
 $tz = new DateTimeZone(ManagerAvailabilityService::BUSINESS_TIMEZONE);
 $at = static function(string $value) use ($tz): int { return (new DateTimeImmutable($value,$tz))->getTimestamp(); };
 mpfCheck('before 10 is outside working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 09:59:59')),false);
@@ -58,5 +64,10 @@ mpfCheck('outside hours select truthful handoff copy',strpos($dispatchSource,"\$
 mpfCheck('cron executes manager phone fallback',strpos($cronSource,'ManagerPhoneFallbackService::runDue($now)')!==false,true);
 mpfCheck('cron reports fallback outcome',strpos($cronSource,'manager_phone_sent=')!==false,true);
 mpfCheck('phone-state chat text keeps phone optional instead of showing format error',strpos($stateSource,"if(\$phoneKind === 'non_phone')")!==false && strpos($stateSource,'номер телефона необязателен')!==false,true);
+
+$fixtureOutput=[];$fixtureCode=0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/manager_waiting_phone_routing.php').' 2>&1',$fixtureOutput,$fixtureCode);
+echo implode(PHP_EOL,$fixtureOutput).PHP_EOL;
+mpfCheck('waiting questions bypass phone replies and notify manager',$fixtureCode,0);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
