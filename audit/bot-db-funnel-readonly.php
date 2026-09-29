@@ -77,6 +77,32 @@ try{
  $pdo->rollBack();
  ksort($by);ksort($days);
  $out['project']=$project;$out['all']=$all;$out['campaigns']=$by;$out['days']=$days;
+
+ // Cross-check actual bot_started webhook events from the existing append-only funnel journal.
+ // This journal historically predates the conversation_events mirror, so it is the authoritative start-event source for this window.
+ $journal=['all'=>['events'=>0,'users'=>0],'campaigns'=>[]];$journalUsers=[];$campaignUsers=[];
+ $path=$root.'/funnel.csv';
+ if(is_file($path)&&is_readable($path)){
+   $fh=fopen($path,'rb');$header=fgetcsv($fh);
+   $idx=is_array($header)?array_flip($header):[];
+   foreach(['DateTime','ChatID','CampaignID','Event'] as $need)if(!isset($idx[$need]))throw new RuntimeException('funnel_header');
+   while(($row=fgetcsv($fh))!==false){
+     if(count($row)<=max($idx))continue;
+     if((string)$row[$idx['Event']]!=='bot_started')continue;
+     $stamp=(string)$row[$idx['DateTime']];$date=substr($stamp,0,10);
+     if($date<'2026-09-23'||$date>'2026-09-29')continue;
+     $cid=trim((string)$row[$idx['CampaignID']]);if($cid==='')$cid='not_recorded';
+     $chat=(string)$row[$idx['ChatID']];
+     if(!isset($journal['campaigns'][$cid]))$journal['campaigns'][$cid]=['events'=>0,'users'=>0];
+     $journal['campaigns'][$cid]['events']++;$journal['all']['events']++;
+     if($chat!==''){$journalUsers[$chat]=true;$campaignUsers[$cid][$chat]=true;}
+   }
+   fclose($fh);
+   $journal['all']['users']=count($journalUsers);
+   foreach($campaignUsers as $cid=>$users)$journal['campaigns'][$cid]['users']=count($users);
+   ksort($journal['campaigns']);
+ }
+ $out['bot_started_journal']=$journal;
  $out['quality']=['conversation_count'=>count($conversations),'selected_campaigns'=>$selected,
    'attribution_basis'=>'current conversations.attribution_campaign',
    'outcome_basis'=>'same local day as conversation start until capture',
