@@ -35,7 +35,7 @@ function screenProjection(array $entry,array $events,int $now,bool $known):array
 }
 function addScreenProjection(array &$bucket,array $row):void{foreach($row as $k=>$v)$bucket[$k]=($bucket[$k]??0)+$v;}
 function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable $now):array{
-    $cids=['714260445','714320748'];$tz=new DateTimeZone(date_default_timezone_get());
+    $cids=['714260445','714320748'];$tz=new DateTimeZone('Europe/Moscow');
     $from=strtotime('2026-09-23T00:00:00+03:00');$fix=strtotime('2026-09-28T19:06:53+03:00');$cap=$now->getTimestamp();
     $path=$root.'/funnel.csv';
     if(!is_file($path)||is_link($path)||filesize($path)>134217728)throw new RuntimeException('journal_unavailable_or_limit');
@@ -97,7 +97,7 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
         }
     }
     $out=['ok'=>true,'generated_at'=>$now->format('c'),'report_type'=>'first_delivered_offer_per_user_per_period_60m',
-        'from_moscow'=>(new DateTimeImmutable('@'.$from))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('c'),'fix_at_utc'=>gmdate('c',$fix),'php_log_timezone'=>$tz->getName(),
+        'from_moscow'=>(new DateTimeImmutable('@'.$from))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('c'),'fix_at_utc'=>gmdate('c',$fix),'journal_timezone'=>$tz->getName(),'php_cli_timezone'=>date_default_timezone_get(),
         'db_clock'=>$pdo->query('SELECT @@session.time_zone AS session_timezone, TIMESTAMPDIFF(SECOND,UTC_TIMESTAMP(),NOW()) AS offset_from_utc_seconds')->fetch(PDO::FETCH_ASSOC),
         'clock_alignment'=>$alignment,'clock_join_verified'=>$alignment['pairs']>=10 && $alignment['within_60s']/$alignment['pairs']>=0.9,
         'source_offer_rows'=>count($offers),'message_flag_rows'=>$rows,'explicit_test_users_excluded'=>count($tests),'periods'=>[],
