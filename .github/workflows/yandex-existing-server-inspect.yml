@@ -1,121 +1,55 @@
-name: Read Yandex campaign through existing authorised server
+name: Read MAX Search campaign funnel from existing database
 on:
   push:
     branches: [audit/yandex-existing-server-access-20260909]
-    paths: [.github/workflows/yandex-existing-server-inspect.yml, audit/yandex-readonly-queries.py]
+    paths: [.github/workflows/yandex-existing-server-inspect.yml, audit/bot-db-funnel-readonly.php]
 permissions:
   contents: read
 concurrency:
-  group: yandex-existing-server-metadata-only
+  group: max-search-campaign-funnel-readonly
   cancel-in-progress: false
 jobs:
   inspect:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
     runs-on: ubuntu-latest
-    timeout-minutes: 7
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Require local encryption before reading private advertising data
-        run: python3 -c 'from cryptography.hazmat.primitives.ciphers.aead import AESGCM; from cryptography.hazmat.primitives.asymmetric import padding; from cryptography.hazmat.primitives import hashes, serialization'
-      - name: Read using existing server dotenv; retain only encrypted evidence
+      - name: Prepare established SSH key
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          PINNED_HOSTS: ${{ secrets.STANDBY_DEPLOY_KNOWN_HOSTS }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          work="$(mktemp -d "$RUNNER_TEMP/yandex-read.XXXXXX")"
-          trap 'rm -rf "$work"' EXIT
-          export WORK_DIR="$work"
-          python3 - <<'PY'
-          import base64, os
-          from pathlib import Path
-          root=Path(os.environ['WORK_DIR'])
-          if not all(os.environ.get(k) for k in ('SSH_KEY','SSH_HOST','SSH_USER')):
-              raise SystemExit('EXISTING_SSH_SETTINGS_UNAVAILABLE')
-          try:
-              raw=os.environ['SSH_KEY'].replace('\r','')
-              raw=raw.replace('\\n','\n') if 'PRIVATE KEY' in raw else base64.b64decode(raw).decode()
-              (root/'key').write_text(raw.rstrip()+'\n'); (root/'key').chmod(0o600)
-          except Exception:
-              raise SystemExit('EXISTING_SSH_KEY_FORMAT_INVALID') from None
-          known=os.environ.get('PINNED_HOSTS','').strip()
-          (root/'known_hosts').write_text(known+'\n' if known else '')
-          print('HOST_TRUST=EXISTING_PIN' if known else 'HOST_TRUST=EXISTING_ENDPOINT_FIRST_USE_NOT_INDEPENDENTLY_VERIFIED')
-          PY
-          ssh-keygen -y -f "$work/key" > /dev/null 2>&1
-          trust=yes
-          if [ ! -s "$work/known_hosts" ]; then trust=accept-new; fi
-          opts=(-i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
-            -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null \
-            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
-          # Verify the same project revision first; the next connection refuses a changed host key.
-          ssh "${opts[@]}" -o StrictHostKeyChecking="$trust" "$SSH_USER@$SSH_HOST" \
-            'cd /var/www/anytoour/data/www/d.anytoour.ru && GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse HEAD' \
-            > "$work/sha" 2> "$work/ssh-error"
-          test "$(tr -d '\r\n' < "$work/sha")" = '602c6db7bbe4eebfbbe75744567bb58d67ba0dd0'
-          export HOST_KEY_FINGERPRINT="$(ssh-keygen -lf "$work/known_hosts" -E sha256 | awk '{print $2}' | head -n1)"
-          # Source goes over stdin. No installation, checkout, config or database write on server.
-          set +e
-          timeout 240s ssh "${opts[@]}" -o StrictHostKeyChecking=yes "$SSH_USER@$SSH_HOST" \
-            'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' \
-            < audit/yandex-readonly-queries.py > "$work/report.json" 2> "$work/read-error"
-          status=$?
-          set -e
-          export READ_EXIT="$status"
-          python3 - <<'PY'
-          import base64,json,os
-          from pathlib import Path
-          from cryptography.hazmat.primitives import hashes,serialization
-          from cryptography.hazmat.primitives.asymmetric import padding
-          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-          root=Path(os.environ['WORK_DIR']); p=root/'report.json'
-          try:
-              if os.environ['READ_EXIT']!='0' or not p.is_file() or p.stat().st_size>16000000:
-                  raise ValueError()
-              report=json.loads(p.read_bytes())
-              if any(report.get(k) is not False for k in ('server_writes','advertising_writes','database_opened','token_exported')):
-                  raise ValueError()
-          except Exception:
-              report={'status':'TRANSPORT_OR_REPORT_FAILED','campaign_id':714260445,'report_received':False}
-          data=json.dumps(report,ensure_ascii=False,allow_nan=False).encode()
-          pem=b'''-----BEGIN PUBLIC KEY-----
-          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAxADqHa+0YI5EpQ8tQKWu
-          Y/PlDmk8tqnMZDT1oysEDQs9s0w84qqQ1uQoTxIUYhhJNSn3PaPHCVMDPoSjKMt3
-          jg61K+gFeJg2T9JJ8v1AuxWul16qNOWxR652svrJ5xj+Qx/PI5Si+RdP7lTCZr/2
-          YMQkgirjd/1nKqMsvgvwpXR17zwutRr7ny7pJ5eNI3yMvWDRi0kEcaB1YXbmxCAb
-          S4+WliL4rQlP4ZoSmmmschrMBwe7RjOSjjDDg34LwjmrQj7lfn2jYeCbKOnJxCc5
-          bmt3Us4Hs1TakqhpuS6QBV9HStd2jG2SwXVXFC4tXa2WGZYk1IGGwfgZmhRY3Ktt
-          9Tvl2Zu8dIZFIcJ9nuzpNmDbZZzOnoEce4wJ3RCLmUnOCqQCH7BdtxRtqb/t4xnu
-          yzr6B7kaRxQX2QBQGsxQlj2k+YQ1fAFB5J0h6Cua+mZbQyJf3c74RE+ILWeDuE/t
-          1on8rRNEZL91DlkwbsK0jG5wSVfQxqzDWIeKiWAw8xThAgMBAAE=
-          -----END PUBLIC KEY-----'''
-          public=serialization.load_pem_public_key(pem)
-          key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
-          aad=b'yandex-714260445-report-v1'
-          ciphertext=AESGCM(key).encrypt(nonce,data,aad)
-          wrapped=public.encrypt(key,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
-          b64=lambda v:base64.b64encode(v).decode()
-          envelope={'schema':1,'alg':'RSA-OAEP-SHA256+AES-256-GCM','aad':b64(aad),
-                    'nonce':b64(nonce),'wrapped_key':b64(wrapped),'ciphertext':b64(ciphertext),
-                    'host_key_fingerprint':os.environ.get('HOST_KEY_FINGERPRINT'),
-                    'host_independently_preverified':bool(os.environ.get('PINNED_HOSTS','').strip())}
-          out=Path('yandex-encrypted-evidence');out.mkdir(exist_ok=True)
-          (out/'report.enc.json').write_text(json.dumps(envelope))
-          state=report.get('status')
-          print('READ_RESULT='+state if state in ('COLLECTED','PARTIAL','READ_FAILED','TRANSPORT_OR_REPORT_FAILED') else 'READ_RESULT=UNKNOWN')
-          print('EVIDENCE_ENCRYPTED=true; PRIVATE_KEY_AND_OAUTH_NOT_UPLOADED')
-          PY
-      - name: Retain encrypted evidence only
+          key_file="$RUNNER_TEMP/read_key"
+          raw="$SSH_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Read aggregate only
+        env:
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/read_key"
+          opts=(-i "$key_file" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          timeout 120s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -d display_errors=0 -' < audit/bot-db-funnel-readonly.php > bot-funnel.json
+          php -r '$j=json_decode(file_get_contents("bot-funnel.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["campaigns"]["714260445"],$j["campaigns"]["714320748"])||($j["server_writes"]??null)!==false||($j["database_opened"]??null)!==true){fwrite(STDERR,"aggregate_contract_failed\n");exit(1);}'
+          cat bot-funnel.json
+      - name: Retain aggregate report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: yandex-714260445-encrypted-read
-          path: yandex-encrypted-evidence/report.enc.json
+          name: max-search-campaign-funnel-readonly
+          path: bot-funnel.json
           retention-days: 3
           if-no-files-found: error
