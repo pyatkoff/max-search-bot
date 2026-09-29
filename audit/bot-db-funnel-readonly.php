@@ -78,9 +78,11 @@ try{
  ksort($by);ksort($days);
  $out['project']=$project;$out['all']=$all;$out['campaigns']=$by;$out['days']=$days;
 
- // Cross-check actual bot_started webhook events from the existing append-only funnel journal.
- // This journal historically predates the conversation_events mirror, so it is the authoritative start-event source for this window.
- $journal=['all'=>['events'=>0,'users'=>0],'campaigns'=>[]];$journalUsers=[];$campaignUsers=[];
+ // Aggregate the existing append-only funnel journal by the same user key for comparable stages.
+ $journalEvents=['bot_started','search_ready','show_tours'];
+ $journal=['all'=>[],'campaigns'=>[],'days'=>[],'hours_2026_09_28_29'=>[]];
+ foreach($journalEvents as $ev)$journal['all'][$ev]=['events'=>0,'users'=>0];
+ $allUsers=[];$campaignUsers=[];$dayUsers=[];$hourUsers=[];
  $path=$root.'/funnel.csv';
  if(is_file($path)&&is_readable($path)){
    $fh=fopen($path,'rb');$header=fgetcsv($fh);
@@ -88,21 +90,32 @@ try{
    foreach(['DateTime','ChatID','CampaignID','Event'] as $need)if(!isset($idx[$need]))throw new RuntimeException('funnel_header');
    while(($row=fgetcsv($fh))!==false){
      if(count($row)<=max($idx))continue;
-     if((string)$row[$idx['Event']]!=='bot_started')continue;
+     $ev=(string)$row[$idx['Event']]; if(!in_array($ev,$journalEvents,true))continue;
      $stamp=(string)$row[$idx['DateTime']];$date=substr($stamp,0,10);
      if($date<'2026-09-23'||$date>'2026-09-29')continue;
      $cid=trim((string)$row[$idx['CampaignID']]);if($cid==='')$cid='not_recorded';
      $chat=(string)$row[$idx['ChatID']];
-     if(!isset($journal['campaigns'][$cid]))$journal['campaigns'][$cid]=['events'=>0,'users'=>0];
-     $journal['campaigns'][$cid]['events']++;$journal['all']['events']++;
-     if($chat!==''){$journalUsers[$chat]=true;$campaignUsers[$cid][$chat]=true;}
+     if(!isset($journal['campaigns'][$cid]))foreach($journalEvents as $x)$journal['campaigns'][$cid][$x]=['events'=>0,'users'=>0];
+     if(!isset($journal['days'][$date]))$journal['days'][$date]=[];
+     if(!isset($journal['days'][$date][$cid]))foreach($journalEvents as $x)$journal['days'][$date][$cid][$x]=['events'=>0,'users'=>0];
+     $journal['all'][$ev]['events']++;$journal['campaigns'][$cid][$ev]['events']++;$journal['days'][$date][$cid][$ev]['events']++;
+     if($chat!==''){$allUsers[$ev][$chat]=true;$campaignUsers[$cid][$ev][$chat]=true;$dayUsers[$date][$cid][$ev][$chat]=true;}
+     if($date==='2026-09-28'||$date==='2026-09-29'){
+       $hour=substr($stamp,0,13).':00';
+       if(!isset($journal['hours_2026_09_28_29'][$hour]))$journal['hours_2026_09_28_29'][$hour]=[];
+       if(!isset($journal['hours_2026_09_28_29'][$hour][$cid]))foreach($journalEvents as $x)$journal['hours_2026_09_28_29'][$hour][$cid][$x]=['events'=>0,'users'=>0];
+       $journal['hours_2026_09_28_29'][$hour][$cid][$ev]['events']++;
+       if($chat!=='')$hourUsers[$hour][$cid][$ev][$chat]=true;
+     }
    }
    fclose($fh);
-   $journal['all']['users']=count($journalUsers);
-   foreach($campaignUsers as $cid=>$users)$journal['campaigns'][$cid]['users']=count($users);
-   ksort($journal['campaigns']);
+   foreach($journalEvents as $ev)$journal['all'][$ev]['users']=count($allUsers[$ev]??[]);
+   foreach($campaignUsers as $cid=>$evs)foreach($evs as $ev=>$users)$journal['campaigns'][$cid][$ev]['users']=count($users);
+   foreach($dayUsers as $day=>$cids)foreach($cids as $cid=>$evs)foreach($evs as $ev=>$users)$journal['days'][$day][$cid][$ev]['users']=count($users);
+   foreach($hourUsers as $hour=>$cids)foreach($cids as $cid=>$evs)foreach($evs as $ev=>$users)$journal['hours_2026_09_28_29'][$hour][$cid][$ev]['users']=count($users);
+   ksort($journal['campaigns']);ksort($journal['days']);ksort($journal['hours_2026_09_28_29']);
  }
- $out['bot_started_journal']=$journal;
+ $out['funnel_journal']=$journal;
  $out['quality']=['conversation_count'=>count($conversations),'selected_campaigns'=>$selected,
    'attribution_basis'=>'current conversations.attribution_campaign',
    'outcome_basis'=>'same local day as conversation start until capture',
