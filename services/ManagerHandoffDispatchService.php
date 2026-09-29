@@ -34,7 +34,12 @@ class ManagerHandoffDispatchService
         return ConversationControlService::markWaitingByChat($platform, $chatId, $payload);
     }
 
-    public static function dispatch($chatId, string $platform, string $name = '', bool $fromTours = false, ?int $now = null): array
+    public static function sourceEntryText(?int $now = null): string
+    {
+        return ManagerRequestService::sourceEntryMessageText(ManagerAvailabilityService::withinWorkingHours($now));
+    }
+
+    public static function dispatch($chatId, string $platform, string $name = '', bool $fromTours = false, ?int $now = null, bool $sourceEntry = false): array
     {
         $platform = strtolower(trim($platform));
         $conversation = ConversationControlService::statusByChat($platform, $chatId);
@@ -72,6 +77,10 @@ class ManagerHandoffDispatchService
                 $text = (string)($managerAvailable ? $model['online_text'] : $model['working_wait_text']);
             } else {
                 $text = (string)$model['outside_hours_text'];
+            }
+            if ($sourceEntry) {
+                $text = ManagerRequestService::sourceEntryMessageText($withinWorkingHours);
+                $buttons = [];
             }
             $result['sent'] = (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $text, $buttons);
         } catch (Throwable $ignored) {

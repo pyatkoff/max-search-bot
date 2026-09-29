@@ -40,10 +40,10 @@ mrCheck('existing claim is reused',MaxSearchApi::$saveCalls,0);
 mrCheck('default back callback',$model['back_callback'],'back_check');
 mrCheck('manual callback',$model['manual_callback'],'phone_manual');
 mrCheck('legacy phone text remains available for explicit phone flows',strpos($model['text'],'номером телефона')!==false,true);
-mrCheck('online text says manager is online',strpos($model['online_text'],'сейчас онлайн')!==false,true);
-mrCheck('online text does not require phone',strpos($model['online_text'],'оставлять не нужно')!==false,true);
-mrCheck('working wait text confirms queue handoff',strpos($model['working_wait_text'],'рабочую очередь')!==false,true);
-mrCheck('working wait text does not require phone',strpos($model['working_wait_text'],'номер телефона сейчас не нужен')!==false,true);
+mrCheck('handoff text does not invent online presence',strpos($model['online_text'],'онлайн')===false,true);
+mrCheck('handoff text does not raise phone capture',strpos($model['online_text'],'телефон')===false,true);
+mrCheck('working wait text confirms handoff',strpos($model['working_wait_text'],'Запрос передан менеджеру')!==false,true);
+mrCheck('working wait text does not raise phone capture',strpos($model['working_wait_text'],'телефон')===false,true);
 mrCheck('fallback text available after no reply',strpos($model['fallback_text'],'не успел ответить')!==false,true);
 mrCheck('outside-hours text available',strpos($model['outside_hours_text'],'следующий рабочий период')!==false,true);
 
@@ -147,6 +147,11 @@ for($i=101;$i<=125;$i++){
 $bounded=$projectMedia($many);
 mrCheck('summary media is bounded to twenty recent attachments',count($bounded),20);
 mrCheck('bounded media retains newest originals without synthetic IDs',array_column($bounded,'url'),array_map(static function($id){return'media-file.php?message_id='.$id.'&attachment=0';},range(106,125)));
+
+mrCheck('channel entry greets and invites a question',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\n\nМенеджер скоро присоединится к диалогу.\nА пока напишите, какой тур вас интересует или какой вопрос вы хотите задать.");
+mrCheck('night channel entry avoids soon promise',strpos(ManagerRequestService::sourceEntryMessageText(false),'скоро')===false,true);
+mrCheck('night channel entry explains working hours',strpos(ManagerRequestService::sourceEntryMessageText(false),'ответит в рабочее время')!==false,true);
+mrCheck('night handoff does not raise phone capture',strpos($model['outside_hours_text'],'телефон')===false,true);
 
 $managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
 $callbackActionSource = (string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');
