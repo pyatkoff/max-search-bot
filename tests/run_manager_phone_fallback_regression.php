@@ -59,4 +59,9 @@ mpfCheck('cron executes manager phone fallback',strpos($cronSource,'ManagerPhone
 mpfCheck('cron reports fallback outcome',strpos($cronSource,'manager_phone_sent=')!==false,true);
 mpfCheck('phone-state chat text keeps phone optional instead of showing format error',strpos($stateSource,"if(\$phoneKind === 'non_phone')")!==false && strpos($stateSource,'номер телефона необязателен')!==false,true);
 
+$fixtureOutput=[];$fixtureCode=0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/manager_waiting_phone_routing.php').' 2>&1',$fixtureOutput,$fixtureCode);
+echo implode(PHP_EOL,$fixtureOutput).PHP_EOL;
+mpfCheck('waiting questions bypass phone replies and notify manager',$fixtureCode,0);
+
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);
