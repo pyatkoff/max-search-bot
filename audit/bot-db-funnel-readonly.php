@@ -70,7 +70,8 @@ try {
             }
         }
     }
-    ksort($pilotYclid);$out['pilot_yclid_sha256']=$pilotYclid;\n    $out['natural_pairs']=['offer_then_search_intro'=>$paired,'minimum_delay_seconds'=>$delays?min($delays):null,'maximum_delay_seconds'=>$delays?max($delays):null,'inbound_before_intro'=>$activeBeforeIntro];
+    ksort($pilotYclid);$out['pilot_yclid_sha256']=$pilotYclid;
+    $out['natural_pairs']=['offer_then_search_intro'=>$paired,'minimum_delay_seconds'=>$delays?min($delays):null,'maximum_delay_seconds'=>$delays?max($delays):null,'inbound_before_intro'=>$activeBeforeIntro];
     $pdo->rollBack();
     $cron=(string)shell_exec('crontab -l 2>/dev/null');$out['followup_cron_schedules']=[];
     foreach(preg_split('/\R/',$cron)?:[] as $line){
