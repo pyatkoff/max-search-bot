@@ -1,27 +1,27 @@
 {
     "ok": true,
-    "generated_at": "2026-09-29T02:04:09+00:00",
+    "generated_at": "2026-09-29T08:42:25+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 8,
-        "raw_sessions": 8,
+        "sessions": 40,
+        "raw_sessions": 40,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 8,
+            "resolved": 40,
             "unresolved": 0
         },
-        "started": 8,
-        "needs_collected": 6,
-        "tours_opened": 6,
+        "started": 38,
+        "needs_collected": 27,
+        "tours_opened": 23,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 0,
+        "manager_requested": 4,
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
-        "phone_received": 0,
+        "phone_received": 1,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
@@ -31,21 +31,23 @@
             "max_seconds": null
         },
         "drop_points": {
-            "tours_opened": 6,
-            "collecting_needs": 2
+            "tours_opened": 23,
+            "collecting_needs": 9,
+            "needs_collected": 4,
+            "manager_requested": 4
         },
         "flags": {
-            "excessive_turns": 1,
-            "rapid_date_reselection": 1,
-            "repeated_callback_input": 1
+            "excessive_turns": 5,
+            "repeated_callback_input": 3,
+            "rapid_date_reselection": 1
         },
         "calendar_day": {
-            "conversations_started": 7,
-            "needs_collected_from_started": 5,
-            "tours_opened_from_started": 5,
+            "conversations_started": 36,
+            "needs_collected_from_started": 23,
+            "tours_opened_from_started": 19,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 0,
+            "manager_requested": 4,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
