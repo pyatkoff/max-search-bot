@@ -28,11 +28,11 @@ try {
     $out['checked_at_utc']=gmdate('c',$now);$out['from_utc']=gmdate('c',$from);
     $out['from_basis']='successful deployment receipt 36585073091';
     $events=['bot_started','channel_offer_start','subscription_first_offer','search_followup_shown','ai_text','ai_start','start_search','search_ready','show_tours','manager_request'];
-    $counts=[];$users=[];$offers=[];$history=[];
+    $counts=[];$users=[];$offers=[];$history=[];$pilotYclid=[];
     foreach(['714260445','714320748','other'] as $group)foreach($events as $event)$counts[$group][$event]=0;
     $path=$root.'/funnel.csv';if(!is_file($path)||is_link($path)||filesize($path)>134217728)throw new RuntimeException('journal_boundary');
     $f=fopen($path,'rb');$head=fgetcsv($f);$idx=array_flip($head?:[]);
-    foreach(['DateTime','ChatID','CampaignID','Event'] as $name)if(!isset($idx[$name]))throw new RuntimeException('header');
+    foreach(['DateTime','ChatID','YclidText','CampaignID','Event'] as $name)if(!isset($idx[$name]))throw new RuntimeException('header');
     $n=0;
     while(($r=fgetcsv($f))!==false){
         if(++$n>1000000)throw new RuntimeException('journal_limit');
@@ -47,6 +47,8 @@ try {
         $history[$chat][]=['ts'=>$ts,'event'=>$event];
         if($event==='subscription_first_offer'){
             $offers[$chat][]=['ts'=>$ts,'group'=>$group];
+            $yclid=trim((string)$r[$idx['YclidText']]);if(str_starts_with($yclid,"'"))$yclid=substr($yclid,1);
+            if($yclid!=='')$pilotYclid[hash('sha256','max-funnel-v1|'.$yclid)]=['campaign'=>$group,'offer_utc'=>gmdate('c',$ts)];
             $out['first_natural_offer_utc']=isset($out['first_natural_offer_utc'])?min($out['first_natural_offer_utc'],gmdate('c',$ts)):gmdate('c',$ts);
         }
         if($event==='search_followup_shown')$out['last_natural_search_intro_utc']=gmdate('c',$ts);
@@ -68,7 +70,7 @@ try {
             }
         }
     }
-    $out['natural_pairs']=['offer_then_search_intro'=>$paired,'minimum_delay_seconds'=>$delays?min($delays):null,'maximum_delay_seconds'=>$delays?max($delays):null,'inbound_before_intro'=>$activeBeforeIntro];
+    ksort($pilotYclid);$out['pilot_yclid_sha256']=$pilotYclid;\n    $out['natural_pairs']=['offer_then_search_intro'=>$paired,'minimum_delay_seconds'=>$delays?min($delays):null,'maximum_delay_seconds'=>$delays?max($delays):null,'inbound_before_intro'=>$activeBeforeIntro];
     $pdo->rollBack();
     $cron=(string)shell_exec('crontab -l 2>/dev/null');$out['followup_cron_schedules']=[];
     foreach(preg_split('/\R/',$cron)?:[] as $line){
