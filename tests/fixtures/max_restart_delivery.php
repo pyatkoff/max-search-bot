@@ -9,7 +9,7 @@ $bootstrap= <<<'PHP'
 class ConversationDb { public static $pdo; public static function isConfigured(){return true;} public static function connection(){return self::$pdo;} }
 class ProjectConfig { public static function projectId(){return 'anytour';} }
 class DiagnosticLogger { public static function log(...$args){} }
-class SourceHandlingService { public static function handle($incoming){throw new RuntimeException('owned conversation must not redispatch');} }
+class SourceHandlingService { public static $acknowledgements=0; public static function acknowledgeManagerStart($chat,$conversation){self::$acknowledgements++;return true;} public static function handle($incoming){throw new RuntimeException('owned conversation must not redispatch');} }
 class ConversationRecorder {
     public static function inbound($incoming){throw new RuntimeException('owned restart must not seed a conversation');}
     public static function eventByChat($channel,$chat,$type,$payload=[],$actor='system'){
@@ -68,6 +68,7 @@ try{
         foreach(['manager','waiting_manager'] as $status){
             $id++;restartSeed($id,$status);$label=$source.' / '.$status;$before=restartRow($id);
             restartCheck('old start cannot clear a newer suspension: '.$label,ManagerDeliveryStateService::activeFailure($id)['category']??null,'suspended');
+            $acks=SourceHandlingService::$acknowledgements;
             $calls=MaxMessengerAdapter::$calls;
             restartCheck('pre-restart send stays blocked: '.$label,ManagerOutboundService::send($id,7,'Synthetic retry'),false);
             restartCheck('blocked send never reaches provider: '.$label,MaxMessengerAdapter::$calls,$calls);
@@ -75,10 +76,11 @@ try{
             $incoming=['platform'=>'max','type'=>'bot_started','source_key'=>$source,'user'=>['chat_id'=>-$id,'external_user_id'=>$id]];
             restartCheck('source restart is handled: '.$label,MaxStartSourcePolicy::apply($incoming,$source),true);
             MaxStartSourcePolicy::apply($incoming,$source);
+            restartCheck('restart delegates customer status acknowledgement: '.$label,SourceHandlingService::$acknowledgements,$acks+2);
             $after=restartRow($id);
             restartCheck('restart preserves routing and ownership: '.$label,[$after['source_id'],$after['manager_id'],$after['status']],[$before['source_id'],$before['manager_id'],$before['status']]);
             restartCheck('restart retains exact entry: '.$label,$after['entry_channel'],$source);
-            restartCheck('restart never auto-sends: '.$label,MaxMessengerAdapter::$calls,$calls);
+            restartCheck('restart never auto-sends a manager reply: '.$label,MaxMessengerAdapter::$calls,$calls);
             restartCheck('restart leaves transcript immutable: '.$label,$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messages);
             restartCheck('same-second fresh restart clears workspace restriction: '.$label,ManagerDeliveryStateService::activeFailure($id),null);
             if($status==='waiting_manager'){
@@ -92,6 +94,7 @@ try{
             restartCheck('one explicit media send reaches provider: '.$label,MaxMessengerAdapter::$calls,$calls+2);
             MaxMessengerAdapter::$ok=false;
             restartCheck('a new provider suspension remains a failure: '.$label,ManagerOutboundService::send($id,7,'Synthetic later send'),false);
+            $acks=SourceHandlingService::$acknowledgements;
             $calls=MaxMessengerAdapter::$calls;
             restartCheck('new suspension overrides previous restart: '.$label,ManagerDeliveryStateService::activeFailure($id)['category']??null,'suspended');
             restartCheck('new suspension blocks another send: '.$label,ManagerOutboundService::send($id,7,'Synthetic retry'),false);

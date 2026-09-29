@@ -94,6 +94,20 @@ class SourceHandlingService
         }
     }
 
+    /** A fresh MAX entry confirms existing ownership without making another request. */
+    public static function acknowledgeManagerStart($chatId, array $conversation): bool
+    {
+        $status=(string)($conversation['status']??'');
+        if($status==='manager'||(int)($conversation['manager_id']??0)>0){
+            $text='👩‍💼 Ваш диалог уже закреплён за менеджером. Напишите вопрос или пожелания здесь — сообщение поступит в этот же диалог.';
+        }elseif($status==='waiting_manager'){
+            $text='👩‍💼 Ваш запрос уже в очереди к менеджеру. Ответ придёт в этот чат. Можно написать вопрос или дополнить пожелания — повторно оформлять заявку не нужно.';
+        }else{
+            return false;
+        }
+        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,$text,[]);
+    }
+
     private static function handoff(array $incoming,string $platform,$chatId,string $reason): void
     {
         $user=(array)($incoming['user']??[]);
