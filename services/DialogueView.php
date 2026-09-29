@@ -24,8 +24,7 @@ class DialogueView
                 . "• предложения с удобными вылетами.\n\n"
                 . "Нажмите кнопку ниже чтобы подписаться 👇";
             $buttons = ButtonFactory::rows(
-                ButtonFactory::row(ButtonFactory::url('🔥 Подписаться на канал', $channelUrl)),
-                ButtonFactory::row(ButtonFactory::callback('🔎 Подобрать тур', 'search_options'))
+                ButtonFactory::row(ButtonFactory::url('🔥 Подписаться на канал', $channelUrl))
             );
         }
         $ok = self::sendAndStatus($chatId,
@@ -35,7 +34,22 @@ class DialogueView
             false
         );
         if ($ok && $channelUrl !== '') {
-            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_start', []); } catch (Throwable $e) {}
+            try { MaxSearchApi::funnelLog($chatId, 'channel_offer_start', ['variant'=>'subscription_first']); } catch (Throwable $e) {}
+            try { MaxSearchApi::funnelLog($chatId, 'subscription_first_offer', []); } catch (Throwable $e) {}
+            try { MaxSearchApi::scheduleSearchIntroFollowup($chatId, 60); } catch (Throwable $e) {}
+        }
+        return $ok;
+    }
+
+    public static function delayedSearchIntro($chatId): bool
+    {
+        $ok = (bool)IntegrationRegistry::messenger()->sendWithButtons(
+            $chatId,
+            "🔎 <b>Хотите подобрать тур?</b>\n\nПросто напишите пожелания обычным сообщением — например: «Турция в октябре, 2 взрослых, 7–9 ночей».\n\nИли нажмите кнопку ниже.",
+            ButtonFactory::rows(ButtonFactory::row(ButtonFactory::callback('🔎 Подобрать тур', 'search_options')))
+        );
+        if ($ok) {
+            try { MaxSearchApi::funnelLog($chatId, 'search_followup_shown', ['variant'=>'subscription_first']); } catch (Throwable $e) {}
         }
         return $ok;
     }
