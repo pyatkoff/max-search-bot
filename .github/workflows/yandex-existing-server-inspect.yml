@@ -1,5 +1,5 @@
 name: Read MAX Search campaign funnel from existing database
-# cross-system pseudonymous join refresh
+# cross-system pseudonymous join refresh v2
 on:
   push:
     branches: [audit/yandex-existing-server-access-20260909]
