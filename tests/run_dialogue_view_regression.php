@@ -24,7 +24,8 @@ class MaxSearchApi {
     public static array $statuses=[];
     public static array $statusValues=[];
     public static int $deletes=0;
-    public static array $events=[];\n    public static array $scheduledSearchIntros=[];
+    public static array $events=[];
+    public static array $scheduledSearchIntros=[];
     public static int $currentStatus=64;
     public static bool $probeAi=false;
     public static function getCurentStatus($chatId){return self::$currentStatus;}
@@ -42,7 +43,8 @@ class MaxSearchApi {
         if(self::$probeAi && $event==='ai_text') throw new AiEntryReached((string)($details['text']??''));
         return true;
     }
-    public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}\n    public static function scheduleSearchIntroFollowup($chatId,$delay=60){self::$scheduledSearchIntros[]=[(int)$chatId,(int)$delay];return true;}
+    public static function saveClaim($chatId,$saved){return 'https://example.test/claim';}
+    public static function scheduleSearchIntroFollowup($chatId,$delay=60){self::$scheduledSearchIntros[]=[(int)$chatId,(int)$delay];return true;}
 }
 require_once __DIR__ . '/../services/DialogueView.php';
 require_once __DIR__ . '/../services/DialogueController.php';
@@ -137,7 +139,8 @@ foreach (['1234567890123456_region_213_campaign_42','1234567890123456_213_campai
         . "• предложения с удобными вылетами.\n\nНажмите кнопку ниже чтобы подписаться 👇");
     dvCheck('paid start changes status once',count(MaxSearchApi::$statuses),$statusesBefore+1);
     dvCheck('paid start retains start state',MaxSearchApi::$statuses[$statusesBefore],[-900000001,64]);
-    dvCheck('offer records experiment analytics only',array_slice(MaxSearchApi::$events,$eventsBefore),['channel_offer_start','subscription_first_offer']);\n    dvCheck('paid start schedules delayed search intro',MaxSearchApi::$scheduledSearchIntros[count(MaxSearchApi::$scheduledSearchIntros)-1]??null,[-900000001,60]);
+    dvCheck('offer records experiment analytics only',array_slice(MaxSearchApi::$events,$eventsBefore),['channel_offer_start','subscription_first_offer']);
+    dvCheck('paid start schedules delayed search intro',MaxSearchApi::$scheduledSearchIntros[count(MaxSearchApi::$scheduledSearchIntros)-1]??null,[-900000001,60]);
 }
 foreach (['','0','ordinary_entry','12345_region_213_campaign_42','000000_region_213_campaign_42','123456789_region_0_campaign_42','123456789_region_unknown_campaign_42','123456789_region_213_campaign_unknown'] as $payload) {
     DialogueView::start(-900000001,TrafficAttributionService::parseStartPayload($payload));
