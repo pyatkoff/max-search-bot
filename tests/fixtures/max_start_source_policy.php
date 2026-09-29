@@ -172,7 +172,7 @@ try{
         startCheck('documented legacy night request resumes even at night: '.$key,fixtureConversation($id)['status'],'waiting_manager');
     }
     ManagerHandoffDispatchService::$workingHours=true;
-    // No speculative re-dispatch without explicit most-recent outside-hours evidence.
+    // A fresh explicit manager-source start itself expresses current manager intent.
     foreach([null,[],['within_working_hours'=>true],['within_working_hours'=>0],['within_working_hours'=>'false']] as $latest){
         $id=$fixtureUser++;ConversationRecorder::inbound(fixtureIncoming($id,'max_anytour_msk1','message'));
         ConversationRecorder::eventByChat('max',-$id,'source_handling_choice',['choice'=>'manager']);
@@ -181,7 +181,7 @@ try{
             ConversationRecorder::eventByChat('max',-$id,'manager_request',$latest);
         }
         $calls=count(ManagerHandoffDispatchService::$calls);fixtureStart($id);
-        startCheck('ambiguous or superseded night evidence cannot redispatch: '.json_encode($latest),count(ManagerHandoffDispatchService::$calls),$calls);
+        startCheck('fresh explicit start queues regardless of old delivery evidence: '.json_encode($latest),count(ManagerHandoffDispatchService::$calls),$calls+1);
     }
 
     $before=count(MaxSearchApi::$greetings);$pdo->exec('DROP TABLE customers');
