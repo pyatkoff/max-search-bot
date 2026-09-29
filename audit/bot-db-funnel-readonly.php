@@ -84,7 +84,7 @@ try {
         $lf=fopen($logPath,'rb');$deployLocal=(new DateTimeImmutable('@'.$from))->setTimezone($tz);
         while(($line=fgets($lf))!==false){
             if(!preg_match('/^(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2})--- (.*)$/',trim($line),$m))continue;
-            $dt=DateTimeImmutable::createFromFormat('!d.m.Y H:i:s',$m[1],$tz);if(!$dt||$dt->getTimestamp()<$from)continue;
+            $dt=DateTimeImmutable::createFromFormat('!d.m.Y H:i:s',$m[1],new DateTimeZone('UTC'));if(!$dt||$dt->getTimestamp()<$from)continue;
             $msg=$m[2];
             foreach(['SEND_SEARCH_INTRO','SKIP_SEARCH_INTRO_PROGRESS','SKIP_PHONE','SKIP_MANAGER','WAIT'] as $tag)if(str_starts_with($msg,$tag.' '))$out['followup_log_after_deploy'][$tag]++;
             if(str_starts_with($msg,'SEND_DONE ')&&str_contains($msg,'type=search_intro'))$out['followup_log_after_deploy']['SEND_DONE_SEARCH_INTRO']++;
