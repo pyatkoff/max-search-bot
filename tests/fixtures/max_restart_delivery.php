@@ -76,7 +76,7 @@ try{
             $incoming=['platform'=>'max','type'=>'bot_started','source_key'=>$source,'user'=>['chat_id'=>-$id,'external_user_id'=>$id]];
             restartCheck('source restart is handled: '.$label,MaxStartSourcePolicy::apply($incoming,$source),true);
             MaxStartSourcePolicy::apply($incoming,$source);
-            restartCheck('restart delegates customer status acknowledgement: '.$label,SourceHandlingService::$acknowledgements,$acks+2);
+            restartCheck('restart never delegates a repeated greeting: '.$label,SourceHandlingService::$acknowledgements,$acks);
             $after=restartRow($id);
             restartCheck('restart preserves routing and ownership: '.$label,[$after['source_id'],$after['manager_id'],$after['status']],[$before['source_id'],$before['manager_id'],$before['status']]);
             restartCheck('restart retains exact entry: '.$label,$after['entry_channel'],$source);
@@ -92,6 +92,10 @@ try{
             restartCheck('one explicit text send reaches provider: '.$label,MaxMessengerAdapter::$calls,$calls+1);
             restartCheck('explicit owned media send works after restart: '.$label,ManagerOutboundService::sendMedia($id,7,$media,'synthetic.txt','text/plain'),true);
             restartCheck('one explicit media send reaches provider: '.$label,MaxMessengerAdapter::$calls,$calls+2);
+            $afterReplyCalls=MaxMessengerAdapter::$calls;
+            MaxStartSourcePolicy::apply($incoming,$source);
+            restartCheck('source reentry after manager reply stays silent: '.$label,MaxMessengerAdapter::$calls,$afterReplyCalls);
+            restartCheck('source reentry after reply does not ask manager to join again: '.$label,SourceHandlingService::$acknowledgements,$acks);
             MaxMessengerAdapter::$ok=false;
             restartCheck('a new provider suspension remains a failure: '.$label,ManagerOutboundService::send($id,7,'Synthetic later send'),false);
             $acks=SourceHandlingService::$acknowledgements;

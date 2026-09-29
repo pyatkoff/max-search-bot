@@ -71,9 +71,7 @@ try{
     startCheck('MAX payload is preserved in existing traffic store',MaxSearchApi::getTrafficMeta(-990001)['raw'],'max_anytour_msk1');
     $ackBefore=count(IntegrationRegistry::$m->sent);
     fixtureStart(990001);fixtureStart(990001);
-    startCheck('each fresh waiting start gets one status confirmation',count(IntegrationRegistry::$m->sent),$ackBefore+2);
-    startCheck('waiting start greets and invites a question',IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(true));
-    startCheck('status confirmation has no duplicate request button',IntegrationRegistry::$m->sent[$ackBefore]['buttons'],[]);
+    startCheck('repeated waiting starts stay silent',count(IntegrationRegistry::$m->sent),$ackBefore);
     startCheck('repeat starts do not request manager again',count(ManagerHandoffDispatchService::$calls),1);
     startCheck('repeat starts do not send AI greetings',count(MaxSearchApi::$greetings),0);
     startCheck('repeat starts keep existing waiting state',fixtureConversation(990001)['status'],'waiting_manager');
@@ -152,8 +150,7 @@ try{
             startCheck('owned reentry preserves routing source: '.$label,$after['source_id'],$owned['source_id']);
             startCheck('owned reentry preserves manager: '.$label,$after['manager_id'],$owned['manager_id']);
             startCheck('owned reentry preserves status: '.$label,$after['status'],$status);
-            startCheck('owned reentry confirms existing status: '.$label,count(IntegrationRegistry::$m->sent),$ackBefore+2);
-            startCheck('owned reentry uses the same channel greeting: '.$label,IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(true));
+            startCheck('owned reentry stays silent: '.$label,count(IntegrationRegistry::$m->sent),$ackBefore);
             startCheck('owned reentry sends no new handoff: '.$label,count(ManagerHandoffDispatchService::$calls),$calls);
             startCheck('owned reentry never resets dialogue: '.$label,count(MaxSearchApi::$resets),$resets);
             startCheck('owned reentry preserves transcript: '.$label,$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messages);
@@ -184,20 +181,18 @@ try{
     ManagerHandoffDispatchService::$workingHours=true;
     ManagerHandoffDispatchService::$workingHours=false;
     $ackBefore=count(IntegrationRegistry::$m->sent);fixtureStart(990001,'max_anytour_msk');
-    startCheck('assigned manager night reentry uses truthful working-hours copy',IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(false));
+    startCheck('assigned manager night reentry stays silent',count(IntegrationRegistry::$m->sent),$ackBefore);
     ManagerHandoffDispatchService::$workingHours=true;
-    // Failed status delivery must not reset or reassign the existing conversation.
+    // Reentry must not depend on messenger availability or send any message.
     IntegrationRegistry::$m->ok=false;
     $ownedBefore=fixtureConversation(990001);$calls=count(ManagerHandoffDispatchService::$calls);
     fixtureStart(990001,'max_anytour_msk');
     $ownedAfter=fixtureConversation(990001);
-    startCheck('failed acknowledgement preserves manager',$ownedAfter['manager_id'],$ownedBefore['manager_id']);
-    startCheck('failed acknowledgement preserves status',$ownedAfter['status'],$ownedBefore['status']);
-    startCheck('failed acknowledgement cannot repeat handoff',count(ManagerHandoffDispatchService::$calls),$calls);
+    startCheck('unavailable messenger reentry preserves manager',$ownedAfter['manager_id'],$ownedBefore['manager_id']);
+    startCheck('unavailable messenger reentry preserves status',$ownedAfter['status'],$ownedBefore['status']);
+    startCheck('unavailable messenger reentry cannot repeat handoff',count(ManagerHandoffDispatchService::$calls),$calls);
+    startCheck('unavailable messenger reentry attempts no send',count(IntegrationRegistry::$m->sent),$ackBefore);
     IntegrationRegistry::$m->ok=true;
-    $ackBefore=count(IntegrationRegistry::$m->sent);
-    startCheck('AI state cannot receive a false manager confirmation',SourceHandlingService::acknowledgeManagerStart(-1,['status'=>'ai','manager_id'=>null]),false);
-    startCheck('invalid acknowledgement sends nothing',count(IntegrationRegistry::$m->sent),$ackBefore);
 
     // A fresh explicit manager-source start itself expresses current manager intent.
     foreach([null,[],['within_working_hours'=>true],['within_working_hours'=>0],['within_working_hours'=>'false']] as $latest){

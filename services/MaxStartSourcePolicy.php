@@ -45,10 +45,9 @@ final class MaxStartSourcePolicy
                 $q=$pdo->prepare("UPDATE conversations SET entry_channel=? WHERE id=? AND project_key=? AND channel='max' AND status<>'closed'");
                 $q->execute([$sourceKey,(int)$existing['id'],$project]);
                 // The authenticated webhook start is activity, not a customer message.
-                // Record recovery evidence before confirming the current state to the customer.
+                // Preserve restart recovery without repeating the initial handoff greeting.
                 if(($incoming['type']??'')==='bot_started'){
                     ConversationRecorder::eventByChat('max',$chat,'bot_started',['source_key'=>$sourceKey],'system');
-                    SourceHandlingService::acknowledgeManagerStart($chat,$existing);
                 }
                 return true;
             }

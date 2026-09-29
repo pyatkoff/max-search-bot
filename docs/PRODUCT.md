@@ -72,3 +72,8 @@ Every explicit manager request (button, recognized text or manager-first source)
 ## Owner correction — quiet manager waiting (2026-09-29)
 
 After the initial manager-entry greeting, ordinary customer messages go to the existing manager/queue and trigger manager notification without a bot reply. This includes legacy phone-step conversations and typed phone numbers. Automatic five-minute phone offers are disabled; no scheduled bot followup should ask for a number while a manager is awaited. Explicit contact/manual-phone actions remain customer initiated. This supersedes the older automatic phone fallback policy.
+
+
+## Owner correction — one greeting per handoff (2026-09-29)
+
+A manager-source entry sends the initial concise greeting only when it creates a new handoff. Reopening a source link while already waiting or assigned is silent, including after a manager has replied. Preserve the genuine `bot_started` recovery event and entry attribution without changing ownership, queue or transcript. This supersedes the earlier acknowledgement on every source reentry. Night entry retains truthful working-hours wording.
