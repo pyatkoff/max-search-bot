@@ -79,7 +79,7 @@ try{
  $out['project']=$project;$out['all']=$all;$out['campaigns']=$by;$out['days']=$days;
 
  // Aggregate the existing append-only funnel journal by the same user key for comparable stages.
- $journalEvents=['bot_started','search_ready','show_tours'];
+ $journalEvents=['bot_started','channel_offer_start','search_ready','show_tours'];
  $journal=['all'=>[],'campaigns'=>[],'days'=>[],'hours_2026_09_28_29'=>[]];
  foreach($journalEvents as $ev)$journal['all'][$ev]=['events'=>0,'users'=>0];
  $allUsers=[];$campaignUsers=[];$dayUsers=[];$hourUsers=[];
