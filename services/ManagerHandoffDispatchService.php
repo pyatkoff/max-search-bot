@@ -80,7 +80,6 @@ class ManagerHandoffDispatchService
             }
             if ($sourceEntry) {
                 $text = ManagerRequestService::sourceEntryMessageText($withinWorkingHours);
-                $buttons = [];
             }
             $result['sent'] = (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $text, $buttons);
         } catch (Throwable $ignored) {
