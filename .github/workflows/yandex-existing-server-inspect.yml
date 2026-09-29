@@ -43,7 +43,7 @@ jobs:
           set -euo pipefail
           key_file="$RUNNER_TEMP/read_key"
           opts=(-i "$key_file" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
-          timeout 120s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -d display_errors=0 -' < audit/bot-db-funnel-readonly.php > bot-funnel.json
+          timeout 120s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -d display_errors=0' < audit/bot-db-funnel-readonly.php > bot-funnel.json
           php -r '$j=json_decode(file_get_contents("bot-funnel.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["campaigns"]["714260445"],$j["campaigns"]["714320748"])||($j["server_writes"]??null)!==false||($j["database_opened"]??null)!==true){fwrite(STDERR,"aggregate_contract_failed\n");exit(1);}'
           cat bot-funnel.json
       - name: Retain aggregate report
