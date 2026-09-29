@@ -238,3 +238,8 @@ No big-bang rewrite. When touching an area for product work:
 6. only then remove dead legacy code.
 
 Production/live defects always outrank cleanup.
+
+
+## Owner correction — 2026-09-29
+
+Every explicit manager request (button, recognized text or manager-first source) enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.

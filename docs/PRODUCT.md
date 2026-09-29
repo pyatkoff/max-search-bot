@@ -62,3 +62,8 @@ Customer ↔ manager communication should support photo, video, audio/voice and 
 Do not change Yandex Metrica goals/counters or the existing lead-sending mechanism as part of product/refactor work unless the user explicitly requests that exact change.
 
 Do not automatically change manager shift state to improve queue health. Push health and working status are separate operational facts.
+
+
+## Owner correction — 2026-09-29
+
+Every explicit manager request (button, recognized text or manager-first source) enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.

@@ -31,7 +31,7 @@ class MaxSearchApi {
 class ManagerAvailabilityService { public static function withinWorkingHours(){return ManagerHandoffDispatchService::$workingHours;} }
 class ManagerHandoffDispatchService {
     public static $calls=[],$applied=0,$available=true,$workingHours=true;
-    public static function dispatch($chat,$platform,$name,$fromTours){$q=ConversationDb::connection()->prepare("SELECT source_id,entry_channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);self::$calls[]=$q->fetch();if(!self::$workingHours)MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusPhone;return ['sent'=>true,'manager_available'=>self::$available,'within_working_hours'=>self::$workingHours,'queue_waiting'=>self::$workingHours];}
+    public static function dispatch($chat,$platform,$name,$fromTours){$q=ConversationDb::connection()->prepare("SELECT source_id,entry_channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);self::$calls[]=$q->fetch();return ['sent'=>true,'manager_available'=>self::$available,'within_working_hours'=>self::$workingHours,'queue_waiting'=>true];}
     public static function applyQueueDecision($decision,$platform,$chat,$metadata){self::$applied++;if(!empty($decision['queue_waiting'])){$q=ConversationDb::connection()->prepare("UPDATE conversations SET status='waiting_manager' WHERE project_key=? AND channel=? AND external_chat_id=?");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);}}
 }
 PHP;
@@ -103,7 +103,7 @@ try{
     fixtureStart(990004);$count=count(ManagerHandoffDispatchService::$calls);fixtureStart(990004);
     startCheck('outside-hours policy does not trigger repeat handoff',count(ManagerHandoffDispatchService::$calls),$count);
     startCheck('outside-hours start never falls back to AI chooser',count(MaxSearchApi::$greetings),0);
-    startCheck('outside-hours handoff is not an active queue',fixtureConversation(990004)['status'],'ai');
+    startCheck('outside-hours handoff enters queue',fixtureConversation(990004)['status'],'waiting_manager');
     startCheck('phone response is not swallowed after source handoff',SourceHandlingService::handle(fixtureIncoming(990004,'max_anytour_msk1','contact')),false);
     startCheck('optional phone text reaches existing application',SourceHandlingService::handle(fixtureIncoming(990004,'max_anytour_msk1','message')),false);
     ManagerHandoffDispatchService::$available=true;ManagerHandoffDispatchService::$workingHours=true;
@@ -153,16 +153,25 @@ try{
         $id=$fixtureUser++;ManagerHandoffDispatchService::$workingHours=false;
         fixtureStart($id,$key);$calls=count(ManagerHandoffDispatchService::$calls);fixtureStart($id,$key);
         startCheck('night repeat sends no second offer: '.$key,count(ManagerHandoffDispatchService::$calls),$calls);
-        startCheck('night offer leaves queue inactive: '.$key,fixtureConversation($id)['status'],'ai');
+        startCheck('night request enters queue: '.$key,fixtureConversation($id)['status'],'waiting_manager');
         ManagerHandoffDispatchService::$workingHours=true;ManagerHandoffDispatchService::$available=false;
         SourceHandlingService::handle(fixtureIncoming($id,$key,'contact'));
         startCheck('contact is not a new start: '.$key,count(ManagerHandoffDispatchService::$calls),$calls);
         fixtureStart($id,$key);fixtureStart($id,$key);
-        startCheck('day reentry resumes once after night: '.$key,count(ManagerHandoffDispatchService::$calls),$calls+1);
+        startCheck('day reentry preserves existing night queue: '.$key,count(ManagerHandoffDispatchService::$calls),$calls);
         startCheck('day reentry queues even with no online manager: '.$key,fixtureConversation($id)['status'],'waiting_manager');
         startCheck('day reentry retains exact attribution: '.$key,fixtureConversation($id)['entry_channel'],$key);
         ManagerHandoffDispatchService::$available=true;
     }
+    foreach(['max_anytour_msk1','max_anytour_msk'] as $key){
+        $id=$fixtureUser++;ManagerHandoffDispatchService::$workingHours=false;
+        ConversationRecorder::inbound(fixtureIncoming($id,$key,'message'));
+        ConversationRecorder::eventByChat('max',-$id,'source_handling_choice',['choice'=>'manager']);
+        ConversationRecorder::eventByChat('max',-$id,'manager_request',['within_working_hours'=>false]);
+        fixtureStart($id,$key);
+        startCheck('documented legacy night request resumes even at night: '.$key,fixtureConversation($id)['status'],'waiting_manager');
+    }
+    ManagerHandoffDispatchService::$workingHours=true;
     // No speculative re-dispatch without explicit most-recent outside-hours evidence.
     foreach([null,[],['within_working_hours'=>true],['within_working_hours'=>0],['within_working_hours'=>'false']] as $latest){
         $id=$fixtureUser++;ConversationRecorder::inbound(fixtureIncoming($id,'max_anytour_msk1','message'));

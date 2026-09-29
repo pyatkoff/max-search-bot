@@ -13,7 +13,8 @@ class ManagerHandoffDispatchService
 {
     public static function shouldQueueWaiting(bool $sent, bool $withinWorkingHours): bool
     {
-        return $sent && $withinWorkingHours;
+        // Explicit manager intent is independent of clock and confirmation delivery.
+        return true;
     }
 
     /**
@@ -27,6 +28,7 @@ class ManagerHandoffDispatchService
         array $payload = [],
         ?callable $markWaiting = null
     ): bool {
+        if (array_key_exists('queue_applied', $handoff)) return (bool)$handoff['queue_applied'];
         if (empty($handoff['queue_waiting'])) return false;
         if ($markWaiting !== null) return (bool)$markWaiting($platform, $chatId, $payload);
         return ConversationControlService::markWaitingByChat($platform, $chatId, $payload);
@@ -47,35 +49,35 @@ class ManagerHandoffDispatchService
             }
         }
 
-        if ($withinWorkingHours) {
-            // During the workday the manager request itself is the primary conversion.
-            // Availability is an operational hint, not a reason to block the handoff on phone.
-            // If nobody replies, the existing delayed fallback offers phone after 5 minutes.
+        // Persist intent before claim preparation or any external customer send.
+        $queued = self::applyQueueDecision(['queue_waiting'=>true], $platform, $chatId, [
+            'source'=>'manager_dispatch',
+            'manager_available'=>$managerAvailable,
+            'within_working_hours'=>$withinWorkingHours,
+        ]);
+        $result = ['sent'=>false, 'manager_available'=>$managerAvailable,
+            'within_working_hours'=>$withinWorkingHours, 'queue_waiting'=>true,
+            'queue_applied'=>$queued];
+        if (!$queued) return $result;
+        if ($conversation && in_array((string)$conversation['status'], ['manager','waiting_manager'], true)) {
+            $result['sent'] = true; // Already handed off: no duplicate confirmation or push.
+            return $result;
+        }
+
+        try {
             $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
             MaxSearchApi::deletePrevMessage($chatId);
             $buttons = [[['text'=>'↩️ Вернуться','callback_data'=>(string)$model['back_callback']]]];
-            $sent = IntegrationRegistry::messenger()->sendWithButtons(
-                $chatId,
-                (string)($managerAvailable ? $model['online_text'] : $model['working_wait_text']),
-                $buttons
-            );
-        } else {
-            // Outside working hours phone remains optional and the copy is explicit about
-            // the next working period; self-service/tours remain available via Back.
-            // This is a deferred contact offer, not an active manager queue request.
-            $sent = DialogueView::managerRequest(
-                $chatId,
-                $name,
-                $fromTours,
-                true
-            );
+            if ($withinWorkingHours) {
+                $text = (string)($managerAvailable ? $model['online_text'] : $model['working_wait_text']);
+            } else {
+                $text = (string)$model['outside_hours_text'];
+            }
+            $result['sent'] = (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $text, $buttons);
+        } catch (Throwable $ignored) {
+            // A failed acknowledgement must never undo or hide the saved request.
+            $result['sent'] = false;
         }
-
-        return [
-            'sent'=>(bool)$sent,
-            'manager_available'=>$managerAvailable,
-            'within_working_hours'=>$withinWorkingHours,
-            'queue_waiting'=>self::shouldQueueWaiting((bool)$sent, $withinWorkingHours),
-        ];
+        return $result;
     }
 }

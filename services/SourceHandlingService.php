@@ -95,8 +95,7 @@ class SourceHandlingService
 
     private static function deferredStartCanResume(int $conversationId): bool
     {
-        // The existing availability service remains the only work-window owner.
-        if(!class_exists('ManagerAvailabilityService')||!ManagerAvailabilityService::withinWorkingHours())return false;
+        // A documented old deferred request may resume at any hour.
         $q=ConversationDb::connection()->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='manager_request' ORDER BY id DESC LIMIT 1");
         $q->execute([$conversationId]);
         $payload=json_decode((string)$q->fetchColumn(),true);

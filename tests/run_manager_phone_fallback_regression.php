@@ -20,7 +20,7 @@ mpfCheck('fallback delay is exactly five minutes',ManagerPhoneFallbackService::D
 mpfCheck('fallback copy explains manager has not replied',strpos(ManagerRequestService::fallbackMessageText(),'не успел ответить')!==false,true);
 mpfCheck('fallback copy offers phone without claiming it is mandatory',strpos(ManagerRequestService::fallbackMessageText(),'можете оставить номер')!==false,true);
 mpfCheck('outside-hours copy promises next working period',strpos(ManagerRequestService::outsideHoursMessageText(),'следующий рабочий период')!==false,true);
-mpfCheck('outside-hours copy preserves self-service route',strpos(ManagerRequestService::outsideHoursMessageText(),'вернуться к вариантам туров')!==false,true);
+mpfCheck('outside-hours copy confirms saved queue',strpos(ManagerRequestService::outsideHoursMessageText(),'запрос сохранён в очереди')!==false,true);
 
 // Fresh private evidence showed an ordinary chat sentence after the optional
 // five-minute phone fallback being rejected as a malformed phone number. Keep
@@ -54,7 +54,7 @@ mpfCheck('existing phone suppresses fallback',strpos($serviceSource,"['UF_PHONE'
 mpfCheck('manager handoff online claim is gated by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
 mpfCheck('callback handoff uses same availability dispatch as AI path',strpos($callbackSource,'ManagerHandoffDispatchService::dispatch')!==false,true);
 mpfCheck('working-hours branch keeps initial handoff phone-free',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,'working_wait_text')!==false,true);
-mpfCheck('outside hours select truthful handoff copy',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false && strpos($viewSource,'outside_hours_text')!==false,true);
+mpfCheck('outside hours select truthful handoff copy',strpos($dispatchSource,"\$model['outside_hours_text']")!==false && strpos($dispatchSource,'DialogueView::managerRequest')===false && strpos($viewSource,'outside_hours_text')!==false,true);
 mpfCheck('cron executes manager phone fallback',strpos($cronSource,'ManagerPhoneFallbackService::runDue($now)')!==false,true);
 mpfCheck('cron reports fallback outcome',strpos($cronSource,'manager_phone_sent=')!==false,true);
 mpfCheck('phone-state chat text keeps phone optional instead of showing format error',strpos($stateSource,"if(\$phoneKind === 'non_phone')")!==false && strpos($stateSource,'номер телефона необязателен')!==false,true);

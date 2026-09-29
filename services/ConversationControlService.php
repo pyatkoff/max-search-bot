@@ -25,10 +25,31 @@ class ConversationControlService
     {
         $row = self::statusByChat($platform, $chatId);
         if (!$row) return false;
+        if (in_array((string)$row['status'], ['waiting_manager','manager'], true)) return true;
+        if ((string)$row['status'] !== 'ai' || !empty($row['manager_id'])) return false;
         $pdo = ConversationDb::connection();
-        $pdo->prepare('UPDATE conversations SET status=?, manager_id=NULL WHERE id=?')->execute(['waiting_manager',(int)$row['id']]);
-        self::event((int)$row['id'], 'waiting_manager', 'customer', null, $payload);
-        ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
+        $ownTransaction = !$pdo->inTransaction();
+        if ($ownTransaction) $pdo->beginTransaction();
+        try {
+            // Do not steal ownership if a manager took/closed the conversation meanwhile.
+            $q = $pdo->prepare("UPDATE conversations SET status=? WHERE id=? AND status='ai' AND manager_id IS NULL");
+            $q->execute(['waiting_manager',(int)$row['id']]);
+            if ($q->rowCount() !== 1) {
+                if ($ownTransaction) $pdo->rollBack();
+                $current = self::statusByChat($platform, $chatId);
+                return $current && in_array((string)$current['status'], ['waiting_manager','manager'], true);
+            }
+            self::event((int)$row['id'], 'waiting_manager', 'customer', null, $payload);
+            if ($ownTransaction) $pdo->commit();
+        } catch (Throwable $e) {
+            if ($ownTransaction && $pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
+        try {
+            ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
+        } catch (Throwable $ignored) {
+            // Notification transport cannot roll back the durable queue and event.
+        }
         return true;
     }
 

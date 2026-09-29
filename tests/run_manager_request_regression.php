@@ -158,7 +158,7 @@ mrCheck('shared dispatch checks live manager availability',strpos($dispatchSourc
 mrCheck('shared dispatch gates availability lookup by working hours',strpos($dispatchSource,'if ($withinWorkingHours && $conversation)')!==false,true);
 mrCheck('working-hours handoff always stays in chat',strpos($dispatchSource,'if ($withinWorkingHours)')!==false && strpos($dispatchSource,"\$model['working_wait_text']")!==false,true);
 mrCheck('working-hours uncertain availability does not open contact request',strpos($dispatchSource,"\$managerAvailable ? \$model['online_text'] : \$model['working_wait_text']")!==false,true);
-mrCheck('outside-hours path keeps truthful optional contact request',strpos($dispatchSource,'DialogueView::managerRequest')!==false && strpos($dispatchSource,"\$fromTours,\n                true")!==false,true);
+mrCheck('outside-hours path confirms queue without initial phone capture',strpos($dispatchSource,"\$model['outside_hours_text']")!==false && strpos($dispatchSource,'DialogueView::managerRequest')===false,true);
 mrCheck('five-minute fallback remains separate from initial handoff',strpos($dispatchSource,'ManagerPhoneFallbackService')===false,true);
 mrCheck('callback waiting event carries actual availability decision',strpos($callbackActionSource,"'manager_available'=>\$handoff['manager_available']")!==false,true);
 
