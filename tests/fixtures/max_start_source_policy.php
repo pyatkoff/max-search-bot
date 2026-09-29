@@ -67,7 +67,11 @@ try{
     startCheck('start is not a fake customer message',(int)$pdo->query('SELECT COUNT(*) FROM messages')->fetchColumn(),0);
     startCheck('start event is recorded',(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='bot_started'")->fetchColumn(),1);
     startCheck('MAX payload is preserved in existing traffic store',MaxSearchApi::getTrafficMeta(-990001)['raw'],'max_anytour_msk1');
+    $ackBefore=count(IntegrationRegistry::$m->sent);
     fixtureStart(990001);fixtureStart(990001);
+    startCheck('each fresh waiting start gets one status confirmation',count(IntegrationRegistry::$m->sent),$ackBefore+2);
+    startCheck('waiting start confirms the existing queue',str_contains(IntegrationRegistry::$m->sent[$ackBefore]['text'],'уже в очереди'),true);
+    startCheck('status confirmation has no duplicate request button',IntegrationRegistry::$m->sent[$ackBefore]['buttons'],[]);
     startCheck('repeat starts do not request manager again',count(ManagerHandoffDispatchService::$calls),1);
     startCheck('repeat starts do not send AI greetings',count(MaxSearchApi::$greetings),0);
     startCheck('repeat starts keep existing waiting state',fixtureConversation(990001)['status'],'waiting_manager');
@@ -87,9 +91,10 @@ try{
     startCheck('fresh explicit link applies manager policy despite old self-service choice',fixtureConversation(990002)['status'],'waiting_manager');
     startCheck('existing customer messages remain byte-for-byte intact',$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messagesBefore);
 
+    $choiceBefore=count(IntegrationRegistry::$m->sent);
     fixtureStart(990003,'entry_max_fixture_ask');fixtureStart(990003,'entry_max_fixture_ask');
-    startCheck('configured ask source creates one choice prompt',count(IntegrationRegistry::$m->sent),1);
-    startCheck('ask prompt contains manager choice',IntegrationRegistry::$m->sent[0]['buttons'][0][0]['callback_data'],'source_choice_manager');
+    startCheck('configured ask source creates one choice prompt',count(IntegrationRegistry::$m->sent),$choiceBefore+1);
+    startCheck('ask prompt contains manager choice',IntegrationRegistry::$m->sent[$choiceBefore]['buttons'][0][0]['callback_data'],'source_choice_manager');
     startCheck('ask start does not fall back to AI chooser',count(MaxSearchApi::$greetings),0);
     $choice=fixtureIncoming(990003,'max_fixture_ask','callback');$choice['callback_data']='source_choice_manager';
     SourceHandlingService::handle($choice);
@@ -136,6 +141,7 @@ try{
             ConversationRecorder::inbound(fixtureIncoming($id,'max:anytour-main','message'));
             $q=$pdo->prepare("UPDATE conversations SET status=?,manager_id=?,entry_channel='' WHERE external_chat_id=?");
             $q->execute([$status,$status==='manager'?7:null,(string)-$id]);
+            $ackBefore=count(IntegrationRegistry::$m->sent);
             $owned=fixtureConversation($id);$calls=count(ManagerHandoffDispatchService::$calls);$resets=count(MaxSearchApi::$resets);
             $messages=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
             fixtureStart($id,$key);fixtureStart($id,$key);
@@ -144,6 +150,8 @@ try{
             startCheck('owned reentry preserves routing source: '.$label,$after['source_id'],$owned['source_id']);
             startCheck('owned reentry preserves manager: '.$label,$after['manager_id'],$owned['manager_id']);
             startCheck('owned reentry preserves status: '.$label,$after['status'],$status);
+            startCheck('owned reentry confirms existing status: '.$label,count(IntegrationRegistry::$m->sent),$ackBefore+2);
+            startCheck('owned reentry copy matches state: '.$label,str_contains(IntegrationRegistry::$m->sent[$ackBefore]['text'],$status==='manager'?'закреплён за менеджером':'уже в очереди'),true);
             startCheck('owned reentry sends no new handoff: '.$label,count(ManagerHandoffDispatchService::$calls),$calls);
             startCheck('owned reentry never resets dialogue: '.$label,count(MaxSearchApi::$resets),$resets);
             startCheck('owned reentry preserves transcript: '.$label,$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messages);
@@ -172,6 +180,19 @@ try{
         startCheck('documented legacy night request resumes even at night: '.$key,fixtureConversation($id)['status'],'waiting_manager');
     }
     ManagerHandoffDispatchService::$workingHours=true;
+    // Failed status delivery must not reset or reassign the existing conversation.
+    IntegrationRegistry::$m->ok=false;
+    $ownedBefore=fixtureConversation(990001);$calls=count(ManagerHandoffDispatchService::$calls);
+    fixtureStart(990001,'max_anytour_msk');
+    $ownedAfter=fixtureConversation(990001);
+    startCheck('failed acknowledgement preserves manager',$ownedAfter['manager_id'],$ownedBefore['manager_id']);
+    startCheck('failed acknowledgement preserves status',$ownedAfter['status'],$ownedBefore['status']);
+    startCheck('failed acknowledgement cannot repeat handoff',count(ManagerHandoffDispatchService::$calls),$calls);
+    IntegrationRegistry::$m->ok=true;
+    $ackBefore=count(IntegrationRegistry::$m->sent);
+    startCheck('AI state cannot receive a false manager confirmation',SourceHandlingService::acknowledgeManagerStart(-1,['status'=>'ai','manager_id'=>null]),false);
+    startCheck('invalid acknowledgement sends nothing',count(IntegrationRegistry::$m->sent),$ackBefore);
+
     // A fresh explicit manager-source start itself expresses current manager intent.
     foreach([null,[],['within_working_hours'=>true],['within_working_hours'=>0],['within_working_hours'=>'false']] as $latest){
         $id=$fixtureUser++;ConversationRecorder::inbound(fixtureIncoming($id,'max_anytour_msk1','message'));
