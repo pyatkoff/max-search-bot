@@ -15,13 +15,14 @@ class FollowupQueueService
         return self::dir($baseDir) . '/' . $safe . '.json';
     }
 
-    public static function schedule(string $baseDir, $chatId, int $delaySeconds = 180, ?int $now = null): bool
+    public static function schedule(string $baseDir, $chatId, int $delaySeconds = 180, ?int $now = null, string $type = 'tours'): bool
     {
         $now = $now ?? time();
         $data = [
             'chat_id' => (string)$chatId,
             'send_at' => $now + $delaySeconds,
             'created_at' => $now,
+            'type' => $type,
         ];
         return @file_put_contents(
             self::file($baseDir, $chatId),

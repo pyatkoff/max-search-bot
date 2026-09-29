@@ -77,10 +77,22 @@ try {
             continue;
         }
 
-        cronLog('SEND_START chat=' . $chatID);
-        MaxSearchApi::funnelLog($chatID, 'followup_sent');
-        $result = DialogueView::toursFollowup($chatID);
-        cronLog('SEND_DONE chat=' . $chatID . ' result=' . var_export($result, true));
+        $type = (string)($data['type'] ?? 'tours');
+        if ($type === 'search_intro') {
+            $status = MaxSearchApi::getCurentStatus($chatID);
+            if ((int)$status !== (int)MaxSearchApi::$statusStart) {
+                cronLog('SKIP_SEARCH_INTRO_PROGRESS chat=' . $chatID . ' status=' . (string)$status);
+                @unlink($file);
+                continue;
+            }
+            cronLog('SEND_SEARCH_INTRO chat=' . $chatID);
+            $result = DialogueView::delayedSearchIntro($chatID);
+        } else {
+            cronLog('SEND_START chat=' . $chatID);
+            MaxSearchApi::funnelLog($chatID, 'followup_sent');
+            $result = DialogueView::toursFollowup($chatID);
+        }
+        cronLog('SEND_DONE chat=' . $chatID . ' type=' . $type . ' result=' . var_export($result, true));
 
         $sent++;
         @unlink($file);

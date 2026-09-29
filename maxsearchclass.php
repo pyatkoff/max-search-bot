@@ -173,6 +173,7 @@ class MaxSearchApi extends MaxSearchBase
     public static function answerCallback($callbackId){return !empty($callbackId);}
     public static function maxLog($data){MaxTransport::log(static::maxTransportLogFile(),$data);}
     public static function followupDir(){return FollowupQueueService::dir(__DIR__);}
-    public static function scheduleToursFollowup($chatID,$delaySeconds=180){return FollowupQueueService::schedule(__DIR__,$chatID,(int)$delaySeconds);}
+    public static function scheduleToursFollowup($chatID,$delaySeconds=180){return FollowupQueueService::schedule(__DIR__,$chatID,(int)$delaySeconds,null,'tours');}
+    public static function scheduleSearchIntroFollowup($chatID,$delaySeconds=60){return FollowupQueueService::schedule(__DIR__,$chatID,(int)$delaySeconds,null,'search_intro');}
     public static function cancelToursFollowup($chatID){return FollowupQueueService::cancel(__DIR__,$chatID);}
 }
