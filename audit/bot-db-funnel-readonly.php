@@ -54,7 +54,7 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
         if($k==='channel_offer_start')$offers[]=['chat'=>$chat,'cid'=>$cid,'ts'=>$ts,'order'=>$order];
         if(in_array($k,['ai_start','show_tours','search_ready'],true))$events[$chat][]=['ts'=>$ts,'kind'=>$k,'cid'=>$cid,'origin'=>'journal'];
         if(in_array($k,['bot_started','channel_offer_start','search_ready','show_tours'],true)){
-            $yclid=trim((string)$row[$idx['YclidText']]);
+            $yclid=trim((string)$row[$idx['YclidText']]);if(str_starts_with($yclid,"'"))$yclid=substr($yclid,1);
             if($yclid==='')$joinMissingYclid++;
             else{
                 $hk=hash('sha256','max-funnel-v1|'.$yclid);
