@@ -23,8 +23,10 @@ try {
     $project=ProjectConfig::projectId();
     $q=$pdo->prepare("SELECT DISTINCT external_chat_id FROM conversations WHERE project_key=? AND channel='max' AND is_test=1 LIMIT 5001");
     $q->execute([$project]);$tests=$q->fetchAll(PDO::FETCH_COLUMN);if(count($tests)>5000)throw new RuntimeException('test_limit');$tests=array_fill_keys(array_map('strval',$tests),true);
-    $now=time();$from=strtotime('2026-09-29T14:45:33Z');$tz=new DateTimeZone('Europe/Moscow');
+    // Count only activity after the verified completed deployment, not after merge.
+    $now=time();$from=strtotime('2026-09-29T14:47:23Z');$tz=new DateTimeZone('Europe/Moscow');
     $out['checked_at_utc']=gmdate('c',$now);$out['from_utc']=gmdate('c',$from);
+    $out['from_basis']='successful deployment receipt 36585073091';
     $events=['bot_started','channel_offer_start','subscription_first_offer','search_followup_shown','ai_text','ai_start','start_search','search_ready','show_tours','manager_request'];
     $counts=[];$users=[];$offers=[];$history=[];
     foreach(['714260445','714320748','other'] as $group)foreach($events as $event)$counts[$group][$event]=0;
@@ -81,7 +83,7 @@ try {
         $at=(int)($item['send_at']??0);$out['pending_search_intro'][$at>$now?'waiting':'due']++;
         if($at>0&&$now-$at>300)$out['pending_search_intro']['older_than_5_minutes']++;
     }
-    $out['limitations']=['Delivered-message events are not evidence of user reading or subscribing.','No real customer messages are sent by this audit.','Only naturally occurring post-merge events are counted; explicit test conversations are excluded.','Subscription conversion requires a separate MAX2 membership-data join.','This release is a sequential pilot, not a randomized A/B experiment.'];
+    $out['limitations']=['Delivered-message events are not evidence of user reading or subscribing.','No real customer messages are sent by this audit.','Only naturally occurring post-deployment events are counted; explicit test conversations are excluded.','Subscription conversion requires a separate MAX2 membership-data join.','This release is a sequential pilot, not a randomized A/B experiment.'];
     $out['ok']=true;
 } catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();$out['error_class']=get_class($e);}
 while(ob_get_level())ob_end_clean();echo json_encode($out,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
