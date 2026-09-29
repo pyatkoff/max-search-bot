@@ -75,6 +75,19 @@ try {
         if(preg_match('/^\s*#|^\s*$/',$line)||strpos($line,$root.'/cron_followup.php')===false)continue;
         $fields=preg_split('/\s+/',trim($line));$out['followup_cron_schedules'][]=implode(' ',array_slice($fields,0,5));
     }
+    $out['followup_log_after_deploy']=['SEND_SEARCH_INTRO'=>0,'SKIP_SEARCH_INTRO_PROGRESS'=>0,'SKIP_PHONE'=>0,'SKIP_MANAGER'=>0,'WAIT'=>0,'SEND_DONE_SEARCH_INTRO'=>0];
+    $logPath=$root.'/cron_followup.log';
+    if(is_file($logPath)&&!is_link($logPath)&&filesize($logPath)<67108864){
+        $lf=fopen($logPath,'rb');$deployLocal=(new DateTimeImmutable('@'.$from))->setTimezone($tz);
+        while(($line=fgets($lf))!==false){
+            if(!preg_match('/^(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2})--- (.*)$/',trim($line),$m))continue;
+            $dt=DateTimeImmutable::createFromFormat('!d.m.Y H:i:s',$m[1],$tz);if(!$dt||$dt->getTimestamp()<$from)continue;
+            $msg=$m[2];
+            foreach(['SEND_SEARCH_INTRO','SKIP_SEARCH_INTRO_PROGRESS','SKIP_PHONE','SKIP_MANAGER','WAIT'] as $tag)if(str_starts_with($msg,$tag.' '))$out['followup_log_after_deploy'][$tag]++;
+            if(str_starts_with($msg,'SEND_DONE ')&&str_contains($msg,'type=search_intro'))$out['followup_log_after_deploy']['SEND_DONE_SEARCH_INTRO']++;
+        }
+        fclose($lf);
+    }
     $out['pending_search_intro']=['waiting'=>0,'due'=>0,'older_than_5_minutes'=>0];$files=glob($root.'/followup/*.json')?:[];
     if(count($files)>5000)throw new RuntimeException('queue_limit');
     foreach($files as $file){
