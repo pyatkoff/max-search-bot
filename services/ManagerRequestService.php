@@ -41,8 +41,7 @@ class ManagerRequestService
     public static function sourceEntryMessageText(bool $withinWorkingHours): string
     {
         return "Здравствуйте! 👋\n\n"
-            . ($withinWorkingHours ? "Менеджер скоро присоединится к диалогу." : "Менеджер ответит в рабочее время.")
-            . "\nА пока напишите, какой тур вас интересует или какой вопрос вы хотите задать.";
+            . ($withinWorkingHours ? "Менеджер скоро присоединится к вам и с удовольствием ответит на ваши вопросы." : "Менеджер ответит в рабочее время.");
     }
 
     public static function onlineMessageText(): string

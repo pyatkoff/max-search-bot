@@ -94,15 +94,6 @@ class SourceHandlingService
         }
     }
 
-    /** A fresh MAX entry confirms existing ownership without making another request. */
-    public static function acknowledgeManagerStart($chatId, array $conversation): bool
-    {
-        $status=(string)($conversation['status']??'');
-        if(!in_array($status,['manager','waiting_manager'],true)&&(int)($conversation['manager_id']??0)<=0)return false;
-        $text=ManagerHandoffDispatchService::sourceEntryText();
-        return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,$text,[]);
-    }
-
     private static function handoff(array $incoming,string $platform,$chatId,string $reason): void
     {
         $user=(array)($incoming['user']??[]);

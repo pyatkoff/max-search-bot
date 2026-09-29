@@ -148,7 +148,7 @@ $bounded=$projectMedia($many);
 mrCheck('summary media is bounded to twenty recent attachments',count($bounded),20);
 mrCheck('bounded media retains newest originals without synthetic IDs',array_column($bounded,'url'),array_map(static function($id){return'media-file.php?message_id='.$id.'&attachment=0';},range(106,125)));
 
-mrCheck('channel entry greets and invites a question',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\n\nМенеджер скоро присоединится к диалогу.\nА пока напишите, какой тур вас интересует или какой вопрос вы хотите задать.");
+mrCheck('channel entry gives one concise manager greeting',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\n\nМенеджер скоро присоединится к вам и с удовольствием ответит на ваши вопросы.");
 mrCheck('night channel entry avoids soon promise',strpos(ManagerRequestService::sourceEntryMessageText(false),'скоро')===false,true);
 mrCheck('night channel entry explains working hours',strpos(ManagerRequestService::sourceEntryMessageText(false),'ответит в рабочее время')!==false,true);
 mrCheck('night handoff does not raise phone capture',strpos($model['outside_hours_text'],'телефон')===false,true);

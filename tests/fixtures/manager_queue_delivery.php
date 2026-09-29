@@ -54,7 +54,7 @@ try {
   queueCheck($result['queue_applied'],true,'source greeting retains durable handoff');
   $seen=end(IntegrationRegistry::$messenger->observed);
   queueCheck($seen[3],$hours?'entry day':'entry night','initial source greeting selects canonical hours');
-  queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$seen[3],'reentry and initial entry use identical presentation');
+  queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$seen[3],'initial entry uses the canonical presentation');
  }
  foreach(IntegrationRegistry::$messenger->observed as $observation){queueCheck(array_slice($observation,0,3),['waiting_manager',1,false],'queue and event committed before customer send');}
  $pdo->exec("INSERT INTO conversations VALUES(100,'fixture',1,'max','owned','manager',7)");
