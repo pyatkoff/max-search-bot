@@ -77,6 +77,7 @@ try {
     }
     $out['followup_log_after_deploy']=['SEND_SEARCH_INTRO'=>0,'SKIP_SEARCH_INTRO_PROGRESS'=>0,'SKIP_PHONE'=>0,'SKIP_MANAGER'=>0,'WAIT'=>0,'SEND_DONE_SEARCH_INTRO'=>0];
     $logPath=$root.'/cron_followup.log';
+    $out['followup_log_file']=['exists'=>is_file($logPath),'mtime_utc'=>is_file($logPath)?gmdate('c',(int)filemtime($logPath)):null,'recent_actions'=>[]];
     if(is_file($logPath)&&!is_link($logPath)&&filesize($logPath)<67108864){
         $lf=fopen($logPath,'rb');$deployLocal=(new DateTimeImmutable('@'.$from))->setTimezone($tz);
         while(($line=fgets($lf))!==false){
@@ -87,6 +88,11 @@ try {
             if(str_starts_with($msg,'SEND_DONE ')&&str_contains($msg,'type=search_intro'))$out['followup_log_after_deploy']['SEND_DONE_SEARCH_INTRO']++;
         }
         fclose($lf);
+        $tail=(string)shell_exec('tail -n 30 '.escapeshellarg($logPath).' 2>/dev/null');
+        foreach(preg_split('/\R/',$tail)?:[] as $line){
+            if(!preg_match('/^(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2})--- ([A-Z_]+)/',trim($line),$m))continue;
+            $out['followup_log_file']['recent_actions'][]=['local_timestamp'=>$m[1],'action'=>$m[2]];
+        }
     }
     $out['pending_search_intro']=['waiting'=>0,'due'=>0,'older_than_5_minutes'=>0];$files=glob($root.'/followup/*.json')?:[];
     if(count($files)>5000)throw new RuntimeException('queue_limit');
