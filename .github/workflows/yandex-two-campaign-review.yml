@@ -1,137 +1,54 @@
-name: Read two Yandex campaigns for negative keyword review
+name: Read two Yandex campaign click totals
 on:
   push:
     branches: [audit/direct-minus-review-20260928]
-    paths: [.github/workflows/yandex-two-campaign-review.yml, audit/yandex-two-campaign-readonly.py]
+    paths: [.github/workflows/yandex-two-campaign-review.yml, audit/yandex-clicks-readonly.py]
 permissions:
   contents: read
 concurrency:
-  group: yandex-two-campaign-review-20260928
+  group: yandex-two-campaign-clicks-readonly
   cancel-in-progress: false
 jobs:
   read:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        campaign: [714320748]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read fixed campaign on existing server; keep OAuth there and encrypt report
+      - name: Read aggregate on established server
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          CAMPAIGN: ${{ matrix.campaign }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          work="$(mktemp -d "$RUNNER_TEMP/yandex-month.XXXXXX")"
-          trap 'rm -rf "$work"' EXIT
-          export WORK_DIR="$work"
+          key="$RUNNER_TEMP/read_key"
+          raw="$SSH_KEY"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s\n' "$raw" | tr -d '\r' > "$key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$key"
+          fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+          opts=(-i "$key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          timeout 120s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' < audit/yandex-clicks-readonly.py > yandex-clicks.json
           python3 - <<'PY'
-          import base64,hashlib,os,subprocess
-          from pathlib import Path
-          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-          root=Path(os.environ['WORK_DIR'])
-          if not all(os.environ.get(k) for k in ('SSH_KEY','SSH_HOST','SSH_USER')):
-              raise SystemExit('ESTABLISHED_SSH_SETTINGS_UNAVAILABLE')
-          try:
-              raw=os.environ['SSH_KEY'].replace('\r','')
-              raw=raw.replace('\\n','\n') if 'PRIVATE KEY' in raw else base64.b64decode(raw).decode()
-              (root/'key').write_text(raw.rstrip()+'\n');(root/'key').chmod(0o600)
-          except Exception:
-              raise SystemExit('SSH_KEY_FORMAT_INVALID') from None
-          # Pin the public host fingerprint observed by the previous successful read.
-          # Continuity pin, not a new claim of independent out-of-band verification.
-          expected='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0'
-          p=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['SSH_HOST']],capture_output=True,timeout=35,text=True)
-          matches=[]
-          for line in p.stdout.splitlines():
-              fields=line.split()
-              if len(fields)<3 or fields[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp==expected:matches.append(line)
-          if not matches:raise SystemExit('HOST_CONTINUITY_PIN_MISMATCH_STOP')
-          (root/'known_hosts').write_text('\n'.join(matches)+'\n')
-          print('HOST_CONTINUITY_PIN_OK')
-          cid=int(os.environ['CAMPAIGN'])
-          if cid not in [714260445,714320748]:
-              raise SystemExit('CAMPAIGN_SCOPE_INVALID')
-          source=Path('audit/yandex-two-campaign-readonly.py').read_text()
-          blob=hashlib.sha1(b'blob '+str(len(source.encode())).encode()+b'\0'+source.encode()).hexdigest()
-          if blob!='315b00d539e34fc2b2a4953529e552d102249463':raise SystemExit('REVIEWED_READER_CHANGED')
-          def once(before,after):
-              global source
-              if source.count(before)!=1:raise SystemExit('READER_ANCHOR_CHANGED')
-              source=source.replace(before,after,1)
-          once('CID = 714260445','CID = '+str(cid))
-          compile(source,'fixed-campaign-month-reader','exec')
-          (root/'reader.py').write_text(source)
+          import json
+          j=json.load(open('yandex-clicks.json'))
+          assert j.get('ok') is True
+          assert set(j.get('campaigns',{}))=={'714260445','714320748'}
+          assert j.get('server_writes') is False and j.get('advertising_writes') is False and j.get('token_exported') is False
           PY
-          ssh-keygen -y -f "$work/key" >/dev/null 2>&1
-          opts=(-i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes \
-            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$work/known_hosts" \
-            -o GlobalKnownHostsFile=/dev/null -o ConnectTimeout=15 \
-            -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
-          set +e
-          timeout 450s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" \
-            'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' \
-            < "$work/reader.py" > "$work/report.json" 2> "$work/read-error"
-          status=$?
-          set -e
-          export READ_EXIT="$status"
-          python3 - <<'PY'
-          import base64,json,os
-          from pathlib import Path
-          from cryptography.hazmat.primitives import hashes,serialization
-          from cryptography.hazmat.primitives.asymmetric import padding
-          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-          root=Path(os.environ['WORK_DIR']);p=root/'report.json';cid=int(os.environ['CAMPAIGN'])
-          try:
-              if os.environ['READ_EXIT']!='0' or not p.is_file() or p.stat().st_size>64000000:raise ValueError()
-              report=json.loads(p.read_bytes())
-              if report.get('campaign_id')!=cid:raise ValueError()
-              if any(report.get(k) is not False for k in ('server_writes','advertising_writes','database_opened','token_exported')):raise ValueError()
-          except Exception:
-              report={'status':'TRANSPORT_OR_REPORT_FAILED','campaign_id':cid,'report_received':False}
-          data=json.dumps(report,ensure_ascii=False,allow_nan=False).encode()
-          pem=b'''-----BEGIN PUBLIC KEY-----
-          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA3TiF/SNwBPrLebLqrfrQ
-          52Np6ZYbKfYAOqR5xmzy73MRoUBAutgw2LY3ZeoBL/Oym20uhxkql+lLGnDO3cLr
-          2PYGZrRTQNDfaUBEoyYnhQM720sLF+fbSgfdAmBUbE4nekizQHxeCuU0yewzlnDY
-          bBusXlPIP+O2dK6WT8o9EA6es3zOjV3o3ulJh4esPqVMd5lSnZQxjpAlDPGB2xU7
-          MeLpgLpJ2GER30Dszk1YmRzxWUJLUvYiUyjJLeL+oqCYda8C9nkVwZ8qUA74Kb1B
-          lGAxjZcWheF8zHy+tekFid6FkyaxkoY3cMKSYOJ9FyvDkb1NAKm1nU1n6hVKUemh
-          texIYacRWA2XiAcLzyx7AP6LPuubyEz0n7TXlX+jc7oBx+2koMsWZerNY7qryZ2r
-          kr7sKcH7e03zBmZD3Ltzj/kaDk9UMYFqXmH8ScX13BUV7fzWMOfzoraQmpF/jUaC
-          Q0rSeQh5aT11zPgT5ZSh2h3lKW5bQJY7m4Ge4f7kv6n7AgMBAAE=
-          -----END PUBLIC KEY-----'''
-          public=serialization.load_pem_public_key(pem)
-          key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12);aad=('yandex-review-20260928-'+str(cid)).encode()
-          ciphertext=AESGCM(key).encrypt(nonce,data,aad)
-          wrapped=public.encrypt(key,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
-          b64=lambda v:base64.b64encode(v).decode()
-          envelope={'schema':1,'campaign_id':cid,'aad':b64(aad),'nonce':b64(nonce),'wrapped_key':b64(wrapped),'ciphertext':b64(ciphertext)}
-          out=Path('encrypted-review');out.mkdir(exist_ok=True)
-          (out/(str(cid)+'.enc.json')).write_text(json.dumps(envelope))
-          state=report.get('status')
-          print('READ_RESULT='+state if state in ('COLLECTED','PARTIAL','READ_FAILED','TRANSPORT_OR_REPORT_FAILED') else 'READ_RESULT=UNKNOWN')
-          print('ONLY_ENCRYPTED_REPORT_UPLOADED; NO_SERVER_OR_ADVERTISING_WRITES')
-          PY
-      - name: Retain encrypted report only
+          cat yandex-clicks.json
+      - name: Retain aggregate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: yandex-review-${{ matrix.campaign }}
-          path: encrypted-review/*.enc.json
+          name: yandex-clicks-funnel-readonly
+          path: yandex-clicks.json
           retention-days: 3
           if-no-files-found: error
-
