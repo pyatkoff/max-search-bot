@@ -6,12 +6,15 @@ require_once __DIR__ . '/ConversationControlService.php';
 
 class ManagerPhoneFallbackService
 {
+    // Owner policy: after handoff, wait for the manager without automated phone offers.
+    public const AUTOMATIC_ENABLED = false;
     public const DELAY_SECONDS = 300;
 
     public static function runDue(?int $now = null, int $limit = 50): array
     {
         $now = $now ?? time();
         $summary = ['checked'=>0,'sent'=>0,'skipped'=>0,'failed'=>0,'outside_hours'=>false];
+        if (!self::AUTOMATIC_ENABLED) return $summary + ['disabled'=>true];
         if (!ManagerAvailabilityService::withinWorkingHours($now)) {
             $summary['outside_hours'] = true;
             return $summary;
@@ -29,6 +32,7 @@ class ManagerPhoneFallbackService
 
     public static function dueCandidates(int $now, int $limit = 50): array
     {
+        if (!self::AUTOMATIC_ENABLED) return [];
         if (!ConversationDb::isConfigured()) return [];
         $limit = max(1, min(200, $limit));
         $pdo = ConversationDb::connection();
@@ -63,6 +67,7 @@ class ManagerPhoneFallbackService
 
     public static function processCandidate(array $candidate, ?int $now = null): string
     {
+        if (!self::AUTOMATIC_ENABLED) return 'skipped';
         $now = $now ?? time();
         if (!ManagerAvailabilityService::withinWorkingHours($now)) return 'skipped';
         if (!ConversationDb::isConfigured()) return 'skipped';

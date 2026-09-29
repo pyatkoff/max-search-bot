@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// Actual dispatcher/classifier, synthetic conversation and side-effect transports.
+// Actual dispatcher, synthetic conversation and side-effect transports.
 $root=dirname(__DIR__,2);$tmp=sys_get_temp_dir().'/quiet-wait-'.bin2hex(random_bytes(8));
 mkdir($tmp,0700);mkdir($tmp.'/services',0700);mkdir($tmp.'/handlers',0700);
 $bootstrap= <<<'CODE'
@@ -19,7 +19,6 @@ file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['DialogueApplication','DiagnosticLogger','ConversationRecorder','ConversationAttributionService','ConversationControlService','ManagerPushService','MetrikaConversionGoalService','SourceHandlingService','DialogueView','WizardStepView','EditFlowService','IntegrationRegistry','NeedValueResolver','NeedApplicationService','NeedProgressionService','ExistingWizardStepApplicationService','ChildAgeValueContract','DialogueTransitionObserver','DepartureCityResolver','DepartureCityValueContract','CountryValueContract','DateParser'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['AiDateHandler','AiMessageHandler'] as $name)file_put_contents($tmp.'/handlers/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 copy($root.'/services/IncomingUpdateDispatcher.php',$tmp.'/services/IncomingUpdateDispatcher.php');
-copy($root.'/handlers/StateMessageHandler.php',$tmp.'/handlers/StateMessageHandler.php');
 function quietCheck($a,$b,string $name):void{if($a!==$b)throw new RuntimeException($name.' expected='.json_encode($b).' actual='.json_encode($a));echo 'PASS '.$name.PHP_EOL;}
 try{
  require $tmp.'/services/IncomingUpdateDispatcher.php';
@@ -39,7 +38,7 @@ try{
   }
   foreach(['+71234567890','81234567890','+71234'] as $phone){
    $incoming['text']=$phone;$calls=count($app->calls);$dispatcher->dispatch($incoming);
-   quietCheck(count($app->calls),$calls+1,'phone submission retains existing capture/validation');
+   quietCheck(count($app->calls),$calls,'typed phone also stays with manager without a bot reply');
   }
   foreach([['type'=>'contact'],['type'=>'callback','callback_data'=>'phone_manual']] as $fields){
    $calls=count($app->calls);$dispatcher->dispatch(array_merge($incoming,$fields));

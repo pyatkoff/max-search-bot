@@ -5,7 +5,8 @@
     "working_start_hour": 10,
     "working_end_hour": 20,
     "phone_fallback_delay_seconds": 300,
-    "outside_hours_queue_waiting": true
+    "outside_hours_queue_waiting": true,
+    "automatic_phone_fallback_enabled": false
   },
   "classifications": [
     "entrypoint",
@@ -174,12 +175,13 @@
     {
       "path": "services/ManagerPhoneFallbackService.php",
       "classification": "fallback_application",
-      "responsibility": "Idempotent five-minute optional-phone fallback after an unanswered active manager request.",
+      "responsibility": "Automatic phone fallback is disabled by owner policy; legacy callable entrypoints return without querying or sending.",
       "required_markers": [
         "DELAY_SECONDS = 300",
         "manager_phone_fallback_sent",
         "manager_phone_fallback_failed",
-        "hasManagerReply"
+        "hasManagerReply",
+        "AUTOMATIC_ENABLED = false"
       ]
     },
     {

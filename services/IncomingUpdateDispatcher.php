@@ -7,7 +7,6 @@ require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ManagerPushService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/SourceHandlingService.php';
-require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 
 class IncomingUpdateDispatcher
 {
@@ -55,12 +54,6 @@ class IncomingUpdateDispatcher
                         ConversationControlService::resumeAiByChat($platform, $chatId, 'handoff_cancelled');
                         $allow = true;
                     }
-                } elseif ($type === 'message' && class_exists('MaxSearchApi')) {
-                    try {
-                        // Ordinary questions belong to the manager even after a phone offer.
-                        $allow = MaxSearchApi::getCurentStatus($chatId) == MaxSearchApi::$statusPhone
-                            && StateMessageHandler::phoneTextKind((string)($incoming['text'] ?? '')) !== 'non_phone';
-                    } catch (Throwable $ignored) {}
                 }
             }
 

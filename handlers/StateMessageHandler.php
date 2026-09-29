@@ -445,14 +445,14 @@ class StateMessageHandler
      * The fallback explicitly allows the tourist to keep waiting in chat. Only
      * phone-looking input should therefore receive a phone-format error.
      */
-    public static function phoneTextKind(string $text): string
+    private static function phoneTextKind(string $text): string
     {
         $text = trim($text);
         if(preg_match('/^\+7\d{10}$/D', $text) === 1)
             return 'valid_phone';
 
         $digits = preg_replace('/\D/', '', $text);
-        if(is_string($digits) && strlen($digits) >= 9 && preg_match('/^[+0-9\s().-]+$/uD', $text) === 1)
+        if(is_string($digits) && strlen($digits) >= 9)
             return 'invalid_phone';
         if(strpos($text, '+7') === 0)
             return 'invalid_phone';

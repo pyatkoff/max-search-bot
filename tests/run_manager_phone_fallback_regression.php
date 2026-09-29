@@ -10,6 +10,12 @@ require_once __DIR__ . '/../handlers/StateMessageHandler.php';
 $passed=0;$failed=0;
 function mpfCheck(string $name,$actual,$expected):void{global$passed,$failed;if($actual===$expected){echo"PASS  {$name}\n";$passed++;return;}echo"FAIL  {$name}\n";echo'      expected: '.json_encode($expected,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";echo'      actual:   '.json_encode($actual,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)."\n";$failed++;}
 
+mpfCheck('automatic phone followups are disabled by owner policy',ManagerPhoneFallbackService::AUTOMATIC_ENABLED,false);
+mpfCheck('scheduled fallback sends nothing',ManagerPhoneFallbackService::runDue()['sent'],0);
+mpfCheck('scheduler reports disabled policy',ManagerPhoneFallbackService::runDue()['disabled'],true);
+mpfCheck('disabled candidate discovery touches no runtime database',ManagerPhoneFallbackService::dueCandidates(time()),[]);
+mpfCheck('already selected candidates cannot send after policy change',ManagerPhoneFallbackService::processCandidate(['conversation_id'=>1,'external_chat_id'=>'synthetic']), 'skipped');
+
 $tz = new DateTimeZone(ManagerAvailabilityService::BUSINESS_TIMEZONE);
 $at = static function(string $value) use ($tz): int { return (new DateTimeImmutable($value,$tz))->getTimestamp(); };
 mpfCheck('before 10 is outside working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 09:59:59')),false);
