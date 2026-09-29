@@ -80,8 +80,8 @@
       "receiver": "ManagerAvailabilityService",
       "method": "withinWorkingHours",
       "classification": "decision",
-      "occurrences": 1,
-      "rationale": "Canonical initial handoff branch selects working-hours or outside-hours behavior."
+      "occurrences": 2,
+      "rationale": "Canonical working window selects initial handoff and repeated source-entry presentation, without gating queue or ownership."
     },
     {
       "path": "services/ManagerPhoneFallbackService.php",

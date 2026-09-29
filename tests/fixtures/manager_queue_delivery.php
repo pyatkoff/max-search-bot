@@ -10,7 +10,7 @@ class ConversationDb { public static $pdo; public static function isConfigured()
 class ProjectConfig { public static function projectId(){return 'fixture';} }
 class ManagerPushService { public static $calls=0,$fail=false; public static function notifyConversation(...$args){self::$calls++;if(self::$fail)throw new RuntimeException('synthetic push failure');} }
 class ManagerAvailabilityService { public static $hours=true,$available=true; public static function withinWorkingHours($now=null){return self::$hours;} public static function anyWorkingForConversation($c){return self::$available;} }
-class ManagerRequestService { public static $fail=false; public static function prepare(...$args){if(self::$fail)throw new RuntimeException('synthetic prepare failure');return ['back_callback'=>'back_check','online_text'=>'online','working_wait_text'=>'waiting','outside_hours_text'=>'next working period'];} }
+class ManagerRequestService { public static $fail=false; public static function sourceEntryMessageText($hours){return $hours?'entry day':'entry night';} public static function prepare(...$args){if(self::$fail)throw new RuntimeException('synthetic prepare failure');return ['back_callback'=>'back_check','online_text'=>'online','working_wait_text'=>'waiting','outside_hours_text'=>'next working period'];} }
 class DialogueView {}
 class MaxSearchApi { public static function deletePrevMessage($chat){} }
 class IntegrationRegistry { public static $messenger; public static function messenger(){return self::$messenger;} }
@@ -46,6 +46,15 @@ try {
   queueCheck(ManagerPushService::$calls,$pushes,'repeat does not repush');
   queueCheck(IntegrationRegistry::$messenger->calls,$sends,'repeat does not resend');
   queueCheck((int)$pdo->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id='.$id)->fetchColumn(),1,'one durable waiting event');
+ }
+ foreach([true,false] as $hours){
+  $id++;$pdo->prepare("INSERT INTO conversations VALUES(?,'fixture',1,'max',?,'ai',NULL)")->execute([$id,(string)$id]);
+  ManagerAvailabilityService::$hours=$hours;ManagerRequestService::$fail=false;ManagerPushService::$fail=false;IntegrationRegistry::$messenger->mode='ok';
+  $result=ManagerHandoffDispatchService::dispatch($id,'max','',false,null,true);
+  queueCheck($result['queue_applied'],true,'source greeting retains durable handoff');
+  $seen=end(IntegrationRegistry::$messenger->observed);
+  queueCheck($seen[3],$hours?'entry day':'entry night','initial source greeting selects canonical hours');
+  queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$seen[3],'reentry and initial entry use identical presentation');
  }
  foreach(IntegrationRegistry::$messenger->observed as $observation){queueCheck(array_slice($observation,0,3),['waiting_manager',1,false],'queue and event committed before customer send');}
  $pdo->exec("INSERT INTO conversations VALUES(100,'fixture',1,'max','owned','manager',7)");

@@ -31,6 +31,7 @@ class MaxSearchApi {
 class ManagerAvailabilityService { public static function withinWorkingHours(){return ManagerHandoffDispatchService::$workingHours;} }
 class ManagerHandoffDispatchService {
     public static $calls=[],$applied=0,$available=true,$workingHours=true;
+    public static function sourceEntryText(){return ManagerRequestService::sourceEntryMessageText(self::$workingHours);}
     public static function dispatch($chat,$platform,$name,$fromTours){$q=ConversationDb::connection()->prepare("SELECT source_id,entry_channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);self::$calls[]=$q->fetch();return ['sent'=>true,'manager_available'=>self::$available,'within_working_hours'=>self::$workingHours,'queue_waiting'=>true];}
     public static function applyQueueDecision($decision,$platform,$chat,$metadata){self::$applied++;if(!empty($decision['queue_waiting'])){$q=ConversationDb::connection()->prepare("UPDATE conversations SET status='waiting_manager' WHERE project_key=? AND channel=? AND external_chat_id=?");$q->execute([ProjectConfig::projectId(),$platform,(string)$chat]);}}
 }
@@ -38,13 +39,14 @@ PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','RoutingAccessService','DiagnosticLogger','IntegrationRegistry','ManagerHandoffDispatchService','IncomingUpdateDispatcher','IncomingUpdateDeduplicator','MaxInboundMediaArchiveService'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 file_put_contents($tmp.'/integrations/MaxIncomingAdapter.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
-foreach(['services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
+foreach(['services/ManagerRequestService.php','services/TrafficAttributionService.php','services/ConversationRecorder.php','services/SourceHandlingService.php','services/MaxStartSourcePolicy.php','handlers/MaxUpdateHandler.php'] as $path)copy($root.'/'.$path,$tmp.'/'.$path);
 $passed=0;$failed=0;
 function startCheck(string $name,$actual,$expected):void{global $passed,$failed;if($actual===$expected){echo 'PASS '.$name.PHP_EOL;$passed++;}else{echo 'FAIL '.$name.' expected='.json_encode($expected).' actual='.json_encode($actual).PHP_EOL;$failed++;}}
 function fixtureIncoming(int $user,string $source='max_anytour_msk1',string $type='bot_started'):array{return ['platform'=>'max','type'=>$type,'source_key'=>$source,'text'=>'fixture','user'=>['chat_id'=>-$user,'external_user_id'=>$user,'first_name'=>'Synthetic','last_name'=>'Tester','username'=>'fixture']];}
 function fixtureStart(int $user,string $source='max_anytour_msk1'):void{MaxUpdateHandler::handleStarted(['update_type'=>'bot_started','timestamp'=>1700000000000+$user,'payload'=>$source,'user'=>['user_id'=>$user,'name'=>'Synthetic Tester']]);}
 function fixtureConversation(int $user):array{$q=ConversationDb::connection()->prepare("SELECT * FROM conversations WHERE project_key='anytour' AND channel='max' AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([(string)-$user]);return $q->fetch()?:[];}
 try{
+    require $tmp.'/services/ManagerRequestService.php';
     require $tmp.'/handlers/MaxUpdateHandler.php';
     $pdo=new PDO('sqlite::memory:');$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);$pdo->sqliteCreateFunction('NOW',static fn()=>gmdate('Y-m-d H:i:s'));ConversationDb::$pdo=$pdo;IntegrationRegistry::$m=new FixtureMessenger();
     $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT);INSERT INTO projects VALUES(1,'anytour'),(2,'other');
@@ -70,7 +72,7 @@ try{
     $ackBefore=count(IntegrationRegistry::$m->sent);
     fixtureStart(990001);fixtureStart(990001);
     startCheck('each fresh waiting start gets one status confirmation',count(IntegrationRegistry::$m->sent),$ackBefore+2);
-    startCheck('waiting start confirms the existing queue',str_contains(IntegrationRegistry::$m->sent[$ackBefore]['text'],'уже в очереди'),true);
+    startCheck('waiting start greets and invites a question',IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(true));
     startCheck('status confirmation has no duplicate request button',IntegrationRegistry::$m->sent[$ackBefore]['buttons'],[]);
     startCheck('repeat starts do not request manager again',count(ManagerHandoffDispatchService::$calls),1);
     startCheck('repeat starts do not send AI greetings',count(MaxSearchApi::$greetings),0);
@@ -151,7 +153,7 @@ try{
             startCheck('owned reentry preserves manager: '.$label,$after['manager_id'],$owned['manager_id']);
             startCheck('owned reentry preserves status: '.$label,$after['status'],$status);
             startCheck('owned reentry confirms existing status: '.$label,count(IntegrationRegistry::$m->sent),$ackBefore+2);
-            startCheck('owned reentry copy matches state: '.$label,str_contains(IntegrationRegistry::$m->sent[$ackBefore]['text'],$status==='manager'?'закреплён за менеджером':'уже в очереди'),true);
+            startCheck('owned reentry uses the same channel greeting: '.$label,IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(true));
             startCheck('owned reentry sends no new handoff: '.$label,count(ManagerHandoffDispatchService::$calls),$calls);
             startCheck('owned reentry never resets dialogue: '.$label,count(MaxSearchApi::$resets),$resets);
             startCheck('owned reentry preserves transcript: '.$label,$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll(),$messages);
@@ -179,6 +181,10 @@ try{
         fixtureStart($id,$key);
         startCheck('documented legacy night request resumes even at night: '.$key,fixtureConversation($id)['status'],'waiting_manager');
     }
+    ManagerHandoffDispatchService::$workingHours=true;
+    ManagerHandoffDispatchService::$workingHours=false;
+    $ackBefore=count(IntegrationRegistry::$m->sent);fixtureStart(990001,'max_anytour_msk');
+    startCheck('assigned manager night reentry uses truthful working-hours copy',IntegrationRegistry::$m->sent[$ackBefore]['text'],ManagerRequestService::sourceEntryMessageText(false));
     ManagerHandoffDispatchService::$workingHours=true;
     // Failed status delivery must not reset or reassign the existing conversation.
     IntegrationRegistry::$m->ok=false;

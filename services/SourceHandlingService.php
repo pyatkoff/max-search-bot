@@ -98,13 +98,8 @@ class SourceHandlingService
     public static function acknowledgeManagerStart($chatId, array $conversation): bool
     {
         $status=(string)($conversation['status']??'');
-        if($status==='manager'||(int)($conversation['manager_id']??0)>0){
-            $text='👩‍💼 Ваш диалог уже закреплён за менеджером. Напишите вопрос или пожелания здесь — сообщение поступит в этот же диалог.';
-        }elseif($status==='waiting_manager'){
-            $text='👩‍💼 Ваш запрос уже в очереди к менеджеру. Ответ придёт в этот чат. Можно написать вопрос или дополнить пожелания — повторно оформлять заявку не нужно.';
-        }else{
-            return false;
-        }
+        if(!in_array($status,['manager','waiting_manager'],true)&&(int)($conversation['manager_id']??0)<=0)return false;
+        $text=ManagerHandoffDispatchService::sourceEntryText();
         return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,$text,[]);
     }
 
@@ -113,7 +108,7 @@ class SourceHandlingService
         $user=(array)($incoming['user']??[]);
         $name=trim(trim((string)($user['first_name']??'')).' '.trim((string)($user['last_name']??'')));
         if($name==='')$name=trim((string)($user['username']??''));
-        $handoff=ManagerHandoffDispatchService::dispatch($chatId,$platform,$name,false);
+        $handoff=ManagerHandoffDispatchService::dispatch($chatId,$platform,$name,false,null,true);
         ConversationRecorder::eventByChat($platform,$chatId,'manager_request',[
             'source'=>$reason,
             'manager_available'=>$handoff['manager_available'],
