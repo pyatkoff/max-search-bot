@@ -135,6 +135,30 @@ function readStartScreen(string $root,PDO $pdo,string $project,DateTimeImmutable
         }
     }
     foreach($seenCampaign as $set)if(count($set)>1)$out['cross_campaign_users']++;
+
+    // Current runtime-state snapshot for offered users. Values are never exported; only the furthest completed wizard field.
+    $statusNames=[65=>'city',66=>'country',67=>'adults',68=>'children',69=>'child_ages',70=>'stars',71=>'meal',72=>'nights',73=>'date'];
+    $progress=['none'=>0,'city'=>0,'country'=>0,'adults'=>0,'children'=>0,'child_ages'=>0,'stars'=>0,'meal'=>0,'nights'=>0,'date'=>0];
+    $progressByCampaign=['714260445'=>$progress,'714320748'=>$progress];
+    foreach(array_chunk($chatKeys,300) as $batch){
+        $marks=implode(',',array_fill(0,count($batch),'?'));
+        $sql="SELECT chat_id,status_id,value_text,id FROM runtime_dialogue_state WHERE project_key=? AND chat_id IN ($marks) AND status_id BETWEEN 64 AND 76 ORDER BY chat_id,id";
+        $q=$pdo->prepare($sql);$q->execute(array_merge([$project],$batch));$state=[];
+        while($s=$q->fetch(PDO::FETCH_ASSOC)){
+            $chat=(string)$s['chat_id'];$sid=(int)$s['status_id'];$val=(string)($s['value_text']??'');
+            if($sid===64)$state[$chat]=[];
+            elseif(isset($statusNames[$sid])&&$val!=='')$state[$chat][$sid]=true;
+        }
+        foreach($batch as $chat){
+            if(isset($tests[$chat]))continue;
+            $furthest='none';foreach($statusNames as $sid=>$name)if(!empty($state[$chat][$sid]))$furthest=$name;
+            $progress[$furthest]++;
+            foreach(array_keys($seenCampaign[$chat]??[]) as $cid)if(isset($progressByCampaign[$cid]))$progressByCampaign[$cid][$furthest]++;
+        }
+    }
+    $out['current_furthest_completed_parameter']=$progress;$out['current_furthest_completed_parameter_by_campaign']=$progressByCampaign;
+    $out['limitations'][]='Current runtime state is a present-time snapshot, not guaranteed to be the exact state one hour after the historical offer.';
+
     foreach($join as &$j){$j['campaigns']=array_keys($j['campaigns']);sort($j['campaigns']);}unset($j);ksort($join);
     $out['cross_system_yclid_sha256']=$join;$out['cross_system_missing_yclid_metric_rows']=$joinMissingYclid;
     return $out;
