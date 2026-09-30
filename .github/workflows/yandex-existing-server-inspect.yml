@@ -1,9 +1,8 @@
 name: Read MAX Search campaign funnel from existing database
-# cross-system pseudonymous join refresh v2
 on:
   push:
     branches: [audit/yandex-existing-server-access-20260909]
-    paths: [.github/workflows/yandex-existing-server-inspect.yml, audit/bot-db-funnel-readonly.php]
+    paths: [.github/workflows/yandex-existing-server-inspect.yml, audit/bot-db-funnel-readonly.php, audit/extend-pilot-cohort.py, audit/pilot-direct-clicks-readonly.py]
 permissions:
   contents: read
 concurrency:
@@ -19,6 +18,11 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Extend only ephemeral report with exposure-cohort checks
+        run: |
+          python3 -m py_compile audit/extend-pilot-cohort.py audit/pilot-direct-clicks-readonly.py
+          python3 audit/extend-pilot-cohort.py
+          php -l audit/bot-db-funnel-readonly.php
       - name: Prepare established SSH key
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -45,26 +49,34 @@ jobs:
           key_file="$RUNNER_TEMP/read_key"
           opts=(-i "$key_file" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
           timeout 120s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -d display_errors=0' < audit/bot-db-funnel-readonly.php > bot-funnel.json
-          php -r '$j=json_decode(file_get_contents("bot-funnel.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["campaigns"]["714260445"],$j["campaigns"]["714320748"])||($j["server_writes"]??null)!==false||($j["database_opened"]??null)!==true){fwrite(STDERR,"aggregate_contract_failed\n");exit(1);}'
-          cat bot-funnel.json
+          php -r '$j=json_decode(file_get_contents("bot-funnel.json"),true); if(!is_array($j)||empty($j["ok"])||!isset($j["pilot_cohort_outcomes"],$j["campaigns"]["714260445"],$j["campaigns"]["714320748"])||($j["server_writes"]??null)!==false||($j["database_opened"]??null)!==true){fwrite(STDERR,"aggregate_contract_failed\n");exit(1);}'
+          python3 - <<'PY'
+          import json
+          r=json.load(open('bot-funnel.json'))
+          print(json.dumps({k:r[k] for k in ['checked_at_utc','from_utc','campaigns','pilot_cohort_outcomes','pilot_cohort_method','pending_search_intro']},ensure_ascii=False,indent=2))
+          PY
+      - name: Read Direct clicks without modifying advertising
+        continue-on-error: true
+        env:
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/read_key"
+          opts=(-i "$key_file" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15)
+          timeout 130s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" 'python3 -B -' < audit/pilot-direct-clicks-readonly.py > yandex-clicks.json
+          cat yandex-clicks.json
       - name: Retain aggregate report
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: max-search-campaign-funnel-readonly
-          path: bot-funnel.json
-          retention-days: 3
+          path: |
+            bot-funnel.json
+            yandex-clicks.json
+          retention-days: 7
           if-no-files-found: error
-
-# parameter-dropoff refresh
-
-# live pilot refresh 2026-09-29 18:41 MSK
-
-# live pilot refresh 2026-09-29 20:37 MSK
-
-# pilot 21:00 MSK refresh
-
-# live pilot refresh 2026-09-29 23:47 MSK
-
-# live pilot refresh 2026-09-30 09:49 MSK
-
-# live pilot refresh 2026-09-30 18:34 MSK
+      - name: Remove temporary runner key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/read_key"
