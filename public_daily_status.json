@@ -1,44 +1,52 @@
 {
     "ok": true,
-    "generated_at": "2026-09-30T00:34:18+00:00",
+    "generated_at": "2026-09-30T06:51:10+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 0,
-        "raw_sessions": 0,
+        "sessions": 10,
+        "raw_sessions": 10,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 0,
+            "resolved": 10,
             "unresolved": 0
         },
-        "started": 0,
-        "needs_collected": 0,
-        "tours_opened": 0,
+        "started": 8,
+        "needs_collected": 5,
+        "tours_opened": 3,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 0,
+        "manager_requested": 4,
         "manager_replied": 0,
         "customer_replied_after_manager": 0,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 0,
-            "still_unanswered": 0,
+            "still_unanswered": 4,
             "measured_responses": 0,
             "avg_seconds": null,
             "max_seconds": null
         },
-        "drop_points": [],
-        "flags": [],
+        "drop_points": {
+            "manager_requested": 4,
+            "tours_opened": 3,
+            "needs_collected": 2,
+            "collecting_needs": 1
+        },
+        "flags": {
+            "manager_requested_no_reply": 4,
+            "repeated_callback_input": 1
+        },
         "calendar_day": {
-            "conversations_started": 0,
-            "needs_collected_from_started": 0,
-            "tours_opened_from_started": 0,
+            "conversations_started": 9,
+            "needs_collected_from_started": 4,
+            "tours_opened_from_started": 2,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 0,
+            "manager_requested": 4,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
