@@ -37,7 +37,7 @@ try {
     while(($r=fgetcsv($f))!==false){
         if(++$n>1000000)throw new RuntimeException('journal_limit');
         if(count($r)!==count($head))throw new RuntimeException('partial_row');
-        $date=(string)$r[$idx['DateTime']];if(substr($date,0,10)!=='2026-09-29')continue;
+        $date=(string)$r[$idx['DateTime']];if(substr($date,0,10)<'2026-09-29'||substr($date,0,10)>'2026-09-30')continue;
         $dt=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$date,$tz);if(!$dt||$dt->format('Y-m-d H:i:s')!==$date)throw new RuntimeException('timestamp');
         $ts=$dt->getTimestamp();if($ts<$from||$ts>=$now)continue;
         $chat=(string)$r[$idx['ChatID']];if(isset($tests[$chat]))continue;
