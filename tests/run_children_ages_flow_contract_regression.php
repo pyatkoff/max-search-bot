@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+require_once $root . '/services/ChildrenParser.php';
 $contract = json_decode((string)file_get_contents($root . '/docs/children-ages-flow-contract.json'), true);
 $callback = (string)file_get_contents($root . '/actions/callbacks/WizardCallbackAction.php');
 $handler = (string)file_get_contents($root . '/handlers/StateMessageHandler.php');
@@ -43,6 +44,8 @@ childrenAgesContractCheck('child callback no longer owns a direct value write', 
 childrenAgesContractCheck('zero children skip ages and continue to stars', strpos($callback, 'if ((int)$child === 0)') !== false && strpos($callback, "EditFlowService::finishIfNeeded(\$chatId, 'tourists')") !== false && strpos($callback, 'MaxSearchApi::showStarsButtons($chatId)') !== false);
 childrenAgesContractCheck('positive children open age input with exact count', strpos($callback, 'MaxSearchApi::showAgeButtons($chatId, (int)$child)') !== false);
 childrenAgesContractCheck('children callback remains under shared forward guard', strpos($callback, "InteractionGuard::synchronized(\$chatId, 'wizard.forward'") !== false && strpos($state, "if (strpos(\$payload, 'child_') === 0) return 'children';") !== false);
+childrenAgesContractCheck('explicit child-count correction prefers positive replacement', ChildrenParser::parse('не 1 ребёнок, а 2 ребёнка') === 2);
+childrenAgesContractCheck('rejected-only child count stays unresolved', ChildrenParser::parse('не 1 ребёнок') === null);
 
 childrenAgesContractCheck('current age parser bounds every value to 0 through 17', strpos($ageParser, 'if ($age < 0 || $age > 17) return null;') !== false);
 childrenAgesContractCheck('current age parser requires exact child count', strpos($ageParser, 'if (count($ages) !== $childrenCount) return null;') !== false);

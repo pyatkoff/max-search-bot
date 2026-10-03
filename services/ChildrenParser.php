@@ -13,6 +13,15 @@ class ChildrenParser
             $lower = trim((string)$m[1]);
         }
 
+        if (preg_match('/^не\s+(.+?)\s*[,;]?\s+а\s+(.+)$/ui', $lower, $m)) {
+            $rejected = self::parse(trim((string)$m[1]));
+            $replacement = self::parse(trim((string)$m[2]));
+            if ($rejected === null || $replacement === null) {
+                return null;
+            }
+            return $replacement;
+        }
+
         if (preg_match('/^(?:нет|не будет|без детей|детей нет|без ребёнка|без ребенка|0)$/ui', $lower)) {
             return 0;
         }
