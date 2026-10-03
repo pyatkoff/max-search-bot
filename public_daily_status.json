@@ -1,19 +1,19 @@
 {
     "ok": true,
-    "generated_at": "2026-10-03T18:01:34+00:00",
+    "generated_at": "2026-10-03T21:28:03+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 36,
-        "raw_sessions": 36,
+        "sessions": 37,
+        "raw_sessions": 37,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 36,
+            "resolved": 37,
             "unresolved": 0
         },
-        "started": 28,
+        "started": 29,
         "needs_collected": 18,
         "tours_opened": 18,
         "site_opened": 1,
@@ -34,7 +34,8 @@
             "manager_replied": 13,
             "customer_replied_after_manager": 12,
             "tours_opened": 6,
-            "manager_requested": 5
+            "manager_requested": 5,
+            "collecting_needs": 1
         },
         "flags": {
             "repeated_callback_input": 4,
