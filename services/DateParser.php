@@ -57,6 +57,13 @@ class DateParser
 
     public static function resolveDate(string $text): array
     {
+        // A narrow explicit correction must resolve the positive replacement,
+        // never the date the tourist just rejected. If the replacement itself
+        // is not a date, fail closed instead of restoring the negated value.
+        if (preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $text, $correction)) {
+            return self::resolveDate((string)$correction[1]);
+        }
+
         // A standalone explicit date may contain spaces around its separators.
         // Normalize only that spelling; retain the existing calendar/year policy
         // and leave prose, ranges and incomplete dates to their current parsers.

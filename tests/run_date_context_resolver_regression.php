@@ -51,6 +51,15 @@ $numericGuard = AiDateContextService::applyAiGuard($chatId, '24.11.28-29.11.28',
 dcrCheck('AI guard preserves literal date instead of an invented range midpoint', ($numericGuard['date'] ?? '') === '24.11.2028');
 dcrCheck('numeric date guard does not change other trip values', ($numericGuard['nights'] ?? '') === '5');
 
+// A clear same-message correction must not persist the explicitly rejected date.
+$positiveReplacement = DateParser::resolveDate('20 октября 2030');
+$correctedNaturalDate = DateParser::resolveDate('не 15 октября 2030, а 20 октября 2030');
+dcrCheck('explicit natural-date correction keeps positive replacement',
+    $correctedNaturalDate === $positiveReplacement && ($correctedNaturalDate['date'] ?? '') === '20.10.2030');
+DateContextResolver::clear($chatId);
+$correctedLocalDate = AiDateContextService::resolveLocal($chatId, 'не 15 октября 2030, а 20 октября 2030');
+dcrCheck('AI local correction exposes positive replacement date', ($correctedLocalDate['date'] ?? '') === '20.10.2030');
+
 // Synthetic reproduction of the observed spaced numeric-date rejection.
 // Formatting must not alter the explicit year, calendar validation or AI guard.
 foreach ([
