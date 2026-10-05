@@ -38,7 +38,10 @@ class AiShadowObserver
                 $state['negative_preferences'] = (array)($legacyState['negative_preferences'] ?? []);
             }
 
-            $result = ShadowDialogueService::run($chatId, $message, $state);
+            // Delay the message_evaluated diagnostic until guarded preference
+            // application and canonical read-back have finished. Otherwise the log can
+            // claim a low-confidence/rejected wish was saved when it was not.
+            $result = ShadowDialogueService::run($chatId, $message, $state, false);
             if ($canonicalBudget !== null && is_array($result['new_state'] ?? null)) {
                 $result['new_state']['budget'] = $canonicalBudget;
             }
@@ -67,6 +70,7 @@ class AiShadowObserver
             if (!empty($result['new_state']) && is_array($result['new_state'])) {
                 TripStateRepository::save($chatId, $result['new_state'], dirname(__DIR__));
             }
+            ShadowDialogueService::logResult($chatId, $message, $result);
             return $result;
         } catch (Throwable $e) {
             DiagnosticLogger::error('dialogue_v2_shadow','observer_failed',['message'=>$message,'error'=>$e->getMessage()],$chatId);
