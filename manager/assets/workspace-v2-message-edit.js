@@ -1,5 +1,5 @@
 (function(){
-const W=window.WorkspaceV2;if(!W)return;const {S,api}=W;let timer=0,seq=0,busy=0;
+const W=window.WorkspaceV2;if(!W)return;const {S,api}=W;let timer=0,expiryTimer=0,seq=0,busy=0;
 function schedule(){clearTimeout(timer);timer=setTimeout(refresh,80)}
 function messageNodes(){return [...document.querySelectorAll('#messages > .msg')]}
 function rows(){return Array.isArray(S.detail?.messages)?S.detail.messages:[]}
@@ -29,18 +29,21 @@ function editor(target,message,id){
   };
 }
 async function refresh(){
+  clearTimeout(expiryTimer);expiryTimer=0;
   const conversation=Number(S.current||0),generation=Number(S.authGeneration||0),run=++seq;clearButtons();
   if(!conversation||!S.manager?.id||S.authExpired)return;
   let result;try{result=await api('edit_candidates',{conversation_id:conversation})}catch(e){return}
   if(run!==seq||conversation!==Number(S.current||0)||generation!==Number(S.authGeneration||0)||!result?.ok)return;
-  const map=nodeMap();
+  const map=nodeMap();let nextExpiry=0;
   for(const candidate of result.messages||[]){
     const id=Number(candidate?.message_id||0),entry=map.get(id);if(!entry)continue;
     const meta=entry.node.querySelector('.msgMeta');if(!meta)continue;
     const button=document.createElement('button');button.type='button';button.className='messageEditButton';button.textContent='Изменить';
     const remaining=Math.max(0,Number(candidate.remaining_seconds||0));button.title=remaining?('Можно изменить ещё '+Math.ceil(remaining/60)+' мин.'):'Изменить сообщение';
+    if(remaining>0&&(!nextExpiry||remaining<nextExpiry))nextExpiry=remaining;
     button.onclick=()=>editor(entry.node,entry.message,id);meta.appendChild(button);
   }
+  if(nextExpiry>0)expiryTimer=setTimeout(refresh,(nextExpiry+1)*1000);
 }
 function bind(){const box=document.getElementById('messages');if(!box)return;new MutationObserver(schedule).observe(box,{childList:true});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule()});schedule()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
