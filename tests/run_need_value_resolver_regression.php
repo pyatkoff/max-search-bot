@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../services/NeedValueResolver.php';
+require_once __DIR__ . '/../services/TripBudgetPolicy.php';
 
 $passed = 0;
 $failed = 0;
@@ -145,6 +146,22 @@ $budgetSubsetPrefix = NeedValueResolver::resolve('budget', 'Бюджет на в
 nvrCheck('subset budget basis before amount stays unresolved', $budgetSubsetPrefix['recognized'], false);
 $budgetPerNightPrefix = NeedValueResolver::resolve('budget', 'Бюджет на человека 90 тыс за ночь');
 nvrCheck('per-night budget stays unresolved with prefix basis', $budgetPerNightPrefix['recognized'], false);
+
+$explicitEurBudget = TripBudgetPolicy::apply([], [
+    'budget.max'=>3000,
+    'budget.currency'=>'EUR',
+    'budget.basis'=>'per_person',
+]);
+$clearedEurBudget = TripBudgetPolicy::apply($explicitEurBudget, ['budget.max'=>null]);
+nvrCheck('explicit budget clear removes the amount', $clearedEurBudget['max'] ?? null, null);
+nvrCheck('explicit budget clear removes stale personal basis', array_key_exists('basis', $clearedEurBudget), false);
+nvrCheck('explicit budget clear removes stale currency', array_key_exists('currency', $clearedEurBudget), false);
+$freshBudgetAfterClear = TripBudgetPolicy::apply($clearedEurBudget, ['budget.max'=>250000]);
+nvrCheck('fresh unqualified budget after clear defaults to RUB', $freshBudgetAfterClear['currency'] ?? null, 'RUB');
+nvrCheck('fresh unqualified budget after clear defaults to total', $freshBudgetAfterClear['basis'] ?? null, 'total');
+$ordinaryAmountCorrection = TripBudgetPolicy::apply($explicitEurBudget, ['budget.max'=>3500]);
+nvrCheck('ordinary amount-only correction retains explicit currency', $ordinaryAmountCorrection['currency'] ?? null, 'EUR');
+nvrCheck('ordinary amount-only correction retains explicit basis', $ordinaryAmountCorrection['basis'] ?? null, 'per_person');
 
 $unsupported = NeedValueResolver::resolve('resort', 'Анталья');
 nvrCheck('unmigrated field remains explicitly unsupported', $unsupported, [
