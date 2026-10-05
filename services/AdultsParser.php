@@ -9,8 +9,13 @@ class AdultsParser
         if ($n === null && preg_match('/^(\d)\s*(?:взросл(?:ый|ых|ого)?|человек(?:а)?)$/ui', $lower, $m)) {
             $n = (int)$m[1];
         }
-        if ($n === null && preg_match('/(?:^|\s)(\d|один|одна|одного|два|двое|двух|три|трое|трех|трёх|четыре|четверо|пять|пятеро|шесть|шестеро)\s+взросл(?:ый|ая|ые|ых|ого)?(?:\s|$)/ui', $lower, $m)) {
-            $n = self::numberFromShortText((string)$m[1], 1, 6);
+        if ($n === null && preg_match('/(?:^|\s)(\d|один|одна|одного|два|двое|двух|три|трое|трех|трёх|четыре|четверо|пять|пятеро|шесть|шестеро)\s+взросл(?:ый|ая|ые|ых|ого)?(?:\s|$)/ui', $lower, $m, PREG_OFFSET_CAPTURE)) {
+            $matchOffset = (int)$m[0][1];
+            $prefix = trim(substr($lower, 0, $matchOffset));
+            $negated = preg_match('/(?:^|\s)(?:только\s+)?не$/ui', $prefix) === 1;
+            if (!$negated) {
+                $n = self::numberFromShortText((string)$m[1][0], 1, 6);
+            }
         }
         if ($n === null && preg_match('/^я\s+и\s+жена$/u', $lower)) {
             $n = 2;
