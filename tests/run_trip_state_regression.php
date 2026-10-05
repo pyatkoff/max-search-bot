@@ -107,6 +107,30 @@ tsCheck('merger stores budget', $merged['budget']['max'], 180000);
 tsCheck('merger deduplicates preferences', $merged['preferences'], ['детский клуб','первая линия']);
 tsCheck('merger ignores unknown path', isset($merged['unsupported']), false);
 
+$preferenceBase = $state;
+$preferenceBase['preferences'] = ['Первая линия', 'детский клуб'];
+$preferenceBase['negative_preferences'] = ['шумный отель'];
+$neutralCorrection = TripStateMerger::merge($preferenceBase, [
+    'preferences_remove'=>['первая линия'],
+]);
+tsCheck('neutral preference correction removes stale wish in shadow state', $neutralCorrection['preferences'], ['детский клуб']);
+tsCheck('neutral preference correction does not invent an exclusion', $neutralCorrection['negative_preferences'], ['шумный отель']);
+$polarityCorrection = TripStateMerger::merge($neutralCorrection, [
+    'negative_preferences'=>['детский клуб'],
+]);
+tsCheck('negative correction removes same property from positive shadow list', $polarityCorrection['preferences'], []);
+tsCheck('negative correction keeps one canonical polarity', $polarityCorrection['negative_preferences'], ['шумный отель','детский клуб']);
+$liftExclusion = TripStateMerger::merge($polarityCorrection, [
+    'negative_preferences_remove'=>['ШУМНЫЙ ОТЕЛЬ'],
+]);
+tsCheck('neutral exclusion correction removes case variant in shadow state', $liftExclusion['negative_preferences'], ['детский клуб']);
+$contradictoryPreferenceChange = TripStateMerger::merge($preferenceBase, [
+    'preferences'=>['тихий отель'],
+    'negative_preferences'=>['Тихий отель'],
+]);
+tsCheck('same-message opposite preference contradiction fails closed', $contradictoryPreferenceChange['preferences'], $preferenceBase['preferences']);
+tsCheck('same-message opposite exclusion contradiction fails closed', $contradictoryPreferenceChange['negative_preferences'], $preferenceBase['negative_preferences']);
+
 $explicitFlex = TripStateMerger::merge($state, ['dates.flexible_days'=>2]);
 tsCheck('explicit date flexibility remains representable', $explicitFlex['dates']['flexible_days'], 2);
 
