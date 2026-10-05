@@ -53,7 +53,21 @@ mediaCheck('Telegram reply context retained',$tgIncoming['linked_message']['type
 mediaCheck('Telegram reply target retained',$tgIncoming['linked_message']['mid']??null,'10');
 mediaCheck('Telegram replied photo summarized',$tgIncoming['linked_message']['attachments'][0]['type']??null,'image');
 mediaCheck('forwarded MAX video token retained',$forwardIncoming['attachments'][0]['token']??null,'video-token');
-$linkedProjection=ManagerMessageMediaService::hydrate([['id'=>991,'direction'=>'inbound','sender_type'=>'customer','text'=>'Этот вариант']]);
+$linkedProjector=new ReflectionMethod(ManagerMessageMediaService::class,'publicLinkedMessage');
+$linkedProjector->setAccessible(true);
+$linkedProjection=$linkedProjector->invoke(null,[
+    'type'=>'reply','mid'=>'mid.offer','sender_name'=>'Менеджер','text'=>'Отель A',
+    'attachments'=>[
+        ['type'=>'image','name'=>'front.jpg','token'=>'private-image-token','url'=>'https://provider.example/front.jpg'],
+        ['type'=>'video','name'=>'walkthrough.mp4','token'=>'private-video-token'],
+        ['type'=>'inline_keyboard','name'=>'ignore'],
+    ],
+]);
+mediaCheck('workspace projection keeps replied image and video summaries',$linkedProjection['attachments']??null,[
+    ['type'=>'image','name'=>'front.jpg'],
+    ['type'=>'video','name'=>'walkthrough.mp4'],
+]);
+mediaCheck('linked attachment projection hides provider token and URL',str_contains(json_encode($linkedProjection),'private-')||str_contains(json_encode($linkedProjection),'provider.example'),false);
 
 $nestedUpdate=['update_type'=>'message_created','message'=>['sender'=>['user_id'=>123],'body'=>['mid'=>'mid.media.2','attachments'=>[
     ['type'=>'image','payload'=>['photos'=>[['token'=>'nested-token','url'=>'https://cdn.example/nested-photo.jpg']]]],

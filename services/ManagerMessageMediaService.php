@@ -60,6 +60,15 @@ class ManagerMessageMediaService
         if($name!=='') $out['sender_name']=mb_substr($name,0,160,'UTF-8');
         $text=trim((string)($linked['text']??''));
         if($text!=='') $out['text']=mb_substr($text,0,500,'UTF-8');
+        $summary=[];
+        foreach((array)($linked['attachments']??[]) as $attachment){
+            if(!is_array($attachment))continue;
+            $attachmentType=(string)($attachment['type']??'');
+            if(!in_array($attachmentType,['image','video','audio','file'],true))continue;
+            $summary[]=['type'=>$attachmentType,'name'=>mb_substr(trim((string)($attachment['name']??'')),0,180,'UTF-8')];
+            if(count($summary)>=4)break;
+        }
+        if($summary)$out['attachments']=$summary;
         return $out;
     }
 
