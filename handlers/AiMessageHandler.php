@@ -143,6 +143,10 @@ class AiMessageHandler
                     put_log_out('AI ERROR: '.json_encode($ai, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 
                     $missingAfterError=MaxSearchApi::getAiMissingFields($chat_id);
+                    if (empty($missingAfterError)) {
+                        NeedProgressionService::advance($chat_id);
+                        return;
+                    }
                     MissingFieldQuestionService::sendForMissing($chat_id, $missingAfterError);
                     return;
                 }
