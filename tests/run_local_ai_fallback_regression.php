@@ -38,8 +38,8 @@ $params = LocalAiFallbackService::parameters('Египет', []);
 $params = LocalAiFallbackService::applyDestinationDefaults($params, []);
 localCheck('empty context defaults departure to Moscow', $params['city'] ?? null, 'Москва');
 localCheck('Egypt recognized locally', $params['country'] ?? null, 'Египет');
-localCheck('Egypt default meal preserved', $params['meal'] ?? null, 'all_inclusive');
-localCheck('Egypt default stars preserved', $params['stars'] ?? null, 4);
+localCheck('Egypt alone keeps meal unknown locally', array_key_exists('meal', $params), false);
+localCheck('Egypt alone keeps stars unknown locally', array_key_exists('stars', $params), false);
 
 $params = LocalAiFallbackService::parameters('ЕГИПЕТ', ['city'=>'Москва']);
 localCheck('uppercase Cyrillic country is recognized without lowercasing dependency', $params['country'] ?? null, 'Египет');
@@ -66,8 +66,12 @@ $params = LocalAiFallbackService::parameters('1 взрослый и 2 ребен
 localCheck('explicit numeric child count in sentence is retained', $params['children'] ?? null, 2);
 
 $params = LocalAiFallbackService::applyDestinationDefaults(['date'=>'15.09.2026'], ['country'=>'Египет']);
-localCheck('current Egypt still supplies defaults for date-only local correction', $params['meal'] ?? null, 'all_inclusive');
-localCheck('current Egypt still supplies star default for date-only local correction', $params['stars'] ?? null, 4);
+localCheck('current Egypt date correction does not invent meal', array_key_exists('meal', $params), false);
+localCheck('current Egypt date correction does not invent stars', array_key_exists('stars', $params), false);
+
+$params = LocalAiFallbackService::applyDestinationDefaults(['meal'=>'breakfast','stars'=>5], ['country'=>'Турция']);
+localCheck('explicit local meal refinement preserved', $params['meal'] ?? null, 'breakfast');
+localCheck('explicit local star refinement preserved', $params['stars'] ?? null, 5);
 
 localCheck(
     'missing country before and after forces one AI destination fallback',
