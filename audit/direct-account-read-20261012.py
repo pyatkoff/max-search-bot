@@ -67,6 +67,28 @@ def run():
                'processingMode': 'auto', 'returnMoneyInMicros': 'false', 'skipReportHeader': 'true',
                'skipColumnHeader': 'false', 'skipReportSummary': 'true'}
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+    probe_payload = {'method': 'get', 'params': {'SelectionCriteria': {'Ids': [714260445, 714320748]},
+        'FieldNames': ['Id', 'Name', 'Currency', 'TimeZone']}}
+    probe_req = urllib.request.Request('https://api.direct.yandex.com/json/v501/campaigns',
+        data=json.dumps(probe_payload).encode(), headers={key: value for key, value in headers.items()
+        if key in ['Authorization', 'Client-Login', 'Content-Type', 'Accept-Language']}, method='POST')
+    try:
+        with opener.open(probe_req, timeout=20) as response:
+            probe_status, probe_headers, probe_body = response.status, response.headers, response.read(100001)
+    except urllib.error.HTTPError as error:
+        probe_status, probe_headers, probe_body = error.code, error.headers, error.read(100001)
+    out['campaign_probe'] = {'http': probe_status, 'body_bytes': len(probe_body),
+        'headers': {key: probe_headers.get(key) for key in ['RequestId', 'Server', 'Content-Type', 'Content-Length']}}
+    if probe_status == 200 and len(probe_body) <= 100000:
+        try:
+            probe_data = json.loads(probe_body)
+            entries = probe_data.get('result', {}).get('Campaigns', [])
+            if all(isinstance(entry, dict) and entry.get('Id') in [714260445, 714320748] for entry in entries):
+                out['campaign_probe']['campaigns'] = entries
+            if isinstance(probe_data.get('error'), dict):
+                out['campaign_probe']['api_error_code'] = probe_data['error'].get('error_code')
+        except (TypeError, ValueError):
+            out['campaign_probe']['json_valid'] = False
     for attempt in range(4):
         req = urllib.request.Request('https://api.direct.yandex.com/json/v501/reports',
             data=json.dumps({'params': params}).encode(), headers=headers, method='POST')
@@ -75,7 +97,8 @@ def run():
                 status, rh, body = response.status, response.headers, response.read(2000001)
         except urllib.error.HTTPError as error:
             status, rh, body = error.code, error.headers, error.read(2000001)
-        out['requests'].append({'http': status, 'request_id': rh.get('RequestId')})
+        out['requests'].append({'http': status, 'request_id': rh.get('RequestId'), 'body_bytes': len(body),
+            'headers': {key: rh.get(key) for key in ['RequestId', 'Server', 'Content-Type', 'Content-Length']}})
         require(len(body) <= 2000000, 'RESPONSE_BUDGET')
         if status == 200:
             break
