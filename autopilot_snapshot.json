@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-12T17:04:28+00:00",
+    "generated_at": "2026-10-12T17:08:13+00:00",
     "production": {
-        "sha": "112a0ab1803879a67315a165a403e39a9bcdcf43",
+        "sha": "4c658d606c75f4acef70053aa794961acb86de6f",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 1,
             "overdue_count": 1,
             "stuck_count": 1,
-            "oldest_wait_seconds": 1049,
+            "oldest_wait_seconds": 1271,
             "routing_blocked_count": 0
         },
         "push": {
@@ -178,7 +178,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-12 16:04:15",
+        "since_utc": "2026-10-12 16:07:57",
         "summary": {
             "sessions": 5,
             "raw_sessions": 5,
@@ -219,7 +219,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "112a0ab1803879a67315a165a403e39a9bcdcf43",
+        "sha": "4c658d606c75f4acef70053aa794961acb86de6f",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -228,7 +228,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-12T17:04:28Z"
+        "reported_at": "2026-10-12T17:08:12Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -236,7 +236,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-12T17:03:59+00:00",
+        "generated_at": "2026-10-12T17:07:42+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -331,7 +331,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-12T17:03:59+00:00",
+        "generated_at": "2026-10-12T17:07:42+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -629,7 +629,7 @@
                 "date": "2026-10-12",
                 "partial": true,
                 "since_utc": "2026-10-11 22:00:00",
-                "until_utc": "2026-10-12 17:03:59",
+                "until_utc": "2026-10-12 17:07:42",
                 "channels": [
                     {
                         "channel": "max",
@@ -643,9 +643,9 @@
                     },
                     {
                         "channel": "telegram",
-                        "active_conversations": 7,
+                        "active_conversations": 8,
                         "new_conversations": 6,
-                        "continued_conversations": 1,
+                        "continued_conversations": 2,
                         "inbound_conversations": 6,
                         "manager_requested_conversations": 5,
                         "manager_replied_conversations": 6,
@@ -729,7 +729,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-12T17:04:26+00:00",
+        "generated_at": "2026-10-12T17:08:10+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -753,8 +753,8 @@
             },
             "manager": {
                 "files": 60,
-                "bytes": 380799,
-                "code_lines": 2333
+                "bytes": 381226,
+                "code_lines": 2339
             },
             "website": {
                 "files": 4,
@@ -773,8 +773,8 @@
             },
             "tests": {
                 "files": 246,
-                "bytes": 1548257,
-                "code_lines": 19459
+                "bytes": 1553292,
+                "code_lines": 19514
             },
             "tools": {
                 "files": 48,
@@ -814,9 +814,15 @@
                 "severity": "observe"
             },
             {
+                "path": "tests/run_manager_reauth_composer_behavior_regression.js",
+                "lines": 304,
+                "bytes": 24386,
+                "severity": "observe"
+            },
+            {
                 "path": "manager/assets/workspace-v2-conversation.js",
-                "lines": 295,
-                "bytes": 32121,
+                "lines": 301,
+                "bytes": 32548,
                 "severity": "observe"
             },
             {
@@ -827,20 +833,14 @@
             },
             {
                 "path": "tests/run_free_text_nights_application_regression.php",
-                "lines": 285,
-                "bytes": 14308,
+                "lines": 286,
+                "bytes": 14442,
                 "severity": "observe"
             },
             {
                 "path": "tests/run_departure_city_callback_application_regression.php",
                 "lines": 284,
                 "bytes": 15420,
-                "severity": "observe"
-            },
-            {
-                "path": "services/ConversationStateRepository.php",
-                "lines": 280,
-                "bytes": 11959,
                 "severity": "observe"
             }
         ],
