@@ -1,0 +1,107 @@
+name: One-off Direct account statistics via existing server
+on:
+  push:
+    branches: [audit/direct-account-read-20261012]
+    paths: [.github/workflows/direct-account-read-20261012.yml, audit/direct-account-read-20261012.py]
+permissions:
+  contents: read
+concurrency:
+  group: direct-account-read-20261012
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Read with existing server OAuth and encrypt private statistics
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          work="$(mktemp -d "$RUNNER_TEMP/direct-account.XXXXXX")"
+          trap 'rm -rf "$work"' EXIT
+          export WORK_DIR="$work"
+          python3 - <<'KEY'
+          import base64,hashlib,os,subprocess
+          from pathlib import Path
+          root=Path(os.environ['WORK_DIR'])
+          if not all(os.environ.get(k) for k in ('SSH_KEY','SSH_HOST','SSH_USER')):
+              raise SystemExit('ESTABLISHED_SSH_SETTINGS_UNAVAILABLE')
+          try:
+              raw=os.environ['SSH_KEY'].replace('\r','')
+              raw=raw.replace('\\n','\n') if 'PRIVATE KEY' in raw else base64.b64decode(raw).decode()
+              (root/'key').write_text(raw.rstrip()+'\n');(root/'key').chmod(0o600)
+          except Exception:
+              raise SystemExit('SSH_KEY_FORMAT_INVALID') from None
+          expected='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0'
+          scanned=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['SSH_HOST']],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scanned.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp==expected:matches.append(line)
+          if not matches:raise SystemExit('HOST_CONTINUITY_PIN_MISMATCH_STOP')
+          (root/'known_hosts').write_text('\n'.join(matches)+'\n')
+          print('EXISTING_HOST_CONTINUITY_PIN_OK')
+          KEY
+          ssh-keygen -y -f "$work/key" >/dev/null 2>&1
+          opts=(-i "$work/key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$work/known_hosts" -o GlobalKnownHostsFile=/dev/null \
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          timeout 160s ssh "${opts[@]}" "$SSH_USER@$SSH_HOST" \
+            'cd /var/www/anytoour/data/www/d.anytoour.ru && .venv/bin/python -I -B -' \
+            < audit/direct-account-read-20261012.py > "$work/report.json" 2> "$work/read-error"
+          python3 - <<'ENCRYPT'
+          import base64,json,os
+          from pathlib import Path
+          from cryptography.hazmat.primitives import hashes,serialization
+          from cryptography.hazmat.primitives.asymmetric import padding
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+          root=Path(os.environ['WORK_DIR']);p=root/'report.json'
+          if not p.is_file() or p.stat().st_size>4000000:raise SystemExit('REPORT_SIZE_INVALID')
+          report=json.loads(p.read_bytes())
+          if report.get('account')!='anytour2024tp':raise SystemExit('REPORT_ACCOUNT_MISMATCH')
+          if any(report.get(k) is not False for k in ('server_writes','advertising_writes','database_opened','token_exported')):
+              raise SystemExit('REPORT_READONLY_CONTRACT_INVALID')
+          public=serialization.load_pem_public_key(b'''
+          -----BEGIN PUBLIC KEY-----
+          MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA6qncRS0z+Lq7wS/Qh4wD
+          uHP8X4rskbNbDOlNAr2rpnLm9a1PSX+e2gK1+pNXUob6z0ORLBjeXsPfns3VuEuy
+          TU+Mcgmw0Pttn6J7BPV07oWtXxFNZSsoOq+1mWX8cb6FCZ7zXUCKZgGdWieG71rR
+          K5XArGCe3hV7ms69JI/oR/bgp711A9mvKlGHUGLBBVOFozPMALkjw96XzkGh5QuF
+          xporPEoEvV6ulQLouFzaROhVFnK+zESJBR2fJ3BWV0AcoAiM7dCiIWQWkKid+wqe
+          7D8ezrim2owqDuBGjAha1ND8yFvK+BGvzqZUnx9NeQkpZncfVo5SSK6MFwJWb5IG
+          5yyiy3sOtRGyESof8L75nInidUHX/dt0xnNnMGi/pK8llWLUqhNc5z5nHjaLie0K
+          tXoaGIomVClsrRddUfQozZBfLqbxVXNVW8csh1ztPbYkcNr2n9pvN0bknUdHsUuY
+          sBRymBLDbHbJo+TcHCR20O59GLT3PzDQgLwDXyicfTFnAgMBAAE=
+          -----END PUBLIC KEY-----
+          ''')
+          key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12);aad=b'AnyTour-account-statistics-20261012'
+          data=json.dumps(report,ensure_ascii=False,allow_nan=False).encode()
+          ciphertext=AESGCM(key).encrypt(nonce,data,aad)
+          wrapped=public.encrypt(key,padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),algorithm=hashes.SHA256(),label=None))
+          b64=lambda value:base64.b64encode(value).decode()
+          envelope={'schema':1,'aad':b64(aad),'nonce':b64(nonce),'wrapped_key':b64(wrapped),'ciphertext':b64(ciphertext)}
+          out=Path('encrypted-statistics');out.mkdir(exist_ok=True)
+          (out/'report.enc.json').write_text(json.dumps(envelope))
+          print(json.dumps({'read_ok':report.get('ok'),'error':report.get('error'),'date1':report.get('date1'),
+                            'date2':report.get('date2'),'row_count':report.get('row_count'),'report_encrypted':True}))
+          ENCRYPT
+      - name: Retain encrypted report only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: direct-account-statistics-20261012
+          path: encrypted-statistics/report.enc.json
+          retention-days: 3
+          if-no-files-found: error
