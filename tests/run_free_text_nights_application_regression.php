@@ -218,7 +218,8 @@ foreach ([
     freeTextNightsCheck("{$text} observer keeps free-text scope", $transitionEvents[0]['data']['scope'] ?? null, 'free_text_nights');
 }
 
-$combinedYear = 10 < (int)date('n') ? ((int)date('Y') + 1) : (int)date('Y');
+// An implicit year rolls forward once this departure day has passed, not only after October.
+$combinedYear = mktime(0, 0, 0, 10, 3, (int)date('Y')) < strtotime('today') ? ((int)date('Y') + 1) : (int)date('Y');
 $combinedDate = sprintf('03.10.%04d', $combinedYear);
 $messenger = freeTextNightsReset(150);
 StateMessageHandler::handle(['text'=>'7 ночей, вылет 3 октября'], 150, MaxSearchApi::$statusNights);
