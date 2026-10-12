@@ -200,9 +200,38 @@ for(const result of ['network','invalid','unknown','temporary'])test('unconfirme
 });
 for(const category of ['suspended','blocked','unavailable','unsupported'])test('known '+category+' reason remains visible without retries',async()=>{
   const h=createHarness();await h.start();await h.draft();
-  h.setHook((url,r)=>r.action==='send'?response({ok:false,error_message:'Synthetic known reason',failure:{category,message:'Synthetic known reason'}},409):null);
+  h.setHook((url,r)=>r.action==='send'?response({ok:false,error_message:'Synthetic known reason',failure:{category,message:'Synthetic raw provider reason'}},409):null);
   await h.C.sendReply();assert.equal(h.ids.get('replyStatus').textContent,'Synthetic known reason');assert.equal(h.ids.get('deliveryFailure').textContent,'Synthetic known reason');
   assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.ids.get('sendReply').disabled,category==='suspended');
+});
+test('persisted suspension uses the server notice after detail load and reload',async()=>{
+  const raw='Key: error.dialog.suspended, args: [990000001,].';
+  const notice='Пользователь остановил или заблокировал бота MAX. Отправка станет доступна после новой активности клиента — когда он снова запустит или разблокирует бота.';
+  for(let reload=0;reload<2;reload++){
+    const h=createHarness();await h.start();await h.draft();const file={name:'synthetic.png'};h.setFile(file);
+    h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:true,conversation:h.conversation,messages:[],delivery_failure:{category:'suspended',message:raw,notice,retry_allowed:false}}):null);
+    await h.C.open(101,{preserveAttachment:true});
+    assert.equal(h.ids.get('deliveryFailure').textContent,notice);
+    assert.equal(h.W.S.detail.delivery_failure.message,raw);
+    assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyFile').disabled,true);
+    assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.getFile(),file);
+    await h.C.sendReply();assertNoMutations(h);
+  }
+});
+test('raw-only suspended media failure uses neutral copy without a retry or lost draft',async()=>{
+  const h=createHarness();await h.start();await h.draft();const file={name:'synthetic.png'};h.setFile(file);
+  const raw='Key: error.dialog.suspended, args: [990000001,].';let sends=0;
+  h.window.WorkspaceV2Media.send=async()=>{sends++;return{ok:false,failure:{category:'suspended',message:raw}};};
+  await h.C.sendReply();
+  for(const id of ['deliveryFailure','replyStatus']){
+    const copy=h.ids.get(id).textContent;
+    assert.match(copy,/Диалог MAX приостановлен/);assert.match(copy,/нового сообщения или запуска бота/);
+    assert.doesNotMatch(copy,/error\.dialog|990000001|остановил|заблокировал/);
+  }
+  assert.equal(h.W.S.detail.delivery_failure.message,raw);
+  assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyFile').disabled,true);
+  assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.getFile(),file);
+  await h.C.sendReply();assert.equal(sends,1);assertNoMutations(h);
 });
 for(const mode of ['detail-error','detail-throw','inbox-throw','render-throw'])test('accepted send remains confirmed after '+mode,async()=>{
   const h=createHarness();await h.start();await h.draft('Confirmed synthetic reply');
