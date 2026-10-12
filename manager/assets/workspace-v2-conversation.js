@@ -45,10 +45,16 @@ function applyInteractionState(){applyComposerState();applyActionState()}
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
 function sendFailureNotice(failure,fallback=''){
-  if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category))return String(fallback||failure.message||'Отправка отклонена.');
+  if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category)){
+    const notice=String(failure.notice||fallback||failure.error_message||'');
+    if(notice)return notice;
+    // Raw provider messages stay in the diagnostic state, not in the suspension banner.
+    if(failure.category==='suspended')return 'Диалог MAX приостановлен. Отправка станет доступна после нового сообщения или запуска бота клиентом.';
+    return String(failure.message||'Отправка отклонена.');
+  }
   return 'Отправка не подтверждена. Проверьте переписку перед повторной попыткой, чтобы не отправить сообщение дважды.';
 }
-function renderDeliveryFailure(failure){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,String(f.message||f.error_message||''));el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
+function renderDeliveryFailure(failure,fallback=''){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,fallback);el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
 function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
@@ -257,7 +263,7 @@ async function sendReply(){
     }
     if(j?.ok!==true){
       const failure=j?.failure||null;
-      if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure);renderActions(S.detail.conversation)}
+      if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure,j?.error_message);renderActions(S.detail.conversation)}
       if(currentAttempt())setReplyStatus(sendFailureNotice(failure,j?.error_message),'error');
       return;
     }

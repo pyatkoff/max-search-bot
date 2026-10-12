@@ -19,6 +19,7 @@ async function setup(page){
     for(const id of ['deliveryFailure','composerLocked']){
       const el=document.createElement('div');el.id=id;el.className=id+' hidden';document.getElementById('composer').before(el);
     }
+    const file=document.createElement('input');file.id='replyFile';file.type='file';file.className='hidden';document.getElementById('composer').append(file);
     document.getElementById('sendReply').type='submit';
     window.fixtureTouches=[];
     for(const type of ['touchstart','touchend','mousedown','mouseup','click','focusin','focusout','submit'])document.addEventListener(type,e=>{const b=document.getElementById('sendReply').getBoundingClientRect();window.fixtureTouches.push({type,target:e.target.id||e.target.tagName,top:b.top,focused:document.activeElement?.id});},true);
@@ -29,7 +30,7 @@ async function setup(page){
       api:async(action,payload)=>{
         window.fixtureCalls.push({action,payload});
         if(action==='send')return window.fixtureResult;
-        if(action==='detail')return window.fixtureHistoryFails?{ok:false,http_status:500}:{ok:true,conversation:{...conversation,id:payload.conversation_id},messages:[]};
+        if(action==='detail')return window.fixtureHistoryFails?{ok:false,http_status:500}:{ok:true,conversation:{...conversation,id:payload.conversation_id},messages:[],delivery_failure:window.fixtureDeliveryFailure||null};
         throw new Error('Unexpected fixture action');
       },pipe:async()=>({ok:false})};
   });
@@ -76,13 +77,37 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-confirmed.png`});
     expect(unexpected).toEqual([]);
   });
+  test('persisted suspended detail shows the notice without unlocking or losing the draft',async({page,browserName})=>{
+    const unexpected=await setup(page);
+    const notice='Пользователь остановил или заблокировал бота MAX. Отправка станет доступна после новой активности клиента — когда он снова запустит или разблокирует бота.';
+    await page.locator('#replyFile').setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:Buffer.from('Synthetic file, never uploaded')});
+    await page.evaluate(async notice=>{
+      window.fixtureHistoryFails=false;
+      window.fixtureDeliveryFailure={category:'suspended',message:'Key: error.dialog.suspended, args: [990000001,].',notice,retry_allowed:false};
+      await WorkspaceV2Conversation.open(11,{preserveAttachment:true});
+    },notice);
+    await expect(page.locator('#deliveryFailure')).toHaveText(notice);
+    await expect(page.locator('#deliveryFailure')).toBeVisible();
+    await expect(page.locator('#deliveryFailure')).not.toContainText('error.dialog');
+    await expect(page.locator('#sendReply')).toBeDisabled();await expect(page.locator('#replyFile')).toBeDisabled();
+    await expect(page.locator('#replyText')).toHaveValue('Синтетический ответ для проверки');
+    expect(await page.locator('#replyFile').evaluate(input=>input.files[0]?.name)).toBe('synthetic.png');
+    await page.evaluate(()=>WorkspaceV2Conversation.sendReply());
+    expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(0);
+    await assertFits(page,width);
+    fs.mkdirSync('send-feedback-artifacts',{recursive:true});
+    await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-suspended-notice.png`});
+    expect(unexpected).toEqual([]);
+  });
 });
 test('known suspension preserves the reason and blocks a repeat send',async({page})=>{
   const unexpected=await setup(page);
-  await page.evaluate(()=>{window.fixtureResult={ok:false,error_message:'Пользователь остановил бота',failure:{category:'suspended',message:'Пользователь остановил бота'}};});
+  await page.evaluate(()=>{window.fixtureResult={ok:false,error_message:'Диалог MAX приостановлен. Клиенту нужно снова запустить бота.',failure:{category:'suspended',message:'Key: error.dialog.suspended, args: [990000001,].'}};});
   await page.locator('#sendReply').click();
-  await expect(page.locator('#replyStatus')).toHaveText('Пользователь остановил бота');
-  await expect(page.locator('#sendReply')).toBeDisabled();
+  await expect(page.locator('#replyStatus')).toHaveText('Диалог MAX приостановлен. Клиенту нужно снова запустить бота.');
+  await expect(page.locator('#deliveryFailure')).toHaveText('Диалог MAX приостановлен. Клиенту нужно снова запустить бота.');
+  await expect(page.locator('#deliveryFailure')).not.toContainText('error.dialog');
+  await expect(page.locator('#sendReply')).toBeDisabled();await expect(page.locator('#replyFile')).toBeDisabled();
   await expect(page.locator('#replyText')).toHaveValue('Синтетический ответ для проверки');
   await page.evaluate(()=>WorkspaceV2Conversation.sendReply());
   expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);expect(unexpected).toEqual([]);
