@@ -68,7 +68,7 @@ def run():
                'skipColumnHeader': 'false', 'skipReportSummary': 'true'}
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
     for attempt in range(4):
-        req = urllib.request.Request('https://api.direct.yandex.com/json/v5/reports',
+        req = urllib.request.Request('https://api.direct.yandex.com/json/v501/reports',
             data=json.dumps({'params': params}).encode(), headers=headers, method='POST')
         try:
             with opener.open(req, timeout=25) as response:
