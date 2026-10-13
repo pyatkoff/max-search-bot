@@ -26,3 +26,5 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 @media(max-width:1100px){.manager2 .m2ClientName{display:block;font-size:15px;font-weight:650;color:#344e39;margin-top:3px}.manager2 .leadZone .zoneHead .muted{display:none}.manager2 .leadZone .zoneHead .brand{font-size:11px;font-weight:500;color:#637457}}
 
 .manager2 .m2Dialog #adminLink{display:inline-flex;align-items:center;min-height:44px;margin-top:14px;padding:8px 12px;font-size:12px;text-decoration:none;color:#48633c;background:#f1f5eb;border:1px solid #e1e9d7}
+
+.manager2 .msg .msgMeta,.manager2 .msg .messageSender{color:#586a4e}

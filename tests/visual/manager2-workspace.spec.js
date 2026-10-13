@@ -93,7 +93,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     const s=await setup(page);await expect(page).toHaveURL(origin+'/manager2/?qa=1');
     await noOverflow(page);await capture(page,browserName,width,'inbox');
     expect(await page.evaluate(()=>fixtureWorkers)).toEqual([{url:'/manager/sw.js',scope:'/manager/'}]);
-    await openLead(page);await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
+    await openLead(page);await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');await readable(page,'.msg.manager .msgMeta');await readable(page,'.msg.customer .messageSender');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
     const gap=await page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop);expect(gap).toBeLessThanOrEqual(2);
     await showCard(page);await expect(page.locator('.m2Budget strong')).toHaveText('до 250 000 ₽');await readable(page,'.m2Budget strong');
     if(width<=1100){await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');const box=await page.locator('#leadZone').boundingBox(),bar=await page.locator('.m2Topbar').boundingBox();expect(box.y).toBeGreaterThanOrEqual(bar.y+bar.height-1);expect(box.y+box.height).toBeLessThanOrEqual(901);}
