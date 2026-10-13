@@ -117,6 +117,7 @@ return [
         'php tests/run_web_consultant_v2_regression.php',
     ],
     'manager' => [
+        'php tests/run_manager2_workspace_regression.php',
         'php tests/run_manager_request_regression.php',
         'php tests/run_manager_handoff_journey_context_regression.php',
         'php tests/run_handoff_policy_inventory_regression.php',

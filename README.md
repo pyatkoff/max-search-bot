@@ -109,3 +109,7 @@ For larger refactors, split work into smaller commits and preserve behavior befo
 ## Refactor direction
 
 `maxsearchbaseclass.php` remains the largest legacy component. New work should avoid adding unrelated responsibilities there. Prefer focused services for traffic attribution, Metrika, lead handling, follow-ups, search context and Tourvisor logic. Move existing behavior gradually and keep regression coverage around each extraction.
+
+### Manager2
+
+`/manager2/` is the owner-authorized modern Manager presentation. It uses the same login/session, live clients, protected `/manager/` APIs and canonical workspace modules. The previous `/manager/` remains available. See [Manager2 presentation and verification](manager2/README.md).
