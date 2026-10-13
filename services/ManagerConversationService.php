@@ -103,6 +103,17 @@ class ManagerConversationService
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
         $replySql=$queue==='mine'?self::awaitingManagerReplySql('c'):'0';
+        $whereSql=implode(' AND ',$where);
+        $orderSql=($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'));
+        $fromSql='FROM conversations c JOIN customers cu ON cu.id=c.customer_id';
+        $predicateSql=' WHERE '.$whereSql;
+        if($queue==='all'||$queue==='closed'){
+            // These queues rank only conversation timestamps. Materialize their
+            // customer-backed candidate page before annotating messages/events;
+            // request/reply-ranked queues must keep their original query path.
+            $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
+            $predicateSql='';
+        }
         $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
             .'cu.display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
@@ -113,8 +124,8 @@ class ManagerConversationService
             .'(SELECT mm.sender_type FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_sender_type,'
             .'(SELECT mm.metadata_json FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_metadata_json,'
             .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
-            .'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE '.implode(' AND ',$where)
-            .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'))).' LIMIT 200';
+            .$fromSql.' LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
+            .' ORDER BY '.$orderSql.' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=ManagerConversationAccessPolicy::visibleRows($managerId,$rows);
         $rows=SalesPipelineService::decorateConversationRows($rows);

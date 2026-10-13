@@ -127,6 +127,7 @@ return [
         'php tests/run_manager_request_context_regression.php',
         'php tests/run_manager_conversation_access_policy_regression.php',
         'php tests/run_manager_inbox_access_batch_regression.php',
+        'php tests/run_manager_inbox_query_page_regression.php',
         'php tests/run_manager_role_policy_regression.php',
         'php tests/run_manager_phone_fallback_regression.php',
         'php tests/run_manager_visibility_regression.php',
