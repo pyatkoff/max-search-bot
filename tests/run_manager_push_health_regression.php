@@ -51,6 +51,41 @@ $healthyPath=strpos($panel,"usable=!!status?.notification_path_usable")!==false;
 $criticalOverride=strpos($panel,"label=setupFailure?reasonText(reason):workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
 mphCheck('Manager workspace only claims notifications enabled for healthy server path',$healthyLabel&&$healthyPath&&$criticalOverride);
 
+// Exercise the real standalone entrypoint in a fresh PHP process: the auth
+// boundary checks the actual ConversationDb configuration contract. No application
+// config, credentials, database, or browser subscription is used by these fixtures.
+$setupFixture=sys_get_temp_dir().'/anytour-push-setup-'.bin2hex(random_bytes(6));
+mkdir($setupFixture.'/manager/lib',0700,true);
+mkdir($setupFixture.'/manager/assets',0700,true);
+file_put_contents($setupFixture.'/manager/push-enable.php',$enable);
+file_put_contents($setupFixture.'/manager/assets/workspace-v2-notifications.js','fixture');
+file_put_contents($setupFixture.'/manager/assets/workspace-v2-notifications.css','fixture');
+file_put_contents($setupFixture.'/config.php',"<?php\nforeach(['HOST','NAME','USER','PASS'] as \$field)define('CONVERSATION_DB_'.\$field,'fixture');\n");
+file_put_contents($setupFixture.'/manager/lib/ManagerHttp.php',"<?php\nrequire_once ".var_export($base.'/services/ConversationDb.php',true).";\n". <<<'FIXTURE'
+final class ManagerHttp {
+    public static function start(): void {}
+    public static function managerId(): int { return getenv('ANYTOUR_PUSH_FIXTURE')==='anonymous'?0:7; }
+    public static function manager(): ?array {
+        if(!ConversationDb::isConfigured())throw new RuntimeException('fixture_config_missing_before_auth');
+        return getenv('ANYTOUR_PUSH_FIXTURE')==='inactive'?null:['id'=>7];
+    }
+    public static function csrf(bool $create=false): string { return 'fixture-csrf'; }
+}
+FIXTURE);
+try{
+    foreach(['authenticated','anonymous','inactive'] as $setupCase){
+        $process=proc_open([PHP_BINARY,$setupFixture.'/manager/push-enable.php'],[1=>['pipe','w'],2=>['pipe','w']],$pipes,null,['ANYTOUR_PUSH_FIXTURE'=>$setupCase]);
+        if(!is_resource($process))throw new RuntimeException('push_setup_fixture_start_failed');
+        $output=stream_get_contents($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+        $exitCode=proc_close($process);
+        $renders=($exitCode===0&&$error===''&&strpos($output,'data-enable-push')!==false&&strpos($output,'assets/workspace-v2-notifications.js?v=')!==false);
+        mphCheck('fresh standalone push setup preserves '.$setupCase.' access',$setupCase==='authenticated'?$renders:($exitCode===0&&$error===''&&$output===''));
+    }
+}finally{
+    foreach(['/manager/push-enable.php','/manager/lib/ManagerHttp.php','/manager/assets/workspace-v2-notifications.js','/manager/assets/workspace-v2-notifications.css','/config.php'] as $fixtureFile)unlink($setupFixture.$fixtureFile);
+    foreach(['/manager/lib','/manager/assets','/manager',''] as $fixtureDir)rmdir($setupFixture.$fixtureDir);
+}
+
 $total=$passed+$failed;
 echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);
