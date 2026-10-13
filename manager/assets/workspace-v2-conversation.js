@@ -39,7 +39,7 @@ function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)retur
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState()}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||accessLost;if(file)file.disabled=busy||suspended||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||accessLost})}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||accessLost;if(file)file.disabled=busy||suspended||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
 function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||accessLost})}
 function applyInteractionState(){applyComposerState();applyActionState()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -65,7 +65,45 @@ function addQuickReply(text){
   reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
   saveDraft();autoGrow();reply.focus();
 }
-function suspendForAuthRecovery(){closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
+const replyEmojis=[
+  ['😊','Улыбка'],['🙂','Лёгкая улыбка'],['😀','Радость'],['😄','Смех'],['😂','Смех до слёз'],['😉','Подмигивание'],['😍','Восхищение'],['🥰','Нежность'],
+  ['😎','Круто'],['🤔','Раздумье'],['😅','Улыбка с облегчением'],['🙏','Спасибо'],['👍','Палец вверх'],['👎','Палец вниз'],['👏','Аплодисменты'],['👌','Отлично'],
+  ['🤝','Рукопожатие'],['❤️','Сердце'],['💙','Синее сердце'],['💚','Зелёное сердце'],['🎉','Праздник'],['✨','Искры'],['✅','Готово'],['🌍','Земля'],
+  ['✈️','Самолёт'],['🏖️','Отпуск'],['🏝️','Остров'],['☀️','Солнце'],['🌊','Море'],['🏨','Отель'],['🧳','Чемодан'],['📍','Место'],
+  ['📅','Календарь'],['⏰','Время'],['💰','Деньги'],['📞','Телефон'],['💬','Сообщение'],['🔥','Огонь'],['😔','Грусть'],['🤗','Объятия']
+];
+function canInsertEmoji(){
+  const c=S.detail?.conversation,reply=$('replyText'),form=$('composer');
+  return !!reply&&!!form&&!reply.disabled&&!form.classList.contains('hidden')&&!busy&&!opening&&!accessLost&&!S.authExpired&&!deliverySuspended()&&!!S.current&&Number(c?.id)===Number(S.current)&&c?.status==='manager'&&Number(c.manager_id)===Number(S.manager?.id);
+}
+function closeEmojiPicker(restoreFocus=false){
+  const picker=$('emojiPicker');if(!picker||picker.classList.contains('hidden'))return;
+  picker.classList.add('hidden');$('emojiToggle')?.setAttribute('aria-expanded','false');
+  if(restoreFocus&&canInsertEmoji())$('emojiToggle')?.focus({preventScroll:true});
+}
+function insertEmoji(emoji){
+  if(!canInsertEmoji()){closeEmojiPicker();return}
+  const reply=$('replyText'),start=reply.selectionStart,end=reply.selectionEnd;
+  reply.setRangeText(emoji,start,end,'end');saveDraft();autoGrow();closeEmojiPicker();reply.focus({preventScroll:true});
+}
+function bindEmojiPicker(){
+  const picker=$('emojiPicker'),toggle=$('emojiToggle');if(!picker||!toggle)return;
+  for(const [emoji,label] of replyEmojis){
+    const button=document.createElement('button');button.type='button';button.dataset.emoji=emoji;button.textContent=emoji;button.title=label;button.setAttribute('aria-label',label);button.onclick=()=>insertEmoji(emoji);picker.appendChild(button);
+  }
+  toggle.onclick=()=>{
+    if(!canInsertEmoji())return;
+    if(!picker.classList.contains('hidden')){closeEmojiPicker();return}
+    picker.classList.remove('hidden');toggle.setAttribute('aria-expanded','true');picker.querySelector('button')?.focus({preventScroll:true});
+  };
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!picker.classList.contains('hidden')){e.preventDefault();closeEmojiPicker(true)}});
+  // Close after the native click: hiding a focused panel on pointer-down can
+  // move the mobile send button before its click is delivered.
+  document.addEventListener('click',e=>{if(!picker.contains(e.target)&&!toggle.contains(e.target))closeEmojiPicker()});
+  window.addEventListener('popstate',()=>closeEmojiPicker());
+  window.addEventListener('pagehide',()=>closeEmojiPicker());
+}
+function suspendForAuthRecovery(){closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -206,7 +244,7 @@ async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;
   if(!target)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
-  if(switching)closePhotoViewer(false);
+  if(switching){closeEmojiPicker();closePhotoViewer(false)}
   const seq=++openSeq;opening=seq;refreshEpoch++;setRefreshStatus();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем лид…':'Обновляем диалог…','loading');
@@ -287,6 +325,7 @@ async function sendReply(){
 function bind(){
   if(bound)return;bound=true;
   const form=$('composer'),reply=$('replyText');
+  bindEmojiPicker();
   form.onsubmit=async e=>{e.preventDefault();await sendReply()};
   // Focusing the send button can collapse mobile quick replies between down/up,
   // moving the native click target. Keep pointer focus stable; keyboard focus and
