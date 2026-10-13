@@ -18,6 +18,17 @@ async function setup(options={}){
 }
 const detailCount=h=>h.calls.filter(r=>r.url==='api.php'&&r.action==='detail').length;
 
+test('opening a long owned chat positions the latest message after the composer becomes visible',async()=>{
+ const h=createHarness(),box=h.ids.get('messages');let top=0;
+ Object.defineProperties(box,{
+   scrollHeight:{get:()=>2000},clientHeight:{get:()=>hidden(h)?700:550},
+   scrollTop:{get:()=>top,set:value=>{top=Math.max(0,Math.min(value,2000-box.clientHeight))}}
+ });
+ await h.start();assert.equal(hidden(h),false);
+ assert.equal(box.scrollHeight-box.clientHeight-box.scrollTop,0);
+ assertNoMutations(h);
+});
+
 test('canonical 15-second Inbox timer displays an arriving message without reopening or touching edits',async()=>{
  const h=await setup();await h.draft('Synthetic unsent reply');const file={name:'synthetic.png'};h.setFile(file);
  const lead=h.W.S.detail.lead;let leadRenders=0;h.window.WorkspaceV2LeadCard.render=()=>leadRenders++;
