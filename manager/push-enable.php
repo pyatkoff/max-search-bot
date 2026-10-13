@@ -1,5 +1,6 @@
 <?php
 $baseDir=dirname(__DIR__);
+require_once $baseDir.'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 ManagerHttp::start();
 if(ManagerHttp::managerId()<=0||!ManagerHttp::manager()){header('Location: ./');exit;}
