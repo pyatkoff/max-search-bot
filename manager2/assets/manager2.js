@@ -86,7 +86,8 @@
   }
   function revealTaskDraft(form){
     for(let el=form.parentElement;el;el=el.parentElement)if(el instanceof HTMLDetailsElement)el.open=true;
-    if(window.WorkspaceV2Mobile?.isMobile()&&window.WorkspaceV2Mobile.getScreen()!=='lead')window.WorkspaceV2Mobile.showLead();
+    const mobile=window.WorkspaceV2Mobile;
+    if(mobile?.isMobile()&&mobile.getScreen()!=='lead'){if(mobile.getScreen()==='inbox')mobile.conversationOpened(S.current);mobile.showLead()}
   }
   function enhanceConversationActions(root){
     const secondary=[...root.children].filter(el=>el.tagName==='BUTTON'&&!el.classList.contains('primary'));

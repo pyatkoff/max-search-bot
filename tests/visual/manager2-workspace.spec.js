@@ -73,8 +73,8 @@ async function openLead(page,id=11){
   await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();
   await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
 }
-async function showCard(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileLeadBtn').click()}
-async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click()}
+async function showCard(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile())){await page.locator('#mobileLeadBtn').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead')}}
+async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')){await page.locator('#mobileLeadClose').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation')}}
 async function noOverflow(page){const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,vw:innerWidth,vh:innerHeight}));expect(size.w).toBeLessThanOrEqual(size.vw+1);expect(size.h).toBeLessThanOrEqual(size.vh+1)}
 async function readable(page,selector){
   const ratio=await page.locator(selector).first().evaluate(el=>{
