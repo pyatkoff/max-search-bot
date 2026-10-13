@@ -12,6 +12,11 @@ final class ManagerConversationAccessPolicy
         return $managerId > 0 && RoutingAccessService::canSeeConversation($managerId, $conversation);
     }
 
+    public static function visibleRows(int $managerId,array $conversations): array
+    {
+        return $managerId > 0 ? RoutingAccessService::visibleConversations($managerId,$conversations) : [];
+    }
+
     /** The conversation must already have passed canView(). */
     public static function canEditVisibleConversation(array $conversation, array $manager): bool
     {

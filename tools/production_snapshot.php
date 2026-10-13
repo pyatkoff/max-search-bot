@@ -196,9 +196,16 @@ try{
     foreach($snapshot['managers'] as $manager){
         if(!(int)($manager['is_active']??0))continue;
         $id=(int)$manager['id'];
+        // Time the existing bounded probes; do not add requests or transcript data.
+        $loadStarted=hrtime(true);
         $all=ManagerConversationService::list($id,'all',200,'*');
+        $allMs=round((hrtime(true)-$loadStarted)/1e6,1);
+        $loadStarted=hrtime(true);
         $mine=ManagerConversationService::list($id,'mine',200,'*');
+        $mineMs=round((hrtime(true)-$loadStarted)/1e6,1);
+        $loadStarted=hrtime(true);
         $waiting=ManagerConversationService::list($id,'waiting',200,'*');
+        $waitingMs=round((hrtime(true)-$loadStarted)/1e6,1);
         $otherAssigned=0;
         foreach($all as $conversation){$assigned=(int)($conversation['manager_id']??0);if($assigned>0&&$assigned!==$id)$otherAssigned++;}
         $entry=[
@@ -210,6 +217,7 @@ try{
             'mine'=>count($mine),
             'waiting'=>count($waiting),
             'assigned_to_others'=>$otherAssigned,
+            'load_ms'=>['all'=>$allMs,'mine'=>$mineMs,'waiting'=>$waitingMs],
         ];
         $visibilityCheck=ManagerVisibilityHealth::assess($manager,$all,$mine,$waiting);
         $entry['sample_check']=$visibilityCheck;

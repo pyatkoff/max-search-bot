@@ -68,7 +68,9 @@ function applyIdentity(me){
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
 async function loadCatalog(){
+  const generation=S.authGeneration;
   const [cat,filterOptions]=await Promise.all([pipe('catalog').catch(()=>null),pipe('filter_options').catch(()=>null)]);
+  if(generation!==S.authGeneration||S.authExpired)return;
   if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
   if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
   window.WorkspaceV2Filters?.render();
@@ -77,6 +79,13 @@ function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
   window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();
   S.workspaceBound=true;
+}
+async function refreshNotificationHealth(generation,managerId){
+  const stillAuthenticated=()=>!S.authExpired&&S.authGeneration===generation&&Number(S.manager?.id||0)===managerId;
+  try{
+    await window.WorkspaceV2Notifications?.init();
+    if(stillAuthenticated())await window.WorkspaceV2Notifications?.refresh();
+  }catch(e){}
 }
 async function resumeAuthenticated(me){
   const previousId=Number(S.manager?.id||0),sameIdentity=previousId>0&&previousId===Number(me.manager?.id||0),recovering=S.authExpired;
@@ -88,8 +97,15 @@ async function resumeAuthenticated(me){
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
   }
   S.authExpired=false;hideAuthRecovery();applyIdentity(me);
+  const generation=S.authGeneration,managerId=Number(S.manager?.id||0);
+  const stillAuthenticated=()=>!S.authExpired&&S.authGeneration===generation&&Number(S.manager?.id||0)===managerId;
   const savedConversationId=window.WorkspaceV2Conversation?.activateReplySession(S.manager?.id);
-  await loadCatalog();bindWorkspaceOnce();await window.WorkspaceV2Notifications?.init();await window.WorkspaceV2Notifications?.refresh();if(!S.authExpired)await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  await loadCatalog();if(!stillAuthenticated())return;bindWorkspaceOnce();
+  // Native push registration and its health request must not hold the Inbox or
+  // a recovered conversation behind a slow/unavailable notification provider.
+  void refreshNotificationHealth(generation,managerId);
+  await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  if(!stillAuthenticated())return;
   if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
   else if(savedConversationId===window.WorkspaceV2Conversation?.getSavedSelection()&&savedConversationId&&!S.authExpired&&!S.current&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(savedConversationId,{restoreSession:true,mobileHistory:window.WorkspaceV2Mobile?.reloadHistoryMode?.()||'none'});
 }

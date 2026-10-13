@@ -17,7 +17,9 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `lib/ManagerHttp.php` — shared Manager HTTP/session/auth/CSRF/conversation-authorization boundary. `start()` owns session bootstrap for HTML/binary/non-JSON manager surfaces; `startJson()` layers JSON headers on the same lifecycle. Conversation visibility/edit ownership delegates to `ManagerConversationAccessPolicy` through request/application services; keep the HTTP helper business-service free.
 - `services/ManagerQueueProjectionService.php` — actionable Manager queue/count projection owner. It composes canonical conversation lists with delivery-state eligibility, while preserving notification-unread semantics; HTTP endpoints and `ManagerConversationService` must not rebuild these projections.
 - `assets/workspace-v2.js` — shared state/transport/boot/auth-recovery core only; feature rendering stays in modules.
+- Loading keeps notification setup/health outside the Inbox and recovered-conversation prerequisite chain. Catalog/filter reconciliation still precedes the first list. Late startup continuations are scoped to the current authentication generation.
 - `assets/workspace-v2-inbox.*` — inbox owner: queue selection, list projection, list/kanban view handoff.
+- Automatic Inbox/transcript refresh is coalesced while a list or earlier automatic cycle is pending; explicit queue/filter navigation remains available and the latest list wins.
 - `assets/workspace-v2-filters.js` — inbox search/filter state, persistence, filter controls and task-filter shortcut orchestration. It may invoke the inbox reload/queue boundary but must not own sales-stage or task business semantics.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
 - `assets/workspace-v2-jump.js` — transcript viewport owner: follows latest messages through composer/viewport/media layout changes, preserves a visible message anchor while reading history, and exposes the explicit jump control. It never renders or fetches messages; Conversation establishes viewport intent after composing the reply controls.
@@ -71,6 +73,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 6. Authorization and CSRF are server-side requirements; UI hiding is not authorization.
 7. Sales Pipeline mutations require assigned-manager/admin authorization at the shared interface boundary and remain independent of technical conversation state.
 8. Production verification requires real HTTP entrypoint smoke in addition to static regression and screenshot QA.
+9. Bounded list visibility uses a fresh batch of manager/project/source/group permissions through `ManagerConversationAccessPolicy`; it never retains permissions across mutations or replaces singleton write authorization. Existing production visibility probes report numeric `load_ms` for their real-database reads without adding probes or exposing transcript data.
 
 ## Refactor sequence
 

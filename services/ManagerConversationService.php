@@ -116,7 +116,7 @@ class ManagerConversationService
             .'FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE '.implode(' AND ',$where)
             .' ORDER BY '.(($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'))).' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
-        $rows=array_values(array_filter($rows,static function($row)use($managerId){return ManagerConversationAccessPolicy::canView($managerId,$row);}));
+        $rows=ManagerConversationAccessPolicy::visibleRows($managerId,$rows);
         $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
         $rows=self::decorateLastMessagePreviews($rows,$failures);
