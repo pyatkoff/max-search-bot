@@ -84,7 +84,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Manager2 presentation (owner request, 2026-10-13)
 
-- `manager2/index.php` selects the agreed modern presentation and includes the canonical shell. `<base href="/manager/">` keeps API, multipart, media, worker scope and admin URLs canonical. `/manager2/index.php` normalization stays browser-only.
+- `manager2/index.php` selects the agreed modern presentation and includes the canonical shell. Its identity-free HTML must not start the `/manager/`-scoped session; canonical APIs retain all session/auth/CSRF and cookie issuance. `<base href="/manager/">` keeps API, multipart, media, worker scope and admin URLs canonical. `/manager2/index.php` normalization stays browser-only.
 - `manager2/assets/manager2.css` is body-scoped; the existing `/manager/` styling is preserved.
 - `manager2/assets/manager2.js` moves canonical controls, groups secondary sales/task/actions into native disclosures and projects the already-available canonical trip budget. It performs no transport, database, routing, identity, reply or notification mutation.
 - Lead Card, Tasks and Conversation expose optional presentation hooks after rendering. Existing modules retain all event binding, role checks, mutation guards, session/attachment/draft handling and delivery truth.
