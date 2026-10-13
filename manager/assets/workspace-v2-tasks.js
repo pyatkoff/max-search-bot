@@ -1,9 +1,9 @@
 (function(){
   const taskMutations=new Map();
   function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
-  function localDue(utc){if(!utc)return'Без срока';const d=new Date(String(utc).replace(' ','T')+'Z');return Number.isNaN(d.getTime())?'Без срока':d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
-  function toIso(localValue){if(!localValue)return null;const d=new Date(localValue);return Number.isNaN(d.getTime())?null:d.toISOString()}
-  function toLocalInput(utc){if(!utc)return'';const d=new Date(String(utc).replace(' ','T')+'Z');if(Number.isNaN(d.getTime()))return'';const local=new Date(d.getTime()-d.getTimezoneOffset()*60000);return local.toISOString().slice(0,16)}
+  function localDue(utc){return window.ManagerTime.parse(utc)?window.ManagerTime.format(utc):'Без срока'}
+  function toIso(localValue){return window.ManagerTime.fromInput(localValue)}
+  function toLocalInput(utc){return window.ManagerTime.toInput(utc)}
   function dueState(task){const state=String(task?.due_state||'');return['overdue','today','upcoming','unscheduled'].includes(state)?state:'unscheduled'}
   function urgency(state){const labels={overdue:'Просрочено',today:'Сегодня',upcoming:'Запланировано',unscheduled:'Без срока'};return labels[state]||labels.unscheduled}
   function workspace(){return window.WorkspaceV2||null}

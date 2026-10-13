@@ -18,6 +18,7 @@ const context = {
   window: { WorkspaceV2: { S: {}, $: id => id === 'messages' ? box : null } },
   document: { createElement: tag => new Node(tag), createTextNode: text => new Node('#text', text), createDocumentFragment: () => new Node('#fragment') },
 };
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),context);
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../manager/assets/workspace-v2-conversation.js'), 'utf8'), context);
 function render(sender_type, text) {
   const message = { sender_type, text, created_at: '2026-09-06 14:19:01' };
@@ -42,6 +43,7 @@ assert.ok(mixed.children.every(n => ['#text', 'strong'].includes(n.tag)));
 assert.equal(render('ai', null).textContent, '');
 
 const inboxContext={window:{WorkspaceV2:{S:{},$:()=>null,esc:value=>String(value??''),pipe(){},api(){},statusText(){},outcomeText(){},formatWait(){}}},document:{}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),inboxContext);
 vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-inbox.js'),'utf8'),inboxContext);
 const preview=inboxContext.window.WorkspaceV2Inbox.messagePreview;
 assert.equal(preview('Нет последнего сообщения','customer',''),'Нет последнего сообщения','empty display text preserves the empty-message placeholder');

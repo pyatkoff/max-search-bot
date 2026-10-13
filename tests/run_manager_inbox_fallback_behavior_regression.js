@@ -15,6 +15,7 @@ function harness(overrides = {}, result = {ok: false, http_status: 500}) {
     document: {createElement: element, querySelector: selector => selector === '#inboxList .leadItem' ? {} : null},
     window: {WorkspaceV2: {S, $: id => elements[id] || null, pipe: async () => typeof result === 'function' ? result() : result, api: async (action, payload) => {calls.push({action, payload}); return {ok: true, conversations: [{id: 999, display_name: 'Unrelated lead'}]};}}},
   };
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/manager-time.js'),'utf8'),context);
   vm.runInNewContext(source, context);
   return {S, calls, list, status, inbox: context.window.WorkspaceV2Inbox};
 }

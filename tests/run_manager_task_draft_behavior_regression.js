@@ -67,7 +67,7 @@ function harness({ createOk = true, refreshRenders = true } = {}) {
   };
   const window = { WorkspaceV2: W };
   const context = vm.createContext({ window, document, sessionStorage: saved, console, Date, setTimeout });
-  for (const file of ['workspace-v2-tasks.js', 'workspace-v2-task-draft.js']) {
+  for (const file of ['manager-time.js','workspace-v2-tasks.js', 'workspace-v2-task-draft.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '../manager/assets', file), 'utf8'), context, { filename: file });
   }
   W.WorkspaceV2Tasks = window.WorkspaceV2Tasks;

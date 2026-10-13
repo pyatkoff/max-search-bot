@@ -1,11 +1,10 @@
 (function(){
-  function pad(v){return String(v).padStart(2,'0')}
-  function localInputValue(date){return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`}
-  function afterMinutes(from,minutes){const d=new Date(from.getTime());d.setSeconds(0,0);d.setMinutes(d.getMinutes()+minutes);return d}
-  function roundedHour(from){const d=new Date(from.getTime());d.setSeconds(0,0);d.setMinutes(0);d.setHours(d.getHours()+1);return d}
-  function todayAt(from,hour){const d=new Date(from.getTime());d.setHours(hour,0,0,0);if(d<=from)d.setDate(d.getDate()+1);return d}
-  function tomorrowAt(from,hour){const d=new Date(from.getTime());d.setDate(d.getDate()+1);d.setHours(hour,0,0,0);return d}
-  function sameLocalDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+  function localInputValue(date){return window.ManagerTime.toInput(date)}
+  function afterMinutes(from,minutes){const d=new Date(from.getTime());d.setUTCSeconds(0,0);d.setUTCMinutes(d.getUTCMinutes()+minutes);return d}
+  function roundedHour(from){const d=window.ManagerTime.wallDate(from);d.setUTCSeconds(0,0);d.setUTCMinutes(0);d.setUTCHours(d.getUTCHours()+1);return window.ManagerTime.fromWallDate(d)}
+  function todayAt(from,hour){const d=window.ManagerTime.wallDate(from);d.setUTCHours(hour,0,0,0);if(window.ManagerTime.fromWallDate(d)<=from)d.setUTCDate(d.getUTCDate()+1);return window.ManagerTime.fromWallDate(d)}
+  function tomorrowAt(from,hour){const d=window.ManagerTime.wallDate(from);d.setUTCDate(d.getUTCDate()+1);d.setUTCHours(hour,0,0,0);return window.ManagerTime.fromWallDate(d)}
+  function sameLocalDay(a,b){return localInputValue(a).slice(0,10)===localInputValue(b).slice(0,10)}
   function eveningLabel(now=new Date()){
     return sameLocalDay(todayAt(now,18),now)?'Сегодня 18:00':'Завтра 18:00';
   }
@@ -24,10 +23,11 @@
     return true;
   }
   function markup(now=new Date()){
-    return `<div class="taskDuePresets" role="group" aria-label="Быстро выбрать срок"><button type="button" data-due-preset="quarter">Через 15 мин</button><button type="button" data-due-preset="hour">Через час</button><button type="button" data-due-preset="evening">${eveningLabel(now)}</button><button type="button" data-due-preset="tomorrow">Завтра 10:00</button></div>`;
+    return `<div class="taskDuePresets" role="group" aria-label="Быстро выбрать срок"><button type="button" data-due-preset="quarter">Через 15 мин</button><button type="button" data-due-preset="hour">Через час</button><button type="button" data-due-preset="evening">${eveningLabel(now)}</button><button type="button" data-due-preset="tomorrow">Завтра 10:00</button><span class="muted">МСК</span></div>`;
   }
   function enhance(form,input){
     if(!form||!input||form.querySelector('.taskDuePresets'))return;
+    input.title='Срок задачи, МСК';input.setAttribute('aria-label','Срок задачи, МСК');
     input.insertAdjacentHTML('afterend',markup());
     const presets=input.nextElementSibling;
     presets?.querySelectorAll('[data-due-preset]').forEach(btn=>btn.onclick=()=>apply(input,String(btn.dataset.duePreset||'')));

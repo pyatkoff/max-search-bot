@@ -3,8 +3,8 @@ const W=window.WorkspaceV2,{S,$,esc,pipe,api,statusText,outcomeText,formatWait}=
 let bound=false,loadSeq=0,queueCountSeq=0,refreshTimer=null,lastAutoRefreshAt=0;
 const AUTO_REFRESH_MS=15000;
 function waitUrgency(waiting,seconds){if(!waiting)return'';seconds=Number(seconds||0);if(seconds>=300)return'urgent';if(seconds>=180)return'warn';return'normal'}
-function formatTaskDue(value){value=String(value||'').trim();if(!value)return'';const d=new Date(value.replace(' ','T')+'Z');if(Number.isNaN(d.getTime()))return value;return d.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
-function formatLastActivity(value){const s=String(value||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);return m?`${m[3]}.${m[2]} · ${m[4]}:${m[5]}`:s}
+function formatTaskDue(value){return window.ManagerTime.format(value)}
+function formatLastActivity(value){return window.ManagerTime.format(value,{separator:' · '})}
 function formatSaleAmount(value){const n=Number(value);if(!Number.isFinite(n)||n<=0)return'';return `${new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(n)} ₽`}
 function formatSaleDate(value){const s=String(value||'').trim(),m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}.${m[2]}.${m[1]}`:s}
 function saleSummary(c){if(String(c?.lead_outcome||'open')!=='won')return'';const amount=formatSaleAmount(c?.lead_sale_amount),date=formatSaleDate(c?.lead_sale_date);return [amount,date].filter(Boolean).join(' · ')}
