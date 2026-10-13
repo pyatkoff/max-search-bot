@@ -6,10 +6,10 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager'}={}){
   const calls=[],unexpected=[],errors=[],sends=[];
   let authenticated=!anonymous,subscribed=false;
-  const manager={id:7,role:'manager',display_name:'Мария',is_working:true};
+  const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
@@ -18,7 +18,8 @@ async function setup(page,{anonymous=false,otherOwner=false}={}){
   await page.addInitScript(()=>{
     sessionStorage.clear();
     window.fixtureWorkers=[];
-    const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null,subscribe:async()=>({options:{},toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})})},showNotification:async()=>{}};
+    let subscription=null;
+    const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
     function FakeNotification(){}FakeNotification.permission='default';FakeNotification.requestPermission=async()=>{FakeNotification.permission='granted';return 'granted'};
     Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
@@ -37,6 +38,7 @@ async function setup(page,{anonymous=false,otherOwner=false}={}){
       if(data.action==='login'){authenticated=true;return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]})}
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
       if(data.action==='me')return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]});
+      if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
       if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null});
       if(data.action==='send'){sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
@@ -57,7 +59,7 @@ async function setup(page,{anonymous=false,otherOwner=false}={}){
     if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy':'no_subscription'}});
     if(url.pathname==='/manager/push.php'){
       if(url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
-      if(data.action==='subscribe'){subscribed=true;return reply({ok:true})}
+      if(data.action==='subscribe'){subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy'}})}
     }
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
@@ -74,6 +76,15 @@ async function openLead(page,id=11){
 async function showCard(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileLeadBtn').click()}
 async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click()}
 async function noOverflow(page){const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,vw:innerWidth,vh:innerHeight}));expect(size.w).toBeLessThanOrEqual(size.vw+1);expect(size.h).toBeLessThanOrEqual(size.vh+1)}
+async function readable(page,selector){
+  const ratio=await page.locator(selector).first().evaluate(el=>{
+    const linear=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4};
+    const luminance=color=>{const c=color.match(/[\d.]+/g).slice(0,3).map(Number);return c.map(linear).reduce((s,x,i)=>s+x*[.2126,.7152,.0722][i],0)};
+    const fg=luminance(getComputedStyle(el).color);let p=el,bg='rgb(255, 255, 255)';
+    while(p){const color=getComputedStyle(p).backgroundColor;if(!color.startsWith('rgba')&&color!=='transparent'){bg=color;break}p=p.parentElement}
+    const b=luminance(bg);return (Math.max(fg,b)+.05)/(Math.min(fg,b)+.05);
+  });expect(ratio,selector+' text contrast').toBeGreaterThanOrEqual(4.5);
+}
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
 for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
@@ -82,20 +93,26 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     const s=await setup(page);await expect(page).toHaveURL(origin+'/manager2/?qa=1');
     await noOverflow(page);await capture(page,browserName,width,'inbox');
     expect(await page.evaluate(()=>fixtureWorkers)).toEqual([{url:'/manager/sw.js',scope:'/manager/'}]);
-    await openLead(page);await expect(page.locator('#composer')).toBeVisible();await noOverflow(page);await capture(page,browserName,width,'conversation');
+    await openLead(page);await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
     const gap=await page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop);expect(gap).toBeLessThanOrEqual(2);
-    await showCard(page);await expect(page.locator('.m2Budget strong')).toHaveText('до 250 000 ₽');
+    await showCard(page);await expect(page.locator('.m2Budget strong')).toHaveText('до 250 000 ₽');await readable(page,'.m2Budget strong');
+    if(width<=1100){await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');const box=await page.locator('#leadZone').boundingBox(),bar=await page.locator('.m2Topbar').boundingBox();expect(box.y).toBeGreaterThanOrEqual(bar.y+bar.height-1);expect(box.y+box.height).toBeLessThanOrEqual(901);}
     await expect(page.locator('.m2ExtraUrgency')).toHaveText('Ещё просроченных задач: 1');
     await expect(page.locator('.m2AllTasks')).not.toHaveAttribute('open');await expect(page.locator('[data-task-toggle="22"]')).not.toBeVisible();
     await page.locator('.m2AllTasks>summary').click();await expect(page.locator('[data-task-toggle="22"]')).toBeVisible();
     await page.locator('.m2AllTasks>summary').click();await capture(page,browserName,width,'client');await noOverflow(page);
     await showChat(page);await page.locator('#replyText').fill('Черновик для Анны');await openLead(page,12);await page.locator('#replyText').fill('Для Алексея');await openLead(page,11);await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
     await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toHaveText('Отправлено');expect(s.sends).toHaveLength(1);expect(s.sends[0]).toMatchObject({conversation_id:11,text:'Черновик для Анны',csrf:'synthetic-csrf'});
+    await page.getByLabel('Действия с диалогом',{exact:true}).press('Enter');await expect(page.getByRole('button',{name:'Закрыть',exact:true})).toBeVisible();await page.getByLabel('Действия с диалогом',{exact:true}).press('Escape');await expect(page.getByRole('button',{name:'Закрыть',exact:true})).not.toBeVisible();
     await noOverflow(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
   test('task mutations, keyboard-height composer, sales controls and notification dialog remain usable',async({page,browserName})=>{
     const s=await setup(page);await openLead(page);await showCard(page);
-    await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Новая рабочая задача');await page.locator('#leadTaskDue').fill('2026-10-15T10:00');await page.locator('#leadTaskAdd').click();
+    await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Черновик задачи');
+    await page.locator('.m2TaskCreate>summary').click();await expect(page.locator('.m2TaskCreate')).toHaveAttribute('open');
+    await showChat(page);if(width<=1100)await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="12"]').click();
+    await expect(page.locator('#leadTaskTitle')).toBeVisible();await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик задачи');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+    await page.locator('.m2TaskCancel').click();await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Новая рабочая задача');await page.locator('#leadTaskDue').fill('2026-10-15T10:00');await page.locator('#leadTaskAdd').click();
     await expect.poll(()=>s.calls.filter(c=>c.action==='create_task').length).toBe(1);
     expect(s.calls.find(c=>c.action==='create_task')).toMatchObject({conversation_id:11,title:'Новая рабочая задача',due_at:'2026-10-15T07:00:00.000Z'});
     await expect(page.locator('.m2AllTasks>summary')).toHaveText('Все задачи · 4');
@@ -115,4 +132,12 @@ test('Manager2 anonymous entry uses the canonical login and does not expose anot
   const s=await setup(page,{anonymous:true,otherOwner:true});await expect(page.locator('#managerAuthRecovery')).toBeVisible();
   await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await openLead(page);await expect(page.locator('#composer')).not.toBeVisible();await expect(page.locator('#composerLocked')).toContainText('Людмила');expect(s.calls.find(c=>c.action==='login').path).toBe('/manager/api.php');expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const width of [390,1440])test('Manager2 admin settings remain accessible at '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const s=await setup(page,{role:'admin'});
+  if(width===390)await page.locator('#m2NotificationButton').click();
+  await expect(page.locator('#adminLink')).toBeVisible();
+  expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager/admin.php');
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

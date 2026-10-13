@@ -84,6 +84,10 @@
       queueMicrotask(()=>{if(create.isConnected&&(String(title?.value||'').trim()||due?.value))details.open=true});
     }
   }
+  function revealTaskDraft(form){
+    for(let el=form.parentElement;el;el=el.parentElement)if(el instanceof HTMLDetailsElement)el.open=true;
+    if(window.WorkspaceV2Mobile?.isMobile()&&window.WorkspaceV2Mobile.getScreen()!=='lead')window.WorkspaceV2Mobile.showLead();
+  }
   function enhanceConversationActions(root){
     const secondary=[...root.children].filter(el=>el.tagName==='BUTTON'&&!el.classList.contains('primary'));
     if(!secondary.length)return;
@@ -129,11 +133,14 @@
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
     if(manager){$('m2Identity').appendChild(manager);manager.classList.remove('muted')}
     if(shift)$('m2ShiftSlot').appendChild(shift);
-    if(admin){admin.title='Настройки и менеджеры';admin.setAttribute('aria-label','Настройки и менеджеры');$('m2AdminSlot').appendChild(admin)}
-    if(health)$('m2NotificationSlot').appendChild(health);
+    if(admin){admin.title='Настройки и менеджеры';admin.setAttribute('aria-label','Настройки и менеджеры')}
+    const adminQuery=window.matchMedia('(max-width:740px)');const placeAdmin=()=>{if(admin)(adminQuery.matches?$('m2NotificationSlot'):$('m2AdminSlot')).appendChild(admin)};adminQuery.addEventListener('change',placeAdmin);
+    if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
     const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>По сроку и приоритету</summary>';shortcuts.before(details);details.appendChild(shortcuts)}
     $('mobileLeadBtn').textContent='Клиент';$('mobileLeadBtn').setAttribute('aria-label','Карточка клиента');$('mobileLeadClose').textContent='К диалогу';
     const header=document.querySelector('.leadZone .brand');if(header)header.textContent='Карточка клиента';
+    const clientName=document.createElement('span');clientName.id='m2ClientName';clientName.className='m2ClientName';document.querySelector('.leadHeaderText').appendChild(clientName);
+    const syncClientName=()=>clientName.textContent=S.current?$('conversationTitle').textContent:'';new MutationObserver(syncClientName).observe($('conversationTitle'),{childList:true,subtree:true});syncClientName();
     document.querySelectorAll('[data-m2-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.m2Nav)));
     const dialog=$('m2Notifications');
     $('m2NotificationButton').onclick=()=>{notificationOpener=document.activeElement;dialog.showModal()};
@@ -149,6 +156,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,budgetFact};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,revealTaskDraft,budgetFact};
   init();
 })();
