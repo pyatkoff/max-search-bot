@@ -56,10 +56,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager'}={}){
       if(data.action==='update_task'){Object.assign(tasks.find(t=>t.id===data.task_id),{title:data.title,due_at_utc:data.due_at});return reply({ok:true})}
       if(['set_stage','set_tags','set_outcome'].includes(data.action))return reply({ok:true});
     }
-    if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy':'no_subscription'}});
+    if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'}});
     if(url.pathname==='/manager/push.php'){
       if(url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
-      if(data.action==='subscribe'){subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy'}})}
+      if(data.action==='subscribe'){subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'}})}
     }
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
@@ -85,7 +85,7 @@ async function readable(page,selector){
     const b=luminance(bg);return (Math.max(fg,b)+.05)/(Math.min(fg,b)+.05);
   });expect(ratio,selector+' text contrast').toBeGreaterThanOrEqual(4.5);
 }
-async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
 for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
   test.use({viewport:{width,height:900}});
@@ -93,7 +93,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     const s=await setup(page);await expect(page).toHaveURL(origin+'/manager2/?qa=1');
     await noOverflow(page);await capture(page,browserName,width,'inbox');
     expect(await page.evaluate(()=>fixtureWorkers)).toEqual([{url:'/manager/sw.js',scope:'/manager/'}]);
-    await openLead(page);await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');await readable(page,'.msg.manager .msgMeta');await readable(page,'.msg.customer .messageSender');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
+    await openLead(page);if(width<=1100){const left=width<=740?0:64;await expect.poll(async()=>Math.abs((await page.locator('#conversationZone').boundingBox()).x-left)).toBeLessThanOrEqual(1);const box=await page.locator('#conversationZone').boundingBox();expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.width).toBeGreaterThanOrEqual(width-left-1)}await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');await readable(page,'.msg.manager .msgMeta');await readable(page,'.msg.customer .messageSender');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
     const gap=await page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop);expect(gap).toBeLessThanOrEqual(2);
     await showCard(page);await expect(page.locator('.m2Budget strong')).toHaveText('до 250 000 ₽');await readable(page,'.m2Budget strong');
     if(width<=1100){await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');const box=await page.locator('#leadZone').boundingBox(),bar=await page.locator('.m2Topbar').boundingBox();expect(box.y).toBeGreaterThanOrEqual(bar.y+bar.height-1);expect(box.y+box.height).toBeLessThanOrEqual(901);}
@@ -124,7 +124,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.locator('.m2BoardActions>summary').first().click();await expect(page.locator('.kanbanStageSelect').first()).toBeVisible();
     await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.m2TaskFilters')).toHaveAttribute('open');await expect(page.locator('#leadTaskFilter')).toHaveValue('');
     await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();await expect(page.locator('#notificationStatus')).toBeVisible();await page.locator('[data-enable-push]').click();
-    await expect(page.locator('#notificationStatus')).toHaveClass(/\bok\b/);expect(s.calls.filter(c=>c.action==='subscribe')).toHaveLength(1);await capture(page,browserName,width,'notifications');
+    await expect(page.locator('#notificationStatus')).toHaveClass(/\bok\b/);await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');expect(s.calls.filter(c=>c.action==='subscribe')).toHaveLength(1);await capture(page,browserName,width,'notifications');
     await page.locator('#m2NotificationsClose').click();await expect(page.locator('#m2NotificationButton')).toBeFocused();expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
 });
