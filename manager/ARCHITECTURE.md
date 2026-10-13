@@ -26,7 +26,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-stage-history.js` — sales-stage history presentation owner; stage-history persistence and semantics remain in `SalesPipelineService`.
 - `assets/workspace-v2-pipeline.*` and `workspace-v2-kanban.*` — sales pipeline editor/board UI owner. Pipeline code owns sales mutations and editor state, not inbox filters.
 - `assets/workspace-v2-media.*` — outbound media UI owner.
-- `assets/workspace-v2-notifications.*` — notification UI owner.
+- `assets/workspace-v2-notifications.*` — notification UI and browser subscription activation/repair owner, shared by the workspace and authenticated `push-enable.php` shell. Native subscription jobs keep ownership until actual settlement, independently of bounded UI waits; origin Web Locks serialize supported tabs. Without Web Locks, the pending-job guard protects one page and automatic worker sync remains passive; cross-tab serialization is not guaranteed. The service worker only synchronizes existing compatible subscriptions and receives startup sync after activation, without holding activation open on push/network work.
 - `assets/workspace-v2-mobile.*` — mobile navigation/layout owner only; business behavior stays in feature modules.
 - `assets/manager-http-client.js` — small shared same-origin JSON transport owner for admin/routing pages; pages continue to own their CSRF/session state and business-specific error copy.
 - `assets/admin.css` + `assets/admin.js` — admin presentation/interaction owner; `admin.php` remains markup shell only and delegates session bootstrap to `ManagerHttp`.

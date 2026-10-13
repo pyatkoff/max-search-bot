@@ -17,7 +17,6 @@ $expected=[
     'manager/assets/workspace-v2-media.js',
     'manager/assets/workspace-v2-notifications.js',
     'manager/assets/workspace-v2.js',
-    'manager/push-enable.php',
     'manager/sw.js',
 ];
 sort($expected);
@@ -36,7 +35,8 @@ transportCheck('shared admin transport owns ordinary JSON request failures',strp
 transportCheck('Workspace core owns auth recovery and generic JSON transports only',strpos($core,'showAuthRecovery')!==false&&strpos($core,"request('api.php'")!==false&&strpos($core,"request('pipeline-api.php'")!==false&&strpos($core,"fetch('api.php'")!==false&&strpos($core,"fetch('media-upload.php'")===false&&strpos($core,"fetch('push.php")===false&&strpos($core,"fetch('push-status.php")===false);
 transportCheck('multipart media upload remains a focused transport owner',strpos($media,'new FormData()')!==false&&strpos($media,"fetch('media-upload.php'")!==false&&strpos($media,"'Content-Type':'application/json'")===false);
 transportCheck('notification transport retains push-specific timeouts and auth recovery',strpos($notifications,"fetch('push-status.php'")!==false&&strpos($notifications,"fetch('push.php")!==false&&strpos($notifications,'withTimeout(')!==false&&strpos($notifications,'handleUnauthorized(')!==false);
-transportCheck('standalone and worker push callers remain lifecycle-specific',strpos($standalone,'Notification.requestPermission()')!==false&&strpos($standalone,"fetch('push.php")!==false&&strpos($worker,"self.addEventListener('activate'")!==false&&strpos($worker,'syncPushSubscription')!==false&&strpos($worker,"fetch('push.php")!==false);
+transportCheck('standalone setup delegates activation to the canonical notifications owner',strpos($standalone,'assets/workspace-v2-notifications.js?v=')!==false&&strpos($standalone,'data-enable-push')!==false&&strpos($standalone,'ManagerHttp::csrf(true)')!==false&&strpos($standalone,'pushManager.subscribe')===false&&strpos($standalone,'fetch(')===false);
+transportCheck('worker retains passive lifecycle sync for existing subscriptions',strpos($worker,"self.addEventListener('activate'")!==false&&strpos($worker,'syncExistingPushSubscription')!==false&&strpos($worker,"pushResponse('push.php")!==false&&strpos($worker,'pushManager.subscribe')===false&&strpos($worker,'sub.unsubscribe()')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

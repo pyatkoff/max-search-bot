@@ -1,7 +1,9 @@
 importScripts('assets/workspace-v2-sound-ledger.js');
 
 self.addEventListener('install',event=>{self.skipWaiting();});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{await self.clients.claim();try{await syncPushSubscription();}catch(e){}})());});
+// Activation must finish without waiting on the subscription lock or push service.
+// Page activation owns creation/repair; message sync only persists existing keys.
+self.addEventListener('activate',event=>{event.waitUntil(self.clients.claim());});
 
 function b64ToUint8(base64String){
   const padding='='.repeat((4-base64String.length%4)%4);
@@ -18,23 +20,29 @@ function sameBytes(left,right){
   return true;
 }
 
-async function syncPushSubscription(){
-  const keyResp=await fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'});
+async function pushResponse(url,options={}){
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  let timer;
+  const pending=(async()=>{const response=await fetch(url,controller?{...options,signal:controller.signal}:options);return{response,data:await response.json()};})();
+  try{return await Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('push_sync_timeout'));},10000);})]);}
+  finally{clearTimeout(timer);}
+}
+
+async function syncExistingPushSubscription(){
+  const {response:keyResp,data:keyJson}=await pushResponse('push.php?action=key',{credentials:'same-origin',cache:'no-store'});
   if(!keyResp.ok)throw new Error('push_key_http_'+keyResp.status);
-  const keyJson=await keyResp.json();
   if(!keyJson.ok||!keyJson.public_key||!keyJson.csrf)throw new Error('push_key_missing');
   const key=b64ToUint8(keyJson.public_key);
-  let sub=await self.registration.pushManager.getSubscription();
-  if(sub&&sub.options&&sub.options.applicationServerKey&&!sameBytes(sub.options.applicationServerKey,key)){
-    await sub.unsubscribe();
-    sub=null;
-  }
-  if(!sub)sub=await self.registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-  const save=await fetch('push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:keyJson.csrf,subscription:sub.toJSON()})});
+  const sub=await self.registration.pushManager.getSubscription();
+  if(!sub||!sub.options?.applicationServerKey||!sameBytes(sub.options.applicationServerKey,key))return false;
+  const {response:save,data:saved}=await pushResponse('push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:keyJson.csrf,subscription:sub.toJSON()})});
   if(!save.ok)throw new Error('push_save_http_'+save.status);
-  const saved=await save.json();
   if(!saved.ok)throw new Error('push_save_failed');
   return true;
+}
+
+function syncPushSubscription(){
+  return navigator.locks?.request?navigator.locks.request('anytour-manager-push-subscription',syncExistingPushSubscription):syncExistingPushSubscription();
 }
 
 async function show(data){
@@ -79,7 +87,7 @@ self.addEventListener('message',event=>{
     return;
   }
   if(data.type!=='SHOW_NOTIFICATION')return;
-  event.waitUntil((async()=>{try{await syncPushSubscription();}catch(e){}await show(data);})());
+  event.waitUntil(Promise.allSettled([syncPushSubscription(),show(data)]));
 });
 
 self.addEventListener('push',event=>{
