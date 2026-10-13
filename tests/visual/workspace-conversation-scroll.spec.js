@@ -38,7 +38,8 @@ async function setup(page){
 async function gap(page){return page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop);}
 async function pinned(page){await expect.poll(()=>gap(page),{timeout:3000}).toBeLessThanOrEqual(2);}
 async function anchor(page){return page.locator('#messages').evaluate(box=>{const top=box.getBoundingClientRect().top,row=[...box.children].find(n=>n.getBoundingClientRect().bottom>top+1);return {id:row?.dataset.scrollMessageKey||row?.querySelector('.msgBody')?.textContent,offset:row?.getBoundingClientRect().top-top};});}
-async function sameAnchor(page,before){const after=await anchor(page);expect(after.id).toBe(before.id);expect(Math.abs(after.offset-before.offset)).toBeLessThanOrEqual(2);}
+async function layoutSettled(page){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
+async function sameAnchor(page,before){await layoutSettled(page);const after=await anchor(page);expect(after.id).toBe(before.id);expect(Math.abs(after.offset-before.offset)).toBeLessThanOrEqual(2);}
 
 for(const width of [390,430,768,1440])test.describe('conversation scrolling '+width,()=>{
   test.use({viewport:{width,height:844}});
@@ -75,6 +76,16 @@ for(const width of [390,430,768,1440])test.describe('conversation scrolling '+wi
     await expect(page.locator('#replyText')).toHaveValue('Черновик\nНесколько строк\nБез отправки');
     expect(await page.evaluate(()=>fixtureSends.length)).toBe(0);expect(unexpected).toEqual([]);
   });
+});
+
+test('a scroll just before composer reflow keeps the newly chosen history position',async({page})=>{
+  await page.setViewportSize({width:1440,height:844});const unexpected=await setup(page);await pinned(page);
+  await page.evaluate(()=>{
+    document.getElementById('messages').scrollTop=700;
+    const reply=document.getElementById('replyText');reply.value='Черновик\nВторая строка\nТретья строка\nЧетвёртая строка';reply.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  const before=await anchor(page);await sameAnchor(page,before);
+  expect(await gap(page)).toBeGreaterThan(200);expect(unexpected).toEqual([]);
 });
 
 for(const reading of [false,true])test(`late photo layout ${reading?'preserves the history anchor':'follows the latest message'}`,async({page})=>{
