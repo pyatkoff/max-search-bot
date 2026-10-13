@@ -1,7 +1,9 @@
 <?php
 require_once __DIR__.'/lib/ManagerHttp.php';
-ManagerHttp::start();
 $manager2=($managerWorkspacePresentation??'')==='manager2';
+// Manager2 HTML is identity-free and cannot receive the /manager/ scoped cookie.
+// Starting a session here would replace that cookie; protected APIs own it.
+if(!$manager2) ManagerHttp::start();
 function workspaceAsset(string $name): string {
     $path=__DIR__.'/assets/'.$name;
     $version=is_file($path)?(string)filemtime($path):'1';

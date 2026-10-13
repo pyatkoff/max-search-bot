@@ -4,7 +4,7 @@ Owner-authorized production presentation at `/manager2/`, based on the agreed co
 
 ## Runtime ownership
 
-`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. A same-origin `/manager/` base keeps fetch, media, service-worker scope and administrative links at their existing endpoints. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
+`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope and administrative links at their existing endpoints. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
 
 The new chrome and body-scoped assets provide the forest navigation rail, account/shift/notification header, queue/search, central conversation and compact client card. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
 
@@ -26,6 +26,7 @@ The visible budget is the existing canonical `trip.budget`, including its actual
 
 ## Verification
 
+- The real loopback HTTP/cookie regression verifies existing login survives Manager2 navigation/reload, the alternate HTML never replaces the scoped Manager cookie, and anonymous API access stays unauthorized.
 - `bash tests/run_required_checks.sh` includes actual rendering of both entrypoints and all existing state/ownership/transport regressions.
 - `tests/visual/manager2-workspace.spec.js` renders the real PHP shell, loads production assets and runs Chromium/WebKit at 390, 430, 768 and 1440px, plus reduced viewport height. All API/push/customer fixtures are synthetic and local.
 - `tools/manager_http_smoke.sh` checks both Manager2 entrypoint forms and published modern asset markers alongside the canonical Manager auth/API checks.
