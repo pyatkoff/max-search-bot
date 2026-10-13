@@ -7,6 +7,15 @@
 /* Photo opening stays in the authenticated page, above transformed mobile panes. */
 .attachments .photoOpen{display:inline-flex;align-items:center;min-height:44px;touch-action:manipulation;cursor:zoom-in}
 .attachments .photoPreview{display:block;max-width:100%;min-height:44px}
+.composer .emojiToggle{flex:0 0 40px;width:40px;height:40px;padding:0;border:1px solid var(--ws-border,#e1e6eb);border-radius:12px;background:#fff;font-size:21px;line-height:1;cursor:pointer;touch-action:manipulation}
+.composer .emojiToggle:hover,.composer .emojiToggle[aria-expanded="true"]{background:var(--ws-accent-soft,#eaf3fb)}
+.composer .emojiToggle:disabled{opacity:.5;cursor:default}
+.composer .emojiToggle,.emojiPicker button{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.emojiPicker{order:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:2px;justify-self:end;width:min(100%,360px);max-height:min(254px,30dvh);overflow-y:auto;overscroll-behavior:contain;padding:8px;border:1px solid var(--ws-border,#e1e6eb);border-radius:14px;background:#fff;box-shadow:0 3px 14px rgba(23,33,43,.08)}
+.emojiPicker button{min-width:0;min-height:42px;padding:0;border:0;border-radius:9px;background:transparent;font-size:24px;line-height:1;cursor:pointer;touch-action:manipulation}
+.emojiPicker button:hover{background:var(--ws-accent-soft,#eaf3fb)}
+.emojiPicker button:focus-visible,.composer .emojiToggle:focus-visible{outline:2px solid var(--ws-accent,#1769aa);outline-offset:-2px}
+@media(max-width:520px){.composer .emojiToggle{flex-basis:38px;width:38px;height:42px;align-self:flex-end;border-radius:10px}.emojiPicker{justify-self:stretch;width:100%}}
 .photoOpen:focus-visible{outline:3px solid #1769aa;outline-offset:3px;border-radius:8px}
 .photoViewer{box-sizing:border-box;position:fixed;inset:0;margin:auto;padding:0;border:0;border-radius:16px;width:min(1100px,96vw);height:94vh;height:94dvh;max-width:100vw;max-height:100vh;max-height:100dvh;background:#172532;color:#fff;overflow:hidden}
 .photoViewer[open]{display:flex;flex-direction:column}
