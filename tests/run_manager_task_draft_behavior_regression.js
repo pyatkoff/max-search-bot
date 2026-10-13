@@ -24,18 +24,24 @@ function element(value = '') {
     classList: { add() {}, remove() {} },
     addEventListener: (name, handler) => listeners.set(name, handler),
     emit: (name, event = {}) => listeners.get(name)?.(event),
+    userInput(value, name = 'input') { if (this.disabled) return false; this.value = value; this.emit(name); return true; },
+    click() { if (this.disabled) return false; return this.onclick?.(); },
     focus() {},
   };
 }
 
 function root() {
   const state = { elements: new Map() };
-  const reset = () => state.elements = new Map([
+  const reset = () => {
+    for (const old of state.elements.values()) old.isConnected = false;
+    state.elements = new Map([
     ['#leadTaskAdd', element()],
     ['#leadTaskTitle', element()],
     ['#leadTaskDue', element()],
     ['#leadTaskCreateStatus', element()],
+    ['.m2TaskCancel', element()],
   ]);
+  };
   reset();
   return {
     state,
@@ -46,10 +52,14 @@ function root() {
   };
 }
 
-function harness({ createOk = true, createResult = null, createError = false, refreshRenders = true, refreshThrows = false, savedStorage = null, managerId = 5, authExpired = false } = {}) {
+function harness({ createOk = true, createResult = null, createError = false, refreshRenders = true, refreshThrows = false, savedStorage = null, managerId = 5, authExpired = false, pendingCreate = false, pendingRefresh = false } = {}) {
   const saved = savedStorage || storage();
   const taskRoot = root();
   let createCalls = 0;
+  let resolveCreate, resolveRefresh, enterRefresh;
+  const createPromise = pendingCreate ? new Promise(resolve => { resolveCreate = resolve; }) : null;
+  const refreshPromise = pendingRefresh ? new Promise(resolve => { resolveRefresh = resolve; }) : null;
+  const refreshEntered = new Promise(resolve => { enterRefresh = resolve; });
   const document = {
     querySelectorAll: () => [],
     createElement: () => ({
@@ -63,6 +73,7 @@ function harness({ createOk = true, createResult = null, createError = false, re
       assert.equal(action, 'create_task');
       createCalls++;
       if (createError) throw new Error('connection lost');
+      if (createPromise) return createPromise;
       return createResult || { ok: createOk };
     },
   };
@@ -78,12 +89,14 @@ function harness({ createOk = true, createResult = null, createError = false, re
       assert.equal(conversationId, 101);
       if (refreshThrows) throw new Error('read failed after confirmed create');
       if (refreshRenders) window.WorkspaceV2Tasks.render(taskRoot, { tasks: [], canEdit: true, conversationId });
+      enterRefresh();
+      if (refreshPromise) await refreshPromise;
       return refreshRenders;
     },
   };
   window.WorkspaceV2Inbox = { load: async () => true };
   window.WorkspaceV2Tasks.render(taskRoot, { tasks: [], canEdit: true, conversationId: 101 });
-  return { saved, taskRoot, window, W, createCalls: () => createCalls, render: conversationId => window.WorkspaceV2Tasks.render(taskRoot, { tasks: [], canEdit: true, conversationId: conversationId ?? W.S.current }) };
+  return { saved, taskRoot, window, W, resolveCreate, resolveRefresh, refreshEntered, createCalls: () => createCalls, render: conversationId => window.WorkspaceV2Tasks.render(taskRoot, { tasks: [], canEdit: true, conversationId: conversationId ?? W.S.current }) };
 }
 
 async function enterAndSubmit(h, title = 'Позвонить туристу') {
@@ -137,7 +150,7 @@ async function enterAndSubmit(h, title = 'Позвонить туристу') {
   incomplete.saved.setItem('workspaceV2.taskDraft.5.101', JSON.stringify({ title: 'Не стирать без подтверждения' }));
   const draftKey = incomplete.window.WorkspaceV2TaskDraft.beginCreate(101);
   incomplete.window.WorkspaceV2TaskDraft.finishCreate(draftKey, undefined);
-  assert.equal(JSON.parse(incomplete.saved.getItem(draftKey)).title, 'Не стирать без подтверждения');
+  assert.equal(JSON.parse(incomplete.saved.getItem(draftKey.key)).title, 'Не стирать без подтверждения');
   console.log('PASS  undefined completion cannot clear an unconfirmed task draft');
 
   const ownerA = harness();
@@ -200,6 +213,94 @@ async function enterAndSubmit(h, title = 'Позвонить туристу') {
   assert.equal(JSON.parse(explicitLead.saved.getItem('workspaceV2.taskDraft.5.202')).title, 'Другой исходный лид');
   assert.equal(explicitLead.saved.getItem('workspaceV2.taskDraft.5.101'), null);
   console.log('PASS  draft binding uses the explicit rendered conversation rather than a stale global selection');
+
+  for (const refreshRenders of [false, true]) {
+    const locked = harness({ pendingCreate: true, pendingRefresh: true, refreshRenders });
+    const input = locked.taskRoot.querySelector('#leadTaskTitle');
+    input.userInput('Задача A');
+    locked.taskRoot.querySelector('#leadTaskDue').userInput('2026-10-14T18:30', 'change');
+    const submission = locked.taskRoot.querySelector('#leadTaskAdd').onclick();
+    for (const selector of ['#leadTaskTitle', '#leadTaskDue', '#leadTaskAdd', '.m2TaskCancel']) assert.equal(locked.taskRoot.querySelector(selector).disabled, true);
+    assert.equal(input.userInput('Черновик B'), false, 'ordinary input cannot replace a draft while its create is pending');
+    assert.equal(locked.taskRoot.querySelector('.m2TaskCancel').click(), false, 'cancel cannot clear a pending create draft');
+    await locked.taskRoot.querySelector('#leadTaskAdd').onclick();
+    assert.equal(locked.createCalls(), 1);
+    assert.equal(JSON.parse(locked.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Задача A');
+    locked.resolveCreate({ ok: true });
+    await locked.refreshEntered;
+    for (const selector of ['#leadTaskTitle', '#leadTaskDue', '#leadTaskAdd', '.m2TaskCancel']) assert.equal(locked.taskRoot.querySelector(selector).disabled, true, 'a rerender stays locked until the original mutation settles');
+    assert.equal(locked.taskRoot.querySelector('#leadTaskTitle').userInput('Черновик B'), false);
+    await locked.taskRoot.querySelector('#leadTaskAdd').onclick();
+    assert.equal(locked.createCalls(), 1);
+    locked.resolveRefresh();
+    await submission;
+    for (const selector of ['#leadTaskTitle', '#leadTaskDue', '#leadTaskAdd', '.m2TaskCancel']) assert.equal(locked.taskRoot.querySelector(selector).disabled, false);
+    assert.equal(locked.taskRoot.querySelector('#leadTaskTitle').value, '');
+    assert.equal(locked.saved.getItem('workspaceV2.taskDraft.5.101'), null);
+    assert.equal(locked.taskRoot.querySelector('#leadTaskTitle').userInput('Черновик B'), true);
+    assert.equal(JSON.parse(locked.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Черновик B');
+  }
+  console.log('PASS  pending create locks title, due, cancel and duplicate submit across both refresh outcomes');
+
+  const uncertainPending = harness({ pendingCreate: true, refreshRenders: false });
+  uncertainPending.taskRoot.querySelector('#leadTaskTitle').userInput('Проверить задачу A');
+  const uncertainSubmission = uncertainPending.taskRoot.querySelector('#leadTaskAdd').onclick();
+  uncertainPending.resolveCreate({ ok: false, error: 'invalid_response' });
+  await uncertainSubmission;
+  assert.equal(uncertainPending.taskRoot.querySelector('#leadTaskTitle').disabled, false);
+  assert.equal(uncertainPending.taskRoot.querySelector('.m2TaskCancel').disabled, false);
+  assert.equal(uncertainPending.taskRoot.querySelector('#leadTaskTitle').value, 'Проверить задачу A');
+  assert.equal(JSON.parse(uncertainPending.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Проверить задачу A');
+  assert.equal(uncertainPending.createCalls(), 1);
+  console.log('PASS  unknown pending create restores controls while keeping A without automatic retry');
+
+  const recoveredCreate = harness({ pendingRefresh: true, refreshRenders: false });
+  recoveredCreate.taskRoot.querySelector('#leadTaskTitle').userInput('Подтверждённая задача A');
+  const oldSubmission = recoveredCreate.taskRoot.querySelector('#leadTaskAdd').onclick();
+  await recoveredCreate.refreshEntered;
+  recoveredCreate.W.S.authGeneration++;
+  recoveredCreate.render();
+  assert.equal(recoveredCreate.taskRoot.querySelector('#leadTaskTitle').disabled, false);
+  recoveredCreate.taskRoot.querySelector('#leadTaskTitle').userInput('Новый черновик B');
+  recoveredCreate.render();
+  assert.equal(recoveredCreate.taskRoot.querySelector('#leadTaskTitle').value, 'Новый черновик B', 'older-generation pending create cannot suppress fresh draft restoration');
+  recoveredCreate.resolveRefresh();
+  await oldSubmission;
+  assert.equal(JSON.parse(recoveredCreate.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Новый черновик B', 'acknowledged old create cannot clear a newer-generation draft');
+  assert.equal(recoveredCreate.taskRoot.querySelector('#leadTaskTitle').value, 'Новый черновик B');
+  console.log('PASS  acknowledged create with a late read cannot erase a same-account recovered-session draft');
+
+  for (const oldFinishesFirst of [true, false]) {
+    const overlap = harness({ pendingRefresh: true, refreshRenders: false });
+    overlap.taskRoot.querySelector('#leadTaskTitle').userInput('Задача A прежней сессии');
+    const a = overlap.taskRoot.querySelector('#leadTaskAdd').onclick();
+    await overlap.refreshEntered;
+    overlap.W.S.authGeneration++;
+    overlap.render();
+    overlap.taskRoot.querySelector('#leadTaskTitle').userInput('Задача B новой сессии');
+    let resolveB;
+    const bResponse = new Promise(resolve => { resolveB = resolve; });
+    overlap.W.pipe = async action => { assert.equal(action, 'create_task'); return bResponse; };
+    overlap.window.WorkspaceV2Conversation.refreshLeadData = async () => false;
+    const b = overlap.taskRoot.querySelector('#leadTaskAdd').onclick();
+    if (oldFinishesFirst) {
+      overlap.resolveRefresh(); await a;
+      overlap.render();
+      assert.equal(overlap.taskRoot.querySelector('#leadTaskTitle').value, '', 'old completion must leave the newer create pending suppression intact');
+      assert.equal(overlap.taskRoot.querySelector('#leadTaskTitle').disabled, true);
+      assert.equal(JSON.parse(overlap.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Задача B новой сессии');
+      resolveB({ ok: true }); await b;
+      assert.equal(overlap.saved.getItem('workspaceV2.taskDraft.5.101'), null, 'only the matching fresh create may clear B');
+      assert.equal(overlap.taskRoot.querySelector('#leadTaskTitle').disabled, false);
+    } else {
+      resolveB({ ok: true }); await b;
+      overlap.taskRoot.querySelector('#leadTaskTitle').userInput('Следующий черновик C');
+      overlap.resolveRefresh(); await a;
+      assert.equal(JSON.parse(overlap.saved.getItem('workspaceV2.taskDraft.5.101')).title, 'Следующий черновик C', 'old completion after new completion cannot erase the next draft');
+      assert.equal(overlap.taskRoot.querySelector('#leadTaskTitle').value, 'Следующий черновик C');
+    }
+  }
+  console.log('PASS  overlapping session creates settle safely in either order without clearing newer drafts or pending guards');
 })().catch(error => {
   console.error(error);
   process.exit(1);

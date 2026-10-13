@@ -6,8 +6,8 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success'}={}){
-  const calls=[],unexpected=[],errors=[],sends=[];
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false}={}){
+  const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[];
   let authenticated=!anonymous,subscribed=false;
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
@@ -52,7 +52,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
       if(data.action==='list')return reply({ok:true,conversations:rows()});
       if(data.action==='detail')return reply(lead(data.conversation_id));
-      if(data.action==='create_task'){tasks.push({id:30,title:data.title,due_at_utc:data.due_at,status:'open',due_state:'upcoming',assigned_manager_name:'Мария'});return reply({ok:true})}
+      if(data.action==='create_task'){if(holdCreate)await new Promise(resolve=>pendingCreates.push(resolve));tasks.push({id:30,title:data.title,due_at_utc:data.due_at,status:'open',due_state:'upcoming',assigned_manager_name:'Мария'});return reply({ok:true})}
       if(data.action==='set_task_completed'){if(taskResult==='unknown')return route.abort('failed');if(taskResult==='rejected')return reply({ok:false,error:'task_not_found'});tasks.find(t=>t.id===data.task_id).status=data.completed?'done':'open';return reply({ok:true})}
       if(data.action==='set_task_pinned'){tasks.find(t=>t.id===data.task_id).is_pinned=data.pinned;return reply({ok:true})}
       if(data.action==='update_task'){Object.assign(tasks.find(t=>t.id===data.task_id),{title:data.title,due_at_utc:data.due_at});return reply({ok:true})}
@@ -68,7 +68,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks};
+  return {calls,unexpected,errors,sends,tasks,releaseCreate:()=>pendingCreates.shift()?.()};
 }
 async function openLead(page,id=11){
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();
@@ -168,9 +168,17 @@ test('Manager2 anonymous entry uses the canonical login and does not expose anot
   await openLead(page);await expect(page.locator('#composer')).not.toBeVisible();await expect(page.locator('#composerLocked')).toContainText('Людмила');expect(s.calls.find(c=>c.action==='login').path).toBe('/manager/api.php');expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
+test('Manager2 pending task creation protects the draft and Cancel until settlement',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{holdCreate:true});await openLead(page);await showCard(page);await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Подтверждаемая задача A');await page.locator('#leadTaskAdd').click();
+  await expect.poll(()=>s.calls.filter(c=>c.action==='create_task').length).toBe(1);await expect(page.locator('#leadTaskTitle')).toBeDisabled();await expect(page.locator('#leadTaskDue')).toBeDisabled();await expect(page.locator('.m2TaskCancel')).toBeDisabled();await expect(page.locator('#leadTaskAdd')).toBeDisabled();
+  s.releaseCreate();await expect(page.locator('#leadTaskTitle')).toBeEnabled();await expect(page.locator('.m2TaskCancel')).toBeEnabled();await expect(page.locator('#leadTaskTitle')).toHaveValue('');await page.locator('#leadTaskTitle').fill('Новый черновик B');
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.taskDraft.7.11')).title)).toBe('Новый черновик B');expect(s.calls.filter(c=>c.action==='create_task')).toHaveLength(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
 for(const taskResult of ['success','rejected','unknown'])test('Manager2 task feedback remains truthful: '+taskResult,async({page,browserName})=>{
-  await page.setViewportSize({width:390,height:900});const s=await setup(page,{taskResult});await openLead(page);await showCard(page);await page.locator('[data-task-toggle="21"]').check();
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{taskResult});await openLead(page);await showCard(page);await page.locator('[data-task-toggle="21"]').click();
   const status=page.locator('[data-task-action-status]');await expect(status).toContainText(taskResult==='success'?'выполнена':taskResult==='rejected'?'Не удалось изменить состояние':'Не удалось подтвердить изменение');
+  if(taskResult==='rejected')await expect(page.locator('[data-task-toggle="21"]')).not.toBeChecked();
   if(taskResult==='unknown')expect(await page.locator('[data-task-toggle="21"]').evaluate(el=>el.indeterminate)).toBe(true);
   await page.evaluate(()=>WorkspaceV2Tasks.render(document.getElementById('leadTasksBody'),{tasks:WorkspaceV2.S.detail.lead.tasks,canEdit:true,conversationId:WorkspaceV2.S.current}));await expect(status).toContainText(taskResult==='success'?'выполнена':taskResult==='rejected'?'Не удалось изменить состояние':'Не удалось подтвердить изменение');
   expect(s.calls.filter(c=>c.action==='set_task_completed')).toHaveLength(1);await noOverflow(page);await capture(page,browserName,390,'task-'+taskResult);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
