@@ -51,6 +51,7 @@ function harness(shared,options={}){
  check('sound starts disabled',h.elements.get('soundToggle').attributes['aria-pressed'],'false');
  check('loading the old conversation never schedules audio',h.count,0);
  await h.controller.enable();check('explicit enable schedules a test cue',h.count,1);
+ check('ready sound describes only the open workspace',h.elements.get('soundMessage').textContent,'Звук включён в открытом кабинете.');
  check('first poll uses a silent baseline',h.feed.requests[0],null);
  h.feed.upper=101;h.feed.rows=[{message_id:101,conversation_id:11}];
  await h.controller.poll(true);check('fresh incoming schedules one cue',h.count,2);

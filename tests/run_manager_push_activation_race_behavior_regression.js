@@ -11,7 +11,7 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
 function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
-function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,unhealthy=false,unsubscribe=null,saveRequest=null,differentReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
+function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,differentReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
   const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
@@ -23,7 +23,8 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
   const healthy=()=>({is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1});
   const status=()=>state.saves||state.otherDeviceHealthy?healthy():{is_working:true,notification_path_usable:false,notification_path_reason:unhealthy?'subscription_unhealthy':'no_subscription'};
   const fetch=async(url,options)=>{const override=url==='push-status.php'&&statusRequest?await statusRequest():url==='push.php?action=key'&&keyRequest?await keyRequest():null;if(override)return override;if(options?.method==='POST'){state.saveAttempts++;if(saveRequest)await saveRequest(options,state);}return{ok:true,status:200,async json(){if(url==='push-status.php')return{ok:true,push_status:status()};if(options?.method==='POST'){state.saves++;assert.equal(JSON.parse(options.body).csrf,state.expectedCsrf);return{ok:true,push_status:healthy()};}return{ok:true,public_key:Buffer.from(state.serverKey).toString('base64'),csrf:'synthetic'};}};};
-  const timer=(callback,delay)=>delay===500?0:setTimeout(callback,delay>=10000?deadlineMs:delay===250?0:delay);
+  const timer=(callback,delay)=>{if(deadlines&&delay>=10000){const timer={callback,delay,cancelled:false};deadlines.push(timer);return timer;}return delay===500?0:setTimeout(callback,delay>=10000?deadlineMs:delay===250?0:delay);};
+  const cancelTimer=timer=>{if(deadlines&&deadlines.includes(timer))timer.cancelled=true;else clearTimeout(timer);};
   const atob=value=>Buffer.from(value,'base64').toString('binary');
   function page(){
     const root={innerHTML:'',className:''};
@@ -31,16 +32,65 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
     const navigator={serviceWorker:{async register(){state.registered++;return differentReady?{scope:registration.scope,pushManager:{getSubscription(){throw new Error('Used register object instead of ready registration');}}}:registration;},ready:Promise.resolve(registration),addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
-    const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,AbortController,setTimeout:timer,clearTimeout,console:{warn(){}}};
+    const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
     return{api:context.window.WorkspaceV2Notifications,root,auth};
   }
   const events={};
-  vm.runInNewContext(workerSource,{navigator:lockManager?{locks:lockManager}:{},self:{registration,clients:{async claim(){},async matchAll(){return[];}},addEventListener(type,callback){events[type]=callback;}},fetch,atob,Uint8Array,AbortController,importScripts(){},WorkspaceSoundLedger:{supported(){return false;}},setTimeout:timer,clearTimeout},{filename:'sw.js'});
+  vm.runInNewContext(workerSource,{navigator:lockManager?{locks:lockManager}:{},self:{registration,clients:{async claim(){},async matchAll(){return[];}},addEventListener(type,callback){events[type]=callback;}},fetch,atob,Uint8Array,AbortController,importScripts(){},WorkspaceSoundLedger:{supported(){return false;}},setTimeout:timer,clearTimeout:cancelTimer},{filename:'sw.js'});
   async function worker(type,data){let promise;events[type]({data,waitUntil(value){promise=value;}});await promise;}
   return{state,page,worker,async settleWorker(){await Promise.all(workerJobs);}};
 }
 async function run(){
+  // Reload can start granted-permission recovery before the visible Enable click.
+  // That click must observe this attempt, with feedback now rather than a queued retry.
+  const backgroundNative=deferred(),promoted=environment({subscribe:()=>backgroundNative.promise}),promotedPage=promoted.page();
+  await promotedPage.api.refresh();await turn();assert.equal(promoted.state.subscribes,1);
+  const promotedEnable=promotedPage.api.enable(promotedPage.root);
+  assert.match(promotedPage.root.innerHTML,/Подключаем…/,'Enable stays invisible while granted-permission recovery is pending');
+  assert.match(promotedPage.root.innerHTML,/data-enable-push disabled/);
+  const repeatedEnable=promotedPage.api.enable(promotedPage.root);assert.equal(repeatedEnable,promotedEnable);await turn();
+  assert.equal(promoted.state.subscribes,1);assert.equal(promoted.state.permissions,0);
+  for(const otherDeviceHealthy of [false,true]){promoted.state.otherDeviceHealthy=otherDeviceHealthy;await promotedPage.api.refresh();assert.match(promotedPage.root.innerHTML,/Подключаем…/);assert.match(promotedPage.root.innerHTML,/data-enable-push disabled/);assert.ok(!promotedPage.root.innerHTML.includes('Уведомления включены'));}
+  backgroundNative.resolve(subscription());assert.equal(await promotedEnable,true);assert.equal(await repeatedEnable,true);
+  await turn();assert.equal(promoted.state.registered,1);assert.equal(promoted.state.saves,1);assert.equal(promoted.state.confirmations,1);
+  assert.ok(promotedPage.root.innerHTML.includes('Уведомления включены'));
+  console.log('PASS  Enable promotes pending granted-permission recovery with immediate feedback and one result');
+
+  const failedNative=deferred(),promotedFailure=environment({subscribe:async count=>count===1?failedNative.promise:Promise.reject(abort('Registration failed - push service error'))}),promotedFailurePage=promotedFailure.page();
+  await promotedFailurePage.api.refresh();await turn();const failureEnable=promotedFailurePage.api.enable(promotedFailurePage.root);
+  failedNative.reject(abort('Registration failed - push service error'));assert.equal(await failureEnable,false);await turn();
+  assert.equal(promotedFailure.state.subscribes,2,'manual click queues another full recovery after the failed background attempt');
+  assert.equal(promotedFailure.state.registered,1);assert.equal(promotedFailure.state.saves,0);assert.equal(promotedFailure.state.confirmations,0);assert.equal(promotedFailure.state.permissions,0);
+  assert.match(promotedFailurePage.root.innerHTML,/AbortError\/PUSH_SERVICE/);assert.ok(!promotedFailurePage.root.innerHTML.includes(secret));
+  promotedFailure.state.otherDeviceHealthy=true;await promotedFailurePage.api.refresh();await turn();
+  assert.match(promotedFailurePage.root.innerHTML,/AbortError\/PUSH_SERVICE/);assert.ok(!promotedFailurePage.root.innerHTML.includes('Уведомления включены'));assert.equal(promotedFailure.state.subscribes,2);
+  console.log('PASS  clicked background AbortError is diagnostic and status refresh cannot erase or retry it');
+
+  const uiDeadlines=[],timeoutNative=deferred(),promotedTimeout=environment({subscribe:()=>timeoutNative.promise,lockManager:locks(),deadlines:uiDeadlines}),promotedTimeoutPage=promotedTimeout.page();
+  await promotedTimeoutPage.api.refresh();await turn();
+  const originalDeadline=uiDeadlines.find(timer=>!timer.cancelled);assert.ok(originalDeadline);const beforeClickTimers=uiDeadlines.length;
+  const timeoutEnable=promotedTimeoutPage.api.enable(promotedTimeoutPage.root),timeoutRepeat=promotedTimeoutPage.api.enable(promotedTimeoutPage.root);
+  assert.equal(uiDeadlines.length,beforeClickTimers,'manual click restarts the whole UI wait');assert.equal(originalDeadline.cancelled,false);
+  originalDeadline.callback();assert.equal(await timeoutEnable,false);assert.equal(await timeoutRepeat,false);assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);
+  assert.equal(promotedTimeout.state.subscribes,1);assert.equal(promotedTimeout.state.maxActive,1);assert.equal(promotedTimeout.state.registered,1);
+  promotedTimeout.state.otherDeviceHealthy=true;await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);
+  timeoutNative.resolve(subscription());await turn();await turn();assert.equal(promotedTimeout.state.saves,1);assert.equal(promotedTimeout.state.confirmations,0);
+  await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);assert.ok(!promotedTimeoutPage.root.innerHTML.includes('Уведомления включены'));assert.equal(promotedTimeout.state.subscribes,1);
+  console.log('PASS  promotion keeps the original UI deadline and late settlement preserves the clicked failure');
+
+  for(const accountChanged of [false,true]){
+    const oldNative=deferred(),stalePromotion=environment({subscribe:()=>oldNative.promise}),stalePage=stalePromotion.page();
+    await stalePage.api.refresh();await turn();stalePage.auth.manager.id=accountChanged?2:1;stalePage.auth.authGeneration++;stalePage.auth.csrf='new-session';stalePromotion.state.expectedCsrf=stalePage.auth.csrf;stalePage.root.innerHTML='Current session';
+    assert.equal(await stalePage.api.enable(stalePage.root),false);assert.equal(stalePage.root.innerHTML,'Current session');
+    oldNative.resolve(subscription());await turn();await turn();assert.equal(stalePromotion.state.saves,0);assert.equal(stalePromotion.state.confirmations,0);assert.equal(stalePage.root.innerHTML,'Current session');
+    assert.equal(await stalePage.api.enable(stalePage.root),true);assert.equal(stalePromotion.state.subscribes,1);assert.equal(stalePromotion.state.saves,1);assert.equal(stalePromotion.state.confirmations,1);
+  }
+  const untouchedNative=deferred(),untouched=environment({subscribe:()=>untouchedNative.promise}),untouchedPage=untouched.page();
+  await untouchedPage.api.refresh();await turn();assert.ok(!untouchedPage.root.innerHTML.includes('Подключаем…'));untouchedNative.resolve(subscription());await turn();await turn();assert.equal(untouched.state.saves,1);assert.equal(untouched.state.confirmations,0);assert.equal(untouched.state.permissions,0);assert.ok(!untouchedPage.root.innerHTML.includes('notificationDiagnostic'));
+  const unclickedFailure=environment({subscribe:async()=>{throw abort();}}),unclickedPage=unclickedFailure.page();await unclickedPage.api.refresh();await turn();await new Promise(resolve=>setTimeout(resolve,5));await turn();assert.equal(unclickedFailure.state.subscribes,2);assert.equal(unclickedFailure.state.confirmations,0);assert.equal(unclickedFailure.state.permissions,0);assert.ok(!unclickedPage.root.innerHTML.includes('notificationDiagnostic'));assert.ok(!unclickedPage.root.innerHTML.includes('Подключаем…'));
+  console.log('PASS  stale sessions cannot promote recovery and unclicked recovery retains silent behavior');
+
   // Both actual programs share one native PushManager. A second pending native
   // subscribe throws the exact AbortError previously shown by this race.
   const hold=deferred(),racing=environment({subscribe:()=>hold.promise});

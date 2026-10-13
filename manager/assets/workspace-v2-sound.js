@@ -38,7 +38,7 @@ function render(){
   toggle.setAttribute('aria-pressed',String(active&&wanted));toggle.disabled=!active;
   document.getElementById('soundTest').disabled=busy||!active;
   root.setAttribute('data-state',!active?'signed-out':!wanted?'off':enabled?'ready':busy?'starting':'waiting');
-  const message=!active?'Звук приостановлен до входа. Настройка сохранена.':note||(wanted?(enabled?'Звук включён. В фоне — системные уведомления.':waitingNote()):'Звук выключен. Включите и проверьте громкость устройства.');
+  const message=!active?'Звук приостановлен до входа. Настройка сохранена.':note||(wanted?(enabled?'Звук включён в открытом кабинете.':waitingNote()):'Звук выключен. Включите и проверьте громкость устройства.');
   document.getElementById('soundMessage').textContent=message+(storageFailed?' Не удалось сохранить настройку в браузере; выбор действует только на этой странице.':'');
 }
 function stopAudio(){const old=audio;audio=null;if(old){old.onstatechange=null;try{void old.close().catch(()=>{});}catch(e){}}}

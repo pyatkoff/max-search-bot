@@ -1,5 +1,5 @@
 (function(){
-  let initialized=false,enableInFlight=false,interactiveEnableInFlight=false,autoRecoveryAttempted=false,lastStatus=null,queuedInteractiveRoot=null,recentInteractiveFailure=null,subscriptionFlight=null,workerRegistrationFlight=null,recentFailureSession=null,autoRecoverySession=null,lastStatusSession=null;
+  let initialized=false,enableInFlight=false,interactiveEnableInFlight=false,autoRecoveryAttempted=false,lastStatus=null,activationFlight=null,recentInteractiveFailure=null,subscriptionFlight=null,workerRegistrationFlight=null,recentFailureSession=null,autoRecoverySession=null,lastStatusSession=null;
   function esc(value){const div=document.createElement('div');div.textContent=value??'';return div.innerHTML;}
   function reasonText(reason){return {healthy_subscription:'Уведомления включены',no_subscription:'Уведомления не подключены',subscription_unhealthy:'Уведомления требуют внимания',subscription_table_missing:'Уведомления недоступны',manager_inactive:'Профиль менеджера неактивен',managers_table_missing:'Статус уведомлений недоступен',health_check_failed:'Не удалось проверить уведомления',session_expired:'Сессия менеджера истекла',enable_failed:'Не удалось включить уведомления',enable_timeout:'Подключение не завершилось',permission_denied:'Разрешение на уведомления не выдано',unsupported_push:'Этот браузер не поддерживает уведомления',service_worker_failed:'Не удалось подготовить уведомления',subscription_failed:'Не удалось создать подписку',server_setup_failed:'Не удалось сохранить подписку'}[reason]||'Статус уведомлений неизвестен';}
   function isSetupFailure(reason){return ['enable_failed','enable_timeout','permission_denied','unsupported_push','service_worker_failed','subscription_failed','server_setup_failed'].includes(String(reason||''));}
@@ -107,38 +107,49 @@
       job.promise.then(status=>{if(!finished){cleanup();resolve(status);}},error=>{if(!finished){cleanup();reject(error);}});
     });
   }
-  async function reconcile(root,{requestPermission=true,showConfirmation=true,interactive=true}={}){
-    resetSessionState();if(enableInFlight){if(interactive)queuedInteractiveRoot=root;return false;}
+  function reconcile(root,{requestPermission=true,showConfirmation=true,interactive=true}={}){
+    resetSessionState();if(enableInFlight){
+      if(!sameSession(activationFlight.session))return Promise.resolve(false);
+      if(interactive)activationFlight.promote(root,showConfirmation);
+      return activationFlight.promise;
+    }
     const activationSession=sessionSnapshot();enableInFlight=true;interactiveEnableInFlight=interactive;
-    if(interactive){recentInteractiveFailure=null;recentFailureSession=null;render(root,withCurrentWorking({notification_path_usable:false,notification_path_reason:'no_subscription'}));}
-    let finalStatus=null,setupStage='support',setupHttpStatus=0,job=null;
-    try{
-      if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw new Error('unsupported_push');
-      setupStage='permission';
-      const permission=Notification.permission==='granted'?'granted':requestPermission?await withTimeout(Notification.requestPermission(),15000,'permission_timeout'):Notification.permission;
-      if(permission!=='granted'){if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:'permission_denied'});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,new Error('permission_not_granted'));}return false;}
-      setupStage='service_worker_register';const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
-      setupStage='service_worker_ready';const reg=await withTimeout(navigator.serviceWorker.ready,10000,'service_worker_ready_timeout');
-      if(registered.scope&&registered.scope!==reg.scope)throw new Error('service_worker_scope_mismatch');
-      setupStage='push_key';const keyResp=await withTimeout(fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'}),10000,'push_key_timeout'),keyJson=await parseJson(keyResp);
-      requireSession(activationSession);setupHttpStatus=keyResp.status;if(keyResp.status===401){handleUnauthorized(root);return false;}
-      if(!keyResp.ok||!keyJson?.ok||!keyJson.public_key)throw new Error('push_key_failed');
-      const key=b64ToUint8(keyJson.public_key);setupStage='subscription_wait';job=subscriptionJob(reg,key);
-      const status=await observeSubscription(job);requireSession(activationSession);lastStatus=status;lastStatusSession=activationSession;finalStatus=lastStatus;recentInteractiveFailure=null;recentFailureSession=null;
-      if(showConfirmation){try{await reg.showNotification('AnyTour',{body:'Уведомления включены',tag:'anytour-push-enabled'});}catch(e){}}
-      return true;
-    }catch(error){
-      setupStage=job?.stage||setupStage;setupHttpStatus=job?.httpStatus??setupHttpStatus;
-      if(!sameSession(activationSession)||error?.message==='push_session_changed')return false;
-      if(error?.message==='push_session_expired'){handleUnauthorized(root);return false;}
-      console.warn(interactive?'Workspace V2 push enable failed':'Workspace V2 push recovery failed',error);
-      if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:setupFailureReason(error,setupStage)});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,error,setupHttpStatus);}
-      return false;
-    }finally{enableInFlight=false;interactiveEnableInFlight=false;if(sameSession(activationSession)){if(interactive&&finalStatus&&!finalStatus.notification_path_usable&&isSetupFailure(finalStatus.notification_path_reason)){recentInteractiveFailure=finalStatus;recentFailureSession=activationSession;}if(finalStatus)render(root,finalStatus);else if(lastStatus)render(root,lastStatus);}const queued=queuedInteractiveRoot;queuedInteractiveRoot=null;if(interactive&&finalStatus?.notification_path_usable)setTimeout(()=>refresh(),500);else if(queued)setTimeout(()=>enable(queued),0);}
+    const showBusy=()=>{recentInteractiveFailure=null;recentFailureSession=null;render(root,withCurrentWorking({notification_path_usable:false,notification_path_reason:'no_subscription'}));};
+    // The click adopts recovery already running for this session. It keeps the
+    // same bounded UI wait and actual subscription job, without a queued retry.
+    const attempt={session:activationSession,promise:null,promote(nextRoot,confirmation){if(interactive)return;root=nextRoot;interactive=true;showConfirmation=confirmation;interactiveEnableInFlight=true;showBusy();}};
+    activationFlight=attempt;if(interactive)showBusy();
+    attempt.promise=(async()=>{
+      let finalStatus=null,setupStage='support',setupHttpStatus=0,job=null;
+      try{
+        if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw new Error('unsupported_push');
+        setupStage='permission';
+        const permission=Notification.permission==='granted'?'granted':requestPermission?await withTimeout(Notification.requestPermission(),15000,'permission_timeout'):Notification.permission;
+        if(permission!=='granted'){if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:'permission_denied'});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,new Error('permission_not_granted'));}return false;}
+        setupStage='service_worker_register';const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
+        setupStage='service_worker_ready';const reg=await withTimeout(navigator.serviceWorker.ready,10000,'service_worker_ready_timeout');
+        if(registered.scope&&registered.scope!==reg.scope)throw new Error('service_worker_scope_mismatch');
+        setupStage='push_key';const keyResp=await withTimeout(fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'}),10000,'push_key_timeout'),keyJson=await parseJson(keyResp);
+        requireSession(activationSession);setupHttpStatus=keyResp.status;if(keyResp.status===401){handleUnauthorized(root);return false;}
+        if(!keyResp.ok||!keyJson?.ok||!keyJson.public_key)throw new Error('push_key_failed');
+        const key=b64ToUint8(keyJson.public_key);setupStage='subscription_wait';job=subscriptionJob(reg,key);
+        const status=await observeSubscription(job);requireSession(activationSession);lastStatus=status;lastStatusSession=activationSession;finalStatus=lastStatus;recentInteractiveFailure=null;recentFailureSession=null;
+        if(showConfirmation){try{await reg.showNotification('AnyTour',{body:'Уведомления включены',tag:'anytour-push-enabled'});}catch(e){}}
+        return true;
+      }catch(error){
+        setupStage=job?.stage||setupStage;setupHttpStatus=job?.httpStatus??setupHttpStatus;
+        if(!sameSession(activationSession)||error?.message==='push_session_changed')return false;
+        if(error?.message==='push_session_expired'){handleUnauthorized(root);return false;}
+        console.warn(interactive?'Workspace V2 push enable failed':'Workspace V2 push recovery failed',error);
+        if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:setupFailureReason(error,setupStage)});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,error,setupHttpStatus);}
+        return false;
+      }finally{enableInFlight=false;interactiveEnableInFlight=false;activationFlight=null;if(sameSession(activationSession)){if(interactive&&finalStatus&&!finalStatus.notification_path_usable&&isSetupFailure(finalStatus.notification_path_reason)){recentInteractiveFailure=finalStatus;recentFailureSession=activationSession;}if(finalStatus)render(root,finalStatus);else if(lastStatus)render(root,lastStatus);}if(interactive&&finalStatus?.notification_path_usable)setTimeout(()=>refresh(),500);}
+    })();
+    return attempt.promise;
   }
-  async function enable(root){return reconcile(root,{requestPermission:true,showConfirmation:true,interactive:true});}
+  function enable(root){return reconcile(root,{requestPermission:true,showConfirmation:true,interactive:true});}
   function maybeRecoverGranted(root){if(autoRecoverySession&&!sameSession(autoRecoverySession))autoRecoveryAttempted=false;if(autoRecoveryAttempted||enableInFlight||recentInteractiveFailure||!('Notification'in window)||Notification.permission!=='granted'||!recoverablePushStatus())return false;autoRecoveryAttempted=true;autoRecoverySession=sessionSnapshot();void reconcile(root,{requestPermission:false,showConfirmation:false,interactive:false});return true;}
-  async function refresh(){resetSessionState();const refreshSession=sessionSnapshot();const root=document.getElementById('notificationStatus');if(!root)return;try{const response=await fetch('push-status.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'});const data=await parseJson(response);requireSession(refreshSession);if(response.status===401){handleUnauthorized(root);return;}if(!response.ok||!data?.ok)throw new Error('push_status_failed');lastStatus=data.push_status||{};lastStatusSession=refreshSession;render(root,recentInteractiveFailure?withCurrentWorking(recentInteractiveFailure):lastStatus);maybeRecoverGranted(root);}catch(error){if(!sameSession(refreshSession))return;render(root,recentInteractiveFailure||withCurrentWorking({notification_path_usable:false,notification_path_reason:'health_check_failed'}));}}
+  async function refresh(){resetSessionState();const refreshSession=sessionSnapshot();const root=document.getElementById('notificationStatus');if(!root)return;try{const response=await fetch('push-status.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'});const data=await parseJson(response);requireSession(refreshSession);if(response.status===401){handleUnauthorized(root);return;}if(!response.ok||!data?.ok)throw new Error('push_status_failed');lastStatus=data.push_status||{};lastStatusSession=refreshSession;if(interactiveEnableInFlight&&sameSession(activationFlight?.session))render(root,withCurrentWorking({notification_path_usable:false,notification_path_reason:'no_subscription'}));else render(root,recentInteractiveFailure?withCurrentWorking(recentInteractiveFailure):lastStatus);maybeRecoverGranted(root);}catch(error){if(!sameSession(refreshSession))return;render(root,recentInteractiveFailure||withCurrentWorking({notification_path_usable:false,notification_path_reason:'health_check_failed'}));}}
   function handleSetupClick(event){const target=event.target,button=target&&typeof target.closest==='function'?target.closest('[data-enable-push]'):null;if(!button)return;event.preventDefault();enable(document.getElementById('notificationStatus'));}
   document.addEventListener('click',handleSetupClick);
   async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');const ready=await withTimeout(navigator.serviceWorker.ready,10000,'service_worker_ready_timeout');ready.active?.postMessage({type:'SYNC_PUSH'});navigator.serviceWorker.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION'&&Number(data.conversationId||0)>0){window.WorkspaceV2Conversation?.open(Number(data.conversationId));}});}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
