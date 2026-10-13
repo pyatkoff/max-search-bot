@@ -64,7 +64,7 @@ for(const width of [390,430,768,1440])test.describe('conversation scrolling '+wi
   });
   test('incoming messages and layout changes preserve earlier-history reading; one click returns to latest',async({page})=>{
     const unexpected=await setup(page);await pinned(page);
-    await page.locator('#messages').evaluate(el=>el.scrollTop=500);
+    await page.locator('#messages').hover();await page.mouse.wheel(0,-900);await layoutSettled(page);
     await expect(page.getByRole('button',{name:'Перейти к последним сообщениям',exact:true})).toBeVisible();
     const before=await anchor(page);
     await page.evaluate(async()=>{fixtureMessages.push({id:90,sender_type:'customer',text:'Новое синтетическое сообщение'});await WorkspaceV2Conversation.refreshVisible();});
@@ -81,7 +81,7 @@ for(const width of [390,430,768,1440])test.describe('conversation scrolling '+wi
 test('a scroll just before composer reflow keeps the newly chosen history position',async({page})=>{
   await page.setViewportSize({width:1440,height:844});const unexpected=await setup(page);await pinned(page);
   await page.evaluate(()=>{
-    document.getElementById('messages').scrollTop=700;
+    const messages=document.getElementById('messages');messages.dispatchEvent(new WheelEvent('wheel',{deltaY:-700,bubbles:true}));messages.scrollTop=700;
     const reply=document.getElementById('replyText');reply.value='Черновик\nВторая строка\nТретья строка\nЧетвёртая строка';reply.dispatchEvent(new Event('input',{bubbles:true}));
   });
   const before=await anchor(page);await sameAnchor(page,before);
@@ -93,7 +93,7 @@ for(const reading of [false,true])test(`late photo layout ${reading?'preserves t
   let release,requested;const hold=new Promise(resolve=>release=resolve),started=new Promise(resolve=>requested=resolve);
   await page.route('**/scroll-late-photo.svg',async route=>{requested();await hold;await route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420"><rect width="600" height="420" fill="#dde8ef"/></svg>'});});
   await page.evaluate(async reading=>{const index=reading?10:44;fixtureMessages[index].attachments=[{type:'image',name:'Синтетическое фото',url:location.origin+'/scroll-late-photo.svg'}];await WorkspaceV2Conversation.refreshVisible();},reading);
-  if(reading)await page.locator('#messages').evaluate(box=>box.scrollTop=box.children[10].offsetTop-box.offsetTop);
+  if(reading)await page.locator('#messages').evaluate(box=>{box.dispatchEvent(new WheelEvent('wheel',{deltaY:-900,bubbles:true}));box.scrollTop=box.children[10].offsetTop-box.offsetTop;});
   await started;
   if(reading)await page.locator('#messages').evaluate(box=>box.scrollTop=box.children[15].offsetTop-box.offsetTop);
   const before=reading?await anchor(page):null;release();
