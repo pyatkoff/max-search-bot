@@ -13,6 +13,7 @@ $fixtures=[
 ];
 $fixtures['production.json']['paid_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','paid_new'=>2,'tours_opened'=>1]]];
 $fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','channels'=>[['channel'=>'telegram','new_conversations'=>3]]]]];
+$fixtures['production.json']['manager_visibility'][0]['load_ms']=['all'=>12.3,'mine'=>4.5,'waiting'=>2.1];
 foreach($fixtures as $name=>$data)file_put_contents($tmp.'/'.$name,json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/compose_autopilot_snapshot.php').' '.implode(' ',array_map('escapeshellarg',array_map(fn($n)=>$tmp.'/'.$n,array_keys($fixtures))));
 exec($cmd,$lines,$code);$raw=implode("\n",$lines);$json=json_decode($raw,true);$passed=0;$failed=0;
@@ -23,6 +24,7 @@ aCheck('channel aggregate survives composition',($json['channel_daily']['days'][
 aCheck('production sha is surfaced',($json['production']['sha']??null)==='abc123');
 aCheck('migration summary is compact and healthy',($json['migrations']['total']??null)===2&&($json['migrations']['pending']??null)===0&&($json['migrations']['checksum_failures']??null)===0);
 aCheck('manager health is surfaced',($json['manager']['response']['pending']??null)===0&&($json['manager']['push'][0]['status']??null)==='healthy');
+aCheck('bounded real-database loading durations survive composition',($json['manager']['visibility'][0]['load_ms']??null)===['all'=>12.3,'mine'=>4.5,'waiting'=>2.1]);
 aCheck('live funnel summary is surfaced',($json['live']['summary']['sessions']??null)===2&&($json['live']['summary']['tours_opened']??null)===1);
 aCheck('flagged session metadata is surfaced',($json['live']['flagged_sessions'][0]['conversation_id']??null)===101&&in_array('repeated_same_input',$json['live']['flagged_sessions'][0]['flags']??[],true));
 aCheck('architecture control-plane summary is surfaced',($json['architecture']['areas']['handlers']['files']??null)===10&&($json['architecture']['hotspots'][0]['path']??null)==='handlers/Big.php'&&($json['architecture']['signal_counts']['direct_sql_writes']??null)===1&&($json['architecture']['signal_counts']['runtime_ddl']??null)===0);
