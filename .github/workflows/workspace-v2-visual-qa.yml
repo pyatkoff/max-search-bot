@@ -45,10 +45,10 @@ jobs:
           exit 1
 
       - name: Assert responsive layout contracts
-        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js --reporter=line --workers=1
 
       - name: Check send feedback in WebKit
-        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js --browser=webkit --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js --browser=webkit --reporter=line --workers=1
 
       - name: Capture responsive screenshots
         shell: bash
@@ -101,6 +101,7 @@ jobs:
             visual-artifacts/*.png
             send-feedback-artifacts/*.png
             notification-diagnostic-artifacts/*.png
+            conversation-scroll-artifacts/*.png
             emoji-picker-artifacts/*.png
             timezone-artifacts/*.png
           if-no-files-found: error

@@ -20,6 +20,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `assets/workspace-v2-inbox.*` — inbox owner: queue selection, list projection, list/kanban view handoff.
 - `assets/workspace-v2-filters.js` — inbox search/filter state, persistence, filter controls and task-filter shortcut orchestration. It may invoke the inbox reload/queue boundary but must not own sales-stage or task business semantics.
 - `assets/workspace-v2-conversation.*` — transcript/composer owner.
+- `assets/workspace-v2-jump.js` — transcript viewport owner: follows latest messages through composer/viewport/media layout changes, preserves a visible message anchor while reading history, and exposes the explicit jump control. It never renders or fetches messages; Conversation establishes viewport intent after composing the reply controls.
 - `assets/manager-time.js` — shared UTC/offset → Moscow display and Moscow deadline input boundary. Device timezone must not change Manager timestamps or entered deadlines; date-only values and server-owned business-day/urgency rules remain separate.
 - `assets/workspace-v2-lead-card.*` — structured lead information/composition owner; delegate feature-specific subviews rather than growing another monolith.
 - `assets/workspace-v2-tasks.*` — lead-task presentation and task mutation orchestration owner. It captures the source conversation for create/update/toggle/pin requests and keeps per-lead/task in-flight guards outside rerendered DOM; task persistence/business semantics remain server-owned.
