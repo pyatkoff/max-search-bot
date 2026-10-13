@@ -253,3 +253,7 @@ After the initial manager-entry greeting, ordinary customer messages go to the e
 ## Owner correction — one greeting per handoff (2026-09-29)
 
 A manager-source entry sends the initial concise greeting only when it creates a new handoff. Reopening a source link while already waiting or assigned is silent, including after a manager has replied. Preserve the genuine `bot_started` recovery event and entry attribution without changing ownership, queue or transcript. This supersedes the earlier acknowledgement on every source reentry. Night entry retains truthful working-hours wording.
+
+## Owner-authorized Manager2 presentation
+
+The 2026-10-13 request explicitly authorizes a second URL `/manager2/` for the agreed design. This is an opt-in presentation of `manager/index.php`, not a parallel workspace implementation. Shared auth, CSRF, conversation/task/pipeline/media/push modules and APIs remain canonical. Presentation hooks may move existing controls but must never duplicate their mutations. See `manager/ARCHITECTURE.md` and `manager2/README.md`.

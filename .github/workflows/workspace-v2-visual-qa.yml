@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'manager/**'
+      - 'manager2/**'
       - 'tests/visual/**'
       - '.github/workflows/workspace-v2-visual-qa.yml'
   workflow_dispatch:
@@ -19,6 +20,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup PHP for real Manager shell
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -45,10 +52,10 @@ jobs:
           exit 1
 
       - name: Assert responsive layout contracts
-        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js --reporter=line --workers=1
 
       - name: Check send feedback in WebKit
-        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js --browser=webkit --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js --browser=webkit --reporter=line --workers=1
 
       - name: Capture responsive screenshots
         shell: bash
@@ -94,6 +101,7 @@ jobs:
           find visual-artifacts -type f -name '*.png' -size +10k | grep -q .
 
       - name: Upload visual evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: workspace-v2-visual-${{ github.sha }}
@@ -104,5 +112,7 @@ jobs:
             conversation-scroll-artifacts/*.png
             emoji-picker-artifacts/*.png
             timezone-artifacts/*.png
+            manager2-artifacts/*.png
+            test-results/**/error-context.md
           if-no-files-found: error
           retention-days: 14

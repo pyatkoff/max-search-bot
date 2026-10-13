@@ -1,6 +1,6 @@
 (function(){
 const W=window.WorkspaceV2,{S,$}=W;let bound=false,screen='inbox',restoring=false;
-const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
+const isMobile=()=>window.matchMedia(document.body.classList.contains('manager2')?'(max-width:1100px)':'(max-width:900px)').matches;
 function currentState(next=screen){return{workspaceV2:true,manager_id:Number(S.manager?.id||0),screen:next,conversation_id:Number(S.current||0)}}
 function apply(next){screen=next==='lead'?'lead':next==='conversation'?'conversation':'inbox';const conversation=$('conversationZone'),lead=$('leadZone'),root=$('workspaceRoot');if(!conversation||!lead||!root)return;root.dataset.mobileScreen=screen;conversation.classList.toggle('open',screen==='conversation'||screen==='lead');lead.classList.toggle('open',screen==='lead');document.body.classList.toggle('workspaceMobileDetail',isMobile()&&screen!=='inbox')}
 function record(next,{replace=false}={}){if(!isMobile())return;const state=currentState(next);if(replace)history.replaceState(state,'',location.href);else history.pushState(state,'',location.href)}

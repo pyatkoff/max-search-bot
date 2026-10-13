@@ -4,7 +4,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Target boundaries
 
-- **Entrypoint / shell** — `index.php` is the single production workspace entrypoint. It renders the workspace and never performs HTTP canonical redirects. Browser-visible `/manager/index.php` is normalized with `history.replaceState`, not a network navigation.
+- **Entrypoint / shell** — `index.php` owns the canonical production workspace shell. The owner-authorized `/manager2/index.php` is a thin opt-in presentation include of this same shell; it owns no API or business state. It renders the workspace and never performs HTTP canonical redirects. Browser-visible `/manager/index.php` is normalized with `history.replaceState`, not a network navigation.
 - **Workspace modules** — inbox, filters/search, conversation, lead card, pipeline, tasks, stage history, media, notifications, kanban and mobile behavior own their corresponding `assets/workspace-v2-*` files.
 - **Manager HTTP interfaces** — `api.php`, `pipeline-api.php`, media and push endpoints are thin interfaces. Authentication, authorization and validation converge on `lib/ManagerHttp.php` instead of being reimplemented per endpoint.
 - **Business rules** — remain outside presentation/interface code. UI and HTTP code may project and invoke manager use-cases but must not become a second owner of routing, technical conversation state, sales-stage semantics or delivery rules.
@@ -50,7 +50,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 - **Completed:** inbox search/filter persistence and task-filter shortcut orchestration moved out of `workspace-v2-pipeline.js` → `assets/workspace-v2-filters.js`; pipeline stays focused on sales mutations while `ManagerLeadInboxService` / task services retain server-side semantics.
 - **Completed:** lead-task mutation transport, source-lead capture and in-flight guards moved out of `workspace-v2-lead-card.js` → `assets/workspace-v2-tasks.js`; Lead Card now only composes the task subview while task services remain the server-side business owner.
 - **Completed:** actionable waiting filtering and queue-count assembly moved out of `manager/api.php` → `ManagerQueueProjectionService`; `ManagerDeliveryStateService` owns interpreting the already-decorated suspended-recipient state.
-- Shell markup in `index.php` → small templates/components only when it reduces real complexity; do not create a second workspace entrypoint.
+- Shell markup remains in `index.php`. `/manager2/workspace-chrome.php` adds only opt-in navigation/header/dialog chrome; do not duplicate the workspace shell or API endpoints.
 - Manager-specific endpoint helpers duplicated in top-level PHP files → `manager/lib/` interface helpers; shared business services stay outside `manager/`.
 
 ### Delete only after compatibility evidence
@@ -63,7 +63,7 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Invariants
 
-1. One visible product: Manager Workspace at `/manager/`.
+1. One Manager product with the canonical `/manager/` surface and the owner-authorized `/manager2/` presentation. Both use the same protected APIs and domain modules.
 2. No HTTP redirect loops inside the manager application.
 3. Technical states (`ai`, `waiting_manager`, `manager`, `closed`) remain system-owned and separate from sales stages.
 4. Original tourist transcript is preserved; structured trip/contact/source/handoff data lives outside it.
@@ -81,3 +81,12 @@ This directory is the owned interface boundary for the manager product. Changes 
 5. **Done for the current Workspace frontend inventory:** `workspace-v2.js` remains feature-neutral; stage history, inbox filters and task mutation orchestration are split into focused modules. The required client-transport inventory keeps feature endpoints out of the core and records why multipart, push timeout/recovery, standalone and service-worker callers do not share the ordinary JSON helper.
 6. Consolidate remaining endpoint validation and structured errors in narrow slices.
 7. Continue Workspace V2 and Sales Pipeline feature work only on top of these stable boundaries.
+
+## Manager2 presentation (owner request, 2026-10-13)
+
+- `manager2/index.php` selects the agreed modern presentation and includes the canonical shell. `<base href="/manager/">` keeps API, multipart, media, worker scope and admin URLs canonical. `/manager2/index.php` normalization stays browser-only.
+- `manager2/assets/manager2.css` is body-scoped; the existing `/manager/` styling is preserved.
+- `manager2/assets/manager2.js` moves canonical controls, groups secondary sales/task/actions into native disclosures and projects the already-available canonical trip budget. It performs no transport, database, routing, identity, reply or notification mutation.
+- Lead Card, Tasks and Conversation expose optional presentation hooks after rendering. Existing modules retain all event binding, role checks, mutation guards, session/attachment/draft handling and delivery truth.
+- The canonical Mobile owner selects a 1100px breakpoint only for the Manager2 body; the original surface retains 900px.
+- Real PHP shell rendering, anonymous/canonical login, shared API/worker paths, task and reply mutations, role restrictions, notification dialog and responsive Chromium/WebKit flows are covered by required/visual QA. Public artifacts contain synthetic clients only.

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE_URL="${MANAGER_BASE_URL:-https://app.anytoour.ru/manager}"
+MANAGER2_BASE_URL="${MANAGER2_BASE_URL:-https://app.anytoour.ru/manager2}"
 CONSULTANT_BASE_URL="${CONSULTANT_BASE_URL:-https://app.anytoour.ru/web-consultant}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -63,6 +64,19 @@ assert_body_contains manager_index 'id="workspaceRoot"'
 assert_body_contains manager_api_me '"error":"unauthorized"'
 assert_body_contains manager_pipeline_api '"error":"unauthorized"'
 
+request manager2_root "$MANAGER2_BASE_URL/"
+request manager2_index "$MANAGER2_BASE_URL/index.php"
+request manager2_style "$MANAGER2_BASE_URL/assets/manager2.css"
+request manager2_script "$MANAGER2_BASE_URL/assets/manager2.js"
+assert_status manager2_root 200
+assert_status manager2_index 200
+assert_status manager2_style 200
+assert_status manager2_script 200
+assert_body_contains manager2_root 'class="manager2"'
+assert_body_contains manager2_index '<base href="/manager/">'
+assert_body_contains manager2_style 'body.manager2'
+assert_body_contains manager2_script 'window.Manager2Presentation'
+
 request consultant_root "$CONSULTANT_BASE_URL/"
 request consultant_index "$CONSULTANT_BASE_URL/index.php"
 request consultant_widget "$CONSULTANT_BASE_URL/widget.js"
@@ -83,4 +97,4 @@ assert_body_contains consultant_a11y 'prefers-reduced-motion:reduce'
 assert_body_contains consultant_context "action:'context'"
 assert_body_contains consultant_context 'page_context'
 
-echo 'MANAGER + WEB CONSULTANT HTTP SMOKE: OK'
+echo 'MANAGER + MANAGER2 + WEB CONSULTANT HTTP SMOKE: OK'
