@@ -61,6 +61,7 @@ for(const width of [390,430,768,1440])test.describe(width+'px',()=>{
     await expect(page.getByRole('button',{name:'Проверить звук'})).toBeVisible();
     expect(await tones(page)).toBe(0);
     await enable(page);expect(await tones(page)).toBe(1);
+    await expect(page.locator('#soundMessage')).toHaveText('Звук включён в открытом кабинете.');
     expect(feed.requests[0]).toEqual({action:'poll',csrf:'synthetic-csrf',cursor:null});
     await page.evaluate(()=>Object.assign(WorkspaceV2.S,{queue:'closed',leadSearch:'nonmatching filter',leadProjectFilter:'other-project'}));
     feed.upper=101;feed.rows=[event()];await poll(page);expect(await tones(page)).toBe(2);
