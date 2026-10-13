@@ -6,17 +6,18 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager'}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success'}={}){
   const calls=[],unexpected=[],errors=[],sends=[];
   let authenticated=!anonymous,subscribed=false;
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
+  if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67'}));
   await page.addInitScript(()=>{
-    sessionStorage.clear();
+    if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
     window.fixtureWorkers=[];
     let subscription=null;
     const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
@@ -29,6 +30,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager'}={}){
     const req=route.request(),url=new URL(req.url());
     if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
     if(req.method()==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+    if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
     if(!url.pathname.endsWith('.php'))return route.continue();
     if(!url.pathname.startsWith('/manager/')){unexpected.push(req.method()+' '+url.pathname);return route.abort()}
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
@@ -51,7 +53,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager'}={}){
       if(data.action==='list')return reply({ok:true,conversations:rows()});
       if(data.action==='detail')return reply(lead(data.conversation_id));
       if(data.action==='create_task'){tasks.push({id:30,title:data.title,due_at_utc:data.due_at,status:'open',due_state:'upcoming',assigned_manager_name:'Мария'});return reply({ok:true})}
-      if(data.action==='set_task_completed'){tasks.find(t=>t.id===data.task_id).status=data.completed?'done':'open';return reply({ok:true})}
+      if(data.action==='set_task_completed'){if(taskResult==='unknown')return route.abort('failed');if(taskResult==='rejected')return reply({ok:false,error:'task_not_found'});tasks.find(t=>t.id===data.task_id).status=data.completed?'done':'open';return reply({ok:true})}
       if(data.action==='set_task_pinned'){tasks.find(t=>t.id===data.task_id).is_pinned=data.pinned;return reply({ok:true})}
       if(data.action==='update_task'){Object.assign(tasks.find(t=>t.id===data.task_id),{title:data.title,due_at_utc:data.due_at});return reply({ok:true})}
       if(['set_stage','set_tags','set_outcome'].includes(data.action))return reply({ok:true});
@@ -84,11 +86,42 @@ async function readable(page,selector){
     while(p){const color=getComputedStyle(p).backgroundColor;if(!color.startsWith('rgba')&&color!=='transparent'){bg=color;break}p=p.parentElement}
     const b=luminance(bg);return (Math.max(fg,b)+.05)/(Math.min(fg,b)+.05);
   });expect(ratio,selector+' text contrast').toBeGreaterThanOrEqual(4.5);
+  if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
 for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
   test.use({viewport:{width,height:900}});
+  test('navigation loads once, keeps drafts and filters coherent, and actions stay readable',async({page,browserName})=>{
+    const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Черновик сохранён при навигации');
+    const [chooser]=await Promise.all([page.waitForEvent('filechooser'),page.getByRole('button',{name:'Прикрепить файл',exact:true}).press('Enter')]);
+    await chooser.setFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Local fixture only')});
+    if(width<=1100)await page.locator('#mobileBack').click();
+    for(const target of ['sales','archive','sales','tasks','sales','dialogues']){
+      const before=s.calls.filter(c=>c.action==='list').length;
+      await page.locator('[data-m2-nav='+target+']').click();
+      await expect.poll(()=>s.calls.filter(c=>c.action==='list').length).toBe(before+1);
+      await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section',target);
+      await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+      expect(s.calls.filter(c=>c.action==='list').length).toBe(before+1);
+      if(target!=='sales')expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('anytour.manager.workspace.filters.v1')).task)).toBe('');
+      await noOverflow(page);
+    }
+    await page.locator('[data-m2-nav=archive]').click();await page.locator('#filtersToggle').click();await page.locator('#leadTaskFilter').selectOption('today');
+    await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');
+    await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.inboxHead .brand')).toHaveText('Мой план работы');await expect(page.locator('#m2SectionHint')).toContainText('диалоги с задачами и без них');
+    await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.evaluate(()=>WorkspaceV2.S.leadTaskFilter)).toBe('');
+    await openLead(page);await expect(page.locator('#replyText')).toHaveValue('Черновик сохранён при навигации');
+    const quick=page.locator('.quickReplies button').first();await page.locator('#conversationTitle').click();await expect(quick).toBeVisible();const box=await quick.boundingBox(),parent=await page.locator('.quickReplies').boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(parent.y+parent.height+1);
+    expect(await page.locator('.leadTitle').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+    await capture(page,browserName,width,'readable-navigation');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  });
+  test('typed service events stay separate from literal customer messages',async({page,browserName})=>{
+    const s=await setup(page,{serviceEvents:true});await openLead(page);
+    const event=page.locator('[data-scroll-message-key="36"]'),literal=page.locator('[data-scroll-message-key="37"]');
+    await expect(event).toHaveClass('msg serviceAction');await expect(event.locator('.msgBody')).toHaveText('Клиент запросил менеджера после подбора туров');await expect(literal).toHaveClass('msg customer');await expect(literal.locator('.msgBody')).toHaveText('manager_after_tours');
+    await event.locator('summary').click();await expect(event.locator('code')).toHaveText('manager_after_tours');await readable(page,'.serviceAction .msgBody');await noOverflow(page);await capture(page,browserName,width,'service-events');expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  });
   test('actual shell boots, preserves canonical paths, compact client card and responsive navigation',async({page,browserName})=>{
     const s=await setup(page);await expect(page).toHaveURL(origin+'/manager2/?qa=1');
     await noOverflow(page);await capture(page,browserName,width,'inbox');
@@ -130,8 +163,17 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
 });
 test('Manager2 anonymous entry uses the canonical login and does not expose another manager composer',async({page})=>{
   const s=await setup(page,{anonymous:true,otherOwner:true});await expect(page.locator('#managerAuthRecovery')).toBeVisible();
+  await expect(page.locator('#managerAuthRecovery h2')).toHaveText('Вход для менеджера');await expect(page.locator('#managerAuthSubmit')).toHaveText('Войти');
   await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await openLead(page);await expect(page.locator('#composer')).not.toBeVisible();await expect(page.locator('#composerLocked')).toContainText('Людмила');expect(s.calls.find(c=>c.action==='login').path).toBe('/manager/api.php');expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const taskResult of ['success','rejected','unknown'])test('Manager2 task feedback remains truthful: '+taskResult,async({page,browserName})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{taskResult});await openLead(page);await showCard(page);await page.locator('[data-task-toggle="21"]').check();
+  const status=page.locator('[data-task-action-status]');await expect(status).toContainText(taskResult==='success'?'выполнена':taskResult==='rejected'?'Не удалось изменить состояние':'Не удалось подтвердить изменение');
+  if(taskResult==='unknown')expect(await page.locator('[data-task-toggle="21"]').evaluate(el=>el.indeterminate)).toBe(true);
+  await page.evaluate(()=>WorkspaceV2Tasks.render(document.getElementById('leadTasksBody'),{tasks:WorkspaceV2.S.detail.lead.tasks,canEdit:true,conversationId:WorkspaceV2.S.current}));await expect(status).toContainText(taskResult==='success'?'выполнена':taskResult==='rejected'?'Не удалось изменить состояние':'Не удалось подтвердить изменение');
+  expect(s.calls.filter(c=>c.action==='set_task_completed')).toHaveLength(1);await noOverflow(page);await capture(page,browserName,390,'task-'+taskResult);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
 for(const width of [390,1440])test('Manager2 admin settings remain accessible at '+width,async({page})=>{

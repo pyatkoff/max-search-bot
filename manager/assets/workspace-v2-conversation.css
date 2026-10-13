@@ -38,3 +38,7 @@
 .linkedMessage{margin:0 0 7px;padding:7px 9px;border-left:3px solid currentColor;border-radius:5px;background:rgba(127,127,127,.10);font-size:12px;line-height:1.35;overflow-wrap:anywhere}
 .linkedMessageLabel{font-size:10px;text-transform:uppercase;letter-spacing:.03em;opacity:.7}
 .linkedMessageSender{font-weight:600;margin-top:2px}.linkedMessageText{margin-top:2px;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+
+.msg.serviceAction{align-self:center;max-width:min(92%,640px);margin:8px 0;padding:8px 12px;border:1px solid #dce4eb;border-radius:10px;background:#eef2f5;color:#536270;box-shadow:none;font-size:12px}
+.serviceAction .messageSender{text-transform:none;opacity:1;font-size:10px}.serviceAction .msgMeta{font-size:10px}
+.serviceActionDetails{margin-top:4px;font-size:11px}.serviceActionDetails summary{cursor:pointer}.serviceActionDetails code{display:block;margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}

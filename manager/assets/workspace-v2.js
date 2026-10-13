@@ -12,7 +12,7 @@ function esc(v){const d=document.createElement('div');d.textContent=v??'';return
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
 function showStartupFailure(message='Не удалось загрузить рабочее место. Проверьте соединение и попробуйте ещё раз.'){
   const box=$('inboxList');
-  if(box){box.innerHTML=`<div class="startupFailure" role="alert"><div class="startupFailureIcon" aria-hidden="true">↻</div><strong>Не удалось загрузить лиды</strong><span>${esc(message)}</span><button id="managerStartupRetry" class="actionBtn primary" type="button">Попробовать снова</button></div>`;const retry=$('managerStartupRetry');if(retry)retry.onclick=async()=>{retry.disabled=true;retry.textContent='Пробуем…';await boot()}}
+  if(box){box.innerHTML=`<div class="startupFailure" role="alert"><div class="startupFailureIcon" aria-hidden="true">↻</div><strong>Не удалось загрузить диалоги</strong><span>${esc(message)}</span><button id="managerStartupRetry" class="actionBtn primary" type="button">Попробовать снова</button></div>`;const retry=$('managerStartupRetry');if(retry)retry.onclick=async()=>{retry.disabled=true;retry.textContent='Пробуем…';await boot()}}
   const health=$('notificationStatus');if(health){health.className='notificationHealth warn';const text=health.querySelector('.notificationText');if(text)text.innerHTML='<strong>Нет связи с сервером</strong><span>Рабочее место не загружено</span>'}
   const composer=$('composer');if(composer)composer.classList.add('hidden');
 }
@@ -22,16 +22,18 @@ function ensureAuthRecovery(){
   overlay=document.createElement('div');
   overlay.id='managerAuthRecovery';
   overlay.className='managerAuthRecovery hidden';
-  overlay.innerHTML=`<div class="managerAuthCard" role="dialog" aria-modal="true" aria-labelledby="managerAuthTitle"><div class="managerAuthBrand">AnyTour</div><h2 id="managerAuthTitle">Вход для менеджера</h2><p id="managerAuthMessage" class="managerAuthMessage">Сессия менеджера истекла. Войдите снова, чтобы продолжить.</p><form id="managerAuthForm"><label for="managerAuthLogin">Логин</label><input id="managerAuthLogin" name="login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required><label for="managerAuthPassword">Пароль</label><input id="managerAuthPassword" name="password" type="password" autocomplete="current-password" required><div id="managerAuthError" class="managerAuthError hidden" role="alert"></div><button id="managerAuthSubmit" type="submit">Войти и продолжить</button></form></div>`;
+  overlay.innerHTML=`<div class="managerAuthCard" role="dialog" aria-modal="true" aria-labelledby="managerAuthTitle"><div class="managerAuthBrand">AnyTour</div><h2 id="managerAuthTitle">Вход для менеджера</h2><p id="managerAuthMessage" class="managerAuthMessage">Войдите в кабинет, чтобы открыть диалоги и задачи.</p><form id="managerAuthForm"><label for="managerAuthLogin">Логин</label><input id="managerAuthLogin" name="login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required><label for="managerAuthPassword">Пароль</label><input id="managerAuthPassword" name="password" type="password" autocomplete="current-password" required><div id="managerAuthError" class="managerAuthError hidden" role="alert"></div><button id="managerAuthSubmit" type="submit">Войти</button></form></div>`;
   document.body.appendChild(overlay);
   $('managerAuthForm').addEventListener('submit',async e=>{e.preventDefault();await loginFromRecovery()});
   return overlay;
 }
-function showAuthRecovery(message='Сессия менеджера истекла. Войдите снова, чтобы продолжить.'){
+function showAuthRecovery(message=''){
   if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
-  $('managerAuthMessage').textContent=message;
+  const recovering=!!S.manager?.id;
+  $('managerAuthMessage').textContent=message||(recovering?'Сессия менеджера истекла. Войдите снова, чтобы продолжить.':'Войдите в кабинет, чтобы открыть диалоги и задачи.');
+  $('managerAuthSubmit').textContent=recovering?'Войти и продолжить':'Войти';
   $('managerAuthError').classList.add('hidden');
   $('managerAuthError').textContent='';
   $('managerAuthPassword').value='';
@@ -56,7 +58,7 @@ async function request(url,action,data={}){
 const api=(action,data={})=>request('api.php',action,data);
 const pipe=(action,data={})=>request('pipeline-api.php',action,data);
 const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
-function statusText(s){return{ai:'AI',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Закрыт'}[s]||s||''}
+function statusText(s){return{ai:'С ботом',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Диалог закрыт'}[s]||s||''}
 function outcomeText(s){return S.pipeline.outcomes[s]||{open:'В работе',won:'Продажа',lost:'Отказ'}[s]||'В работе'}
 function formatWait(seconds){const s=Math.max(0,Number(seconds||0));if(s<60)return'<1 мин';const m=Math.floor(s/60);if(m<60)return`${m} мин`;const h=Math.floor(m/60),r=m%60;return`${h} ч${r?` ${r} мин`:''}`}
 function val(v){return(v===null||v===undefined||v==='')?'—':String(v)}
@@ -113,6 +115,7 @@ async function loginFromRecovery(){
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;
   const submit=$('managerAuthSubmit'),error=$('managerAuthError');
   if(!login||!password)return;
+  const submitLabel=submit.textContent;
   submit.disabled=true;submit.textContent='Входим…';error.classList.add('hidden');
   try{
     const r=await fetch('api.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'login',login,password})});
@@ -120,7 +123,7 @@ async function loginFromRecovery(){
     if(!r.ok||!j?.ok){error.textContent=r.status===401?'Неверный логин или пароль.':'Не удалось войти. Проверьте соединение и попробуйте ещё раз.';error.classList.remove('hidden');return}
     await resumeAuthenticated(j);
   }catch(e){error.textContent='Нет связи с сервером. Попробуйте ещё раз.';error.classList.remove('hidden')}
-  finally{submit.disabled=false;submit.textContent='Войти и продолжить'}
+  finally{submit.disabled=false;submit.textContent=submitLabel}
 }
 async function boot(){
   if(S.booting)return;
