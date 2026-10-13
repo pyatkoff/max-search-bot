@@ -175,6 +175,7 @@ return [
         'php tests/run_manager_workspace_v2_notifications_regression.php',
         'node tests/run_manager_notifications_client_behavior_regression.js',
         'node tests/run_manager_message_text_behavior_regression.js',
+        'node tests/run_manager_timezone_behavior_regression.js',
         'node tests/run_manager_reauth_composer_behavior_regression.js',
         'node tests/run_manager_reply_session_behavior_regression.js',
         'node tests/run_manager_task_draft_behavior_regression.js',

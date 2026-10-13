@@ -97,7 +97,7 @@ const window = {
 const history=sessionHistory||{entries:[null],index:0,get state(){return this.entries[this.index]},replaceState(state){this.entries[this.index]=state},pushState(state){this.entries.splice(++this.index);this.entries.push(state)},async back(){if(this.index>0){this.index--;await this.listener(this.state)}},async forward(){if(this.index<this.entries.length-1){this.index++;await this.listener(this.state)}}};
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
 const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/'},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage});
-for (const file of ['workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
+for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[])]) vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;
 async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
