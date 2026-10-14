@@ -14,7 +14,7 @@ class AdminDirectoryService
         $pdo=ConversationDb::connection();
         $projects=$pdo->query("SELECT id,project_key,display_name,is_active FROM projects ORDER BY display_name,id")->fetchAll();
         $managers=$pdo->query("SELECT id,login,display_name,role,email,is_active,is_working,last_login_at,priority FROM managers ORDER BY is_active DESC,display_name,login,id")->fetchAll();
-        $sources=$pdo->query("SELECT id,project_key,source_key,display_name,channel,is_active FROM conversation_sources ORDER BY project_key,display_name,id")->fetchAll();
+        $sources=$pdo->query("SELECT s.id,p.project_key,s.source_key,s.display_name,s.channel,s.is_active FROM conversation_sources s JOIN projects p ON p.id=s.project_id ORDER BY p.project_key,s.display_name,s.id")->fetchAll();
         $access=[];
         $q=$pdo->query("SELECT manager_id,project_id FROM manager_projects ORDER BY manager_id,project_id");
         foreach($q->fetchAll() as $row)$access[(int)$row['manager_id']][]=(int)$row['project_id'];

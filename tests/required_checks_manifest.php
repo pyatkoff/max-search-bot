@@ -138,6 +138,8 @@ return [
         'php tests/run_manager_pending_reply_regression.php',
         'php tests/run_manager_test_conversation_filter_regression.php',
         'php tests/run_manager_admin_audit_regression.php',
+        'php tests/run_manager_admin_snapshot_source_behavior_regression.php',
+        'node tests/run_manager_admin_load_state_behavior_regression.js',
         'php tests/run_admin_project_access_backfill_regression.php',
         'php tests/run_admin_project_access_health_regression.php',
         'php tests/run_manager_source_admin_errors_regression.php',
