@@ -140,6 +140,7 @@ return [
         'php tests/run_manager_outside_hours_handoff_regression.php',
         'php tests/run_outside_hours_queue_repair_regression.php',
         'php tests/run_manager_request_context_regression.php',
+        'php tests/run_manager_media_session_regression.php',
         'php tests/run_manager_conversation_access_policy_regression.php',
         'php tests/run_manager_inbox_access_batch_regression.php',
         'php tests/run_manager_inbox_query_page_regression.php',
