@@ -364,10 +364,25 @@ async function sendReply(){
       if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error');
       return;
     }
+    // A multi-file attempt may have delivered an earlier file before a later
+    // rejection/unknown result. Consume only a confirmed caption and refresh
+    // history without treating the remaining queue as successfully delivered.
+    if(hasFile&&j?.ok!==true&&Number(j?.confirmed_count||j?.sent_count||0)>0){
+      if(j.caption_sent&&sameSession()&&owner===replySessionOwner&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+      if(currentAttempt()){
+        if(j.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}
+        if(j.caption_sent&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
+        let refreshGeneration=openSeq;
+        try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});refreshGeneration=openSeq;await refreshing}catch(e){}
+        if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error');
+      }
+      if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
+      return;
+    }
     if(j?.ok!==true){
       const failure=j?.failure||null;
       if(currentAttempt()&&failure&&S.detail?.conversation){S.detail.delivery_failure=failure;renderDeliveryFailure(failure,j?.error_message);renderActions(S.detail.conversation)}
-      if(currentAttempt())setReplyStatus(sendFailureNotice(failure,j?.error_message),'error');
+      if(currentAttempt())setReplyStatus(hasFile&&!failure&&j?.error_message?j.error_message:sendFailureNotice(failure,j?.error_message),'error');
       return;
     }
     if(sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}

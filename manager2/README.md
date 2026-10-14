@@ -54,3 +54,9 @@ Working names are common manager-only labels visible to colleagues with access t
 Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Private MAX dialogues and website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
 
 The canonical protected binary endpoint owns fresh authorization and a bounded private cache. Offline provider/SQLite/loopback regressions and actual PHP-shell browser scenarios cover cache permissions, delayed photos, unsupported channels, account/client switching, drafts and responsive layout. Those checks do not confirm natural Telegram profile-photo availability or physical-device behavior; no real customer messages or operational changes are required for acceptance.
+
+## Screenshot and multi-file replies
+
+An explicit paste into the composer or native file choice prepares up to ten files with image previews and individual removal. Sending remains an explicit action. Files are sent separately through the existing MAX/Telegram upload endpoint; the text accompanies the first file. Progress, partial confirmation and unknown outcome have distinct states; confirmed files are not repeated and a newly edited caption is preserved/sent correctly. Unsupported website attachment sending retains the selection and text with an explanation.
+
+Selection remains in memory only and cannot survive reload. Unknown results cannot be durably reconciled by the current media endpoint; no automatic replay is introduced. Actual PHP-shell browser fixtures cover desktop/mobile and reduced height, clipboard preview, partial retry, account/client switching and caption guards. Fixture success is not proof of natural customer receipt.
