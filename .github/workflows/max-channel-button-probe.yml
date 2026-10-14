@@ -91,7 +91,7 @@ jobs:
           except Exception:
               print(json.dumps({'status': 'failed', 'reason': 'probe_output_unavailable', 'remote_exit': int(sys.argv[2])}))
               raise SystemExit(1)
-          allowed = {'status','reason','bot_match','rights','request_count','write_attempts','write_response','api_error_code','http_results','image_count_before','image_count_after','image_ids_before','image_ids_after','image_ids_equal','text_hash_equal','markup_hash_equal','link_hash_equal','original_keyboard_equal','keyboard_verified','private_backup_saved','attachment_schema','request_mapping_ready','mapping_block_reason','mode','post_match','channel_match','server_sha_match','installed_sha','expected_sha','target_url','target_channel','attachments_before','attachments_after','message_count','post_candidates'}
+          allowed = {'status','reason','bot_match','rights','request_count','write_attempts','write_response','api_error_code','http_results','image_count_before','image_count_after','image_ids_before','image_ids_after','image_ids_equal','text_hash_equal','markup_hash_equal','link_hash_equal','original_keyboard_equal','keyboard_verified','private_backup_saved','attachment_schema','request_mapping_ready','mapping_block_reason','mode','post_match','channel_match','server_sha_match','installed_sha','expected_sha','target_url','target_channel','attachments_before','attachments_after','message_count','post_candidates','read_comparison'}
           safe = {k: v for k, v in summary.items() if k in allowed}
           safe['remote_exit'] = int(sys.argv[2])
           print(json.dumps(safe, ensure_ascii=False, sort_keys=True))

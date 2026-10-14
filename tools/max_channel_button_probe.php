@@ -107,13 +107,20 @@ final class MaxChannelButtonProbe
 
     private static function fingerprint(array $m): string
     {
-        // Exclude mutable view statistics and expiring media URLs.
-        $body = $m['body'];
-        foreach ($body['attachments'] as &$a) {
-            if (in_array($a['type'] ?? '', ['image', 'video', 'audio', 'file'], true)) unset($a['payload']['url']);
+        // Compare the content a channel editor can change. List/detail envelopes,
+        // sequence values and signed image transport tokens may differ on reads.
+        // Exact MID/channel/type have already been checked independently.
+        $attachments = [];
+        foreach ($m['body']['attachments'] as $a) {
+            if (($a['type'] ?? '') === 'image') {
+                $attachments[] = ['type' => 'image', 'photo_id' => (string)($a['payload']['photo_id'] ?? '')];
+            } elseif (($a['type'] ?? '') === 'inline_keyboard') {
+                $attachments[] = ['type' => 'inline_keyboard', 'buttons' => $a['payload']['buttons'] ?? null];
+            } else {
+                $attachments[] = $a; // Unsupported media still fail closed before PUT.
+            }
         }
-        unset($a);
-        return self::hash([$m['recipient'], $m['url'] ?? null, $body, $m['link'] ?? null]);
+        return self::hash([$m['body']['text'], $m['body']['markup'] ?? null, $attachments, $m['link'] ?? null]);
     }
 
     private static function imageIds(array $m): array
@@ -268,6 +275,13 @@ final class MaxChannelButtonProbe
             $mid = self::validateMessage($initial);
             $current = self::readable($this->request('GET', '/messages/' . rawurlencode($mid), [], null, 'fresh_exact_post'));
             self::check(self::validateMessage($current) === $mid, 'fresh_mid_mismatch');
+            $this->summary['read_comparison'] = [
+                'text_equal' => self::hash($initial['body']['text']) === self::hash($current['body']['text']),
+                'markup_equal' => self::hash($initial['body']['markup'] ?? null) === self::hash($current['body']['markup'] ?? null),
+                'image_ids_equal' => self::imageIds($initial) === self::imageIds($current),
+                'link_equal' => self::hash($initial['link'] ?? null) === self::hash($current['link'] ?? null),
+                'content_fingerprint_equal' => self::fingerprint($initial) === self::fingerprint($current),
+            ];
             self::check(self::fingerprint($initial) === self::fingerprint($current), 'post_changed_during_read');
             $this->summary['attachment_schema'] = self::safeSchema($current);
             $this->summary['image_ids_before'] = self::imageIds($current);

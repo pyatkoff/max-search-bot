@@ -180,6 +180,20 @@ $tests['foreign_callback_keyboard_fails_before_write'] = static function (): voi
     $f = runProbeFixture(['post' => $m]);
     probeAssert($f['result']['reason'] === 'foreign_keyboard_button_rejected' && $f['result']['write_attempts'] === 0, 'foreign callback ownership preserved');
 };
+$tests['refreshed_image_transport_metadata_keeps_content_guard'] = static function (): void {
+    $fresh = probePost(); $fresh['url'] = null; $fresh['body']['seq'] = 202;
+    $fresh['body']['attachments'][0]['payload']['token'] = 'REFRESHED_PRIVATE_TOKEN';
+    $fresh['body']['attachments'][0]['payload']['url'] = 'https://media.invalid/refreshed-signature';
+    $fresh['recipient']['post_id'] = 9001;
+    $f = runProbeFixture(['fresh' => $fresh]);
+    probeAssert($f['result']['status'] === 'verified' && $f['result']['write_attempts'] === 1, 'same semantic content accepted despite envelope changes');
+    probeAssert($f['put_body']['attachments'][0]['payload']['token'] === 'REFRESHED_PRIVATE_TOKEN', 'fresh image token used');
+};
+$tests['different_photo_before_write_is_blocked'] = static function (): void {
+    $fresh = probePost(); $fresh['body']['attachments'][0]['payload']['photo_id'] = 999999;
+    $f = runProbeFixture(['fresh' => $fresh]);
+    probeAssert($f['result']['reason'] === 'post_changed_during_read' && $f['result']['write_attempts'] === 0, 'stable photo content guard retained');
+};
 
 $passed = [];
 try {
