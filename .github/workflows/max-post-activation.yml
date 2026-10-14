@@ -1,4 +1,4 @@
-name: Activate owner test MAX publication channel
+name: Read owner test MAX post entry
 on:
   push:
     branches: [test/max-post-activation-20261014]
@@ -43,7 +43,7 @@ jobs:
           fi
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
-      - name: Read scoped test channel and add missing MAX events
+      - name: Verify actual post button and native entry
         env:
           ACTIVATION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           ACTIVATION_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -68,14 +68,9 @@ jobs:
             test "$(git rev-parse HEAD)" = a0d7988398a7cf3413a1352c9624a91bc7586859
             git diff --quiet && git diff --cached --quiet
             opdir=/var/www/anytoour/data/channel-post-operations
-            test ! -L "$opdir"
-            install -d -m 700 "$opdir"
-            CHANNEL_POST_WEBHOOK_STATE_DIR="$opdir/webhook" php tools/channel_post_webhook_updates.php max
-            CHANNEL_POST_WEBHOOK_STATE_DIR="$opdir/webhook" php tools/channel_post_webhook_updates.php max --apply
             CHANNEL_POST_WEBHOOK_STATE_DIR="$opdir/webhook" php tools/channel_post_webhook_updates.php max --reconcile
             php tools/channel_post_worker.php --platform=max
           '
-          ssh "${opts[@]}" "$remote" "php '$remote_tmp/readback.php' --expected-sha=a0d7988398a7cf3413a1352c9624a91bc7586859 --require-enabled"
       - name: Cleanup key
         if: always()
         run: rm -f "$RUNNER_TEMP/activation_key"
