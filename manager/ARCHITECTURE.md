@@ -94,3 +94,11 @@ This directory is the owned interface boundary for the manager product. Changes 
 - Lead Card, Tasks and Conversation expose optional presentation hooks after rendering. Existing modules retain all event binding, role checks, mutation guards, session/attachment/draft handling and delivery truth.
 - The canonical Mobile owner selects a 1100px breakpoint only for the Manager2 body; the original surface retains 900px.
 - Real PHP shell rendering, anonymous/canonical login, shared API/worker paths, task and reply mutations, role restrictions, notification dialog and responsive Chromium/WebKit flows are covered by required/visual QA. Public artifacts contain synthetic clients only.
+
+## Convenient response library and transcript tools
+
+- `services/ManagerQuickReplyService.php` is the canonical account-scoped personal/shared reply library owner; `manager/quick-replies-api.php` uses `ManagerHttp` auth/CSRF and no message transport. Personal replies and favorites belong to the authenticated account; only admins edit shared replies. Version checks prevent concurrent overwrites and transactional operation receipts reconcile uncertain writes without repeating commands. Schema changes use forward-only migration 029.
+- `workspace-v2-quick-replies.*` lazily loads the selected library/filter only. It resolves an explicit preview and inserts through Conversation's context-pinned composer boundary; it never sends, writes another draft store for messages or blocks Inbox startup.
+- `workspace-v2-conversation-search.*` searches only the currently loaded messages, explicitly labels that scope, and preserves original text and message IDs. Global archive search is a separate unimplemented phase.
+- Inbox retains a bounded authenticated/filter-scoped successful selection for the explicit next-waiting action. A pending/failed load or changed account/filter invalidates that selection; opening still checks canonical conversation access and dirty-task navigation.
+- Media retains selected files per account/conversation in memory during navigation. Files cannot survive reload and are discarded on account change; no new media archive or draft persistence service is introduced.

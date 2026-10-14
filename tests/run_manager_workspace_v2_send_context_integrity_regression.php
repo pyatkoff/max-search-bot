@@ -24,7 +24,7 @@ sciCheck('send failure cannot paint a newer conversation or session',strpos($sen
 sciCheck('unknown network result is scoped and never labelled definite non-delivery',strpos($send,"catch(e){\n      if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error')")!==false&&strpos($send,"setReplyStatus('Не удалось отправить сообщение'")===false);
 sciCheck('confirmed send and Inbox refresh failures have separate boundaries',strpos($send,"if(j?.ok!==true)")!==false&&strpos($send,"Отправлено. Переписку пока не удалось обновить.")!==false&&strpos($send,"if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}")!==false);
 sciCheck('send path has no automatic retry or duplicate transport call',substr_count($send,"api('send',")===1&&substr_count($send,'WorkspaceV2Media.send(text)')===1&&strpos($send,'setInterval(')===false);
-sciCheck('media upload captures source conversation id before request',strpos($media,'const target=state.conversationId,data=new FormData()')!==false&&strpos($media,"data.append('conversation_id',String(target))")!==false);
+sciCheck('media upload captures source conversation id before request',strpos($media,'const target=state.conversationId,sourceKey=draftKey(target),data=new FormData()')!==false&&strpos($media,"data.append('conversation_id',String(target))")!==false);
 sciCheck('media auth expiry delegates to canonical recovery owner',strpos($media,'showAuthRecovery')!==false&&strpos($media,"error:'unauthorized'")!==false&&strpos($media,'location.href')===false&&strpos($media,'location.reload')===false);
 sciCheck('media request keeps same-origin session credentials',strpos($media,"credentials:'same-origin'")!==false);
 

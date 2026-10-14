@@ -31,3 +31,14 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 
 .manager2 .m2SectionHint{margin:7px 0 0;font-size:12px;line-height:1.5;color:var(--ws-text-secondary)}.manager2 .m2SectionHint[hidden]{display:none}
 .manager2 .msg.serviceAction{align-self:flex-start;max-width:100%;background:transparent;border:1px dashed #c9d5c7;box-shadow:none;color:#40543c;font-size:13px;padding:9px 12px}.manager2 .serviceActionDetails{margin-top:4px;font-size:12px}.manager2 .serviceActionDetails summary{cursor:pointer;min-height:32px;display:flex;align-items:center;color:#55664c}.manager2 .serviceActionDetails code{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:5px}.manager2 .notificationDiagnostic{margin-top:5px;font-size:12px}.manager2 .notificationDiagnostic summary{cursor:pointer;min-height:36px;display:flex;align-items:center}.manager2 .notificationDiagnostic code{overflow-wrap:anywhere}
+
+@media(max-height:540px){
+.manager2 .conversationHead{min-height:54px;padding-top:6px;padding-bottom:6px}
+.manager2 .messages{padding-top:8px;padding-bottom:8px}
+.manager2 .composer{padding-top:6px;padding-bottom:6px;gap:4px}
+.manager2 .composer textarea{max-height:72px;min-height:38px;overflow-y:auto}
+.manager2 .composerHint{display:none}
+.manager2 .quickReplies{margin:0;max-height:36px}
+}
+
+@media(max-height:540px){.manager2 .quickReplies button:not(#quickRepliesOpen){display:none}.manager2 .composerSurface{padding-top:3px;padding-bottom:3px}.manager2 .composer textarea{padding-top:5px;padding-bottom:5px}}
