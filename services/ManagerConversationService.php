@@ -9,6 +9,7 @@ require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/SalesPipelineService.php';
 require_once __DIR__ . '/CallbackGeneration.php';
+require_once __DIR__ . '/ManagerHandoffCancellationViewService.php';
 
 class ManagerConversationService
 {
@@ -175,7 +176,7 @@ class ManagerConversationService
         ManagerReadService::markRead($managerId,$conversationId);
         $q=ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');$q->execute([$conversationId]);$messages=$q->fetchAll();
         foreach($messages as &$message){if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');}unset($message);
-        return['conversation'=>$conversation,'messages'=>$messages];
+        return['conversation'=>$conversation,'messages'=>$messages,'handoff_cancellation'=>ManagerHandoffCancellationViewService::fromVisibleContext($conversation)];
     }
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array

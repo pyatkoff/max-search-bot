@@ -1,0 +1,5 @@
+.handoffCancellation{margin:8px 12px;padding:10px 12px;border:1px solid #c8d9d0;border-radius:10px;background:#f2f7f4;color:#30483d;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.handoffCancellation[hidden]{display:none}
+.handoffCancellation strong,.handoffCancellation span{display:block}
+.handoffCancellation time{display:block;margin-top:4px;color:#50665b;font-size:12px}
+@media(max-width:430px){.handoffCancellation{margin:6px 8px;padding:8px 10px}}

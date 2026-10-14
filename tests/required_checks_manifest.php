@@ -121,6 +121,7 @@ return [
         'php tests/run_manager_customer_name_regression.php',
         'php tests/run_manager_customer_avatar_regression.php',
         'node tests/run_manager_media_batch_behavior_regression.js',
+        'php tests/run_manager_handoff_cancellation_view_regression.php',
         'node tests/run_manager_client_name_behavior_regression.js',
         'node tests/run_manager_quick_replies_behavior_regression.js',
         'node tests/run_manager_response_cycle_behavior_regression.js',

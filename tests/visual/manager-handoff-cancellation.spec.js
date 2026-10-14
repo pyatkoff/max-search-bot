@@ -1,0 +1,23 @@
+const {test,expect}=require('@playwright/test');
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../..');
+for(const width of [390,430,768,1440])test(`confirmed cancellation context ${width}px`,async({page,browserName},testInfo)=>{
+  await page.setViewportSize({width,height:420});
+  await page.setContent('<style>body{margin:0;font-family:system-ui}.column{height:400px;display:flex;flex-direction:column}#notice{flex:none}#messages{flex:1;overflow:auto}textarea{min-height:60px;flex:none;box-sizing:border-box;width:100%}</style><div class="column"><div id="notice" hidden></div><div id="messages"><p>back_check</p><p>Исходное сообщение клиента</p></div><textarea id="draft">Сохранённый ответ менеджера</textarea></div>');
+  await page.addStyleTag({content:fs.readFileSync(path.join(root,'manager/assets/workspace-v2-handoff-cancellation.css'),'utf8')});
+  await page.evaluate(()=>window.WorkspaceV2={});
+  for(const file of ['manager-time.js','workspace-v2-handoff-cancellation.js'])await page.addScriptTag({content:fs.readFileSync(path.join(root,'manager/assets',file),'utf8')});
+  fs.mkdirSync('manager2-artifacts',{recursive:true});
+  await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browserName}-${width}-handoff-module-before.png`});
+  await page.locator('#draft').focus();
+  await page.evaluate(()=>WorkspaceV2.HandoffCancellation.render(document.querySelector('#notice'),{event_id:3,event_type:'ai_resumed',reason:'handoff_cancelled',created_at:'2026-10-14 08:30:00'}));
+  await expect(page.locator('#notice')).toContainText('Клиент отменил ожидание менеджера');
+  await expect(page.locator('time')).toHaveText('14.10.2026 11:30 МСК');
+  await expect(page.locator('#draft')).toBeFocused();await expect(page.locator('#draft')).toHaveValue('Сохранённый ответ менеджера');
+  await expect(page.locator('#messages')).toHaveText('back_checkИсходное сообщение клиента');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+  const bounds=await page.locator('#draft').boundingBox();expect(bounds.y+bounds.height).toBeLessThanOrEqual(420);
+  await testInfo.attach('confirmed-'+width,{body:await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browserName}-${width}-handoff-module-after.png`}),contentType:'image/png'});
+  await page.evaluate(()=>WorkspaceV2.HandoffCancellation.render(document.querySelector('#notice'),null));await expect(page.locator('#notice')).toBeHidden();
+  await page.evaluate(()=>WorkspaceV2.HandoffCancellation.render(document.querySelector('#notice'),{event_id:3,event_type:'callback',reason:'handoff_cancelled',created_at:'2026-10-14 08:30:00'}));await expect(page.locator('#notice')).toBeHidden();
+});

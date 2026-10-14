@@ -15,9 +15,11 @@ class DialogueView {}
 class MaxSearchApi { public static function deletePrevMessage($chat){} }
 class IntegrationRegistry { public static $messenger; public static function messenger(){return self::$messenger;} }
 class FixtureMessenger {
+ public $buttons=[],$platform='max';
  public $mode='ok',$calls=0,$observed=[];
  public function sendWithButtons($chat,$text,$buttons){
-  $this->calls++;$c=ConversationControlService::statusByChat('max',$chat);
+  $this->calls++;$c=ConversationControlService::statusByChat($this->platform,$chat);
+  $this->buttons=$buttons;
   $this->observed[]=[$c['status'],(int)ConversationDb::$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$c['id']." AND event_type='waiting_manager'")->fetchColumn(),ConversationDb::$pdo->inTransaction(),$text];
   if($this->mode==='throw')throw new RuntimeException('synthetic transport failure');
   return $this->mode!=='false';
@@ -47,16 +49,20 @@ try {
   queueCheck(IntegrationRegistry::$messenger->calls,$sends,'repeat does not resend');
   queueCheck((int)$pdo->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id='.$id)->fetchColumn(),1,'one durable waiting event');
  }
- foreach([true,false] as $hours){
-  $id++;$pdo->prepare("INSERT INTO conversations VALUES(?,'fixture',1,'max',?,'ai',NULL)")->execute([$id,(string)$id]);
+ foreach(['max','telegram'] as $platform)foreach([true,false] as $hours){
+  IntegrationRegistry::$messenger->platform=$platform;
+  $id++;$pdo->prepare("INSERT INTO conversations VALUES(?,'fixture',1,?,?,'ai',NULL)")->execute([$id,$platform,(string)$id]);
   ManagerAvailabilityService::$hours=$hours;ManagerRequestService::$fail=false;ManagerPushService::$fail=false;IntegrationRegistry::$messenger->mode='ok';
-  $result=ManagerHandoffDispatchService::dispatch($id,'max','',false,null,true);
+  $result=ManagerHandoffDispatchService::dispatch($id,$platform,'',false,null,true);
   queueCheck($result['queue_applied'],true,'source greeting retains durable handoff');
   $seen=end(IntegrationRegistry::$messenger->observed);
-  queueCheck($seen[3],$hours?'entry day':'entry night','initial source greeting selects canonical hours');
-  queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$seen[3],'initial entry uses the canonical presentation');
+  queueCheck($seen[3],($hours?'entry day':'entry night')."\n\nКнопка «Продолжить с ботом» отменит ожидание менеджера.",'initial source greeting selects canonical hours and explains cancellation');
+  queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$hours?'entry day':'entry night','source text helper retains canonical greeting');
  }
+ queueCheck(IntegrationRegistry::$messenger->buttons[0][0]['callback_data'],'back_check','button callback remains exact');
+ queueCheck(IntegrationRegistry::$messenger->buttons[0][0]['text'],'Продолжить с ботом · отменить ожидание','button explains cancellation');
  foreach(IntegrationRegistry::$messenger->observed as $observation){queueCheck(array_slice($observation,0,3),['waiting_manager',1,false],'queue and event committed before customer send');}
+ IntegrationRegistry::$messenger->platform='max';
  $pdo->exec("INSERT INTO conversations VALUES(100,'fixture',1,'max','owned','manager',7)");
  ManagerHandoffDispatchService::dispatch('owned','max');
  $owned=ConversationControlService::statusByChat('max','owned');queueCheck([$owned['status'],(int)$owned['manager_id']],['manager',7],'repeat request cannot unassign manager');
