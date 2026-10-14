@@ -92,7 +92,16 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
  return {calls,unexpected,errors,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
-async function openLead(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible()}
+async function openLead(page,id=11){
+ // Reload may populate Inbox before the saved conversation finishes opening.
+ // Choose visible navigation only after boot has settled that restoration.
+ await expect.poll(()=>page.evaluate(()=>!!window.WorkspaceV2?.S.workspaceBound&&!window.WorkspaceV2.S.booting)).toBe(true);
+ if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox')){
+  await page.locator('#mobileBack').click();
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');
+ }
+ await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible();
+}
 async function openLibrary(page){await page.locator('#quickRepliesOpen').click();if(await page.locator('#qrTitle').count()===0)await page.locator('[data-qr-scope="all"]').click()}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`reply-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
