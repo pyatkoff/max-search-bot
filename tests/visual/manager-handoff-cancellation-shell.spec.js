@@ -39,6 +39,14 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
     calls.push({path:url.pathname,...data});
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'){
+      if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
+      return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
+    }
+    if(req.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id)){
+      if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
+      return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
+    }
     if(url.pathname==='/manager/api.php'){
       if(data.action==='login'){authenticated=true;return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]})}
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);

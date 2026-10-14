@@ -48,6 +48,12 @@ return [
         'legacy_hl' => 32,
         'v2_store_dir' => 'runtime/trip_state',
     ],
+    // Public identities for the independently opted-in publication feature.
+    // This is the primary MAX manager bot, separate from the existing mini-app.
+    'channel_posts' => [
+        'max' => ['bot_key'=>'id9704048781_1_bot','bot_url'=>'https://max.ru/id9704048781_1_bot'],
+        'telegram' => ['bot_key'=>'Any_tour_bot','bot_url'=>'https://t.me/Any_tour_bot'],
+    ],
     'analytics' => [
         'provider' => 'metrika',
     ],
