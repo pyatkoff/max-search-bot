@@ -5,6 +5,7 @@ require_once __DIR__ . '/../services/IncomingUpdateDeduplicator.php';
 require_once __DIR__ . '/../services/TrafficAttributionService.php';
 require_once __DIR__ . '/../services/MaxInboundMediaArchiveService.php';
 require_once __DIR__ . '/../services/MaxStartSourcePolicy.php';
+if (is_file(__DIR__.'/../services/ChannelPostEntryService.php')) require_once __DIR__.'/../services/ChannelPostEntryService.php';
 
 class MaxUpdateHandler
 {
@@ -38,6 +39,17 @@ class MaxUpdateHandler
 
         $type = (string)($update['update_type'] ?? '');
         if (function_exists('put_log_in')) put_log_in('LIVE_UPDATE_RECEIVED type=' . $type);
+
+        if (class_exists('ChannelPostRuntime')&&ChannelPostIncomingAdapter::isChannelUpdate('max',$update)) {
+            $post=ChannelPostRuntime::receive('max',$update);
+            if (ChannelPostRuntime::storageFailed('max')) {http_response_code(503);echo 'retry';return;}
+            http_response_code(200);echo 'ok';
+            if (!empty($post['publication_id'])) {
+                if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request();
+                ChannelPostRuntime::finish('max');
+            }
+            return;
+        }
 
         if (!IncomingUpdateDeduplicator::claim($update)) {
             if (function_exists('put_log_in')) put_log_in('DUPLICATE_UPDATE_SKIPPED ' . IncomingUpdateDeduplicator::key($update));
@@ -91,14 +103,33 @@ class MaxUpdateHandler
         $internalId = $userId > 0 ? -$userId : $userId;
         $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
         $meta=TrafficAttributionService::parseStartPayload($payload);
+        $postPayload=class_exists('ChannelPostEntryService')&&ChannelPostEntryService::isPayload($payload);
+        $post=$postPayload?ChannelPostEntryService::resolve('max',$payload):null;
+        $trafficEntry=null;
+        if ($postPayload) {
+            $previous=TrafficAttributionService::get(dirname(__DIR__),$internalId);
+            foreach (['yclid','region_id','campaign_id'] as $key) $meta[$key]=(string)($previous[$key]??'');
+            $owned=ChannelPostEntryService::managerOwned('max',$internalId);
+            // Post attribution has its own immutable ledger. Keep the existing
+            // traffic source of an assigned dialogue so its next message cannot
+            // rebind routing through ConversationAttributionService.
+            if ($owned) $trafficEntry=(string)($previous['entry_channel']??'');
+            if (!$post) {
+                $meta['entry_channel']=(string)($previous['entry_channel']??'');
+                ChannelPostEntryService::record('max',$internalId,null,ChannelPostEntryService::eventKey('max',$update));
+                if ($owned) return;
+            } else {
+                $meta['entry_channel']=(string)$post['source_key'];
+            }
+        }
         $yclid=(string)($meta['yclid']??'');
         $region=(string)($meta['region_id']??'');
         $campaign=(string)($meta['campaign_id']??'');
         $entry=(string)($meta['entry_channel']??'');
 
         // Keep the existing attribution and paid-entry renderer unchanged.
-        TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry);
-        if ($yclid !== '' && class_exists('Bitrix\\Main\\Loader')) MaxSearchApi::addYclid($internalId, $yclid);
+        TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$trafficEntry??$entry);
+        if (!$postPayload&&$yclid !== '' && class_exists('Bitrix\\Main\\Loader')) MaxSearchApi::addYclid($internalId, $yclid);
         MaxSearchApi::funnelLog($internalId, 'bot_started', ['payload'=>$payload,'entry_channel'=>$entry]);
 
         $incoming = [
@@ -110,7 +141,10 @@ class MaxUpdateHandler
                 'username'=>(string)($user['username']??''),
             ],
         ];
-        if (MaxStartSourcePolicy::apply($incoming,$entry)) return;
+        if (MaxStartSourcePolicy::apply($incoming,$entry)) {
+            if ($post) ChannelPostEntryService::record('max',$internalId,$post,ChannelPostEntryService::eventKey('max',$update));
+            return;
+        }
 
         MaxSearchApi::cancelToursFollowup($internalId);
         MaxSearchApi::deleteAllStatus($internalId);

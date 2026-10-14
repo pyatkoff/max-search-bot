@@ -53,6 +53,8 @@ if(!$media){http_response_code(404);exit;}
 $conversationId=(int)($media['conversation_id']??0);
 if($conversationId<=0||!ManagerConversationService::detail($conversationId,$managerId)){http_response_code(403);exit;}
 $path=(string)($media['path']??'');if($path===''||!is_file($path)){http_response_code(404);exit;}
+// Access checks are complete; a slow preview/download must not block the account.
+if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
 $mime=(string)($media['mime']??'application/octet-stream');
 $name=(string)($media['name']??'attachment');
 header('Content-Type: '.$mime);
