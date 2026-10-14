@@ -9,7 +9,10 @@ final class ChannelPostIncomingAdapter
     public static function isChannelUpdate(string $platform, array $update): bool
     {
         if ($platform === 'telegram') return array_key_exists('channel_post', $update) || array_key_exists('edited_channel_post', $update);
-        return $platform === 'max' && ($update['message']['recipient']['chat_type'] ?? '') === 'channel';
+        // A channel button callback is a personal interaction by callback.user,
+        // even though its referenced message belongs to a channel publication.
+        return $platform === 'max' && ($update['update_type'] ?? '') !== 'message_callback'
+            && ($update['message']['recipient']['chat_type'] ?? '') === 'channel';
     }
 
     public static function fromUpdate(string $platform, array $update): ?array

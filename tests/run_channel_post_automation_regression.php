@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../services/ChannelPostAutomationService.php';
+require_once __DIR__ . '/../integrations/MaxIncomingAdapter.php';
 $fixtures = require __DIR__ . '/fixtures/channel_post_automation.php';
 $failed = 0; $passed = 0;
 function channelPostCheck(string $name, $actual, $expected = true): void {
@@ -160,6 +161,17 @@ channelPostCheck('provider-native markup retained', $event['snapshot']['markup']
 channelPostCheck('channel envelope recognized without customer sender', ChannelPostIncomingAdapter::isChannelUpdate('max', ['message' => ['recipient' => ['chat_type' => 'channel']]]));
 channelPostCheck('ordinary MAX conversation excluded', ChannelPostIncomingAdapter::fromUpdate('max', ['update_type' => 'message_created', 'message' => ['recipient' => ['chat_type' => 'dialog']]]), null);
 channelPostCheck('ordinary Telegram conversation excluded', ChannelPostIncomingAdapter::isChannelUpdate('telegram', ['message' => $fixtures['telegram']]), false);
+$channelCallback = [
+    'update_type' => 'message_callback', 'message' => $fixtures['max'],
+    'callback' => ['callback_id' => 'fixture-channel-callback', 'payload' => 'legacy_channel_action', 'user' => ['user_id' => 777, 'first_name' => 'Fixture']],
+];
+$personalCallback = MaxIncomingAdapter::fromUpdate($channelCallback);
+channelPostCheck('MAX channel callback remains a canonical personal interaction', [$personalCallback['type'], $personalCallback['platform'], $personalCallback['user']['chat_id'], $personalCallback['user']['external_user_id']], ['callback', 'max', -777, '777']);
+channelPostCheck('MAX channel callback keeps legacy callback ID and payload', [$personalCallback['callback_id'], $personalCallback['callback_data']], ['fixture-channel-callback', 'legacy_channel_action']);
+[$callbackStore, $callbackProvider, $callbackTransport, $callbackService] = channelPostScenario($fixtures['max']);
+$callbackReceipt = $callbackService->receive('max', $channelCallback, 'anytour', 'id9704048781_1_bot');
+channelPostCheck('publication automation does not consume MAX channel button callback', [$callbackReceipt['recognized'], $callbackReceipt['queued']], [false, false]);
+channelPostCheck('MAX channel callback creates no publication job or provider call', count($callbackStore->posts) === 0 && count($callbackProvider->calls) === 0);
 
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['max']);
 $first = channelPostReceive($service, $fixtures['max']); $duplicate = channelPostReceive($service, $fixtures['max']);
