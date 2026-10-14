@@ -9,6 +9,14 @@ const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'
 // responses. No production traffic or customer messages are permitted.
 async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],heldFavorites=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
+ const requestIds=new WeakMap(),requestTrace=[],errorDiagnostics=[];let requestSequence=0,documentGeneration=0;
+ const trace=(kind,data={})=>{requestTrace.push({kind,at:Date.now(),documentGeneration,...data});if(requestTrace.length>120)requestTrace.shift()};
+ const describeRequest=request=>{const path=new URL(request.url()).pathname;if(!path.startsWith('/manager/'))return null;let action='';try{action=String(request.postDataJSON()?.action||'')}catch{}if(!requestIds.has(request))requestIds.set(request,++requestSequence);return{id:requestIds.get(request),path,method:request.method(),type:request.resourceType(),action}};
+ page.on('request',request=>{const data=describeRequest(request);if(data)trace('request',data)});
+ page.on('response',response=>{const data=describeRequest(response.request());if(data)trace('response',{...data,status:response.status()})});
+ page.on('requestfinished',request=>{const data=describeRequest(request);if(data)trace('finished',data)});
+ page.on('requestfailed',request=>{const data=describeRequest(request);if(data)trace('failed',{...data,failure:request.failure()?.errorText||''})});
+ page.on('framenavigated',frame=>{if(frame===page.mainFrame()){documentGeneration++;trace('document')}});
  let manager={id:7,role,display_name:'Мария',is_working:true};
  const replies=[
   {id:1,manager_id:7,title:'Личное приветствие',body:'Здравствуйте, {client_name}! Меня зовут {manager_name}.',category:'Приветствие',scope:'personal',version:1,is_favorite:false,can_edit:true},
@@ -23,7 +31,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  const snapshot=result=>JSON.parse(JSON.stringify(result));
  const conv=id=>({id,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
  const msgs=()=>messages||Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>{errors.push(e.message);errorDiagnostics.push({message:e.message,stack:e.stack||'',at:Date.now(),documentGeneration,recentRequests:requestTrace.slice(-40)});if(errorDiagnostics.length>8)errorDiagnostics.shift()});
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
   const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
@@ -100,8 +108,9 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
+ return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
+async function reloadFixture(page,s){s.trace('before_reload');await page.reload();s.trace('after_reload')}
 async function openLead(page,id=11){
  // Reload may populate Inbox before the saved conversation finishes opening.
  // Choose visible navigation only after boot has settled that restoration.
@@ -115,7 +124,7 @@ async function openLead(page,id=11){
 async function openLibrary(page){await page.locator('#quickRepliesOpen').click();if(await page.locator('#qrTitle').count()===0)await page.locator('[data-qr-scope="all"]').click()}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`reply-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
-function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+function clean(s){if(s.errors.length)console.log('QUICK_REPLY_PAGEERROR_DIAGNOSTICS '+JSON.stringify({errors:s.errorDiagnostics,recentRequests:s.requestTrace}));expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
 async function panelIds(page){return page.locator('[data-qr-toolbar-id]').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.qrToolbarId)))}
 async function expectPanel(page,ids){await expect.poll(()=>panelIds(page)).toEqual(ids)}
 async function chooseForPanel(page,id){await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="'+id+'"]').click();await page.locator('#qrFavorite').click()}
@@ -145,8 +154,8 @@ for(const width of [390,430,768,1440])test.describe('Manager-selected reply pane
   await page.locator('#conversationTitle').click();await page.locator('[data-qr-toolbar-id="3"]').click();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrPreview')).toHaveValue('Какие пожелания к {unknown}?');await expect(page.locator('#qrInsert')).toBeDisabled();await expect(page.locator('#replyText')).not.toHaveValue(/unknown/);await page.locator('#qrClose').click();
   await page.locator('#conversationTitle').click();await page.setViewportSize({width,height:420});await assertToolbarLayout(page);await page.locator('[data-qr-toolbar-id="1"]').scrollIntoViewIfNeeded();await expect(page.locator('[data-qr-toolbar-id="1"]')).toBeInViewport();await capture(page,browserName,width,'selected-composer-short');await page.setViewportSize({width,height:900});
   const before=s.calls.filter(c=>c.action==='toolbar').length;await openLead(page,12);await expectPanel(page,[1,2,3]);await page.locator('[data-qr-toolbar-id="1"]').click();await expect(page.locator('#replyText')).toHaveValue('Здравствуйте, Алексей Иванов! Меня зовут Мария.');expect(s.calls.filter(c=>c.action==='toolbar')).toHaveLength(before);
-  await page.reload();await openLead(page);await expectPanel(page,[1,2,3]);await assertToolbarLayout(page);await capture(page,browserName,width,'selected-reload');
-  await page.locator('#quickRepliesOpen').click();await chooseForPanel(page,2);await expectPanel(page,[1,3]);await page.locator('#qrClose').click();await page.reload();await openLead(page);await expectPanel(page,[1,3]);clean(s);
+  await reloadFixture(page,s);await openLead(page);await expectPanel(page,[1,2,3]);await assertToolbarLayout(page);await capture(page,browserName,width,'selected-reload');
+  await page.locator('#quickRepliesOpen').click();await chooseForPanel(page,2);await expectPanel(page,[1,3]);await page.locator('#qrClose').click();await reloadFixture(page,s);await openLead(page);await expectPanel(page,[1,3]);clean(s);
  });
 });
 
@@ -161,7 +170,7 @@ test('created answer selection is explicit and panel reflects edited title/body,
 
 test('empty and unavailable selected panel cannot delay a transcript or replace it with fixed defaults',async({page})=>{
  const s=await setup(page,{holdToolbar:true,selectedIds:[]});await openLead(page);await expect(page.locator('#messages .msg')).toHaveCount(35);await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('.quickReplies [data-reply]')).toHaveCount(0);s.releaseToolbar();await expectPanel(page,[]);await expect(page.locator('#quickRepliesOpen')).toBeVisible();await page.locator('#quickRepliesOpen').click();await expect(page.locator('[data-qr-scope="toolbar"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#qrList')).toContainText(/панел/);await page.locator('#qrClose').click();
- s.setHoldToolbar(false);s.setToolbarError(true);await page.reload();await openLead(page);await expect(page.locator('#messages .msg')).toHaveCount(35);await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('.quickReplies [data-reply]')).toHaveCount(0);await expect(page.locator('[data-qr-toolbar-id]')).toHaveCount(0);await expect(page.locator('.qrToolbarError')).toContainText('Не удалось загрузить');await page.locator('#replyText').fill('Черновик при недоступной панели');s.setToolbarError(false);await page.locator('[data-qr-toolbar-retry]').click();await expect(page.locator('.qrToolbarError')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('Черновик при недоступной панели');clean(s);
+ s.setHoldToolbar(false);s.setToolbarError(true);await reloadFixture(page,s);await openLead(page);await expect(page.locator('#messages .msg')).toHaveCount(35);await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('.quickReplies [data-reply]')).toHaveCount(0);await expect(page.locator('[data-qr-toolbar-id]')).toHaveCount(0);await expect(page.locator('.qrToolbarError')).toContainText('Не удалось загрузить');await page.locator('#replyText').fill('Черновик при недоступной панели');s.setToolbarError(false);await page.locator('[data-qr-toolbar-retry]').click();await expect(page.locator('.qrToolbarError')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('Черновик при недоступной панели');clean(s);
 });
 
 test('late old-account toolbar cannot disclose personal chips and account choice remains isolated',async({page})=>{
@@ -231,14 +240,14 @@ for(const width of [390,430,768,1440])test.describe('Quick reply controls '+widt
   await page.keyboard.press('Escape');await expect(page.locator('#qrEmojiPicker')).toBeHidden();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeFocused();await page.setViewportSize({width,height:900});await page.locator('#qrSave').click();await expect.poll(()=>s.replies.find(r=>r.title==='Приветствие со смайликом')?.body).toBe('Начало 😊 конец');const created=s.replies.find(r=>r.title==='Приветствие со смайликом');
   const preview=page.locator('#qrPreview');await preview.fill('До заменить после');await preview.evaluate(node=>node.setSelectionRange(3,11));await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😎"]').focus();await page.keyboard.press('Enter');await expect(preview).toHaveValue('До 😎 после');await expect(preview).toBeFocused();expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);
   await expect(page.locator('#replyText')).toHaveValue('Черновик клиента 🌍');await expect(page.locator('#mediaSelection')).toHaveText(attachment);await capture(page,browserName,width,'emoji-preview');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Черновик клиента 🌍\nДо 😎 после');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
-  await page.reload();await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="'+created.id+'"]').click();await page.locator('#qrEdit').click();await expect(body).toHaveValue('Начало 😊 конец');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
+  await reloadFixture(page,s);await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="'+created.id+'"]').click();await page.locator('#qrEdit').click();await expect(body).toHaveValue('Начало 😊 конец');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
  });
  test('row removal changes only personal panel membership, keeps library and reload order',async({page,browserName})=>{
   const s=await setup(page,{selectedIds:[1,2,3]});await openLead(page);await page.locator('#replyText').fill('Текст до настройки панели');await page.locator('#replyFile').setInputFiles({name:'remove-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected file')});const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#quickRepliesOpen').click();
   const remove=page.locator('[data-qr-remove-id="1"]');await expect(remove).toHaveAccessibleName('Убрать с панели: Личное приветствие');await page.setViewportSize({width,height:420});await remove.scrollIntoViewIfNeeded();await expect(remove).toBeInViewport();await bounded(page);await capture(page,browserName,width,'panel-remove-short');await remove.click();await expectPanel(page,[2,3]);
   expect(s.replies.map(r=>r.id)).toEqual([1,2,3]);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(0);expect(s.calls.filter(c=>c.action==='favorite')).toHaveLength(1);expect(s.calls.find(c=>c.action==='favorite')).toMatchObject({id:1,is_favorite:false});
   await page.setViewportSize({width,height:900});await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrFavorite')).toHaveText('Добавить на панель');await expect(page.locator('#qrDelete')).toHaveText('Удалить ответ');await page.locator('#qrClose').click();await expect(page.locator('#replyText')).toHaveValue('Текст до настройки панели');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
-  await page.reload();await openLead(page);await expectPanel(page,[2,3]);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();await page.locator('#qrFavorite').click();await expectPanel(page,[2,3,1]);await page.locator('#qrClose').click();await page.reload();await openLead(page);await expectPanel(page,[2,3,1]);clean(s);
+  await reloadFixture(page,s);await openLead(page);await expectPanel(page,[2,3]);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();await page.locator('#qrFavorite').click();await expectPanel(page,[2,3,1]);await page.locator('#qrClose').click();await reloadFixture(page,s);await openLead(page);await expectPanel(page,[2,3,1]);clean(s);
  });
 });
 
