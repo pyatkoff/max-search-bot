@@ -158,7 +158,7 @@
       window.WorkspaceV2Inbox.setQueue(next==='archive'?'closed':'mine',{reload:false});
     }
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
-    const taskFilters=document.querySelector('.m2TaskFilters');if(taskFilters)taskFilters.open=next==='tasks';
+    window.WorkspaceV2Filters.setExpanded(next==='tasks');
     syncNavigation();
     const loaded=await window.WorkspaceV2Inbox.load({preserveScroll:false});
     if(generation===navigationGeneration&&!S.authExpired&&authGeneration===S.authGeneration&&managerId===Number(S.manager?.id||0))syncNavigation();
@@ -179,7 +179,6 @@
     if(manager)new MutationObserver(syncPublications).observe(manager,{childList:true,subtree:true});
     new MutationObserver(syncPublications).observe(document.body,{attributes:true,attributeFilter:['class']});
     if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
-    const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>По сроку и приоритету</summary>';shortcuts.before(details);details.appendChild(shortcuts)}
     const hint=document.createElement('p');hint.id='m2SectionHint';hint.className='m2SectionHint';hint.hidden=true;document.querySelector('.inboxHead .brandRow').after(hint);
     const attach=document.querySelector('.attachBtn');
     if(attach){attach.tabIndex=0;attach.setAttribute('role','button');attach.setAttribute('aria-label','Прикрепить файл');attach.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const input=$('replyFile');if(input&&!input.disabled)input.click()}})}

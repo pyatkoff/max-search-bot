@@ -7,7 +7,7 @@ let checks=0;
 function check(name,fn){fn();checks++;console.log('PASS '+name)}
 function harness(){
   const S={manager:{id:7},authExpired:false,authGeneration:1,queue:'mine',viewMode:'kanban',leadTaskFilter:'today',current:11};
-  const elements={workspaceRoot:{dataset:{}},leadTaskFilter:{value:'today'},m2SectionHint:{textContent:'',hidden:true}};
+  const elements={workspaceRoot:{dataset:{}},leadTaskFilter:{value:'today'},m2SectionHint:{textContent:'',hidden:true},filtersPanel:{classList:{hidden:true,contains(){return this.hidden},toggle(name,flag){this.hidden=flag}}},filtersToggle:{setAttribute(name,value){this[name]=value}}};
   const title={textContent:''},taskFilters={open:false},requests=[],mobile=[],saved=new Map(),pending=[];
   const nav=['dialogues','tasks','sales','archive'].map(name=>({dataset:{m2Nav:name},classList:{toggle(){}},setAttribute(){},removeAttribute(){}}));
   const W={S,$:id=>elements[id],esc:String};
@@ -26,13 +26,14 @@ function harness(){
     check(target+' uses the final queue/mode/filter in that request',()=>assert.deepEqual(h.requests[0],{queue:target==='archive'?'closed':'mine',view:target==='sales'?'kanban':'list',task:target==='sales'?'today':''}));
     if(target!=='sales')check(target+' persists the cleared task filter',()=>assert.equal(JSON.parse([...h.saved.values()][0]).task,''));
     check(target+' shows the destination immediately',()=>assert.equal(h.elements.workspaceRoot.dataset.m2Section,target));
+    check(target+' exposes filters only for the plan section',()=>assert.equal(h.elements.filtersPanel.classList.hidden,target!=='tasks'));
     h.pending[0](true);assert.equal(await p,true);
   }
   {
     const h=harness(),older=h.navigate('tasks'),latest=h.navigate('archive');
     h.pending[1](true);await latest;h.pending[0](true);await older;
     check('late earlier completion does not revert the latest section',()=>assert.equal(h.elements.workspaceRoot.dataset.m2Section,'archive'));
-    check('late earlier completion does not reopen task controls',()=>assert.equal(h.taskFilters.open,false));
+    check('late earlier completion does not reopen task controls',()=>assert.equal(h.elements.filtersPanel.classList.hidden,true));
     check('rapid navigation still has one request per action',()=>assert.equal(h.requests.length,2));
   }
   {

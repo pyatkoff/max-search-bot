@@ -7,9 +7,9 @@ const emptyState=()=>({tabs:[],labels:[],members:{},pins:[],settings:{start_tab:
 // Actual PHP shell and real source assets. Every data request and write is
 // synthetic, local and account-scoped. Unexpected traffic is always rejected.
 async function setup(page,options={}){
- const sourceRoot=options.sourceRoot||root,shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
+ const sourceRoot=options.sourceRoot||root,presentation=options.presentation==='manager'?'manager':'manager2',shell=execFileSync('php',[presentation+'/index.php'],{cwd:sourceRoot,encoding:'utf8'});
  const calls=[],unexpected=[],errors=[],heldSnapshots=[],heldWrites=[],heldLists=[],receipts=new Map(),accounts=options.accounts||new Map(),pending=new Set();
- let manager={id:7,role:'manager',display_name:'Мария',is_working:true},snapshotError=!!options.snapshotError,holdSnapshot=!!options.holdSnapshot,holdWrite=!!options.holdWrite,holdList=false,writeResult=options.writeResult||'success',listError=false,nextId=10;
+ let manager={id:7,role:options.managerRole||'manager',display_name:'Мария',is_working:true},snapshotError=!!options.snapshotError,holdSnapshot=!!options.holdSnapshot,holdWrite=!!options.holdWrite,holdList=false,writeResult=options.writeResult||'success',listError=false,nextId=10;
  const account=id=>{if(!accounts.has(id))accounts.set(id,{version:1,state:clone(options.state||emptyState())});return accounts.get(id)};
  const conv=id=>({id,customer_id:id+90,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',source_id:1,display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0,name_version:0});
  const visibleIds=new Set([11,12,...(options.personalRows||[]).map(row=>row.id)]);
@@ -17,18 +17,18 @@ async function setup(page,options={}){
  const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 10:00:00'}));
  const snapshot=id=>({ok:true,...clone(account(id))});
  page.on('request',r=>pending.add(r));page.on('requestfinished',r=>pending.delete(r));page.on('requestfailed',r=>pending.delete(r));page.on('pageerror',e=>errors.push(e.message));
- await page.addInitScript(()=>{
+ await page.addInitScript(({healthyPush})=>{
   window.personalFixtureTiming={};
   const observer=new MutationObserver(()=>{if(!window.personalFixtureTiming.inboxMs&&document.querySelector('#inboxList .leadItem'))window.personalFixtureTiming.inboxMs=performance.now()});observer.observe(document,{subtree:true,childList:true});
-  const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
+  const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>healthyPush?{endpoint:location.origin+'/synthetic-push',toJSON:()=>({endpoint:location.origin+'/synthetic-push'})}:null},showNotification:async()=>{}};
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});
-  function N(){}N.permission='default';Object.defineProperty(window,'Notification',{configurable:true,value:N});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
- });
+  function N(){}N.permission=healthyPush?'granted':'default';Object.defineProperty(window,'Notification',{configurable:true,value:N});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
+ },{healthyPush:!!options.healthyPush});
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method(),reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
   if(url.origin!==origin)return block();
-  if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+  if(method==='GET'&&['/'+presentation+'/','/'+presentation+'/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
   if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
@@ -85,11 +85,11 @@ async function setup(page,options={}){
    if(holdWrite)await new Promise(resolve=>heldWrites.push(resolve));
    if(writeResult==='unknown')return route.abort('failed');return reply(result);
   }
-  if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
+  if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:!!options.healthyPush,healthy_subscription_count:options.healthyPush?1:0,notification_path_reason:options.healthyPush?'healthy_subscription':'no_subscription'}});
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
- await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+ await page.goto(origin+'/'+presentation+'/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
  return {calls,unexpected,errors,pending,accounts,snapshot,account,setWriteResult:v=>writeResult=v,setSnapshotError:v=>snapshotError=v,setHoldSnapshot:v=>holdSnapshot=v,setHoldWrite:v=>holdWrite=v,setHoldList:v=>holdList=v,setListError:v=>listError=v,releaseSnapshot:()=>heldSnapshots.shift()?.(),releaseWrite:()=>heldWrites.shift()?.(),releaseList:()=>heldLists.shift()?.(),switchManager:m=>manager=m};
 }
 module.exports={setup,root,origin,emptyState};
