@@ -64,7 +64,11 @@ for(const width of [390,430,768,1440])test('short capacity minimal single tab '+
    await capture(baseline,browserName,width,420,'one-short-tab','baseline-selected');
    expect(g.visibleRow).toBeLessThan(48);let pointerOpened=false;
    try{await baseline.locator('#inboxList [data-conversation-id="11"] .leadTitle').click({timeout:500});pointerOpened=true}catch(e){if(!/Timeout/.test(e.message))throw e}
-   expect(pointerOpened,'An ordinary pointer cannot open the collapsed baseline list').toBe(false);clean(old);
+   // At 768px the old list still exposes a 23px strip: the title can be
+   // scrolled into view and clicked, despite inadequate default capacity.
+   // The other three widths have a fully collapsed, inaccessible list.
+   expect(pointerOpened,'Baseline ordinary pointer outcome at '+width).toBe(width===768);
+   if(pointerOpened){await expect(baseline.locator('#replyText')).toBeEnabled();await expect(baseline.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect.poll(()=>baseline.locator('#replyText').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1})).toBe(true);await capture(baseline,browserName,width,420,'one-short-tab','baseline-opened');expect(old.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1)}clean(old);
   }finally{await baseline.close()}
  }
  await page.setViewportSize({width,height:420});const s=await setup(page,{state:stateFor(1,0),...(process.env.M2_CAPACITY_SOURCE?{sourceRoot:process.env.M2_CAPACITY_SOURCE}:{})});await settled(page,s);
@@ -116,4 +120,12 @@ for(const width of [390,1440])test('ordinary Inbox re-entry retains only the mat
  await back(page);await openClient(page,false,12);await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText('first-client.txt');await page.locator('#replyText').fill('Только для второго клиента');
  await back(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Только для первого клиента');await expect(page.locator('#mediaSelection')).toHaveText(firstFile);
  expect(lists(s)).toHaveLength(2);clean(s);
+});
+
+for(const width of [390,1440])test('short worst-case expanded filters large comfortable text and private markers '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:420});const state=stateFor(12,30,'large','comfortable',true);state.pins=[11];const s=await setup(page,{state});await settled(page,s);await select(page,s,12,true);
+ const before=lists(s).length;await page.locator('#filtersToggle').click();await expect(page.locator('#filtersToggle')).toHaveAttribute('aria-expanded','true');await expect(page.locator('#filtersPanel')).toBeVisible();expect(lists(s)).toHaveLength(before);
+ const g=await capacity(page);expect(g.markerHeight).toBeLessThanOrEqual(48);expect(g.rowHeight).toBeLessThanOrEqual(230);await expect(page.locator('#inboxList [data-conversation-id="11"] .pwMarkerPin')).toBeVisible();await capture(page,browserName,width,420,'worst-expanded-large-comfortable','inbox');
+ await openClient(page);await page.locator('#replyText').fill('Ответ при раскрытых фильтрах');await page.locator('#replyFile').setInputFiles({name:'worst-case.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic worst-case attachment')});const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#sendReply')).toBeInViewport();await capture(page,browserName,width,420,'worst-expanded-large-comfortable','reply');
+ await back(page);await capacity(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Ответ при раскрытых фильтрах');await expect(page.locator('#mediaSelection')).toHaveText(attachment);expect(lists(s)).toHaveLength(2);expect(s.calls.filter(c=>c.path==='/manager/personal-workspace-api.php'&&c.action==='snapshot')).toHaveLength(1);clean(s);
 });
