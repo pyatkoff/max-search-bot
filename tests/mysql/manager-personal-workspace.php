@@ -52,6 +52,13 @@ $splitter=new ReflectionMethod(MigrationRunner::class,'splitStatements');
 foreach ($splitter->invoke($runner,$migration) as $statement) $pdo->exec($statement);
 $passed=0;
 function nativeWorkspaceCheck(string $label,bool $ok): void {global $passed;if (!$ok) throw new RuntimeException('FAIL '.$label);$passed++;echo 'PASS '.$label."\n";}
+/** Worker JSON turns members:{} into an associative array. Compare the same
+ * decoded transport representation, retaining strict scalar values and order. */
+function nativeWorkspaceEqual($left,$right): bool
+{
+    return json_decode(json_encode($left,JSON_THROW_ON_ERROR),true,32,JSON_THROW_ON_ERROR)
+        ===json_decode(json_encode($right,JSON_THROW_ON_ERROR),true,32,JSON_THROW_ON_ERROR);
+}
 function nativeWorkspaceMutate(int $actor,string $action,array $input=[]): array
 {
     static $seq=0;$input+=['expected_version'=>ManagerPersonalWorkspaceService::snapshot($actor)['version'],'operation_id'=>'native-workspace-command-'.str_pad((string)++$seq,6,'0',STR_PAD_LEFT)];
@@ -96,14 +103,14 @@ $create=['id'=>0,'tab'=>['name'=>'Личная вкладка','queue'=>'mine','
 $tab=nativeWorkspaceMutate(1,'tab_save',$create);
 nativeWorkspaceCheck('native tab and label writes allocate positive IDs and advance monotonic revision',$label['ok']&&$tab['ok']&&$labelId===1&&$tab['id']===1&&$tab['version']===2&&$tab['state']['tabs'][0]['label_id']===$labelId);
 $replay=nativeWorkspaceMutate(1,'tab_save',$create);
-nativeWorkspaceCheck('native same-key replay allocates exactly once',$replay==$tab&&(int)$pdo->query('SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=1')->fetchColumn()===2&&count($replay['state']['tabs'])===1);
+nativeWorkspaceCheck('native same-key replay allocates exactly once',nativeWorkspaceEqual($replay,$tab)&&(int)$pdo->query('SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=1')->fetchColumn()===2&&count($replay['state']['tabs'])===1);
 $settings=nativeWorkspaceMutate(1,'settings',['settings'=>['start_tab'=>'tab:'.$tab['id'],'density'=>'compact','font'=>'large']]);
 $oldReceipt=ManagerPersonalWorkspaceService::operation(1,$create['operation_id']);$oldReplay=nativeWorkspaceMutate(1,'tab_save',$create);
-nativeWorkspaceCheck('native old receipt and retry include current state never old preferences',$settings['version']===3&&$oldReceipt['found']&&$oldReceipt['result']['version']===3&&$oldReceipt['result']['state']==$settings['state']&&$oldReplay['state']==$settings['state']);
+nativeWorkspaceCheck('native old receipt and retry include current state never old preferences',$settings['version']===3&&$oldReceipt['found']&&$oldReceipt['result']['version']===3&&nativeWorkspaceEqual($oldReceipt['result']['state'],$settings['state'])&&nativeWorkspaceEqual($oldReplay['state'],$settings['state']));
 $mismatch=$create;$mismatch['tab']['name']='Другое поручение';
 nativeWorkspaceCheck('native operation-key command mismatch is rejected',nativeWorkspaceMutate(1,'tab_save',$mismatch)['error']==='operation_mismatch');
 $conflict=nativeWorkspaceMutate(1,'settings',['settings'=>['font'=>'normal'],'expected_version'=>1]);
-nativeWorkspaceCheck('native stale version returns current state without lost update',$conflict['error']==='conflict'&&$conflict['version']===3&&$conflict['state']==$settings['state']);
+nativeWorkspaceCheck('native stale version returns current state without lost update',$conflict['error']==='conflict'&&$conflict['version']===3&&nativeWorkspaceEqual($conflict['state'],$settings['state']));
 $other=nativeWorkspaceMutate(2,'label_save',['name'=>'Отдельная метка']);
 nativeWorkspaceCheck('native preferences and receipts are isolated by manager primary key',$other['version']===1&&$other['state']['tabs']===[]&&!ManagerPersonalWorkspaceService::operation(2,$create['operation_id'])['found']&&ManagerPersonalWorkspaceService::snapshot(1)['version']===3);
 $tab2=nativeWorkspaceMutate(1,'tab_save',['tab'=>['name'=>'Вторая вкладка','queue'=>'all']]);
@@ -122,16 +129,19 @@ $race=nativeWorkspaceRace([
 $success=array_values(array_filter($race,static fn(array $result):bool=>!empty($result['ok'])));
 $conflicts=array_values(array_filter($race,static fn(array $result):bool=>($result['error']??'')==='conflict'));
 $confirmed=ManagerPersonalWorkspaceService::snapshot(1);
-nativeWorkspaceCheck('two native independent writers with same version serialize one commit one conflict',count($success)===1&&count($conflicts)===1&&$confirmed['version']===$version+1&&$success[0]['state']==$confirmed['state']&&$conflicts[0]['state']==$confirmed['state']);
+$sameSuccess=count($success)===1&&nativeWorkspaceEqual($success[0]['state'],$confirmed['state']);
+$sameConflict=count($conflicts)===1&&nativeWorkspaceEqual($conflicts[0]['state'],$confirmed['state']);
+echo 'EVIDENCE native version race '.json_encode(['successes'=>count($success),'conflicts'=>count($conflicts),'before_version'=>$version,'stored_version'=>$confirmed['version'],'success_state_matches'=>$sameSuccess,'conflict_state_matches'=>$sameConflict],JSON_THROW_ON_ERROR)."\n";
+nativeWorkspaceCheck('two native independent writers with same version serialize one commit one conflict',count($success)===1&&count($conflicts)===1&&$confirmed['version']===$version+1&&$success[0]['version']===$confirmed['version']&&$conflicts[0]['version']===$confirmed['version']&&$sameSuccess&&$sameConflict);
 nativeWorkspaceCheck('native version race commits outcome receipts for both commands',(int)$pdo->query("SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=1 AND operation_id IN ('native-version-race-first-01','native-version-race-other-01') AND result_json IS NOT NULL")->fetchColumn()===2);
 $sameCommand=['actor'=>2,'action'=>'label_save','input'=>['id'=>0,'name'=>'Общая повторная команда','expected_version'=>$other['version'],'operation_id'=>'native-parallel-same-command-01']];
 $duplicates=nativeWorkspaceRace([$sameCommand,$sameCommand]);$afterDuplicate=ManagerPersonalWorkspaceService::snapshot(2);
-nativeWorkspaceCheck('two native same-key writers return one allocation and one committed receipt',$duplicates[0]['ok']&&$duplicates[1]['ok']&&$duplicates[0]['id']===$duplicates[1]['id']&&$duplicates[0]['state']==$duplicates[1]['state']&&$afterDuplicate['version']===$other['version']+1&&count($afterDuplicate['state']['labels'])===2&&(int)$pdo->query("SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=2 AND operation_id='native-parallel-same-command-01'")->fetchColumn()===1);
+nativeWorkspaceCheck('two native same-key writers return one allocation and one committed receipt',$duplicates[0]['ok']&&$duplicates[1]['ok']&&$duplicates[0]['id']===$duplicates[1]['id']&&nativeWorkspaceEqual($duplicates[0]['state'],$duplicates[1]['state'])&&nativeWorkspaceEqual($duplicates[0]['state'],$afterDuplicate['state'])&&$duplicates[0]['version']===$afterDuplicate['version']&&$duplicates[1]['version']===$afterDuplicate['version']&&$afterDuplicate['version']===$other['version']+1&&count($afterDuplicate['state']['labels'])===2&&(int)$pdo->query("SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=2 AND operation_id='native-parallel-same-command-01'")->fetchColumn()===1);
 
 $pdo->exec("CREATE TRIGGER personal_workspace_reject_receipt BEFORE UPDATE ON manager_personal_workspace_operations FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='synthetic receipt failure'");
 $beforeRollback=ManagerPersonalWorkspaceService::snapshot(2);$rolledBack=false;$rollback=['name'=>'Откат','expected_version'=>$beforeRollback['version'],'operation_id'=>'native-rollback-operation-01'];
 try {nativeWorkspaceMutate(2,'label_save',$rollback);} catch (PDOException $error) {$rolledBack=true;}
-nativeWorkspaceCheck('native receipt failure rolls back allocation revision and UNKNOWN receipt',$rolledBack&&ManagerPersonalWorkspaceService::snapshot(2)==$beforeRollback&&!ManagerPersonalWorkspaceService::operation(2,$rollback['operation_id'])['found']);
+nativeWorkspaceCheck('native receipt failure rolls back allocation revision and UNKNOWN receipt',$rolledBack&&nativeWorkspaceEqual(ManagerPersonalWorkspaceService::snapshot(2),$beforeRollback)&&!ManagerPersonalWorkspaceService::operation(2,$rollback['operation_id'])['found']);
 $pdo->exec('DROP TRIGGER personal_workspace_reject_receipt');
 $retry=nativeWorkspaceMutate(2,'label_save',$rollback);
 nativeWorkspaceCheck('native same command after confirmed rollback commits once',$retry['ok']&&nativeWorkspaceMutate(2,'label_save',$rollback)['id']===$retry['id']);
