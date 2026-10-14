@@ -30,9 +30,9 @@ function harness({snapshot=full(),editSafety=false,identity={ok:true,csrf:'synth
     querySelector(selector){return selector==='h3'?this.children.find(el=>el.tagName==='H3'):null}
     setAttribute(name,value){this[name]=value}
     replaceChildren(){this.children=[];this._html='';this._text=''}
-    addEventListener(type,fn){this.handlers[type]=fn}
+    addEventListener(type,fn){(this.handlers[type]??=[]).push(fn)}
     focus(){}scrollIntoView(){}
-    async dispatch(type){return this.handlers[type]?.({target:this})}
+    async dispatch(type){let result;for(const fn of this.handlers[type]||[])result=await fn({target:this});return result}
   }
   for(const id of ['app','denied','projects','managers','managerProjects','audit','priorityRules','projectId','projectKey','projectName','projectActive','saveProject','projectFormStatus','managerId','managerLogin','managerName','managerEmail','managerRole','managerPassword','managerPriority','managerActive','saveManager','managerFormStatus','ruleId','ruleManager','ruleType','ruleValue','ruleBonus','ruleComment','ruleActive','saveRule','ruleFormStatus']){const el=new Element(['ruleManager','ruleType','managerRole'].includes(id)?'select':'div');el.id=id}
   ids.get('app').className='hidden';ids.get('denied').className='hidden';ids.get('managerRole').value='manager';for(const id of ['managerActive','projectActive','ruleActive'])ids.get(id).checked=true;
@@ -154,6 +154,21 @@ const prepareForm=(h,kind,label)=>{
   if(kind==='Rule'){h.ids.get('ruleValue').value=label;h.ids.get('ruleComment').value='Synthetic private comment'}
 };
 const privateField={Manager:'managerName',Project:'projectName',Rule:'ruleValue'};
+for(const kind of ['Project','Manager','Rule'])test(`confirmed new ${kind} retains newer input and uses the returned id on the next save`,async()=>{
+  const h=harness({editSafety:true});await h.ready;prepareForm(h,kind,'Submitted draft');
+  const pending=deferred(),action={Project:'save_project',Manager:'save_manager',Rule:'save_priority_rule'}[kind],idKey=kind.toLowerCase()+'_id';
+  h.hook(a=>a===action?pending.promise:undefined);
+  const saving=h.ids.get('save'+kind).onclick();
+  assert.equal(h.calls.filter(call=>call.action===action).at(-1).data[idKey],0);
+  h.ids.get(privateField[kind]).value='Typed while awaiting confirmation';
+  pending.resolve({ok:true,[idKey]:81});await saving;
+  assert.equal(h.ids.get(privateField[kind]).value,'Typed while awaiting confirmation');
+  assert.equal(h.ids.get(kind.toLowerCase()+'Id').value,'81');
+  h.hook(a=>a===action?{ok:false,error:'synthetic-validation'}:undefined);
+  await h.ids.get('save'+kind).onclick();
+  assert.equal(h.calls.filter(call=>call.action===action).at(-1).data[idKey],81);
+  assert.equal(h.calls.filter(call=>call.action===action).length,2);
+});
 for(const kind of ['Project','Manager','Rule'])for(const outcome of [true,false,'throw'])test(`late ${kind} save ${outcome==='throw'?'exception':outcome?'success':'failure'} cannot change another account's private form`,async()=>{
   const h=harness({editSafety:true});await h.ready;prepareForm(h,kind,'Original private draft');const pending=deferred(),action={Project:'save_project',Manager:'save_manager',Rule:'save_priority_rule'}[kind];h.hook(a=>a===action?pending.promise:undefined);
   const saving=h.ids.get('save'+kind).onclick();assert.ok(h.ids.get('save'+kind).dataset.idleText);h.enqueue({ok:false,error:'unauthorized'});await h.load();

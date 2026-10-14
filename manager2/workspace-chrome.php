@@ -1,6 +1,8 @@
 <?php
 // Presentation only. Existing controls are moved here before canonical boot.
-?><div class="m2App">
+?><link rel="stylesheet" href="/manager/assets/workspace-v2-post-context.css?v=<?=filemtime(dirname(__DIR__).'/manager/assets/workspace-v2-post-context.css')?>">
+<script src="/manager/assets/workspace-v2-post-context.js?v=<?=filemtime(dirname(__DIR__).'/manager/assets/workspace-v2-post-context.js')?>" defer></script>
+<div class="m2App">
 <nav class="m2Rail" aria-label="Разделы кабинета">
   <a class="m2Logo" href="/manager2/" aria-label="AnyTour — кабинет менеджера">a<span>.</span></a>
   <button class="m2Nav active" type="button" data-m2-nav="dialogues" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 1-8 8H5l-3 3V11a9 9 0 0 1 18 0Z"/></svg><span>Диалоги</span></button>

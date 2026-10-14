@@ -55,7 +55,7 @@ function rebuild({scroll=false}={}){
 }
 function setState(value){state=value;rebuild()}
 function rendered(){if(panel()&&!panel().classList.contains('hidden'))rebuild()}
-function close({focus=true}={}){const el=panel();if(!el)return false;el.classList.add('hidden');$('conversationSearchOpen')?.setAttribute('aria-expanded','false');clearMarks();hits=[];active=-1;if(focus)$('conversationSearchOpen')?.focus({preventScroll:true});return true}
+function close({focus=true}={}){const el=panel();if(!el)return false;el.classList.add('hidden');$('conversationSearchOpen')?.setAttribute('aria-expanded','false');clearMarks();hits=[];active=-1;if(focus&&!window.Manager2Presentation?.focusConversationTool?.('conversationSearchOpen'))$('conversationSearchOpen')?.focus({preventScroll:true});return true}
 function reset(){query='';const input=$('conversationSearchInput');if(input)input.value='';state='ready';close({focus:false});updateStatus()}
 function open(){
   if(!S.current||S.authExpired||Number(S.detail?.conversation?.id)!==Number(S.current))return false;

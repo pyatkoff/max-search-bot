@@ -26,6 +26,10 @@ class SourceHandlingService
             $type=(string)($incoming['type']??'');
             if($platform===''||!$chatId)return false;
             $maxStart=$platform==='max'&&$type==='bot_started';
+            $postStart=$platform==='telegram'&&$type==='message'
+                &&($incoming['entry_kind']??'')==='channel_post'
+                &&preg_match('~\A/start(?:@[A-Za-z0-9_]+)?\s+p_[A-Za-z0-9_-]{1,62}\s*\z~u',trim((string)($incoming['text']??'')));
+            $explicitStart=$maxStart||$postStart;
 
             $row=self::conversation($platform,$chatId);
             if(!$row)return false;
@@ -44,12 +48,12 @@ class SourceHandlingService
 
             $choice=self::latestChoice((int)$row['id']);
             // A new explicit MAX source entry must not inherit an obsolete AI choice.
-            if($choice===self::AI&&!$maxStart)return false;
+            if($choice===self::AI&&!$explicitStart)return false;
             if($choice===self::MANAGER){
                 // A fresh explicit manager entry is a new request even if an older
                 // attempt failed before recording its presentation outcome.
                 if((string)$row['status']==='ai'
-                    &&(($maxStart&&$mode===self::MANAGER)||$callback===self::CHOICE_MANAGER)){
+                    &&(($explicitStart&&$mode===self::MANAGER)||$callback===self::CHOICE_MANAGER)){
                     self::handoff($incoming,$platform,$chatId,'source_policy');
                     return true;
                 }
