@@ -172,6 +172,144 @@ function activationPublications(PDO $pdo, ?array $channel): array
     return ['publication_count' => array_sum($states), 'entry_count' => $entries, 'states' => $states, 'latest' => $latest];
 }
 
+/**
+ * Actual inbound entries only. These SELECTs never synthesize an entry, modify
+ * routing, mark a conversation read, or dispatch a customer/manager message.
+ * The private media service may populate its bounded archive using GET only.
+ * No conversation/customer/manager identifiers or original content are emitted.
+ */
+function activationEntryAcceptance(PDO $pdo, ?array $channel, array $scope): array
+{
+    $empty = ['entry_count' => 0, 'entries_in_last_15_minutes' => 0,
+        'latest_limit' => 3, 'latest' => [], 'manager_endpoint_acl_checked' => false,
+        'prior_conversation_state_compared' => false, 'database_write_attempts' => 0,
+        'customer_dispatch_attempts' => 0];
+    if ($channel === null) return $empty;
+    $channelId = (int)$channel['id'];
+    $q = $pdo->prepare('SELECT COUNT(*) AS total,SUM(CASE WHEN pe.created_at>=? THEN 1 ELSE 0 END) AS recent FROM post_entries pe JOIN post_publications pp ON pp.id=pe.publication_id WHERE pp.post_channel_id=?');
+    $q->execute([gmdate('Y-m-d H:i:s', time() - 900), $channelId]);
+    $counts = $q->fetch(PDO::FETCH_ASSOC);
+    $empty['entry_count'] = (int)($counts['total'] ?? 0);
+    $empty['entries_in_last_15_minutes'] = (int)($counts['recent'] ?? 0);
+    $q = $pdo->prepare('SELECT pe.id AS entry_id,pe.conversation_id,pe.publication_id,pe.version_id,pe.created_at AS entered_at,pe.availability_reason,pp.source_id AS publication_source_id,pp.external_message_id,pp.current_version_id,pc.project_id,pc.source_id AS channel_source_id,pc.platform,pc.bot_key,pc.canonical_bot_username,pc.channel_id,p.project_key AS publication_project,s.source_key,s.project_id AS source_project_id,s.channel AS source_platform,v.publication_id AS version_publication_id,v.version_number,v.content_hash,v.snapshot_json,v.state,c.project_key AS conversation_project,c.channel AS conversation_platform,c.source_id AS conversation_source_id,c.status AS conversation_state,c.manager_id FROM post_entries pe JOIN post_publications pp ON pp.id=pe.publication_id JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id LEFT JOIN conversation_sources s ON s.id=pp.source_id LEFT JOIN post_versions v ON v.id=pe.version_id LEFT JOIN conversations c ON c.id=pe.conversation_id WHERE pp.post_channel_id=? ORDER BY pe.id DESC LIMIT 3');
+    $q->execute([$channelId]);
+    $rows = $q->fetchAll(PDO::FETCH_ASSOC);
+    $registry = new ChannelPostRegistryService($pdo);
+    require_once ACTIVATION_ROOT . '/services/ChannelPostMediaService.php';
+    $media = new ChannelPostMediaService($registry);
+    $safeStates = ['pending', 'claimed', 'write_started', 'sent', 'unknown', 'requires_attention', 'superseded'];
+    foreach ($rows as $row) {
+        $entryId = (int)$row['entry_id']; $conversationId = (int)$row['conversation_id'];
+        $saved = json_decode((string)$row['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);
+        activationCheck(is_array($saved), 'entry_readback_invalid');
+        $version = $registry->versionForEntry($conversationId, ACTIVATION_PROJECT, $entryId);
+        $identityMatches = $row['availability_reason'] === ''
+            && (int)$row['version_publication_id'] === (int)$row['publication_id']
+            && (int)$row['project_id'] === (int)$scope['project']['id']
+            && (int)$row['publication_source_id'] === (int)$scope['source']['id']
+            && (int)$row['channel_source_id'] === (int)$scope['source']['id']
+            && (int)$row['source_project_id'] === (int)$scope['project']['id']
+            && $row['publication_project'] === ACTIVATION_PROJECT
+            && $row['conversation_project'] === ACTIVATION_PROJECT
+            && $row['conversation_platform'] === ACTIVATION_PLATFORM
+            && $row['source_platform'] === ACTIVATION_PLATFORM
+            && $row['platform'] === ACTIVATION_PLATFORM
+            && $row['source_key'] === ACTIVATION_SOURCE
+            && $row['bot_key'] === ACTIVATION_BOT
+            && $row['canonical_bot_username'] === ACTIVATION_BOT
+            && $row['channel_id'] === ACTIVATION_CHANNEL;
+        $savedHash = hash('sha256', json_encode($saved, JSON_THROW_ON_ERROR));
+        $resolvedMatches = is_array($version)
+            && (int)$version['publication_id'] === (int)$row['publication_id']
+            && (int)$version['version_id'] === (int)$row['version_id']
+            && $version['project_key'] === ACTIVATION_PROJECT
+            && $version['platform'] === ACTIVATION_PLATFORM
+            && $version['bot_key'] === ACTIVATION_BOT
+            && $version['channel_id'] === ACTIVATION_CHANNEL
+            && $version['external_message_id'] === $row['external_message_id']
+            && hash_equals($savedHash, hash('sha256', json_encode($version['snapshot'], JSON_THROW_ON_ERROR)));
+        $context = $registry->managerContext($conversationId, ACTIVATION_PROJECT, 8);
+        $contextRows = array_merge(is_array($context['current']) ? [$context['current']] : [], $context['history']);
+        $contextEntry = null;
+        foreach ($contextRows as $candidate) if ((int)$candidate['entry_id'] === $entryId) { $contextEntry = $candidate; break; }
+        $contextMatches = is_array($contextEntry)
+            && (int)$contextEntry['publication_id'] === (int)$row['publication_id']
+            && (int)$contextEntry['version_id'] === (int)$row['version_id']
+            && (int)$contextEntry['version_number'] === (int)$row['version_number']
+            && !$contextEntry['unavailable'] && $contextEntry['platform'] === ACTIVATION_PLATFORM
+            && $contextEntry['channel_id'] === ACTIVATION_CHANNEL
+            && $contextEntry['source_key'] === ACTIVATION_SOURCE
+            && $contextEntry['message_id'] === $row['external_message_id']
+            && (int)$contextEntry['media_count'] === count((array)($saved['attachments'] ?? []));
+        foreach (['text', 'title', 'format', 'published_at'] as $key) {
+            $contextMatches = $contextMatches && is_array($contextEntry)
+                && (string)$contextEntry[$key] === (string)($saved[$key] ?? '');
+        }
+        $latestEntryQuery = $pdo->prepare('SELECT MAX(id) FROM post_entries WHERE conversation_id=?');
+        $latestEntryQuery->execute([$conversationId]);
+        $isLatest = (int)$latestEntryQuery->fetchColumn() === $entryId;
+        $currentMatches = is_array($context['current']) && (int)$context['current']['entry_id'] === $entryId && $contextMatches;
+        $eventQuery = $pdo->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='channel_post_entry' AND actor_type='customer' AND created_at=? ORDER BY id DESC LIMIT 16");
+        $eventQuery->execute([$conversationId, $row['entered_at']]);
+        $matchingEvents = 0;
+        foreach ($eventQuery->fetchAll(PDO::FETCH_ASSOC) as $event) {
+            $payload = json_decode((string)$event['payload_json'], true);
+            if (is_array($payload) && (int)($payload['entry_id'] ?? 0) === $entryId
+                && (int)($payload['publication_id'] ?? 0) === (int)$row['publication_id']
+                && (int)($payload['version_id'] ?? 0) === (int)$row['version_id']
+                && ($payload['source_key'] ?? '') === ACTIVATION_SOURCE) $matchingEvents++;
+        }
+        $attachment = $saved['attachments'][0] ?? null;
+        $savedPhoto = is_array($attachment) && ($attachment['type'] ?? '') === 'image'
+            && ($attachment['provider'] ?? '') === ACTIVATION_PLATFORM;
+        $photoAvailable = false; $photoHash = null; $photoSize = 0; $photoMime = null;
+        $photoState = $savedPhoto ? 'unavailable' : 'no_saved_photo';
+        if ($savedPhoto && $identityMatches && $resolvedMatches) {
+            try {
+                $file = $media->openEntry($conversationId, ACTIVATION_PROJECT, $entryId, 0);
+                if (is_array($file) && is_resource($file['stream'] ?? null)) {
+                    try {
+                        $hashContext = hash_init('sha256');
+                        $hashedSize = hash_update_stream($hashContext, $file['stream']);
+                        $photoSize = (int)($file['size'] ?? 0);
+                        $photoAvailable = $photoSize > 0 && $photoSize <= ChannelPostMediaService::MAX_IMAGE_BYTES
+                            && $hashedSize === $photoSize
+                            && in_array($file['mime'] ?? '', ['image/jpeg', 'image/png', 'image/webp'], true);
+                        if ($photoAvailable) {
+                            $photoHash = hash_final($hashContext); $photoMime = $file['mime'];
+                            $photoState = 'available_from_exact_entry_version';
+                        }
+                    } finally { fclose($file['stream']); }
+                }
+            } catch (Throwable $ignored) { $photoState = 'read_unavailable'; }
+        }
+        $conversationState = in_array($row['conversation_state'], ['ai', 'manager', 'waiting_manager', 'closed'], true)
+            ? $row['conversation_state'] : 'unrecognized';
+        $empty['latest'][] = ['identity_consistent' => $identityMatches,
+            'immutable_entry_version_resolved' => $resolvedMatches,
+            'version_number' => (int)$row['version_number'],
+            'version_state' => in_array($row['state'], $safeStates, true) ? $row['state'] : 'unrecognized',
+            'snapshot_sha256' => $savedHash,
+            'entry_pins_current_publication_version' => (int)$row['current_version_id'] === (int)$row['version_id'],
+            'manager_context_contains_exact_pin' => $contextMatches,
+            'is_latest_conversation_entry' => $isLatest,
+            'manager_context_current_matches_this_entry' => $currentMatches,
+            'latest_entry_selected_correctly' => !$isLatest || $currentMatches,
+            'matching_customer_entry_event_count' => $matchingEvents,
+            'current_conversation_state' => $conversationState,
+            'current_manager_assigned' => (int)($row['manager_id'] ?? 0) > 0,
+            'current_conversation_source_matches_publication_source' => (int)($row['conversation_source_id'] ?? 0) === (int)$row['publication_source_id'],
+            'saved_media_count' => count((array)($saved['attachments'] ?? [])),
+            'saved_first_photo_present' => $savedPhoto,
+            'manager_context_offers_protected_photo' => is_array($contextEntry) && isset($contextEntry['media_url'])
+                && str_starts_with((string)$contextEntry['media_url'], '/manager/post-context-media.php?'),
+            'exact_entry_photo_state' => $photoState, 'exact_entry_photo_available' => $photoAvailable,
+            'exact_entry_photo_bytes' => $photoSize, 'exact_entry_photo_mime' => $photoMime,
+            'exact_entry_photo_sha256' => $photoHash];
+    }
+    return $empty;
+}
+
 $apply = false; $requireEnabled = false; $expectedSha = null; $mutationAttempted = false; $mutationCompleted = false;
 $report = ['operation' => 'owner_test_channel_activation', 'platform' => ACTIVATION_PLATFORM,
     'project_key' => ACTIVATION_PROJECT, 'bot_key' => ACTIVATION_BOT,
@@ -267,6 +405,7 @@ try {
     if ($apply || $requireEnabled) activationCheck($after !== null && (int)$after['is_enabled'] === 1
         && $after['button_text'] === ACTIVATION_BUTTON, 'channel_enable_readback_failed');
     $report['publications'] = activationPublications($pdo, $after);
+    $report['entry_acceptance'] = activationEntryAcceptance($pdo, $after, $scopeAfter);
     $report['ok'] = true;
     $report['state'] = $apply ? ($mutationCompleted ? 'enabled' : 'already_enabled') : 'read_only_ready';
     $report['provider_write_attempts'] = 0;
@@ -278,7 +417,7 @@ try {
         'migration_readiness_required', 'installed_canonical_identity_mismatch', 'ambiguous_configuration',
         'active_project_required', 'exact_active_manager_source_required', 'existing_channel_identity_conflict',
         'provider_capability_not_ready', 'provider_message_read_failed', 'provider_message_identity_mismatch',
-        'provider_message_invalid', 'invalid_observed_message_id', 'publication_readback_invalid',
+        'provider_message_invalid', 'invalid_observed_message_id', 'publication_readback_invalid', 'entry_readback_invalid',
         'other_channel_configuration_changed', 'original_post_changed_during_operation', 'channel_enable_readback_failed'];
     $reason = $error instanceof DomainException && in_array($error->getMessage(), $allowedReasons, true)
         ? $error->getMessage() : ($mutationAttempted && !$mutationCompleted ? 'configuration_write_outcome_requires_readback' : 'operation_unavailable');
