@@ -38,6 +38,8 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
   if(url.origin!==origin)return block();
   if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+  // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
+  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
   // WebKit may issue native registration despite the mocked push capability.
   // The response-library fixture uses an inert worker; dedicated worker suites
