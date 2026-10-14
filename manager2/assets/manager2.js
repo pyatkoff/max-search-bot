@@ -5,6 +5,8 @@
   const {$,S,esc}=W;
   const disclosures=new Map();
   let section='dialogues',navigationGeneration=0,notificationOpener=null;
+  let conversationMenu=null,conversationMenuActions=null;
+  const conversationToolButtons=[];
   function disclosure(key,label,conversationId=Number(S.current||0)){
     const el=document.createElement('details');
     el.dataset.m2Disclosure=key;el.dataset.conversationId=String(conversationId);
@@ -41,8 +43,9 @@
     const extra=disclosure('sale','Теги и результат · '+W.outcomeText(p.pipeline?.outcome?.outcome));extra.className='m2SaleDetails';
     if(tags)extra.appendChild(tags);if(outcome)extra.appendChild(outcome);
     sales.classList.add('m2SalesStage');
-    if(handoff)grid.appendChild(handoff);
-    if(owner){const d=disclosure('owner','Передать другому менеджеру');d.className='m2OwnerDetails';d.appendChild(owner);grid.appendChild(d)}
+    const service=root.querySelector('.leadDetails:last-child .leadDetailsBody');
+    if(handoff&&!handoff.classList.contains('isError')&&service)service.appendChild(handoff);
+    if(owner){const d=disclosure('owner','Передать другому менеджеру');d.className='m2OwnerDetails';d.appendChild(owner);(service||grid).appendChild(d)}
     const route=hero.querySelector('.leadRoute');
     const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';
     const trip=p.trip||{},budget=budgetFact(trip),adults=String(trip.adults??'').trim(),children=String(trip.children??'').trim();
@@ -89,14 +92,43 @@
     const mobile=window.WorkspaceV2Mobile;
     if(mobile?.isMobile()&&mobile.getScreen()!=='lead'){if(mobile.getScreen()==='inbox')mobile.conversationOpened(S.current);mobile.showLead()}
   }
+  function syncConversationMenu(){
+    if(!conversationMenu)return;
+    conversationMenu.hidden=!S.manager||S.authExpired||!S.current;
+    if(conversationMenu.hidden){conversationMenu.open=false;conversationMenuActions?.replaceChildren()}
+  }
+  function focusConversationTool(id){
+    const button=conversationToolButtons.find(el=>el.id===id);
+    if(!button||!conversationMenu||conversationMenu.hidden)return false;
+    // The canonical search owner returns to its original bound button. Reveal
+    // that button before focusing it instead of leaving focus inside hidden UI.
+    conversationMenu.open=true;button.focus({preventScroll:true});return true;
+  }
+  function initConversationMenu(){
+    const root=$('conversationActions');if(!root)return;
+    conversationMenu=document.createElement('details');conversationMenu.className='m2ConversationMenu';conversationMenu.hidden=true;
+    const summary=document.createElement('summary');summary.id='m2ConversationMenuToggle';summary.textContent='⋯';summary.setAttribute('aria-label','Действия с диалогом');conversationMenu.appendChild(summary);
+    const items=document.createElement('div');
+    ['conversationSearchOpen','nextWaitingConversation'].forEach(id=>{
+      const button=$(id);if(!button)return;
+      conversationToolButtons.push(button);items.appendChild(button);
+      button.addEventListener('click',()=>conversationMenu.open=false);
+    });
+    conversationMenuActions=document.createElement('div');conversationMenuActions.className='m2ConversationMenuActions';items.appendChild(conversationMenuActions);conversationMenu.appendChild(items);
+    // renderActions clears only the canonical root. This stable sibling retains
+    // the real Search/Next nodes and their once-bound listeners across redraws.
+    root.after(conversationMenu);
+    conversationMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();conversationMenu.open=false;summary.focus()}});
+    new MutationObserver(syncConversationMenu).observe(document.body,{attributes:true,attributeFilter:['class']});
+    syncConversationMenu();
+  }
   function enhanceConversationActions(root){
     void window.WorkspaceV2PostContext?.sync(S.detail?.conversation);
     const secondary=[...root.children].filter(el=>el.tagName==='BUTTON'&&!el.classList.contains('primary'));
-    if(!secondary.length)return;
-    const menu=document.createElement('details');menu.className='m2ConversationMenu';
-    const summary=document.createElement('summary');summary.textContent='⋯';summary.setAttribute('aria-label','Действия с диалогом');menu.appendChild(summary);
-    const items=document.createElement('div');secondary.forEach(el=>{items.appendChild(el);el.addEventListener('click',()=>menu.open=false)});menu.appendChild(items);root.appendChild(menu);
-    menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();menu.open=false;summary.focus()}});
+    if(!conversationMenu)initConversationMenu();
+    conversationMenuActions?.replaceChildren(...secondary);
+    secondary.forEach(el=>el.addEventListener('click',()=>conversationMenu.open=false));
+    syncConversationMenu();
   }
   function compactBoard(){
     $('kanbanBoard')?.querySelectorAll('.kanbanCard').forEach(card=>{
@@ -132,6 +164,7 @@
   }
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
   function init(){
+    initConversationMenu();
     window.WorkspaceV2PostContext?.init({endpoint:'/manager/post-context-api.php'});
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
     if(manager){$('m2Identity').appendChild(manager);manager.classList.remove('muted')}
@@ -151,7 +184,7 @@
     $('mobileLeadBtn').textContent='Клиент';$('mobileLeadBtn').setAttribute('aria-label','Карточка клиента');$('mobileLeadClose').textContent='К диалогу';
     const header=document.querySelector('.leadZone .brand');if(header)header.textContent='Карточка клиента';
     const clientName=document.createElement('span');clientName.id='m2ClientName';clientName.className='m2ClientName';document.querySelector('.leadHeaderText').appendChild(clientName);
-    const syncClientName=()=>clientName.textContent=S.current?$('conversationTitle').textContent:'';new MutationObserver(syncClientName).observe($('conversationTitle'),{childList:true,subtree:true});syncClientName();
+    const syncClientName=()=>{clientName.textContent=S.current?$('conversationTitle').textContent:'';syncConversationMenu()};new MutationObserver(syncClientName).observe($('conversationTitle'),{childList:true,subtree:true});syncClientName();
     document.querySelectorAll('[data-m2-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.m2Nav)));
     const dialog=$('m2Notifications');
     $('m2NotificationButton').onclick=()=>{notificationOpener=document.activeElement;dialog.showModal()};
@@ -167,6 +200,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,revealTaskDraft,budgetFact,navigate,syncNavigation};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,revealTaskDraft,budgetFact,navigate,syncNavigation};
   init();
 })();

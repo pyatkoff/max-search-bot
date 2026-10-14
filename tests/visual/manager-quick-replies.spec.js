@@ -124,6 +124,12 @@ async function openLead(page,id=11){
  }
  await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible();
 }
+async function useConversationTool(page,id,interaction='click'){
+ const tool=page.locator('#'+id);await expect(tool).toHaveCount(1);
+ const menu=tool.locator('xpath=ancestor::details[1]');
+ if(await menu.count()&&!await menu.evaluate(el=>el.open))await menu.locator('summary').click();
+ await tool[interaction]();
+}
 async function openLibrary(page){await page.locator('#quickRepliesOpen').click();if(await page.locator('#qrTitle').count()===0)await page.locator('[data-qr-scope="all"]').click()}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`reply-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
@@ -320,13 +326,13 @@ for(const width of [390,430,768,1440])test.describe('Response cycle '+width,()=>
   await expect(page.locator('#messages .msg')).toHaveCount(35);await expect(page.locator('#leadCard')).toContainText('Загружаем');
   await page.locator('#replyText').fill('Черновик Анны');await page.locator('#replyFile').setInputFiles({name:'Anna.txt',mimeType:'text/plain',buffer:Buffer.from('File for Anna')});
   const attachment=await page.locator('#mediaSelection').textContent();
-  await page.locator('#conversationSearchOpen').click();await expect(page.locator('#conversationSearchInput')).toBeFocused();await page.locator('#conversationSearchInput').fill('у моря');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 35');await expect(page.locator('#conversationSearchScope')).toContainText('Только загруженные');
+  await useConversationTool(page,'conversationSearchOpen');await expect(page.locator('#conversationSearchInput')).toBeFocused();await page.locator('#conversationSearchInput').fill('у моря');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 35');await expect(page.locator('#conversationSearchScope')).toContainText('Только загруженные');
   const original=await page.locator('#messages .msgBody').allTextContents();await page.locator('#conversationSearchInput').press('Enter');await expect(page.locator('#conversationSearchCount')).toHaveText('2 из 35');await page.locator('#conversationSearchInput').press('Shift+Enter');await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 35');
   const position=await page.locator('#messages').evaluate(el=>el.scrollTop);s.releaseCard();await expect(page.locator('#leadCard')).not.toContainText('Загружаем');expect(await page.locator('#messages .msgBody').allTextContents()).toEqual(original);expect(Math.abs(await page.locator('#messages').evaluate(el=>el.scrollTop)-position)).toBeLessThanOrEqual(3);
   await capture(page,browserName,width,'search');await page.setViewportSize({width,height:420});await bounded(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);const composer=await page.locator('#sendReply').boundingBox();expect(composer.y+composer.height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'search-short');await page.setViewportSize({width,height:900});
   await page.locator('#conversationSearchInput').fill('не существующий текст');await expect(page.locator('#conversationSearchCount')).toHaveText('Совпадений нет');await expect(page.locator('#conversationSearchNext')).toBeDisabled();await page.locator('#conversationSearchInput').press('Escape');await expect(page.locator('#conversationSearchOpen')).toBeFocused();await expect(page.locator('.conversationSearchHit')).toHaveCount(0);
-  await page.locator('#nextWaitingConversation').click();await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).toBeHidden();await page.locator('#replyText').fill('Черновик Алексея');
-  await page.locator('#nextWaitingConversation').click();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#replyText')).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).toBeHidden();await page.locator('#replyText').fill('Черновик Алексея');
+  await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#replyText')).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
   expect(s.calls.filter(c=>c.action==='detail'&&c.path==='/manager/api.php')).toHaveLength(3);expect(s.calls.filter(c=>c.action==='list'&&c.path==='/manager/pipeline-api.php')).toHaveLength(1);console.log('Fixture transcript visible while card held: '+width+'px '+elapsed+'ms; no production SLA claim.');clean(s);
  });
 });
@@ -373,8 +379,8 @@ test('quoted title/category stay inert text when template editor is reopened',as
 });
 
 test('workspace shortcuts respect typing, IME and modal focus',async({page})=>{
- const s=await setup(page);await openLead(page);await page.locator('#conversationSearchOpen').focus();await page.keyboard.press('Control+Alt+r');await expect(page.locator('#replyText')).toBeFocused();await page.locator('#replyText').fill('Нельзя прерывать ввод');await page.keyboard.press('Control+Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
- await page.locator('#conversationSearchOpen').focus();await page.evaluate(()=>document.getElementById('conversationSearchOpen').dispatchEvent(new KeyboardEvent('keydown',{key:'j',ctrlKey:true,altKey:true,isComposing:true,bubbles:true})));await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+ const s=await setup(page);await openLead(page);await useConversationTool(page,'conversationSearchOpen','focus');await page.keyboard.press('Control+Alt+r');await expect(page.locator('#replyText')).toBeFocused();await page.locator('#replyText').fill('Нельзя прерывать ввод');await page.keyboard.press('Control+Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+ await useConversationTool(page,'conversationSearchOpen','focus');await page.evaluate(()=>document.getElementById('conversationSearchOpen').dispatchEvent(new KeyboardEvent('keydown',{key:'j',ctrlKey:true,altKey:true,isComposing:true,bubbles:true})));await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
  await page.keyboard.press('Control+Alt+f');await expect(page.locator('#conversationSearchInput')).toBeFocused();await page.locator('#conversationSearchInput').press('Escape');await page.keyboard.press('Control+Alt+q');await expect(page.locator('#quickRepliesDialog')).toBeVisible();await page.locator('[data-qr-select="1"]').click();await page.locator('#qrCopy').focus();await page.keyboard.press('Control+Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await page.keyboard.press('Escape');await expect(page.locator('#quickRepliesDialog')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Нельзя прерывать ввод');clean(s);
 });
 
@@ -394,7 +400,7 @@ for(const width of [390,430,768,1440])test.describe('Search actual text visibili
   const s=await setup(page,{messages});await openLead(page);await page.locator('#replyText').fill('Черновик без отправки');
   await page.locator('#replyFile').setInputFiles({name:'search-context.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated attachment')});
   const attachment=await page.locator('#mediaSelection').textContent();
-  await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('ориентир');
+  await useConversationTool(page,'conversationSearchOpen');await page.locator('#conversationSearchInput').fill('ориентир');
   await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 2');await activeSearchTextVisible(page);
   const firstTop=await page.locator('#messages').evaluate(el=>el.scrollTop);
   await page.locator('#conversationSearchNext').click();await expect(page.locator('#conversationSearchCount')).toHaveText('2 из 2');await activeSearchTextVisible(page);
