@@ -62,7 +62,7 @@ class ManagerConversationService
         return '⏱ Без ответа '.$hours.' ч'.($rest>0?' '.$rest.' мин':'');
     }
 
-    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0): array
+    public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0, array $personalFilters=[], ?array &$pageMetadata=null): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
         $manager=ManagerAuthService::byId($managerId);if(!$manager)return[];$isAdmin=ManagerAuthService::isAdmin($manager);
@@ -100,6 +100,28 @@ class ManagerConversationService
         if($leadStageKey!==''){$where[]='c.lead_stage_key=?';$args[]=$leadStageKey;}
         if($leadTagId>0){$where[]='EXISTS (SELECT 1 FROM conversation_lead_tags clt_filter WHERE clt_filter.conversation_id=c.id AND clt_filter.tag_id=?)';$args[]=$leadTagId;}
 
+        // Account preference owner supplies values only, never arbitrary SQL.
+        // Select the one collection before the existing bounded candidate page.
+        if($personalFilters){
+            if(array_diff(array_keys($personalFilters),['channel','source_id','reply_needed','ids']))throw new InvalidArgumentException('Invalid personal filters');
+            $channel=$personalFilters['channel']??'';
+            if(!in_array($channel,['','max','telegram','website'],true))throw new InvalidArgumentException('Invalid personal channel');
+            if($channel!==''){$where[]='c.channel=?';$args[]=$channel;}
+            $source=$personalFilters['source_id']??0;
+            if(!is_int($source)||$source< -1)throw new InvalidArgumentException('Invalid personal source');
+            if($source>0){$where[]='c.source_id=?';$args[]=$source;}
+            elseif($source===-1)$where[]='(c.source_id IS NULL OR c.source_id<=0)';
+            if(isset($personalFilters['reply_needed'])&&!is_bool($personalFilters['reply_needed']))throw new InvalidArgumentException('Invalid personal reply filter');
+            if(!empty($personalFilters['reply_needed']))$where[]="(c.status='waiting_manager' OR ".self::awaitingManagerReplySql('c').')';
+            if(array_key_exists('ids',$personalFilters)){
+                $ids=$personalFilters['ids'];
+                if(!is_array($ids)||!array_is_list($ids)||count($ids)>2000)throw new InvalidArgumentException('Invalid personal IDs');
+                foreach($ids as $id)if(!is_int($id)||$id<=0)throw new InvalidArgumentException('Invalid personal ID');
+                if(!$ids)$where[]='1=0';
+                else{$where[]='c.id IN ('.implode(',',array_fill(0,count($ids),'?')).')';array_push($args,...$ids);}
+            }
+        }
+
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
@@ -128,6 +150,7 @@ class ManagerConversationService
             .$fromSql.' LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
             .' ORDER BY '.$orderSql.' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
+        $pageMetadata=['candidate_count'=>count($rows),'limit_reached'=>count($rows)===200];
         $rows=ManagerConversationAccessPolicy::visibleRows($managerId,$rows);
         foreach($rows as &$row)$row['can_edit_customer_name']=ManagerConversationAccessPolicy::canEditVisibleConversation($row,$manager);
         unset($row);

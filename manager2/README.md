@@ -16,6 +16,7 @@ The new chrome and body-scoped assets provide the forest navigation rail, accoun
 | Live original transcript, linked replies/forwards, arrival refresh and scroll anchoring | Conversation / Jump |
 | Own-message sending, draft/session recovery, emoji, first-five-minute editing | Conversation / Message Edit |
 | Personal quick-answer buttons, account-owned selection/order, editable library and name substitution | Quick Replies / canonical Manager Quick Reply service |
+| Personal tabs, labels, multiple memberships, pins and reading/start settings | Personal Workspace / canonical Manager Personal Workspace service |
 | Images, video, audio and files; upload/context/delivery failures | Media / Conversation |
 | Multiple tasks, deadlines in Moscow time, pin, completion/reopen, postpone, dirty drafts | Tasks / Task Draft / Task Presets |
 | Stages/history, tags, outcomes, loss reason, sale amount/date, desktop board | Pipeline / Outcome / Kanban / Stage History |
@@ -40,6 +41,10 @@ Saved-reply editing and insertion preview reuse the composer's emoji choices and
 The prototype itself uses demonstration data. Its experimental behavior is not used as a production transport or authorization source. Real physical iPhone keyboard use and physical Firefox provider/OS notification receipt remain separate from browser-fixture verification.
 
 ## Convenient response workflow
+
+Personal workspace controls are independent of sales/CRM. “Мои вкладки” manages named selections, order, labels and start/readability settings; the client action manages private labels and pins. A client can belong to several labels. Only the selected tab is fetched through the canonical visibility/list projection, with the existing bounded 200-row scope shown explicitly. Deleting a referenced label keeps its tab empty until explicitly edited; it never silently expands the selection.
+
+Preferences use account-scoped canonical storage (forward-only migration 034), version checks and transactional receipts. Another device loads the saved settings; stale or old-account responses cannot restore another account's controls. The background preferences read never delays the Inbox; if it arrives late, the saved start tab is offered explicitly without interrupting reading. Unknown writes remain blocked for receipt reconciliation, never automatic resend. These controls do not send customer messages or create a second reply draft/media store.
 
 The canonical reply library supports personal/shared answers, categories, search, favorites and explicit editable insertion. Shared editing is role-gated on the server; uncertain library saves reconcile their original operation receipt. Library loading is lazy and cannot delay the Inbox or transcript.
 
