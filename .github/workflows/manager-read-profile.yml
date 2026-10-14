@@ -35,6 +35,8 @@ jobs:
           php-version: '8.3'
           extensions: pdo_sqlite, pdo_mysql
           coverage: none
+      - name: Run the full required checks without native fixture configuration
+        run: bash tests/run_required_checks.sh
       - name: Exercise actual PDO capture and sanitized native plans
         env:
           MANAGER_READ_PROFILE_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_read_profile_test;charset=utf8mb4
