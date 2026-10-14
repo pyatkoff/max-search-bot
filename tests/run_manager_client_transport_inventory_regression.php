@@ -14,6 +14,9 @@ foreach($iterator as $file){
 sort($fetchOwners);
 $expected=[
     'manager/assets/manager-http-client.js',
+    // Optional binary/blob transport has cancellation, bounded concurrency and
+    // account-context revocation; it cannot use the ordinary JSON write helper.
+    'manager/assets/workspace-v2-customer-avatar.js',
     'manager/assets/workspace-v2-media.js',
     'manager/assets/workspace-v2-notifications.js',
     'manager/assets/workspace-v2.js',
