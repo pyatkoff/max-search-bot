@@ -235,6 +235,8 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_max_private_avatar_probe_regression.php',
+        'python3 tests/run_max_owner_avatar_workflow_regression.py',
         'php tests/run_channel_daily_report_regression.php',
         'php tests/run_legacy_paid_yclid_reader_regression.php',
         'php tests/run_paid_daily_report_regression.php',
