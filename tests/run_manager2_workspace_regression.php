@@ -15,7 +15,7 @@ function renderWorkspace(string $entry):string{
 $legacy=renderWorkspace('manager/index.php');$modern=renderWorkspace('manager2/index.php');
 $checks=0;
 function checkManager2(string $name,bool $ok):void{global $checks;if(!$ok){fwrite(STDERR,'FAIL '.$name."\n");exit(1);}echo 'PASS '.$name."\n";$checks++;}
-checkManager2('canonical entrypoint renders without modern presentation',str_contains($legacy,'<title>AnyTour — Workspace V2</title>')&&!str_contains($legacy,'class="manager2"')&&!str_contains($legacy,'<base '));
+checkManager2('canonical entrypoint renders without modern presentation',str_contains($legacy,'<title>AnyTour — кабинет менеджера</title>')&&!str_contains($legacy,'class="manager2"')&&!str_contains($legacy,'<base '));
 checkManager2('alternate entrypoint opts into the real canonical shell',str_contains($modern,'<body class="manager2">')&&str_contains($modern,'id="workspaceRoot"')&&str_contains($modern,'<base href="/manager/">'));
 preg_match_all('/<script src="([^"]+)"/',$legacy,$oldAssets);preg_match_all('/<script src="([^"]+)"/',$modern,$newAssets);
 checkManager2('all canonical behavior modules are retained in their original order',array_values(array_filter($newAssets[1],static fn($s)=>!str_starts_with($s,'/manager2/')))===$oldAssets[1]);

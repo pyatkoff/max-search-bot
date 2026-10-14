@@ -114,6 +114,32 @@ function test(name,run){cases.push({name,run});}
 function hidden(h){return h.ids.get('composer').classList.contains('hidden');}
 function assertNoMutations(h){assert.equal(h.calls.some(r=>['send','take','release','close','reopen'].includes(r.action)),false);}
 
+test('first anonymous entry offers login without claiming an expired session',async()=>{
+  const h=createHarness();
+  h.setHook((url,r)=>r.action==='me'?response({ok:false,error:'unauthorized'},401):null);
+  await h.W.boot();
+  assert.equal(h.W.S.authExpired,true);assert.equal(h.W.S.manager,null);
+  assert.equal(h.ids.get('managerAuthMessage').textContent,'Войдите в кабинет, чтобы открыть диалоги и задачи.');
+  assert.equal(h.ids.get('managerAuthSubmit').textContent,'Войти');
+  h.setHook((url,r)=>r.action==='login'?response({ok:false,error:'unauthorized'},401):null);
+  await h.login();
+  assert.equal(h.ids.get('managerAuthError').textContent,'Неверный логин или пароль.');
+  assert.equal(h.ids.get('managerAuthSubmit').textContent,'Войти');
+  h.setHook(null);await h.login();
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.manager.id,7);assertNoMutations(h);
+});
+test('authenticated session expiry asks to sign in again and keeps the recovery label after failure',async()=>{
+  const h=createHarness();await h.start();await h.draft('Unsent synthetic draft');
+  await h.expire();
+  assert.equal(h.ids.get('managerAuthMessage').textContent,'Сессия менеджера истекла. Войдите снова, чтобы продолжить.');
+  assert.equal(h.ids.get('managerAuthSubmit').textContent,'Войти и продолжить');
+  h.setHook((url,r)=>r.action==='login'?response({ok:false,error:'unauthorized'},401):null);
+  await h.login();
+  assert.equal(h.ids.get('managerAuthSubmit').textContent,'Войти и продолжить');
+  assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');
+  assert.equal(hidden(h),true);assertNoMutations(h);
+});
+
 test('same manager recovery refreshes ownership and restores draft/file without mobile history or scroll loss',async()=>{
   const h=createHarness();await h.start();assert.equal(hidden(h),false);await h.draft();const file={name:'synthetic.png'};h.setFile(file);
   h.ids.get('messages').scrollTop=25;h.ids.get('messages').scrollHeight=400;h.ids.get('messages').clientHeight=100;
