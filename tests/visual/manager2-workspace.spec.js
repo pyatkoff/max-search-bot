@@ -30,6 +30,8 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     const req=route.request(),url=new URL(req.url());
     if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
     if(req.method()==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+  // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
+  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
     if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
     if(!url.pathname.endsWith('.php'))return route.continue();
     if(!url.pathname.startsWith('/manager/')){unexpected.push(req.method()+' '+url.pathname);return route.abort()}

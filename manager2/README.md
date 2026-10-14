@@ -44,6 +44,12 @@ Transcript display and composer authorization complete independently of the seco
 
 Working names are common manager-only labels visible to colleagues with access to that exact client. The original channel name remains separate and can be restored. Editing uses the canonical assigned-manager/admin policy, versions, protected change history and retained operation receipts. Coinciding names never merge clients or channels. The name dialog loads independently; successful changes refresh only name labels and the selected list/board, preserving message/file/task drafts. Search by original and working name retains the existing bounded-list scope.
 
+## Customer portraits
+
+Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Private MAX dialogues and website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
+
+The canonical protected binary endpoint owns fresh authorization and a bounded private cache. Offline provider/SQLite/loopback regressions and actual PHP-shell browser scenarios cover cache permissions, delayed photos, unsupported channels, account/client switching, drafts and responsive layout. Those checks do not confirm natural Telegram profile-photo availability or physical-device behavior; no real customer messages or operational changes are required for acceptance.
+
 ## Screenshot and multi-file replies
 
 An explicit paste into the composer or native file choice prepares up to ten files with image previews and individual removal. Sending remains an explicit action. Files are sent separately through the existing MAX/Telegram upload endpoint; the text accompanies the first file. Progress, partial confirmation and unknown outcome have distinct states; confirmed files are not repeated and a newly edited caption is preserved/sent correctly. Unsupported website attachment sending retains the selection and text with an explanation.

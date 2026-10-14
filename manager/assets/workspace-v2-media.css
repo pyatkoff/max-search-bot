@@ -2,4 +2,10 @@
 /* Bounded outgoing selection stays inside the composer at mobile/short heights. */
 .mediaSelection{display:flex;flex-direction:column;align-items:stretch;gap:6px;max-height:180px;overflow-y:auto;overscroll-behavior:contain;font-size:12px}
 .mediaSelectedItem{display:flex;align-items:center;gap:9px;min-width:0}.mediaFileInfo{display:flex;flex-direction:column;min-width:0;flex:1;gap:2px}.mediaPreview:empty{display:none}.mediaPreview img{display:block;width:44px;height:44px;object-fit:cover;border-radius:6px}.mediaRemove{flex:none;min-width:32px;min-height:32px;border-radius:6px}.mediaRemove:focus-visible{outline:2px solid #245c49;outline-offset:2px}.mediaRemove:disabled{opacity:.4;cursor:default}.mediaSelectionHint{font-size:11px;color:#495b67;line-height:1.45}.mediaFileSize{white-space:normal}.mediaFileName{display:block}
-@media(max-height:600px){.mediaSelection{max-height:112px}}
+/* Keep a readable transcript beside search and file drafts on short screens. */
+@media(max-height:600px){.mediaSelection{max-height:64px;padding:4px 6px;gap:3px}.mediaPreview img{width:32px;height:32px}.mediaSelectionHint{font-size:10px;line-height:1.35}}
+@media(max-height:600px){.conversationZone:has(.conversationSearchPanel:not(.hidden)) .mediaSelection{max-height:38px;padding:2px 5px}.conversationZone:has(.conversationSearchPanel:not(.hidden)) .mediaFileInfo{flex-direction:row;align-items:center;gap:5px}.conversationZone:has(.conversationSearchPanel:not(.hidden)) .mediaFileName{flex:1;min-width:0}.conversationZone:has(.conversationSearchPanel:not(.hidden)) .mediaFileSize{flex:none;max-width:55%;font-size:10px}.conversationZone:has(.conversationSearchPanel:not(.hidden)) .mediaPreview{font-size:10px;color:#495b67}}
+@media(max-height:600px){.conversationZone:has(.conversationSearchPanel:not(.hidden)):has(.mediaSelection:not(.hidden)) .composerMain{gap:2px}}
+.mediaPreview{position:relative;flex:none}.mediaPreview:has(img)::after{content:attr(data-position);position:absolute;right:0;bottom:0;padding:0 2px;background:#fff;color:#344b3b;border-radius:3px;font-size:10px;line-height:13px}
+/* The selected row already announces exact progress; avoid a duplicate busy line. */
+@media(max-height:600px){.conversationZone:has(.conversationSearchPanel:not(.hidden)) .composerMain:has(.mediaSelection[data-sending="true"]) .replyStatus{display:none}}

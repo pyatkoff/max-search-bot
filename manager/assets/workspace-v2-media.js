@@ -1,6 +1,7 @@
 (()=>{
-const state={csrf:'',conversationId:0,busy:false,restored:null,notice:''};
+const state={csrf:'',conversationId:0,busy:false,restored:null,notice:'',sendingRow:null,progress:''};
 const attachmentDrafts=new Map(),captionSent=new Map(),uncertainFiles=new Set();
+let bound=false;
 const MAX_FILES=10; // A bounded selection, sent as individual canonical messages, never an album.
 const account=()=>Number(window.WorkspaceV2?.S?.manager?.id||0);
 const draftKey=id=>account()+':'+Number(id||0);
@@ -15,15 +16,17 @@ function restoreDraft(id=state.conversationId){if(input())input().value='';state
 function resetDrafts(){attachmentDrafts.forEach(revoke);attachmentDrafts.clear();captionSent.clear();state.restored=[];if(input())input().value='';state.notice='';render()}
 function clear(){revoke(files());save([]);if(input())input().value='';state.notice='';render()}
 function render(){
- const rows=files(),box=selection();if(!box)return;
+ const rows=files(),box=selection();if(!box)return;box.setAttribute?.('data-sending',String(state.busy));
  if(!rows.length&&!state.notice){box.textContent='';box.classList.add('hidden');return}
  box.innerHTML=rows.map((row,index)=>`<div class="mediaSelectedItem"><span class="mediaPreview"></span><span class="mediaFileInfo"><span class="mediaFileName"></span><span class="mediaFileSize"></span></span><button class="mediaRemove" type="button" data-index="${index}" aria-label="Убрать вложение ${index+1}">×</button></div>`).join('')+'<div class="mediaSelectionHint" role="status"></div>';
  // querySelector fallback keeps the small non-browser context harness supported.
  const items=box.querySelectorAll?Array.from(box.querySelectorAll('.mediaSelectedItem')):rows.map(()=>box);
- items.forEach((item,index)=>{const row=rows[index],f=row.file;item.querySelector('.mediaFileName').textContent=f.name||'Скриншот';item.querySelector('.mediaFileSize').textContent=row.status==='unknown'?'Исход неизвестен — повтор заблокирован':Number(f.size||0)<1024*1024?`${(Number(f.size||0)/1024).toFixed(1)} КБ`:`${(Number(f.size||0)/1024/1024).toFixed(2)} МБ`;
+ items.forEach((item,index)=>{const row=rows[index],f=row.file;item.querySelector('.mediaFileName').textContent=f.name||'Скриншот';item.querySelector('.mediaFileSize').textContent=row.status==='unknown'?'Исход неизвестен — повтор заблокирован':state.busy&&state.sendingRow===row?'Отправляем '+state.progress:Number(f.size||0)<1024*1024?`${(Number(f.size||0)/1024).toFixed(1)} КБ`:`${(Number(f.size||0)/1024/1024).toFixed(2)} МБ`;
  const remove=item.querySelector('.mediaRemove');remove.disabled=state.busy||row.status==='unknown';remove.onclick=()=>{if(state.busy||row.status==='unknown')return;const current=files();revoke([current[index]]);current.splice(index,1);save(current);state.notice='';render()};
- if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
+ if(item!==box){const preview=item.querySelector('.mediaPreview');preview.textContent=`${index+1}/${rows.length}`;preview.setAttribute('data-position',`${index+1}/${rows.length}`)}
+ if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);item.querySelector('.mediaPreview').textContent='';const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
  });
+ box.setAttribute?.('aria-label',`Выбрано файлов: ${rows.length} из ${MAX_FILES}. Список можно прокручивать.`);
  box.querySelector('.mediaSelectionHint').textContent=state.notice||`Файлов: ${rows.length} из ${MAX_FILES}. Отправятся отдельно; подпись — к первому. Выбранные файлы сохраняются до обновления страницы.`;box.classList.remove('hidden');
 }
 function addFiles(incoming){
@@ -32,6 +35,7 @@ function addFiles(incoming){
  save(rows);if(input())input().value='';state.notice=rejected?'Часть файлов не добавлена: пустой файл или больше 10 вложений. Проверьте список.':'';render();return added.length>rejected;
 }
 function init(){
+ if(bound)return;bound=true;
  input()?.addEventListener('change',()=>{const incoming=Array.from(input().files||[]);if(input())input().value='';addFiles(incoming)});
  $('replyText')?.addEventListener('paste',event=>{
    if($('replyText')?.disabled||$('composer')?.classList.contains('hidden'))return;
@@ -54,7 +58,7 @@ async function send(caption=''){
   for(const row of rows.slice()){
    if(!sameSession())return result({ok:false,error:'stale_session'});
    if(state.conversationId!==target||attachmentDrafts.get(sourceKey)!==rows)return result({ok:false,error:'context_changed',error_message:`Отправлено файлов: ${sent}. Остальные сохранены в исходном диалоге.`});
-   state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
+   state.progress=`${sent+1}/${rows.length+sent}`;state.sendingRow=row;state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
    const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('file',row.file);data.append('caption',captionConfirmed?'':caption||'');
    let response,j;
    try{response=await fetch('media-upload.php',{method:'POST',body:data,credentials:'same-origin'});j=await response.json()}
@@ -75,7 +79,7 @@ async function send(caption=''){
   }
   if(rows.length)return result({ok:false,error:'additional_files_pending',error_message:`Отправлено файлов: ${sent}. Добавленные во время отправки вложения сохранены; отправьте их отдельно.`});
   return result({ok:true});
- }finally{state.busy=false;if(sameSession()&&state.conversationId===target){state.notice='';render()}}
+ }finally{state.busy=false;state.sendingRow=null;state.progress='';if(sameSession()&&state.conversationId===target){state.notice='';render()}}
 }
 window.WorkspaceV2Media={init,configure,hasFile,send,clear,preserveDraft,restoreDraft,resetDrafts,addFiles};
 })();

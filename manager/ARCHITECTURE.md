@@ -108,6 +108,12 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 The forward-only migration030 retains a monotonically increasing name version even after restoring the original. Customer/conversation locks, optimistic versions and atomic history/receipt/audit preserve assignment and recover uncertain writes. The name dialog is lazy, account/session/conversation scoped, and updates visible name labels plus the selected Inbox without reopening the transcript or rerendering unfinished task/outcome forms. Quick reply `{client_name}` uses the original source name rather than the manager's working label.
 
+## Optional customer portraits
+
+`services/ManagerCustomerAvatarService.php` resolves a portrait only after fresh canonical account/project/conversation visibility checks. The binary `manager/customer-avatar.php` interface uses ManagerHttp, private no-store headers and validated bounded bytes; provider URLs and credentials never enter UI. The session lock is released before provider work. A private, fixed-slot cache outside the application stores positive/negative results with bounded lifetime; no schema or business writes are introduced.
+
+`workspace-v2-customer-avatar.*` owns optional background display in Inbox/header/card, two concurrent visible-only requests, bounded account/generation-scoped blobs, reset/revocation and initials fallback. It does not delay list/detail/notification startup. Telegram uses documented profile photos; MAX private-dialogue/website portraits are unavailable in the current adapter and issue no browser photo requests. Node reuse detaches the old record even when the next channel is unsupported. Name changes refresh initials without rebuilding the composer or client forms.
+
 ## Outgoing multi-file selection
 
 Media owns a bounded per-account/per-conversation in-memory selection (maximum ten files), image preview and explicit clipboard/file-choice input. Conversation retains the only message draft store and submit owner. Files still use the canonical single-file upload endpoint, sequentially as individual messages; there is no new album transport, schema or background send. The current MAX/Telegram adapters are supported; website attachments remain explicitly unavailable.

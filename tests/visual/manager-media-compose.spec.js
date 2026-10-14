@@ -14,6 +14,8 @@ async function setup(page,{failSecond=false,unknown=false,holdFirst=false,suspen
   if(url.origin!==origin)throw new Error('Forbidden external request '+url);
   if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/'))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,url.pathname.slice(1)))});
   if(url.pathname==='/manager2/')return route.fulfill({contentType:'text/html',body:shell});
+  if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
+  if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(url.pathname==='/manager/media-upload.php'){
    uploads.push(request.postDataBuffer().toString());
    if(holdFirst&&uploads.length===1)await new Promise(resolve=>held.push(resolve));
@@ -48,7 +50,7 @@ async function setup(page,{failSecond=false,unknown=false,holdFirst=false,suspen
 }
 const files=[{name:'Маршрут.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic')},{name:'Билеты.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF synthetic')}];
 for(const width of [390,430,768,1440])for(const height of [900,420])test(`selection ${width}x${height}`,async({page,browserName})=>{
- await page.setViewportSize({width,height});const s=await setup(page);await page.locator('#replyText').fill('Подпись к первому файлу');
+ await page.setViewportSize({width,height});const s=await setup(page);await page.locator('#replyText').fill('Подпись к первому файлу');if(height===420){await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('Здравствуйте');await page.locator('#replyText').focus()}
  fs.mkdirSync('manager-media-artifacts',{recursive:true});await page.screenshot({path:`manager-media-artifacts/${browserName}-${width}-${height}-before.png`});
  await page.locator('#replyFile').setInputFiles(files);await expect(page.locator('.mediaSelectedItem')).toHaveCount(2);expect(s.uploads).toHaveLength(0);
  await page.screenshot({path:`manager-media-artifacts/${browserName}-${width}-${height}-after.png`});
@@ -74,4 +76,13 @@ test('pending account changes preserve new account file after old response',asyn
 
 test('partial provider suspension remains visible and blocks send when detail refresh fails',async({page})=>{
  const s=await setup(page,{suspendedSecond:true,failedRefresh:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#deliveryFailure')).toContainText('Диалог приостановлен');await expect(page.locator('#sendReply')).toBeDisabled();expect(s.uploads).toHaveLength(2);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);expect(s.errors).toEqual([]);
+});
+
+test('repeated canonical identity setup binds chooser and paste once',async({page})=>{
+ const s=await setup(page);await page.evaluate(()=>{WorkspaceV2Media.init();WorkspaceV2Media.init()});await page.locator('#replyFile').setInputFiles([files[0]]);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);
+ await page.evaluate(()=>{const dt=new DataTransfer();dt.items.add(new File(['synthetic clipboard'],'Clipboard.txt',{type:'text/plain'}));document.getElementById('replyText').dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}))});await expect(page.locator('.mediaSelectedItem')).toHaveCount(2);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(2);expect(s.errors).toEqual([]);
+});
+
+test('short screen with search retains file count, current progress and scrollable controls at selection limit',async({page})=>{
+ await page.setViewportSize({width:390,height:420});const s=await setup(page,{holdFirst:true});await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('Здравствуйте');await page.locator('#replyText').fill('Файлы');await page.locator('#replyFile').setInputFiles(Array.from({length:10},(_,i)=>({name:'Файл-'+(i+1)+'.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic')})));await expect(page.locator('.mediaSelectedItem')).toHaveCount(10);await expect(page.locator('.mediaPreview').first()).toHaveText('1/10');await page.locator('.mediaRemove').last().focus();await expect(page.locator('.mediaRemove').last()).toBeFocused();await page.locator('.mediaRemove').first().focus();await page.locator('#replyFile').setInputFiles([{name:'Лишний.txt',mimeType:'text/plain',buffer:Buffer.from('synthetic')}]);await expect(page.locator('.mediaSelectedItem')).toHaveCount(10);await expect(page.locator('.mediaSelectionHint')).toContainText('не добавлена');await page.locator('#sendReply').click();await expect(page.locator('.mediaFileSize').first()).toHaveText('Отправляем 1/10');expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);const progress=await page.locator('.mediaFileSize').first().boundingBox();expect(progress.y+progress.height).toBeLessThanOrEqual(420);await page.screenshot({path:'manager-media-artifacts/short-search-progress.png'});s.release();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(10);expect(s.errors).toEqual([]);
 });
