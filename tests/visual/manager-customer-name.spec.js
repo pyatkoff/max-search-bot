@@ -39,6 +39,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}
   calls.push({path:url.pathname,...d});
+  if(method==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot'&&d.csrf==='fixture-csrf')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   // Synthetic name fixtures have no publication; allow only their scoped,
   // canonical CSRF-protected read and retain strict unexpected-request checks.
   if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});

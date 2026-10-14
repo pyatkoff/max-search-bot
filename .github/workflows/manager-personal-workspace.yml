@@ -1,0 +1,47 @@
+name: Manager personal workspace
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/ManagerPersonalWorkspaceService.php'
+      - 'services/ManagerConversationService.php'
+      - 'manager/personal-workspace-api.php'
+      - 'manager/assets/workspace-v2-personal-workspace.*'
+      - 'migrations/034_manager_personal_workspace.sql'
+      - 'tests/run_manager_personal_workspace*'
+      - 'tests/mysql/manager-personal-workspace.php'
+      - '.github/workflows/manager-personal-workspace.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-mysql:
+    name: personal workspace / native mysql
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: personal-workspace-test-only
+          MYSQL_DATABASE: manager_personal_workspace_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ppersonal-workspace-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Actual forward migration and native transactional receipts
+        env:
+          PERSONAL_WORKSPACE_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_personal_workspace_test;charset=utf8mb4
+          PERSONAL_WORKSPACE_TEST_MYSQL_USER: root
+          PERSONAL_WORKSPACE_TEST_MYSQL_PASSWORD: personal-workspace-test-only
+        run: php tests/mysql/manager-personal-workspace.php

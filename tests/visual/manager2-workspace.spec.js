@@ -58,6 +58,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='send'){sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
       if(data.action==='set_working'){manager.is_working=data.working;return reply({ok:true,manager})}
     }
+  if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
     if(url.pathname==='/manager/pipeline-api.php'){
       if(data.csrf!=='synthetic-csrf')throw new Error('Canonical CSRF was not retained');
       if(data.action==='catalog')return reply({ok:true,stages,tags:[{id:1,display_name:'Семья'}],outcomes:{open:'В работе',won:'Продажа',lost:'Отказ'},close_reasons:{price:'Цена'}});

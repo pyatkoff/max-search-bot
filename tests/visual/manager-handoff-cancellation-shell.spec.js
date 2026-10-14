@@ -39,6 +39,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
     calls.push({path:url.pathname,...data});
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(req.method()==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot'&&data.csrf==='synthetic-csrf')return authenticated?reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot()):reply({ok:false,error:'unauthorized'},401);
     if(req.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id)){if(!authenticated)return reply({ok:false,error:'unauthorized'},401);if(cancellationState.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}})}
     if(req.method()==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'&&data.csrf==='synthetic-csrf'){if(!authenticated)return reply({ok:false,error:'unauthorized'},401);return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100})}
     if(url.pathname==='/manager/api.php'){

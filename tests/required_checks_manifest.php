@@ -126,6 +126,8 @@ return [
         'php tests/run_manager_post_context_regression.php',
         'node tests/run_manager_post_context_behavior_regression.js',
         'php tests/run_manager_quick_reply_regression.php',
+        'php tests/run_manager_personal_workspace_regression.php',
+        'node tests/run_manager_personal_workspace_behavior_regression.js',
         'php tests/run_manager_internal_note_regression.php',
         'node tests/run_manager_internal_notes_behavior_regression.js',
         'php tests/run_manager_customer_name_regression.php',
