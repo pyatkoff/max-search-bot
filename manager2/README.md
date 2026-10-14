@@ -27,6 +27,8 @@ The visible budget is the existing canonical `trip.budget`, including its actual
 
 The composer quick-answer row shows only replies selected by the current account, in its saved order. The trailing “Настроить ответы” action opens the library; “Моя панель” has keyboard/touch reorder controls, and “Добавить на панель” / “Убрать с панели” changes personal selection. A shortcut inserts resolved text into the current draft without sending; an unknown name opens the editable preview. Selection/order use the canonical favorites and account revision with transactional receipts. A toolbar read loads in the background once per authenticated lifecycle and never waits ahead of Inbox. Reload or another device loads the saved selection; account changes clear the previous panel and late responses cannot restore it. An empty or failed panel does not substitute fixed standard replies.
 
+Saved-reply editing and insertion preview reuse the composer's emoji choices and preserve the current text selection. Each “Моя панель” row has “Убрать с панели”, which removes only that account's shortcut and keeps the library reply and edited preview. “Удалить ответ” uses the existing role-gated library deletion with confirmation; deleting a shared reply remains administrator-only.
+
 ## Verification
 
 - The real loopback HTTP/cookie regression verifies existing login survives Manager2 navigation/reload, the alternate HTML never replaces the scoped Manager cookie, and anonymous API access stays unauthorized.
