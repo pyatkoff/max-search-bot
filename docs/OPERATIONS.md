@@ -47,6 +47,11 @@ captures remain unchanged. Do not patch an installed checkout to enable it.
 The option observes the same three bounded `ManagerConversationService::list`
 probes (All/Mine/Waiting, limit 200) on their canonical PDO connection. It does not
 repeat the loaders, add a transport, mark conversations read or change data.
+Before opt-in probes, the canonical metadata-only project initializer verifies
+the configured project's existing active/name postcondition, preventing the
+legacy project UPSERT bootstrap. A mismatch fails capture without repairing
+configuration. This adds one startup metadata SELECT outside loader timings;
+the default capture/bootstrap path is intentionally unchanged.
 One ordinary EXPLAIN (never ANALYZE) may follow each loader after the original
 statement class is restored. `load_ms` excludes EXPLAIN but includes observer
 overhead; opt-in and default timings are not an optimization before/after pair.

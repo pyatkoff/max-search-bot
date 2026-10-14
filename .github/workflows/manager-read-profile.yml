@@ -6,6 +6,9 @@ on:
     paths:
       - 'tools/manager-read-profile.php'
       - 'tools/production_snapshot.php'
+      - 'services/ProjectAccessService.php'
+      - 'services/ProjectConfig.php'
+      - 'services/ConversationDb.php'
       - '.github/workflows/publish-conversation-diagnostics.yml'
       - 'tests/run_manager_read_profile_regression.php'
       - '.github/workflows/manager-read-profile.yml'

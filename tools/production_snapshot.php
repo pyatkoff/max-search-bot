@@ -99,6 +99,9 @@ function recentTelegramManagerCallback(PDO $pdo,string $structuredPath):array{
 
 try{
     $pdo=ConversationDb::connection();
+    // Opt-in probes must not enter the legacy project UPSERT bootstrap.
+    // Verify existing metadata only; fail closed rather than repair configuration.
+    if($profileManagerLists)ProjectAccessService::initializeReadOnly();
     $ping=ConversationDb::ping();
     $root=realpath($baseDir)?:$baseDir;
     $sha=trim((string)@shell_exec('cd '.escapeshellarg($root).' && git rev-parse HEAD 2>/dev/null'));

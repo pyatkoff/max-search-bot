@@ -5,6 +5,7 @@ declare(strict_types=1);
 // connects to production and this regression loads no application config.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__) . '/tools/manager-read-profile.php';
+require_once dirname(__DIR__) . '/services/ProjectAccessService.php';
 
 $passed = 0;
 $readProfileStage = 'fixture_setup';
@@ -49,6 +50,7 @@ function readProfileFixture(PDO $pdo, string $driver): void
     $pdo->exec('CREATE INDEX idx_messages_conversation ON messages(conversation_id)');
     $pdo->exec('CREATE TABLE managers (id INTEGER NOT NULL PRIMARY KEY,display_name VARCHAR(191) NOT NULL)' . $suffix);
     $pdo->exec('CREATE TABLE profile_fixture_values (id INTEGER NOT NULL PRIMARY KEY,value VARCHAR(191) NOT NULL)' . $suffix);
+    $pdo->exec('CREATE TABLE projects (id INTEGER NOT NULL PRIMARY KEY,project_key VARCHAR(64) NOT NULL UNIQUE,display_name VARCHAR(191) NOT NULL,is_active INTEGER NOT NULL)' . $suffix);
     $pdo->exec("INSERT INTO conversations VALUES (81723491,'PRIVATE_project_token'),(81723492,'PRIVATE_project_token')");
     $pdo->exec("INSERT INTO messages VALUES (1,81723491,'PRIVATE_customer_message'),(2,81723491,'Синтетическое сообщение')");
     $pdo->exec("INSERT INTO managers VALUES (7,'PRIVATE_operator_name')");
@@ -187,10 +189,47 @@ function readProfilePersistent(PDO $pdo, string $driver): void
     readProfileCheck($driver . ': persistent connections remain untouched and explicitly unmeasured', $calls === 1 && $result === 1 && $pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS) === $original && $profile['available'] === false && $profile['reason'] === 'unsupported_connection' && $profile['statement_count'] === 0 && $profile['timed_execute_count'] === 0 && $profile['statements'] === []);
 }
 
+function readProfileProjectSafety(PDO $pdo, string $driver): void
+{
+    global $readProfileStage;
+    $readProfileStage = $driver . '_read_only_project_initialization';
+    $connectionProperty = new ReflectionProperty(ConversationDb::class,'pdo');
+    $readyProperty = new ReflectionProperty(ProjectAccessService::class,'schemaReady');
+    $configProperty = new ReflectionProperty(ProjectConfig::class,'config');
+    $oldConnection = $connectionProperty->getValue(); $oldReady = $readyProperty->getValue(); $oldConfig = $configProperty->getValue();
+    try {
+        $connectionProperty->setValue(null,$pdo); $readyProperty->setValue(null,false);
+        ProjectConfig::resetForTests(['id'=>'read_profile_fixture','brand'=>['name'=>'Synthetic brand']]);
+        $pdo->exec("INSERT INTO projects VALUES (1,'read_profile_fixture','Synthetic brand',1)");
+        $before = $pdo->query('SELECT id,project_key,display_name,is_active FROM projects')->fetchAll(PDO::FETCH_ASSOC); $profile = null;
+        $result = ManagerReadProfile::capture($pdo, static function (): string { ProjectAccessService::initializeReadOnly(); ProjectAccessService::ensureSchema(); return 'unchanged'; }, $profile, false);
+        $after = $pdo->query('SELECT id,project_key,display_name,is_active FROM projects')->fetchAll(PDO::FETCH_ASSOC);
+        readProfileCheck($driver . ': actual read-only project initialization bypasses the legacy UPSERT before ensureSchema', $result === 'unchanged' && $before === $after && $readyProperty->getValue() === true && $profile['statement_count'] === 1 && $profile['timed_execute_count'] === 1);
+        // SQLite rejects the legacy MySQL UPSERT syntax if it is reached; on
+        // native MySQL this exact-state comparison catches a hidden repair.
+        foreach (['wrong_name','inactive','missing'] as $state) {
+            $pdo->exec('DELETE FROM projects');
+            if ($state !== 'missing') { $insert=$pdo->prepare('INSERT INTO projects VALUES (1,?,?,?)'); $insert->execute(['read_profile_fixture',$state==='wrong_name'?'Operator-owned different name':'Synthetic brand',$state==='inactive'?0:1]); $insert->closeCursor(); }
+            $readyProperty->setValue(null,false); $before=$pdo->query('SELECT id,project_key,display_name,is_active FROM projects')->fetchAll(PDO::FETCH_ASSOC); $profile=null; $rejected=false;
+            try { ManagerReadProfile::capture($pdo, static fn()=>ProjectAccessService::initializeReadOnly(), $profile, false); }
+            catch (RuntimeException $error) { $rejected=$error->getMessage()==='read_only_project_not_ready'; }
+            $after=$pdo->query('SELECT id,project_key,display_name,is_active FROM projects')->fetchAll(PDO::FETCH_ASSOC);
+            readProfileCheck($driver . ': ' . $state . ' project metadata fails closed without repairing or inserting any row', $rejected && $before === $after && $readyProperty->getValue() === false && $profile['statement_count'] === 1 && $profile['timed_execute_count'] === 1);
+        }
+    } finally {
+        $connectionProperty->setValue(null,$oldConnection); $readyProperty->setValue(null,$oldReady); ProjectConfig::resetForTests($oldConfig);
+    }
+    readProfileCheck($driver . ': injected connection, schema readiness and synthetic project config are restored', $connectionProperty->getValue() === $oldConnection && $readyProperty->getValue() === $oldReady && $configProperty->getValue() === $oldConfig);
+}
+
 try {
     $snapshotSource = (string)file_get_contents(dirname(__DIR__) . '/tools/production_snapshot.php');
     $publisherSource = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/publish-conversation-diagnostics.yml');
     readProfileCheck('snapshot profiling is a strict opt-in CLI flag and helper loading stays conditional', str_contains($snapshotSource, '$profileManagerLists=in_array(\'--profile-manager-lists\',$argv??[],true);') && str_contains($snapshotSource, 'if($profileManagerLists)require_once $baseDir.\'/tools/manager-read-profile.php\';'));
+    $readOnlyInit = strpos($snapshotSource,'if($profileManagerLists)ProjectAccessService::initializeReadOnly();');
+    $canonicalConnection = strpos($snapshotSource,'$pdo=ConversationDb::connection();');
+    $firstCapture = strpos($snapshotSource,'ManagerReadProfile::capture(');
+    readProfileCheck('opt-in read-only project initialization precedes every canonical list capture on the existing PDO', $readOnlyInit !== false && $canonicalConnection !== false && $firstCapture !== false && $canonicalConnection < $readOnlyInit && $readOnlyInit < $firstCapture);
     foreach (['all','mine','waiting'] as $queue) {
         $call = 'ManagerConversationService::list($id,\'' . $queue . '\',200,\'*\')';
         $profileCall = 'if($profileManagerLists){$' . $queue . '=ManagerReadProfile::capture($pdo,static fn()=>' . $call . ',$' . $queue . 'Profile);}';
@@ -203,7 +242,7 @@ try {
 
     if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) { throw new RuntimeException('SQLite PDO driver is required'); }
     $sqlite = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
-    readProfileFixture($sqlite, 'sqlite'); readProfileRun($sqlite, 'sqlite');
+    readProfileFixture($sqlite, 'sqlite'); readProfileRun($sqlite, 'sqlite'); readProfileProjectSafety($sqlite,'sqlite');
     readProfilePersistent(new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT=>true]), 'sqlite');
 
     $dsn = getenv('MANAGER_READ_PROFILE_TEST_MYSQL_DSN');
@@ -212,7 +251,7 @@ try {
         if (!in_array('mysql', PDO::getAvailableDrivers(), true)) { throw new RuntimeException('Configured native MySQL PDO driver is required'); }
         $pdo = new PDO($dsn, (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_USER') ?: 'root'), (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_PASSWORD') ?: ''), [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES=>false, PDO::ATTR_PERSISTENT=>false]);
         if ($pdo->query('SELECT DATABASE()')->fetchColumn() !== 'manager_read_profile_test' || (int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn() !== 0) { throw new RuntimeException('Refusing non-empty native read profile fixture'); }
-        readProfileFixture($pdo, 'mysql'); readProfileRun($pdo, 'mysql');
+        readProfileFixture($pdo, 'mysql'); readProfileRun($pdo, 'mysql'); readProfileProjectSafety($pdo,'mysql');
         readProfilePersistent(new PDO($dsn, (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_USER') ?: 'root'), (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_PASSWORD') ?: ''), [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES=>false, PDO::ATTR_PERSISTENT=>true]), 'mysql');
     } else { echo "SKIP native MySQL fixture is not configured locally; dedicated CI must configure it\n"; }
     echo 'Manager read profile: ' . $passed . " checks passed\n";
