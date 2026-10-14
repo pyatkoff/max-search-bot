@@ -228,6 +228,28 @@ final class MaxChannelButtonProbe
             if (!$inspectOnly) self::check(in_array('edit', $permissions, true) || in_array('edit_message', $permissions, true), 'edit_permission_missing');
             $list = self::readable($this->request('GET', '/messages', ['chat_id' => self::CHANNEL, 'count' => 20], null, 'bounded_channel_posts'));
             self::check(is_array($list['messages'] ?? null) && count($list['messages']) <= 20, 'message_list_invalid');
+            $this->summary['message_count'] = count($list['messages']);
+            if ($inspectOnly) {
+                $this->summary['post_candidates'] = [];
+                foreach ($list['messages'] as $candidate) {
+                    if (!is_array($candidate)) continue;
+                    $url = $candidate['url'] ?? null;
+                    $urlAllowed = is_string($url) && strlen($url) <= 300
+                        && (strpos($url, 'https://max.ru/c/' . self::CHANNEL . '/') === 0
+                            || strpos($url, 'https://max.ru/c/' . ltrim(self::CHANNEL, '-') . '/') === 0)
+                        && strpos($url, '?') === false && strpos($url, '#') === false;
+                    $midCandidate = $candidate['body']['mid'] ?? null;
+                    $midAllowed = is_string($midCandidate) && preg_match('/\A[a-zA-Z0-9_.-]{1,200}\z/', $midCandidate);
+                    $this->summary['post_candidates'][] = [
+                        'mid' => $midAllowed ? $midCandidate : null,
+                        'url' => $urlAllowed ? $url : null,
+                        'url_present' => is_string($url) && $url !== '',
+                        'channel_match' => (string)($candidate['recipient']['chat_id'] ?? '') === self::CHANNEL,
+                        'channel_type_match' => ($candidate['recipient']['chat_type'] ?? null) === 'channel',
+                        'attachment_schema' => self::safeSchema(['body' => ['attachments' => is_array($candidate['body']['attachments'] ?? null) ? $candidate['body']['attachments'] : []]]),
+                    ];
+                }
+            }
             $matches = array_values(array_filter($list['messages'], static function ($m): bool { return is_array($m) && ($m['url'] ?? null) === self::POST_URL; }));
             self::check(count($matches) === 1, 'exact_post_not_unique_or_missing');
             $initial = $matches[0];
