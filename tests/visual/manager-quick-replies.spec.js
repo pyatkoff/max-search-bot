@@ -183,6 +183,24 @@ test('reopening settings observes another device order, edited text and a delete
  await page.locator('#quickRepliesOpen').click();await expectPanel(page,[3,1]);await expect.poll(()=>s.calls.filter(c=>c.action==='toolbar').length).toBeGreaterThan(reads);await expect(page.locator('[data-qr-panel-id="2"]')).toHaveCount(0);await expect(page.locator('[data-qr-toolbar-id="1"]')).toHaveText('Новое имя приветствия');await page.locator('#qrClose').click();await page.locator('[data-qr-toolbar-id="1"]').click();await expect(page.locator('#replyText')).toHaveValue('Анна, ваш менеджер Мария снова на связи.');clean(s);
 });
 
+test('held toolbar refresh preserves keyboard move focus and Enter reorders exactly once',async({page})=>{
+ await page.setViewportSize({width:768,height:900});
+ const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await expectPanel(page,[1,2]);
+ s.setHoldToolbar(true);await page.locator('#quickRepliesOpen').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');
+ const move=page.locator('[data-qr-move="up"][data-qr-move-id="2"]');await expect(move).toBeEnabled();await move.focus();await expect(move).toBeFocused();
+ s.releaseToolbar();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');await expect(move).toBeFocused();
+ await page.keyboard.press('Enter');await expectPanel(page,[2,1]);expect(s.calls.filter(c=>c.action==='reorder')).toHaveLength(1);clean(s);
+});
+
+test('held toolbar refresh preserves editable preview focus, selection and text',async({page})=>{
+ await page.setViewportSize({width:768,height:900});
+ const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await expectPanel(page,[1,2]);
+ s.setHoldToolbar(true);await page.locator('#quickRepliesOpen').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');
+ await page.locator('[data-qr-select="1"]').click();const preview=page.locator('#qrPreview');await preview.fill('Личный текст перед вставкой');await preview.evaluate(node=>node.setSelectionRange(7,12));await expect(preview).toBeFocused();
+ s.releaseToolbar();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');await expect(preview).toBeFocused();await expect(preview).toHaveValue('Личный текст перед вставкой');
+ expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([7,12]);expect(s.calls.filter(c=>c.action==='reorder')).toHaveLength(0);clean(s);
+});
+
 for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+width,()=>{
  test.use({viewport:{width,height:900}});
  test('library filtering, CRUD and explicit insertion preserve draft and attachment',async({page,browserName})=>{

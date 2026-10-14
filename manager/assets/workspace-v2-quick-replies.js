@@ -89,8 +89,16 @@ async function loadToolbar(force=false){
     if(capturedEpoch!==epoch||ticket!==toolbarTicket||!authenticated())return;
     if(!acceptToolbar(result)){toolbarError='Не удалось загрузить панель ответов.';renderToolbar()}
     else if(query.scope==='toolbar'){
+      const priorPreview=$('qrPreview'),focusedPreview=dialog?.open&&priorPreview&&document.activeElement===priorPreview?{
+        id:Number(selected?.id||0),value:priorPreview.value,start:priorPreview.selectionStart,end:priorPreview.selectionEnd,direction:priorPreview.selectionDirection
+      }:null;
       if(selected&&!toolbarError&&!toolbarRows.some(reply=>Number(reply.id)===Number(selected.id))){selected=null;preview='';replyContext=null}
       renderDetail();updateBusy();
+      const currentPreview=$('qrPreview');
+      if(focusedPreview&&dialog?.open&&authenticated()&&Number(selected?.id)===focusedPreview.id&&currentPreview?.isConnected&&currentPreview.value===focusedPreview.value&&[document.body,dialog,priorPreview].includes(document.activeElement)){
+        currentPreview.focus({preventScroll:true});
+        currentPreview.setSelectionRange?.(focusedPreview.start,focusedPreview.end,focusedPreview.direction);
+      }
     }
   })().finally(()=>{
     if(toolbarLoading!==operation)return;
@@ -191,9 +199,18 @@ function renderCategories(){
 function renderList(isLoading=false){
   const node=$('qrList');if(!node)return;
   if(query.scope==='toolbar'){
+    // A settings refresh must not detach the arrow a keyboard user just focused.
+    const active=document.activeElement,focused=dialog?.open&&authenticated()&&node.contains?.(active)?{
+      id:Number(active.dataset?.qrMoveId||active.dataset?.qrSelect||0),direction:active.dataset?.qrMove||''
+    }:null;
     node.setAttribute('aria-busy',String(!!toolbarLoading));
     node.innerHTML=toolbarRows.length?toolbarRows.map((reply,index)=>`<div class="qrPanelItem" data-qr-panel-id="${Number(reply.id)}"><button type="button" class="qrItem${Number(selected?.id)===Number(reply.id)?' selected':''}" data-qr-select="${Number(reply.id)}" aria-pressed="${Number(selected?.id)===Number(reply.id)}"><span class="qrItemTop"><strong>${esc(reply.title)}</strong><span class="qrPanelNumber">${index+1}</span></span><span class="qrItemBody">${esc(reply.body)}</span><span class="qrItemMeta">${reply.scope==='shared'?'Общий ответ на моей панели':'Мой ответ на панели'}</span></button><div class="qrPanelOrder" role="group" aria-label="Порядок: ${attr(reply.title)}"><button type="button" data-qr-move="up" data-qr-move-id="${Number(reply.id)}" aria-label="Выше: ${attr(reply.title)}" ${index===0||mutationBusy||pending||toolbarError?'disabled':''}>↑</button><button type="button" data-qr-move="down" data-qr-move-id="${Number(reply.id)}" aria-label="Ниже: ${attr(reply.title)}" ${index===toolbarRows.length-1||mutationBusy||pending||toolbarError?'disabled':''}>↓</button></div></div>`).join(''):`<div class="qrEmpty"><strong>${toolbarLoading?'Загружаем вашу панель':toolbarError?'Не удалось загрузить панель':'Добавьте свои быстрые ответы'}</strong><span>${toolbarError?'Попробуйте загрузить панель ещё раз.':'Создайте ответ или выберите существующий в «Мои» / «Общие», затем нажмите «Добавить на панель».'}</span>${toolbarError?'<button type="button" class="qrButton" data-qr-retry>Повторить загрузку</button>':''}</div>`;
     if(toolbarError&&toolbarRows.length)node.insertAdjacentHTML('beforeend',`<div class="qrInlineError" role="status">${esc(toolbarError)}</div>`);
+    if(focused?.id>0&&dialog?.open&&authenticated()&&[document.body,dialog,active].includes(document.activeElement)){
+      let control=node.querySelector(focused.direction?`[data-qr-move-id="${focused.id}"][data-qr-move="${focused.direction}"]`:`[data-qr-select="${focused.id}"]`);
+      if(control?.disabled&&focused.direction)control=node.querySelector(`[data-qr-select="${focused.id}"]`);
+      if(control?.isConnected&&!control.disabled)control.focus({preventScroll:true});
+    }
     $('qrMore').hidden=true;return;
   }
   node.setAttribute('aria-busy',String(isLoading));
