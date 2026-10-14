@@ -37,7 +37,7 @@ function setReplyStatus(text='',kind=''){const el=$('replyStatus');if(!el)return
 function ensureLoadStatus(){let el=$('conversationLoadStatus');if(el)return el;el=document.createElement('div');el.id='conversationLoadStatus';el.className='conversationLoadStatus hidden';el.setAttribute('aria-live','polite');const zone=$('conversationZone'),head=zone?.querySelector('.conversationHead');if(zone&&head)head.insertAdjacentElement('afterend',el);return el}
 function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)return;el.textContent=text;el.className='conversationLoadStatus'+(kind?' '+kind:'')+(text?'':' hidden')}
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
-function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState()}
+function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render()}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
 function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
 function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||!!opening||accessLost})}
@@ -105,7 +105,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -223,7 +223,40 @@ function renderServiceActionDetails(root,action){
   const payload=document.createElement('code');payload.textContent=action.raw_payload;
   details.appendChild(summary);details.appendChild(payload);root.appendChild(details);
 }
-function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),position=window.WorkspaceV2Jump?.capture(),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom);window.WorkspaceV2Jump?.restore(position,{stickToBottom,preserveScroll});window.WorkspaceV2ConversationSearch?.rendered()}
+const messageRows=new WeakMap();
+function messageFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.created_at,m.attachments||[],m.linked_message||null,m.service_action||null])}
+function messageContentFingerprint(m){return JSON.stringify([m.direction,m.sender_type,m.text,m.attachments||[],m.linked_message||null,m.service_action||null])}
+function createMessageRow(m){const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);return n}
+function emptyMessageRow(){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';return empty}
+function captureMessageSelection(box){
+  const selection=window.getSelection?.();if(!selection||selection.isCollapsed||!selection.anchorNode||!selection.focusNode||typeof document.createRange!=='function')return null;
+  function point(node,offset){const element=node.nodeType===1?node:node.parentElement,row=element?.closest?.('.msgBody')||element?.closest?.('.msg');if(!row||!box.contains(row))return null;const range=document.createRange();range.selectNodeContents(row);try{range.setEnd(node,offset);return{row,text:row.textContent,offset:range.toString().length,node,nodeOffset:offset,nodeText:node.textContent,forward:offset===0}}catch(e){return null}}
+  const anchor=point(selection.anchorNode,selection.anchorOffset),focus=point(selection.focusNode,selection.focusOffset);return anchor&&focus?{anchor,focus}:null;
+}
+function restoreMessageSelection(saved){
+  if(!saved||typeof document.createTreeWalker!=='function')return;
+  function point(value){if(!value.row.isConnected||value.row.textContent!==value.text)return null;if(value.node.isConnected&&value.row.contains(value.node)&&value.node.textContent===value.nodeText)return{node:value.node,offset:value.nodeOffset};const walker=document.createTreeWalker(value.row,4);let node,remaining=value.offset;while((node=walker.nextNode())){if(remaining<node.textContent.length||remaining===node.textContent.length&&!value.forward)return{node,offset:remaining};remaining-=node.textContent.length}return null}
+  const anchor=point(saved.anchor),focus=point(saved.focus);if(anchor&&focus)window.getSelection?.()?.setBaseAndExtent(anchor.node,anchor.offset,focus.node,focus.offset);
+}
+function renderMessages(messages,{stickToBottom=false,preserveScroll=false,prepend=false,resetRows=false,selectionSnapshot=null}={}){
+  const rows=messages||[];if(photoViewer&&!rows.some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);
+  const box=$('messages'),selection=resetRows?null:selectionSnapshot||captureMessageSelection(box),position=window.WorkspaceV2Jump?.capture(),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight),previousTop=box.scrollTop,previousHeight=box.scrollHeight;
+  if(typeof box.insertBefore==='function'&&typeof box.removeChild==='function'){
+    const existing=new Map();if(!resetRows)[...box.children].forEach(node=>{const record=messageRows.get(node);if(record)existing.set(record.key,node)});
+    const syntheticCounts=new Map();const desired=rows.map(m=>{const kind=[m.sender_type||'',m.direction||'',m.service_action?.type||''].join(':'),ordinal=syntheticCounts.get(kind)||0;if(!validId(Number(m.id)))syntheticCounts.set(kind,ordinal+1);const key=validId(Number(m.id))?'id:'+Number(m.id):'synthetic:'+kind+':'+ordinal,fingerprint=messageFingerprint(m),contentFingerprint=messageContentFingerprint(m),current=existing.get(key),record=current&&messageRows.get(current);if(current&&record?.contentFingerprint===contentFingerprint){if(record.fingerprint!==fingerprint){const meta=[...current.children].find(node=>node.className==='msgMeta');if(meta){meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК'}messageRows.set(current,{key,fingerprint,contentFingerprint})}existing.delete(key);return current}const node=createMessageRow(m);messageRows.set(node,{key,fingerprint,contentFingerprint});return node});
+    if(!desired.length){const prior=[...box.children].find(node=>node.className==='conversationEmpty');desired.push(prior||emptyMessageRow())}
+    const retained=new Set(desired);[...box.children].forEach(node=>{if(!retained.has(node))box.removeChild(node)});
+    let cursor=box.firstChild;for(const node of desired){if(node===cursor)cursor=cursor.nextSibling;else box.insertBefore(node,cursor)}
+  }else{
+    const frag=document.createDocumentFragment();rows.forEach(m=>frag.appendChild(createMessageRow(m)));if(!frag.childNodes.length)frag.appendChild(emptyMessageRow());box.replaceChildren(frag);
+  }
+  if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=prepend?previousTop+box.scrollHeight-previousHeight:Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom);
+  window.WorkspaceV2Jump?.restore(position,{stickToBottom,preserveScroll});window.WorkspaceV2ConversationSearch?.rendered();restoreMessageSelection(selection);window.WorkspaceV2History?.render();
+}
+function historyContext(){return {...captureReplyContext(),refreshEpoch}}
+function isCurrentHistory(context){const current=historyContext();return !busy&&!opening&&!accessLost&&!S.authExpired&&Object.keys(current).every(key=>current[key]===context?.[key])&&Number(S.detail?.conversation?.id)===Number(S.current)}
+function loseHistoryAccess(){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.resolve(false)}
 function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;$('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
@@ -236,15 +269,16 @@ async function refreshVisible(){
     const d=await api('detail',{conversation_id:target});
     if(!stillCurrent())return false;
     if(!d?.ok){
-      if([403,404].includes(d?.http_status)){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+      if([403,404].includes(d?.http_status)){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
       else setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');
       return false;
     }
     if(Number(d.conversation?.id)!==target){setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
-    const previous=S.detail,c=d.conversation,changed=JSON.stringify(previous.messages||[])!==JSON.stringify(d.messages||[]),failureChanged=JSON.stringify(previous.delivery_failure||null)!==JSON.stringify(d.delivery_failure||null);
+    const previous=S.detail,c=d.conversation;d.messages=window.WorkspaceV2History?.applyLatest(d)||d.messages||[];const changed=JSON.stringify(previous.messages||[])!==JSON.stringify(d.messages||[]),failureChanged=JSON.stringify(previous.delivery_failure||null)!==JSON.stringify(d.delivery_failure||null);
     const actionsChanged=accessLost||failureChanged||JSON.stringify([previous.conversation.manager_id,previous.conversation.status,previous.conversation.manager_name])!==JSON.stringify([c.manager_id,c.status,c.manager_name]);
-    accessLost=false;S.detail={...d,lead:previous.lead};setRefreshStatus();renderHeader(c);window.WorkspaceV2ConversationSearch?.setState('ready');
-    if(changed){const box=$('messages'),top=box.scrollTop,atBottom=window.WorkspaceV2Jump?.isFollowingLatest()??(box.scrollHeight-box.clientHeight-top<=48);renderMessages(d.messages||[],{stickToBottom:atBottom,preserveScroll:!atBottom});if(!atBottom&&!window.WorkspaceV2Jump)box.scrollTop=top}
+    const selectedText=captureMessageSelection($('messages'));accessLost=false;S.detail={...d,lead:previous.lead};setRefreshStatus();renderHeader(c);window.WorkspaceV2ConversationSearch?.setState('ready');
+    if(changed){const box=$('messages'),top=box.scrollTop,atBottom=window.WorkspaceV2Jump?.isFollowingLatest()??(box.scrollHeight-box.clientHeight-top<=48);renderMessages(d.messages||[],{stickToBottom:atBottom,preserveScroll:!atBottom,selectionSnapshot:selectedText});if(!atBottom&&!window.WorkspaceV2Jump)box.scrollTop=top}
+    if(!changed)restoreMessageSelection(selectedText);
     if(failureChanged)renderDeliveryFailure(d.delivery_failure||null);
     if(actionsChanged)renderActions(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
@@ -260,13 +294,13 @@ function renderLeadLoading(c){
   panel.appendChild(title);panel.appendChild(hint);root.replaceChildren(panel);
 }
 async function open(id,options={}){
-  const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;
+  const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous,retainLoaded=options.preserveHistory===true&&target===previous&&!options.restoreSession;
   if(!target||S.authExpired)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
   if(switching){closeEmojiPicker();closePhotoViewer(false)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
-  opening=seq;refreshEpoch++;W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
+  opening=seq;refreshEpoch++;if(!retainLoaded)window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
   window.WorkspaceV2ConversationSearch?.setState('loading');
@@ -278,18 +312,18 @@ async function open(id,options={}){
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
     if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
-    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
+    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
     applyInteractionState();window.WorkspaceV2ConversationSearch?.setState('error');
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
-  accessLost=false;S.current=target;S.detail={...d,lead:null};rememberSelection(target);setReplyStatus();setLoadStatus();
+  accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
   window.WorkspaceV2Media?.configure(S.csrf,target);
   if(switching){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
   else if(!options.preserveAttachment)window.WorkspaceV2Media?.clear();
   const c=d.conversation;renderHeader(c);renderDeliveryFailure(d.delivery_failure||null);renderActions(c);
   if(Number(c.manager_id)!==manager||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else if(switching)restoreDraft(S.current);
-  renderMessages(d.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching});
+  renderMessages(S.detail.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching,resetRows:switching});
   window.WorkspaceV2ConversationSearch?.setState('ready');renderLeadLoading(c);
   window.WorkspaceV2Inbox?.markRead(target);window.WorkspaceV2Inbox?.markActive(target);
   if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(target,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');
@@ -373,7 +407,7 @@ async function sendReply(){
         if(j.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}
         if(j.caption_sent&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
         let refreshGeneration=openSeq;
-        try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});refreshGeneration=openSeq;await refreshing}catch(e){}
+        try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});refreshGeneration=openSeq;await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error');
       }
       if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
@@ -393,7 +427,7 @@ async function sendReply(){
       // Sending already succeeded. A later history/render failure cannot reverse that result.
       let refreshed=false,refreshGeneration=openSeq;
       try{
-        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true});
+        const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});
         refreshGeneration=openSeq;refreshed=await refreshing;
       }catch(e){}
       if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
@@ -405,6 +439,7 @@ async function sendReply(){
 function bind(){
   if(bound)return;bound=true;
   const form=$('composer'),reply=$('replyText');
+  window.WorkspaceV2History?.bind({capture:historyContext,isCurrent:isCurrentHistory,canLoad:()=>!!S.current&&!S.authExpired&&!busy&&!opening&&!accessLost&&Number(S.detail?.conversation?.id)===Number(S.current),render:renderMessages,accessLost:loseHistoryAccess});
   bindEmojiPicker();
   window.WorkspaceV2ConversationSearch?.bind();
   $('conversationSearchOpen')?.setAttribute('aria-keyshortcuts','Control+Alt+F');
@@ -422,5 +457,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
 })();

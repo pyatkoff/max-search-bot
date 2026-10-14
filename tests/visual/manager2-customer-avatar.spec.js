@@ -36,8 +36,8 @@ async function setup(page,{rowCount=2,holdPhoto=false,photoDelay=0,statuses={},d
   }
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}calls.push({path:url.pathname,...d});
-  if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
-  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf')return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
+  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
+  if(method==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar'&&d.csrf==='fixture-csrf')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me'||d.action==='login')return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
    if(d.action==='detail'&&deniedDetails.has(Number(d.conversation_id)))return reply({ok:false,error:'forbidden'},403);

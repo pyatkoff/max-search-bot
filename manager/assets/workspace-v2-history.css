@@ -1,0 +1,11 @@
+.conversationHistoryControls{display:flex;align-items:center;gap:10px;padding:5px 18px;border-bottom:1px solid var(--line,#e5e9e5);flex-shrink:0;background:var(--panel,#fff);font-size:11px;color:var(--muted,#657365)}
+.conversationHistoryControls .actionBtn{font-size:11px;min-height:30px;padding:5px 9px;white-space:normal;text-align:left}
+.conversationHistoryControls #conversationHistoryStatus{overflow-wrap:anywhere;min-width:0}
+@media(max-width:600px){.conversationHistoryControls{padding:4px 12px;gap:8px;font-size:10px}.conversationHistoryControls .actionBtn{font-size:10px;min-height:28px;padding:4px 7px}}
+@media(max-height:500px){.conversationHistoryControls{padding-block:2px}.conversationHistoryControls .actionBtn{min-height:24px;padding-block:2px}.conversationHistoryControls #conversationHistoryStatus:empty{display:none}}
+@media(max-height:540px){
+.conversationTools .conversationHistoryControls.compact{display:contents;padding:0;border:0;background:transparent}
+.conversationTools .conversationHistoryControls.compact #conversationLoadOlder{flex:0 0 auto;padding:3px 7px;min-height:28px;font-size:11px;white-space:nowrap}
+.conversationTools .conversationHistoryControls.compact #conversationHistoryStatus{flex-basis:100%;font-size:10px;line-height:1.3}
+.conversationTools .conversationHistoryControls.compact #conversationHistoryStatus:empty{display:none}
+}

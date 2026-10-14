@@ -5,7 +5,7 @@
   const {$,S,esc}=W;
   const disclosures=new Map();
   let section='dialogues',navigationGeneration=0,notificationOpener=null;
-  let conversationMenu=null,conversationMenuActions=null;
+  let conversationMenu=null,conversationMenuActions=null,conversationMenuHistory=null;
   const conversationToolButtons=[];
   function disclosure(key,label,conversationId=Number(S.current||0)){
     const el=document.createElement('details');
@@ -98,9 +98,9 @@
     if(conversationMenu.hidden){conversationMenu.open=false;conversationMenuActions?.replaceChildren()}
   }
   function focusConversationTool(id){
-    const button=conversationToolButtons.find(el=>el.id===id);
+    const button=conversationToolButtons.find(el=>el.id===id)||(id==='conversationLoadOlder'&&conversationMenuHistory?.contains($(id))?$(id):null);
     if(!button||!conversationMenu||conversationMenu.hidden)return false;
-    // The canonical search owner returns to its original bound button. Reveal
+    // Canonical feature owners return to their original bound button. Reveal
     // that button before focusing it instead of leaving focus inside hidden UI.
     conversationMenu.open=true;button.focus({preventScroll:true});return true;
   }
@@ -114,6 +114,7 @@
       conversationToolButtons.push(button);items.appendChild(button);
       button.addEventListener('click',()=>conversationMenu.open=false);
     });
+    conversationMenuHistory=document.createElement('div');conversationMenuHistory.className='m2ConversationHistoryAction';items.appendChild(conversationMenuHistory);
     conversationMenuActions=document.createElement('div');conversationMenuActions.className='m2ConversationMenuActions';items.appendChild(conversationMenuActions);conversationMenu.appendChild(items);
     // renderActions clears only the canonical root. This stable sibling retains
     // the real Search/Next nodes and their once-bound listeners across redraws.
@@ -122,6 +123,7 @@
     new MutationObserver(syncConversationMenu).observe(document.body,{attributes:true,attributeFilter:['class']});
     syncConversationMenu();
   }
+  function conversationHistoryTarget(){if(!conversationMenu)initConversationMenu();return conversationMenuHistory}
   function enhanceConversationActions(root){
     void window.WorkspaceV2PostContext?.sync(S.detail?.conversation);
     const secondary=[...root.children].filter(el=>el.tagName==='BUTTON'&&!el.classList.contains('primary'));
@@ -200,6 +202,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,revealTaskDraft,budgetFact,navigate,syncNavigation};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation};
   init();
 })();

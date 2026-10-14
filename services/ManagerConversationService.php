@@ -169,14 +169,25 @@ class ManagerConversationService
         return$conversation;
     }
 
-    public static function detail(int $conversationId,int $managerId): ?array
+    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=true): ?array
     {
+        if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
+        $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
         $conversation=self::visibleConversation($conversationId,$managerId);if(!$conversation)return null;
-        ManagerReadService::markRead($managerId,$conversationId);
-        $q=ConversationDb::connection()->prepare('SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=? ORDER BY id ASC LIMIT 500');$q->execute([$conversationId]);$messages=$q->fetchAll();
+        $pdo=ConversationDb::connection();
+        $sql='SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
+        $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
+        $hasMore=count($messages)>$limit;if($hasMore)array_pop($messages);$messages=array_reverse($messages);
         foreach($messages as &$message){if(($message['sender_type']??'')==='manager')$message['text']=html_entity_decode((string)$message['text'],ENT_QUOTES|ENT_HTML5,'UTF-8');}unset($message);
-        return['conversation'=>$conversation,'messages'=>$messages,'handoff_cancellation'=>ManagerHandoffCancellationViewService::fromVisibleContext($conversation)];
+        $q=$pdo->prepare("SELECT EXISTS(SELECT 1 FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager')");$q->execute([$conversationId]);
+        $detail=['conversation'=>$conversation,'messages'=>$messages,'has_manager_reply'=>(bool)$q->fetchColumn(),
+            'history'=>['has_more'=>$hasMore,'before_id'=>$messages?(int)$messages[0]['id']:0,'page_size'=>$limit,'mode'=>$beforeId>0?'older':'latest'],
+            'handoff_cancellation'=>ManagerHandoffCancellationViewService::fromVisibleContext($conversation)];
+        // HTTP callers defer this until hydration succeeds. Existing direct
+        // detail callers retain their bounded latest-page read behaviour.
+        if($markRead&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);
+        return$detail;
     }
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array

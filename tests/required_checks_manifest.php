@@ -153,6 +153,8 @@ return [
         'php tests/run_manager_phone_fallback_regression.php',
         'php tests/run_manager_visibility_regression.php',
         'php tests/run_manager_pending_reply_regression.php',
+        'php tests/run_manager_conversation_history_regression.php',
+        'node tests/run_manager_history_behavior_regression.js',
         'php tests/run_manager_test_conversation_filter_regression.php',
         'php tests/run_manager_admin_audit_regression.php',
         'php tests/run_manager_admin_snapshot_source_behavior_regression.php',

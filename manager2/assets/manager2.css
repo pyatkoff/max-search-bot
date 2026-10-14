@@ -54,6 +54,8 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .conversationHead>.actions{flex-shrink:0;gap:6px}
 .manager2 .m2ConversationMenu[hidden]{display:none!important}
 .manager2 .m2ConversationMenuActions{display:grid;gap:5px}
+.manager2 .conversationHistoryControls.menuAction{padding:2px 12px;font-size:10px;line-height:1.3}
+.manager2 .m2ConversationHistoryAction[hidden]{display:none}
 .manager2 .leadHeroTop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .manager2 .leadHeroTop>div{min-width:0;flex:1}
 .manager2 .leadHeroName{font-size:16px;color:#344b3b;overflow-wrap:anywhere}
