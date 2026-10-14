@@ -25,7 +25,7 @@ class ConversationControlService {
     public static function event($id,$type,$actor,$actorId,$payload){$q=ConversationDb::connection()->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)');$q->execute([$id,$type,$actor,json_encode($payload)]);}
 }
 class ManagerConversationService {
-    public static function detail($id,$manager){$q=ConversationDb::connection()->prepare('SELECT * FROM conversations WHERE id=?');$q->execute([$id]);$r=$q->fetch();return $r?['conversation'=>$r]:null;}
+    public static function visibleConversation($id,$manager){$q=ConversationDb::connection()->prepare('SELECT * FROM conversations WHERE id=?');$q->execute([$id]);$r=$q->fetch();return $r?:null;}
 }
 class ManagerPushService { public static function notifyConversation(...$args){} }
 class ManagerSendGuardService { public static function acquire(...$args){return false;} }

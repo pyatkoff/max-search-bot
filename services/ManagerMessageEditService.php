@@ -11,7 +11,7 @@ class ManagerMessageEditService
     public static function editableForConversation(int $conversationId,int $managerId): array
     {
         if($conversationId<=0||$managerId<=0) return [];
-        if(!ManagerConversationService::detail($conversationId,$managerId)) return [];
+        if(!ManagerConversationService::visibleConversation($conversationId,$managerId)) return [];
         try{
             $pdo=ConversationDb::connection();
             $q=$pdo->prepare("SELECT id,metadata_json FROM messages WHERE conversation_id=? AND direction='outbound' AND sender_type='manager' AND created_at>=UTC_TIMESTAMP()-INTERVAL 5 MINUTE ORDER BY id DESC LIMIT 30");
@@ -47,9 +47,8 @@ class ManagerMessageEditService
             $channel=(string)$policy['channel'];
             if($attachments && $channel==='max') return ['ok'=>false,'error'=>'media_edit_not_supported'];
 
-            $detail=ManagerConversationService::detail((int)$policy['conversation_id'],$managerId);
-            if(!$detail) return ['ok'=>false,'error'=>'conversation_not_found'];
-            $conversation=(array)$detail['conversation'];
+            $conversation=ManagerConversationService::visibleConversation((int)$policy['conversation_id'],$managerId);
+            if(!$conversation) return ['ok'=>false,'error'=>'conversation_not_found'];
             $safe=htmlspecialchars($text,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
 
             if($channel==='max'){

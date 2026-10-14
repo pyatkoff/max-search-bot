@@ -51,7 +51,7 @@ if (isset($_GET['message_id'])) {
 $id=(string)($_GET['id']??'');$media=ManagerMediaCache::get($id);
 if(!$media){http_response_code(404);exit;}
 $conversationId=(int)($media['conversation_id']??0);
-if($conversationId<=0||!ManagerConversationService::detail($conversationId,$managerId)){http_response_code(403);exit;}
+if($conversationId<=0||!ManagerConversationService::visibleConversation($conversationId,$managerId)){http_response_code(403);exit;}
 $path=(string)($media['path']??'');if($path===''||!is_file($path)){http_response_code(404);exit;}
 $mime=(string)($media['mime']??'application/octet-stream');
 $name=(string)($media['name']??'attachment');

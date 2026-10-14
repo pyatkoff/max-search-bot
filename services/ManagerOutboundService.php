@@ -32,9 +32,8 @@ class ManagerOutboundService
     {
         self::$lastFailure = null;
         $text = trim($text); if ($text === '') return false;
-        $detail = ManagerConversationService::detail($conversationId,$managerId);
-        if (!$detail) return false;
-        $c = $detail['conversation'];
+        $c = ManagerConversationService::visibleConversation($conversationId,$managerId);
+        if (!$c) return false;
         if ((string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) return false;
         $chatId = $c['external_chat_id']; $channel = strtolower((string)$c['channel']);
         $projectKey = (string)$c['project_key'];
@@ -74,8 +73,7 @@ class ManagerOutboundService
     {
         self::$lastFailure=null;
         if(!is_file($filePath))return false;
-        $detail=ManagerConversationService::detail($conversationId,$managerId);if(!$detail)return false;
-        $c=$detail['conversation'];
+        $c=ManagerConversationService::visibleConversation($conversationId,$managerId);if(!$c)return false;
         if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return false;
         $channel=strtolower((string)$c['channel']);
         $projectKey=(string)$c['project_key'];
