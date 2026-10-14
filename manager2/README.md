@@ -60,3 +60,9 @@ The canonical protected binary endpoint owns fresh authorization and a bounded p
 An explicit paste into the composer or native file choice prepares up to ten files with image previews and individual removal. Sending remains an explicit action. Files are sent separately through the existing MAX/Telegram upload endpoint; the text accompanies the first file. Progress, partial confirmation and unknown outcome have distinct states; confirmed files are not repeated and a newly edited caption is preserved/sent correctly. Unsupported website attachment sending retains the selection and text with an explanation.
 
 Selection remains in memory only and cannot survive reload. Unknown results cannot be durably reconciled by the current media endpoint; no automatic replay is introduced. Actual PHP-shell browser fixtures cover desktop/mobile and reduced height, clipboard preview, partial retry, account/client switching and caption guards. Fixture success is not proof of natural customer receipt.
+
+## Why a client continued with the bot
+
+An explicit continuation button explains that it cancels waiting for a manager. A confirmed cancellation event appears with Moscow time in the client conversation; a literal message naming a callback never produces this notice. Later lifecycle changes or missing evidence suppress an outdated cause. The original transcript and technical/business states retain their canonical owners.
+
+Before/after actual PHP-shell screenshots wait for the mobile transition to finish; transient animation frames are not treated as layout defects. Focused acceptance covers day/night MAX/Telegram copy, bounded authorized context, cross-client drafts, refresh, account/access clearing,390/430/768/1440 and420pxheight. Production and natural customer receipt remain separate.
