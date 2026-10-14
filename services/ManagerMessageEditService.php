@@ -21,7 +21,6 @@ class ManagerMessageEditService
                 if(empty($policy['allowed'])) continue;
                 $meta=json_decode((string)($row['metadata_json']??''),true);if(!is_array($meta))$meta=[];
                 $attachments=is_array($meta['attachments']??null)?$meta['attachments']:[];
-                if($attachments&&(string)$policy['channel']==='max') continue;
                 $remaining=max(0,ManagerMessageEditPolicy::WINDOW_SECONDS-(int)($policy['age_seconds']??ManagerMessageEditPolicy::WINDOW_SECONDS));
                 $out[]=['message_id'=>(int)$row['id'],'remaining_seconds'=>$remaining];
             }
@@ -45,7 +44,6 @@ class ManagerMessageEditService
             if(!is_array($metadata)) $metadata=[];
             $attachments=is_array($metadata['attachments']??null)?$metadata['attachments']:[];
             $channel=(string)$policy['channel'];
-            if($attachments && $channel==='max') return ['ok'=>false,'error'=>'media_edit_not_supported'];
 
             $detail=ManagerConversationService::detail((int)$policy['conversation_id'],$managerId);
             if(!$detail) return ['ok'=>false,'error'=>'conversation_not_found'];
@@ -70,10 +68,10 @@ class ManagerMessageEditService
             $json=json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if($json===false) return ['ok'=>false,'error'=>'metadata_encode_failed'];
             $u=$pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=? AND conversation_id=?');
-            $u->execute([$safe,$json,$messageId,(int)$policy['conversation_id']]);
+            $u->execute([$text,$json,$messageId,(int)$policy['conversation_id']]);
             if($u->rowCount()<1) return ['ok'=>false,'error'=>'storage_update_failed'];
             ConversationControlService::event((int)$policy['conversation_id'],'manager_message_edited','manager',$managerId,['channel'=>$channel,'message_id'=>$messageId]);
-            return ['ok'=>true,'message_id'=>$messageId,'text'=>$safe,'edited'=>true];
+            return ['ok'=>true,'message_id'=>$messageId,'text'=>$text,'edited'=>true];
         }catch(Throwable $e){
             return ['ok'=>false,'error'=>'edit_failed'];
         }
