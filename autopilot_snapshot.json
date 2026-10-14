@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-14T18:17:11+00:00",
+    "generated_at": "2026-10-14T18:21:29+00:00",
     "production": {
-        "sha": "bb51a85b2453c3963a380cd2430bc3f244aad094",
+        "sha": "d2a53d2c265c9d2ed6b7ad38c5e86e38ce7f627b",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 2,
             "overdue_count": 2,
             "stuck_count": 2,
-            "oldest_wait_seconds": 132880,
+            "oldest_wait_seconds": 133132,
             "routing_blocked_count": 0
         },
         "push": {
@@ -54,9 +54,9 @@
                 "waiting": 1,
                 "assigned_to_others": 98,
                 "load_ms": {
-                    "all": 75.8,
-                    "mine": 13.5,
-                    "waiting": 50.4
+                    "all": 78.5,
+                    "mine": 14.3,
+                    "waiting": 55.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -76,9 +76,9 @@
                 "waiting": 1,
                 "assigned_to_others": 98,
                 "load_ms": {
-                    "all": 73.4,
-                    "mine": 4.5,
-                    "waiting": 54.5
+                    "all": 77.4,
+                    "mine": 4.7,
+                    "waiting": 57
                 },
                 "sample_check": {
                     "ok": true,
@@ -98,9 +98,9 @@
                 "waiting": 2,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 86.2,
-                    "mine": 35.4,
-                    "waiting": 56.5
+                    "all": 83.7,
+                    "mine": 38,
+                    "waiting": 63.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -120,9 +120,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 77,
-                    "mine": 391.5,
-                    "waiting": 52.3
+                    "all": 82.8,
+                    "mine": 412.4,
+                    "waiting": 57.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -142,9 +142,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 83.1,
-                    "mine": 2.3,
-                    "waiting": 52.2
+                    "all": 87,
+                    "mine": 2.4,
+                    "waiting": 55.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -164,9 +164,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 83.8,
-                    "mine": 20.3,
-                    "waiting": 54
+                    "all": 90.7,
+                    "mine": 21.1,
+                    "waiting": 55.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -186,9 +186,9 @@
                 "waiting": 2,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 72.6,
-                    "mine": 40.7,
-                    "waiting": 55.4
+                    "all": 75.6,
+                    "mine": 43,
+                    "waiting": 57.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -213,7 +213,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-14 17:16:58",
+        "since_utc": "2026-10-14 17:21:11",
         "summary": {
             "sessions": 9,
             "raw_sessions": 9,
@@ -258,7 +258,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "bb51a85b2453c3963a380cd2430bc3f244aad094",
+        "sha": "d2a53d2c265c9d2ed6b7ad38c5e86e38ce7f627b",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -267,7 +267,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-14T18:17:11Z"
+        "reported_at": "2026-10-14T18:21:29Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -275,7 +275,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-14T18:16:52+00:00",
+        "generated_at": "2026-10-14T18:21:03+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -370,7 +370,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-14T18:16:52+00:00",
+        "generated_at": "2026-10-14T18:21:03+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -668,7 +668,7 @@
                 "date": "2026-10-14",
                 "partial": true,
                 "since_utc": "2026-10-13 22:00:00",
-                "until_utc": "2026-10-14 18:16:52",
+                "until_utc": "2026-10-14 18:21:03",
                 "channels": [
                     {
                         "channel": "max",
@@ -768,7 +768,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-14T18:17:09+00:00",
+        "generated_at": "2026-10-14T18:21:26+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -781,9 +781,9 @@
                 "code_lines": 602
             },
             "services": {
-                "files": 175,
-                "bytes": 867806,
-                "code_lines": 17247
+                "files": 176,
+                "bytes": 870800,
+                "code_lines": 17301
             },
             "integrations": {
                 "files": 14,
@@ -791,9 +791,9 @@
                 "code_lines": 1196
             },
             "manager": {
-                "files": 80,
-                "bytes": 665428,
-                "code_lines": 4923
+                "files": 82,
+                "bytes": 668666,
+                "code_lines": 4946
             },
             "website": {
                 "files": 4,
@@ -811,9 +811,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 294,
-                "bytes": 2387747,
-                "code_lines": 26746
+                "files": 297,
+                "bytes": 2409563,
+                "code_lines": 26926
             },
             "tools": {
                 "files": 50,
@@ -849,7 +849,7 @@
             {
                 "path": "manager/assets/workspace-v2-conversation.js",
                 "lines": 427,
-                "bytes": 43131,
+                "bytes": 43563,
                 "severity": "medium"
             },
             {
