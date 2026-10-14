@@ -52,7 +52,7 @@ return [
     // This is the primary MAX manager bot, separate from the existing mini-app.
     'channel_posts' => [
         'max' => ['bot_key'=>'id9704048781_1_bot','bot_url'=>'https://max.ru/id9704048781_1_bot'],
-        'telegram' => ['bot_key'=>'Any_tour_bot','bot_url'=>'https://t.me/Any_tour_bot'],
+        'telegram' => ['bot_key'=>'anyru_bot','bot_url'=>'https://t.me/anyru_bot'],
     ],
     'analytics' => [
         'provider' => 'metrika',

@@ -71,6 +71,25 @@ media URLs and raw API bodies are never included in its output.
 production; the default `/tmp` directory is only local-host durability. Keep its
 write claims across retries and avoid simultaneous setup from different hosts.
 
+The existing **Telegram webhook status** GitHub Actions workflow provides these
+fixed operations through **Run workflow**:
+
+- `inspect` is the default and reads the current webhook without changing it.
+- `preview_channel_posts` runs the Telegram helper without write flags.
+- `enable_channel_posts` explicitly runs its addition-only `--apply` path once.
+- `reconcile_channel_posts` runs `--reconcile`, which reads the current provider
+  configuration without retrying a previous write.
+
+For every channel post operation, supply `expected_sha` with the full 40-character
+SHA already verified on production. The workflow checks the installed SHA and a
+clean tracked checkout before running the installed helper. It serializes these
+operations and retains write claims in the established private directory
+`/var/www/anytoour/data/channel-post-operations/webhook`. Preview first; enable
+only after checking the intended bot and additions. If enable reports an unknown
+outcome, use reconcile and inspect its readback before considering further work;
+never delete its claim or repeat the write to obtain a green result. This workflow
+does not publish posts, import historical posts, or replay customer updates.
+
 Open `/manager/publications.php` as an authorized project administrator. Connect
 only the test channel first, select the actual manager source, and enable it.
 For the owner-provided MAX test channel the canonical ID is `-80095447388179`.

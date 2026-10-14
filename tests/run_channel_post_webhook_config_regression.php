@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ChannelPostWebhookConfigService.php';
+require_once dirname(__DIR__).'/services/ChannelPostRuntime.php';
 $passed=0;
 function cpwCheck(string $name,bool $ok):void{global $passed;if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name."\n";}
 final class ChannelPostWebhookFixture
@@ -24,6 +25,11 @@ final class ChannelPostWebhookFixture
             $bot=['is_bot'=>true,'username'=>$this->bot,$platform==='max'?'user_id':'id'=>123456789];
             return ['http'=>200,'data'=>$platform==='max'?$bot:['ok'=>true,'result'=>$bot]];
         }
+        if($path==='getChatMember')return ['http'=>200,'data'=>['ok'=>true,'result'=>[
+            'user'=>['id'=>123456789,'is_bot'=>true,'username'=>$this->bot],
+            'status'=>'administrator','can_edit_messages'=>true,
+        ]]];
+        if($path==='getChat')return ['http'=>200,'data'=>['ok'=>true,'result'=>['id'=>$body['chat_id'],'type'=>'channel']]];
         $write=($platform==='max'&&$method==='POST')||$path==='setWebhook';
         if($write){
             if(!in_array($this->mode,['timeout_unobserved','rejected'],true))$this->types=$body[$platform==='max'?'update_types':'allowed_updates'];
@@ -52,6 +58,30 @@ final class ChannelPostWebhookFixture
 }
 $max=['project_key'=>'anytour','platform'=>'max','bot_key'=>'id9704048781_1_bot','bot_url'=>'https://max.ru/id9704048781_1_bot'];
 $tg=['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'Any_tour_bot','bot_url'=>'https://t.me/Any_tour_bot'];
+
+// Exercise the versioned runtime identity, independently of synthetic bot fixtures.
+ProjectConfig::resetForTests(null);
+$runtimeTg=ChannelPostRuntime::identity('telegram');
+$f=new ChannelPostWebhookFixture();$f->bot='anyru_bot';
+$transport=new ChannelPostButtonTransport([$f,'request']);
+$result=$transport->verifyChannel(($runtimeTg??[])+['channel_id'=>'-1001234567890']);
+cpwCheck('runtime publication identity accepts the owner-approved Telegram bot without writes',
+    $result['state']==='ready'&&$result['reason']==='capability_verified'
+    &&array_column($f->calls,'path')===['getMe','getChatMember','getChat']
+    &&$result['receipt']['write_attempts']===0);
+cpwCheck('runtime publication links open the approved Telegram bot',
+    ChannelPostButtonTransport::buttonUrl(['start_payload'=>'p_abcdefghijklmnopqrstuvwx','channel'=>$runtimeTg??[]])==='https://t.me/anyru_bot?start=p_abcdefghijklmnopqrstuvwx');
+$f=new ChannelPostWebhookFixture();$f->bot='Any_tour_bot';
+$result=(new ChannelPostButtonTransport([$f,'request']))->verifyChannel(($runtimeTg??[])+['channel_id'=>'-1001234567890']);
+cpwCheck('runtime publication identity rejects a different Telegram bot before channel access',
+    $result['state']==='requires_attention'&&$result['reason']==='canonical_bot_identity_mismatch'
+    &&array_column($f->calls,'path')===['getMe']&&$result['receipt']['write_attempts']===0);
+$f=new ChannelPostWebhookFixture();$f->bot='anyru_bot';$f->url=WebhookTargetConfig::telegram();$f->types=['message','callback_query'];
+$result=$f->service()->run('telegram',$runtimeTg??[]);
+cpwCheck('runtime Telegram identity also permits the read-only channel-event plan',
+    $result['state']==='planned'&&$result['receipt']['added_update_types']===['channel_post','edited_channel_post']
+    &&$f->writes()===[]&&$f->claims===[]);
+
 $fixture=new ChannelPostWebhookFixture();$dry=$fixture->service()->run('max',$max);
 cpwCheck('default run verifies exact bot and plans without provider write',$dry['state']==='planned'&&$dry['receipt']['added_update_types']===['message_edited']&&$dry['receipt']['request_count']===2&&$fixture->writes()===[]&&$fixture->claims===[]);
 cpwCheck('plan contains no secret, raw provider response or webhook body',!str_contains(json_encode($dry),'PRIVATE_PROVIDER_SECRET')&&!str_contains(json_encode($dry),'synthetic_max_secret')&&!str_contains(json_encode($dry),'app.anytoour.ru'));
