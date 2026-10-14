@@ -9,6 +9,7 @@ let editor=null,pending=null,mutationBusy=false,query={scope:'all',search:'',cat
 let lastError='',listFailed=false;
 let toolbarRows=[],toolbarVersion='',toolbarLimit=100,toolbarReady=false,toolbarError='',toolbarLoading=null,toolbarTicket=0,toolbarNode=null;
 let toolbarFocus=null;
+let emojiState=null;
 
 function identity(){return !S.authExpired?Number(S.manager?.id||0):0}
 function authenticated(){return owner>0&&identity()===owner&&Number(S.authGeneration||0)===ownerGeneration}
@@ -128,6 +129,51 @@ function moveToolbar(id,direction){
   toolbarFocus={id,direction};
   return mutate('reorder',{ids,toolbar_version:toolbarVersion});
 }
+async function removeFromToolbar(id){
+  if(!authenticated()||mutationBusy||pending||!toolbarReady||!toolbarRows.some(reply=>Number(reply.id)===id))return;
+  const active=document.activeElement,capturedEpoch=epoch,index=toolbarRows.findIndex(reply=>Number(reply.id)===id),neighbor=toolbarRows[index+1]||toolbarRows[index-1];
+  const restoreFocus=Number(active?.dataset?.qrRemoveId)===id;
+  await mutate('favorite',{id,is_favorite:false,toolbar_version:toolbarVersion},{preserveSelection:true});
+  if(restoreFocus&&capturedEpoch===epoch&&dialog?.open&&authenticated()&&!mutationBusy&&!pending&&[document.body,dialog,active].includes(document.activeElement)){
+    const target=$('qrList')?.querySelector?.(`[data-qr-remove-id="${id}"]`)||$('qrList')?.querySelector?.(`[data-qr-select="${Number(neighbor?.id||0)}"]`)||$('qrCreate');
+    if(target?.isConnected&&!target.disabled)target.focus({preventScroll:true});
+  }
+}
+function emojiChoices(){
+  return Array.from($('emojiPicker')?.querySelectorAll?.('button[data-emoji]')||[]).map(button=>({
+    emoji:button.dataset.emoji,label:button.getAttribute('aria-label')||button.title||button.dataset.emoji
+  })).filter(choice=>typeof choice.emoji==='string'&&choice.emoji.length>0);
+}
+function emojiMarkup(){
+  const choices=emojiChoices();if(!choices.length)return '';
+  return `<div class="qrEmojiTools"><button id="qrEmojiToggle" class="qrButton" type="button" aria-expanded="false" aria-controls="qrEmojiPicker">😊 Смайлики</button><div id="qrEmojiPicker" class="qrEmojiPicker" role="group" aria-label="Выбрать смайлик" hidden>${choices.map(choice=>`<button type="button" data-qr-emoji="${attr(choice.emoji)}" aria-label="${attr(choice.label)}" title="${attr(choice.label)}">${esc(choice.emoji)}</button>`).join('')}</div></div>`;
+}
+function closeQuickReplyEmojis(restoreFocus=false){
+  const wasOpen=!!emojiState;emojiState=null;
+  const picker=$('qrEmojiPicker'),toggle=$('qrEmojiToggle');if(picker)picker.hidden=true;
+  toggle?.setAttribute('aria-expanded','false');
+  if(wasOpen&&restoreFocus&&dialog?.open&&authenticated()&&toggle?.isConnected&&!toggle.disabled)toggle.focus({preventScroll:true});
+}
+function bindQuickReplyEmojis(target){
+  const toggle=$('qrEmojiToggle'),picker=$('qrEmojiPicker'),input=$(target);if(!toggle||!picker||!input)return;
+  const usable=()=>dialog?.open&&authenticated()&&!mutationBusy&&!pending&&input.isConnected&&!input.disabled&&$(target)===input&&(target==='qrBody'?!!editor:!!selected);
+  input.addEventListener('focus',()=>closeQuickReplyEmojis());
+  input.addEventListener('input',()=>closeQuickReplyEmojis());
+  toggle.onclick=()=>{
+    if(!usable())return;
+    if(emojiState){closeQuickReplyEmojis();return}
+    emojiState={target,input,epoch,id:Number((target==='qrBody'?editor:selected)?.id||0),start:input.selectionStart,end:input.selectionEnd};
+    picker.hidden=false;toggle.setAttribute('aria-expanded','true');picker.querySelector('button')?.focus();
+  };
+  picker.addEventListener('click',event=>{
+    const button=event.target.closest('[data-qr-emoji]'),state=emojiState;
+    if(!button||!state||!usable()||state.epoch!==epoch||state.input!==input||state.target!==target||state.id!==Number((target==='qrBody'?editor:selected)?.id||0)||!emojiChoices().some(choice=>choice.emoji===button.dataset.qrEmoji))return;
+    if(input.maxLength>0&&input.value.length-(state.end-state.start)+button.dataset.qrEmoji.length>input.maxLength){setStatus('В тексте ответа не больше '+input.maxLength+' символов. Сократите текст или замените выделенный фрагмент.','warn');return}
+    input.setRangeText(button.dataset.qrEmoji,state.start,state.end,'end');
+    if(target==='qrBody'){editor={...editor,body:input.value};persist()}else{preview=input.value;updateInsertion()}
+    closeQuickReplyEmojis();input.focus({preventScroll:true});
+  });
+}
 function restorePanelFocus(){
   if(!toolbarFocus||mutationBusy||pending||query.scope!=='toolbar')return;
   const {id,direction}=toolbarFocus;toolbarFocus=null;
@@ -155,7 +201,8 @@ function ensureDialog(){
   $('qrClose').onclick=close;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
   // Workspace shortcuts belong to the conversation behind this modal.
-  dialog.addEventListener('keydown',event=>event.stopPropagation());
+  dialog.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'&&emojiState){event.preventDefault();closeQuickReplyEmojis(true)}});
+  dialog.addEventListener('click',event=>{if(!event.target.closest?.('.qrEmojiTools'))closeQuickReplyEmojis()});
   dialog.addEventListener('close',()=>{if(returnFocus?.isConnected&&!returnFocus.disabled)returnFocus.focus({preventScroll:true})});
   $('qrSearch').addEventListener('input',()=>{
     query.search=$('qrSearch').value;clearTimeout(searchTimer);
@@ -170,6 +217,8 @@ function ensureDialog(){
   });
   $('qrCreate').onclick=()=>beginEditor();$('qrMore').onclick=()=>load(true);
   $('qrList').addEventListener('click',event=>{
+    const remove=event.target.closest('[data-qr-remove-id]');
+    if(remove){void removeFromToolbar(Number(remove.dataset.qrRemoveId));return}
     const move=event.target.closest('[data-qr-move]');
     if(move){void moveToolbar(Number(move.dataset.qrMoveId),move.dataset.qrMove);return}
     const select=event.target.closest('[data-qr-select]');
@@ -182,7 +231,7 @@ function updateScope(){
   $('qrScopes')?.querySelectorAll('[data-qr-scope]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.qrScope===query.scope)));
   const panel=query.scope==='toolbar';if($('qrSearch'))$('qrSearch').disabled=panel;
   if($('qrCategory'))$('qrCategory').disabled=panel;
-  if($('qrLibraryHint'))$('qrLibraryHint').textContent=panel?'Кнопки появятся в этом порядке. Стрелки меняют порядок для вашего аккаунта.':'Выбирайте «На панели», чтобы видеть ответ рядом с полем сообщения.';
+  if($('qrLibraryHint'))$('qrLibraryHint').textContent=panel?'Стрелки меняют порядок. «Убрать с панели» оставит ответ в вашей библиотеке.':'Выбирайте «Добавить на панель», чтобы видеть ответ рядом с полем сообщения.';
 }
 function renderPending(){
   const node=$('qrPending');if(!node)return;
@@ -201,13 +250,13 @@ function renderList(isLoading=false){
   if(query.scope==='toolbar'){
     // A settings refresh must not detach the arrow a keyboard user just focused.
     const active=document.activeElement,focused=dialog?.open&&authenticated()&&node.contains?.(active)?{
-      id:Number(active.dataset?.qrMoveId||active.dataset?.qrSelect||0),direction:active.dataset?.qrMove||''
+      id:Number(active.dataset?.qrMoveId||active.dataset?.qrSelect||active.dataset?.qrRemoveId||0),direction:active.dataset?.qrMove||'',remove:!!active.dataset?.qrRemoveId
     }:null;
     node.setAttribute('aria-busy',String(!!toolbarLoading));
-    node.innerHTML=toolbarRows.length?toolbarRows.map((reply,index)=>`<div class="qrPanelItem" data-qr-panel-id="${Number(reply.id)}"><button type="button" class="qrItem${Number(selected?.id)===Number(reply.id)?' selected':''}" data-qr-select="${Number(reply.id)}" aria-pressed="${Number(selected?.id)===Number(reply.id)}"><span class="qrItemTop"><strong>${esc(reply.title)}</strong><span class="qrPanelNumber">${index+1}</span></span><span class="qrItemBody">${esc(reply.body)}</span><span class="qrItemMeta">${reply.scope==='shared'?'Общий ответ на моей панели':'Мой ответ на панели'}</span></button><div class="qrPanelOrder" role="group" aria-label="Порядок: ${attr(reply.title)}"><button type="button" data-qr-move="up" data-qr-move-id="${Number(reply.id)}" aria-label="Выше: ${attr(reply.title)}" ${index===0||mutationBusy||pending||toolbarError?'disabled':''}>↑</button><button type="button" data-qr-move="down" data-qr-move-id="${Number(reply.id)}" aria-label="Ниже: ${attr(reply.title)}" ${index===toolbarRows.length-1||mutationBusy||pending||toolbarError?'disabled':''}>↓</button></div></div>`).join(''):`<div class="qrEmpty"><strong>${toolbarLoading?'Загружаем вашу панель':toolbarError?'Не удалось загрузить панель':'Добавьте свои быстрые ответы'}</strong><span>${toolbarError?'Попробуйте загрузить панель ещё раз.':'Создайте ответ или выберите существующий в «Мои» / «Общие», затем нажмите «Добавить на панель».'}</span>${toolbarError?'<button type="button" class="qrButton" data-qr-retry>Повторить загрузку</button>':''}</div>`;
+    node.innerHTML=toolbarRows.length?toolbarRows.map((reply,index)=>`<div class="qrPanelItem" data-qr-panel-id="${Number(reply.id)}"><div class="qrPanelContent"><button type="button" class="qrItem${Number(selected?.id)===Number(reply.id)?' selected':''}" data-qr-select="${Number(reply.id)}" aria-pressed="${Number(selected?.id)===Number(reply.id)}"><span class="qrItemTop"><strong>${esc(reply.title)}</strong><span class="qrPanelNumber">${index+1}</span></span><span class="qrItemBody">${esc(reply.body)}</span><span class="qrItemMeta">${reply.scope==='shared'?'Общий ответ на моей панели':'Мой ответ на панели'}</span></button><button type="button" class="qrPanelRemove" data-qr-remove-id="${Number(reply.id)}" aria-label="Убрать с панели: ${attr(reply.title)}" ${mutationBusy||pending||!toolbarReady?'disabled':''}>Убрать с панели</button></div><div class="qrPanelOrder" role="group" aria-label="Порядок: ${attr(reply.title)}"><button type="button" data-qr-move="up" data-qr-move-id="${Number(reply.id)}" aria-label="Выше: ${attr(reply.title)}" ${index===0||mutationBusy||pending||toolbarError?'disabled':''}>↑</button><button type="button" data-qr-move="down" data-qr-move-id="${Number(reply.id)}" aria-label="Ниже: ${attr(reply.title)}" ${index===toolbarRows.length-1||mutationBusy||pending||toolbarError?'disabled':''}>↓</button></div></div>`).join(''):`<div class="qrEmpty"><strong>${toolbarLoading?'Загружаем вашу панель':toolbarError?'Не удалось загрузить панель':'Добавьте свои быстрые ответы'}</strong><span>${toolbarError?'Попробуйте загрузить панель ещё раз.':'Создайте ответ или выберите существующий в «Мои» / «Общие», затем нажмите «Добавить на панель».'}</span>${toolbarError?'<button type="button" class="qrButton" data-qr-retry>Повторить загрузку</button>':''}</div>`;
     if(toolbarError&&toolbarRows.length)node.insertAdjacentHTML('beforeend',`<div class="qrInlineError" role="status">${esc(toolbarError)}</div>`);
     if(focused?.id>0&&dialog?.open&&authenticated()&&[document.body,dialog,active].includes(document.activeElement)){
-      let control=node.querySelector(focused.direction?`[data-qr-move-id="${focused.id}"][data-qr-move="${focused.direction}"]`:`[data-qr-select="${focused.id}"]`);
+      let control=node.querySelector(focused.direction?`[data-qr-move-id="${focused.id}"][data-qr-move="${focused.direction}"]`:focused.remove?`[data-qr-remove-id="${focused.id}"]`:`[data-qr-select="${focused.id}"]`);
       if(control?.disabled&&focused.direction)control=node.querySelector(`[data-qr-select="${focused.id}"]`);
       if(control?.isConnected&&!control.disabled)control.focus({preventScroll:true});
     }
@@ -252,13 +301,14 @@ function editorMarkup(){
     <label for="qrTitle">Название<input id="qrTitle" type="text" maxlength="120" required value="${attr(draft.title)}" placeholder="Например, приветствие"></label>
     <div class="qrEditorMeta"><label for="qrEditCategory">Категория<input id="qrEditCategory" maxlength="64" list="qrCategorySuggestions" value="${attr(draft.category)}" placeholder="Например, знакомство"></label><label for="qrEditScope">Видимость<select id="qrEditScope" ${draft.id?'disabled':''}><option value="personal">Только мне</option>${isAdmin?'<option value="shared">Всем менеджерам</option>':''}</select></label></div>
     <datalist id="qrCategorySuggestions">${categories.map(value=>`<option value="${attr(value)}"></option>`).join('')}</datalist>
-    <label class="qrBodyLabel" for="qrBody">Текст ответа<textarea id="qrBody" rows="8" maxlength="8000" required placeholder="Напишите готовый текст…">${esc(draft.body)}</textarea></label>
+    <label class="qrBodyLabel" for="qrBody">Текст ответа<textarea id="qrBody" rows="8" maxlength="8000" required placeholder="Напишите готовый текст…">${esc(draft.body)}</textarea></label>${emojiMarkup()}
     <div class="qrVariables"><span>Подставить имя:</span><button type="button" data-qr-variable="manager_name">Менеджера</button><button type="button" data-qr-variable="client_name">Клиента</button></div>
     <p id="qrVisibilityNote" class="qrHint"></p><p class="qrHint">Перед вставкой можно изменить текст. Если имя неизвестно, потребуется заменить подсказку.</p>
     ${lastError?`<div class="qrInlineError" role="alert">${esc(lastError)}</div>`:''}
     <div class="qrEditorActions"><button id="qrSave" class="qrButton qrPrimary" type="submit">Сохранить ответ</button><button id="qrCancelEdit" class="qrButton" type="button">Отмена</button>${draft.conflict?'<button id="qrReloadConflict" class="qrButton" type="button">Открыть актуальную версию</button>':''}</div></form>`;
 }
 function renderDetail(){
+  closeQuickReplyEmojis();
   const node=$('qrDetail');if(!node)return;
   if(editor){
     node.innerHTML=editorMarkup();$('qrEditScope').value=editor.scope==='shared'&&S.manager?.role==='admin'?'shared':'personal';
@@ -277,21 +327,21 @@ function renderDetail(){
       if(!window.confirm('Открыть актуальную версию? Несохранённый текст этого шаблона будет заменён.'))return;
       editor={id:current.id,version:current.version,title:current.title,body:current.body,category:current.category,scope:current.scope};lastError='';persist();renderDetail();
     };
-    updateVisibility();updateBusy();return;
+    bindQuickReplyEmojis('qrBody');updateVisibility();updateBusy();return;
   }
   if(!selected){node.innerHTML='<div class="qrWelcome"><div class="qrWelcomeIcon" aria-hidden="true">↗</div><h3>Меньше повторного набора</h3><p>Выберите ответ слева или создайте свой. Текст появится здесь для проверки перед вставкой.</p><span>Отправка клиенту — отдельное действие.</span></div>';return}
-  node.innerHTML=`<div class="qrDetailTop"><div><span class="qrBadge">${selected.scope==='shared'?'Общий ответ':'Мой ответ'}</span><h3>${esc(selected.title)}</h3>${selected.category?`<p>${esc(selected.category)}</p>`:''}</div><button id="qrFavorite" class="qrButton qrPanelToggle" type="button" aria-label="${selected.is_favorite?'Убрать с панели':'Добавить на панель'}" aria-pressed="${!!selected.is_favorite}">${selected.is_favorite?'✓ На панели':'+ На панель'}</button></div>
-    <div class="qrTools">${selected.can_edit?'<button id="qrEdit" class="qrButton" type="button">Изменить</button>':'<span class="qrHint">Общий ответ редактирует администратор</span>'}<button id="qrCopy" class="qrButton" type="button">Копировать в мои</button>${selected.can_edit?'<button id="qrDelete" class="qrButton qrDanger" type="button">Удалить</button>':''}</div>
-    <label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label><div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
+  node.innerHTML=`<div class="qrDetailTop"><div><span class="qrBadge">${selected.scope==='shared'?'Общий ответ':'Мой ответ'}</span><h3>${esc(selected.title)}</h3>${selected.category?`<p>${esc(selected.category)}</p>`:''}</div><button id="qrFavorite" class="qrButton qrPanelToggle" type="button" aria-label="${selected.is_favorite?'Убрать с панели':'Добавить на панель'}" aria-pressed="${!!selected.is_favorite}">${selected.is_favorite?'Убрать с панели':'Добавить на панель'}</button></div>
+    <div class="qrTools">${selected.can_edit?'<button id="qrEdit" class="qrButton" type="button">Изменить</button>':'<span class="qrHint">Общий ответ редактирует администратор</span>'}<button id="qrCopy" class="qrButton" type="button">Копировать в мои</button>${selected.can_edit?'<button id="qrDelete" class="qrButton qrDanger" type="button">Удалить ответ</button>':''}</div>
+    <label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label>${emojiMarkup()}<div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
     <div class="qrInsertFooter"><button id="qrInsert" class="qrButton qrPrimary" type="button">Вставить в ответ</button><p>Добавим текст в текущий черновик. Вложения сохранятся.</p></div>`;
   $('qrPreview').addEventListener('input',()=>{preview=$('qrPreview').value;updateInsertion()});
   $('qrInsert').onclick=insert;$('qrFavorite').onclick=()=>mutate('favorite',{id:selected.id,is_favorite:!selected.is_favorite,...(toolbarReady?{toolbar_version:toolbarVersion}:{})});
   $('qrCopy').onclick=()=>mutate('copy',{id:selected.id});
   if($('qrEdit'))$('qrEdit').onclick=()=>beginEditor(selected);
   if($('qrDelete'))$('qrDelete').onclick=()=>{
-    if(window.confirm(selected.scope==='shared'?'Удалить общий ответ для всех менеджеров?':'Удалить этот быстрый ответ?'))mutate('delete',{id:selected.id,version:selected.version});
+    if(window.confirm(selected.scope==='shared'?'Удалить общий ответ из библиотеки для всех менеджеров? Он исчезнет и с их панелей.':'Удалить этот быстрый ответ из библиотеки? Он исчезнет и с панели.'))mutate('delete',{id:selected.id,version:selected.version});
   };
-  updateInsertion();updateBusy();
+  bindQuickReplyEmojis('qrPreview');updateInsertion();updateBusy();
 }
 function updateVisibility(){
   const note=$('qrVisibilityNote');if(note)note.textContent=editor?.scope==='shared'?'Этот ответ будет доступен всем менеджерам. Редактирование — у администраторов.':'Этот ответ будет доступен только вашему аккаунту, в том числе на другом устройстве.';
@@ -305,7 +355,8 @@ function updateInsertion(){
 }
 function updateBusy(){
   const disabled=mutationBusy||!!pending;
-  ['qrCreate','qrFavorite','qrCopy','qrEdit','qrDelete','qrSave','qrCancelEdit','qrReloadConflict'].forEach(id=>{const node=$(id);if(node)node.disabled=disabled});
+  ['qrCreate','qrFavorite','qrCopy','qrEdit','qrDelete','qrSave','qrCancelEdit','qrReloadConflict','qrEmojiToggle'].forEach(id=>{const node=$(id);if(node)node.disabled=disabled});
+  $('qrEmojiPicker')?.querySelectorAll('[data-qr-emoji]').forEach(node=>{node.disabled=disabled});if(disabled)closeQuickReplyEmojis();
   if(editor&&$('qrEditor'))$('qrEditor').querySelectorAll('input,textarea,select,[data-qr-variable]').forEach(node=>{node.disabled=disabled||(node.id==='qrEditScope'&&!!editor.id)});
   if($('qrSave'))$('qrSave').textContent=mutationBusy?'Сохраняем…':'Сохранить ответ';
   renderPending();updateInsertion();renderToolbar();if(query.scope==='toolbar')renderList();
@@ -324,12 +375,12 @@ function saveEditor(){
   return mutate(editor.id?'update':'create',data);
 }
 function unknownResult(result){return !result||['network_error','invalid_response','operation_mismatch','operation_pending'].includes(result.error)||Number(result.http_status||0)>=500}
-async function mutate(action,data){
+async function mutate(action,data,options={}){
   if(!authenticated()||mutationBusy||pending)return;
   const capturedEpoch=epoch;
   // Reads begun before this write cannot restore an obsolete order or body.
   toolbarTicket++;toolbarLoading=null;
-  pending={action,data,operation_id:operationId(),...(action==='reorder'?{focus:toolbarFocus}:{})};mutationBusy=true;persist();updateBusy();setStatus('Сохраняем изменение…');
+  pending={action,data,operation_id:operationId(),...(action==='reorder'?{focus:toolbarFocus}:{}),...(options.preserveSelection?{preserve_selection:true}:{})};mutationBusy=true;persist();updateBusy();setStatus('Сохраняем изменение…');
   const result=await request(action,{...data,operation_id:pending.operation_id});
   if(capturedEpoch!==epoch||!authenticated())return;
   mutationBusy=false;
@@ -338,6 +389,7 @@ async function mutate(action,data){
 }
 function finishMutation(result,action){
   if(action==='reorder'&&pending?.focus)toolbarFocus=pending.focus;
+  const preserveSelection=action==='favorite'&&pending?.preserve_selection;
   pending=null;mutationBusy=false;
   const hasToolbar=acceptToolbar(result?.toolbar);
   if(!result?.ok){
@@ -346,7 +398,7 @@ function finishMutation(result,action){
     persist();setStatus(lastError,'error');renderDetail();if(!hasToolbar&&action==='reorder')void loadToolbar(true);return;
   }
   if(['create','update'].includes(action)){editor=null;lastError=''}
-  if(result.reply){
+  if(result.reply&&!preserveSelection){
     const preservePreview=action==='favorite'&&Number(selected?.id)===Number(result.reply.id);
     selected=result.reply;
     if(!preservePreview){replyContext=window.WorkspaceV2Conversation?.captureReplyContext?.()||null;preview=resolveText(selected.body,knownValues())}
@@ -406,8 +458,9 @@ async function open(options={}){
 function focusLibrary(){
   const node=query.scope==='toolbar'?$('qrList')?.querySelector?.('[data-qr-select]')||$('qrCreate'):$('qrSearch');node?.focus();
 }
-function close(){persist();if(dialog?.open)dialog.close()}
+function close(){closeQuickReplyEmojis();persist();if(dialog?.open)dialog.close()}
 function resetSession(){
+  closeQuickReplyEmojis();
   persist();epoch++;loadTicket++;toolbarTicket++;clearTimeout(searchTimer);searchTimer=null;loading=null;toolbarLoading=null;
   owner=0;ownerGeneration=0;rows=[];categories=[];selected=null;preview='';replyContext=null;editor=null;pending=null;mutationBusy=false;nextOffset=null;listFailed=false;lastError='';query={scope:'all',search:'',category:'',favorites_only:false};
   toolbarRows=[];toolbarVersion='';toolbarReady=false;toolbarError='';toolbarFocus=null;renderToolbar();

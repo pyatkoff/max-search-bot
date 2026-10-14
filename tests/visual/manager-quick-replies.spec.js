@@ -7,8 +7,8 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,selectedIds=[2],messages=null}={}){
- const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
+ const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],heldFavorites=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
  let manager={id:7,role,display_name:'Мария',is_working:true};
  const replies=[
   {id:1,manager_id:7,title:'Личное приветствие',body:'Здравствуйте, {client_name}! Меня зовут {manager_name}.',category:'Приветствие',scope:'personal',version:1,is_favorite:false,can_edit:true},
@@ -57,7 +57,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   }
   if(url.pathname==='/manager/quick-replies-api.php'){
    if(d.csrf!=='fixture-csrf')throw new Error('Quick replies must use canonical CSRF');
-   const requestOwner=manager.id;
+   const requestOwner=manager.id,requestRole=manager.role;
    if(d.action==='toolbar'){
     const captured=snapshot(toolbar());
     if(holdToolbar)await new Promise(resolve=>heldToolbars.push(resolve));
@@ -82,15 +82,25 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
     let r=d.action==='create'?null:replies.find(r=>r.id===Number(d.id));if(d.action==='copy'){r={...r,id:100+replies.length,manager_id:requestOwner,scope:'personal',is_favorite:false,can_edit:true};replies.push(r);const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));return reply(result)}if(r&&d.version!==r.version)return reply({ok:false,error:'conflict',current:r},409);
     if(!r){r={id:100+replies.length,manager_id:requestOwner,is_favorite:false,version:0};replies.push(r)}Object.assign(r,{title:d.title,body:d.body,category:d.category,scope:d.scope||r.scope,can_edit:true,version:r.version+1});const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));if(d.action==='create'&&unknownCreate)return route.abort('failed');return reply(result);
    }
-   if(d.action==='favorite'){const r=replies.find(r=>r.id===Number(d.id));r.is_favorite=!!d.is_favorite;const ids=selected();panels.set(requestOwner,d.is_favorite?(ids.includes(r.id)?ids:[...ids,r.id]):ids.filter(id=>id!==r.id));bump(requestOwner);const result={ok:true,reply:view(r),toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));return reply(result)}
-   if(d.action==='delete'){const i=replies.findIndex(r=>r.id===Number(d.id)),id=replies[i].id;replies.splice(i,1);for(const [owner,ids]of panels){if(ids.includes(id)){panels.set(owner,ids.filter(key=>key!==id));bump(owner)}}const result={ok:true,toolbar:toolbar()};receipts.set(d.operation_id,snapshot(result));return reply(result)}
+   if(d.action==='favorite'){
+    if(conflictFavorite||(d.toolbar_version&&d.toolbar_version!==toolbar(requestOwner).version)){conflictFavorite=false;return reply({ok:false,error:'conflict',toolbar:toolbar(requestOwner)},409)}
+    const r=replies.find(r=>r.id===Number(d.id));if(!available(r,requestOwner))return reply({ok:false,error:'not_found'},404);
+    r.is_favorite=!!d.is_favorite;const ids=selected(requestOwner);panels.set(requestOwner,d.is_favorite?(ids.includes(r.id)?ids:[...ids,r.id]):ids.filter(id=>id!==r.id));bump(requestOwner);
+    const result={ok:true,reply:view(r,requestOwner),toolbar:toolbar(requestOwner)};receipts.set(d.operation_id,snapshot(result));
+    if(holdFavorite)await new Promise(resolve=>heldFavorites.push(resolve));if(unknownFavorite)return route.abort('failed');return reply(result);
+   }
+   if(d.action==='delete'){
+    const i=replies.findIndex(r=>r.id===Number(d.id)),r=replies[i];if(!available(r,requestOwner))return reply({ok:false,error:'not_found'},404);
+    if(r.scope==='shared'&&requestRole!=='admin')return reply({ok:false,error:'forbidden'},403);if(d.version!==r.version)return reply({ok:false,error:'conflict',current:view(r,requestOwner)},409);
+    const id=r.id;replies.splice(i,1);for(const [owner,ids]of panels){if(ids.includes(id)){panels.set(owner,ids.filter(key=>key!==id));bump(owner)}}const result={ok:true,toolbar:toolbar(requestOwner)};receipts.set(d.operation_id,snapshot(result));if(unknownDelete)return route.abort('failed');return reply(result);
+   }
   }
   if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
+ return {calls,unexpected,errors,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
 async function openLead(page,id=11){
  // Reload may populate Inbox before the saved conversation finishes opening.
@@ -199,6 +209,57 @@ test('held toolbar refresh preserves editable preview focus, selection and text'
  await page.locator('[data-qr-select="1"]').click();const preview=page.locator('#qrPreview');await preview.fill('Личный текст перед вставкой');await preview.evaluate(node=>node.setSelectionRange(7,12));await expect(preview).toBeFocused();
  s.releaseToolbar();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');await expect(preview).toBeFocused();await expect(preview).toHaveValue('Личный текст перед вставкой');
  expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([7,12]);expect(s.calls.filter(c=>c.action==='reorder')).toHaveLength(0);clean(s);
+});
+
+for(const width of [390,430,768,1440])test.describe('Quick reply controls '+width,()=>{
+ test.use({viewport:{width,height:900}});
+ test('emoji replacement preserves Unicode, caret, saved text and composer draft/file',async({page,browserName})=>{
+  const s=await setup(page);await openLead(page);await page.locator('#replyText').fill('Черновик клиента 🌍');await page.locator('#replyFile').setInputFiles({name:'emoji-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Preserve draft attachment')});const attachment=await page.locator('#mediaSelection').textContent();
+  await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Приветствие со смайликом');const body=page.locator('#qrBody');await body.fill('Начало убрать конец');await body.evaluate(node=>node.setSelectionRange(7,13));
+  await page.locator('#qrEmojiToggle').click();await expect(page.locator('#qrEmojiPicker')).toBeVisible();await expect(page.locator('#qrEmojiPicker [data-qr-emoji="😊"]')).toHaveAccessibleName('Улыбка');
+  const canonical=await page.locator('#emojiPicker [data-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.emoji));expect(await page.locator('#qrEmojiPicker [data-qr-emoji]').evaluateAll(nodes=>nodes.map(node=>node.dataset.qrEmoji))).toEqual(canonical);
+  await page.locator('#qrEmojiPicker [data-qr-emoji="😊"]').click();await expect(body).toHaveValue('Начало 😊 конец');await expect(body).toBeFocused();expect(await body.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([9,9]);
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('Начало 😊 конец');await page.locator('#qrClose').click();await openLibrary(page);await expect(body).toHaveValue('Начало 😊 конец');
+  await page.setViewportSize({width,height:420});await page.locator('#qrEmojiToggle').scrollIntoViewIfNeeded();await page.locator('#qrEmojiToggle').click();const last=page.locator('#qrEmojiPicker [data-qr-emoji]').last();await last.scrollIntoViewIfNeeded();await expect(last).toBeInViewport();await bounded(page);expect(await page.locator('#qrEmojiPicker').evaluate(node=>node.scrollWidth-node.clientWidth)).toBeLessThanOrEqual(1);await capture(page,browserName,width,'emoji-editor-short');
+  await page.keyboard.press('Escape');await expect(page.locator('#qrEmojiPicker')).toBeHidden();await expect(page.locator('#quickRepliesDialog')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeFocused();await page.setViewportSize({width,height:900});await page.locator('#qrSave').click();await expect.poll(()=>s.replies.find(r=>r.title==='Приветствие со смайликом')?.body).toBe('Начало 😊 конец');const created=s.replies.find(r=>r.title==='Приветствие со смайликом');
+  const preview=page.locator('#qrPreview');await preview.fill('До заменить после');await preview.evaluate(node=>node.setSelectionRange(3,11));await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😎"]').focus();await page.keyboard.press('Enter');await expect(preview).toHaveValue('До 😎 после');await expect(preview).toBeFocused();expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);
+  await expect(page.locator('#replyText')).toHaveValue('Черновик клиента 🌍');await expect(page.locator('#mediaSelection')).toHaveText(attachment);await capture(page,browserName,width,'emoji-preview');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Черновик клиента 🌍\nДо 😎 после');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  await page.reload();await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="'+created.id+'"]').click();await page.locator('#qrEdit').click();await expect(body).toHaveValue('Начало 😊 конец');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
+ });
+ test('row removal changes only personal panel membership, keeps library and reload order',async({page,browserName})=>{
+  const s=await setup(page,{selectedIds:[1,2,3]});await openLead(page);await page.locator('#replyText').fill('Текст до настройки панели');await page.locator('#replyFile').setInputFiles({name:'remove-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected file')});const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#quickRepliesOpen').click();
+  const remove=page.locator('[data-qr-remove-id="1"]');await expect(remove).toHaveAccessibleName('Убрать с панели: Личное приветствие');await page.setViewportSize({width,height:420});await remove.scrollIntoViewIfNeeded();await expect(remove).toBeInViewport();await bounded(page);await capture(page,browserName,width,'panel-remove-short');await remove.click();await expectPanel(page,[2,3]);
+  expect(s.replies.map(r=>r.id)).toEqual([1,2,3]);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(0);expect(s.calls.filter(c=>c.action==='favorite')).toHaveLength(1);expect(s.calls.find(c=>c.action==='favorite')).toMatchObject({id:1,is_favorite:false});
+  await page.setViewportSize({width,height:900});await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrFavorite')).toHaveText('Добавить на панель');await expect(page.locator('#qrDelete')).toHaveText('Удалить ответ');await page.locator('#qrClose').click();await expect(page.locator('#replyText')).toHaveValue('Текст до настройки панели');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  await page.reload();await openLead(page);await expectPanel(page,[2,3]);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();await page.locator('#qrFavorite').click();await expectPanel(page,[2,3,1]);await page.locator('#qrClose').click();await page.reload();await openLead(page);await expectPanel(page,[2,3,1]);clean(s);
+ });
+});
+
+test('full delete is explicit, cancellable and respects personal/shared role rights',async({page})=>{
+ const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrDelete')).toHaveText('Удалить ответ');let confirmation='';page.once('dialog',dialog=>{confirmation=dialog.message();return dialog.dismiss()});await page.locator('#qrDelete').click();expect(confirmation).toMatch(/Удалить.*ответ/i);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(0);await expectPanel(page,[1,2]);
+ page.once('dialog',dialog=>dialog.accept());await page.locator('#qrDelete').click();await expectPanel(page,[2]);await expect(page.locator('[data-qr-select="1"]')).toHaveCount(0);expect(s.replies.find(r=>r.id===1)).toBeUndefined();await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrDelete')).toHaveCount(0);await expect(page.locator('#qrFavorite')).toHaveText('Убрать с панели');await page.locator('#qrFavorite').click();await expectPanel(page,[]);expect(s.replies.find(r=>r.id===2)).toBeDefined();await page.locator('#qrClose').click();
+ s.switchManager({id:7,role:'admin',display_name:'Мария',is_working:true});await page.evaluate(()=>{WorkspaceV2.S.manager.role='admin';WorkspaceV2QuickReplies.resetSession();WorkspaceV2QuickReplies.configure()});s.setPanel([2],7);s.setPanel([2],8);await openLibrary(page);await page.locator('[data-qr-select="2"]').click();page.once('dialog',dialog=>{confirmation=dialog.message();return dialog.dismiss()});await page.locator('#qrDelete').click();expect(confirmation).toMatch(/общий.*всех|всех.*менеджер/i);expect(s.replies.find(r=>r.id===2)).toBeDefined();page.once('dialog',dialog=>dialog.accept());await page.locator('#qrDelete').click();await expectPanel(page,[]);expect(s.toolbar(8).replies).toEqual([]);await expect(page.locator('[data-qr-select="2"]')).toHaveCount(0);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(2);clean(s);
+});
+
+test('unknown row removal remains pending and reconciles one favorite command',async({page})=>{
+ const s=await setup(page,{selectedIds:[1,2],unknownFavorite:true});await openLead(page);await page.locator('#quickRepliesOpen').click();await page.locator('[data-qr-remove-id="1"]').click();await expect(page.locator('#qrPending')).toBeVisible();await expectPanel(page,[1,2]);await expect(page.locator('[data-qr-remove-id="2"]')).toBeDisabled();await page.locator('#qrResolve').click();await expect(page.locator('#qrPending')).toBeHidden();await expectPanel(page,[2]);expect(s.replies.map(r=>r.id)).toEqual([1,2,3]);expect(s.calls.filter(c=>c.action==='favorite')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='operation')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(0);clean(s);
+});
+
+test('concurrent panel change rejects stale row removal and preserves new order',async({page})=>{
+ const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await page.locator('#quickRepliesOpen').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');s.setPanel([2,1]);await page.locator('[data-qr-remove-id="1"]').click();await expect(page.locator('#qrStatus')).toContainText('другом устройстве');await expectPanel(page,[2,1]);expect(s.toolbar().replies.map(r=>r.id)).toEqual([2,1]);await page.locator('[data-qr-remove-id="1"]').click();await expectPanel(page,[2]);expect(s.calls.filter(c=>c.action==='favorite')).toHaveLength(2);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(0);clean(s);
+});
+
+test('late row-removal result cannot restore private buttons after account change',async({page})=>{
+ const s=await setup(page,{selectedIds:[1,2],holdFavorite:true});await openLead(page);await page.locator('#quickRepliesOpen').click();await page.locator('[data-qr-remove-id="1"]').click();await expect(page.locator('[data-qr-remove-id="2"]')).toBeDisabled();s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});
+ await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8);WorkspaceV2QuickReplies.configure()});await expectPanel(page,[]);const late=page.waitForResponse(response=>response.url().endsWith('/quick-replies-api.php')&&response.request().postDataJSON()?.action==='favorite');s.releaseFavorite();await late;await expectPanel(page,[]);expect(s.toolbar(7).replies.map(r=>r.id)).toEqual([2]);expect(s.toolbar(8).replies).toEqual([]);await openLead(page);await openLibrary(page);await expect(page.locator('[data-qr-select="1"]')).toHaveCount(0);await expect(page.locator('[data-qr-select="3"]')).toHaveCount(0);clean(s);
+});
+
+test('unknown emoji template save disables palette and preserves exact draft for receipt recovery',async({page})=>{
+ const s=await setup(page,{unknownCreate:true});await openLead(page);await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Сохранение 😊');await page.locator('#qrBody').fill('Спасибо ');await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="🙏"]').click();await page.locator('#qrSave').click();await expect(page.locator('#qrPending')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeDisabled();await expect(page.locator('#qrBody')).toHaveValue('Спасибо 🙏');expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('Спасибо 🙏');await page.locator('#qrResolve').click();await expect(page.locator('#qrPending')).toBeHidden();expect(s.replies.find(r=>r.title==='Сохранение 😊')?.body).toBe('Спасибо 🙏');expect(s.calls.filter(c=>c.action==='create')).toHaveLength(1);clean(s);
+});
+
+test('unknown full delete disables emoji editing and reconciles without another delete',async({page})=>{
+ const s=await setup(page,{selectedIds:[1,2],unknownDelete:true});await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();page.once('dialog',dialog=>dialog.accept());await page.locator('#qrDelete').click();await expect(page.locator('#qrPending')).toBeVisible();await expect(page.locator('#qrEmojiToggle')).toBeDisabled();await expect(page.locator('#qrDelete')).toBeDisabled();await page.locator('#qrResolve').click();await expect(page.locator('#qrPending')).toBeHidden();await expectPanel(page,[2]);await expect(page.locator('[data-qr-select="1"]')).toHaveCount(0);expect(s.calls.filter(c=>c.action==='delete')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='operation')).toHaveLength(1);clean(s);
 });
 
 for(const width of [390,430,768,1440])test.describe('Quick reply full cycle '+width,()=>{
