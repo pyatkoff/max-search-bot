@@ -148,3 +148,9 @@ test('fixture Inbox timing and request counts keep name data lazy',async({page})
  }
  const sorted=[...samples].sort((a,b)=>a-b);console.log(JSON.stringify({fixture:'2clients/35messages/1440x900',metric:'browser-pageGoto-to-visible-Inbox',n:10,p50:sorted[4],p95:sorted[9],samples,http:requests,production:false}));
 });
+
+test('account invalidation removes every injected client identity surface',async({page})=>{
+ const s=await setup(page);await openLead(page);await page.locator('#customerNameOpen').click();await expect(page.locator('#cnInput')).toBeEnabled();await page.locator('#cnInput').fill('Анна — приватная рабочая пометка');await page.locator('#cnSave').click();await expect(page.locator('#conversationTitle')).toHaveText('Анна — приватная рабочая пометка');await page.locator('#cnCancel').click();await expect(page.locator('.cnOriginalInline')).toContainText('Анна Морозова');
+ await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2CustomerName.resetSession();WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8)});
+ await expect(page.locator('.cnOriginalInline')).toHaveCount(0);await expect(page.locator('#customerNameOpen')).toHaveCount(0);await expect(page.locator('.cnCardIdentity')).toHaveCount(0);await expect(page.locator('#customerNameDialog')).toHaveCount(0);clean(s);
+});

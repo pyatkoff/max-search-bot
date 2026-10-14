@@ -44,9 +44,10 @@ function canEdit(c){
   return S.manager?.role==='admin'||Number(c?.manager_id||0)===managerId();
 }
 function close(){persist();if(dialog?.open)dialog.close()}
-function resetSession(){
+function resetSession({clearIdentity=true}={}){
   persist();epoch++;context=null;name=null;history=[];historyMore=false;value='';dirty=false;version=0;pending=null;conflict=null;busy=false;readBusy=false;readOperation=null;readError='';returnFocus=null;returnFocusId='';needsProjection=false;
   if(dialog){if(dialog.open)dialog.close();dialog.remove();dialog=null}
+  if(clearIdentity)(document.querySelectorAll?.('.cnOriginalInline, .cnCardIdentity, #customerNameOpen')||[]).forEach(node=>node.remove());
 }
 function syncContext(c){if(context&&(!current()||Number(c?.id)!==context.conversationId)){resetSession()}}
 function originalMarkup(c,card=false){
@@ -235,7 +236,7 @@ async function reconcile(){
 async function open(c=S.detail?.conversation){
   if(!managerId()||!c?.id||Number(c.id)!==Number(S.current))return false;
   if(dialog?.open&&current()){ $('cnInput').focus();return true }
-  resetSession();context=capture(c);restore();ensureDialog();returnFocus=document.activeElement;returnFocusId=String(returnFocus?.id||'');dialog.showModal();$('cnClose').focus();status();await load();return true;
+  resetSession({clearIdentity:false});context=capture(c);restore();ensureDialog();returnFocus=document.activeElement;returnFocusId=String(returnFocus?.id||'');dialog.showModal();$('cnClose').focus();status();await load();return true;
 }
 function configure(options={}){onUpdated=typeof options.onUpdated==='function'?options.onUpdated:null}
 window.WorkspaceV2CustomerName={configure,enhanceHeader,enhanceCard,open,close,resetSession,capture,current};
