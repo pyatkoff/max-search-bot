@@ -11,5 +11,5 @@
 .pwRowMarkers span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:120px;overflow-wrap:normal}
 .pwRowMarkers .pwMarkerLabel{flex:0 1 auto}
 .pwRowMarkers .pwMarkerPin,.pwRowMarkers .pwMarkerExtra{flex:0 0 auto}
-.inboxZone>.inboxHead{box-sizing:border-box;max-height:calc(100% - 140px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;min-height:0;flex-shrink:0}
+.inboxZone>.inboxHead{box-sizing:border-box;max-height:calc(100% - 168px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;min-height:0;flex-shrink:0}
 @media(max-height:540px){.manager2 .inboxZone>.inboxHead{padding-top:10px;padding-bottom:7px}.manager2 .inboxZone .inboxHead .brand{font-size:18px}.manager2 .inboxHead .queueTabs{margin-top:8px}.manager2 .inboxHead .inboxSearchRow{margin-top:8px}.pwLane{margin-top:5px}}

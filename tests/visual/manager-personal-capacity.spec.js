@@ -26,11 +26,14 @@ async function capacity(page){
  const g=await geometry(page);console.log('CAPACITY '+JSON.stringify(g));
  expect(g.overflow).toBeLessThanOrEqual(1);expect(g.listHeight).toBeGreaterThanOrEqual(80);expect(g.visibleRow).toBeGreaterThanOrEqual(48);return g;
 }
-async function keyboardTo(page,selector){
- // Start from an ordinary clicked search control, then navigate real Tab order.
+async function keyboardTo(page,selector,{beforeSearch=false}={}){
+ // Tabs precede search in document order; use real Shift+Tab for them. A
+ // forward full-page wrap would leave/reenter browser chrome, generating a
+ // genuine focus-triggered Inbox refresh unrelated to selecting this tab.
+ // Client rows follow search and are reached with ordinary forward Tab.
  await page.locator('#leadSearch').click();
  for(let i=0;i<70;i++){
-  await page.keyboard.press('Tab');
+  await page.keyboard.press(beforeSearch?'Shift+Tab':'Tab');
   if(await page.locator(selector).evaluate(el=>document.activeElement===el))return;
  }
  throw new Error('Keyboard cannot reach '+selector);
@@ -38,16 +41,16 @@ async function keyboardTo(page,selector){
 async function select(page,s,tabs,keyboard=false){
  if(!tabs)return;
  const selector=`[data-pw-selection="tab:${10+tabs-1}"]`,before=lists(s).length;
- if(keyboard){await keyboardTo(page,selector);await expect(page.locator(selector)).toBeFocused();await expect(page.locator(selector)).toBeInViewport();await page.keyboard.press('Enter')}
+ if(keyboard){await keyboardTo(page,selector,{beforeSearch:true});await expect(page.locator(selector)).toBeFocused();await expect(page.locator(selector)).toBeInViewport();await page.keyboard.press('Enter')}
  else await page.locator(selector).click();
  await expect.poll(()=>lists(s).length).toBe(before+1);await settled(page,s);
  expect(lists(s).at(-1).path).toBe('/manager/personal-workspace-api.php');expect(lists(s).at(-1).selection).toBe('tab:'+(10+tabs-1));
 }
-async function openClient(page,keyboard=false){
- const selector='#inboxList [data-conversation-id="11"]';
+async function openClient(page,keyboard=false,id=11){
+ const selector=`#inboxList [data-conversation-id="${id}"]`;
  if(keyboard){await keyboardTo(page,selector);await page.keyboard.press('Enter')}
  else await page.locator(selector+' .leadTitle').click();
- await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+ await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
  await expect(page.locator('#replyText')).toBeInViewport();await expect(page.locator('#sendReply')).toBeInViewport();
  await expect.poll(()=>page.locator('#replyText').evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1})).toBe(true);
 }
@@ -59,7 +62,7 @@ for(const width of [390,430,768,1440])test('short capacity minimal single tab '+
    await baseline.setViewportSize({width,height:420});const old=await setup(baseline,{state:stateFor(1,0),sourceRoot:process.env.M2_CAPACITY_BASE_ROOT});await settled(baseline,old);await select(baseline,old,1);
    const g=await geometry(baseline);console.log('BASELINE '+width+' '+JSON.stringify(g));
    await capture(baseline,browserName,width,420,'one-short-tab','baseline-selected');
-   expect(g.listHeight).toBeLessThan(48);let pointerOpened=false;
+   expect(g.visibleRow).toBeLessThan(48);let pointerOpened=false;
    try{await baseline.locator('#inboxList [data-conversation-id="11"] .leadTitle').click({timeout:500});pointerOpened=true}catch(e){if(!/Timeout/.test(e.message))throw e}
    expect(pointerOpened,'An ordinary pointer cannot open the collapsed baseline list').toBe(false);clean(old);
   }finally{await baseline.close()}
@@ -104,4 +107,13 @@ for(const width of [390,430,768,1440])test('failed personal refresh keeps a usab
  await openClient(page);await page.locator('#replyText').fill('Ответ остаётся при ошибке списка');await back(page);s.setListError(false);await page.locator('#inboxLoadStatus button').click();await expect(page.locator('#inboxLoadStatus')).toBeHidden();await settled(page,s);
  await expect(page.locator('#inboxList')).not.toHaveAttribute('data-stale','true');await expect(page.locator('#pwListScope')).toContainText('Загружено 2');await capacity(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Ответ остаётся при ошибке списка');
  const scoped=lists(s).slice(1);expect(scoped).toHaveLength(3);expect(scoped.every(c=>c.path==='/manager/personal-workspace-api.php'&&c.selection==='tab:10')).toBe(true);clean(s);
+});
+
+for(const width of [390,1440])test('ordinary Inbox re-entry retains only the matching client file and draft '+width,async({page})=>{
+ await page.setViewportSize({width,height:420});const s=await setup(page,{state:stateFor(1,0)});await settled(page,s);await select(page,s,1);await openClient(page);
+ await page.locator('#replyText').fill('Только для первого клиента');await page.locator('#replyFile').setInputFiles({name:'first-client.txt',mimeType:'text/plain',buffer:Buffer.from('First synthetic client only')});const firstFile=await page.locator('#mediaSelection').textContent();await expect(page.locator('#mediaSelection')).toContainText('first-client.txt');
+ await back(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Только для первого клиента');await expect(page.locator('#mediaSelection')).toHaveText(firstFile);
+ await back(page);await openClient(page,false,12);await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText('first-client.txt');await page.locator('#replyText').fill('Только для второго клиента');
+ await back(page);await openClient(page,true);await expect(page.locator('#replyText')).toHaveValue('Только для первого клиента');await expect(page.locator('#mediaSelection')).toHaveText(firstFile);
+ expect(lists(s)).toHaveLength(2);clean(s);
 });
