@@ -7,7 +7,8 @@ function qrCheck(string $name,bool $ok):void {global $passed;if (!$ok) throw new
 
 $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 $pdo->exec('CREATE TABLE manager_quick_replies (id INTEGER PRIMARY KEY AUTOINCREMENT,owner_manager_id INTEGER NULL,scope TEXT,title TEXT,body TEXT,category TEXT,version INTEGER,created_by_manager_id INTEGER,updated_by_manager_id INTEGER,created_at TEXT,updated_at TEXT)');
-$pdo->exec('CREATE TABLE manager_quick_reply_favorites (manager_id INTEGER,reply_id INTEGER,created_at TEXT,PRIMARY KEY(manager_id,reply_id))');
+$pdo->exec('CREATE TABLE manager_quick_reply_favorites (manager_id INTEGER,reply_id INTEGER,sort_order INTEGER NOT NULL DEFAULT 0,created_at TEXT,PRIMARY KEY(manager_id,reply_id))');
+$pdo->exec('CREATE TABLE manager_quick_reply_toolbar_states (manager_id INTEGER PRIMARY KEY,revision INTEGER NOT NULL DEFAULT 0)');
 $pdo->exec('CREATE TABLE manager_quick_reply_operations (manager_id INTEGER,operation_id TEXT,request_hash TEXT,result_json TEXT,created_at TEXT,PRIMARY KEY(manager_id,operation_id))');
 $pdo->exec('CREATE TABLE admin_audit_log (actor_manager_id INTEGER,action TEXT,entity_type TEXT,entity_id TEXT,project_key TEXT,before_json TEXT,after_json TEXT)');
 $property=new ReflectionProperty(ConversationDb::class,'pdo');$property->setAccessible(true);$property->setValue(null,$pdo);
@@ -71,6 +72,83 @@ qrCheck('favorite can be removed',$unfavorite['ok']&&!$unfavorite['reply']['is_f
 qrMutate(11,false,'favorite',['id'=>$sid,'is_favorite'=>true]);
 qrMutate(90,true,'delete',['id'=>$sid,'version'=>1]);
 qrCheck('shared delete removes all favorite references',(int)$pdo->query('SELECT COUNT(*) FROM manager_quick_reply_favorites WHERE reply_id='.$sid)->fetchColumn()===0&&qrList(12,['scope'=>'shared'])['replies']===[]);
+
+// Selection is the existing account favorite relation. New accounts and replies
+// start empty; read-only toolbar requests do not create preference state.
+$empty=ManagerQuickReplyService::toolbar(200);
+qrCheck('new account toolbar is empty, bounded and read-only',$empty['ok']&&$empty['replies']===[]&&$empty['max_replies']===100&&strlen($empty['version'])===64&&(int)$pdo->query('SELECT COUNT(*) FROM manager_quick_reply_toolbar_states WHERE manager_id=200')->fetchColumn()===0);
+$one=qrMutate(200,false,'create',['title'=>'First own','body'=>'Private first']);$oneId=$one['reply']['id'];
+$two=qrMutate(200,false,'create',['title'=>'Second own','body'=>'Private second']);$twoId=$two['reply']['id'];
+$foreign=qrMutate(201,false,'create',['title'=>'Foreign secret','body'=>'Never visible']);$foreignId=$foreign['reply']['id'];
+$team=qrMutate(290,true,'create',['scope'=>'shared','title'=>'Team reply','body'=>'Shared body']);$teamId=$team['reply']['id'];
+qrCheck('creating personal or shared replies does not implicitly select defaults',$one['toolbar']['replies']===[]&&$two['toolbar']['replies']===[]&&$team['toolbar']['replies']===[]&&ManagerQuickReplyService::toolbar(200)['version']===$empty['version']);
+qrMutate(200,false,'favorite',['id'=>$oneId,'is_favorite'=>true,'toolbar_version'=>$empty['version']]);
+qrMutate(200,false,'favorite',['id'=>$twoId,'is_favorite'=>true]);
+$selected=qrMutate(200,false,'favorite',['id'=>$teamId,'is_favorite'=>true]);$toolbar=$selected['toolbar'];
+qrCheck('selected personal and shared replies append in manager chosen order',array_column($toolbar['replies'],'id')===[$oneId,$twoId,$teamId]&&$selected['reply']['is_favorite']);
+$same=qrMutate(200,false,'favorite',['id'=>$oneId,'is_favorite'=>true,'toolbar_version'=>$toolbar['version']]);
+qrCheck('repeat selection keeps position and does not spuriously change version',$same['toolbar']===$toolbar);
+$otherSelection=qrMutate(201,false,'favorite',['id'=>$teamId,'is_favorite'=>true]);
+qrCheck('shared selection order remains independent for each account',array_column($otherSelection['toolbar']['replies'],'id')===[$teamId]&&ManagerQuickReplyService::toolbar(200)===$toolbar);
+$reorder=['ids'=>[$teamId,$oneId,$twoId],'toolbar_version'=>$toolbar['version'],'operation_id'=>'toolbar-reorder-stable-0001'];
+$ordered=qrMutate(200,false,'reorder',$reorder);
+qrCheck('reorder persists full own membership and advances opaque version',$ordered['ok']&&array_column($ordered['toolbar']['replies'],'id')===$reorder['ids']&&$ordered['toolbar']['version']!==$toolbar['version']&&ManagerQuickReplyService::toolbar(200)===$ordered['toolbar']);
+qrCheck('accepted reorder lost-response retry and receipt return exact committed result',qrMutate(200,false,'reorder',$reorder)===$ordered&&ManagerQuickReplyService::operation(200,$reorder['operation_id'])['result']===$ordered);
+$changedReorder=$reorder;$changedReorder['ids']=[$oneId,$teamId,$twoId];
+$changedVersion=$reorder;$changedVersion['toolbar_version']=$ordered['toolbar']['version'];
+qrCheck('reorder receipts hash IDs and toolbar version',qrMutate(200,false,'reorder',$changedReorder)['error']==='operation_mismatch'&&qrMutate(200,false,'reorder',$changedVersion)['error']==='operation_mismatch');
+$staleOrder=qrMutate(200,false,'reorder',['ids'=>[$oneId,$twoId,$teamId],'toolbar_version'=>$toolbar['version']]);
+$staleSelection=qrMutate(200,false,'favorite',['id'=>$oneId,'is_favorite'=>false,'toolbar_version'=>$toolbar['version']]);
+qrCheck('stale order and selection cannot overwrite a newer tab',$staleOrder['error']==='conflict'&&$staleOrder['toolbar']===$ordered['toolbar']&&$staleSelection['error']==='conflict'&&ManagerQuickReplyService::toolbar(200)===$ordered['toolbar']);
+foreach ([[$teamId,$oneId],[$teamId,$oneId,$twoId,$foreignId],[$teamId,$oneId,$twoId,999999]] as $badMembership) {
+    $rejected=qrMutate(200,false,'reorder',['ids'=>$badMembership,'toolbar_version'=>$ordered['toolbar']['version']]);
+    qrCheck('non-exact membership fails without private reply leakage',$rejected['error']==='conflict'&&$rejected['toolbar']===$ordered['toolbar']&&strpos(json_encode($rejected,JSON_THROW_ON_ERROR),'Foreign secret')===false);
+}
+foreach ([null,'ids',[$oneId,$oneId],['1'],[0],[-1],[1.5],['nested'=>1],array_fill(0,101,$oneId)] as $invalidIds) {
+    qrCheck('malformed or overbound toolbar IDs rejected',qrMutate(200,false,'reorder',['ids'=>$invalidIds,'toolbar_version'=>$ordered['toolbar']['version']])['error']==='invalid_ids');
+}
+qrCheck('foreign personal selection remains forbidden even for admin',qrMutate(200,true,'favorite',['id'=>$foreignId,'is_favorite'=>true])['error']==='not_found'&&strpos(json_encode(ManagerQuickReplyService::toolbar(200,true),JSON_THROW_ON_ERROR),'Foreign secret')===false);
+$removed=qrMutate(200,false,'favorite',['id'=>$oneId,'is_favorite'=>false]);
+$readded=qrMutate(200,false,'favorite',['id'=>$oneId,'is_favorite'=>true]);
+qrCheck('remove and reselect append, preserve siblings and invalidate old version',array_column($removed['toolbar']['replies'],'id')===[$teamId,$twoId]&&array_column($readded['toolbar']['replies'],'id')===[$teamId,$twoId,$oneId]&&$readded['toolbar']['version']!==$ordered['toolbar']['version']);
+$teamChanged=qrMutate(290,true,'update',['id'=>$teamId,'version'=>1,'title'=>'Renamed team','body'=>'Updated shared body']);
+$renamed=ManagerQuickReplyService::toolbar(200);
+qrCheck('shared rename updates selected buttons without changing manager order',array_column($renamed['replies'],'id')===[$teamId,$twoId,$oneId]&&$renamed['replies'][0]['title']==='Renamed team'&&$renamed['replies'][0]['body']==='Updated shared body'&&$renamed['version']!==$readded['toolbar']['version']);
+qrCheck('shared content update invalidates stale toolbar reorder',qrMutate(200,false,'reorder',['ids'=>[$oneId,$teamId,$twoId],'toolbar_version'=>$readded['toolbar']['version']])['error']==='conflict');
+qrMutate(290,true,'delete',['id'=>$teamId,'version'=>2]);$afterTeamDelete=ManagerQuickReplyService::toolbar(200);
+qrCheck('shared deletion removes selected references for all managers',array_column($afterTeamDelete['replies'],'id')===[$twoId,$oneId]&&ManagerQuickReplyService::toolbar(201)['replies']===[]&&(int)$pdo->query('SELECT COUNT(*) FROM manager_quick_reply_favorites WHERE reply_id='.$teamId)->fetchColumn()===0);
+qrCheck('removed shared selection cannot be restored by stale reorder',qrMutate(200,false,'reorder',['ids'=>[$teamId,$twoId,$oneId],'toolbar_version'=>$renamed['version']])['error']==='conflict');
+
+// Reorder and its revision must roll back together with a failed receipt.
+$pdo->exec("CREATE TRIGGER reject_toolbar_receipt BEFORE UPDATE ON manager_quick_reply_operations WHEN NEW.operation_id='toolbar-rollback-000001' BEGIN SELECT RAISE(FAIL,'fixture receipt failure'); END");
+$rollbackOrder=['ids'=>[$oneId,$twoId],'toolbar_version'=>$afterTeamDelete['version'],'operation_id'=>'toolbar-rollback-000001'];$failed=false;
+try {qrMutate(200,false,'reorder',$rollbackOrder);} catch (PDOException $e) {$failed=true;}
+qrCheck('reorder receipt failure rolls back positions and monotonic version',$failed&&ManagerQuickReplyService::toolbar(200)===$afterTeamDelete&&!ManagerQuickReplyService::operation(200,$rollbackOrder['operation_id'])['found']);
+$pdo->exec('DROP TRIGGER reject_toolbar_receipt');
+$rollbackRetry=qrMutate(200,false,'reorder',$rollbackOrder);
+qrCheck('same reorder operation safely retries after rollback',$rollbackRetry['ok']&&array_column($rollbackRetry['toolbar']['replies'],'id')===[$oneId,$twoId]);
+$ownDeleted=qrMutate(200,false,'delete',['id'=>$oneId,'version'=>1]);
+qrCheck('own template deletion returns updated toolbar without reordering siblings',array_column($ownDeleted['toolbar']['replies'],'id')===[$twoId]);
+$nothing=ManagerQuickReplyService::toolbar(222);
+qrCheck('empty exact reorder is a safe no-op without selecting defaults',qrMutate(222,false,'reorder',['ids'=>[],'toolbar_version'=>$nothing['version']])['toolbar']===$nothing);
+
+// Use direct synthetic fixture writes for library sizes, exercising actual bounded
+// SQL reads and runtime selection/reorder rules rather than inspecting source text.
+$fixtureInsert=$pdo->prepare("INSERT INTO manager_quick_replies(owner_manager_id,scope,title,body,category,version,created_by_manager_id,updated_by_manager_id,created_at,updated_at) VALUES (300,'personal',?,'Fixture body','',1,300,300,'2026-10-14 00:00:00','2026-10-14 00:00:00')");
+$fixtureFavorite=$pdo->prepare("INSERT INTO manager_quick_reply_favorites(manager_id,reply_id,sort_order,created_at) VALUES (300,?,?,'2026-10-14 00:00:00')");
+$fullIds=[];
+for ($i=1;$i<=100;$i++) {$fixtureInsert->execute(['Bound reply '.$i]);$fixtureId=(int)$pdo->lastInsertId();$fullIds[]=$fixtureId;$fixtureFavorite->execute([$fixtureId,$i]);}
+$fixtureInsert->execute(['Over bound']);$overId=(int)$pdo->lastInsertId();$fullToolbar=ManagerQuickReplyService::toolbar(300);
+qrCheck('toolbar fetch returns entire exact maximum selection',$fullToolbar['ok']&&count($fullToolbar['replies'])===100&&array_column($fullToolbar['replies'],'id')===$fullIds);
+$overRejected=qrMutate(300,false,'favorite',['id'=>$overId,'is_favorite'=>true]);
+qrCheck('new selection beyond cap is explicit and non-destructive',$overRejected['error']==='toolbar_limit_exceeded'&&$overRejected['toolbar']===$fullToolbar&&(int)$pdo->query('SELECT COUNT(*) FROM manager_quick_reply_favorites WHERE manager_id=300')->fetchColumn()===100);
+qrCheck('existing selection remains valid at cap',qrMutate(300,false,'favorite',['id'=>$fullIds[0],'is_favorite'=>true])['toolbar']===$fullToolbar);
+$fixtureFavorite->execute([$overId,101]);$overflow=ManagerQuickReplyService::toolbar(300);
+qrCheck('legacy overflow is explicit, bounded and does not discard selections',!$overflow['ok']&&$overflow['error']==='toolbar_limit_exceeded'&&$overflow['has_more']&&$overflow['count_at_least']===101&&count($overflow['replies'])===100&&(int)$pdo->query('SELECT COUNT(*) FROM manager_quick_reply_favorites WHERE manager_id=300')->fetchColumn()===101);
+qrCheck('legacy overflow forbids incomplete reorder',qrMutate(300,false,'reorder',['ids'=>$fullIds,'toolbar_version'=>$overflow['version']])['error']==='toolbar_limit_exceeded');
+$overflowRemoved=qrMutate(300,false,'favorite',['id'=>$overId,'is_favorite'=>false,'toolbar_version'=>$overflow['version']]);
+qrCheck('library unselection can recover legacy overflow without lost selections',$overflowRemoved['ok']&&$overflowRemoved['toolbar']['ok']&&array_column($overflowRemoved['toolbar']['replies'],'id')===$fullIds);
+
 // Count executed SQL at the real PDO boundary. Library size cannot create N+1.
 final class QuickReplyQueryCounter {public int $queries=0;}
 final class QuickReplyCountedStatement extends PDOStatement
@@ -83,6 +161,16 @@ $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[QuickReplyCountedStatement::class,
 qrList(11,['limit'=>1]);$smallQueries=$counter->queries;$counter->queries=0;
 qrList(11,['limit'=>100]);
 qrCheck('list and categories use two bounded queries at every library size',$smallQueries===2&&$counter->queries===2);
+$counter->queries=0;ManagerQuickReplyService::toolbar(200);$smallToolbarQueries=$counter->queries;$counter->queries=0;
+ManagerQuickReplyService::toolbar(300);
+qrCheck('small and maximum toolbars use exactly two SQL queries',$smallToolbarQueries===2&&$counter->queries===2);
+qrMutate(200,false,'favorite',['id'=>$foreignId,'is_favorite'=>false]); // Fails closed, never adds foreign state.
+$extra=qrMutate(200,false,'create',['title'=>'Counter second','body'=>'Synthetic']);qrMutate(200,false,'favorite',['id'=>$extra['reply']['id'],'is_favorite'=>true]);
+$smallToolbar=ManagerQuickReplyService::toolbar(200);$counter->queries=0;
+qrMutate(200,false,'reorder',['ids'=>array_reverse(array_column($smallToolbar['replies'],'id')),'toolbar_version'=>$smallToolbar['version']]);$smallReorderQueries=$counter->queries;
+$largeToolbar=ManagerQuickReplyService::toolbar(300);$counter->queries=0;
+qrMutate(300,false,'reorder',['ids'=>array_reverse($fullIds),'toolbar_version'=>$largeToolbar['version']]);
+qrCheck('two and one hundred selected replies reorder in a fixed number of SQL queries',$smallReorderQueries===11&&$counter->queries===11);
 
 $api=(string)file_get_contents(dirname(__DIR__).'/manager/quick-replies-api.php');
 qrCheck('endpoint uses canonical auth and CSRF and accepts POST only',str_contains($api,'ManagerHttp::requireManager()')&&str_contains($api,'ManagerHttp::requireCsrf($data)')&&str_contains($api,"!=='POST'")&&str_contains($api,'ManagerHttp::isAdmin($manager)'));
@@ -131,6 +219,8 @@ try {
     qrCheck('real endpoint rejects absent CSRF with 403',$csrfFailure['status']===403&&$csrfFailure['body']['error']==='csrf');
     $valid=$request('/manager/quick-replies-api.php',['action'=>'list','csrf'=>'fixture-csrf-only'],$cookie);
     qrCheck('real authenticated endpoint lists through canonical Manager auth',$valid['status']===200&&$valid['body']['ok']&&$valid['body']['replies']===[]);
+    $emptyHttpToolbar=$request('/manager/quick-replies-api.php',['action'=>'toolbar','csrf'=>'fixture-csrf-only'],$cookie);
+    qrCheck('real toolbar read returns empty account without any preference write',$emptyHttpToolbar['status']===200&&$emptyHttpToolbar['body']['replies']===[]&&(int)$httpDb->query('SELECT COUNT(*) FROM manager_quick_reply_toolbar_states')->fetchColumn()===0);
     qrCheck('real endpoint applies no-store JSON headers',count(array_filter($valid['headers'],static fn(string $h):bool=>str_starts_with(strtolower($h),'cache-control: no-store')))===1);
     $forbidden=$request('/manager/quick-replies-api.php',['action'=>'create','csrf'=>'fixture-csrf-only','scope'=>'shared','title'=>'Synthetic shared','body'=>'text','operation_id'=>'http-shared-operation-0001'],$cookie);
     qrCheck('real valid-CSRF manager cannot create shared replies',$forbidden['status']===403&&$forbidden['body']['error']==='forbidden');
@@ -144,6 +234,43 @@ try {
     qrCheck('real valid-CSRF personal create succeeds',$own['status']===200&&$own['body']['ok']&&$own['body']['reply']['can_edit']);
     $recovered=$request('/manager/quick-replies-api.php',['action'=>'operation','csrf'=>'fixture-csrf-only','operation_id'=>'http-personal-operation-001'],$cookie);
     qrCheck('real HTTP receipt recovers the committed personal write',$recovered['status']===200&&$recovered['body']['found']&&$recovered['body']['result']===$own['body']);
+    $httpFirst=$request('/manager/quick-replies-api.php',['action'=>'favorite','csrf'=>'fixture-csrf-only','id'=>$own['body']['reply']['id'],'is_favorite'=>true,'toolbar_version'=>$own['body']['toolbar']['version'],'operation_id'=>'http-toolbar-first-000001'],$cookie);
+    $httpSecond=$request('/manager/quick-replies-api.php',['action'=>'favorite','csrf'=>'fixture-csrf-only','id'=>$adminShared['body']['reply']['id'],'is_favorite'=>true,'toolbar_version'=>$httpFirst['body']['toolbar']['version'],'operation_id'=>'http-toolbar-second-00001'],$cookie);
+    $httpToolbar=$request('/manager/quick-replies-api.php',['action'=>'toolbar','csrf'=>'fixture-csrf-only'],$cookie);
+    qrCheck('real endpoint toolbar shows own selected personal and shared replies',array_column($httpToolbar['body']['replies'],'id')===[$own['body']['reply']['id'],$adminShared['body']['reply']['id']]&&$httpToolbar['body']===$httpSecond['body']['toolbar']);
+    $httpReorderInput=['action'=>'reorder','csrf'=>'fixture-csrf-only','ids'=>array_reverse(array_column($httpToolbar['body']['replies'],'id')),'toolbar_version'=>$httpToolbar['body']['version'],'operation_id'=>'http-toolbar-reorder-00001'];
+    $httpReorder=$request('/manager/quick-replies-api.php',$httpReorderInput,$cookie);$httpReplay=$request('/manager/quick-replies-api.php',$httpReorderInput,$cookie);
+    qrCheck('real endpoint persists and exactly replays accepted reorder',$httpReorder['status']===200&&$httpReorder['body']['ok']&&array_column($httpReorder['body']['toolbar']['replies'],'id')===$httpReorderInput['ids']&&$httpReplay['body']===$httpReorder['body']);
+    $httpStale=$request('/manager/quick-replies-api.php',array_replace($httpReorderInput,['ids'=>array_column($httpToolbar['body']['replies'],'id'),'operation_id'=>'http-toolbar-stale-000001']),$cookie);
+    qrCheck('real endpoint stale reorder returns 409 and confirmed current toolbar',$httpStale['status']===409&&$httpStale['body']['error']==='conflict'&&$httpStale['body']['toolbar']===$httpReorder['body']['toolbar']);
+    $httpInvalid=$request('/manager/quick-replies-api.php',array_replace($httpReorderInput,['ids'=>[1,1],'operation_id'=>'http-toolbar-invalid-0001']),$cookie);
+    qrCheck('real endpoint duplicate IDs are rejected with 422',$httpInvalid['status']===422&&$httpInvalid['body']['error']==='invalid_ids');
+
+    // Two independent PHP/PDO writers start from the same confirmed account
+    // version. Exactly one order can commit; the other returns a conflict.
+    $thirdHttp=$request('/manager/quick-replies-api.php',['action'=>'create','csrf'=>'fixture-csrf-only','title'=>'Third race reply','body'=>'Synthetic','operation_id'=>'http-race-third-create-001'],$cookie);
+    $thirdSelected=$request('/manager/quick-replies-api.php',['action'=>'favorite','csrf'=>'fixture-csrf-only','id'=>$thirdHttp['body']['reply']['id'],'is_favorite'=>true,'operation_id'=>'http-race-third-select-001'],$cookie);
+    $raceToolbar=$thirdSelected['body']['toolbar'];$raceIds=array_column($raceToolbar['replies'],'id');
+    $workerCode='require '.var_export($httpRoot.'/config.php',true).';require '.var_export($sourceRoot.'/services/ManagerQuickReplyService.php',true).';fgets(STDIN);$command=json_decode($argv[1],true,512,JSON_THROW_ON_ERROR);echo json_encode(ManagerQuickReplyService::mutate(101,false,"reorder",$command),JSON_THROW_ON_ERROR);';
+    $raceCommands=[['ids'=>array_reverse($raceIds),'toolbar_version'=>$raceToolbar['version'],'operation_id'=>'parallel-toolbar-race-001'],['ids'=>[$raceIds[1],$raceIds[2],$raceIds[0]],'toolbar_version'=>$raceToolbar['version'],'operation_id'=>'parallel-toolbar-race-002']];
+    $raceProcesses=[];$racePipes=[];$raceResults=[];
+    try {
+        foreach ($raceCommands as $index=>$command) {
+            $raceProcesses[$index]=proc_open([PHP_BINARY,'-r',$workerCode,json_encode($command,JSON_THROW_ON_ERROR)],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$racePipes[$index]);
+            if (!is_resource($raceProcesses[$index])) throw new RuntimeException('Cannot create isolated PDO race writer');
+        }
+        foreach ($racePipes as $pipes) {fwrite($pipes[0],"start\n");fclose($pipes[0]);}
+        foreach ($racePipes as $index=>$pipes) {
+            $workerBody=stream_get_contents($pipes[1]);$workerError=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+            $exit=proc_close($raceProcesses[$index]);$raceProcesses[$index]=null;
+            if ($exit!==0) throw new RuntimeException('Isolated PDO race writer failed: '.$workerError);
+            $raceResults[]=json_decode($workerBody,true,512,JSON_THROW_ON_ERROR);
+        }
+    } finally {foreach ($raceProcesses as $worker) if (is_resource($worker)) {proc_terminate($worker);proc_close($worker);}}
+    $raceSuccesses=array_values(array_filter($raceResults,static fn(array $r):bool=>!empty($r['ok'])));
+    $raceConflicts=array_values(array_filter($raceResults,static fn(array $r):bool=>($r['error']??'')==='conflict'));
+    $raceConfirmed=$request('/manager/quick-replies-api.php',['action'=>'toolbar','csrf'=>'fixture-csrf-only'],$cookie);
+    qrCheck('independent simultaneous PDO reorder commands serialize without lost updates',count($raceSuccesses)===1&&count($raceConflicts)===1&&$raceConflicts[0]['toolbar']===$raceSuccesses[0]['toolbar']&&$raceConfirmed['body']===$raceSuccesses[0]['toolbar']);
     $get=$request('/manager/quick-replies-api.php',[],$cookie,'GET');
     qrCheck('real authenticated endpoint rejects non-POST method',$get['status']===405&&$get['body']['error']==='method_not_allowed');
     $inactive=$request('/manager/fixture-session.php?id=103',[],$cookie,'GET');
@@ -153,6 +280,8 @@ try {
     $httpDb->exec('DROP TABLE manager_quick_replies');
     $unavailable=$request('/manager/quick-replies-api.php',['action'=>'list','csrf'=>'fixture-csrf-only'],$cookie);
     qrCheck('real endpoint reports storage failure as 503, never empty success',$unavailable['status']===503&&!$unavailable['body']['ok']&&$unavailable['body']['error']==='storage_unavailable');
+    $toolbarUnavailable=$request('/manager/quick-replies-api.php',['action'=>'toolbar','csrf'=>'fixture-csrf-only'],$cookie);
+    qrCheck('real toolbar storage failure is 503 rather than empty defaults',$toolbarUnavailable['status']===503&&$toolbarUnavailable['body']['error']==='storage_unavailable');
 } finally {
     if (is_resource($process)) {proc_terminate($process);proc_close($process);}
     $httpDb=null;
