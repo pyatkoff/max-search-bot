@@ -137,10 +137,12 @@
     if(manager){$('m2Identity').appendChild(manager);manager.classList.remove('muted')}
     if(shift)$('m2ShiftSlot').appendChild(shift);
     if(admin){admin.title='Настройки и менеджеры';admin.setAttribute('aria-label','Настройки и менеджеры')}
-    const publications=document.createElement('a');publications.href='/manager/publications.php';publications.textContent='Публикации';publications.className='m2Legacy';publications.hidden=true;
-    const syncPublications=()=>{publications.hidden=!!S.authExpired||S.manager?.role!=='admin'||!!admin?.hidden;};
-    const adminQuery=window.matchMedia('(max-width:740px)');const placeAdmin=()=>{const slot=adminQuery.matches?$('m2NotificationSlot'):$('m2AdminSlot');if(admin)slot.appendChild(admin);slot.appendChild(publications);syncPublications()};adminQuery.addEventListener('change',placeAdmin);
-    if(admin)new MutationObserver(syncPublications).observe(admin,{attributes:true,attributeFilter:['hidden','style']});
+    const publications=document.createElement('a');publications.id='m2PublicationsLink';publications.href='/manager/publications.php';publications.textContent='Публикации';publications.style.textDecoration='none';publications.hidden=true;
+    const syncPublications=()=>{publications.hidden=!!S.authExpired||S.manager?.role!=='admin'||!!admin?.classList.contains('hidden');};
+    const adminQuery=window.matchMedia('(max-width:740px)');const placeAdmin=()=>{const slot=adminQuery.matches?$('m2NotificationSlot'):$('m2AdminSlot');if(admin)slot.appendChild(admin);publications.className=adminQuery.matches?'actionBtn':'m2Legacy';slot.appendChild(publications);syncPublications()};adminQuery.addEventListener('change',placeAdmin);
+    if(admin)new MutationObserver(syncPublications).observe(admin,{attributes:true,attributeFilter:['class']});
+    if(manager)new MutationObserver(syncPublications).observe(manager,{childList:true,subtree:true});
+    new MutationObserver(syncPublications).observe(document.body,{attributes:true,attributeFilter:['class']});
     if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
     const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>По сроку и приоритету</summary>';shortcuts.before(details);details.appendChild(shortcuts)}
     const hint=document.createElement('p');hint.id='m2SectionHint';hint.className='m2SectionHint';hint.hidden=true;document.querySelector('.inboxHead .brandRow').after(hint);

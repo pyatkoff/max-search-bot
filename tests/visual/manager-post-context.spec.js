@@ -10,9 +10,9 @@ const photo='<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><r
 function post(id=11,entryId=101,overrides={}){
  return {entry_id:entryId,title:id===11?'Турция — семейный отдых в октябре':'Египет — отдых у моря',channel_name:'AnyTour Москва',platform:'max',post_url:'https://max.ru/c/-80095447388179/AaE53iyDMmw',entered_at:'2026-10-14 09:20:00',version_number:2,media_count:1,media_url:`/manager/post-context-media.php?conversation_id=${id}&entry_id=${entryId}&attachment=0`,text:'Турция, Анталья. Вылет из Москвы 24 октября, 7 ночей.\nОтель 5★, всё включено. 2 взрослых.\nЦена из публикации: 150 000 ₽ за всех.\n'+Array.from({length:12},(_,i)=>`Условие ${i+1}: уточнить доступность отеля и цену на новые даты.`).join('\n'),...overrides};
 }
-async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photoFailure=false}={}){
+async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photoFailure=false,managerRole='manager'}={}){
  const calls=[],unexpected=[],errors=[],held=[],holdIds=new Set(holdPostIds);let detailStatus=200;
- const manager={id:7,role:'manager',display_name:'Мария',is_working:true};
+ const manager={id:7,role:managerRole,display_name:'Мария',is_working:true};
  const contexts=new Map([[11,{current:post(),history:[post(11,100,{title:'Предыдущий пост — Кемер',text:'Предыдущие условия: 130 000 ₽ за двоих.',version_number:1})]}],[12,{current:post(12,202,{text:'Египет, 8 ночей. Цена из публикации: 180 000 ₽ за всех.'}),history:[]}]]);
  const revisions=new Map([[11,0],[12,0]]);
  const conv=id=>({id,manager_id:7,manager_name:'Мария',status:'manager',channel:'max',source_name:'AnyTour Москва',display_name:id===11?'Анна Морозова':'Алексей Иванов',last_message_at:`2026-10-14 09:20:0${revisions.get(id)||0}`});
@@ -174,4 +174,13 @@ for(const width of [390,430,768,1440])test('one-time channel configuration is us
 
 test('unknown channel-save result blocks a duplicate write until explicit readback confirms it',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:900});const s=await setupChannels(page,{unknownSave:true});await fillChannel(page);await page.locator('#pcEnabled').check();await page.locator('#pcSave').click();await expect(page.locator('#pcSaveStatus')).toContainText('Ответ на сохранение не получен');await expect(page.locator('#pcSave')).toBeDisabled();await expect(page.locator('#pcNew')).toBeDisabled();await expect(page.locator('#pcName')).toHaveValue('Новый синтетический канал');expect(s.calls.filter(c=>c.action==='save')).toHaveLength(1);await page.locator('#pcRefresh').click();await expect(page.locator('#pcSaveStatus')).toContainText('Сохранение подтверждено после обновления списка');await expect(page.locator('#pcSave')).toBeEnabled();await expect(page.locator('.pc-channel')).toHaveCount(2);expect(s.calls.filter(c=>c.action==='save')).toHaveLength(1);await adminBounded(page);await capture(page,browserName,390,'channel-readback');clean(s);
+});
+
+test('publication settings entry follows administrator access on desktop and mobile',async({page,browserName})=>{
+ await page.setViewportSize({width:1440,height:900});const s=await setup(page,{managerRole:'admin'});const link=page.locator('#m2PublicationsLink');await expect(link).toBeVisible();await expect(link).toHaveAttribute('href','/manager/publications.php');const rail=await page.locator('.m2Rail').boundingBox();for(const control of [link,page.locator('#adminLink')]){const box=await control.boundingBox();expect(box.x).toBeGreaterThanOrEqual(rail.x-1);expect(box.x+box.width).toBeLessThanOrEqual(rail.x+rail.width+1)}await capture(page,browserName,1440,'admin-entry');
+ await page.setViewportSize({width:390,height:900});await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();await expect(link).toBeVisible();await expect(link).toBeInViewport();expect((await link.boundingBox()).height).toBeGreaterThanOrEqual(44);expect(await link.evaluate(el=>getComputedStyle(el).color)).toBe(await page.locator('#adminLink').evaluate(el=>getComputedStyle(el).color));await capture(page,browserName,390,'admin-entry');
+ // These changes use the canonical role and admin-link state; the optional
+ // shortcut must never keep administrator controls after access or auth loss.
+ await page.evaluate(()=>{WorkspaceV2.S.manager.role='manager';document.getElementById('adminLink').classList.add('hidden')});await expect(link).not.toBeVisible();
+ await page.evaluate(()=>{WorkspaceV2.S.manager.role='admin';document.getElementById('adminLink').classList.remove('hidden')});await expect(link).toBeVisible();await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(link).not.toBeVisible();clean(s);
 });

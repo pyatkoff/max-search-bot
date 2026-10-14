@@ -42,3 +42,4 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 }
 
 @media(max-height:540px){.manager2 .quickReplies button:not(#quickRepliesOpen){display:none}.manager2 .composerSurface{padding-top:3px;padding-bottom:3px}.manager2 .composer textarea{padding-top:5px;padding-bottom:5px}}
+.manager2 #m2AdminSlot{display:grid;gap:8px;justify-items:center;min-width:0;width:100%}.manager2 #m2PublicationsLink{max-width:100%;overflow-wrap:anywhere}.manager2 .m2Dialog #m2PublicationsLink{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:8px 12px;font-size:13px;color:#48633c;background:#f1f5eb;border:1px solid #e1e9d7}.manager2 #m2PublicationsLink[hidden]{display:none!important}
