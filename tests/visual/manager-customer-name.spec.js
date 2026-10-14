@@ -9,13 +9,20 @@ const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'
 // responses. No production traffic or customer messages are permitted.
 async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownSave=false,conflictSave=false,nameError=false,otherOwner=false,holdGet=false,denySave=false,historySize=0}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],receipts=new Map();
+ const lifecycle=[],activeReads=new Set(),requestInfo=new WeakMap();let phase='setup',readSequence=0;
+ const trace=(event,details={})=>lifecycle.push({at:Date.now(),phase,event,...details});
+ const readActions=new Set(['me','counts','detail','edit_candidates','catalog','filter_options','list']);
+ page.on('request',req=>{const url=new URL(req.url());if(!['/manager/api.php','/manager/pipeline-api.php'].includes(url.pathname))return;let action='';try{action=req.postDataJSON()?.action||''}catch(e){}const info={sequence:++readSequence,url:url.pathname,action};requestInfo.set(req,info);if(readActions.has(action))activeReads.add(req);trace('request',info)});
+ page.on('requestfinished',req=>{const info=requestInfo.get(req);if(!info)return;activeReads.delete(req);trace('requestfinished',info)});
+ page.on('requestfailed',req=>{const info=requestInfo.get(req);if(!info)return;activeReads.delete(req);trace('requestfailed',{...info,failure:req.failure()?.errorText||''})});
+ page.on('framenavigated',frame=>{if(frame===page.mainFrame())trace('navigation',{url:frame.url()})});
  let manager={id:7,role,display_name:'Мария',is_working:true};
  let version=0,workingName=null;
  const names=()=>({customer_id:101,display_name:workingName||'Анна Морозова',original_display_name:'Анна Морозова',working_name:workingName,version,updated_at:version?'2026-10-14 02:00:00':null,updated_by_manager_name:version?'Мария':null,can_edit:role==='admin'||!otherOwner});
  const history=[];for(let i=historySize;i>0;i--)history.push({version:i,before_name:i>1?'Историческое имя '+(i-1):null,after_name:'Историческое имя '+i,actor_name:'Мария',created_at:'2026-10-14 02:00:00'});
  const conv=id=>({id,customer_id:id===11?101:102,manager_id:otherOwner?8:manager.id,manager_name:otherOwner?'Ольга':manager.display_name,status:'manager',channel:'telegram',display_name:id===11?names().display_name:'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:id===11?workingName:null,name_version:id===11?version:0,customer_name_version:id===11?version:0});
  const msgs=()=>Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>{errors.push(e.message);trace('pageerror',{name:e.name,message:e.message,stack:e.stack||''})});
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
   const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
@@ -30,6 +37,9 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}
   calls.push({path:url.pathname,...d});
+  // Synthetic name fixtures have no publication; allow only their scoped,
+  // canonical CSRF-protected read and retain strict unexpected-request checks.
+  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me')return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
    if(d.action==='detail')return reply({ok:true,conversation:conv(d.conversation_id),messages:msgs(),delivery_failure:null});
@@ -46,7 +56,11 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
     return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2,budget:{max:250000,currency:'RUB',basis:'total'}},contact:{},source:{},handoff:{}});
    }
   }
-  if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='list')return reply({ok:true,replies:[{id:1,title:'Приветствие',body:'Здравствуйте, {client_name}!',category:'',scope:'personal',version:1,can_edit:true,is_favorite:false}],categories:[],has_more:false});
+  if(method==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&d.csrf==='fixture-csrf'){
+   // An empty saved personal panel, distinct from the lazily loaded library.
+   if(d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
+   if(d.action==='list')return reply({ok:true,replies:[{id:1,title:'Приветствие',body:'Здравствуйте, {client_name}!',category:'',scope:'personal',version:1,can_edit:true,is_favorite:false}],categories:[],has_more:false});
+  }
   if(url.pathname==='/manager/customer-name-api.php'){
    if(d.csrf!=='fixture-csrf')throw new Error('Working name must use canonical CSRF');
    if(d.action==='get'){
@@ -69,12 +83,25 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,names,history,releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setNameError:v=>{nameError=v},setHoldGet:v=>{holdGet=v},setDenySave:v=>{denySave=v},advanceName:label=>{const before=workingName;workingName=label;version++;history.unshift({version,before_name:before,after_name:label,actor_name:'Ольга',created_at:'2026-10-14 02:00:00'})}};
+ return {calls,unexpected,errors,lifecycle,pendingReads:()=>activeReads.size,readSequence:()=>readSequence,requestInfo:req=>requestInfo.get(req),phase:label=>{phase=label;trace("action")},names,history,releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setNameError:v=>{nameError=v},setHoldGet:v=>{holdGet=v},setDenySave:v=>{denySave=v},advanceName:label=>{const before=workingName;workingName=label;version++;history.unshift({version,before_name:before,after_name:label,actor_name:'Ольга',created_at:'2026-10-14 02:00:00'})}};
 }
 async function openLead(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible()}
+async function openConversationSearch(page){const button=page.locator('#conversationSearchOpen'),menu=button.locator('xpath=ancestor::details[1]');if(await menu.count()&&!await menu.evaluate(el=>el.open))await menu.locator('summary').click();await button.click()}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`customer-name-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
-function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors,JSON.stringify(s.lifecycle.slice(-35),null,2)).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+
+// Await the existing click's real load and its fire-and-forget counts read.
+// A reload intentionally destroys the document; it must not race this navigation.
+async function settleDialoguesBeforeReload(page,s){
+ s.phase('dialogues-navigation');const sequence=s.readSequence(),lists=s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list').length;
+ await page.evaluate(()=>{const inbox=WorkspaceV2Inbox,original=inbox.load;window.fixtureNameNavigationLoad=null;inbox.load=function(...args){inbox.load=original;const work=original.apply(this,args);window.fixtureNameNavigationLoad=work;return work}});
+ const counts=page.waitForResponse(response=>response.url()===origin+'/manager/api.php'&&s.requestInfo(response.request())?.action==='counts'&&s.requestInfo(response.request()).sequence>sequence);
+ await page.locator('[data-m2-nav=dialogues]').click();expect(await page.evaluate(()=>window.fixtureNameNavigationLoad)).toBe(true);
+ const response=await counts;expect(response.status()).toBe(200);expect(await response.finished()).toBeNull();await expect.poll(()=>s.pendingReads()).toBe(0);
+ expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list')).toHaveLength(lists+1);
+ await expect(page.locator('[data-m2-nav=dialogues]')).toHaveAttribute('aria-current','page');s.phase('deliberate-reload');
+}
 
 for(const width of [390,430,768,1440])test.describe('Customer names '+width,()=>{
  test.use({viewport:{width,height:900}});
@@ -85,14 +112,14 @@ for(const width of [390,430,768,1440])test.describe('Customer names '+width,()=>
   expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php'&&c.action==='get')).toHaveLength(1);await capture(page,browserName,width,'dialog');
   await page.locator('#cnInput').fill('Анна — семейная поездка');await page.locator('#cnSave').click();await expect.poll(()=>s.names().working_name).toBe('Анна — семейная поездка');
   await page.locator('#cnClose').click();await expect(page.locator('#customerNameCardOpen')).toBeFocused();await expect(page.locator('#conversationTitle')).toHaveText('Анна — семейная поездка');await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик следующего действия');await expect(page.locator('#leadTaskDue')).toHaveValue('2026-10-15T10:00');await expect(page.locator('#leadCard')).toContainText('Анна — семейная поездка');await expect(page.locator('#leadCard')).toContainText('Анна Морозова');await capture(page,browserName,width,'renamed-card');
-  if(width<=1100)await page.locator('#mobileLeadClose').click();await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');await expect(page.locator('#mediaSelection')).toHaveText(file);if(width<=430){const title=await page.locator('#conversationTitle').boundingBox(),edit=await page.locator('#customerNameOpen').boundingBox();expect(Math.abs((title.y+title.height/2)-(edit.y+edit.height/2))).toBeLessThanOrEqual(8)}await capture(page,browserName,width,'renamed');await page.setViewportSize({width,height:420});await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#replyText').focus();await bounded(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'renamed-search-short');await page.locator('#conversationSearchClose').click();await page.setViewportSize({width,height:900});
+  if(width<=1100)await page.locator('#mobileLeadClose').click();await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');await expect(page.locator('#mediaSelection')).toHaveText(file);if(width<=430){const title=await page.locator('#conversationTitle').boundingBox(),edit=await page.locator('#customerNameOpen').boundingBox();expect(Math.abs((title.y+title.height/2)-(edit.y+edit.height/2))).toBeLessThanOrEqual(8)}await capture(page,browserName,width,'renamed');await page.setViewportSize({width,height:420});await openConversationSearch(page);await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#replyText').focus();await bounded(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);await capture(page,browserName,width,'renamed-search-short');await page.locator('#conversationSearchClose').click();await page.setViewportSize({width,height:900});
   if(width<=1100)await page.locator('#mobileBack').click();await expect(page.locator('#inboxList [data-conversation-id="11"]')).toContainText('Анна — семейная поездка');
   expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list')).toHaveLength(2);expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1);
   // Search checks the current bounded server list and both identities, not global
   // historical search completeness. No customer IDs are merged by display text.
   await page.locator('#leadSearch').fill('семейная');await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await expect(page.locator('#inboxList .leadItem')).toHaveAttribute('data-conversation-id','11');await page.locator('#leadSearch').fill('Морозова');await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await page.locator('#leadSearch').fill('');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard[data-id="11"]')).toContainText('Анна — семейная поездка');await capture(page,browserName,width,'renamed-board');await page.locator('[data-m2-nav=dialogues]').click();
-  await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик следующего действия');await expect(page.locator('#conversationTitle')).toHaveText('Анна — семейная поездка');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
+  await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard[data-id="11"]')).toContainText('Анна — семейная поездка');await capture(page,browserName,width,'renamed-board');await settleDialoguesBeforeReload(page,s);
+  await page.reload();s.phase('reload-restored');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик следующего действия');await expect(page.locator('#conversationTitle')).toHaveText('Анна — семейная поездка');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
   if(width<=1100&&await page.evaluate(()=>WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click();
   await page.locator('#customerNameOpen').click();await expect(page.locator('#cnHistory')).toContainText('Анна — семейная поездка');await expect(page.locator('#cnHistory')).toContainText('Мария');await page.setViewportSize({width,height:420});await page.locator('#cnInput').fill('Анна — семейная поездка');await expect(page.locator('#cnInput')).toBeFocused();await page.locator('#cnRestore').scrollIntoViewIfNeeded();await expect(page.locator('#cnRestore')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'dialog-short');
   await page.locator('#cnRestore').click();await expect.poll(()=>s.names().working_name).toBe(null);await page.locator('#cnClose').click();await expect(page.locator('#customerNameOpen')).toBeFocused();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
@@ -133,7 +160,7 @@ test('history loads a bounded page then older changes explicitly',async({page})=
 
 test('working name is inert display text and quick reply uses original messenger name',async({page})=>{
  const s=await setup(page);await openLead(page);await page.locator('#customerNameOpen').click();await expect(page.locator('#cnInput')).toBeEnabled();const label='Анна " onclick="alert(1) <семья>';
- await page.locator('#cnInput').fill(label);await page.locator('#cnSave').click();await expect(page.locator('#conversationTitle')).toHaveText(label);await page.locator('#cnClose').click();expect(await page.locator('#conversationTitle').getAttribute('onclick')).toBeNull();await expect(page.locator('#conversationTitle img')).toHaveCount(0);await page.locator('#conversationTitle').click();await page.locator('#quickRepliesOpen').click();await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrPreview')).toHaveValue('Здравствуйте, Анна Морозова!');await page.locator('#qrClose').click();await page.locator('#customerNameOpen').click();await expect(page.locator('#cnInput')).toHaveValue(label);expect(await page.locator('#cnInput').getAttribute('onclick')).toBeNull();clean(s);
+ await page.locator('#cnInput').fill(label);await page.locator('#cnSave').click();await expect(page.locator('#conversationTitle')).toHaveText(label);await page.locator('#cnClose').click();expect(await page.locator('#conversationTitle').getAttribute('onclick')).toBeNull();await expect(page.locator('#conversationTitle img')).toHaveCount(0);await page.locator('#conversationTitle').click();await page.locator('#quickRepliesOpen').click();await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="1"]').click();await expect(page.locator('#qrPreview')).toHaveValue('Здравствуйте, Анна Морозова!');await page.locator('#qrClose').click();await page.locator('#customerNameOpen').click();await expect(page.locator('#cnInput')).toHaveValue(label);expect(await page.locator('#cnInput').getAttribute('onclick')).toBeNull();clean(s);
 });
 
 test('historical receipt confirms command while fresh snapshot paints newer colleague name',async({page})=>{
