@@ -146,7 +146,22 @@ final class ChannelPostRegistryService
                 $priorSnapshot = json_decode((string)$previous['snapshot_json'], true) ?: [];
                 $incomingTime = self::revisionTime($snapshot);
                 $priorTime = self::revisionTime($priorSnapshot);
-                if ($incomingTime > 0 && $priorTime > $incomingTime) {
+                $incomingSequence = $platform === 'telegram' ? self::telegramSequence($snapshot) : null;
+                $priorSequence = $platform === 'telegram' ? self::telegramSequence($priorSnapshot) : null;
+                $clockTime = (int)($publication['observed_revision_ms'] ?? 0);
+                $clockSequence = $platform === 'telegram' ? self::validSequence($publication['telegram_sequence'] ?? null) : null;
+                if ($clockTime > $priorTime) {
+                    $priorTime = $clockTime;
+                    if ($platform === 'telegram') {
+                        $priorSequence = $clockSequence;
+                    }
+                } elseif ($platform === 'telegram' && $clockTime === $priorTime && $clockSequence !== null && ($priorSequence === null || self::compareSequence($clockSequence, $priorSequence) > 0)) {
+                    $priorSequence = $clockSequence;
+                }
+                // Telegram update_id resolves edits sharing one edit_date second.
+                // Date remains primary because update IDs may reset after idle time.
+                $olderSameSecond = $platform === 'telegram' && $incomingTime > 0 && $incomingTime === $priorTime && $incomingSequence !== null && $priorSequence !== null && self::compareSequence($incomingSequence, $priorSequence) < 0;
+                if (($incomingTime > 0 && $priorTime > $incomingTime) || $olderSameSecond) {
                     if ($sourceEventKey !== null) $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [(int)$publication['id'], $sourceEventKey, (int)$previous['id'], self::now()]);
                     $result = $this->publication((int)$publication['id']);
                     if ($result) $result['stale_observation'] = true;
@@ -162,6 +177,13 @@ final class ChannelPostRegistryService
                 if ($previous) {
                     $this->execute("UPDATE post_versions SET state='requires_attention',error_reason='superseded_before_write',updated_at=? WHERE id=? AND state IN ('pending','claimed') AND write_attempts=0", [$now, (int)$previous['id']]);
                 }
+            }
+            $incomingTime = self::revisionTime($snapshot);
+            $incomingSequence = $platform === 'telegram' ? self::telegramSequence($snapshot) : null;
+            $clockTime = (int)($publication['observed_revision_ms'] ?? 0);
+            $clockSequence = $platform === 'telegram' ? self::validSequence($publication['telegram_sequence'] ?? null) : null;
+            if ($incomingTime > 0 && ($incomingTime > $clockTime || ($incomingTime === $clockTime && $incomingSequence !== null && ($clockSequence === null || self::compareSequence($incomingSequence, $clockSequence) > 0)))) {
+                $this->execute('UPDATE post_publications SET observed_revision_ms=?,telegram_sequence=? WHERE id=?', [$incomingTime, $incomingSequence, (int)$publication['id']]);
             }
             $result = $this->publication((int)$publication['id']);
             if ($result && $sourceEventKey !== null) $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [(int)$publication['id'], $sourceEventKey, (int)$result['version_id'], self::now()]);
@@ -433,6 +455,26 @@ final class ChannelPostRegistryService
         if ($value === '') return 0;
         if (ctype_digit($value)) return strlen($value) > 11 ? (int)$value : (int)$value * 1000;
         return (strtotime($value) ?: 0) * 1000;
+    }
+
+    private static function telegramSequence(array $snapshot): ?string
+    {
+        if (($snapshot['metadata']['source_sequence_scope'] ?? '') !== 'telegram_update_id') return null;
+        return self::validSequence($snapshot['metadata']['source_sequence'] ?? null);
+    }
+
+    private static function validSequence($value): ?string
+    {
+        if (!is_string($value) && !is_int($value)) return null;
+        $value = (string)$value;
+        return preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D', $value) ? $value : null;
+    }
+
+    /** Decimal IDs can exceed PHP_INT_MAX; compare without coercing to a float. */
+    private static function compareSequence(string $first, string $second): int
+    {
+        $length = strlen($first) <=> strlen($second);
+        return $length !== 0 ? $length : strcmp($first, $second);
     }
 
     private static function receipt(array $receipt): array

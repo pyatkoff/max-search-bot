@@ -101,7 +101,11 @@
     if(!host||!current(context))return;
     rememberDisclosures();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
     const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[];
-    if(!latest&&!history.length){notice('Пост не определён: клиент вошёл без ссылки на публикацию.','empty');return}
+    if(!latest&&!history.length){
+      // Ordinary/legacy dialogues have no publication entry. Keep the optional
+      // panel absent without discarding the completed read/deduplication key.
+      host.replaceChildren();host.hidden=true;host.dataset.state='empty';return;
+    }
     const items=[];
     if(latest?.unavailable===true||latest?.available===false){const unavailable=node('div','postContextNotice isError','Исходный пост этого обращения недоступен.');unavailable.setAttribute('role','status');items.push(unavailable)}
     else if(latest)items.push(entryMarkup(latest,context));

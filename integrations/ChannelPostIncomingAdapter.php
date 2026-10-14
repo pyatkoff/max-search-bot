@@ -42,6 +42,13 @@ final class ChannelPostIncomingAdapter
             if ($snapshot === null || $channelId === '' || !preg_match('/\A[1-9][0-9]{0,19}\z/', $messageId)) return null;
             $revision = self::revisionMilliseconds($message['edit_date'] ?? $message['date'] ?? null, false);
             if ($revision !== '') $snapshot['metadata']['source_revision_ms'] = $revision;
+            // Telegram edit_date has second precision. Within that same second,
+            // its authenticated update_id orders previously unseen edit events.
+            $sequence = $update['update_id'] ?? null;
+            if ((is_int($sequence) || is_string($sequence)) && preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/', (string)$sequence)) {
+                $snapshot['metadata']['source_sequence'] = (string)$sequence;
+                $snapshot['metadata']['source_sequence_scope'] = 'telegram_update_id';
+            }
             $group = (string)($message['media_group_id'] ?? '');
             if ($group !== '' && !preg_match('/\A[A-Za-z0-9_-]{1,100}\z/', $group)) return null;
             $event = [

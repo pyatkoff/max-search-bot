@@ -32,6 +32,9 @@ photograph and previous entries. Prices remain the prices in the publication.
   post only updates publication context. Original paid MAX attribution survives.
 - Repeated authenticated events are idempotent. Missing provider event identity
   produces a fresh local entry, without claiming deduplication for that case.
+- A separate observation clock advances even when a bot edit leaves the body
+  unchanged. Telegram's authenticated update ID orders edits within the same
+  second; newer event dates take precedence if its sequence has reset.
 - A provider timeout or lost receipt becomes `unknown`. The operation is never
   blindly edited a second time. MAX can reconcile by readback; Telegram requires
   an authenticated edited-channel event, otherwise administrator attention.

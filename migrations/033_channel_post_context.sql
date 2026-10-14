@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS post_publications (
     external_message_id VARCHAR(191) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     start_payload VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     current_version_id BIGINT UNSIGNED NULL,
+    -- Keep the accepted event clock (Telegram edit_date has seconds precision)
+    -- separate from immutable content versions, including same-body observations.
+    observed_revision_ms BIGINT UNSIGNED NULL,
+    telegram_sequence VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_post_publications_identity (post_channel_id, external_message_id),

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/services/ChannelPostRegistryService.php';
+require_once dirname(__DIR__) . '/integrations/ChannelPostIncomingAdapter.php';
 require_once __DIR__ . '/fixtures/channel_post_registry_fixture.php';
 
 $passed = 0;
@@ -127,6 +128,33 @@ $tgEdit = $tgSnapshot; $tgEdit['attachments'][0]['file_id'] = 'TG-rotated-file-i
 $tgSame = $registry->registerPublication('anytour', 'telegram', 'Any_tour_bot', '-10012345', '5', $tgEdit);
 postCheck('stable provider fingerprint ignores expiring photo credentials and own edit metadata', $tgSame['version_id'] === $tg['version_id']);
 postCheck('Telegram shares token format but never the MAX bot/source identity', preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/', $tg['start_payload']) === 1 && $tg['source_key'] === 'tg_anytour_msk' && $registry->resolveToken('anytour', 'max', 'id9704048781_1_bot', $tg['start_payload']) === null && $registry->recordEntry(101, $tg, 'tg-start-1') !== null);
+$observeTg = static function ($sequence, int $editedAt, string $text, int $messageId) use ($registry): array {
+    $update = ['update_id' => $sequence, 'edited_channel_post' => ['message_id' => $messageId, 'date' => 1791972290, 'edit_date' => $editedAt, 'chat' => ['id' => -10012345, 'type' => 'channel'], 'text' => $text]];
+    $event = ChannelPostIncomingAdapter::fromUpdate('telegram', $update);
+    $event['snapshot']['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($event['snapshot']);
+    return $registry->registerPublication('anytour', 'telegram', 'Any_tour_bot', $event['channel_id'], $event['external_message_id'], $event['snapshot']);
+};
+$sameSecondLatest = $observeTg(1004, 1791972294, 'Latest Telegram text', 81);
+$sameSecondOld = $observeTg(1003, 1791972294, 'Older Telegram text', 81);
+postCheck('actual Telegram adapter sequence rejects an unseen older edit in the same second', !empty($sameSecondOld['stale_observation']) && $sameSecondOld['version_id'] === $sameSecondLatest['version_id'] && $sameSecondOld['snapshot']['text'] === 'Latest Telegram text');
+$sameBodyLatest = $observeTg(1006, 1791972294, 'Latest Telegram text', 81);
+$sameBodyOld = $observeTg(1005, 1791972294, 'Intermediate Telegram text', 81);
+postCheck('same-body Telegram observation advances ordering without changing the immutable snapshot', $sameBodyLatest['version_id'] === $sameSecondLatest['version_id'] && $sameBodyLatest['snapshot']['metadata']['source_sequence'] === '1004' && !empty($sameBodyOld['stale_observation']) && $sameBodyOld['snapshot']['text'] === 'Latest Telegram text');
+$laterDate = $observeTg(1, 1791972295, 'Latest Telegram text', 81);
+$olderDate = $observeTg(9000, 1791972294, 'Older Telegram date', 81);
+postCheck('a later Telegram date advances even when update IDs reset and text is unchanged', $laterDate['version_id'] === $sameSecondLatest['version_id'] && !empty($olderDate['stale_observation']) && $olderDate['snapshot']['text'] === 'Latest Telegram text');
+$largeSequence = $observeTg('10000000000000000000', 1791972294, 'Large latest sequence', 82);
+$smallerSequence = $observeTg('9999999999999999999', 1791972294, 'Smaller older sequence', 82);
+postCheck('Telegram sequence comparison uses exact decimal strings beyond native integer precision', !empty($smallerSequence['stale_observation']) && $smallerSequence['version_id'] === $largeSequence['version_id']);
+$invalidSequence = ChannelPostIncomingAdapter::fromUpdate('telegram', ['update_id' => '01004', 'edited_channel_post' => ['message_id' => 83, 'date' => 1791972290, 'edit_date' => 1791972294, 'chat' => ['id' => -10012345, 'type' => 'channel'], 'text' => 'Invalid sequence fixture']]);
+postCheck('noncanonical Telegram sequence never becomes an authenticated ordering key', !isset($invalidSequence['snapshot']['metadata']['source_sequence']) && !isset($invalidSequence['snapshot']['metadata']['source_sequence_scope']));
+$maxClockSnapshot = ['text' => 'Latest MAX text', 'metadata' => ['source_event_id' => 'max-clock-4', 'source_revision_ms' => '1791973000004', 'source_sequence' => '1004', 'source_sequence_scope' => 'telegram_update_id']];
+$maxClockFirst = $registry->registerPublication('anytour', 'max', 'id9704048781_1_bot', '-80095447388179', 'ClockPost', $maxClockSnapshot);
+$maxClockSnapshot['metadata']['source_event_id'] = 'max-clock-6'; $maxClockSnapshot['metadata']['source_revision_ms'] = '1791973000006';
+$maxClockSame = $registry->registerPublication('anytour', 'max', 'id9704048781_1_bot', '-80095447388179', 'ClockPost', $maxClockSnapshot);
+$maxClockSnapshot['text'] = 'Older MAX text'; $maxClockSnapshot['metadata']['source_event_id'] = 'max-clock-5'; $maxClockSnapshot['metadata']['source_revision_ms'] = '1791973000005';
+$maxClockOld = $registry->registerPublication('anytour', 'max', 'id9704048781_1_bot', '-80095447388179', 'ClockPost', $maxClockSnapshot);
+postCheck('same-body MAX observation advances the date clock while ignoring Telegram sequences', $maxClockSame['version_id'] === $maxClockFirst['version_id'] && !empty($maxClockOld['stale_observation']) && $maxClockOld['snapshot']['text'] === 'Latest MAX text' && $pdo->query('SELECT telegram_sequence FROM post_publications WHERE id=' . $maxClockFirst['publication_id'])->fetchColumn() === null);
 
 $pdo->exec('UPDATE conversation_sources SET is_active=0 WHERE id=11');
 postCheck('retired sources disable token resolution, registrations and worker operations', $registry->resolveToken('anytour', 'max', 'id9704048781_1_bot', $first['start_payload']) === null && $registry->publication($first['publication_id']) === null && $registry->pendingPublications('anytour', 'max', 'id9704048781_1_bot') === [] && $registry->registerPublication('anytour', 'max', 'id9704048781_1_bot', '-80095447388179', 'Denied', $snapshot) === null);
