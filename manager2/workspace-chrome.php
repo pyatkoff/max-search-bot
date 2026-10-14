@@ -4,7 +4,7 @@
 <nav class="m2Rail" aria-label="Разделы кабинета">
   <a class="m2Logo" href="/manager2/" aria-label="AnyTour — кабинет менеджера">a<span>.</span></a>
   <button class="m2Nav active" type="button" data-m2-nav="dialogues" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 1-8 8H5l-3 3V11a9 9 0 0 1 18 0Z"/></svg><span>Диалоги</span></button>
-  <button class="m2Nav" type="button" data-m2-nav="tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 2 2 4-4M12 6h9M3 14l2 2 4-4M12 14h9M12 21h9"/></svg><span>Задачи</span></button>
+  <button class="m2Nav" type="button" data-m2-nav="tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 6 2 2 4-4M12 6h9M3 14l2 2 4-4M12 14h9M12 21h9"/></svg><span>Мой план</span></button>
   <button class="m2Nav" type="button" data-m2-nav="sales"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16M5 8h2m4 4h2m4-4h2"/></svg><span>Продажи</span></button>
   <button class="m2Nav" type="button" data-m2-nav="archive"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8v12h16V8M3 3h18v5H3zm6 10h6"/></svg><span>Архив</span></button>
   <div class="m2RailEnd"><a class="m2Legacy" href="/manager/" title="Открыть прежний кабинет">Прежний<br>кабинет ↗</a><div id="m2AdminSlot"></div></div>

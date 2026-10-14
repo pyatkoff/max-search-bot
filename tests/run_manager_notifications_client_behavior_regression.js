@@ -99,7 +99,7 @@ async function activationDiagnosticCases() {
     const harness = activationHarness({ failAt, failure, permission: failAt === 'permission' ? 'default' : 'granted' });
     if (await harness.enable() !== false) throw new Error(`${failAt} failure is treated as successful activation`);
     if (!harness.root.innerHTML.includes(`Этап: ${stage}`) || !harness.root.innerHTML.includes(`Код: ${code}`)) throw new Error(`${failAt} native failure has no safe inline diagnostic`);
-    if (!harness.root.innerHTML.includes('notificationDiagnostic')) throw new Error(`${failAt} diagnosis cannot remain visible on a small off-shift screen`);
+    if (!harness.root.innerHTML.includes('<details class="notificationDiagnostic">') || !harness.root.innerHTML.includes('<summary>Подробности для администратора</summary>') || /<details[^>]*\bopen\b/.test(harness.root.innerHTML)) throw new Error(`${failAt} safe diagnosis is not behind an initially collapsed disclosure`);
     if (harness.root.innerHTML.includes(secretMarker) || harness.root.innerHTML.includes('https://push.example.test')) throw new Error(`${failAt} diagnosis leaks raw error or subscription secrets`);
     if (!harness.root.innerHTML.includes('Повторить') || harness.root.innerHTML.includes('disabled')) throw new Error(`${failAt} does not restore the retry button`);
     if (harness.calls.subscribe > 1 || harness.calls.save > 1 || harness.calls.confirmation !== 0 || harness.calls.status !== 0) throw new Error(`${failAt} diagnosis introduces extra activation effects`);
@@ -214,7 +214,7 @@ async function run() {
   vm.runInNewContext(source, savedContext, { filename: 'workspace-v2-notifications.js' });
   savedListeners.click({ preventDefault() {}, target: { closest() { return {}; } } });
   await new Promise(resolve => setTimeout(resolve, 10));
-  if (!savedRoot.innerHTML.includes('Не удалось сохранить подписку') || !savedRoot.innerHTML.includes('Повторить')) {
+  if (!savedRoot.innerHTML.includes('Не удалось завершить подключение уведомлений') || !savedRoot.innerHTML.includes('Повторить')) {
     throw new Error('unusable canonical server status is silently treated as successful setup');
   }
   if (confirmationCount !== 0 || savedRoot.innerHTML.includes('Уведомления включены')) {

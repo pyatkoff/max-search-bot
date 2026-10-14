@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
+require_once __DIR__ . '/CallbackGeneration.php';
 
 class ManagerMessageMediaService
 {
@@ -21,10 +22,12 @@ class ManagerMessageMediaService
             if (!is_array($meta)) continue;
             $linked=self::publicLinkedMessage((array)($meta['linked_message']??[]));
             $attachments=!empty($meta['attachments'])&&is_array($meta['attachments'])?$meta['attachments']:[];
-            if(!$attachments && !$linked) continue;
+            $callback=($meta['type']??null)==='callback';
+            if(!$attachments && !$linked && !$callback) continue;
             $mediaById[(int)$row['id']] = [
                 'channel'=>(string)($row['channel'] ?? ''),
                 'direction'=>(string)($row['direction'] ?? ''),
+                'callback'=>$callback,
                 'linked_message'=>$linked,
                 'attachments'=>array_values(array_filter($attachments, static function ($attachment) {
                     return is_array($attachment) && in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true);
@@ -33,6 +36,17 @@ class ManagerMessageMediaService
         }
         foreach ($messages as &$message) {
             $media = $mediaById[(int)($message['id'] ?? 0)] ?? ['channel'=>'','direction'=>'','attachments'=>[],'linked_message'=>[]];
+            // Recorded type is authoritative. A tourist typing a callback code
+            // remains an ordinary message; raw metadata is never exposed.
+            if(!empty($media['callback']) && $media['direction']==='inbound' && ($message['sender_type']??'')==='customer') {
+                $raw=(string)($message['text']??'');
+                $labels=[
+                    'manager_after_tours'=>'Клиент запросил менеджера после подбора туров',
+                    'manager_request'=>'Клиент запросил менеджера',
+                    'phone_manual'=>'Клиент выбрал ручной ввод телефона',
+                ];
+                $message['service_action']=['type'=>'callback','label'=>$labels[CallbackGeneration::base($raw)]??'Клиент нажал кнопку','raw_payload'=>$raw];
+            }
             if(!empty($media['linked_message'])) $message['linked_message']=$media['linked_message'];
             $attachments = $media['attachments'];
             $message['attachments'] = self::publicAttachments(

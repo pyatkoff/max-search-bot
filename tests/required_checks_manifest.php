@@ -118,6 +118,10 @@ return [
     ],
     'manager' => [
         'php tests/run_manager2_workspace_regression.php',
+        'node tests/run_manager2_navigation_behavior_regression.js',
+        'php tests/run_manager_service_action_projection_regression.php',
+        'node tests/run_manager_service_action_behavior_regression.js',
+        'node tests/run_manager_task_feedback_behavior_regression.js',
         'php tests/run_manager2_session_isolation_regression.php',
         'php tests/run_manager_request_regression.php',
         'php tests/run_manager_handoff_journey_context_regression.php',
