@@ -25,8 +25,10 @@ function resolveText(text,values={}){
   });
 }
 function knownValues(ctx=replyContext){
-  const client=String(S.detail?.conversation?.display_name||'').trim();
-  return {manager_name:String(S.manager?.display_name||S.manager?.login||'').trim(),client_name:contextValid(ctx)&&Number(S.detail?.conversation?.id)===Number(ctx?.conversationId)&&client!=='Турист'?client:''};
+  const conversation=S.detail?.conversation||{};
+  // A shared internal alias is for colleagues, never a salutation to the client.
+  const client=String(Object.prototype.hasOwnProperty.call(conversation,'original_display_name')?conversation.original_display_name||'':conversation.display_name||'').trim();
+  return {manager_name:String(S.manager?.display_name||S.manager?.login||'').trim(),client_name:contextValid(ctx)&&Number(conversation.id)===Number(ctx?.conversationId)&&client!=='Турист'?client:''};
 }
 function draftKey(){return authenticated()?storagePrefix+owner:''}
 function persist(){

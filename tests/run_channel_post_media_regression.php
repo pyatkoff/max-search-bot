@@ -26,6 +26,7 @@ $pdo->exec("CREATE TABLE managers (id INTEGER PRIMARY KEY,login TEXT,display_nam
 CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);
 CREATE TABLE manager_group_members (manager_id INTEGER,group_id INTEGER);
 CREATE TABLE customers (id INTEGER PRIMARY KEY,display_name TEXT,phone TEXT,email TEXT);
+CREATE TABLE manager_customer_names (customer_id INTEGER PRIMARY KEY,working_name TEXT,version INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
 INSERT INTO projects VALUES (1,'anytour','AnyTour',1),(2,'other','Other',1);
 INSERT INTO conversation_sources (id,project_id,source_key,display_name,channel,is_active,primary_group_id,fallback_mode) VALUES (11,1,'max-source','MAX test','max',1,9,'none'),(12,1,'tg-source','TG test','telegram',1,NULL,'none');
 INSERT INTO managers VALUES (7,'manager','Manager','manager','',1,1),(8,'other','Other','manager','',1,1),(9,'inactive','Inactive','manager','',0,1);
