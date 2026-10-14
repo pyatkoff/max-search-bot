@@ -55,6 +55,7 @@ function assertReadsOnly(state){
   expect(state.unexpected).toEqual([]);
   expect(state.errors).toEqual([]);
 }
+async function section(page,name){await page.locator('[data-admin-section="'+name+'"]').click();await expect(page.locator('#adminSection-'+name)).toBeVisible()}
 async function capture(page,browser,width,state){
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
   await page.screenshot({path:path.join(directory,`admin-${browser}-${width}-${state}.png`),fullPage:true,animations:'disabled'});
@@ -72,10 +73,13 @@ for(const width of [390,430,768,1440])test.describe('Admin load state '+width,()
     for(const id of ['saveProject','saveManager','saveRule'])await expect(page.locator('#'+id)).toBeDisabled();
     await capture(page,browserName,width,'failed');
 
+    await section(page,'managers');
+    await page.locator('[data-admin-create="manager"]').click();
+    await expect(page.locator('#managerEditor')).toBeVisible();
     await page.locator('#managerName').fill('Несохранённый синтетический менеджер');
     await page.locator('#managerPassword').fill('Synthetic-private-password');
     await page.locator('#managerProjects input[value="2"]').check();
-    await page.locator('#managers [data-admin-retry]').click();
+    await page.locator('[data-admin-retry]:visible').first().click();
     await expect(page.locator('#managers .item')).toHaveCount(1);
     await expect(page.locator('#managers')).toContainText('Синтетический менеджер Мария');
     await expect(page.locator('#managers')).not.toContainText('Не удалось');
@@ -88,9 +92,13 @@ for(const width of [390,430,768,1440])test.describe('Admin load state '+width,()
     await capture(page,browserName,width,'recovered');
 
     await page.reload();
+    await section(page,'projects');
     await expect(page.locator('#projects')).toContainText('Проектов нет');
+    await section(page,'managers');
     await expect(page.locator('#managers')).toContainText('Менеджеров нет');
+    await section(page,'priority');
     await expect(page.locator('#priorityRules')).toContainText('Правил пока нет');
+    await section(page,'audit');
     await expect(page.locator('#audit')).toContainText('Изменений пока нет');
     await expect(page.locator('[data-admin-retry]')).toHaveCount(0);
     await expect(page.locator('#app')).not.toContainText('Не удалось загрузить');
