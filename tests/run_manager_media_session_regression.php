@@ -34,7 +34,7 @@ function mediaSessionCopy(string $relative): void {
 }
 function mediaSessionWorker(string $mode,string $session,string $query,string $result): array {
     global $tmp;
-    $process=proc_open([PHP_BINARY,'-d','session.save_path='.$tmp.'/sessions','-d','session.use_cookies=0','-d','session.cache_limiter=',
+    $process=proc_open([PHP_BINARY,'-d','session.save_path='.$tmp.'/sessions','-d','session.cache_limiter=',
         $tmp.'/request.php',$mode,$session,$query,$result],
         [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$tmp);
     if (!is_resource($process)) throw new RuntimeException('Cannot start media fixture worker');
