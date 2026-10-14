@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-14T18:20:02+00:00",
+    "generated_at": "2026-10-14T18:24:33+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 37,
-        "raw_sessions": 37,
+        "sessions": 38,
+        "raw_sessions": 38,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 37,
+            "resolved": 38,
             "unresolved": 0
         },
         "started": 34,
@@ -18,14 +18,14 @@
         "tours_opened": 21,
         "site_opened": 1,
         "post_tour_manager_cta_shown": 3,
-        "manager_requested": 24,
+        "manager_requested": 25,
         "manager_replied": 17,
         "customer_replied_after_manager": 11,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 1,
             "answered_after_90s": 16,
-            "still_unanswered": 1,
+            "still_unanswered": 2,
             "measured_responses": 17,
             "avg_seconds": 2872,
             "max_seconds": 11001
@@ -33,23 +33,23 @@
         "drop_points": {
             "customer_replied_after_manager": 11,
             "tours_opened": 10,
-            "manager_requested": 7,
+            "manager_requested": 8,
             "manager_replied": 6,
             "collecting_needs": 3
         },
         "flags": {
             "repeated_callback_input": 6,
             "excessive_turns": 5,
-            "rapid_date_reselection": 1,
-            "manager_requested_no_reply": 1
+            "manager_requested_no_reply": 2,
+            "rapid_date_reselection": 1
         },
         "calendar_day": {
-            "conversations_started": 28,
+            "conversations_started": 29,
             "needs_collected_from_started": 15,
             "tours_opened_from_started": 14,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 2,
-            "manager_requested": 21,
+            "manager_requested": 22,
             "manager_replied": 14,
             "customer_replied_after_manager": 9
         }
