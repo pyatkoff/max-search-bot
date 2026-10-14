@@ -1,0 +1,43 @@
+name: Manager read profile
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/manager-read-profile.php'
+      - 'tools/production_snapshot.php'
+      - '.github/workflows/publish-conversation-diagnostics.yml'
+      - 'tests/run_manager_read_profile_regression.php'
+      - '.github/workflows/manager-read-profile.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  native-mysql:
+    name: read profile / SQLite and native MySQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: read-profile-test-only
+          MYSQL_DATABASE: manager_read_profile_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pread-profile-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, pdo_mysql
+          coverage: none
+      - name: Exercise actual PDO capture and sanitized native plans
+        env:
+          MANAGER_READ_PROFILE_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_read_profile_test;charset=utf8mb4
+          MANAGER_READ_PROFILE_TEST_MYSQL_USER: root
+          MANAGER_READ_PROFILE_TEST_MYSQL_PASSWORD: read-profile-test-only
+        run: php tests/run_manager_read_profile_regression.php

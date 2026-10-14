@@ -1,6 +1,8 @@
 <?php
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 $baseDir=dirname(__DIR__);
+$profileManagerLists=in_array('--profile-manager-lists',$argv??[],true);
+if($profileManagerLists)require_once $baseDir.'/tools/manager-read-profile.php';
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
@@ -197,15 +199,22 @@ try{
         if(!(int)($manager['is_active']??0))continue;
         $id=(int)$manager['id'];
         // Time the existing bounded probes; do not add requests or transcript data.
+        $allProfile=$mineProfile=$waitingProfile=null;
         $loadStarted=hrtime(true);
-        $all=ManagerConversationService::list($id,'all',200,'*');
+        if($profileManagerLists){$all=ManagerReadProfile::capture($pdo,static fn()=>ManagerConversationService::list($id,'all',200,'*'),$allProfile);}
+        else{$all=ManagerConversationService::list($id,'all',200,'*');}
         $allMs=round((hrtime(true)-$loadStarted)/1e6,1);
+        if($profileManagerLists)$allMs=$allProfile['load_ms'];
         $loadStarted=hrtime(true);
-        $mine=ManagerConversationService::list($id,'mine',200,'*');
+        if($profileManagerLists){$mine=ManagerReadProfile::capture($pdo,static fn()=>ManagerConversationService::list($id,'mine',200,'*'),$mineProfile);}
+        else{$mine=ManagerConversationService::list($id,'mine',200,'*');}
         $mineMs=round((hrtime(true)-$loadStarted)/1e6,1);
+        if($profileManagerLists)$mineMs=$mineProfile['load_ms'];
         $loadStarted=hrtime(true);
-        $waiting=ManagerConversationService::list($id,'waiting',200,'*');
+        if($profileManagerLists){$waiting=ManagerReadProfile::capture($pdo,static fn()=>ManagerConversationService::list($id,'waiting',200,'*'),$waitingProfile);}
+        else{$waiting=ManagerConversationService::list($id,'waiting',200,'*');}
         $waitingMs=round((hrtime(true)-$loadStarted)/1e6,1);
+        if($profileManagerLists)$waitingMs=$waitingProfile['load_ms'];
         $otherAssigned=0;
         foreach($all as $conversation){$assigned=(int)($conversation['manager_id']??0);if($assigned>0&&$assigned!==$id)$otherAssigned++;}
         $entry=[
@@ -219,6 +228,7 @@ try{
             'assigned_to_others'=>$otherAssigned,
             'load_ms'=>['all'=>$allMs,'mine'=>$mineMs,'waiting'=>$waitingMs],
         ];
+        if($profileManagerLists)$entry['read_profile']=['all'=>$allProfile,'mine'=>$mineProfile,'waiting'=>$waitingProfile];
         $visibilityCheck=ManagerVisibilityHealth::assess($manager,$all,$mine,$waiting);
         $entry['sample_check']=$visibilityCheck;
         $snapshot['manager_visibility'][]=$entry;

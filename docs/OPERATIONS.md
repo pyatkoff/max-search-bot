@@ -36,6 +36,38 @@ A successful deploy must include all of:
 
 Do not treat a diagnostics-download failure as a successful deployment.
 
+## Optional Manager list attribution
+
+The existing production diagnostics workflow has a **default-off** manual input
+`profile_manager_lists`; the CLI equivalent is `php tools/production_snapshot.php
+--profile-manager-lists`. Use it only after this source is published through the
+normal gates and the specific capture scope is authorized. Automatic post-deploy
+captures remain unchanged. Do not patch an installed checkout to enable it.
+
+The option observes the same three bounded `ManagerConversationService::list`
+probes (All/Mine/Waiting, limit 200) on their canonical PDO connection. It does not
+repeat the loaders, add a transport, mark conversations read or change data.
+One ordinary EXPLAIN (never ANALYZE) may follow each loader after the original
+statement class is restored. `load_ms` excludes EXPLAIN but includes observer
+overhead; opt-in and default timings are not an optimization before/after pair.
+
+`read_profile` exposes fixed categories, at most 64 statement records, explicit
+execute/fetch milliseconds, fetched rows and scalar-value bytes. It never exports
+SQL, bindings, identifiers, fetched text, exceptions or plan conditions. Plans
+contain only fixed access enums and numeric estimates, not table/index names.
+Prepared-statement count includes unexecuted prepares; `PDO::query` execution is
+not timed by this observer. Scalar bytes exclude keys, are fetch-mode dependent
+(e.g. FETCH_BOTH duplicates cells), and are not HTTP/wire bytes. `fetchColumn`
+cannot distinguish a boolean-false cell from EOF. Nondefault statement classes
+and persistent connections are not replaced and report unavailable coverage.
+When `available=false`, zero observer counters mean **not measured**, not zero
+SQL work; only the original callback's duration is measured.
+
+Each capture is one sample with uncontrolled cache state, not p50/p95, database
+internal execution time, browser latency or an SLA. Compare only like scenarios
+with explicit coverage and instrumentation state; retain the existing encrypted
+private evidence and sanitized public diagnostics boundaries.
+
 ## MAX TLS rollout gate
 
 `tools/max_tls_preflight.php` is the non-customer-facing production gate for MAX certificate verification. It performs `GET /subscriptions`, optionally reserves an upload URL and probes that host with a bodyless request, forces peer and hostname verification even when the legacy compatibility flag is set, and reports no token, subscription URL or upload URL. The upload probe does not transfer a file or send a message.

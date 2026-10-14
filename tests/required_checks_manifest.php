@@ -231,6 +231,7 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_manager_read_profile_regression.php',
         'php tests/run_channel_daily_report_regression.php',
         'php tests/run_legacy_paid_yclid_reader_regression.php',
         'php tests/run_paid_daily_report_regression.php',
