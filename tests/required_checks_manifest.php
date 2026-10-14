@@ -117,6 +117,9 @@ return [
         'php tests/run_web_consultant_v2_regression.php',
     ],
     'manager' => [
+        'php tests/run_manager_quick_reply_regression.php',
+        'node tests/run_manager_quick_replies_behavior_regression.js',
+        'node tests/run_manager_response_cycle_behavior_regression.js',
         'php tests/run_manager2_workspace_regression.php',
         'node tests/run_manager2_navigation_behavior_regression.js',
         'php tests/run_manager_service_action_projection_regression.php',

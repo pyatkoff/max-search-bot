@@ -9,8 +9,8 @@ function harness() {
   let file = null, resolve, recoveries = 0;
   const requests = [], response = new Promise(done => { resolve = done; });
   const input = {get files(){return file ? [file] : []}, set value(value){if(value==='')file=null}, addEventListener(){}};
-  const box = {textContent:'', classList:{add(){},remove(){}}};
-  const W = {S:{authGeneration:1}, showAuthRecovery(){recoveries++; W.S.authGeneration++;}};
+  const controls={};const box = {textContent:'',innerHTML:'',querySelector(key){return controls[key]||(controls[key]={textContent:'',onclick:null})}, classList:{add(){},remove(){}}};
+  const W = {S:{authGeneration:1,manager:{id:7}}, showAuthRecovery(){recoveries++; W.S.authGeneration++;}};
   const window = {WorkspaceV2:W};
   class FormData {constructor(){this.values=new Map()} append(key,value){this.values.set(key,value)}}
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-media.js'),'utf8'), {
@@ -22,6 +22,24 @@ function harness() {
     finish(status=200,body={ok:true}){resolve({status,ok:status>=200&&status<300,json:async()=>body})}};
 }
 const cases=[];function test(name,run){cases.push({name,run})}
+
+test('switching restores only the selected conversation attachment and removal stays removed',async()=>{
+  const h=harness(),first={name:'first.png',size:200},second={name:'second.png',size:100};
+  h.select(first);h.media.preserveDraft(101);h.media.configure('synthetic-csrf',102);h.media.restoreDraft(102);assert.equal(h.media.hasFile(),false);
+  h.select(second);h.media.preserveDraft(102);h.media.configure('synthetic-csrf',101);h.media.restoreDraft(101);assert.equal(h.media.hasFile(),true);
+  const sending=h.media.send();assert.equal(h.requests[0].body.values.get('file'),first);h.finish(500,{ok:false});await sending;
+  h.media.clear();h.media.restoreDraft(101);assert.equal(h.media.hasFile(),false);
+});
+test('attachment draft from another account is inaccessible and account reset discards all files',async()=>{
+  const h=harness();h.select({name:'private.png',size:200});h.media.preserveDraft(101);h.W.S.manager.id=8;h.media.restoreDraft(101);assert.equal(h.media.hasFile(),false);
+  h.media.resetDrafts();h.W.S.manager.id=7;h.media.restoreDraft(101);assert.equal(h.media.hasFile(),false);
+});
+
+test('successful pending upload removes its saved source file after switching to another client',async()=>{
+  const h=harness(),file={name:'sent.png',size:200};h.select(file);const pending=h.media.send();h.media.preserveDraft(101);
+  h.media.configure('synthetic-csrf',102);h.media.restoreDraft(102);h.finish();await pending;
+  h.media.configure('synthetic-csrf',101);h.media.restoreDraft(101);assert.equal(h.media.hasFile(),false);
+});
 
 test('a completed upload cannot clear a new attachment selected in another conversation',async()=>{
   const h=harness(),first={name:'first.png'},next={name:'next.png'};h.select(first);
