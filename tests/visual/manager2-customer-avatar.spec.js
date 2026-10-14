@@ -9,7 +9,7 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const portrait=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAABM0lEQVR4nO2YzQ3CMAxGU8S4nDpIT+zABszAWBy4IIHAP89xovg7VpX9vdhp42y3x73NrFO2Aa8KIFsFkK0CyFYBZOscFPc4rp8P9/2CJ9rwo8RX6+9iMeAW+ute+I5cJIDcGciAAWg9UQwMgM0NwjD9ZxQA8CykvwhVgWwVQLYKIFsAgOdw5j/YVQVaa9aFRM7VWAW0bqipgGwhuSdwpoH3gMQZO5HxI+VLE8/EnVWf0WyF3Av9GFPwbUDuAdV4RZEwAObJ0I/hBUBuFjwYrk1M3e144tgB2BtCczQjAOveE9MCEOHeHFkNEOfeFn/6P7EOIHr5DVkUAH3ca3Mt1kIDSgrQs39UGZepwLASAfTvH3neNSowsgogWwWQrQLIlggg4laZyrtGBUaWFKB/FwkzPgFzBmYhb17hEQAAAABJRU5ErkJggg==','base64');
 async function setup(page,{rowCount=2,holdPhoto=false,photoDelay=0,statuses={},disabled=false,channels={}}={}){
  const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
- const calls=[],photos=[],unexpected=[],errors=[],held=[],deniedDetails=new Set();
+ const calls=[],photos=[],unexpected=[],errors=[],held=[],blobRequests=[],deniedDetails=new Set();
  let manager={id:7,role:'manager',display_name:'Мария',is_working:true},bytes=0,active=0,maximumActive=0;
  const conv=id=>({id,customer_id:100+id,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:channels[id]||'telegram',display_name:id===11?'Анна Морозова':id===12?'Алексей Иванов':'Турист '+id,original_display_name:id===11?'Анна Морозова':id===12?'Алексей Иванов':'Турист '+id});
  const rows=()=>Array.from({length:rowCount},(_,i)=>({...conv(i+11),project_label:'AnyTour',origin_label:'Реклама',can_edit_pipeline:true,lead_stage:{id:1,display_name:'В работе'},lead_outcome:'open',last_text:'Ждём варианты у моря',last_sender_type:'customer',awaiting_manager_reply:1,unread_count:i?0:2}));
@@ -17,6 +17,9 @@ async function setup(page,{rowCount=2,holdPhoto=false,photoDelay=0,statuses={},d
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
+  // WebKit exposes local object-URL image reads to routing, unlike Chromium.
+  // Continue only our own same-origin blobs; external network stays blocked.
+  if(url.protocol==='blob:'&&url.origin===origin){blobRequests.push(req.url());return route.continue()}
   const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
   if(url.origin!==origin)return block();
@@ -51,7 +54,7 @@ async function setup(page,{rowCount=2,holdPhoto=false,photoDelay=0,statuses={},d
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  const navigatedAt=Date.now();await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(rowCount);
- return {calls,photos,unexpected,errors,navigatedAt,denyDetail(id){deniedDetails.add(Number(id))},get bytes(){return bytes},get maximumActive(){return maximumActive},releaseAll(){holdPhoto=false;held.splice(0).forEach(h=>h.resolve())},release(id){const index=held.findIndex(h=>h.id===id);if(index>=0)held.splice(index,1)[0].resolve()},switchManager(m){manager=m}};
+ return {calls,photos,unexpected,errors,blobRequests,navigatedAt,denyDetail(id){deniedDetails.add(Number(id))},get bytes(){return bytes},get maximumActive(){return maximumActive},releaseAll(){holdPhoto=false;held.splice(0).forEach(h=>h.resolve())},release(id){const index=held.findIndex(h=>h.id===id);if(index>=0)held.splice(index,1)[0].resolve()},switchManager(m){manager=m}};
 }
 async function openLead(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#messages')).toContainText('Посмотрите варианты у моря')}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`avatar-${browser}-${width}-${state}.png`)})}
@@ -115,4 +118,8 @@ test('unsupported private MAX and website portraits keep initials with zero avat
 
 test('late Telegram photo cannot paint a reused header after navigation to unsupported MAX',async({page})=>{
  await page.setViewportSize({width:1440,height:900});const s=await setup(page,{holdPhoto:true,channels:{12:'max'}});await openLead(page,11);await expect.poll(()=>s.photos.length).toBe(1);await openLead(page,12);s.releaseAll();await expect.poll(()=>s.photos.filter(p=>p.finished).length).toBe(1);await imageLoaded(page.locator('[data-conversation-id="11"] .customerAvatarImage'));await expect(page.locator('#conversationAvatar')).toContainText('АИ');await expect(page.locator('#conversationAvatar .customerAvatarImage')).toHaveCount(0);await expect(page.locator('.customerAvatarCard .customerAvatarImage')).toHaveCount(0);await expect(page.locator('.customerAvatarCard')).toContainText('АИ');clean(s);
+});
+
+test('valid PNG object URL decodes through same-origin fixture routing',async({page,browserName})=>{
+ const s=await setup(page);await openLead(page);await imageLoaded(page.locator('#conversationAvatar .customerAvatarImage'));console.log(JSON.stringify({metric:'local-portrait-object-url-decode',browser:browserName,blobRouteReads:s.blobRequests.length,pngBytes:portrait.length,naturalWidth:64,production:false}));clean(s);
 });
