@@ -29,6 +29,7 @@ function ensureAuthRecovery(){
 }
 function showAuthRecovery(message=''){
   if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
+  window.WorkspaceV2QuickReplies?.resetSession();
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
@@ -79,7 +80,7 @@ async function loadCatalog(){
 }
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
-  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();
+  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();
   S.workspaceBound=true;
 }
 async function refreshNotificationHealth(generation,managerId){
@@ -95,6 +96,8 @@ async function resumeAuthenticated(me){
   S.authGeneration++;
   if(previousId&&!sameIdentity){
     window.WorkspaceV2Conversation?.resetForIdentityChange();
+    window.WorkspaceV2Media?.resetDrafts?.();
+    window.WorkspaceV2QuickReplies?.resetSession();
     $('inboxList')?.replaceChildren();$('kanbanBoard')?.replaceChildren();$('leadCard')?.replaceChildren();
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
   }
@@ -135,5 +138,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
+window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
 })();

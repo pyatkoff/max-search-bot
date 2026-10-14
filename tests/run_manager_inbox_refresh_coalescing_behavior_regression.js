@@ -154,4 +154,15 @@ test('late previous-session finally cannot release a current transcript cycle',a
   assert.equal(h.window.WorkspaceV2Inbox.autoRefresh(true),true);await flush();
 });
 
+test('next selection is scoped to loaded filters, current account and auth generation',async()=>{
+  const h=await setup(),inbox=h.window.WorkspaceV2Inbox;
+  h.setHook((url,r)=>r.action==='list'?response({ok:true,conversations:rows(80)}):null);await inbox.load();
+  assert.ok(inbox.getLoadedSelection().length>0);
+  h.W.S.leadSearch='different filter';assert.equal(inbox.getLoadedSelection().length,0);
+  h.setHook((url,r)=>r.action==='list'?response({ok:true,conversations:rows(81)}):null);
+  await inbox.load();assert.equal(inbox.getLoadedSelection()[0].id,81);
+  const detached=inbox.getLoadedSelection();detached[0].id=999;assert.equal(inbox.getLoadedSelection()[0].id,81);
+  h.W.S.authGeneration++;assert.equal(inbox.getLoadedSelection().length,0);
+});
+
 (async()=>{let failed=0;for(const {name,run} of cases){try{await run();console.log('PASS '+name);}catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0;})();

@@ -39,8 +39,8 @@ function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)retur
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState()}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||accessLost;if(file)file.disabled=busy||suspended||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
-function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||accessLost})}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
+function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||!!opening||accessLost})}
 function applyInteractionState(){applyComposerState();applyActionState()}
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
@@ -58,13 +58,15 @@ function renderDeliveryFailure(failure,fallback=''){const el=$('deliveryFailure'
 function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
-function addQuickReply(text){
-  const reply=$('replyText'),form=$('composer'),addition=String(text||'');
-  if(!reply||!form||reply.disabled||form.classList.contains('hidden')||!addition)return;
-  const draft=reply.value;
+function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
+function insertQuickReply(text,context=captureReplyContext()){
+  const current=captureReplyContext(),addition=String(text||'');
+  if(!canInsertEmoji()||!context||Object.keys(current).some(key=>current[key]!==context[key])||!addition||/\{\{?[^{}\r\n]+\}\}?/.test(addition))return false;
+  const reply=$('replyText'),draft=reply.value;
   reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
-  saveDraft();autoGrow();reply.focus();
+  saveDraft();autoGrow();reply.focus();return true;
 }
+function addQuickReply(text){return insertQuickReply(text)}
 const replyEmojis=[
   ['😊','Улыбка'],['🙂','Лёгкая улыбка'],['😀','Радость'],['😄','Смех'],['😂','Смех до слёз'],['😉','Подмигивание'],['😍','Восхищение'],['🥰','Нежность'],
   ['😎','Круто'],['🤔','Раздумье'],['😅','Улыбка с облегчением'],['🙏','Спасибо'],['👍','Палец вверх'],['👎','Палец вниз'],['👏','Аплодисменты'],['👌','Отлично'],
@@ -103,11 +105,11 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
-  window.WorkspaceV2Media?.clear();renderMessages([]);
+  window.WorkspaceV2Media?.resetDrafts?.();window.WorkspaceV2Media?.clear();renderMessages([]);
   ['conversationTitle','conversationAvatar','conversationState','conversationMeta','conversationActions','deliveryFailure','composerLocked'].forEach(id=>{$(id)?.replaceChildren()});
   $('deliveryFailure')?.classList.add('hidden');$('composerLocked')?.classList.add('hidden');
 }
@@ -221,7 +223,7 @@ function renderServiceActionDetails(root,action){
   const payload=document.createElement('code');payload.textContent=action.raw_payload;
   details.appendChild(summary);details.appendChild(payload);root.appendChild(details);
 }
-function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),position=window.WorkspaceV2Jump?.capture(),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom);window.WorkspaceV2Jump?.restore(position,{stickToBottom,preserveScroll})}
+function renderMessages(messages,{stickToBottom=false,preserveScroll=false}={}){if(photoViewer&&!(messages||[]).some(m=>(m.attachments||[]).some(a=>a?.url===photoViewer.url)))closePhotoViewer(false);const box=$('messages'),position=window.WorkspaceV2Jump?.capture(),distanceFromBottom=Math.max(0,box.scrollHeight-box.scrollTop-box.clientHeight);const frag=document.createDocumentFragment();(messages||[]).forEach(m=>{const n=document.createElement('div');const event=serviceAction(m),who=event?'service':m.sender_type==='customer'?'customer':m.sender_type==='manager'?'manager':'ai',whoLabel=event?'Действие клиента':who==='customer'?'Турист':who==='manager'?'Менеджер':'Бот';n.className=event?'msg serviceAction':'msg '+who;n.dataset.sender=who;if(Number.isSafeInteger(Number(m.id))&&Number(m.id)>0)n.dataset.scrollMessageKey=String(m.id);const sender=document.createElement('span');sender.className='messageSender';sender.textContent=whoLabel;n.appendChild(sender);renderLinkedMessage(n,m);const body=document.createElement('div');body.className='msgBody';if(event)body.textContent=event.label;else renderMessageBody(body,m);n.appendChild(body);if(event)renderServiceActionDetails(n,event);renderAttachments(n,m.attachments||[]);const meta=document.createElement('div');meta.className='msgMeta';meta.textContent=messageTime(m.created_at||'');meta.title=window.ManagerTime.format(m.created_at,{year:true})+' МСК';n.appendChild(meta);frag.appendChild(n)});if(!frag.childNodes.length){const empty=document.createElement('div');empty.className='conversationEmpty';empty.innerHTML='<div class="conversationEmptyIcon">💬</div><strong>Сообщений пока нет</strong><span>История диалога появится здесь.</span>';frag.appendChild(empty)}box.replaceChildren(frag);if(stickToBottom)box.scrollTop=box.scrollHeight;else if(preserveScroll)box.scrollTop=Math.max(0,box.scrollHeight-box.clientHeight-distanceFromBottom);window.WorkspaceV2Jump?.restore(position,{stickToBottom,preserveScroll});window.WorkspaceV2ConversationSearch?.rendered()}
 function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;$('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ')}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
@@ -234,14 +236,14 @@ async function refreshVisible(){
     const d=await api('detail',{conversation_id:target});
     if(!stillCurrent())return false;
     if(!d?.ok){
-      if([403,404].includes(d?.http_status)){closePhotoViewer(false);accessLost=true;forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
+      if([403,404].includes(d?.http_status)){closePhotoViewer(false);accessLost=true;forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
       else setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');
       return false;
     }
     if(Number(d.conversation?.id)!==target){setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
     const previous=S.detail,c=d.conversation,changed=JSON.stringify(previous.messages||[])!==JSON.stringify(d.messages||[]),failureChanged=JSON.stringify(previous.delivery_failure||null)!==JSON.stringify(d.delivery_failure||null);
     const actionsChanged=accessLost||failureChanged||JSON.stringify([previous.conversation.manager_id,previous.conversation.status,previous.conversation.manager_name])!==JSON.stringify([c.manager_id,c.status,c.manager_name]);
-    accessLost=false;S.detail={...d,lead:previous.lead};setRefreshStatus();renderHeader(c);
+    accessLost=false;S.detail={...d,lead:previous.lead};setRefreshStatus();renderHeader(c);window.WorkspaceV2ConversationSearch?.setState('ready');
     if(changed){const box=$('messages'),top=box.scrollTop,atBottom=window.WorkspaceV2Jump?.isFollowingLatest()??(box.scrollHeight-box.clientHeight-top<=48);renderMessages(d.messages||[],{stickToBottom:atBottom,preserveScroll:!atBottom});if(!atBottom&&!window.WorkspaceV2Jump)box.scrollTop=top}
     if(failureChanged)renderDeliveryFailure(d.delivery_failure||null);
     if(actionsChanged)renderActions(c);
@@ -250,30 +252,82 @@ async function refreshVisible(){
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
   finally{refreshPending=false}
 }
+function renderLeadLoading(c){
+  const root=$('leadCard');if(!root)return;
+  const panel=document.createElement('section');panel.className='leadPanel';panel.setAttribute('role','status');
+  const title=document.createElement('strong');title.textContent=c.display_name||'Турист';
+  const hint=document.createElement('div');hint.className='leadPanelHint';hint.textContent='Загружаем карточку клиента… Переписка уже доступна.';
+  panel.appendChild(title);panel.appendChild(hint);root.replaceChildren(panel);
+}
 async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous;
-  if(!target)return false;
+  if(!target||S.authExpired)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
   if(switching){closeEmojiPicker();closePhotoViewer(false)}
-  const seq=++openSeq;opening=seq;refreshEpoch++;setRefreshStatus();
+  const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
+  const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
+  opening=seq;refreshEpoch++;setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
-  const [detailResult,leadResult]=await Promise.allSettled([api('detail',{conversation_id:target}),pipe('detail',{conversation_id:target})]);
+  window.WorkspaceV2ConversationSearch?.setState('loading');
+  // Start both canonical reads once. The secondary card has its own completion and
+  // never holds the authorized transcript or composer behind a slow card request.
+  const leadRequest=Promise.resolve().then(()=>pipe('detail',{conversation_id:target})).catch(()=>null);
+  let d;try{d=await api('detail',{conversation_id:target})}catch(e){d=null}
   if(opening===seq)opening=0;
-  if(seq!==openSeq)return false;
-  if(S.authExpired||(options.restoreSession&&savedSelection!==target))return false;
-  const d=detailResult.status==='fulfilled'?detailResult.value:null,p=leadResult.status==='fulfilled'&&leadResult.value?.ok?leadResult.value:null;
-  if(!d?.ok){if(options.restoreSession&&[403,404].includes(d?.http_status))forgetSavedConversation(target);if(!S.authExpired)setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false}
-  if(options.restoreSession&&Number(d.conversation?.id)!==target){forgetSavedConversation(target);setLoadStatus('Не удалось восстановить диалог. Выберите диалог в списке.','error');return false}
-  accessLost=false;S.current=target;S.detail={...d,lead:p};rememberSelection(target);setReplyStatus();setLoadStatus();window.WorkspaceV2Media?.configure(S.csrf,S.current);if(!options.preserveAttachment||switching)window.WorkspaceV2Media?.clear();window.WorkspaceV2Inbox?.markRead(S.current);
-  const c=d.conversation;renderHeader(c);renderDeliveryFailure(d.delivery_failure||null);renderActions(c);if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else if(switching)restoreDraft(S.current);renderMessages(d.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching});if(p)window.WorkspaceV2LeadCard?.render(p,c);else window.WorkspaceV2LeadCard?.renderUnavailable(c);window.WorkspaceV2Inbox?.markActive(S.current);if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(S.current,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');return true
+  if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
+  if(!d?.ok||Number(d.conversation?.id)!==target){
+    if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
+    if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){accessLost=true;forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
+    applyInteractionState();window.WorkspaceV2ConversationSearch?.setState('error');
+    setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
+  }
+  if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
+  accessLost=false;S.current=target;S.detail={...d,lead:null};rememberSelection(target);setReplyStatus();setLoadStatus();
+  window.WorkspaceV2Media?.configure(S.csrf,target);
+  if(switching){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
+  else if(!options.preserveAttachment)window.WorkspaceV2Media?.clear();
+  const c=d.conversation;renderHeader(c);renderDeliveryFailure(d.delivery_failure||null);renderActions(c);
+  if(Number(c.manager_id)!==manager||c.status!=='manager'){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}else if(switching)restoreDraft(S.current);
+  renderMessages(d.messages||[],{stickToBottom:options.stickToBottom===true||switching,preserveScroll:options.preserveMessageScroll===true&&!switching});
+  window.WorkspaceV2ConversationSearch?.setState('ready');renderLeadLoading(c);
+  window.WorkspaceV2Inbox?.markRead(target);window.WorkspaceV2Inbox?.markActive(target);
+  if(window.WorkspaceV2Mobile?.isMobile())window.WorkspaceV2Mobile.conversationOpened(target,{historyMode:options.mobileHistory||'push'});else $('conversationZone').classList.add('open');
+  void leadRequest.then(p=>{
+    if(!validContext()||Number(S.current)!==target||Number(S.detail?.conversation?.id)!==target)return;
+    if(p?.ok){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}else window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
+  }).catch(()=>{if(validContext()&&Number(S.current)===target)try{window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation)}catch(e){}});
+  return true;
 }
-async function refreshLeadData({refreshInbox=false,conversationId=S.current}={}){const target=Number(conversationId||0);if(!target)return false;let p;try{p=await pipe('detail',{conversation_id:target})}catch(e){p=null}const stillCurrent=Number(S.current)===target&&!!S.detail?.conversation;if(!p?.ok){if(stillCurrent&&!S.detail?.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);return false}if(stillCurrent){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}if(refreshInbox)await window.WorkspaceV2Inbox?.load({preserveScroll:true});return stillCurrent}
+async function refreshLeadData({refreshInbox=false,conversationId=S.current}={}){
+  const target=Number(conversationId||0),manager=Number(S.manager?.id||0),authGeneration=S.authGeneration,generation=openSeq;
+  if(!target||S.authExpired)return false;
+  const sameSession=()=>!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
+  const current=()=>!S.authExpired&&Number(S.current)===target&&Number(S.detail?.conversation?.id)===target&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration&&openSeq===generation;
+  let p;try{p=await pipe('detail',{conversation_id:target})}catch(e){p=null}
+  if(!sameSession())return false;
+  const stillCurrent=current();
+  if(!p?.ok){if(stillCurrent&&!S.detail?.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);return false}
+  if(stillCurrent){S.detail.lead=p;window.WorkspaceV2LeadCard?.render(p,S.detail.conversation)}
+  if(refreshInbox)await window.WorkspaceV2Inbox?.load({preserveScroll:true});return stillCurrent;
+}
+function openSearch(){if(opening||accessLost)return false;return window.WorkspaceV2ConversationSearch?.open()||false}
+async function nextWaiting(){
+  if(S.authExpired||opening||busy)return false;
+  const selectionState=window.WorkspaceV2Inbox?.getLoadedSelectionStatus?.()||'ready';
+  if(selectionState!=='ready'){setLoadStatus(selectionState==='loading'?'Список обновляется. Дождитесь загрузки подборки.':'Не удалось получить текущую подборку. Обновите список диалогов.','error');return false}
+  const rows=window.WorkspaceV2Inbox?.getLoadedSelection?.()||[],current=rows.findIndex(c=>Number(c.id)===Number(S.current));
+  const ordered=[...rows.slice(current+1),...rows.slice(0,Math.max(0,current))];
+  const next=ordered.find(c=>Number(c.id)!==Number(S.current)&&(Number(c.awaiting_manager_reply)===1||Number(c.awaiting_first_reply)===1||c.status==='waiting_manager'));
+  if(!next){setLoadStatus('В загруженной подборке больше нет клиентов, которые ждут ответа.','success');return false}
+  return open(Number(next.id));
+}
 function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id&&(S.manager.role==='admin'||S.manager.is_working),suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';window.Manager2Presentation?.enhanceConversationActions(root);applyInteractionState();autoGrow()}
 function action(text,cl,fn){const b=document.createElement('button');b.className='actionBtn '+cl;b.type='button';b.textContent=text;b.disabled=busy||accessLost;b.onclick=fn;$('conversationActions').appendChild(b)}
 const lifecycleCopy={take:{loading:'Берём диалог…',success:'Диалог назначен вам',error:'Не удалось взять диалог'},release:{loading:'Передаём диалог боту…',success:'Диалог передан боту',error:'Не удалось передать диалог боту'},close:{loading:'Закрываем диалог…',success:'Диалог закрыт',error:'Не удалось закрыть диалог'},reopen:{loading:'Переоткрываем диалог…',success:'Диалог снова в работе',error:'Не удалось переоткрыть диалог'}};
 async function change(a){
   if(busy)return;
+  if(opening)return;
   if(accessLost)return;
   const target=Number(S.current||0),generation=openSeq,copy=lifecycleCopy[a]||{loading:'Сохраняем…',success:'Сохранено',error:'Не удалось сохранить'};
   if(!target)return;
@@ -289,6 +343,7 @@ async function change(a){
 }
 async function sendReply(){
   if(busy||deliverySuspended())return;
+  if(opening)return;
   if(accessLost||S.authExpired)return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
@@ -336,14 +391,21 @@ function bind(){
   if(bound)return;bound=true;
   const form=$('composer'),reply=$('replyText');
   bindEmojiPicker();
+  window.WorkspaceV2ConversationSearch?.bind();
+  $('conversationSearchOpen')?.setAttribute('aria-keyshortcuts','Control+Alt+F');
+  $('conversationSearchOpen')?.setAttribute('aria-expanded','false');
+  $('conversationSearchOpen')?.setAttribute('aria-controls','conversationSearchPanel');
+  $('nextWaitingConversation')?.setAttribute('aria-keyshortcuts','Control+Alt+J');
+  $('conversationSearchOpen')?.addEventListener('click',openSearch);
+  $('nextWaitingConversation')?.addEventListener('click',()=>nextWaiting());
   form.onsubmit=async e=>{e.preventDefault();await sendReply()};
   // Focusing the send button can collapse mobile quick replies between down/up,
   // moving the native click target. Keep pointer focus stable; keyboard focus and
   // the native click/submit remain unchanged. Never send from a pointer-down event.
   $('sendReply')?.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});
   reply.addEventListener('input',()=>{saveDraft();autoGrow()});
-  reply.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
+  reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus};
+window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
 })();
