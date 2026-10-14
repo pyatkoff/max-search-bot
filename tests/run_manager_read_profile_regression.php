@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__) . '/tools/manager-read-profile.php';
 
 $passed = 0;
+$readProfileStage = 'fixture_setup';
 function readProfileCheck(string $name, bool $condition): void
 {
     global $passed;
@@ -56,6 +57,8 @@ function readProfileFixture(PDO $pdo, string $driver): void
 
 function readProfileRun(PDO $pdo, string $driver): void
 {
+    global $readProfileStage;
+    $readProfileStage = $driver . '_capture_contract';
     $prefix = $driver . ': ';
     $original = $pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
     $expectedObject = new stdClass();
@@ -118,7 +121,7 @@ function readProfileRun(PDO $pdo, string $driver): void
     readProfileCheck($prefix . 'more than sixty-four prepares remain truthfully counted with bounded public records', readProfileShape($profile) && $profile['statement_count'] === 70 && $profile['timed_execute_count'] === 70 && count($profile['statements']) === 64 && $profile['records_truncated'] === true);
 
     $canonical = 'SELECT c.id,c.project_key,(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id) AS unread_count FROM conversations c WHERE c.project_key=? ORDER BY c.id LIMIT 200';
-    $plain = $pdo->prepare($canonical); $plain->execute(['PRIVATE_project_token']); $expectedRows = $plain->fetchAll(PDO::FETCH_ASSOC); $profile = null; $callbackCount = 0;
+    $plain = $pdo->prepare($canonical); $plain->execute(['PRIVATE_project_token']); $expectedRows = $plain->fetchAll(PDO::FETCH_ASSOC); $plain->closeCursor(); $plain = null; $profile = null; $callbackCount = 0;
     $actualRows = ManagerReadProfile::capture($pdo, static function () use ($pdo, $canonical, &$callbackCount): array { ++$callbackCount; $statement=$pdo->prepare($canonical); $statement->execute(['PRIVATE_project_token']); return $statement->fetchAll(PDO::FETCH_ASSOC); }, $profile, true);
     readProfileCheck($prefix . 'canonical list and original callback execute exactly once without adding a second list measurement', $callbackCount === 1 && $actualRows === $expectedRows && $profile['statement_count'] === 1 && $profile['timed_execute_count'] === 1 && $profile['statements'][0]['category'] === 'manager_list');
     readProfileCheck($prefix . 'actual canonical query has a successful bounded sanitized explain plan', $profile['plan']['available'] === true && $profile['plan']['reason'] === null && is_numeric($profile['plan']['duration_ms']) && count($profile['plan']['tables']) > 0 && count($profile['plan']['tables']) <= 64);
@@ -147,10 +150,16 @@ function readProfileRun(PDO $pdo, string $driver): void
         readProfileCheck($prefix . 'commented, delimited or oversized SQL is measured but never selected for explain', $profile['statement_count'] === 1 && $profile['timed_execute_count'] === 1 && $profile['plan']['available'] === false && $profile['plan']['reason'] === 'no_canonical_list_query' && !str_contains(json_encode($profile, JSON_THROW_ON_ERROR),'PRIVATE'));
     }
 
+    // The retained statement intentionally stayed live for the stale observer
+    // test. End its actual SQLite cursor before changing this synthetic schema:
+    // an active read, even of another table, can hold a schema-level lock.
+    $retained->closeCursor(); $retained = null;
+    $readProfileStage = $driver . '_actual_explain_failure';
     $profile = null;
     $rowsBeforePlanError = ManagerReadProfile::capture($pdo, static function () use ($pdo, $canonical): array { $statement=$pdo->prepare($canonical); $statement->execute(['PRIVATE_project_token']); $rows=$statement->fetchAll(PDO::FETCH_ASSOC); $statement->closeCursor(); $pdo->exec('DROP TABLE messages'); return $rows; }, $profile, true);
     readProfileCheck($prefix . 'an actual explain failure reports a fixed safe reason without altering the callback result', $rowsBeforePlanError === $expectedRows && $profile['plan']['available'] === false && $profile['plan']['reason'] === 'plan_unavailable' && !str_contains(json_encode($profile, JSON_THROW_ON_ERROR), 'messages') && $pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS) === $original);
 
+    $readProfileStage = $driver . '_nested_and_custom_connection';
     $nestedRejected = false; $nestedCallbackCalled = false; $profile = null;
     $outerResult = ManagerReadProfile::capture($pdo, static function () use ($pdo, &$nestedRejected, &$nestedCallbackCalled): int {
         $innerProfile = null;
@@ -209,6 +218,7 @@ try {
     echo 'Manager read profile: ' . $passed . " checks passed\n";
 } catch (Throwable $error) {
     // A configured native gate fails; it never falls back or prints SQL/params.
-    fwrite(STDERR, 'Manager read profile regression failed: ' . ($error instanceof RuntimeException && str_starts_with($error->getMessage(), 'FAIL ') ? $error->getMessage() : 'fixture_or_capture_failure') . "\n");
+    $safeState = $error instanceof PDOException && preg_match('/\A[A-Z0-9]{5}\z/D',(string)$error->getCode()) ? (string)$error->getCode() : 'none';
+    fwrite(STDERR, 'Manager read profile regression failed: ' . ($error instanceof RuntimeException && str_starts_with($error->getMessage(), 'FAIL ') ? $error->getMessage() : 'fixture_or_capture_failure') . ' stage=' . $readProfileStage . ' class=' . ($error instanceof PDOException ? 'PDOException' : ($error instanceof LogicException ? 'LogicException' : 'Throwable')) . ' sqlstate=' . $safeState . "\n");
     exit(1);
 }
