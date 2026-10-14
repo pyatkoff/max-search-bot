@@ -2,6 +2,7 @@
   'use strict';
   let W=null,S=null,$=null;
   let host=null,endpoint='post-context-api.php',active=null,sequence=0,bound=false;
+  let trigger=null,overlay=null,content=null,closeButton=null,teaser=null,photoHint=null;
   const disclosures=new Map();
   function runtime(){W=window.WorkspaceV2;if(!W)return false;S=W.S;$=W.$;return !!S&&typeof $==='function'}
   function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=String(text);return el}
@@ -56,22 +57,83 @@
     const saved=disclosures.get(context.managerId+':'+context.id+':'+key);el.open=saved?.open===true;
     return {el,top:saved?.top||0};
   }
+  function hydratePhotos(){
+    if(!overlay||overlay.hidden)return;
+    content.querySelectorAll('img').forEach(el=>{if(el.dataset.postMediaSrc&&!el.src)el.src=el.dataset.postMediaSrc});
+  }
+  function sizeOverlay(){
+    if(!overlay||overlay.hidden||typeof host.getBoundingClientRect!=='function')return;
+    // The panel is positioned over the transcript, outside flex layout. Keep
+    // its close button and scroll body inside the visible conversation area.
+    const strip=host.getBoundingClientRect(),zone=$('conversationZone')?.getBoundingClientRect?.(),viewport=window.visualViewport;
+    const viewportBottom=viewport?.height?viewport.offsetTop+viewport.height:Number(window.innerHeight)||Infinity;
+    const composer=$('composer')?.getBoundingClientRect?.();
+    const replyTop=composer?.height>0?composer.top:Infinity;
+    const upper=Math.max(zone?.top||0,viewport?.offsetTop||0)+6;
+    const lower=Math.min(viewportBottom,zone?.bottom||Infinity,replyTop)-6;
+    // At keyboard height there may be less than a dialog header below the strip.
+    // Use the visible conversation above the composer instead of imposing a
+    // minimum height that would cover the reply. Keep the close control intact.
+    const preferredTop=strip.bottom+4;
+    const top=lower-preferredTop>=80?preferredTop:upper;
+    const available=Math.max(0,lower-top);
+    overlay.style.top=(top-strip.top)+'px';
+    overlay.style.maxHeight=Math.min(540,available)+'px';
+  }
+  function closeOverlay({restoreFocus=true}={}){
+    if(!overlay)return;
+    const ownedFocus=overlay.contains?.(document.activeElement)===true;
+    overlay.hidden=true;trigger?.setAttribute('aria-expanded','false');
+    if(active)active.viewOpen=false;
+    if(restoreFocus&&ownedFocus&&!host.hidden)trigger?.focus?.({preventScroll:true});
+  }
+  function openOverlay(){
+    if(!active||!current(active)||host.hidden)return;
+    active.viewOpen=true;overlay.hidden=false;trigger.setAttribute('aria-expanded','true');
+    hydratePhotos();sizeOverlay();closeButton.focus?.({preventScroll:true});
+  }
+  function ensureFrame(){
+    if(trigger&&trigger.parentElement===host)return;
+    trigger=node('button','postContextToggle');trigger.type='button';
+    trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','conversationPostContextDialog');
+    trigger.appendChild(node('span','postContextLabel','Пост клиента'));
+    photoHint=node('span','postContextPhotoHint','▧');photoHint.hidden=true;photoHint.setAttribute('aria-hidden','true');trigger.appendChild(photoHint);
+    teaser=node('span','postContextTeaser');trigger.appendChild(teaser);
+    const arrow=node('span','postContextArrow','›');arrow.setAttribute('aria-hidden','true');trigger.appendChild(arrow);
+    overlay=node('section','postContextOverlay');overlay.id='conversationPostContextDialog';overlay.hidden=true;
+    overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','false');overlay.setAttribute('aria-labelledby','conversationPostContextDialogTitle');
+    const head=node('div','postContextOverlayHead'),title=node('strong','postContextOverlayTitle','Исходный пост');title.id='conversationPostContextDialogTitle';head.appendChild(title);
+    closeButton=node('button','postContextClose','×');closeButton.type='button';closeButton.setAttribute('aria-label','Закрыть пост клиента');head.appendChild(closeButton);
+    content=node('div','postContextOverlayContent');overlay.appendChild(head);overlay.appendChild(content);host.replaceChildren(trigger,overlay);
+    trigger.addEventListener('click',()=>{if(overlay.hidden)openOverlay();else closeOverlay()});
+    closeButton.addEventListener('click',()=>closeOverlay());
+  }
+  function replaceContent(...children){
+    const ownedFocus=content?.contains?.(document.activeElement)===true;
+    content.replaceChildren(...children);
+    // Refreshing the post must never move focus out of the answer/search field.
+    if(ownedFocus&&!overlay.hidden)closeButton.focus?.({preventScroll:true});
+  }
   function notice(text,kind){
     if(!host)return;
+    ensureFrame();
     host.hidden=false;host.dataset.state=kind;host.setAttribute('aria-busy',kind==='loading'?'true':'false');
     const status=node('div','postContextNotice'+(kind==='error'?' isError':''),text);status.setAttribute('role','status');
-    host.replaceChildren(status);
+    teaser.textContent=kind==='loading'?'Загрузка…':text;photoHint.hidden=true;
+    trigger.title=text;replaceContent(status);
+    overlay.hidden=active?.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');sizeOverlay();
   }
   function clear({forget=false}={}){
     sequence++;rememberDisclosures();active=null;
     if(forget)disclosures.clear();
     if(host){if(host.children.length)host.replaceChildren();host.hidden=true;host.removeAttribute('aria-busy');host.dataset.state='idle'}
+    trigger=overlay=content=closeButton=teaser=photoHint=null;
   }
   function entryMarkup(entry,context,previous=false){
     const card=node('section',previous?'postContextPrevious':'postContextCard');
     if(entry?.unavailable===true||entry?.available===false){card.appendChild(node('div','postContextNotice','Исходный пост этого обращения недоступен.'));return card}
     const head=node('div','postContextHead'),identity=node('div','postContextIdentity');
-    identity.appendChild(node('div','postContextEyebrow',previous?'Предыдущее обращение по посту':'Обращение по посту'));
+    if(previous)identity.appendChild(node('div','postContextEyebrow','Предыдущее обращение по посту'));
     identity.appendChild(node('div','postContextTitle',String(entry.title||'Публикация').slice(0,300)));
     const platform=entry.platform==='max'?'MAX':entry.platform==='telegram'?'Telegram':'';
     const channel=String(entry.channel_name||'').trim();
@@ -80,7 +142,7 @@
     const media=safeMediaUrl(entry.media_url,context.id,Number(entry.entry_id));
     if(media){
       const preview=node('a','postContextThumbLink');preview.href=media;preview.target='_blank';preview.rel='noopener noreferrer';preview.setAttribute('aria-label','Открыть фото из публикации');
-      const image=node('img','postContextThumb');image.src=media;image.alt='Фото из публикации';image.loading='lazy';image.decoding='async';image.referrerPolicy='no-referrer';
+      const image=node('img','postContextThumb');image.dataset.postMediaSrc=media;image.alt='Фото из публикации';image.loading='lazy';image.decoding='async';image.referrerPolicy='no-referrer';
       image.addEventListener('error',()=>{if(current(context)&&preview.parentElement===head){preview.replaceChildren(node('span','postContextPhotoFallback','Фото недоступно'));preview.removeAttribute('href')}});
       preview.appendChild(image);head.appendChild(preview);
     }
@@ -99,12 +161,12 @@
   }
   function render(context,payload){
     if(!host||!current(context))return;
-    rememberDisclosures();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
+    rememberDisclosures();ensureFrame();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
     const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[];
     if(!latest&&!history.length){
       // Ordinary/legacy dialogues have no publication entry. Keep the optional
       // panel absent without discarding the completed read/deduplication key.
-      host.replaceChildren();host.hidden=true;host.dataset.state='empty';return;
+      host.replaceChildren();host.hidden=true;host.dataset.state='empty';trigger=overlay=content=closeButton=teaser=photoHint=null;active.viewOpen=false;return;
     }
     const items=[];
     if(latest?.unavailable===true||latest?.available===false){const unavailable=node('div','postContextNotice isError','Исходный пост этого обращения недоступен.');unavailable.setAttribute('role','status');items.push(unavailable)}
@@ -114,7 +176,13 @@
       const list=node('div','postContextHistoryList');history.forEach(entry=>list.appendChild(entryMarkup(entry,context,true)));
       older.el.appendChild(list);items.push(older.el);
     }
-    host.replaceChildren(...items);
+    const available=latest&&latest.unavailable!==true&&latest.available!==false;
+    const title=available?String(latest.title||'').trim():'';
+    const snippet=available?String(latest.text||'').replace(/\s+/g,' ').trim():'';
+    teaser.textContent=available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
+    trigger.title=teaser.textContent;photoHint.hidden=!(available&&Number(latest.media_count||0)>0);
+    replaceContent(...items);
+    overlay.hidden=active.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');hydratePhotos();sizeOverlay();
     host.querySelectorAll('.postContextText').forEach(el=>{el.scrollTop=Number(el.dataset.postScrollTop||0)});
   }
   function sync(conversation){
@@ -127,8 +195,10 @@
     if(!context){clear({forget:S.authExpired||!S.manager?.id});return Promise.resolve(false)}
     if(active?.managerId!==undefined&&active.managerId!==context.managerId)clear({forget:true});
     if(active?.key===context.key)return active.pending||Promise.resolve(active.ready===true);
-    rememberDisclosures();const attempt=++sequence;
-    active={...context,ready:false};notice('Загружаем исходный пост…','loading');
+    const sameClient=active?.managerId===context.managerId&&active?.id===context.id&&active?.authGeneration===context.authGeneration;
+    const viewOpen=sameClient&&active?.viewOpen===true;
+    rememberDisclosures();if(!sameClient)clear();const attempt=++sequence;
+    active={...context,ready:false,viewOpen};notice('Загружаем исходный пост…','loading');
     const pending=(async()=>{
       try{
         // Canonical workspace transport owns cookies, CSRF and login recovery.
@@ -169,6 +239,11 @@
         observer.observe(document.body,{attributes:true,attributeFilter:['class'],childList:true});
       }
       window.addEventListener('pagehide',()=>clear({forget:true}));
+      window.addEventListener('resize',sizeOverlay);
+      window.visualViewport?.addEventListener('resize',sizeOverlay);
+      window.visualViewport?.addEventListener('scroll',sizeOverlay);
+      window.addEventListener('pointerdown',event=>{if(overlay&&!overlay.hidden&&!host.contains?.(event.target))closeOverlay({restoreFocus:false})});
+      window.addEventListener('keydown',event=>{if(event.key==='Escape'&&overlay&&!overlay.hidden){const ownedFocus=overlay.contains?.(document.activeElement)===true;closeOverlay();if(ownedFocus)event.preventDefault?.()}});
     }
     void sync();return true;
   }

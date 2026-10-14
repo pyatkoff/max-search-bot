@@ -43,3 +43,28 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 
 @media(max-height:540px){.manager2 .quickReplies button:not(#quickRepliesOpen){display:none}.manager2 .composerSurface{padding-top:3px;padding-bottom:3px}.manager2 .composer textarea{padding-top:5px;padding-bottom:5px}}
 .manager2 #m2AdminSlot{display:grid;gap:8px;justify-items:center;min-width:0;width:100%}.manager2 #m2PublicationsLink{max-width:100%;overflow-wrap:anywhere}.manager2 .m2Dialog #m2PublicationsLink{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:8px 12px;font-size:13px;color:#48633c;background:#f1f5eb;border:1px solid #e1e9d7}.manager2 #m2PublicationsLink[hidden]{display:none!important}
+
+/* Compact conversation chrome preserves transcript space and the canonical controls. */
+.manager2 .conversationHead{min-height:62px;padding:10px 18px;gap:10px;flex-shrink:0}
+.manager2 .conversationIdentity,.manager2 .conversationIdentityText,.manager2 .conversationTitleRow{min-width:0}
+.manager2 .conversationIdentity{flex:1;overflow:hidden}
+.manager2 .conversationTitleRow{flex-wrap:nowrap}
+.manager2 .conversationTitleRow .brand{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.manager2 .conversationHead #conversationState,.manager2 .conversationHead #conversationMeta,.manager2 .conversationTools{display:none}
+.manager2 .conversationHead>.actions{flex-shrink:0;gap:6px}
+.manager2 .m2ConversationMenu[hidden]{display:none!important}
+.manager2 .m2ConversationMenuActions{display:grid;gap:5px}
+.manager2 .leadHeroTop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.manager2 .leadHeroTop>div{min-width:0;flex:1}
+.manager2 .leadHeroName{font-size:16px;color:#344b3b;overflow-wrap:anywhere}
+.manager2 .leadHeroSource,.manager2 .leadHeroTop>.leadStageCompact{display:none}
+.manager2 .leadDetailsBody>.leadHandoffStrip{margin-top:8px}
+@media(max-width:740px){
+.manager2 .conversationHead{min-height:60px;padding:8px 10px;gap:7px}
+.manager2 .conversationAvatar{display:flex;width:32px;height:32px;flex:0 0 32px;align-items:center;justify-content:center}
+.manager2 .conversationIdentity{gap:7px}
+.manager2 .conversationIdentityText{flex:1}
+.manager2 .conversationTitleRow{flex-wrap:nowrap}
+.manager2 .conversationHead .actions{gap:5px}
+}
+@media(max-height:540px){.manager2 .conversationHead{min-height:54px;padding-top:6px;padding-bottom:6px}}

@@ -142,5 +142,45 @@ foreach(['waiting','attention','requested','mine'] as $queue){
     queryPageCheck("{$queue} retains its original semantic query path",!str_contains($pdo->lastListSql,'inbox_page'));
 }
 
+// The working New queue is personal even for an administrator. Administrative
+// All/attention views remain available; this selection must never reassign leads.
+require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
+$db->exec('DELETE FROM conversations; DELETE FROM messages; DELETE FROM conversation_events; DELETE FROM manager_conversation_reads; DELETE FROM conversation_lead_tags; DELETE FROM lead_stage_history');
+foreach([[101,null,'waiting_manager',1],[102,7,'manager',2],[103,8,'manager',3],[104,7,'manager',1]] as [$id,$owner,$status,$unread]){
+    $at='2026-10-14 10:00:'.str_pad((string)($id-100),2,'0',STR_PAD_LEFT);
+    $insert->execute([$id,1,'anytour',1,'max',$status,'new',$owner,$at,$at,0]);
+    $event->execute([$id,$id,$at]);
+    for($i=0;$i<$unread;$i++)$message->execute([$id*10+$i,$id,'inbound','customer','queue fixture','{"type":"message"}',$at]);
+}
+$message->execute([1049,104,'outbound','manager','answered','{}','2026-10-14 10:01:00']);
+$queueSnapshot=static fn():array=>[
+    $db->query('SELECT * FROM conversations ORDER BY id')->fetchAll(),
+    $db->query('SELECT * FROM messages ORDER BY id')->fetchAll(),
+    $db->query('SELECT * FROM conversation_events ORDER BY id')->fetchAll(),
+    $db->query('SELECT * FROM manager_conversation_reads ORDER BY manager_id,conversation_id')->fetchAll(),
+];
+$beforeQueueReads=$queueSnapshot();
+foreach(['admin','manager'] as $role){
+    $db->prepare('UPDATE managers SET role=? WHERE id=7')->execute([$role]);
+    $new=ManagerConversationService::list(7,'waiting',200,'anytour');
+    queryPageCheck("{$role} New contains only unassigned and own unanswered leads",array_column($new,'id')===[101,102]);
+    $counts=ManagerQueueProjectionService::counts(7,'anytour');
+    queryPageCheck("{$role} New count matches its personal list",$counts['waiting']['count']===count($new)&&$counts['waiting']['count']===2);
+    queryPageCheck("{$role} New unread counts only unassigned customer messages",$counts['waiting']['unread']===1);
+    queryPageCheck("{$role} Mine remains own assignments including answered leads",$counts['mine']===['count'=>2,'unread'=>3]);
+    queryPageCheck("{$role} notification badge excludes another manager's New lead",$counts['notification_unread']===4);
+    queryPageCheck("{$role} queue reads preserve ownership, transcript, events and read state",$queueSnapshot()===$beforeQueueReads);
+    $all=ManagerConversationService::list(7,'all',200,'anytour');
+    queryPageCheck("{$role} All keeps its existing role visibility",array_column($all,'id')===($role==='admin'?[104,103,102,101]:[104,102,101]));
+    $attention=ManagerConversationService::list(7,'attention',200,'anytour');
+    queryPageCheck("{$role} attention keeps its existing role visibility",array_column($attention,'id')===($role==='admin'?[101,102,103]:[101,102]));
+}
+$db->exec("UPDATE managers SET role='admin' WHERE id=7");
+queryPageCheck('admin All still filters another manager without altering assignments',array_column(ManagerConversationService::list(7,'all',200,'anytour','8'),'id')===[103]);
+queryPageCheck('admin attention still permits another-manager oversight',array_column(ManagerConversationService::list(7,'attention',200,'anytour','8'),'id')===[103]);
+queryPageCheck('admin manager filter cannot make another assignment a personal New lead',ManagerConversationService::list(7,'waiting',200,'anytour','8')===[]);
+queryPageCheck('admin requested history remains a separate shared projection',ManagerQueueProjectionService::counts(7,'anytour')['requested']===['count'=>4,'unread'=>7]);
+queryPageCheck('all queue projections remain read-only',$queueSnapshot()===$beforeQueueReads);
+
 echo 'TOTAL '.($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

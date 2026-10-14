@@ -126,6 +126,41 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     expect(await page.locator('.leadTitle').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
     await capture(page,browserName,width,'readable-navigation');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
+  test('compact header keeps native tools, visible return focus and transcript capacity',async({page,browserName})=>{
+    const s=await setup(page);await openLead(page);
+    const menu=page.locator('.m2ConversationMenu'),search=page.locator('#conversationSearchOpen'),next=page.locator('#nextWaitingConversation');
+    await expect(page.locator('#conversationAvatar')).toBeVisible();
+    await expect(page.locator('#conversationState')).not.toBeVisible();await expect(page.locator('#conversationMeta')).not.toBeVisible();
+    expect((await page.locator('.conversationHead').boundingBox()).height).toBeLessThanOrEqual(63);
+    await expect(menu).not.toHaveAttribute('open');await expect(search).not.toBeVisible();await expect(next).not.toBeVisible();
+    expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(500);
+    await page.evaluate(()=>{window.fixtureNativeConversationTools=['conversationSearchOpen','nextWaitingConversation'].map(id=>document.getElementById(id))});
+    await page.locator('#replyText').fill('Черновик Анны для проверки компактного кабинета');
+    await page.locator('#replyFile').setInputFiles({name:'compact-Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
+    const file=await page.locator('#mediaSelection').textContent();
+    await menu.locator('summary').press('Enter');await expect(search).toBeVisible();await expect(next).toBeVisible();
+    await search.click();await expect(menu).not.toHaveAttribute('open');await expect(page.locator('#conversationSearchInput')).toBeFocused();
+    await page.locator('#conversationSearchInput').fill('у моря');await page.locator('#conversationSearchInput').press('Escape');
+    await expect(search).toBeFocused();await expect(search).toBeVisible();await expect(menu).toHaveAttribute('open');
+    await menu.locator('summary').press('Escape');await expect(menu.locator('summary')).toBeFocused();
+    await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await openLead(page,12);await openLead(page,11);
+    expect(await page.evaluate(()=>fixtureNativeConversationTools.every(el=>document.getElementById(el.id)===el&&el.isConnected))).toBe(true);
+    await expect(search).toHaveCount(1);await expect(next).toHaveCount(1);
+    await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
+    await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
+    const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();
+    expect(title.height).toBeLessThan(30);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
+    await page.setViewportSize({width,height:420});await page.locator('#replyText').fill(Array.from({length:8},(_,i)=>'Строка '+i+' — уточняем отдых').join('\n'));
+    await noOverflow(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);
+    for(const id of ['replyText','sendReply']){const box=await page.locator('#'+id).boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(421)}
+    await menu.locator('summary').click();await search.click();await expect(page.locator('#conversationSearchInput')).toBeFocused();
+    expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);
+    await page.locator('#conversationSearchInput').press('Escape');await expect(search).toBeFocused();await expect(search).toBeVisible();
+    await menu.locator('summary').press('Escape');await capture(page,browserName,width,'compact-header-short');
+    await page.setViewportSize({width,height:900});await showCard(page);
+    const service=page.locator('.leadDetails').filter({has:page.locator('summary',{hasText:'Источник и служебная информация'})});await expect(service).not.toHaveAttribute('open');await service.locator('summary').click();await expect(service).toContainText('Мария');await expect(service).toContainText('TG · реклама');
+    expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  });
   test('typed service events stay separate from literal customer messages',async({page,browserName})=>{
     const s=await setup(page,{serviceEvents:true});await openLead(page);
     const event=page.locator('[data-scroll-message-key="36"]'),literal=page.locator('[data-scroll-message-key="37"]');
