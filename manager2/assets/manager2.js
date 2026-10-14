@@ -90,6 +90,7 @@
     if(mobile?.isMobile()&&mobile.getScreen()!=='lead'){if(mobile.getScreen()==='inbox')mobile.conversationOpened(S.current);mobile.showLead()}
   }
   function enhanceConversationActions(root){
+    void window.WorkspaceV2PostContext?.sync(S.detail?.conversation);
     const secondary=[...root.children].filter(el=>el.tagName==='BUTTON'&&!el.classList.contains('primary'));
     if(!secondary.length)return;
     const menu=document.createElement('details');menu.className='m2ConversationMenu';
@@ -131,11 +132,15 @@
   }
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
   function init(){
+    window.WorkspaceV2PostContext?.init({endpoint:'/manager/post-context-api.php'});
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
     if(manager){$('m2Identity').appendChild(manager);manager.classList.remove('muted')}
     if(shift)$('m2ShiftSlot').appendChild(shift);
     if(admin){admin.title='Настройки и менеджеры';admin.setAttribute('aria-label','Настройки и менеджеры')}
-    const adminQuery=window.matchMedia('(max-width:740px)');const placeAdmin=()=>{if(admin)(adminQuery.matches?$('m2NotificationSlot'):$('m2AdminSlot')).appendChild(admin)};adminQuery.addEventListener('change',placeAdmin);
+    const publications=document.createElement('a');publications.href='/manager/publications.php';publications.textContent='Публикации';publications.className='m2Legacy';publications.hidden=true;
+    const syncPublications=()=>{publications.hidden=!!S.authExpired||S.manager?.role!=='admin'||!!admin?.hidden;};
+    const adminQuery=window.matchMedia('(max-width:740px)');const placeAdmin=()=>{const slot=adminQuery.matches?$('m2NotificationSlot'):$('m2AdminSlot');if(admin)slot.appendChild(admin);slot.appendChild(publications);syncPublications()};adminQuery.addEventListener('change',placeAdmin);
+    if(admin)new MutationObserver(syncPublications).observe(admin,{attributes:true,attributeFilter:['hidden','style']});
     if(health)$('m2NotificationSlot').appendChild(health);placeAdmin();
     const shortcuts=document.querySelector('.taskShortcuts');if(shortcuts){const details=document.createElement('details');details.className='m2TaskFilters';details.innerHTML='<summary>По сроку и приоритету</summary>';shortcuts.before(details);details.appendChild(shortcuts)}
     const hint=document.createElement('p');hint.id='m2SectionHint';hint.className='m2SectionHint';hint.hidden=true;document.querySelector('.inboxHead .brandRow').after(hint);

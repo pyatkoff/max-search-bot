@@ -30,7 +30,12 @@ if (!is_array($update)) {
 
 try {
     TelegramWebhookHandler::dispatchUpdate($update);
+    if (class_exists('ChannelPostRuntime')&&ChannelPostRuntime::storageFailed('telegram')) throw new RuntimeException('channel_post_storage_unavailable');
     echo json_encode(['ok'=>true]);
+    if (class_exists('ChannelPostRuntime')&&ChannelPostIncomingAdapter::isChannelUpdate('telegram',$update)) {
+        if (function_exists('fastcgi_finish_request')) @fastcgi_finish_request();
+        ChannelPostRuntime::finish('telegram');
+    }
 } catch (Throwable $e) {
     DiagnosticLogger::log('telegram_webhook', 'fatal', [
         'error'=>$e->getMessage(),

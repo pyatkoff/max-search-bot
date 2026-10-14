@@ -120,7 +120,9 @@ $explicitHealth = TelegramWebhookHealth::collectToken('different-test-token',$he
 twCheck('Telegram health supports explicit token identity inspection', $explicitHealth['bot']['id'] ?? null, 123);
 twCheck('Explicit token health still never exposes token', array_key_exists('token',$explicitHealth), false);
 
-$ignored = ['update_id'=>1004,'edited_channel_post'=>['text'=>'ignore me']];
+$channelUpdate = ['update_id'=>1004,'edited_channel_post'=>['text'=>'ignore me']];
+twCheck('Channel update is consumed before personal dispatcher', TelegramWebhookHandler::dispatchUpdate($channelUpdate,$dispatcher,$messenger), true);
+$ignored = ['update_id'=>1005,'poll'=>['question'=>'ignore me']];
 twCheck('Unsupported update ignored safely', TelegramWebhookHandler::dispatchUpdate($ignored,$dispatcher,$messenger), false);
 
 IntegrationRegistry::resetForTests();
