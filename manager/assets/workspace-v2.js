@@ -30,6 +30,7 @@ function ensureAuthRecovery(){
 function showAuthRecovery(message=''){
   if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
   window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2CustomerName?.resetSession();window.WorkspaceV2CustomerAvatar?.resetSession();
+  window.WorkspaceV2PersonalWorkspace?.suspend();
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
@@ -67,6 +68,7 @@ function tripField(label,value){return`<div class="field"><span class="label">${
 function applyIdentity(me){
   S.csrf=me.csrf||'';S.manager=me.manager||null;S.projects=Array.isArray(me.projects)?me.projects:[];
   window.WorkspaceV2Sound?.activate(S.manager?.id);
+  window.WorkspaceV2PersonalWorkspace?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
@@ -93,7 +95,7 @@ async function applyCustomerName(name,context){
 }
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
-  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();
+  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();window.WorkspaceV2PersonalWorkspace?.bind();
   S.workspaceBound=true;window.WorkspaceV2CustomerName?.configure({onUpdated:applyCustomerName});
 }
 async function refreshNotificationHealth(generation,managerId){

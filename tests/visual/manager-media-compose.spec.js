@@ -25,6 +25,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
    return reply({ok:true});
   }
   const d=request.method()==='POST'?request.postDataJSON()||{}:{};
+  if(request.method()==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot'&&d.csrf==='fixture')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   if(request.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(request.method()==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar'&&d.csrf==='fixture')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
   if(url.pathname==='/manager/api.php'){

@@ -58,6 +58,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
    if(d.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
    if(d.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
   }
+  if(url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   if(url.pathname==='/manager/pipeline-api.php'){
    if(d.action==='catalog')return reply({ok:true,stages:[],tags:[],outcomes:{open:'В работе'},close_reasons:{}});
    if(d.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});

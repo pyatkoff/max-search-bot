@@ -10,6 +10,18 @@ const rows=id=>[{id,status:'manager',manager_id:7,display_name:'Synthetic lead '
 const renderedIds=h=>h.ids.get('inboxList').children.flatMap(n=>n.children||[]).filter(n=>n.dataset.conversationId).map(n=>Number(n.dataset.conversationId));
 async function setup(){const h=createHarness({inbox:true});await h.start({open:false});return h;}
 
+test('ordinary Inbox click, Enter and Space preserve attachment on conversation re-entry',async()=>{
+  const h=await setup(),opened=[];
+  h.C.open=(id,options)=>opened.push({id,options});
+  h.setHook((url,r)=>r.action==='list'?response({ok:true,conversations:rows(11)}):null);
+  await h.window.WorkspaceV2Inbox.load();
+  const row=h.ids.get('inboxList').children.flatMap(n=>n.children||[]).find(n=>n.dataset.conversationId==='11');
+  assert.ok(row);row.onclick();
+  for(const key of ['Enter',' ']){let prevented=false;row.onkeydown({key,preventDefault(){prevented=true;}});assert.equal(prevented,true);}
+  row.onkeydown({key:'ArrowDown',preventDefault(){throw new Error('Unexpected key handling');}});
+  assert.equal(opened.length,3);for(const call of opened){assert.equal(call.id,11);assert.deepEqual(Object.keys(call.options),['preserveAttachment']);assert.equal(call.options.preserveAttachment,true);}
+});
+
 test('five interval/focus/visible events start one list while live data is still loading',async()=>{
   const h=await setup(),pending=deferred();let transcriptRefreshes=0;
   h.C.refreshVisible=async()=>{transcriptRefreshes++;return true;};
