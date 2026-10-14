@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__.'/MaxTlsConfig.php';
+require_once dirname(__DIR__).'/services/MaxTlsConfig.php';
 
 /** Explicit, metadata-only owner-test diagnostic. Never used by Manager requests. */
 final class MaxPrivateAvatarProbe

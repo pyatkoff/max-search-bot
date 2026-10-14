@@ -2,7 +2,7 @@
 declare(strict_types=1);
 if (PHP_SAPI!=='cli') {http_response_code(404);exit;}
 ini_set('display_errors','0');
-require_once dirname(__DIR__).'/services/MaxPrivateAvatarProbe.php';
+require_once dirname(__DIR__).'/integrations/MaxPrivateAvatarProbe.php';
 $input=MaxPrivateAvatarProbe::arguments(array_slice($argv,1));
 if ($input===null) {
     echo json_encode(MaxPrivateAvatarProbe::blocked('invalid_arguments'),JSON_THROW_ON_ERROR)."\n";

@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'services/MaxPrivateAvatarProbe.php'
+      - 'integrations/MaxPrivateAvatarProbe.php'
       - 'tools/max_private_avatar_probe.php'
       - 'tests/run_max_private_avatar_probe_regression.php'
       - 'tests/run_max_owner_avatar_workflow_regression.py'

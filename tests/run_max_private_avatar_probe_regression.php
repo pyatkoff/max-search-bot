@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once dirname(__DIR__).'/services/MaxPrivateAvatarProbe.php';
+require_once dirname(__DIR__).'/integrations/MaxPrivateAvatarProbe.php';
 
 $passed=0;
 function avatarProbeCheck(string $name, bool $ok): void
