@@ -100,6 +100,9 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Convenient response library and transcript tools
 
+- `services/ManagerInternalNoteService.php` owns employee-only notes for an exact visible conversation; `manager/internal-notes-api.php` uses canonical ManagerHttp auth/CSRF and fresh visibility without transcript hydration/read marking. Note text never enters customer messages or a channel transport. Visible staff can add a note; editing is author/admin-only with optimistic versions and atomic account/conversation operation receipts. Forward-only migration035 holds notes/receipts outside business and original transcript tables.
+- `workspace-v2-internal-notes.*` lazily opens the explicitly staff-only note editor/list. It owns note drafts, not message drafts; read/write/UNKNOWN/focus state is account/session/conversation scoped, and it never blocks Inbox, reopens the transcript/card or automatically repeats a write. Closed notes create no polling or data reads.
+
 - `services/ManagerQuickReplyService.php` is the canonical account-scoped personal/shared reply library owner; `manager/quick-replies-api.php` uses `ManagerHttp` auth/CSRF and no message transport. Personal replies and favorites belong to the authenticated account; only admins edit shared replies. Version checks prevent concurrent overwrites and transactional operation receipts reconcile uncertain writes without repeating commands. Schema changes use forward-only migration 029.
 - `workspace-v2-quick-replies.*` lazily loads the selected library/filter only. It resolves an explicit preview and inserts through Conversation's context-pinned composer boundary; it never sends, writes another draft store for messages or blocks Inbox startup.
 - `workspace-v2-conversation-search.*` searches only the currently loaded messages, explicitly labels that scope, and preserves original text and message IDs. Global archive search is a separate unimplemented phase.

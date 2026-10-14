@@ -41,6 +41,8 @@ The prototype itself uses demonstration data. Its experimental behavior is not u
 
 ## Convenient response workflow
 
+Internal notes are a separate employee-only list/editor marked “Видно только сотрудникам”. Opening them is explicit; loading cannot hold the Inbox or composer. Existing conversation access controls apply on every read/write; staff can add context, while only its author or an administrator can edit a note. Note saves use versions and transactional receipts; uncertain results are read back without repeating the command. Original client messages, reply drafts and files are not changed or sent by this feature. Storage is canonical and introduced only through forward-only migration035.
+
 The canonical reply library supports personal/shared answers, categories, search, favorites and explicit editable insertion. Shared editing is role-gated on the server; uncertain library saves reconcile their original operation receipt. Library loading is lazy and cannot delay the Inbox or transcript.
 
 Transcript display and composer authorization complete independently of the secondary client card. Search explicitly covers loaded messages; the next-waiting control covers the current successfully loaded selection, with unchanged filters and access checks. Message drafts retain their existing account-scoped storage; selected files are preserved in memory between authorized conversations and cannot be restored after a page reload.
