@@ -15,6 +15,7 @@ $actor=(int)$manager['id'];$admin=ManagerHttp::isAdmin($manager);
 $action=(string)($data['action']??'');
 try {
     if ($action==='list') $result=ManagerQuickReplyService::list($actor,$admin,$data);
+    elseif ($action==='toolbar') $result=ManagerQuickReplyService::toolbar($actor,$admin);
     elseif ($action==='operation') $result=ManagerQuickReplyService::operation($actor,(string)($data['operation_id']??''));
     else $result=ManagerQuickReplyService::mutate($actor,$admin,$action,$data);
 } catch (Throwable $e) {

@@ -15,6 +15,7 @@ The new chrome and body-scoped assets provide the forest navigation rail, accoun
 | New / Mine / All / Closed queues, search and all existing filters | Inbox / Filters |
 | Live original transcript, linked replies/forwards, arrival refresh and scroll anchoring | Conversation / Jump |
 | Own-message sending, draft/session recovery, emoji, first-five-minute editing | Conversation / Message Edit |
+| Personal quick-answer buttons, account-owned selection/order, editable library and name substitution | Quick Replies / canonical Manager Quick Reply service |
 | Images, video, audio and files; upload/context/delivery failures | Media / Conversation |
 | Multiple tasks, deadlines in Moscow time, pin, completion/reopen, postpone, dirty drafts | Tasks / Task Draft / Task Presets |
 | Stages/history, tags, outcomes, loss reason, sale amount/date, desktop board | Pipeline / Outcome / Kanban / Stage History |
@@ -23,6 +24,8 @@ The new chrome and body-scoped assets provide the forest navigation rail, accoun
 | Mobile navigation, browser Back/Forward, composer and client-card focus | Mobile with presentation focus helpers |
 
 The visible budget is the existing canonical `trip.budget`, including its actual `total` or `per_person` basis. Missing budget stays explicitly unknown. Technical dialogue status remains independent of business stage/outcome. Sent messages are not labelled as read by the customer.
+
+The composer quick-answer row shows only replies selected by the current account, in its saved order. The trailing “Настроить ответы” action opens the library; “Моя панель” has keyboard/touch reorder controls, and “Добавить на панель” / “Убрать с панели” changes personal selection. A shortcut inserts resolved text into the current draft without sending; an unknown name opens the editable preview. Selection/order use the canonical favorites and account revision with transactional receipts. A toolbar read loads in the background once per authenticated lifecycle and never waits ahead of Inbox. Reload or another device loads the saved selection; account changes clear the previous panel and late responses cannot restore it. An empty or failed panel does not substitute fixed standard replies.
 
 ## Verification
 

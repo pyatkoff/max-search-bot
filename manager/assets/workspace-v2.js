@@ -106,6 +106,8 @@ async function resumeAuthenticated(me){
   const stillAuthenticated=()=>!S.authExpired&&S.authGeneration===generation&&Number(S.manager?.id||0)===managerId;
   const savedConversationId=window.WorkspaceV2Conversation?.activateReplySession(S.manager?.id);
   await loadCatalog();if(!stillAuthenticated())return;bindWorkspaceOnce();
+  // Personal reply shortcuts load independently; they must not delay the Inbox.
+  void window.WorkspaceV2QuickReplies?.configure?.();
   // Native push registration and its health request must not hold the Inbox or
   // a recovered conversation behind a slow/unavailable notification provider.
   void refreshNotificationHealth(generation,managerId);
