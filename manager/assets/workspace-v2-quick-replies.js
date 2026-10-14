@@ -22,7 +22,9 @@ function resolveText(text,values={}){
   });
 }
 function knownValues(){
-  const client=String(S.detail?.conversation?.display_name||'').trim();
+  const conversation=S.detail?.conversation||{};
+  // A shared internal alias is for colleagues, never a salutation to the client.
+  const client=String(Object.prototype.hasOwnProperty.call(conversation,'original_display_name')?conversation.original_display_name||'':conversation.display_name||'').trim();
   return {manager_name:String(S.manager?.display_name||S.manager?.login||'').trim(),client_name:contextValid()&&client!=='Турист'?client:''};
 }
 function draftKey(){return authenticated()?storagePrefix+owner:''}

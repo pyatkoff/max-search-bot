@@ -29,7 +29,7 @@ function ensureAuthRecovery(){
 }
 function showAuthRecovery(message=''){
   if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
-  window.WorkspaceV2QuickReplies?.resetSession();
+  window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2CustomerName?.resetSession();
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
@@ -78,10 +78,23 @@ async function loadCatalog(){
   if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
   window.WorkspaceV2Filters?.render();
 }
+async function applyCustomerName(name,context){
+  const current=window.WorkspaceV2Conversation?.captureReplyContext?.();
+  if(S.authExpired||!name||!context||!current||['conversationId','managerId','authGeneration','openGeneration'].some(key=>Number(context[key])!==Number(current[key]))||Number(context.customerId)!==Number(S.detail?.conversation?.customer_id)||Number(name.customer_id)!==Number(context.customerId))return false;
+  const c=S.detail.conversation;
+  if(Number(name.version)<Number(c.customer_name_version||0))return false;
+  Object.assign(c,{display_name:name.display_name,original_display_name:name.original_display_name,working_name:name.working_name,customer_name_version:Number(name.version||0)});
+  window.WorkspaceV2Conversation?.renderHeader(c);
+  const hero=$('leadCard')?.querySelector('.leadHeroName');if(hero)hero.textContent=c.display_name||'Турист';
+  window.WorkspaceV2CustomerName?.enhanceCard(c);
+  // Refresh only the selected list/board. Reopening the transcript/card would
+  // overwrite unfinished task/outcome editors and disturb the reply viewport.
+  await window.WorkspaceV2Inbox?.load({preserveScroll:true});return true;
+}
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
   window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();
-  S.workspaceBound=true;
+  S.workspaceBound=true;window.WorkspaceV2CustomerName?.configure({onUpdated:applyCustomerName});
 }
 async function refreshNotificationHealth(generation,managerId){
   const stillAuthenticated=()=>!S.authExpired&&S.authGeneration===generation&&Number(S.manager?.id||0)===managerId;
@@ -97,7 +110,7 @@ async function resumeAuthenticated(me){
   if(previousId&&!sameIdentity){
     window.WorkspaceV2Conversation?.resetForIdentityChange();
     window.WorkspaceV2Media?.resetDrafts?.();
-    window.WorkspaceV2QuickReplies?.resetSession();
+    window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2CustomerName?.resetSession();
     $('inboxList')?.replaceChildren();$('kanbanBoard')?.replaceChildren();$('leadCard')?.replaceChildren();
     window.WorkspaceV2Mobile?.showInbox({historyMode:'replace'});
   }

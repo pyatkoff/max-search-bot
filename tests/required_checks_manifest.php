@@ -118,6 +118,8 @@ return [
     ],
     'manager' => [
         'php tests/run_manager_quick_reply_regression.php',
+        'php tests/run_manager_customer_name_regression.php',
+        'node tests/run_manager_client_name_behavior_regression.js',
         'node tests/run_manager_quick_replies_behavior_regression.js',
         'node tests/run_manager_response_cycle_behavior_regression.js',
         'php tests/run_manager2_workspace_regression.php',

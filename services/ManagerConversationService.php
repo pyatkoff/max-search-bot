@@ -64,7 +64,7 @@ class ManagerConversationService
     public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
-        $manager=ManagerAuthService::byId($managerId);$isAdmin=ManagerAuthService::isAdmin($manager);
+        $manager=ManagerAuthService::byId($managerId);if(!$manager)return[];$isAdmin=ManagerAuthService::isAdmin($manager);
         $limit=max(1,min(200,$limit));$where=['c.is_test=0'];$args=[];
         if($projectKey==='*' || trim($projectKey)===''){
             $projects=ProjectAccessService::projectsForManager($managerId);
@@ -114,8 +114,8 @@ class ManagerConversationService
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
         }
-        $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,'
-            .'cu.display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
+        $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,'
+            .'cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
             .'CASE WHEN '.$replySql.' THEN 1 ELSE 0 END AS awaiting_manager_reply,'
             .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
@@ -124,10 +124,12 @@ class ManagerConversationService
             .'(SELECT mm.sender_type FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_sender_type,'
             .'(SELECT mm.metadata_json FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_metadata_json,'
             .'(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND um.direction=\'inbound\' AND um.sender_type=\'customer\' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count '
-            .$fromSql.' LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
+            .$fromSql.' LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id'.$predicateSql
             .' ORDER BY '.$orderSql.' LIMIT 200';
         $q=ConversationDb::connection()->prepare($sql);$q->execute($args);$rows=$q->fetchAll();
         $rows=ManagerConversationAccessPolicy::visibleRows($managerId,$rows);
+        foreach($rows as &$row)$row['can_edit_customer_name']=ManagerConversationAccessPolicy::canEditVisibleConversation($row,$manager);
+        unset($row);
         $rows=SalesPipelineService::decorateConversationRows($rows);
         $failures=ManagerDeliveryStateService::activeFailures(array_map(static function($row){return(int)($row['id']??0);},$rows));
         $rows=self::decorateLastMessagePreviews($rows,$failures);
@@ -161,7 +163,7 @@ class ManagerConversationService
     public static function visibleConversation(int $conversationId,int $managerId): ?array
     {
         RoutingAccessService::ensureSchema();
-        $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.external_chat_id,cu.display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
+        $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,c.external_chat_id,cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!ManagerConversationAccessPolicy::canView($managerId,$conversation))return null;
         return$conversation;
     }

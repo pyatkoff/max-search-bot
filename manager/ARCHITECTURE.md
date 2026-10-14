@@ -101,3 +101,9 @@ This directory is the owned interface boundary for the manager product. Changes 
 - `workspace-v2-conversation-search.*` searches only the currently loaded messages, explicitly labels that scope, and preserves original text and message IDs. Global archive search is a separate unimplemented phase.
 - Inbox retains a bounded authenticated/filter-scoped successful selection for the explicit next-waiting action. A pending/failed load or changed account/filter invalidates that selection; opening still checks canonical conversation access and dirty-task navigation.
 - Media retains selected files per account/conversation in memory during navigation. Files cannot survive reload and are discarded on account change; no new media archive or draft persistence service is introduced.
+
+## Manager client working names
+
+`ManagerCustomerNameService` owns shared manager-only client labels by exact customer ID. Its protected API accepts a visible conversation context and delegates visibility/write policy to canonical Manager owners. Labels live separately from `customers.display_name`; source identity, channel IDs, attribution, original transcript and lead payload never change. The projected display name is shared by list/detail/board/card, while `original_display_name` remains available and both names are searched inside the existing bounded list. This does not widen archive-search coverage.
+
+The forward-only migration030 retains a monotonically increasing name version even after restoring the original. Customer/conversation locks, optimistic versions and atomic history/receipt/audit preserve assignment and recover uncertain writes. The name dialog is lazy, account/session/conversation scoped, and updates visible name labels plus the selected Inbox without reopening the transcript or rerendering unfinished task/outcome forms. Quick reply `{client_name}` uses the original source name rather than the manager's working label.
