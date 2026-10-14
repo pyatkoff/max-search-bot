@@ -90,15 +90,18 @@ async function loadToolbar(force=false){
     if(capturedEpoch!==epoch||ticket!==toolbarTicket||!authenticated())return;
     if(!acceptToolbar(result)){toolbarError='Не удалось загрузить панель ответов.';renderToolbar()}
     else if(query.scope==='toolbar'){
-      const priorPreview=$('qrPreview'),focusedPreview=dialog?.open&&priorPreview&&document.activeElement===priorPreview?{
-        id:Number(selected?.id||0),value:priorPreview.value,start:priorPreview.selectionStart,end:priorPreview.selectionEnd,direction:priorPreview.selectionDirection
+      const target=editor?'qrBody':'qrPreview',priorInput=$(target),priorActive=document.activeElement;
+      const focusedEmoji=emojiState?.target===target&&emojiState.input===priorInput&&$('qrEmojiPicker')?.contains?.(priorActive);
+      const focusedInput=dialog?.open&&priorInput&&(priorActive===priorInput||focusedEmoji)?{
+        target,epoch,id:Number((target==='qrBody'?editor:selected)?.id||0),value:priorInput.value,start:focusedEmoji?emojiState.start:priorInput.selectionStart,end:focusedEmoji?emojiState.end:priorInput.selectionEnd,direction:priorInput.selectionDirection,fromEmoji:focusedEmoji
       }:null;
       if(selected&&!toolbarError&&!toolbarRows.some(reply=>Number(reply.id)===Number(selected.id))){selected=null;preview='';replyContext=null}
       renderDetail();updateBusy();
-      const currentPreview=$('qrPreview');
-      if(focusedPreview&&dialog?.open&&authenticated()&&Number(selected?.id)===focusedPreview.id&&currentPreview?.isConnected&&currentPreview.value===focusedPreview.value&&[document.body,dialog,priorPreview].includes(document.activeElement)){
-        currentPreview.focus({preventScroll:true});
-        currentPreview.setSelectionRange?.(focusedPreview.start,focusedPreview.end,focusedPreview.direction);
+      const currentInput=$(target),currentReply=target==='qrBody'?editor:selected;
+      if(focusedInput&&focusedInput.epoch===epoch&&dialog?.open&&authenticated()&&currentReply&&Number(currentReply.id)===focusedInput.id&&currentInput?.isConnected&&currentInput.value===focusedInput.value&&[document.body,dialog,priorInput,priorActive].includes(document.activeElement)){
+        const focusTarget=focusedInput.fromEmoji?$('qrEmojiToggle')||currentInput:currentInput;
+        if(focusTarget.isConnected&&!focusTarget.disabled)focusTarget.focus({preventScroll:true});
+        currentInput.setSelectionRange?.(focusedInput.start,focusedInput.end,focusedInput.direction);
       }
     }
   })().finally(()=>{

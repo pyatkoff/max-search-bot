@@ -211,6 +211,13 @@ test('held toolbar refresh preserves editable preview focus, selection and text'
  expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([7,12]);expect(s.calls.filter(c=>c.action==='reorder')).toHaveLength(0);clean(s);
 });
 
+for(const target of ['preview','editor'])test('held toolbar refresh preserves '+target+' range while emoji choices have focus',async({page})=>{
+ await page.setViewportSize({width:768,height:900});const s=await setup(page,{selectedIds:[1,2]});await openLead(page);await expectPanel(page,[1,2]);await page.locator('#replyText').fill('Клиентский черновик');
+ s.setHoldToolbar(true);await page.locator('#quickRepliesOpen').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');if(target==='editor'){await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Черновик со смайликом')}else await page.locator('[data-qr-select="2"]').click();const input=page.locator(target==='editor'?'#qrBody':'#qrPreview');await input.fill('До заменить после');await input.evaluate(node=>node.setSelectionRange(3,11));await page.locator('#qrEmojiToggle').click();await expect(page.locator('#qrEmojiPicker')).toBeVisible();await expect(page.locator('#qrEmojiPicker [data-qr-emoji="😊"]')).toBeFocused();
+ s.releaseToolbar();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');await expect(page.locator('#qrEmojiPicker')).toBeHidden();await expect(page.locator('#qrEmojiToggle')).toBeFocused();expect(await input.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([3,11]);
+ await page.locator('#qrEmojiToggle').click();await page.locator('#qrEmojiPicker [data-qr-emoji="😊"]').click();await expect(input).toHaveValue('До 😊 после');expect(await input.evaluate(node=>[node.selectionStart,node.selectionEnd])).toEqual([5,5]);await expect(page.locator('#replyText')).toHaveValue('Клиентский черновик');if(target==='editor'){expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.quickReplyDraft.7')).editor.body)).toBe('До 😊 после');s.setHoldToolbar(false);await page.locator('#qrClose').click();await openLibrary(page);await expect(input).toHaveValue('До 😊 после')}expect(s.calls.filter(c=>['create','update','copy','delete','favorite','reorder','send'].includes(c.action))).toHaveLength(0);clean(s);
+});
+
 for(const width of [390,430,768,1440])test.describe('Quick reply controls '+width,()=>{
  test.use({viewport:{width,height:900}});
  test('emoji replacement preserves Unicode, caret, saved text and composer draft/file',async({page,browserName})=>{
