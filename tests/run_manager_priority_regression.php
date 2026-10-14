@@ -115,10 +115,10 @@ mpCheck('incoming dispatcher syncs traffic attribution',str_contains($dispatcher
 $attribution=(string)file_get_contents($base.'/services/ConversationAttributionService.php');
 mpCheck('MAX entry attribution resolves canonical source id',str_contains($attribution,'RoutingAccessService::sourceId($project,$entry,$platform)'),true);
 mpCheck('MAX entry attribution repairs active conversation source id',str_contains($attribution,'source_id=CASE WHEN ?>0 THEN ? ELSE source_id END'),true);
-$trafficSave=strpos($maxHandler,'TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$entry)');
+$trafficSave=strpos($maxHandler,'TrafficAttributionService::save(dirname(__DIR__),$internalId,$yclid,$region,$campaign,$payload,$trafficEntry??$entry)');
 $legacyMirror=strpos($maxHandler,"class_exists('Bitrix\\\\Main\\\\Loader')");
 mpCheck('MAX paid start stores canonical standalone attribution before legacy mirror',$trafficSave!==false&&$legacyMirror!==false&&$trafficSave<$legacyMirror,true);
-mpCheck('MAX paid start gates legacy YCLID mirror on Bitrix availability',str_contains($maxHandler,"if (\$yclid !== '' && class_exists('Bitrix\\\\Main\\\\Loader')) MaxSearchApi::addYclid"),true);
+mpCheck('MAX paid start gates legacy YCLID mirror on Bitrix availability',str_contains($maxHandler,"if (!\$postPayload&&\$yclid !== '' && class_exists('Bitrix\\\\Main\\\\Loader')) MaxSearchApi::addYclid"),true);
 
 $startPolicyExit=0;
 passthru(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/max_start_source_policy.php'),$startPolicyExit);

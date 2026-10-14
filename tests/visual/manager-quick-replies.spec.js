@@ -47,6 +47,9 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}
   calls.push({path:url.pathname,...d});
+  // Reply-library fixtures are legacy entries without a publication. Accept
+  // only the canonical CSRF-protected read for their two scoped conversations.
+  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&d.csrf==='fixture-csrf'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me')return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
    if(d.action==='detail')return reply({ok:true,conversation:conv(d.conversation_id),messages:msgs(),delivery_failure:null});
