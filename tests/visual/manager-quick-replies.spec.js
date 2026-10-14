@@ -7,7 +7,7 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false}={}){
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false,messages=null}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],receipts=new Map();
  let manager={id:7,role,display_name:'Мария',is_working:true};
  const replies=[
@@ -16,7 +16,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   {id:3,title:'Уточнить пожелания',body:'Какие пожелания к {unknown}?',category:'Подбор',scope:'personal',version:1,is_favorite:false,can_edit:true}
  ];
  const conv=id=>({id,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
- const msgs=()=>Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
+ const msgs=()=>messages||Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
@@ -169,4 +169,34 @@ test('workspace shortcuts respect typing, IME and modal focus',async({page})=>{
  const s=await setup(page);await openLead(page);await page.locator('#conversationSearchOpen').focus();await page.keyboard.press('Control+Alt+r');await expect(page.locator('#replyText')).toBeFocused();await page.locator('#replyText').fill('Нельзя прерывать ввод');await page.keyboard.press('Control+Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
  await page.locator('#conversationSearchOpen').focus();await page.evaluate(()=>document.getElementById('conversationSearchOpen').dispatchEvent(new KeyboardEvent('keydown',{key:'j',ctrlKey:true,altKey:true,isComposing:true,bubbles:true})));await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
  await page.keyboard.press('Control+Alt+f');await expect(page.locator('#conversationSearchInput')).toBeFocused();await page.locator('#conversationSearchInput').press('Escape');await page.keyboard.press('Control+Alt+q');await expect(page.locator('#quickRepliesDialog')).toBeVisible();await page.locator('[data-qr-select="1"]').click();await page.locator('#qrCopy').focus();await page.keyboard.press('Control+Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await page.keyboard.press('Escape');await expect(page.locator('#quickRepliesDialog')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Нельзя прерывать ввод');clean(s);
+});
+
+async function activeSearchTextVisible(page){
+ await expect.poll(()=>page.locator('#messages').evaluate(box=>{
+  const mark=box.querySelector('mark.isCurrentSearchHit');if(!mark)return false;
+  const viewport=box.getBoundingClientRect(),top=viewport.top+box.clientTop,bottom=top+box.clientHeight;
+  const rects=[...mark.getClientRects()];
+  return rects.length>0&&rects.every(rect=>rect.top>=top-1&&rect.bottom<=bottom+1&&rect.height>0);
+ })).toBe(true);
+}
+for(const width of [390,430,768,1440])test.describe('Search actual text visibility '+width,()=>{
+ test.use({viewport:{width,height:420}});
+ test('late second match in a multiline message is visible with a selected file and draft',async({page,browserName})=>{
+  const lines=Array.from({length:60},(_,i)=>i===2?'Первая договорённость: ориентир':i===53?'Поздняя договорённость: ориентир':'Строка '+i+' с подробностями поездки.');
+  const text=lines.join('\n'),messages=[{id:401,sender_type:'customer',text,created_at:'2026-10-13 12:00:00'},...Array.from({length:8},(_,i)=>({id:402+i,sender_type:'manager',text:'Последующий контекст '+i,created_at:'2026-10-13 12:01:00'}))];
+  const s=await setup(page,{messages});await openLead(page);await page.locator('#replyText').fill('Черновик без отправки');
+  await page.locator('#replyFile').setInputFiles({name:'search-context.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated attachment')});
+  const attachment=await page.locator('#mediaSelection').textContent();
+  await page.locator('#conversationSearchOpen').click();await page.locator('#conversationSearchInput').fill('ориентир');
+  await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 2');await activeSearchTextVisible(page);
+  const firstTop=await page.locator('#messages').evaluate(el=>el.scrollTop);
+  await page.locator('#conversationSearchNext').click();await expect(page.locator('#conversationSearchCount')).toHaveText('2 из 2');await activeSearchTextVisible(page);
+  expect(await page.locator('#messages').evaluate(el=>el.scrollTop)).toBeGreaterThan(firstTop+400);
+  await expect(page.locator('#messages .msgBody').first()).toHaveText(text);
+  await expect(page.locator('#replyText')).toHaveValue('Черновик без отправки');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);
+  await capture(page,browserName,width,'search-late-text-short');
+  await page.locator('#conversationSearchPrevious').click();await expect(page.locator('#conversationSearchCount')).toHaveText('1 из 2');await activeSearchTextVisible(page);
+  clean(s);
+ });
 });

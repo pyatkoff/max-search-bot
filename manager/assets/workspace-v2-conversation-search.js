@@ -13,11 +13,16 @@ function select(index,{scroll=true}={}){
   active=(index+hits.length)%hits.length;
   hits.forEach((hit,i)=>hit.marks.forEach(mark=>mark.classList.toggle('isCurrentSearchHit',i===active)));
   if(scroll){
-    const box=$('messages'),row=hits[active].row;
+    const box=$('messages'),mark=hits[active].marks[0];
     // Inform the canonical scroll owner before positioning, so media/composer
     // reflow preserves the searched message instead of returning to the bottom.
     box.dispatchEvent(new WheelEvent('wheel',{deltaY:-1}));
-    box.scrollTop+=row.getBoundingClientRect().top-box.getBoundingClientRect().top-16;
+    // A match can occur far below the row header or wrap onto several lines.
+    // Position its first actual text fragment; a fixed row inset can leave the
+    // matching text outside a short transcript viewport.
+    const fragment=mark.getClientRects()[0]||mark.getBoundingClientRect();
+    const inset=Math.min(16,Math.max(0,(box.clientHeight-fragment.height)/2));
+    box.scrollTop+=fragment.top-box.getBoundingClientRect().top-box.clientTop-inset;
     box.dispatchEvent(new Event('scroll'));window.WorkspaceV2Jump?.capture();
   }
   updateStatus();return true;
