@@ -40,24 +40,15 @@ class AiBusinessDefaultsService
         // conservative resort hints when neither AI nor current state supplied one.
         $p = DestinationHintService::seedCountry($p, $userText, $current);
 
-        $country = trim((string)($p['country'] ?? ($current['country'] ?? '')));
-        $countryKey = self::lower($country);
-        if (in_array($countryKey, ['турция', 'египет'], true)) {
-            if (empty($p['meal']) && empty($current['meal'])) {
-                $p['meal'] = 'all_inclusive';
-            }
-            if (empty($p['stars']) && empty($current['stars'])) {
-                $p['stars'] = 4;
-            }
-        }
+        // Stars and meal are optional hotel refinements. A Turkey/Egypt destination
+        // alone is not evidence that the tourist requested 4★ or all inclusive.
+        // Explicit AI/user values already present in $p are preserved unchanged.
 
         return $ai;
     }
 
     private static function lower(string $value): string
     {
-        return function_exists('mb_strtolower')
-            ? mb_strtolower($value, 'UTF-8')
-            : strtolower($value);
+        return function_exists('mb_strtolower') ? mb_strtolower(trim($value), 'UTF-8') : strtolower(trim($value));
     }
 }
