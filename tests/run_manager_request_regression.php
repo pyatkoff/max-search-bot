@@ -171,7 +171,7 @@ $managerApiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 mrCheck('manager detail builds panel-only handoff context',strpos($managerApiSource,'ManagerHandoffContextService::build')!==false,true);
 mrCheck('manager detail labels saved tourist request',strpos($managerApiSource,'📋 Запрос туриста для менеджера')!==false,true);
 mrCheck('manager detail appends explicit first reply guidance',strpos($managerApiSource,'ManagerHandoffContextService::firstReplyGuidance()')!==false,true);
-mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'!ManagerHandoffContextService::hasManagerReply')!==false,true);
+mrCheck('manager context is not injected after human reply',strpos($managerApiSource,'$beforeId===0 && !$d[\'has_manager_reply\']')!==false,true);
 mrCheck('manager summary delegates already-hydrated attachments to canonical context owner',strpos($managerApiSource,'ManagerHandoffContextService::customerAttachments')!==false,true);
 
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

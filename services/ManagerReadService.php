@@ -12,13 +12,13 @@ class ManagerReadService
         self::$ready=true;
     }
 
-    public static function markRead(int $managerId,int $conversationId): void
+    /** Advance only through a message captured in a successfully returned page. */
+    public static function markRead(int $managerId,int $conversationId,int $lastMessageId): void
     {
+        if($managerId<=0||$conversationId<=0||$lastMessageId<=0)return;
         self::ensureSchema();
         $pdo=ConversationDb::connection();
-        $q=$pdo->prepare('SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=?');$q->execute([$conversationId]);
-        $last=(int)$q->fetchColumn();
-        $q=$pdo->prepare('INSERT INTO manager_conversation_reads (manager_id,conversation_id,last_read_message_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE last_read_message_id=VALUES(last_read_message_id),updated_at=NOW()');
-        $q->execute([$managerId,$conversationId,$last]);
+        $q=$pdo->prepare('INSERT INTO manager_conversation_reads (manager_id,conversation_id,last_read_message_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE last_read_message_id=GREATEST(last_read_message_id,VALUES(last_read_message_id)),updated_at=NOW()');
+        $q->execute([$managerId,$conversationId,$lastMessageId]);
     }
 }

@@ -92,11 +92,20 @@ if($action==='counts'){
 }
 if($action==='detail'){
     $conversationId=(int)($data['conversation_id']??0);
-    $d=ManagerConversationService::detail($conversationId,(int)$m['id']);
+    $cursor=$data['before_id']??0;
+    if((!is_int($cursor)&&!(is_string($cursor)&&preg_match('/^(?:0|[1-9][0-9]*)$/D',$cursor)))
+        ||filter_var($cursor,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]])===false)out(['ok'=>false,'error'=>'invalid_history_cursor'],422);
+    $beforeId=(int)$cursor;
+    try{
+        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false);
+        if($d){
+            $lastPageMessageId=$d['messages']?(int)$d['messages'][count($d['messages'])-1]['id']:0;
+            $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
+        }
+    }catch(Throwable $e){out(['ok'=>false,'error'=>'conversation_load_failed'],500);}
     if(!$d) out(['ok'=>false,'error'=>'not_found'],404);
-    $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
 
-    if (!ManagerHandoffContextService::hasManagerReply($d['messages'])) {
+    if ($beforeId===0 && !$d['has_manager_reply']) {
         $chatId=$d['conversation']['external_chat_id']??null;
         if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
             try{
@@ -110,6 +119,7 @@ if($action==='detail'){
     }
 
     $d['delivery_failure']=ManagerDeliveryStateService::activeFailure($conversationId);
+    if($beforeId===0)ManagerReadService::markRead((int)$m['id'],$conversationId,$lastPageMessageId);
     out(['ok'=>true]+$d);
 }
 if($action==='take'){
