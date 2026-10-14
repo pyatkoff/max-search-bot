@@ -76,7 +76,7 @@ class ManagerConversationService
         }
         if($queue==='attention' || $queue==='waiting'){
             $where[]="((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')';
-            if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+            if($queue==='waiting'||!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
         }
         elseif($queue==='requested'){
             $where[]=self::latestManagerRequestSql('c').' IS NOT NULL';

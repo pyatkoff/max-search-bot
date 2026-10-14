@@ -2,12 +2,15 @@
 declare(strict_types=1);
 
 // Execute the real detail, read-marker, media hydration and API detail branch on
-// isolated SQLite. Only MySQL's atomic UPSERT syntax is translated for SQLite.
+// isolated SQLite. MySQL's atomic UPSERT and candidate time-window expression
+// are translated to their SQLite equivalents; application services are real.
 foreach(['CONVERSATION_DB_HOST','CONVERSATION_DB_NAME','CONVERSATION_DB_USER','CONVERSATION_DB_PASS'] as $constant)if(!defined($constant))define($constant,'synthetic-history-fixture');
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
 require_once dirname(__DIR__).'/services/ManagerMessageMediaService.php';
 require_once dirname(__DIR__).'/services/ManagerHandoffContextService.php';
 require_once dirname(__DIR__).'/services/ManagerHandoffEventContextService.php';
+require_once dirname(__DIR__).'/services/ManagerMessageEditService.php';
+require_once dirname(__DIR__).'/services/ManagerOutboundService.php';
 
 final class HistoryFixtureStatement extends PDOStatement
 {
@@ -44,6 +47,7 @@ final class HistoryFixturePdo extends PDO
     }
     public function prepare(string $query,array $options=[]): PDOStatement|false
     {
+        $query=str_replace('UTC_TIMESTAMP()-INTERVAL 5 MINUTE',"datetime('now','-5 minutes')",$query);
         if(str_starts_with($query,'INSERT INTO manager_conversation_reads')){
             $expected='INSERT INTO manager_conversation_reads (manager_id,conversation_id,last_read_message_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE last_read_message_id=GREATEST(last_read_message_id,VALUES(last_read_message_id)),updated_at=NOW()';
             if($query!==$expected)throw new RuntimeException('read_marker_lost_atomic_monotonic_upsert');
@@ -130,4 +134,70 @@ foreach([-1,'-1','not-an-id',1.5,true,'01','999999999999999999999'] as $invalid)
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1,'before_id'=>'302']);check('canonical decimal-string cursor accepted',ids($response['body'])===range(102,301));
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1,'before_id'=>1]);check('older exhaustion is confirmed empty rather than an error',$response['body']['messages']===[]&&!$response['body']['history']['has_more']&&$response['body']['history']['before_id']===0&&$pdo->readWrites===0);
 $plan=$pdo->query('EXPLAIN QUERY PLAN SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=1 AND id<302 ORDER BY id DESC LIMIT 201')->fetchAll();check('history page uses existing conversation/id index',str_contains(json_encode($plan),'idx_messages_conversation'));
+
+// A previously read reply is editable, while later customer messages have not
+// been returned in detail. Candidate lookup, edits and cached-media permission
+// checks must preserve that distinction and must not fetch a transcript page.
+function authorizationOnlyFixture(): HistoryFixturePdo
+{
+    $pdo=fixture(501);
+    $pdo->exec("ALTER TABLE messages ADD COLUMN sender_id TEXT;
+ALTER TABLE messages ADD COLUMN external_message_id TEXT;
+ALTER TABLE conversation_events ADD COLUMN actor_id TEXT;
+UPDATE messages SET sender_id='1',channel='website',created_at=CURRENT_TIMESTAMP WHERE id=1;
+UPDATE conversations SET channel='website' WHERE id=1;
+INSERT INTO manager_conversation_reads(manager_id,conversation_id,last_read_message_id) VALUES(1,1,1);");
+    $pdo->executed=[];return$pdo;
+}
+function transcriptPageQueries(HistoryFixturePdo $pdo): array
+{
+    return array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at FROM messages')));
+}
+function cachedMediaDenied(int $conversationId,int $managerId): bool
+{
+    // Execute the endpoint's actual legacy-cache authorization predicate,
+    // independently of binary output, headers and its process-terminating exit.
+    $source=(string)file_get_contents(dirname(__DIR__).'/manager/media-file.php');
+    if(!preg_match('/if\((\$conversationId<=0\|\|[^\n]+)\)\{http_response_code\(403\);exit;\}/',$source,$match))throw new RuntimeException('cached_media_authorization_predicate_missing');
+    return eval('return '.$match[1].';');
+}
+$pdo=authorizationOnlyFixture();$candidates=ManagerMessageEditService::editableForConversation(1,1);
+check('real edit-candidate lookup still offers the owned recent reply',count($candidates)===1&&$candidates[0]['message_id']===1);
+check('edit-candidate lookup leaves later unseen customer messages unread',cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+$pdo=authorizationOnlyFixture();$candidates=ManagerMessageEditService::editableForConversation(1,2);
+check('denied edit-candidate lookup returns no message data or read write',$candidates===[]&&$pdo->readWrites===0&&array_filter($pdo->executed,static fn($query)=>str_contains($query['sql'],'FROM messages'))===[]);
+$pdo=authorizationOnlyFixture();$edited=ManagerMessageEditService::edit(1,1,'Исправленный ответ');
+check('real website edit retains owned edit and audit behavior',!empty($edited['ok'])&&$pdo->query('SELECT text FROM messages WHERE id=1')->fetchColumn()==='Исправленный ответ'&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='manager_message_edited' AND actor_id='1'")->fetchColumn()===1);
+check('actual message edit does not mark unrelated unseen messages read',cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+$pdo=authorizationOnlyFixture();$edited=ManagerMessageEditService::edit(1,2,'Чужая правка');
+check('other account cannot edit message or change either read marker',empty($edited['ok'])&&$edited['error']==='not_owner'&&cursor($pdo)===1&&cursor($pdo,2)===0&&$pdo->readWrites===0&&$pdo->query('SELECT text FROM messages WHERE id=1')->fetchColumn()==='Ответ &amp; привет');
+$pdo=authorizationOnlyFixture();$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');$edited=ManagerMessageEditService::edit(1,1,'Недоступная правка');
+check('lost project access still blocks an otherwise owned edit',empty($edited['ok'])&&$edited['error']==='conversation_not_found'&&cursor($pdo)===1&&$pdo->readWrites===0&&$pdo->query('SELECT text FROM messages WHERE id=1')->fetchColumn()==='Ответ &amp; привет');
+$pdo=authorizationOnlyFixture();$denied=cachedMediaDenied(1,1);
+check('actual cached-media predicate grants access without clearing unread',$denied===false&&cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+$pdo=authorizationOnlyFixture();$denied=cachedMediaDenied(1,2);
+check('cached-media predicate denies another project without reading messages',$denied===true&&cursor($pdo)===1&&cursor($pdo,2)===0&&$pdo->readWrites===0&&array_filter($pdo->executed,static fn($query)=>str_contains($query['sql'],'FROM messages'))===[]);
+check('cached-media predicate rejects an invalid conversation',cachedMediaDenied(0,1)===true&&$pdo->readWrites===0);
+
+// Exercise real send guards only on unsupported synthetic channels or rejected
+// ownership/access. No adapter can be reached and no provider/customer is used.
+$file=tmpfile();if($file===false)throw new RuntimeException('synthetic_media_file_failed');
+try{
+    $filePath=stream_get_meta_data($file)['uri'];
+    foreach(['text','media'] as $kind){
+        $send=static fn(int $managerId)=>$kind==='text'
+            ? ManagerOutboundService::send(1,$managerId,'Synthetic rejected text')
+            : ManagerOutboundService::sendMedia(1,$managerId,$filePath,'synthetic.txt','text/plain');
+        $pdo=authorizationOnlyFixture();if($kind==='text')$pdo->exec("UPDATE conversations SET channel='other' WHERE id=1");
+        $sent=$send(1);
+        check('unsupported '.$kind.' send preserves unseen customer messages',$sent===false&&cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+        if($kind==='media')check('unsupported media send retains explicit channel failure',ManagerOutboundService::lastFailure()['category']==='unsupported');
+        $pdo=authorizationOnlyFixture();$sent=$send(2);
+        check('denied '.$kind.' send preserves read markers and accesses no transcript',$sent===false&&cursor($pdo)===1&&cursor($pdo,2)===0&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+        $pdo=authorizationOnlyFixture();$pdo->exec('UPDATE conversations SET manager_id=2 WHERE id=1');$sent=$send(1);
+        check('nonowner '.$kind.' send is rejected without clearing unread',$sent===false&&cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+        $pdo=authorizationOnlyFixture();$pdo->exec("UPDATE conversations SET status='closed' WHERE id=1");$sent=$send(1);
+        check('closed-conversation '.$kind.' send is rejected without clearing unread',$sent===false&&cursor($pdo)===1&&$pdo->readWrites===0&&transcriptPageQueries($pdo)===[]);
+    }
+}finally{fclose($file);}
 echo"TOTAL $passed | FAIL 0\n";
