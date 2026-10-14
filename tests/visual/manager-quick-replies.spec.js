@@ -25,6 +25,10 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(url.origin!==origin)return block();
   if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
+  // WebKit may issue native registration despite the mocked push capability.
+  // The response-library fixture uses an inert worker; dedicated worker suites
+  // verify the canonical worker and push lifecycle separately.
+  if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:readSource(url.pathname.slice(1))});
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch(e){return block()}}
