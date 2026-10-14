@@ -54,6 +54,7 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
    if(d.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conv(id),project_label:'AnyTour',origin_label:'MAX · канал',can_edit_pipeline:true,last_text:'А сколько будет на других датах?',unread_count:1,last_sender_type:'customer',lead_outcome:'open'}))});
    if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
   }
+  if(method==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&d.action==='snapshot'&&d.csrf==='fixture-csrf')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
   if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[{id:901,title:'Уточнить даты',body:'На какие даты рассчитать тур?',scope:'personal',category:'Уточнение',version:1,is_favorite:true,can_edit:true}],version:'1'.padStart(64,'0'),max_replies:100});
   if(url.pathname==='/manager/post-context-api.php'){
    if(d.action!=='detail'||![11,12].includes(d.conversation_id))return block();
