@@ -13,7 +13,7 @@ function probePost(): array
         'url' => MaxChannelButtonProbe::POST_URL,
         'recipient' => ['chat_id' => (int)MaxChannelButtonProbe::CHANNEL, 'chat_type' => 'channel', 'user_id' => null],
         'body' => [
-            'mid' => 'mid.fixture_1', 'seq' => 101, 'text' => 'Проверочный пост — текст и фото.',
+            'mid' => MaxChannelButtonProbe::POST_MID, 'seq' => 101, 'text' => 'Проверочный пост — текст и фото.',
             'markup' => [['type' => 'strong', 'from' => 0, 'length' => 11]],
             'attachments' => [['type' => 'image', 'payload' => ['photo_id' => 123456, 'token' => 'PRIVATE_FIXTURE_MEDIA_TOKEN', 'url' => 'https://media.invalid/private-fixture-photo']]],
         ],
@@ -57,12 +57,12 @@ function runProbeFixture(array $options = [], bool $inspect = false): array
             probeAssert($query === ['chat_id' => MaxChannelButtonProbe::CHANNEL, 'count' => 20], 'bounded channel read');
             return ['http' => 200, 'data' => ['messages' => $options['list'] ?? [$post]]];
         }
-        if ($method === 'GET' && $path === '/messages/mid.fixture_1') {
+        if ($method === 'GET' && $path === '/messages/' . MaxChannelButtonProbe::POST_MID) {
             $directReads++;
             return ['http' => 200, 'data' => $directReads === 1 ? $fresh : $after];
         }
         if ($method === 'PUT') {
-            probeAssert($path === '/messages' && $query === ['message_id' => 'mid.fixture_1'], 'exact mutation target');
+            probeAssert($path === '/messages' && $query === ['message_id' => MaxChannelButtonProbe::POST_MID], 'exact mutation target');
             $putBody = $body;
             if (($options['timeout'] ?? false) === true) throw new RuntimeException('PRIVATE_REMOTE_ERROR_MUST_NOT_BE_LOGGED');
             return $options['put_response'] ?? ['http' => 200, 'data' => ['success' => true]];
@@ -100,6 +100,26 @@ $tests['wrong_url_fails_before_write'] = static function (): void {
 $tests['duplicate_exact_urls_fails_before_write'] = static function (): void {
     $f = runProbeFixture(['list' => [probePost(), probePost()]]);
     probeAssert($f['result']['reason'] === 'exact_post_not_unique_or_missing' && $f['result']['write_attempts'] === 0, 'ambiguous URL blocked');
+};
+$tests['private_post_fixed_measured_mid_is_supported'] = static function (): void {
+    $m = probePost(); $m['url'] = null;
+    $f = runProbeFixture(['post' => $m]);
+    probeAssert($f['result']['status'] === 'verified' && $f['result']['write_attempts'] === 1, 'private post uses measured exact API mid');
+};
+$tests['private_post_different_mid_is_blocked'] = static function (): void {
+    $m = probePost(); $m['url'] = null; $m['body']['mid'] = 'mid.other_post';
+    $f = runProbeFixture(['post' => $m]);
+    probeAssert($f['result']['reason'] === 'exact_post_not_unique_or_missing' && $f['result']['write_attempts'] === 0, 'no private post guessed from sole list row');
+};
+$tests['matching_url_different_mid_is_blocked'] = static function (): void {
+    $m = probePost(); $m['body']['mid'] = 'mid.other_post';
+    $f = runProbeFixture(['post' => $m]);
+    probeAssert($f['result']['reason'] === 'exact_post_not_unique_or_missing' && $f['result']['write_attempts'] === 0, 'both fixed mid and compatible URL required');
+};
+$tests['expected_photo_missing_is_blocked'] = static function (): void {
+    $m = probePost(); $m['body']['attachments'] = [];
+    $f = runProbeFixture(['post' => $m]);
+    probeAssert($f['result']['reason'] === 'expected_image_missing' && $f['result']['write_attempts'] === 0, 'owner supplied photo post');
 };
 $tests['missing_image_token_fails_before_write'] = static function (): void {
     $m = probePost(); unset($m['body']['attachments'][0]['payload']['token']);
@@ -154,6 +174,11 @@ $tests['unsupported_attachment_fails_before_write'] = static function (): void {
     $m = probePost(); $m['body']['attachments'][] = ['type' => 'contact', 'payload' => ['vcf_info' => 'PRIVATE_FIXTURE']];
     $f = runProbeFixture(['post' => $m]);
     probeAssert($f['result']['reason'] === 'unsupported_existing_attachment' && $f['result']['write_attempts'] === 0, 'no guessed attachment conversion');
+};
+$tests['foreign_callback_keyboard_fails_before_write'] = static function (): void {
+    $m = probePost(); $m['body']['attachments'][] = ['type' => 'inline_keyboard', 'payload' => ['buttons' => [[['type' => 'callback', 'text' => 'Чужая кнопка', 'payload' => 'foreign_action']]]]];
+    $f = runProbeFixture(['post' => $m]);
+    probeAssert($f['result']['reason'] === 'foreign_keyboard_button_rejected' && $f['result']['write_attempts'] === 0, 'foreign callback ownership preserved');
 };
 
 $passed = [];

@@ -18,6 +18,10 @@ final class MaxChannelButtonProbe
     public const APP = '/var/www/anytoour/data/www/app.anytoour.ru';
     public const CHANNEL = '-80095447388179';
     public const POST_URL = 'https://max.ru/c/-80095447388179/AaE53iyDMmw';
+    // Observed in the sole post returned by this authorized test channel.
+    // Its channel bytes and post bytes exactly match the owner-supplied link.
+    // This is a fixed measured target, not a general undocumented URL decoder.
+    public const POST_MID = 'mid.ffffb727534f6fed01a139de2c83326c';
     public const BOT = 'id9704048781_1_bot';
     public const LABEL = 'Тестовая кнопка';
     private $transport;
@@ -82,7 +86,7 @@ final class MaxChannelButtonProbe
 
     private static function validateMessage(array $m): string
     {
-        self::check(($m['url'] ?? null) === self::POST_URL, 'post_url_mismatch');
+        self::check(self::targetMatches($m), 'post_url_or_mid_mismatch');
         self::check((string)($m['recipient']['chat_id'] ?? '') === self::CHANNEL, 'post_channel_mismatch');
         self::check(($m['recipient']['chat_type'] ?? null) === 'channel', 'post_type_mismatch');
         self::check(is_array($m['body'] ?? null), 'post_body_missing');
@@ -94,6 +98,13 @@ final class MaxChannelButtonProbe
         return $mid;
     }
 
+    private static function targetMatches(array $m): bool
+    {
+        $url = $m['url'] ?? null;
+        return ($m['body']['mid'] ?? null) === self::POST_MID
+            && ($url === self::POST_URL || $url === null || $url === '');
+    }
+
     private static function fingerprint(array $m): string
     {
         // Exclude mutable view statistics and expiring media URLs.
@@ -102,7 +113,7 @@ final class MaxChannelButtonProbe
             if (in_array($a['type'] ?? '', ['image', 'video', 'audio', 'file'], true)) unset($a['payload']['url']);
         }
         unset($a);
-        return self::hash([$m['recipient'], $m['url'], $body, $m['link'] ?? null]);
+        return self::hash([$m['recipient'], $m['url'] ?? null, $body, $m['link'] ?? null]);
     }
 
     private static function imageIds(array $m): array
@@ -172,6 +183,7 @@ final class MaxChannelButtonProbe
                     self::check(is_array($row) && count($row) <= 7, 'keyboard_row_invalid');
                     foreach ($row as $button) {
                         self::check(is_array($button) && is_string($button['type'] ?? null) && is_string($button['text'] ?? null), 'keyboard_button_invalid');
+                        self::check($button['type'] === 'link' && is_string($button['url'] ?? null), 'foreign_keyboard_button_rejected');
                     }
                 }
                 // Keyboard button properties are request/response shared by schema.
@@ -250,7 +262,7 @@ final class MaxChannelButtonProbe
                     ];
                 }
             }
-            $matches = array_values(array_filter($list['messages'], static function ($m): bool { return is_array($m) && ($m['url'] ?? null) === self::POST_URL; }));
+            $matches = array_values(array_filter($list['messages'], static function ($m): bool { return is_array($m) && self::targetMatches($m); }));
             self::check(count($matches) === 1, 'exact_post_not_unique_or_missing');
             $initial = $matches[0];
             $mid = self::validateMessage($initial);
@@ -260,6 +272,7 @@ final class MaxChannelButtonProbe
             $this->summary['attachment_schema'] = self::safeSchema($current);
             $this->summary['image_ids_before'] = self::imageIds($current);
             $this->summary['image_count_before'] = count($this->summary['image_ids_before']);
+            self::check($this->summary['image_count_before'] > 0, 'expected_image_missing');
             if (self::existingButton($current)) {
                 $this->verify($current, $current);
                 $this->summary['status'] = 'already_present';
@@ -280,6 +293,10 @@ final class MaxChannelButtonProbe
             self::check(($this->backup)($current) === true, 'private_backup_failed');
             $this->summary['private_backup_saved'] = true;
             $put = $this->request('PUT', '/messages', ['message_id' => $mid], $body, 'single_button_edit');
+            $errorCode = is_array($put['data']) ? ($put['data']['code'] ?? null) : null;
+            if (is_string($errorCode) && preg_match('/\A[a-z][a-z_.-]{0,79}\z/', $errorCode)) {
+                $this->summary['api_error_code'] = $errorCode;
+            }
             $explicitReject = !$put['transport_error'] && (($put['http'] >= 400 && $put['http'] < 500) || (is_array($put['data']) && ($put['data']['success'] ?? null) === false));
             $accepted = !$put['transport_error'] && $put['http'] === 200 && is_array($put['data']) && ($put['data']['success'] ?? null) === true;
             $this->summary['write_response'] = $explicitReject ? 'rejected' : ($accepted ? 'accepted' : 'unknown');
