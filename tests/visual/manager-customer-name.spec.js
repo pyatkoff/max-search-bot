@@ -9,13 +9,20 @@ const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'
 // responses. No production traffic or customer messages are permitted.
 async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownSave=false,conflictSave=false,nameError=false,otherOwner=false,holdGet=false,denySave=false,historySize=0}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],receipts=new Map();
+ const lifecycle=[],activeReads=new Set(),requestInfo=new WeakMap();let phase='setup',readSequence=0;
+ const trace=(event,details={})=>lifecycle.push({at:Date.now(),phase,event,...details});
+ const readActions=new Set(['me','counts','detail','edit_candidates','catalog','filter_options','list']);
+ page.on('request',req=>{const url=new URL(req.url());if(!['/manager/api.php','/manager/pipeline-api.php'].includes(url.pathname))return;let action='';try{action=req.postDataJSON()?.action||''}catch(e){}const info={sequence:++readSequence,url:url.pathname,action};requestInfo.set(req,info);if(readActions.has(action))activeReads.add(req);trace('request',info)});
+ page.on('requestfinished',req=>{const info=requestInfo.get(req);if(!info)return;activeReads.delete(req);trace('requestfinished',info)});
+ page.on('requestfailed',req=>{const info=requestInfo.get(req);if(!info)return;activeReads.delete(req);trace('requestfailed',{...info,failure:req.failure()?.errorText||''})});
+ page.on('framenavigated',frame=>{if(frame===page.mainFrame())trace('navigation',{url:frame.url()})});
  let manager={id:7,role,display_name:'Мария',is_working:true};
  let version=0,workingName=null;
  const names=()=>({customer_id:101,display_name:workingName||'Анна Морозова',original_display_name:'Анна Морозова',working_name:workingName,version,updated_at:version?'2026-10-14 02:00:00':null,updated_by_manager_name:version?'Мария':null,can_edit:role==='admin'||!otherOwner});
  const history=[];for(let i=historySize;i>0;i--)history.push({version:i,before_name:i>1?'Историческое имя '+(i-1):null,after_name:'Историческое имя '+i,actor_name:'Мария',created_at:'2026-10-14 02:00:00'});
  const conv=id=>({id,customer_id:id===11?101:102,manager_id:otherOwner?8:manager.id,manager_name:otherOwner?'Ольга':manager.display_name,status:'manager',channel:'telegram',display_name:id===11?names().display_name:'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:id===11?workingName:null,name_version:id===11?version:0,customer_name_version:id===11?version:0});
  const msgs=()=>Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>{errors.push(e.message);trace('pageerror',{name:e.name,message:e.message,stack:e.stack||''})});
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method();
   const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
@@ -71,12 +78,24 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,names,history,releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setNameError:v=>{nameError=v},setHoldGet:v=>{holdGet=v},setDenySave:v=>{denySave=v},advanceName:label=>{const before=workingName;workingName=label;version++;history.unshift({version,before_name:before,after_name:label,actor_name:'Ольга',created_at:'2026-10-14 02:00:00'})}};
+ return {calls,unexpected,errors,lifecycle,pendingReads:()=>activeReads.size,readSequence:()=>readSequence,requestInfo:req=>requestInfo.get(req),phase:label=>{phase=label;trace('action')},names,history,releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setNameError:v=>{nameError=v},setHoldGet:v=>{holdGet=v},setDenySave:v=>{denySave=v},advanceName:label=>{const before=workingName;workingName=label;version++;history.unshift({version,before_name:before,after_name:label,actor_name:'Ольга',created_at:'2026-10-14 02:00:00'})}};
 }
 async function openLead(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#composer')).toBeVisible()}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`customer-name-${browser}-${width}-${state}.png`)})}
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
-function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors,JSON.stringify(s.lifecycle.slice(-35),null,2)).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
+
+// Await the existing click's real load and its fire-and-forget counts read.
+// A reload intentionally destroys the document; it must not race this navigation.
+async function settleDialoguesBeforeReload(page,s){
+ s.phase('dialogues-navigation');const sequence=s.readSequence(),lists=s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list').length;
+ await page.evaluate(()=>{const inbox=WorkspaceV2Inbox,original=inbox.load;window.fixtureNameNavigationLoad=null;inbox.load=function(...args){inbox.load=original;const work=original.apply(this,args);window.fixtureNameNavigationLoad=work;return work}});
+ const counts=page.waitForResponse(response=>response.url()===origin+'/manager/api.php'&&s.requestInfo(response.request())?.action==='counts'&&s.requestInfo(response.request()).sequence>sequence);
+ await page.locator('[data-m2-nav=dialogues]').click();expect(await page.evaluate(()=>window.fixtureNameNavigationLoad)).toBe(true);
+ const response=await counts;expect(response.status()).toBe(200);expect(await response.finished()).toBeNull();await expect.poll(()=>s.pendingReads()).toBe(0);
+ expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list')).toHaveLength(lists+1);
+ await expect(page.locator('[data-m2-nav=dialogues]')).toHaveAttribute('aria-current','page');s.phase('deliberate-reload');
+}
 
 for(const width of [390,430,768,1440])test.describe('Customer names '+width,()=>{
  test.use({viewport:{width,height:900}});
@@ -93,8 +112,8 @@ for(const width of [390,430,768,1440])test.describe('Customer names '+width,()=>
   // Search checks the current bounded server list and both identities, not global
   // historical search completeness. No customer IDs are merged by display text.
   await page.locator('#leadSearch').fill('семейная');await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await expect(page.locator('#inboxList .leadItem')).toHaveAttribute('data-conversation-id','11');await page.locator('#leadSearch').fill('Морозова');await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await page.locator('#leadSearch').fill('');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard[data-id="11"]')).toContainText('Анна — семейная поездка');await capture(page,browserName,width,'renamed-board');await page.locator('[data-m2-nav=dialogues]').click();
-  await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик следующего действия');await expect(page.locator('#conversationTitle')).toHaveText('Анна — семейная поездка');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
+  await page.locator('[data-m2-nav=sales]').click();await expect(page.locator('.kanbanCard[data-id="11"]')).toContainText('Анна — семейная поездка');await capture(page,browserName,width,'renamed-board');await settleDialoguesBeforeReload(page,s);
+  await page.reload();s.phase('reload-restored');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик следующего действия');await expect(page.locator('#conversationTitle')).toHaveText('Анна — семейная поездка');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
   if(width<=1100&&await page.evaluate(()=>WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click();
   await page.locator('#customerNameOpen').click();await expect(page.locator('#cnHistory')).toContainText('Анна — семейная поездка');await expect(page.locator('#cnHistory')).toContainText('Мария');await page.setViewportSize({width,height:420});await page.locator('#cnInput').fill('Анна — семейная поездка');await expect(page.locator('#cnInput')).toBeFocused();await page.locator('#cnRestore').scrollIntoViewIfNeeded();await expect(page.locator('#cnRestore')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'dialog-short');
   await page.locator('#cnRestore').click();await expect.poll(()=>s.names().working_name).toBe(null);await page.locator('#cnClose').click();await expect(page.locator('#customerNameOpen')).toBeFocused();await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');

@@ -16,7 +16,9 @@ permissions:
 jobs:
   screenshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Both browser suites plus setup/captures now exceed the former 10-minute job budget.
+    # Individual Playwright timeouts and all assertions remain unchanged.
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
