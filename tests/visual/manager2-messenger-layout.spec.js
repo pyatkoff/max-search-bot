@@ -102,6 +102,12 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await expect(page.locator('#leadSearch')).not.toBeVisible();
     await expect(page.locator('#pwOpen')).not.toBeVisible();
     for(const id of ['m2InboxSearchToggle','filtersToggle','m2WorkspaceSettings','m2PinnedToggle'])await expect(page.locator('#m2InboxTools #'+id)).toBeVisible();
+    const filterHitbox=await page.locator('#filtersToggle').evaluate(element=>{
+      const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+      return {textFont:getComputedStyle(element).fontSize,iconFont:getComputedStyle(element,'::before').fontSize,width:box.width,hit:hit===element||element.contains(hit)};
+    });
+    expect(filterHitbox.textFont).toBe('0px');expect(filterHitbox.iconFont).toBe('21px');
+    expect(filterHitbox.width).toBeGreaterThanOrEqual(32);expect(filterHitbox.width).toBeLessThanOrEqual(42);expect(filterHitbox.hit).toBe(true);
     const header=await page.locator('.inboxHead').boundingBox();
     expect(header.height).toBeLessThanOrEqual(170);
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(650);
