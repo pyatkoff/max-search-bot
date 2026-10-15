@@ -154,6 +154,9 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await page.locator('#replyText').fill('Черновик остаётся при открытии карточки');
     await page.locator('#replyFile').setInputFiles({name:'messenger-fixture.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never sent')});
     const attachment=await page.locator('#mediaSelection').textContent();
+    // Message editing performs one canonical debounced read after transcript rendering.
+    // Drain that initial request before measuring the disclosure's zero extra reads.
+    await expect.poll(()=>fixture.calls.filter(call=>call.action==='edit_candidates').length).toBe(1);await settle(fixture);
     const before=fixture.calls.length;
     for(const opener of ['#conversationTitle','#mobileLeadBtn']){
       await page.locator(opener).press('Enter');
