@@ -32,8 +32,11 @@ async function keyboardTo(page,selector,{beforeSearch=false}={}){
  // backwards traversal avoids a browser-chrome wrap for preceding controls.
  if(!await page.locator('#leadSearch').isVisible())await page.locator('#m2InboxSearchToggle').click();
  await page.locator('#leadSearch').scrollIntoViewIfNeeded();
- const searchHit=await page.locator('#leadSearch').evaluate(element=>{const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return {unobstructed:hit===element||element.contains(hit),width:box.width,height:box.height}});
- expect(searchHit.unobstructed,'Personal tabs must not overlap the visible search field').toBe(true);expect(searchHit.width).toBeGreaterThan(100);expect(searchHit.height).toBeGreaterThan(20);
+ // Back keeps the canonical slide animation. Wait for the real pointer target,
+ // then click it; persistent overlaps still fail rather than bypassing hit tests.
+ await expect.poll(()=>page.locator('#leadSearch').evaluate(element=>{const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return hit===element||element.contains(hit)?element.id:hit?.id||hit?.className||hit?.tagName||'none'}),{message:'Personal tabs must not overlap the visible search field'}).toBe('leadSearch');
+ const searchHit=await page.locator('#leadSearch').evaluate(element=>{const box=element.getBoundingClientRect();return {width:box.width,height:box.height}});
+ expect(searchHit.width).toBeGreaterThan(100);expect(searchHit.height).toBeGreaterThan(20);
  await page.locator('#leadSearch').click();
  const follows=await page.locator('#leadSearch').evaluate((el,selector)=>!!(el.compareDocumentPosition(document.querySelector(selector))&Node.DOCUMENT_POSITION_FOLLOWING),selector);
  for(let i=0;i<70;i++){
