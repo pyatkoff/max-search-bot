@@ -28,7 +28,7 @@ jobs:
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "e7b3eb4267624cf3edf1d82ccc3e3cce4f4f953e"; php tools/max_channel_attribution.php probe; php tools/max_channel_attribution.php status'
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "bd8edc2899e98891af60791e5dd9ea80101bb719"; php tools/max_channel_attribution.php probe; php tools/max_channel_attribution.php status'
       - name: Verify real authenticated identities and scheduler permissions without conversion upload
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -69,7 +69,7 @@ jobs:
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "e7b3eb4267624cf3edf1d82ccc3e3cce4f4f953e"; php tools/max_channel_attribution.php send'
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "bd8edc2899e98891af60791e5dd9ea80101bb719"; php tools/max_channel_goals.php status; php tools/max_channel_goals.php apply; php tools/max_channel_attribution.php send'
       - name: Remove temporary SSH credential
         if: always()
         run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
