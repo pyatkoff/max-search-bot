@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       confirm_owner_test:
-        description: Perform one read-only GET for the fixed owner MAX test dialogue
+        description: Resolve one owner message and query its MAX private-chat photo once
         type: boolean
         required: true
         default: false
