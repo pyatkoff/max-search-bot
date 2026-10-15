@@ -127,3 +127,42 @@ jobs:
             test-results/**/error-context.md
           if-no-files-found: error
           retention-days: 14
+
+  firefox-notifications:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Firefox
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps firefox
+      - name: Start isolated static fixture server
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/firefox-notifications-server.log" 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/firefox-notifications-server.log"
+          exit 1
+      # Browser/HTTP failures are controlled fixtures, not provider delivery tests.
+      - name: Verify notification setup in Firefox
+        run: npx playwright test tests/visual/workspace-notification-diagnostics.spec.js --browser=firefox --reporter=line --workers=1
+      - name: Upload Firefox notification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-notifications-${{ github.sha }}
+          path: |
+            notification-diagnostic-artifacts/*.png
+            test-results/**/error-context.md
+          if-no-files-found: error
+          retention-days: 14

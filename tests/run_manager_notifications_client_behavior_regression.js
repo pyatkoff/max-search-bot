@@ -31,7 +31,7 @@ const context = {
 vm.runInNewContext(source, context, { filename: 'workspace-v2-notifications.js' });
 
 const secretMarker = 'PRIVATE_ENDPOINT_TOKEN_DO_NOT_DISPLAY';
-function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false } = {}) {
+function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, clock = null } = {}) {
   const localRoot = { className: '', innerHTML: '' };
   const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, auth: 0 };
   let userGesture = false, permissionDuringGesture = false;
@@ -53,7 +53,7 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
     get ready() { step('ready'); return outsideScope ? new Promise(() => {}) : Promise.resolve(registration); },
     addEventListener() {},
   };
-  const notification = { permission, async requestPermission() { permissionDuringGesture = userGesture; step('permission'); return permissionResult; } };
+  const notification = { permission, requestPermission() { permissionDuringGesture = userGesture; step('permission'); return permissionRequest ? permissionRequest() : Promise.resolve(permissionResult); } };
   const localDocument = { ...document, addEventListener() {}, getElementById(id) { return id === 'notificationStatus' ? localRoot : null; } };
   const localContext = {
     document: localDocument,
@@ -72,8 +72,8 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
     },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     console: { warn() {} },
-    setTimeout(callback, delay) { return delay === 500 ? 0 : setTimeout(callback, outsideScope && delay >= 10000 ? 10 : delay); },
-    clearTimeout,
+    setTimeout(callback, delay) { if (clock) return clock.setTimeout(callback, delay); return delay === 500 ? 0 : setTimeout(callback, outsideScope && delay >= 10000 ? 10 : delay); },
+    clearTimeout(id) { if (clock) clock.clearTimeout(id); else clearTimeout(id); },
     Uint8Array,
   };
   vm.runInNewContext(source, localContext, { filename: 'workspace-v2-notifications.js' });
@@ -82,6 +82,7 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
     api: localContext.window.WorkspaceV2Notifications,
     async enable() { userGesture = true; const result = this.api.enable(localRoot); userGesture = false; return result; },
     clearFailure() { failAt = ''; },
+    changeSession() { localContext.window.WorkspaceV2.S.csrf = 'different-session'; },
     permissionDuringGesture() { return permissionDuringGesture; },
   };
 }
@@ -228,6 +229,50 @@ async function registrationLifecycleCases() {
   console.log('PASS  canonical worker readiness covers activation, updatefound, redundant, timeout and native failure with cleanup');
 }
 
+
+async function pendingPermissionCases() {
+  const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+  const drain = async () => { for (let index = 0; index < 20; index++) await Promise.resolve(); };
+  const manualClock = () => {
+    let nextId = 0; const timers = new Map();
+    return {
+      setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, delay }); return id; },
+      clearTimeout(id) { timers.delete(id); },
+      expirePermission() { const pending = [...timers].filter(([, timer]) => timer.delay === 15000); if (pending.length !== 1) throw new Error('permission UI wait has no single bounded timeout'); const [id, timer] = pending[0]; timers.delete(id); timer.callback(); },
+    };
+  };
+  for (const outcome of ['granted', 'denied', 'rejected']) {
+    const clock = manualClock(); let native = deferred();
+    const harness = activationHarness({ permission: 'default', permissionRequest: () => native.promise, clock });
+    const first = harness.enable(); await drain();
+    if (harness.calls.permission !== 1 || !harness.permissionDuringGesture()) throw new Error(`${outcome} permission request is not made once within the click`);
+    clock.expirePermission();
+    if (await first !== false || !harness.root.innerHTML.includes('Этап: Разрешение браузера') || !harness.root.innerHTML.includes('Код: TIMEOUT') || !harness.root.innerHTML.includes('Повторить') || harness.root.innerHTML.includes('disabled')) throw new Error(`${outcome} pending permission does not restore bounded actionable diagnosis`);
+    const retry = harness.enable(); await drain();
+    if (harness.calls.permission !== 1 || harness.calls.register || harness.calls.key || harness.calls.subscribe || harness.calls.save) throw new Error(`${outcome} retry starts another native permission operation or continues before permission settles`);
+    if (outcome === 'rejected') native.reject(new DOMException(secretMarker, 'NotAllowedError')); else native.resolve(outcome);
+    const result = await retry;
+    if (outcome === 'granted') {
+      if (result !== true || harness.calls.register !== 1 || harness.calls.key !== 1 || harness.calls.subscribe !== 1 || harness.calls.save !== 1 || harness.calls.confirmation !== 1 || !harness.root.innerHTML.includes('Уведомления включены')) throw new Error('shared granted permission does not finish exactly one setup');
+    } else {
+      if (result !== false || harness.calls.register || harness.calls.key || harness.calls.subscribe || harness.calls.save || harness.root.innerHTML.includes(secretMarker)) throw new Error(`${outcome} permission continues setup or exposes raw details`);
+      native = deferred(); const fresh = harness.enable(); await drain();
+      if (harness.calls.permission !== 2 || !harness.permissionDuringGesture()) throw new Error(`${outcome} settled native permission flight blocks a fresh direct-click request`);
+      native.resolve('granted');
+      if (await fresh !== true || harness.calls.subscribe !== 1 || harness.calls.save !== 1) throw new Error(`${outcome} permission rejection poisons later setup`);
+    }
+  }
+  const changedClock = manualClock(), changedNative = deferred();
+  const changed = activationHarness({ permission: 'default', permissionRequest: () => changedNative.promise, clock: changedClock });
+  const obsolete = changed.enable(); await drain(); changed.changeSession(); changedNative.resolve('granted');
+  if (await obsolete !== false || changed.calls.register || changed.calls.key || changed.calls.subscribe || changed.calls.save || changed.calls.confirmation) throw new Error('permission granted after account change starts work for an obsolete session');
+  let throwOnce = true;
+  const synchronous = activationHarness({ permission: 'default', permissionRequest() { if (throwOnce) { throwOnce = false; throw new DOMException(secretMarker, 'NotAllowedError'); } return Promise.resolve('granted'); } });
+  if (await synchronous.enable() !== false || !synchronous.permissionDuringGesture() || !synchronous.root.innerHTML.includes('Код: NotAllowedError') || synchronous.calls.register) throw new Error('synchronous permission error escapes direct-click diagnosis');
+  if (await synchronous.enable() !== true || synchronous.calls.permission !== 2 || synchronous.calls.subscribe !== 1 || synchronous.calls.save !== 1) throw new Error('synchronous permission error leaves a stuck permission flight');
+  console.log('PASS  permission UI timeout reuses pending native work; settlement, session changes and synchronous failures retain safe retry');
+}
+
 async function run() {
   const manager2 = activationHarness({ outsideScope: true });
   if (await manager2.enable() !== true || manager2.calls.ready !== 0 || manager2.calls.subscribe !== 1 || manager2.calls.save !== 1) throw new Error('/manager2 must enable through its canonical active registration while global serviceWorker.ready remains pending');
@@ -308,6 +353,7 @@ async function run() {
   }
   console.log('PASS  unusable canonical server status remains an actionable setup failure');
   await activationDiagnosticCases();
+  await pendingPermissionCases();
   await registrationLifecycleCases();
 }
 

@@ -4,7 +4,7 @@ const origin='http://127.0.0.1:4173';
 
 // Exercise the real notification module with in-memory browser/HTTP failures.
 // No real permission prompt, push subscription, save or notification is created.
-async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false}={}){
+async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false,permissionPending=false}={}){
   const unexpected=[];
   await page.route('**/*',route=>{
     const request=route.request(),url=new URL(request.url());
@@ -14,12 +14,16 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     return route.continue();
   });
   await page.goto(origin+'/tests/visual/workspace-v2-fixture.html');
-  await page.evaluate(({working,recoverAfterAbort,backgroundPending})=>{
+  await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending})=>{
     document.querySelector('.notificationHealth').id='notificationStatus';
     window.fixturePushCalls=[];
     window.fixturePushStatus={is_working:working,notification_path_usable:false,notification_path_reason:'no_subscription'};
     window.WorkspaceV2={S:{csrf:'synthetic'}};
-    const notification={permission:backgroundPending?'granted':'default',async requestPermission(){fixturePushCalls.push('permission');return 'granted';}};
+    const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=resolve;});return Promise.resolve('granted');}};
+    if(permissionPending){
+      const schedule=window.setTimeout.bind(window),cancel=window.clearTimeout.bind(window);
+      window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);if(delay===15000)window.fixtureExpirePermission=()=>{cancel(id);callback(...args);};return id;};
+    }
     Object.defineProperty(window,'Notification',{configurable:true,value:notification});
     Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
     let registered=false;
@@ -38,7 +42,7 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
       if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};}
       throw new Error('Unexpected request');
     };
-  },{working,recoverAfterAbort,backgroundPending});
+  },{working,recoverAfterAbort,backgroundPending,permissionPending});
   await page.addScriptTag({url:origin+'/manager/assets/workspace-v2-notifications.js'});
   await expect(page.locator('#notificationStatus [data-enable-push]')).toBeVisible();
   return unexpected;
@@ -125,5 +129,41 @@ for(const width of [390,430,768,1440])for(const outcome of ['success','failure']
     const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));expect(size.scroll).toBeLessThanOrEqual(size.width+1);
     await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}-recovery-${outcome}-result.png`});
     expect(unexpected).toEqual([]);
+  });
+});
+
+for(const width of [390,1440])for(const outcome of ['granted','denied'])test.describe(`push permission timeout ${width} ${outcome}`,()=>{
+  test.use({viewport:{width,height:844}});
+  test('Retry observes the original permission request after its UI timeout',async({page,browserName})=>{
+    const unexpected=await setup(page,true,{permissionPending:true,recoverAfterAbort:true});
+    const button=page.locator('#notificationStatus [data-enable-push]');
+    await button.click();
+    await expect(button).toBeDisabled();
+    await expect.poll(()=>page.evaluate(()=>fixturePushCalls.filter(call=>call==='permission').length)).toBe(1);
+    await page.evaluate(()=>fixtureExpirePermission());
+    const diagnostic=page.locator('#notificationStatus .notificationDiagnostic');
+    await expect(diagnostic).toContainText('Этап: Разрешение браузера');
+    await expect(diagnostic).toContainText('Код: TIMEOUT');
+    await expect(button).toBeEnabled();
+    await button.click();
+    await expect(button).toBeDisabled();
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='permission').length)).toBe(1);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='register').length)).toBe(0);
+    await page.evaluate(outcome=>fixtureFinishPermission(outcome),outcome);
+    if(outcome==='granted'){
+      await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+      expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(1);
+    }else{
+      await expect(diagnostic).toContainText('PERMISSION_NOT_GRANTED');
+      await expect(button).toBeEnabled();
+      expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='register').length)).toBe(0);
+      expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(0);
+    }
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='permission').length)).toBe(1);
+    expect(unexpected).toEqual([]);
+    const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));
+    expect(size.scroll).toBeLessThanOrEqual(size.width+1);
+    fs.mkdirSync('notification-diagnostic-artifacts',{recursive:true});
+    await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}-permission-timeout-${outcome}.png`});
   });
 });
