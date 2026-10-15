@@ -238,6 +238,7 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_manager_read_profile_regression.php',
         'php tests/run_max_subscription_attribution_policy.php',
         'php tests/run_max_channel_attribution.php',
         'python3 tests/run_max_attribution_key.py',

@@ -5,6 +5,12 @@ on:
     workflows: [Deploy production]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      profile_manager_lists:
+        description: 'Opt-in bounded PDO list attribution (requires scope authorization)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -63,6 +69,7 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          PROFILE_MANAGER_LISTS: ${{ github.event_name == 'workflow_dispatch' && inputs.profile_manager_lists == true && 'true' || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -78,7 +85,9 @@ jobs:
           done
           test "$deployed" = "$TARGET_SHA"
 
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/production_snapshot.php" > production_snapshot.json
+          profile_arg=''
+          if [ "$PROFILE_MANAGER_LISTS" = 'true' ]; then profile_arg=' --profile-manager-lists'; fi
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/production_snapshot.php$profile_arg" > production_snapshot.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php 1" > live_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php today" > daily_session_report.json
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php tools/live_session_snapshot.php yesterday" > yesterday_session_report.json
