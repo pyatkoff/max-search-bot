@@ -309,7 +309,8 @@ async function open(id,options={}){
   window.WorkspaceV2ConversationSearch?.setState('loading');
   // Start both canonical reads once. The secondary card has its own completion and
   // never holds the authorized transcript or composer behind a slow card request.
-  const leadRequest=Promise.resolve().then(()=>pipe('detail',{conversation_id:target})).catch(()=>null);
+  // Card editors need catalog options; the transcript and composer do not.
+  const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
   let d;try{d=await api('detail',{conversation_id:target})}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;

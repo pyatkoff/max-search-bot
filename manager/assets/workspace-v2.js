@@ -7,6 +7,7 @@ function canonicalizeManagerUrl(){
 }
 canonicalizeManagerUrl();
 const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,authGeneration:0,workspaceBound:false,booting:false};
+let catalogReady=Promise.resolve();
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -76,13 +77,18 @@ window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
+function filterScope(){return JSON.stringify([S.queue,S.leadProjectFilter,S.leadSourceFilter,S.leadManagerFilter,S.leadStageFilter,S.leadTagFilter,S.leadOutcomeFilter,S.leadTaskFilter,S.leadSearch])}
 async function loadCatalog(){
   const generation=S.authGeneration;
   const [cat,filterOptions]=await Promise.all([pipe('catalog').catch(()=>null),pipe('filter_options').catch(()=>null)]);
   if(generation!==S.authGeneration||S.authExpired)return;
   if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
   if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
+  const previousScope=filterScope();
   window.WorkspaceV2Filters?.render();
+  // Only a removed/invalid saved criterion needs a new list. Metadata arriving
+  // late must not reopen the conversation or replace the reply editor.
+  if(previousScope!==filterScope())void window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
 }
 async function applyCustomerName(name,context){
   const current=window.WorkspaceV2Conversation?.captureReplyContext?.();
@@ -125,7 +131,11 @@ async function resumeAuthenticated(me){
   const generation=S.authGeneration,managerId=Number(S.manager?.id||0);
   const stillAuthenticated=()=>!S.authExpired&&S.authGeneration===generation&&Number(S.manager?.id||0)===managerId;
   const savedConversationId=window.WorkspaceV2Conversation?.activateReplySession(S.manager?.id);
-  await loadCatalog();if(!stillAuthenticated())return;bindWorkspaceOnce();
+  S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false;
+  window.WorkspaceV2Filters?.render({pending:true});bindWorkspaceOnce();
+  // Read-only directories are optional startup work. Saved criteria already
+  // apply to the first list; reconcile them when the directories arrive.
+  catalogReady=loadCatalog().catch(()=>{});
   // Personal reply shortcuts load independently; they must not delay the Inbox.
   void window.WorkspaceV2QuickReplies?.configure?.();
   // Native push registration and its health request must not hold the Inbox or
@@ -160,5 +170,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure};
+window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,whenCatalogReady:()=>catalogReady};
 })();

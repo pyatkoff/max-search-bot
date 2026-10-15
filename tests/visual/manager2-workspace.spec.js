@@ -6,8 +6,8 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false}={}){
-  const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[];
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null}={}){
+  const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false;
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
@@ -16,15 +16,16 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67'}));
-  await page.addInitScript(()=>{
+  await page.addInitScript(savedFilters=>{
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
+    if(savedFilters)sessionStorage.setItem('anytour.manager.workspace.filters.v1',JSON.stringify(savedFilters));
     window.fixtureWorkers=[];
     let subscription=null;
     const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
     function FakeNotification(){}FakeNotification.permission='default';FakeNotification.requestPermission=async()=>{FakeNotification.permission='granted';return 'granted'};
     Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
-  });
+  },savedFilters);
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
@@ -61,6 +62,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
     if(url.pathname==='/manager/pipeline-api.php'){
       if(data.csrf!=='synthetic-csrf')throw new Error('Canonical CSRF was not retained');
+      if(['catalog','filter_options'].includes(data.action)&&data.action===holdMetadata){
+        const status=await new Promise(resolve=>pendingMetadata.push({request:req,release:resolve}));
+        if(status!==200){if(status===401)authenticated=false;return reply({ok:false,error:status===401?'unauthorized':'synthetic_metadata_unavailable'},status)}
+      }
       if(data.action==='catalog')return reply({ok:true,stages,tags:[{id:1,display_name:'Семья'}],outcomes:{open:'В работе',won:'Продажа',lost:'Отказ'},close_reasons:{price:'Цена'}});
       if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
       if(data.action==='list')return reply({ok:true,conversations:rows()});
@@ -80,8 +85,9 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
-  if(!anonymous)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,releaseCreate:()=>pendingCreates.shift()?.()};
+  if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+  return {calls,unexpected,errors,sends,tasks,releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+    async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();
@@ -102,6 +108,121 @@ async function readable(page,selector){
   if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+
+async function readyBeforeMetadata(page,state,action){
+  await expect.poll(()=>state.metadataPending()).toBe(1);
+  expect(state.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action===action)).toHaveLength(1);
+  await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+  await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+  expect(state.metadataPending()).toBe(1);
+  await openLead(page,11);
+  await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#replyText')).toBeEnabled();
+  await expect(page.locator('#sendReply')).toBeEnabled();
+  expect(state.metadataPending()).toBe(1);
+  expect(state.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(1);
+}
+
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
+  for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page})=>{
+    await page.setViewportSize(viewport);
+    const s=await setup(page,{holdMetadata:action,waitForInbox:false});await readyBeforeMetadata(page,s,action);
+    if(action==='catalog')await expect(page.locator('#leadStage')).toHaveCount(0);
+    const draft='Черновик до загрузки справочника';await page.locator('#replyText').fill(draft);
+    await page.locator('#replyFile').setInputFiles({name:'held-metadata.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
+    await expect(page.locator('#mediaSelection')).toContainText('held-metadata.txt');
+    const attachment=await page.locator('#mediaSelection').textContent();
+    await page.locator('#replyText').focus();await expect(page.locator('#replyText')).toBeFocused();
+    const before={lists:s.calls.filter(call=>call.action==='list').length,details:s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail').length};
+    expect(before.lists).toBe(1);expect(s.metadataPending()).toBe(1);
+    await s.releaseMetadata();
+    await expect.poll(()=>page.evaluate(held=>held==='catalog'?WorkspaceV2.S.pipeline.stages.length>0:WorkspaceV2.S.filterOptionsReady,action)).toBe(true);
+    if(action==='catalog'){
+      await expect(page.locator('#leadStage option')).toHaveCount(stages.length);await expect(page.locator('#leadStage')).toHaveValue('working');
+      await expect(page.locator('#leadTags input[value="1"]')).toHaveCount(1);
+      await expect(page.locator('#leadOutcome option')).toHaveCount(3);await expect(page.locator('#leadOutcome')).toHaveValue('open');
+    }
+    await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+    await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toBeEnabled();
+    expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+    expect(s.calls.filter(call=>call.action==='list')).toHaveLength(before.lists);
+    expect(s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(before.details);
+    expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action===action)).toHaveLength(1);
+    expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);await noOverflow(page);
+  });
+}
+
+for(const action of ['catalog','filter_options'])for(const status of [500,401])test(`Manager2 startup metadata ${action} late ${status} preserves canonical recovery`,async({page})=>{
+  await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{holdMetadata:action,waitForInbox:false});await readyBeforeMetadata(page,s,action);
+  const draft='Точный черновик при ошибке справочника';await page.locator('#replyText').fill(draft);
+  await page.locator('#replyFile').setInputFiles({name:'metadata-failure.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
+  await expect(page.locator('#mediaSelection')).toContainText('metadata-failure.txt');
+  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  const lists=s.calls.filter(call=>call.action==='list').length;await s.releaseMetadata(status);
+  if(status===401){
+    await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();
+    expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);
+  }else{
+    // Let the received JSON and the next rendered frames settle; no retry or
+    // new metadata request is introduced by this failure control.
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#composer')).toBeVisible();
+    await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toBeFocused();
+  }
+  await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  expect(s.calls.filter(call=>call.action==='list')).toHaveLength(lists);
+  expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action===action)).toHaveLength(1);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const stale of [false,true])test(`Manager2 startup metadata reconciles ${stale?'stale':'valid'} saved criteria once without reopening the reply`,async({page})=>{
+  await page.setViewportSize({width:390,height:900});
+  const savedFilters={project:'*',source:0,manager:'',stage:stale?'removed-stage':'working',tag:stale?999:1,outcome:stale?'obsolete':'open',task:'',search:''};
+  const s=await setup(page,{holdMetadata:'catalog',waitForInbox:false,savedFilters});await readyBeforeMetadata(page,s,'catalog');
+  const initial=s.calls.find(call=>call.action==='list');
+  expect(initial).toMatchObject({lead_stage_key:savedFilters.stage,lead_tag_id:savedFilters.tag,lead_outcome:savedFilters.outcome});
+  const draft='Ответ остаётся при сверке сохранённых условий';await page.locator('#replyText').fill(draft);
+  await page.locator('#replyFile').setInputFiles({name:'saved-criteria.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never uploaded or sent')});
+  await expect(page.locator('#mediaSelection')).toContainText('saved-criteria.txt');
+  const attachment=await page.locator('#mediaSelection').textContent();await page.locator('#replyText').focus();
+  expect(s.calls.filter(call=>call.action==='list')).toHaveLength(1);expect(s.metadataPending()).toBe(1);
+  await s.releaseMetadata();
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.pipeline.stages.length)).toBe(stages.length);
+  await expect.poll(()=>s.calls.filter(call=>call.action==='list').length).toBe(stale?2:1);
+  if(stale){
+    expect(s.calls.filter(call=>call.action==='list').at(-1)).toMatchObject({lead_stage_key:'',lead_tag_id:0,lead_outcome:''});
+    await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+  }
+  expect(await page.evaluate(()=>({stage:WorkspaceV2.S.leadStageFilter,tag:WorkspaceV2.S.leadTagFilter,outcome:WorkspaceV2.S.leadOutcomeFilter}))).toEqual(stale?{stage:'',tag:0,outcome:''}:{stage:'working',tag:1,outcome:'open'});
+  await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+  await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toBeEnabled();
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  expect(s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(1);
+  expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='catalog')).toHaveLength(1);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 startup metadata preserves a blurred search draft until its debounce commits',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.clock.install({time:new Date('2026-10-15T23:59:59Z')});
+  await page.clock.pauseAt(new Date('2026-10-16T00:00:00Z'));
+  const s=await setup(page,{holdMetadata:'catalog',waitForInbox:false});await readyBeforeMetadata(page,s,'catalog');
+  const draft='Ответ текущему клиенту остаётся на месте';await page.locator('#replyText').fill(draft);
+  await page.getByRole('button',{name:'Поиск диалогов',exact:true}).click();
+  const search=page.locator('#leadSearch'),query='Новое условие до окончания загрузки';await search.fill(query);
+  await page.locator('#replyText').focus();await expect(search).not.toBeFocused();
+  expect(s.calls.filter(call=>call.action==='list')).toHaveLength(1);
+  await s.releaseMetadata();await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.pipeline.stages.length)).toBe(stages.length);
+  await expect(search).toHaveValue(query);expect(s.calls.filter(call=>call.action==='list')).toHaveLength(1);
+  await page.clock.runFor(250);
+  await expect.poll(()=>s.calls.filter(call=>call.action==='list').length).toBe(2);
+  await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+  expect(s.calls.filter(call=>call.action==='list').at(-1)).toMatchObject({search:query});
+  await expect(search).toHaveValue(query);await expect(page.locator('#replyText')).toHaveValue(draft);
+  await expect(page.locator('#replyText')).toBeFocused();expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+  expect(s.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(1);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
   test.use({viewport:{width,height:900}});

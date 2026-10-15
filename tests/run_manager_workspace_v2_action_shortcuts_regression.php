@@ -22,7 +22,7 @@ shortcutCheck('activating a quick task shortcut switches into manager work queue
 shortcutCheck('toggling an active shortcut off keeps current queue',strpos($filters,"===String(value||'')?'':String(value||'')")!==false&&strpos($filters,"function ensureTaskQueue(){if(S.leadTaskFilter)")!==false);
 shortcutCheck('advanced task select uses the same manager work queue semantics',strpos($filters,"$('leadTaskFilter').onchange=async()=>{S.leadTaskFilter=$('leadTaskFilter').value;ensureTaskQueue();await apply()}")!==false);
 shortcutCheck('task filter change reloads through existing inbox filter boundary',strpos($filters,'await apply()')!==false&&strpos($filters,'WorkspaceV2Inbox.load({preserveScroll:false})')!==false);
-shortcutCheck('clear filters also clears shortcut state',strpos($filters,"S.leadTaskFilter=''")!==false&&strpos($filters,'render();')!==false&&strpos($filters,'await apply()')!==false);
+shortcutCheck('clear filters also clears shortcut state while respecting pending metadata',strpos($filters,"S.leadTaskFilter=''")!==false&&strpos($filters,'render({pending:metadataPending});')!==false&&strpos($filters,'await apply()')!==false);
 shortcutCheck('pipeline module stays focused on sales mutations',strpos($pipeline,'setTaskShortcut')===false&&strpos($pipeline,'FILTER_STORAGE_KEY')===false&&strpos($pipeline,'bindSalesEditor')!==false);
 shortcutCheck('shortcuts remain keyboard visible and mobile scroll safe',strpos($css,'.taskShortcut:focus-visible')!==false&&strpos($css,'.taskShortcuts{display:flex')!==false&&strpos($css,'overflow-x:auto')!==false);
 shortcutCheck('overdue shortcut has distinct urgency styling',strpos($css,'.taskShortcut[data-task-filter="overdue"].active')!==false);
