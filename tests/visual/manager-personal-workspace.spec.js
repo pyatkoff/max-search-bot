@@ -18,7 +18,75 @@ async function openPersonal(page){
 }
 async function closePersonal(page){await page.locator('#pwClose').click();await expect(page.locator('#pwDialog')).not.toBeVisible();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead'))await page.locator('#mobileLeadClose').click()}
 async function createLabel(page,name){await page.locator('#pwNewLabel').click();await page.locator('#pwLabelName').fill(name);await page.locator('#pwLabelSave').click();await expect(page.locator('#pwLabelEditor')).toHaveCount(0)}
-async function createTab(page,name,label=''){await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill(name);if(label)await page.locator('#pwTabLabel').selectOption(label);await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0)}
+async function chooseCondition(page,id,value,{keyboard=false,checked=true}={}){
+ const field=page.locator('#'+id),details=field.locator('details');if(!await details.evaluate(node=>node.open))await field.locator('summary').click();
+ const choice=field.locator(`input[type="checkbox"][value="${value}"]`);
+ if(keyboard){await choice.focus();await expect(choice).toBeFocused();if(await choice.isChecked()!==checked)await choice.press('Space')}
+ else if(checked)await choice.check();else await choice.uncheck();
+ await expect(choice).toBeChecked({checked});
+}
+async function createTab(page,name,label=''){await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill(name);if(label)await chooseCondition(page,'pwTabLabel',label);await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0)}
+
+function multiChoiceFixture(){
+ const state=emptyState();state.labels=[{id:20,name:'Семья'},{id:21,name:'Осень'},{id:22,name:'Другое'}];state.members={'20':[11,13,14,16,18],'21':[12,17,19],'22':[15]};
+ const base={manager_id:7,status:'manager',channel:'max',source_id:1,project_key:'anytour',project_label:'AnyTour',lead_outcome:'open',last_text:'Синтетическое сообщение',last_sender_type:'customer',awaiting_manager_reply:1};
+ const data=[{id:11},{id:12,manager_id:null,status:'waiting_manager',channel:'telegram',source_id:2},{id:13,channel:'website'},{id:14,source_id:3},{id:15},{id:16,manager_id:null,status:'ai'},{id:17,status:'closed',lead_outcome:'won',channel:'telegram',source_id:2},{id:18,awaiting_manager_reply:0},{id:19,source_id:2},{id:20}];
+ const rows=data.map(row=>({...base,...row,display_name:row.id===11?'Анна Морозова':'Клиент '+row.id}));
+ const sources=[{id:1,project_key:'anytour',display_name:'Москва'},{id:2,project_key:'anytour',display_name:'Санкт-Петербург'},{id:3,project_key:'anytour',display_name:'Другой источник'}];
+ return {state,rows,sources};
+}
+async function expectSelectedConditions(page){
+ for(const [id,selected] of [['pwTabQueue',['mine','waiting']],['pwTabChannel',['max','telegram']],['pwTabSource',['1','2']],['pwTabLabel',['20','21']]]){
+  const values=await page.locator(`#${id} input:checked`).evaluateAll(inputs=>inputs.map(input=>input.value).sort());expect(values).toEqual([...selected].sort());
+ }
+}
+
+for(const width of [390,430,768,1440])test('multi-choice tab '+width+': ordinary pointer/keyboard, strict OR/AND results and cross-device saved conditions',async({page,browser,browserName})=>{
+ await page.setViewportSize({width,height:900});const data=multiChoiceFixture(),s=await setup(page,data);await settled(page,s);await openLead(page);
+ await page.locator('#replyText').fill('Черновик до изменения условий');await page.locator('#replyFile').setInputFiles({name:'conditions.txt',mimeType:'text/plain',buffer:Buffer.from('Keep this attachment')});const file=await page.locator('#mediaSelection').textContent();
+ await openPersonal(page);await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill('MAX и Telegram — ждут ответа');
+ await expect(page.locator('.pwConditionHint')).toContainText('В одном условии подходит любое выбранное значение');
+ await chooseCondition(page,'pwTabQueue','waiting',{keyboard:true});
+ await chooseCondition(page,'pwTabChannel','max');await chooseCondition(page,'pwTabChannel','telegram',{keyboard:true});
+ await chooseCondition(page,'pwTabSource',1);await chooseCondition(page,'pwTabSource',2,{keyboard:true});
+ await chooseCondition(page,'pwTabLabel',20);await chooseCondition(page,'pwTabLabel',21,{keyboard:true});await page.locator('#pwTabReply').check();await expectSelectedConditions(page);
+ await expect(page.locator('#pwTabChannelSummary')).toHaveText('MAX, Telegram');await expect(page.locator('#pwTabSourceSummary')).toHaveText('Москва, Санкт-Петербург');await expect(page.locator('#pwTabLabelSummary')).toHaveText('Семья, Осень');
+ await page.setViewportSize({width,height:420});await bounded(page);await page.locator('#pwTabSave').scrollIntoViewIfNeeded();await expect(page.locator('#pwTabSave')).toBeInViewport();await capture(page,browserName,width,'multi-choice-short');
+ await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0);const saved=writes(s).filter(call=>call.action==='tab_save');expect(saved).toHaveLength(1);
+ expect(saved[0].tab).toMatchObject({queues:['mine','waiting'],channels:['max','telegram'],source_ids:[1,2],label_ids:[20,21],reply_needed:true});for(const legacy of ['queue','channel','source_id','label_id'])expect(saved[0].tab).not.toHaveProperty(legacy);
+ const tab=s.account(7).state.tabs[0];await page.locator(`[data-pw-edit-tab="${tab.id}"]`).click();await expectSelectedConditions(page);await page.locator('#pwTabCancel').click();await closePersonal(page);
+ await expect(page.locator('#replyText')).toHaveValue('Черновик до изменения условий');await expect(page.locator('#mediaSelection')).toHaveText(file);await page.setViewportSize({width,height:900});
+ if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await page.locator('#mobileBack').click();await page.locator(`[data-pw-selection="tab:${tab.id}"]`).click();
+ await expect(page.locator('#inboxList .leadItem')).toHaveCount(3);expect(await page.locator('#inboxList .leadItem').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.conversationId)).sort((a,b)=>a-b))).toEqual([11,12,19]);
+ await expect(page.locator('#replyText')).toHaveValue('Черновик до изменения условий');await expect(page.locator('#mediaSelection')).toHaveText(file);
+ await openPersonal(page);await page.locator('#pwDensity').selectOption('compact');await page.locator('#pwSettingsSave').click();await expect(page.locator('#pwDialog')).toHaveAttribute('aria-busy','false');await closePersonal(page);await settled(page,s);
+ const context=await browser.newContext({viewport:{width:1440,height:900}});try{
+  const other=await context.newPage(),device=await setup(other,{...data,accounts:s.accounts});await settled(other,device);await expect(other.locator('body')).toHaveClass(/pwCompact/);await other.locator(`[data-pw-selection="tab:${tab.id}"]`).click();await expect(other.locator('#inboxList .leadItem')).toHaveCount(3);await openPersonal(other);await other.locator(`[data-pw-edit-tab="${tab.id}"]`).click();await expectSelectedConditions(other);expect(writes(device)).toHaveLength(0);clean(device);
+ }finally{await context.close()}
+ await page.reload();await settled(page,s);await page.locator(`[data-pw-selection="tab:${tab.id}"]`).click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(3);await openPersonal(page);await page.locator(`[data-pw-edit-tab="${tab.id}"]`).click();await expectSelectedConditions(page);clean(s);
+});
+
+test('legacy scalar conditions import into checkbox groups, empty queues require an explicit choice and empty optional groups mean any',async({page})=>{
+ const data=multiChoiceFixture();data.state.tabs=[{id:30,name:'Старая вкладка',queue:'mine',channel:'max',source_id:1,label_id:20,reply_needed:false,pinned_only:false}];const s=await setup(page,data);await settled(page,s);await openPersonal(page);await page.locator('[data-pw-edit-tab="30"]').click();
+ for(const [id,value] of [['pwTabQueue','mine'],['pwTabChannel','max'],['pwTabSource','1'],['pwTabLabel','20']])expect(await page.locator(`#${id} input:checked`).evaluateAll(nodes=>nodes.map(node=>node.value))).toEqual([value]);
+ await chooseCondition(page,'pwTabQueue','mine',{checked:false});const count=writes(s).length;await page.locator('#pwTabSave').click();await expect(page.locator('#pwStatus')).toHaveText('Выберите хотя бы одну очередь.');expect(writes(s)).toHaveLength(count);await expect(page.locator('#pwTabQueueChoicewaiting')).toBeFocused();
+ await chooseCondition(page,'pwTabQueue','all',{keyboard:true});await chooseCondition(page,'pwTabChannel','max',{checked:false});await chooseCondition(page,'pwTabSource',1,{checked:false});await chooseCondition(page,'pwTabLabel',20,{checked:false});
+ await expect(page.locator('#pwTabChannelSummary')).toHaveText('Любой канал');await expect(page.locator('#pwTabSourceSummary')).toHaveText('Любой источник');await expect(page.locator('#pwTabLabelSummary')).toHaveText('Любая метка');
+ await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0);expect(writes(s).at(-1).tab).toMatchObject({queues:['all'],channels:[],source_ids:[],label_ids:[]});await closePersonal(page);await page.locator('[data-pw-selection="tab:30"]').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(9);clean(s);
+});
+
+test('deleted selected label retains its filter ID, warns in editor and never broadens the surviving OR branch',async({page})=>{
+ const data=multiChoiceFixture();data.state.tabs=[{id:30,name:'Две метки',queues:['mine','waiting'],channels:['max','telegram'],source_ids:[1,2],label_ids:[20,21],reply_needed:true,pinned_only:false}];const s=await setup(page,data);await settled(page,s);await page.locator('[data-pw-selection="tab:30"]').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(3);await openPersonal(page);
+ page.once('dialog',dialog=>dialog.accept());await page.locator('[data-pw-delete-label="20"]').click();await expect.poll(()=>s.account(7).state.labels.map(label=>label.id)).toEqual([21,22]);expect(s.account(7).state.tabs[0].label_ids).toEqual([20,21]);await expect(page.locator('#pwTabs')).toContainText('Метка удалена — измените условия');await closePersonal(page);
+ await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.locator('#inboxList .leadItem').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.conversationId)).sort((a,b)=>a-b))).toEqual([12,19]);await openPersonal(page);await page.locator('[data-pw-edit-tab="30"]').click();await chooseCondition(page,'pwTabLabel',20);await expect(page.locator('#pwTabLabel')).toContainText('Удалённая метка #20');await expect(page.locator('#pwTabLabelChoice20')).toBeChecked();await page.locator('#pwTabCancel').click();
+ page.once('dialog',dialog=>dialog.accept());await page.locator('[data-pw-delete-label="21"]').click();await expect.poll(()=>s.account(7).state.labels.map(label=>label.id)).toEqual([22]);expect(s.account(7).state.tabs[0].label_ids).toEqual([20,21]);await closePersonal(page);await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);await expect(page.locator('#inboxList')).toContainText('Диалогов по выбранным условиям нет');clean(s);
+});
+
+test('editing the active tab from mine to closed and a union refreshes legitimate rows and the presentational queue',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});const data=multiChoiceFixture();data.state.tabs=[{id:30,name:'Рабочая подборка',queues:['mine'],channels:['max','telegram'],source_ids:[1,2],label_ids:[20,21],reply_needed:true,pinned_only:false}];const s=await setup(page,data);await settled(page,s);await openLead(page);await page.locator('#replyText').fill('Ответ переживает смену условий');await page.locator('[data-pw-selection="tab:30"]').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+ await openPersonal(page);await page.locator('[data-pw-edit-tab="30"]').click();await chooseCondition(page,'pwTabQueue','mine',{checked:false});await chooseCondition(page,'pwTabQueue','closed');await page.locator('#pwTabReply').uncheck();await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0);await closePersonal(page);await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.queue)).toBe('closed');await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await expect(page.locator('#inboxList [data-conversation-id="17"]')).toBeVisible();
+ await openPersonal(page);await page.locator('[data-pw-edit-tab="30"]').click();await chooseCondition(page,'pwTabQueue','mine',{keyboard:true});await page.locator('#pwTabSave').click();await expect(page.locator('#pwTabEditor')).toHaveCount(0);await closePersonal(page);await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.queue)).toBe('all');await expect(page.locator('#inboxList .leadItem')).toHaveCount(4);expect(await page.locator('#inboxList .leadItem').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.conversationId)).sort((a,b)=>a-b))).toEqual([11,17,18,19]);await expect(page.locator('#replyText')).toHaveValue('Ответ переживает смену условий');clean(s);
+});
 
 for(const width of [390,430,768,1440])test.describe('Personal workspace '+width,()=>{
  test.use({viewport:{width,height:900}});
@@ -108,7 +176,7 @@ test('a selected-list refresh adopts another device labels, pins and account rev
 });
 
 test('a bounded personal result says loaded count and cap, without claiming a complete aggregate',async({page})=>{
- const state=emptyState();state.pins=[11];const personalRows=Array.from({length:200},(_,i)=>({id:11+i,manager_id:7,status:'manager',channel:'telegram',display_name:'Синтетический клиент '+i,last_text:'Только fixture'}));const s=await setup(page,{state,personalRows,limited:true});await page.locator('#m2PinnedToggle').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(200);await expect(page.locator('#pwListScope')).toContainText('Загружено 200');await expect(page.locator('#pwListScope')).toContainText('до 200');await expect(page.locator('#pwListScope')).toContainText(/част|огранич|все/i);expect(lists(s)).toHaveLength(2);clean(s);
+ const state=emptyState();const personalRows=Array.from({length:200},(_,i)=>({id:11+i,manager_id:7,status:'manager',channel:'telegram',display_name:'Синтетический клиент '+i,last_text:'Только fixture'}));state.pins=personalRows.map(row=>row.id);const s=await setup(page,{state,personalRows,limited:true});await page.locator('#m2PinnedToggle').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(200);await expect(page.locator('#pwListScope')).toContainText('Загружено 200');await expect(page.locator('#pwListScope')).toContainText('до 200');await expect(page.locator('#pwListScope')).toContainText(/част|огранич|все/i);expect(lists(s)).toHaveLength(2);clean(s);
 });
 
 test('keyboard focus survives saved dialog close, selected tab refresh and membership rerender',async({page})=>{

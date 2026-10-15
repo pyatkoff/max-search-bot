@@ -100,13 +100,21 @@ final class ManagerPersonalWorkspaceService
         if (empty($snapshot['ok'])) return $snapshot;
         $state=$snapshot['state'];$selection=$input['selection']??'';
         if (!is_string($selection)) return self::error('invalid_selection');
-        $queue='all';$filter=[];
+        $queue='all';$queues=['all'];$filter=[];
         if ($selection==='pinned') $filter['ids']=$state['pins'];
         elseif (preg_match('/^tab:([1-9][0-9]*)$/D',$selection,$m)) {
             $tab=self::find($state['tabs'],(int)$m[1]);
             if ($tab===null) return self::error('not_found');
-            $queue=$tab['queue'];$filter=['channel'=>$tab['channel'],'source_id'=>$tab['source_id'],'reply_needed'=>$tab['reply_needed']];
-            if ($tab['label_id']>0) $filter['ids']=((array)$state['members'])[(string)$tab['label_id']]??[];
+            $conditions=self::tabConditions($tab);
+            if ($conditions===null) return self::error('invalid_tab');
+            $queues=$conditions['queues'];$queue=count($queues)===1?$queues[0]:'all';
+            $filter=['queues'=>$queues,'channels'=>$conditions['channels'],'source_ids'=>$conditions['source_ids'],'reply_needed'=>$tab['reply_needed']];
+            if ($conditions['label_ids']) {
+                $ids=[];
+                foreach ($conditions['label_ids'] as $labelId) array_push($ids,...(((array)$state['members'])[(string)$labelId]??[]));
+                // A removed label contributes an empty branch, never "any".
+                $filter['ids']=array_values(array_unique($ids,SORT_REGULAR));
+            }
             if ($tab['pinned_only']) $filter['ids']=isset($filter['ids'])?array_values(array_intersect($filter['ids'],$state['pins'])):$state['pins'];
         } else return self::error('invalid_selection');
         foreach (['project_key','manager_filter','channel','search'] as $field) if (isset($input[$field])&&!is_string($input[$field])) return self::error('invalid_'.$field);
@@ -116,17 +124,23 @@ final class ManagerPersonalWorkspaceService
         $channel=$input['channel']??'';
         if (!in_array($channel,['','max','telegram','website'],true)) return self::error('invalid_channel');
         if ($channel!=='') {
-            if (!empty($filter['channel'])&&$filter['channel']!==$channel) $filter['ids']=[];
             $filter['channel']=$channel;
         }
         $source=$input['source_id']??0;
         if ($source!==0) {
-            if (!empty($filter['source_id'])&&$filter['source_id']!==$source) $filter['ids']=[];
             $filter['source_id']=$source;
         }
         $page=[];
         $rows=ManagerConversationService::list($actor,$queue,200,$input['project_key']??'*',$input['manager_filter']??'','',0,$filter,$page);
-        $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
+        if (count($queues)===1) $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
+        elseif (in_array('waiting',$queues,true)&&!in_array('all',$queues,true)) {
+            // A suspended row excluded from Waiting may still belong to Mine
+            // or Closed. Project the union without issuing another list read.
+            $rows=array_values(array_filter($rows,static fn(array $row):bool=>
+                ($row['delivery_failure_category']??'')!=='suspended'
+                ||(in_array('mine',$queues,true)&&$row['status']==='manager'&&(int)$row['manager_id']===$actor)
+                ||(in_array('closed',$queues,true)&&$row['status']==='closed')));
+        }
         $rows=ManagerLeadInboxService::decorate($rows);
         $rows=ManagerLeadInboxService::filter($rows,'',$search,'');
         if ($queue==='mine') $rows=ManagerLeadInboxService::sortMine($rows);
@@ -200,13 +214,22 @@ final class ManagerPersonalWorkspaceService
         foreach ($state[$key] as $existing) if ($existing['id']!==$id&&$existing['name']===$name) return self::error('duplicate_name');
         if ($tabs) {
             $tab=$input['tab']??null;
-            if (!is_array($tab)||array_diff(array_keys($tab),['name','queue','channel','source_id','reply_needed','label_id','pinned_only'])) return self::error('invalid_tab');
+            if (!is_array($tab)||array_diff(array_keys($tab),['name','queue','channel','source_id','reply_needed','label_id','pinned_only','queues','channels','source_ids','label_ids'])) return self::error('invalid_tab');
             $tab=array_merge(['queue'=>'all','channel'=>'','source_id'=>0,'reply_needed'=>false,'label_id'=>0,'pinned_only'=>false],$tab);
             if (!in_array($tab['queue'],['waiting','mine','all','closed'],true)||!in_array($tab['channel'],['','max','telegram','website'],true)
                 ||!is_int($tab['source_id'])||$tab['source_id']<0||!is_int($tab['label_id'])||$tab['label_id']<0||!is_bool($tab['reply_needed'])||!is_bool($tab['pinned_only'])) return self::error('invalid_tab');
-            if ($tab['label_id']>0&&self::find($state['labels'],$tab['label_id'])===null) return self::error('not_found');
-            if ($tab['source_id']>0&&!self::visibleSource($actor,$tab['source_id'])) return self::error('forbidden');
+            $conditions=self::tabConditions($tab);
+            if ($conditions===null) return self::error('invalid_tab');
+            foreach ($conditions['label_ids'] as $labelId) if (self::find($state['labels'],$labelId)===null) return self::error('not_found');
+            if (!self::visibleSources($actor,$conditions['source_ids'])) return self::error('forbidden');
             $value=['name'=>$name,'queue'=>$tab['queue'],'channel'=>$tab['channel'],'source_id'=>$tab['source_id'],'reply_needed'=>$tab['reply_needed'],'label_id'=>$tab['label_id'],'pinned_only'=>$tab['pinned_only']];
+            foreach (['queues'=>'queue','channels'=>'channel','source_ids'=>'source_id','label_ids'=>'label_id'] as $plural=>$single) {
+                if (!array_key_exists($plural,$tab)) continue;
+                $value[$plural]=$conditions[$plural];
+                // Keep singular readers useful for a single condition. The
+                // plural is authoritative whenever present, including [].
+                $value[$single]=count($conditions[$plural])===1?$conditions[$plural][0]:($single==='queue'?'all':($single==='channel'?'':0));
+            }
         } else $value=['name'=>$name];
         if ($id===0) {
             if (count($state[$key])>=($tabs?self::MAX_TABS:self::MAX_LABELS)) return self::error($tabs?'tab_limit_exceeded':'label_limit_exceeded');
@@ -245,10 +268,31 @@ final class ManagerPersonalWorkspaceService
         return (int)$q->fetchColumn()===1;
     }
 
-    private static function visibleSource(int $actor, int $source): bool
+    private static function visibleSources(int $actor, array $sources): bool
     {
-        $q=ConversationDb::connection()->prepare('SELECT p.project_key FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE s.id=? AND s.is_active=1 AND p.is_active=1');$q->execute([$source]);$key=$q->fetchColumn();
-        return is_string($key)&&ProjectAccessService::canAccess($actor,$key);
+        if (!$sources) return true;
+        $q=ConversationDb::connection()->prepare('SELECT DISTINCT s.id FROM conversation_sources s JOIN projects p ON p.id=s.project_id JOIN manager_projects mp ON mp.project_id=p.id WHERE mp.manager_id=? AND s.id IN ('.implode(',',array_fill(0,count($sources),'?')).') AND s.is_active=1 AND p.is_active=1');
+        $q->execute(array_merge([$actor],$sources));
+        return count($q->fetchAll(PDO::FETCH_COLUMN))===count($sources);
+    }
+
+    /** New arrays override legacy scalar selectors; old snapshots stay intact. */
+    private static function tabConditions(array $tab): ?array
+    {
+        $out=[];
+        foreach (['queues'=>['queue','all'],'channels'=>['channel',''],'source_ids'=>['source_id',0],'label_ids'=>['label_id',0]] as $plural=>[$single,$default]) {
+            $legacy=$tab[$single]??$default;
+            $values=array_key_exists($plural,$tab)?$tab[$plural]:($legacy===$default&&$plural!=='queues'?[]:[$legacy]);
+            $max=['queues'=>4,'channels'=>3,'source_ids'=>100,'label_ids'=>self::MAX_LABELS][$plural];
+            if (!is_array($values)||!array_is_list($values)||count($values)>$max||count(array_unique($values,SORT_REGULAR))!==count($values)||($plural==='queues'&&!$values)) return null;
+            foreach ($values as $value) {
+                if ($plural==='queues'&&(!is_string($value)||!in_array($value,['waiting','mine','all','closed'],true))) return null;
+                if ($plural==='channels'&&(!is_string($value)||!in_array($value,['max','telegram','website'],true))) return null;
+                if (in_array($plural,['source_ids','label_ids'],true)&&(!is_int($value)||$value<=0)) return null;
+            }
+            $out[$plural]=$values;
+        }
+        return $out;
     }
 
     private static function receipt(PDO $pdo, int $actor, string $id): ?array

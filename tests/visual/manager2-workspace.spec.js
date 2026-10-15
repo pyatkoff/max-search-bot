@@ -184,7 +184,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await page.locator('.m2AllTasks>summary').click();await capture(page,browserName,width,'client');await noOverflow(page);
     await showChat(page);await page.locator('#replyText').fill('Черновик для Анны');await openLead(page,12);await page.locator('#replyText').fill('Для Алексея');await openLead(page,11);await expect(page.locator('#replyText')).toHaveValue('Черновик для Анны');
     await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toHaveText('Отправлено');expect(s.sends).toHaveLength(1);expect(s.sends[0]).toMatchObject({conversation_id:11,text:'Черновик для Анны',csrf:'synthetic-csrf'});
-    await page.getByLabel('Действия с диалогом',{exact:true}).press('Enter');await expect(page.getByRole('button',{name:'Закрыть',exact:true})).toBeVisible();await page.getByLabel('Действия с диалогом',{exact:true}).press('Escape');await expect(page.getByRole('button',{name:'Закрыть',exact:true})).not.toBeVisible();
+    await page.getByLabel('Действия с диалогом',{exact:true}).press('Enter');await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).toBeVisible();await page.getByLabel('Действия с диалогом',{exact:true}).press('Escape');await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).not.toBeVisible();
     await noOverflow(page);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
   test('task mutations, keyboard-height composer, sales controls and notification dialog remain usable',async({page,browserName})=>{

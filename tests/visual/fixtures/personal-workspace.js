@@ -4,6 +4,20 @@ const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../../..'),origin='http://127.0.0.1:4173';
 const clone=value=>JSON.parse(JSON.stringify(value));
 const emptyState=()=>({tabs:[],labels:[],members:{},pins:[],settings:{start_tab:'waiting',density:'comfortable',font:'normal'}});
+const values=(tab,plural,singular)=>Array.isArray(tab?.[plural])?tab[plural]:tab?.[singular]?[tab[singular]]:[];
+// The server combines alternatives within one condition, then intersects the
+// conditions. A missing label contributes no members; it never becomes "any".
+function personalRows(rows,state,tab,selection,owner){
+ const queues=values(tab,'queues','queue'),channels=values(tab,'channels','channel'),sources=values(tab,'source_ids','source_id'),labels=values(tab,'label_ids','label_id');
+ if(tab&&Array.isArray(tab.queues)&&!tab.queues.length)return [];
+ const open=row=>row.status!=='closed',accessible=row=>!row.manager_id||Number(row.manager_id)===owner;
+ const inQueue=(row,queue)=>queue==='all'?open(row)&&accessible(row):queue==='closed'?!open(row):queue==='mine'?row.status==='manager'&&Number(row.manager_id)===owner:queue==='waiting'?accessible(row)&&((row.status==='waiting_manager'&&!row.manager_id)||!!row.awaiting_first_reply):false;
+ const labelMembers=new Set(labels.flatMap(id=>state.labels.some(label=>Number(label.id)===Number(id))?state.members[id]||[]:[]).map(Number));
+ return rows.filter(row=>(queues.length?queues.some(queue=>inQueue(row,queue)):open(row))
+  &&(!channels.length||channels.includes(row.channel))&&(!sources.length||sources.map(Number).includes(Number(row.source_id)))
+  &&(!labels.length||labelMembers.has(Number(row.id)))&&(!(selection==='pinned'||tab?.pinned_only)||state.pins.includes(Number(row.id)))
+  &&(!tab?.reply_needed||row.status==='waiting_manager'||(row.status==='manager'&&!!row.awaiting_manager_reply)));
+}
 // Actual PHP shell and real source assets. Every data request and write is
 // synthetic, local and account-scoped. Unexpected traffic is always rejected.
 async function setup(page,options={}){
@@ -11,9 +25,10 @@ async function setup(page,options={}){
  const calls=[],unexpected=[],errors=[],heldSnapshots=[],heldWrites=[],heldLists=[],receipts=new Map(),accounts=options.accounts||new Map(),pending=new Set();
  let manager={id:7,role:'manager',display_name:'Мария',is_working:true},snapshotError=!!options.snapshotError,holdSnapshot=!!options.holdSnapshot,holdWrite=!!options.holdWrite,holdList=false,writeResult=options.writeResult||'success',listError=false,nextId=10;
  const account=id=>{if(!accounts.has(id))accounts.set(id,{version:1,state:clone(options.state||emptyState())});return accounts.get(id)};
- const conv=id=>({id,customer_id:id+90,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',source_id:1,display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0,name_version:0});
- const visibleIds=new Set([11,12,...(options.personalRows||[]).map(row=>row.id)]);
- const rows=()=>[11,12].map(id=>({...conv(id),project_label:'AnyTour',origin_label:'TG · реклама',last_text:'Ждём варианты у моря',last_sender_type:'customer',unread_count:id===11?2:0,awaiting_manager_reply:1,lead_outcome:'open'}));
+ const defaultConversation=id=>({id,customer_id:id+90,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',source_id:1,display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0,name_version:0});
+ const conv=id=>({...defaultConversation(Number(id)),...(options.rows||options.personalRows||[]).find(row=>Number(row.id)===Number(id))});
+ const visibleIds=new Set([11,12,...(options.rows||[]).map(row=>row.id),...(options.personalRows||[]).map(row=>row.id)]);
+ const rows=()=>options.rows?clone(options.rows):[11,12].map(id=>({...conv(id),project_label:'AnyTour',origin_label:'TG · реклама',last_text:'Ждём варианты у моря',last_sender_type:'customer',unread_count:id===11?2:0,awaiting_manager_reply:1,lead_outcome:'open'}));
  const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 10:00:00'}));
  const snapshot=id=>({ok:true,...clone(account(id))});
  page.on('request',r=>pending.add(r));page.on('requestfinished',r=>pending.delete(r));page.on('requestfailed',r=>pending.delete(r));page.on('pageerror',e=>errors.push(e.message));
@@ -48,26 +63,25 @@ async function setup(page,options={}){
   }
   if(url.pathname==='/manager/pipeline-api.php'){
    if(d.action==='catalog')return reply({ok:true,stages:[],tags:[],outcomes:{open:'В работе'},close_reasons:{}});
-   if(d.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[clone(manager)]}});
+   if(d.action==='filter_options')return reply({ok:true,filters:{sources:clone(options.sources||[]),managers:[clone(manager)]}});
    if(d.action==='list')return reply({ok:true,conversations:rows()});
    if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
   }
   if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
   if(url.pathname==='/manager/customer-name-api.php'&&d.action==='get'&&visibleIds.has(Number(d.conversation_id))){const c=conv(Number(d.conversation_id));return reply({ok:true,name:{customer_id:c.customer_id,display_name:c.display_name,original_display_name:c.original_display_name,working_name:null,version:0,updated_at:null,updated_by_manager_name:null,can_edit:true},history:[],history_has_more:false})}
-  if(url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&[11,12].includes(d.conversation_id))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
+  if(url.pathname==='/manager/post-context-api.php'&&d.action==='detail'&&visibleIds.has(Number(d.conversation_id)))return reply({ok:true,conversation_id:d.conversation_id,context:{current:null,history:[]}});
   if(url.pathname==='/manager/personal-workspace-api.php'){
    if(d.action==='snapshot'){const result=snapshot(owner);if(holdSnapshot)await new Promise(resolve=>heldSnapshots.push(resolve));return snapshotError?reply({ok:false,error:'snapshot_failed'},500):reply(result)}
    if(d.action==='operation'){const previous=receipts.get(owner+':'+d.operation_id);return reply({...snapshot(owner),found:!!previous,result:previous?{...previous,...snapshot(owner)}:null})}
    if(d.action==='list'){
-    const state=account(owner).state,tab=state.tabs.find(t=>'tab:'+t.id===d.selection);let items=rows();
-    if(d.selection==='pinned'||tab?.pinned_only)items=items.filter(r=>state.pins.includes(r.id));
-    if(tab?.label_id)items=items.filter(r=>(state.members[tab.label_id]||[]).includes(r.id));
-    if(tab?.channel)items=items.filter(r=>r.channel===tab.channel);
-    if(options.personalRows)items=clone(options.personalRows);
+    const state=account(owner).state,tab=state.tabs.find(t=>'tab:'+t.id===d.selection);
+    if(d.selection!=='pinned'&&!tab)return reply({ok:false,error:'not_found'},404);
+    const items=personalRows(clone(options.personalRows||rows()),state,tab,d.selection,owner);
     const capturedError=listError,result={...snapshot(owner),conversations:items,bounded_count:items.length,has_more:!!options.limited,limited:!!options.limited,count_scope:'loaded_visible',limit:200};if(holdList)await new Promise(resolve=>heldLists.push(resolve));if(capturedError)return reply({ok:false,error:'list_failed'},500);return reply(result);
    }
    const allowed=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','pin','settings'];
    if(!allowed.includes(d.action))return block();
+   if(d.action==='tab_save'&&Array.isArray(d.tab?.queues)&&!d.tab.queues.length)return reply({ok:false,error:'invalid_tab'},400);
    const a=account(owner);
    if(writeResult==='conflict'||Number(d.expected_version)!==a.version){writeResult='success';return reply({...snapshot(owner),ok:false,error:'conflict'},409)}
    if(writeResult==='rejected')return reply({ok:false,error:'forbidden'},403);
@@ -89,7 +103,7 @@ async function setup(page,options={}){
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
- await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
+ await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(rows().length);
  return {calls,unexpected,errors,pending,accounts,snapshot,account,setWriteResult:v=>writeResult=v,setSnapshotError:v=>snapshotError=v,setHoldSnapshot:v=>holdSnapshot=v,setHoldWrite:v=>holdWrite=v,setHoldList:v=>holdList=v,setListError:v=>listError=v,releaseSnapshot:()=>heldSnapshots.shift()?.(),releaseWrite:()=>heldWrites.shift()?.(),releaseList:()=>heldLists.shift()?.(),switchManager:m=>manager=m};
 }
-module.exports={setup,root,origin,emptyState};
+module.exports={setup,root,origin,emptyState,personalRows};

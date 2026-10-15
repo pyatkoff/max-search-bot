@@ -7,14 +7,14 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the real entry point and serve real assets. Only account data is a
 // fixture; neither the browser nor this suite can reach a production service.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
-async function setup(page,{role='manager',savedTabs=false}={}){
+async function setup(page,{role='manager',savedTabs=false,longPreview=false}={}){
   const calls=[],unexpected=[],errors=[],pending=new Set();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const stages=[{id:1,stage_key:'working',display_name:'В работе',sort_order:1}];
   const state={tabs:savedTabs?[{id:5,name:'MAX — ждут ответа',queue:'mine',channel:'max',source_id:0,reply_needed:true,label_id:0,pinned_only:false}]:[],labels:[],members:{},pins:[11],settings:{start_tab:'waiting',density:'comfortable',font:'normal'}};
   const snapshot=()=>({ok:true,version:1,state});
-  const conversation=id=>({id,customer_id:100+id,manager_id:id===11?7:null,manager_name:id===11?'Мария':null,status:id===11?'manager':'waiting_manager',channel:id===11?'max':'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
-  const rows=()=>[11,12].map((id,i)=>({...conversation(id),project_label:'AnyTour',origin_label:'Реклама · тестовый источник',can_edit_pipeline:true,trip_summary:'Москва → Турция · 2 взрослых · 7 ночей',lead_stage:stages[0],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-14 12:00:00',awaiting_manager_reply:id===11?1:0,awaiting_first_reply:id===12?1:0,wait_age_seconds:id===12?360:0,next_task_title:'Уточнить бюджет',next_task_due_state:'today',contact_phone:'+7 999 123-45-67'}));
+  const conversation=id=>({id,customer_id:100+id,manager_id:id===11?7:null,manager_name:id===11?'Мария':null,status:id===11?'manager':'waiting_manager',channel:id===11?'max':'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова'+(longPreview?' · очень длинное имя клиента для проверки ширины':''):'Алексей Иванов'});
+  const rows=()=>[11,12].map((id,i)=>({...conversation(id),project_label:'AnyTour',origin_label:'Реклама · тестовый источник',can_edit_pipeline:true,trip_summary:'Москва → Турция · 2 взрослых · 7 ночей',lead_stage:stages[0],lead_outcome:'open',unread_count:i?0:2,last_text:longPreview?'Здравствуйте! Хотим подобрать семейный отдых у моря. Нужен удобный пляж, хороший отель и перелёт без пересадок. Подскажите, пожалуйста, какие варианты есть на наши даты и какой получится бюджет за всех путешественников.':'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-14 12:00:00',awaiting_manager_reply:id===11?1:0,awaiting_first_reply:id===12?1:0,wait_age_seconds:id===12?360:0,next_task_title:'Уточнить бюджет',next_task_due_state:'today',contact_phone:'+7 999 123-45-67'}));
   const messages=Array.from({length:24},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 12:00:00'}));
   page.on('request',request=>pending.add(request));
   page.on('requestfinished',request=>pending.delete(request));
@@ -94,20 +94,24 @@ async function fitsViewport(page){
 }
 async function clientCardHeaderFits(page){
   for(const id of ['mobileLeadClose','pwClientOpen','inOpen'])await expect(page.locator('#'+id)).toBeVisible();
+  const close=page.getByRole('button',{name:'Закрыть карточку клиента',exact:true});
+  await expect(close).toHaveText('×');await expect(close).toHaveAttribute('title','Закрыть карточку клиента');
   await expect.poll(()=>page.locator('#leadZone>.zoneHead').evaluate(header=>{
     const bounds=header.getBoundingClientRect(),text=header.querySelector('.leadHeaderText'),identity=text.getBoundingClientRect();
+    const close=header.querySelector('#mobileLeadClose'),closeBox=close.getBoundingClientRect(),closeHit=document.elementFromPoint(closeBox.x+closeBox.width/2,closeBox.y+closeBox.height/2);
     const buttons=[...header.querySelectorAll('.leadHeaderActions button')].filter(button=>!button.hidden);
     return {
       textFits:text.scrollWidth<=text.clientWidth+1,
+      clearClose:closeBox.width>=44&&closeBox.height>=44&&closeBox.left>=identity.right+4&&closeBox.right<=bounds.right&&closeBox.top>=bounds.top&&closeBox.bottom<=bounds.bottom&&(closeHit===close||close.contains(closeHit)),
       separateRows:buttons.every(button=>button.getBoundingClientRect().top>=identity.bottom+4),
       contained:buttons.every(button=>{const box=button.getBoundingClientRect();return box.left>=bounds.left-1&&box.right<=bounds.right+1&&box.top>=bounds.top-1&&box.bottom<=bounds.bottom+1}),
       readableTargets:buttons.every(button=>{const box=button.getBoundingClientRect();return box.width>=36&&box.height>=40&&parseFloat(getComputedStyle(button).fontSize)>=12}),
       unobstructed:buttons.every(button=>{const box=button.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return hit===button||button.contains(hit)})
     };
-  })).toEqual({textFits:true,separateRows:true,contained:true,readableTargets:true,unobstructed:true});
+  })).toEqual({textFits:true,clearClose:true,separateRows:true,contained:true,readableTargets:true,unobstructed:true});
   expect((await page.locator('#leadZone>.zoneHead').boundingBox()).height).toBeLessThanOrEqual(160);
 }
-function clean(fixture){expect(fixture.unexpected).toEqual([]);expect(fixture.errors).toEqual([]);expect(fixture.calls.filter(call=>['send','send_media','set_working','tab_save','tab_delete'].includes(call.action))).toEqual([])}
+function clean(fixture){expect(fixture.unexpected).toEqual([]);expect(fixture.errors).toEqual([]);expect(fixture.calls.filter(call=>['send','send_media','set_working','tab_save','tab_delete','close'].includes(call.action))).toEqual([])}
 
 for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()=>{
   test.use({viewport:{width,height:900}});
@@ -160,6 +164,21 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(180);
     await fitsViewport(page);clean(fixture);
   });
+  test('compact activity stays beside the name and leaves two lines for a message preview',async({page})=>{
+    const fixture=await setup(page,{longPreview:true}),item=page.locator('#inboxList [data-conversation-id="11"]'),activity=item.locator('.leadActivityTime');
+    const formatted=await page.evaluate(()=>Manager2Presentation.formatInboxActivity('2026-10-14 12:00:00'));
+    await expect(activity).toHaveText(formatted.text);await expect(activity).toHaveAttribute('title','Последняя активность: '+formatted.exact);await expect(activity).toHaveAttribute('aria-label','Последняя активность: '+formatted.exact);
+    await expect(item.locator('.leadTitleLine .leadActivityTime')).toHaveCount(1);await expect(item.locator('.leadSignals')).toHaveCount(0);await expect(item.locator('.m2ChatMeta .unreadBadge')).toHaveText('2');
+    for(const height of [900,420]){
+      await page.setViewportSize({width,height});
+      const geometry=await item.evaluate(element=>{
+        const title=element.querySelector('.leadTitle').getBoundingClientRect(),time=element.querySelector('.leadActivityTime').getBoundingClientRect(),identity=element.querySelector('.leadIdentity').getBoundingClientRect(),preview=element.querySelector('.leadPreview'),box=preview.getBoundingClientRect(),lineHeight=parseFloat(getComputedStyle(preview).lineHeight);
+        return {sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:element.getBoundingClientRect().height<=130};
+      });
+      expect(geometry).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true});await fitsViewport(page);
+    }
+    clean(fixture);
+  });
   test('client name opens an optional card and returns focus without losing text or attachments',async({page})=>{
     const fixture=await setup(page);await openConversation(page);await settle(fixture);
     const title=page.locator('#conversationTitle'),card=page.locator('#leadZone'),workspace=page.locator('#workspaceRoot');
@@ -189,6 +208,10 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     }
     await title.focus();await page.keyboard.press('Alt+l');await expect(card).toBeVisible();
     await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#mobileLeadBtn')).toBeFocused();
+    const actions=page.getByLabel('Действия с диалогом',{exact:true});await actions.press('Enter');
+    await expect(page.getByRole('button',{name:'Закрыть обращение',exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Закрыть',exact:true})).toHaveCount(0);
+    await actions.press('Escape');await expect(actions).toBeFocused();await expect(card).not.toBeVisible();
     await settle(fixture);expect(fixture.calls.length).toBe(before);
     await page.setViewportSize({width,height:420});
     await page.locator('#replyText').focus();

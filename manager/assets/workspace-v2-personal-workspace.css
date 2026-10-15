@@ -13,3 +13,16 @@
 .pwRowMarkers .pwMarkerPin,.pwRowMarkers .pwMarkerExtra{flex:0 0 auto}
 .inboxZone>.inboxHead{box-sizing:border-box;max-height:calc(100% - 184px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;min-height:0;flex-shrink:0}
 @media(max-height:540px){.manager2 .inboxZone>.inboxHead{padding-top:10px;padding-bottom:7px}.manager2 .inboxZone .inboxHead .brand{font-size:18px}.manager2 .inboxHead .queueTabs{margin-top:8px}.manager2 .inboxHead .inboxSearchRow{margin-top:8px}.pwLane{margin-top:5px}}
+
+/* Saved conditions use ordinary checkboxes on touch, pointer and keyboard. */
+.pwMulti{margin:0;padding:0;border:0;min-width:0;display:grid;gap:5px;align-content:start}
+.pwMulti legend{padding:0;margin:0 0 5px;font-size:12px}
+.pwMulti details{min-width:0;border:1px solid #b9cec1;border-radius:7px;background:#fff;overflow:hidden}
+.pwMulti summary{padding:9px;min-height:22px;cursor:pointer;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.pwMulti summary span{display:inline;white-space:normal}
+.pwChoices{max-height:180px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid #dde6df;padding:5px 8px}
+.pwDialog .pwChoices .pwCheck{min-height:38px;line-height:1.4;overflow-wrap:anywhere}
+.pwMulti>small,.pwConditionHint{font-size:11px;line-height:1.5;color:#61796c}
+.pwConditionHint{margin:0}
+.pwMulti summary:focus-visible{outline:3px solid #b3925a;outline-offset:-3px}
+@media(max-width:500px){.pwEditor .pwGrid{grid-template-columns:1fr}.pwDialog .pwChoices .pwCheck{min-height:44px}}
