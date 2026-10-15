@@ -177,7 +177,9 @@ read-only tracker selection and independent connection claims, then exercises th
 real PHP HTTP endpoint with signed requests and fixture database rows. It uses
 isolated fixture data and no production secrets or external conversion requests.
 
-Code and release tooling are prepared in PR #958. This document does not assert
+Publication and real MAX conversion activation were explicitly approved by the
+owner on 2026-10-15 (coordination #55, comment 6194132633). PR #958 includes
+the current notification/sound release as its base. This document does not assert
 that the lookup is installed, the mode is enabled, a production conversion has
 been accepted, or a natural event has been attributed. Those require explicit
 release/activation evidence recorded in #55.
