@@ -51,7 +51,10 @@ async function setup(page,options={}){
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch{return block()}}
   const owner=manager.id;calls.push({path:url.pathname,owner,payload_bytes:Buffer.byteLength(req.postData()||''),...d});
   if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){
-   if([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel||!visibleIds.has(Number(url.searchParams.get('conversation_id'))))return block();
+   // The retained pre-capacity shell predates the account/channel avatar URL.
+   // Only its explicit paired baseline may use that historical request shape.
+   const legacy=options.legacyAvatar===true&&options.sourceRoot&&[...url.searchParams.keys()].join(',')==='conversation_id'&&conv(Number(url.searchParams.get('conversation_id'))).channel==='telegram';
+   if(!visibleIds.has(Number(url.searchParams.get('conversation_id')))||(!legacy&&([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel)))return block();
    return route.fulfill({status:404,body:''});
   }
   if(method==='POST'&&d.csrf!=='fixture-csrf'&&!['me','login'].includes(d.action))throw new Error('Canonical CSRF missing: '+url.pathname+' '+d.action);
