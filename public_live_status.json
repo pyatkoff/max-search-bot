@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-15T14:19:14+00:00",
+    "generated_at": "2026-10-15T14:36:48+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -15,7 +15,7 @@
         },
         "started": 4,
         "needs_collected": 4,
-        "tours_opened": 2,
+        "tours_opened": 3,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 4,
@@ -39,6 +39,6 @@
             "excessive_turns": 1
         }
     },
-    "since_utc": "2026-10-15 13:19:14",
+    "since_utc": "2026-10-15 13:36:48",
     "public_redacted": true
 }
