@@ -28,7 +28,7 @@ jobs:
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "bd8edc2899e98891af60791e5dd9ea80101bb719"; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "444f66c79b95b295a3bd1f97cc8e11e6a0aa472a"; php -d display_errors=0 -d log_errors=0' <<'PHP'
           <?php
           ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
           try{
@@ -66,3 +66,4 @@ jobs:
       - name: Remove temporary SSH credential
         if: always()
         run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
+
