@@ -37,12 +37,12 @@ jobs:
             if(!$s||$s['mode']!=='send')throw new RuntimeException('mode');
             $counts=[];$q=$p->query("SELECT state,COUNT(*) AS c FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' GROUP BY state");
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$counts[$row['state']]=(int)$row['c'];
-            $repo=new MaxChannelConversionOutbox($p);$events=0;$bad=0;
+            $repo=new MaxChannelConversionOutbox($p);$events=0;$bad=0;$clockIssues=[];
             $q=$p->query("SELECT o.*,c.external_chat_id FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id WHERE o.project_key='anytour' AND o.counter_id='98615635' ORDER BY o.id DESC LIMIT 25");
             foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
               $events++;$c=$repo->conversation((string)$row['conversation_id'],(string)$row['external_chat_id'],$s);
               $event=$c?$repo->event($c,(string)$row['target'],$s):null;
-              if(!$event||MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$event['created_at'],new DateTimeZone('UTC'))!==(int)$row['event_unix'])$bad++;
+              if(!$event||MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$event['created_at'],new DateTimeZone('UTC'))!==(int)$row['event_unix']){$bad++;$kind=!$c?'conversation_not_currently_eligible':(!$event?'event_not_currently_eligible':'different_rediscovered_event');$delta=$event?MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$event['created_at'],new DateTimeZone('UTC'))-(int)$row['event_unix']:null;$key=(string)$row['target'].'|'.(string)$row['state'].'|'.$kind.'|'.($delta===null?'null':(string)$delta);$clockIssues[$key]=($clockIssues[$key]??0)+1;}
             }
             $groups=$p->query("SELECT target,state,COALESCE(upload_status,'') AS upload_status,COUNT(*) AS events,SUM(upload_id IS NOT NULL) AS receipts,SUM(attempts>0) AS attempted_events,MIN(event_unix) AS first_event_unix,MAX(event_unix) AS last_event_unix,MAX(claimed_at_unix) AS last_claim_unix FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' GROUP BY target,state,upload_status ORDER BY target,state,upload_status")->fetchAll(PDO::FETCH_ASSOC);
             $totals=$p->query("SELECT COUNT(*) AS events,COUNT(DISTINCT conversation_id) AS conversations,SUM(upload_id IS NOT NULL) AS receipt_events,SUM(client_id IS NULL) AS without_client_id,SUM(event_unix>1792076443) AS events_after_prior_check,MIN(event_unix) AS first_event_unix,MAX(event_unix) AS last_event_unix,MAX(claimed_at_unix) AS last_claim_unix FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'")->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +62,7 @@ jobs:
             $worker=[];foreach(['collected','resolved','accepted','processed','unknown','errors'] as $key)$worker[$key]=(int)($last[$key]??-1);
             $fresh=is_int($lastTime)&&time()-$lastTime>=-5&&time()-$lastTime<=360;
             $healthy=$fresh&&($last['mode']??'')==='send'&&$worker['errors']===0&&$bad===0;
-            echo json_encode(['ok'=>$healthy,'mode'=>$s['mode'],'counter_id'=>$s['counter_id'],'activated_at_unix'=>(int)$s['activated_at_unix'],'captured_at_utc'=>gmdate('c'),'queue_counts'=>$counts,'totals'=>$totals,'stage_groups'=>$groups,'event_clocks_checked'=>$events,'event_clock_mismatches'=>$bad,'scheduler_recent'=>$fresh,'last_worker'=>$worker,'api_upload_statuses'=>$apiStates,'verification_conversion_requests'=>0])."\n";
+            echo json_encode(['ok'=>$healthy,'mode'=>$s['mode'],'counter_id'=>$s['counter_id'],'activated_at_unix'=>(int)$s['activated_at_unix'],'captured_at_utc'=>gmdate('c'),'queue_counts'=>$counts,'totals'=>$totals,'stage_groups'=>$groups,'event_clocks_checked'=>$events,'event_clock_mismatches'=>$bad,'clock_mismatch_kinds'=>$clockIssues,'scheduler_recent'=>$fresh,'last_worker'=>$worker,'api_upload_statuses'=>$apiStates,'verification_conversion_requests'=>0])."\n";
             if(!$healthy)exit(1);
           }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"runtime_verification_failed\",\"verification_conversion_requests\":0}\n";exit(1);}
           PHP
