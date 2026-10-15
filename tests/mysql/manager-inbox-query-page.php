@@ -144,7 +144,7 @@ try {
     // Retain the production core tables/indexes above; only later read-model
     // columns and minimal supporting tables are added for actual service.list.
     $pdo->exec("ALTER TABLE managers ADD role VARCHAR(16) NOT NULL DEFAULT 'manager',ADD is_working TINYINT NOT NULL DEFAULT 1");
-    $pdo->exec("ALTER TABLE conversations ADD source_id BIGINT UNSIGNED NULL,ADD entry_channel VARCHAR(64) NULL,ADD attribution_region VARCHAR(32) NULL,ADD attribution_campaign VARCHAR(32) NULL,ADD lead_stage_key VARCHAR(32) NOT NULL DEFAULT 'new',ADD is_test TINYINT NOT NULL DEFAULT 0,ADD KEY idx_conversations_lead_stage(lead_stage_key,last_message_at)");
+    $pdo->exec("ALTER TABLE conversations ADD source_id BIGINT UNSIGNED NULL,ADD entry_channel VARCHAR(64) NULL,ADD attribution_region VARCHAR(32) NULL,ADD attribution_campaign VARCHAR(32) NULL,ADD lead_stage_key VARCHAR(32) NOT NULL DEFAULT 'new',ADD is_test TINYINT NOT NULL DEFAULT 0,ADD KEY idx_conversations_lead_stage(lead_stage_key,last_message_at),ADD KEY idx_conversations_is_test(is_test)");
     foreach ([
         'projects(id INT PRIMARY KEY,project_key VARCHAR(64) COLLATE utf8mb4_unicode_ci UNIQUE,display_name VARCHAR(64),is_active TINYINT)',
         'manager_projects(manager_id BIGINT UNSIGNED,project_id INT,PRIMARY KEY(manager_id,project_id))',
@@ -154,8 +154,8 @@ try {
         'manager_conversation_reads(manager_id BIGINT UNSIGNED,conversation_id BIGINT UNSIGNED,last_read_message_id BIGINT UNSIGNED,PRIMARY KEY(manager_id,conversation_id),KEY idx_manager_reads_conversation(conversation_id,manager_id))',
         'lead_stages(stage_key VARCHAR(32) PRIMARY KEY,display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT,is_terminal TINYINT,is_won TINYINT)',
         'lead_tags(id BIGINT UNSIGNED PRIMARY KEY,tag_key VARCHAR(32),display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT)',
-        'conversation_lead_tags(conversation_id BIGINT UNSIGNED,tag_id BIGINT UNSIGNED,PRIMARY KEY(conversation_id,tag_id))',
-        'lead_stage_history(id BIGINT UNSIGNED PRIMARY KEY,conversation_id BIGINT UNSIGNED,created_at DATETIME)',
+        'conversation_lead_tags(conversation_id BIGINT UNSIGNED,tag_id BIGINT UNSIGNED,PRIMARY KEY(conversation_id,tag_id),KEY idx_conversation_lead_tags_tag(tag_id,conversation_id))',
+        'lead_stage_history(id BIGINT UNSIGNED PRIMARY KEY,conversation_id BIGINT UNSIGNED,created_at DATETIME,KEY idx_lead_stage_history_conversation(conversation_id,id))',
     ] as $table) $pdo->exec('CREATE TABLE ' . $table . ' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     $pdo->exec("INSERT INTO managers(id,login,display_name,email,is_active,is_working,role) VALUES(7,'native7','Synthetic manager','',1,1,'manager'),(8,'native8','Other synthetic manager','',1,1,'manager'),(90,'native90','Synthetic admin','',1,1,'admin');
         INSERT INTO projects VALUES(1,'native-inbox','Synthetic inbox',1),(2,'denied-project','Denied project',1),(3,'inactive-project','Inactive project',0);
