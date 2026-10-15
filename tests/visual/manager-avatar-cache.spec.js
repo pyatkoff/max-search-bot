@@ -1,6 +1,7 @@
 const {test:base,expect}=require('@playwright/test');
 const http=require('node:http');
 const fs=require('node:fs');
+const os=require('node:os');
 const path=require('node:path');
 
 const root=path.resolve(__dirname,'../..');
@@ -13,6 +14,19 @@ const cookie='synthetic_avatar_session=fixture-session';
 // avatar loader. It is not a PHP authorization test or production measurement.
 // Deliberately do not use page.route/context.route: routing disables HTTP cache.
 const test=base.extend({
+ page:async({browserName,playwright,launchOptions,contextOptions},use)=>{
+  // Playwright WebKit's default ephemeral context has no HTTP NetworkCache.
+  // Exercise a normal browser profile in every engine, keeping the profile
+  // unique to this synthetic test and deleting it after the browser closes.
+  const profile=fs.mkdtempSync(path.join(os.tmpdir(),'manager-avatar-http-cache-'+browserName+'-'));
+  let context;
+  try{
+   context=await playwright[browserName].launchPersistentContext(profile,{...launchOptions,...contextOptions,headless:true});
+   await use(context.pages()[0]||await context.newPage());
+  }finally{
+   try{await context?.close();}finally{fs.rmSync(profile,{recursive:true,force:true});}
+  }
+ },
  avatarServer:async({},use)=>{
   const asset=fs.readFileSync(path.join(sourceRoot,'manager/assets/workspace-v2-customer-avatar.js'));
   const requests=[],unexpected=[];

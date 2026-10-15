@@ -136,7 +136,11 @@ Official provider contracts:
 Actual loopback PHP regressions cover the protected 200/304 headers, empty
 conditional body, image validation and account/access/session changes. A separate
 browser fixture serves the real avatar JavaScript over loopback HTTP without
-request interception, because Playwright routing disables the HTTP cache. It
+request interception, because Playwright routing disables the HTTP cache. Each
+case uses an isolated temporary normal browser profile, then deletes it: the
+bundled WebKit's default ephemeral context has no HTTP NetworkCache, which
+cannot prove the normal-browser cache contract. The same zero-request, expiry
+and identity assertions run for both engines before the broader UI suites. It
 measures first-load body bytes, a fresh full reload without another avatar
 request, expired-response revalidation and account/channel isolation. Those
 synthetic measurements are not production latency or transfer totals.
