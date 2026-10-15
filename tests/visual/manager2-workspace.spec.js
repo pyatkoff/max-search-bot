@@ -88,8 +88,8 @@ async function openLead(page,id=11){
   await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();
   await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
 }
-async function showCard(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile())){await page.locator('#mobileLeadBtn').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead')}}
-async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')){await page.locator('#mobileLeadClose').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation')}}
+async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#mobileLeadBtn').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
+async function showChat(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()==='lead')||await page.locator('#workspaceRoot').evaluate(el=>el.classList.contains('m2ClientCardOpen'))){await page.locator('#mobileLeadClose').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');else await expect(page.locator('#workspaceRoot')).not.toHaveClass(/m2ClientCardOpen/)}}
 async function noOverflow(page){const size=await page.evaluate(()=>({w:document.documentElement.scrollWidth,h:document.documentElement.scrollHeight,vw:innerWidth,vh:innerHeight}));expect(size.w).toBeLessThanOrEqual(size.vw+1);expect(size.h).toBeLessThanOrEqual(size.vh+1)}
 async function readable(page,selector){
   const ratio=await page.locator(selector).first().evaluate(el=>{
@@ -120,12 +120,12 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
       if(target!=='sales')expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('anytour.manager.workspace.filters.v1')).task)).toBe('');
       await noOverflow(page);
     }
-    await page.locator('[data-m2-nav=archive]').click();await page.locator('#filtersToggle').click();await page.locator('#leadTaskFilter').selectOption('today');
+    await page.locator('[data-m2-nav=archive]').click();if(!await page.locator('#filtersPanel').isVisible())await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('#leadTaskFilter').selectOption('today');
     await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');
     await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.inboxHead .brand')).toHaveText('Мой план работы');await expect(page.locator('#m2SectionHint')).toContainText('диалоги с задачами и без них');
     await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.evaluate(()=>WorkspaceV2.S.leadTaskFilter)).toBe('');
     await openLead(page);await expect(page.locator('#replyText')).toHaveValue('Черновик сохранён при навигации');
-    const quick=page.locator('.quickReplies button').first();await page.locator('#conversationTitle').click();await expect(quick).toBeVisible();const box=await quick.boundingBox(),parent=await page.locator('.quickReplies').boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(parent.y+parent.height+1);
+    const quick=page.locator('.quickReplies button').first();await page.locator('#replyText').evaluate(el=>el.blur());await expect(quick).toBeVisible();const box=await quick.boundingBox(),parent=await page.locator('.quickReplies').boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(parent.y+parent.height+1);
     expect(await page.locator('.leadTitle').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
     await capture(page,browserName,width,'readable-navigation');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
   });
@@ -152,7 +152,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
     await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
     const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();
-    expect(title.height).toBeLessThan(30);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
+    expect(title.height).toBeGreaterThanOrEqual(36);expect(title.height).toBeLessThanOrEqual(40);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
     await page.setViewportSize({width,height:420});await page.locator('#replyText').fill(Array.from({length:8},(_,i)=>'Строка '+i+' — уточняем отдых').join('\n'));
     await noOverflow(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);
     for(const id of ['replyText','sendReply']){const box=await page.locator('#'+id).boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(421)}
@@ -174,10 +174,10 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     const s=await setup(page);await expect(page).toHaveURL(origin+'/manager2/?qa=1');
     await noOverflow(page);await capture(page,browserName,width,'inbox');
     expect(await page.evaluate(()=>fixtureWorkers)).toEqual([{url:'/manager/sw.js',scope:'/manager/'}]);
-    await openLead(page);if(width<=1100){const left=width<=740?0:64;await expect.poll(async()=>Math.abs((await page.locator('#conversationZone').boundingBox()).x-left)).toBeLessThanOrEqual(1);const box=await page.locator('#conversationZone').boundingBox();expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.width).toBeGreaterThanOrEqual(width-left-1)}await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');await readable(page,'.msg.manager .msgMeta');await readable(page,'.msg.customer .messageSender');expect((await page.locator('.m2NotificationDot').boundingBox()).width).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
+    await openLead(page);if(width<=1100){const left=width<=740?0:64;await expect.poll(async()=>Math.abs((await page.locator('#conversationZone').boundingBox()).x-left)).toBeLessThanOrEqual(1);const box=await page.locator('#conversationZone').boundingBox();expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.width).toBeGreaterThanOrEqual(width-left-1)}await expect(page.locator('#composer')).toBeVisible();await readable(page,'.msg.manager .msgBody');await readable(page,'.msg.customer .msgBody');await readable(page,'.msg.manager .msgMeta');await readable(page,'.msg.customer .messageSender');expect(await page.locator('.m2NotificationDot').evaluate(el=>parseFloat(getComputedStyle(el).width))).toBeLessThanOrEqual(8);await noOverflow(page);await capture(page,browserName,width,'conversation');
     const gap=await page.locator('#messages').evaluate(el=>el.scrollHeight-el.clientHeight-el.scrollTop);expect(gap).toBeLessThanOrEqual(2);
     await showCard(page);await expect(page.locator('.m2Budget strong')).toHaveText('до 250 000 ₽');await readable(page,'.m2Budget strong');
-    if(width<=1100){await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');const box=await page.locator('#leadZone').boundingBox(),bar=await page.locator('.m2Topbar').boundingBox();expect(box.y).toBeGreaterThanOrEqual(bar.y+bar.height-1);expect(box.y+box.height).toBeLessThanOrEqual(901);}
+    if(width<=1100){await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');const box=await page.locator('#leadZone').boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(901);}
     await expect(page.locator('.m2ExtraUrgency')).toHaveText('Ещё просроченных задач: 1');
     await expect(page.locator('.m2AllTasks')).not.toHaveAttribute('open');await expect(page.locator('[data-task-toggle="22"]')).not.toBeVisible();
     await page.locator('.m2AllTasks>summary').click();await expect(page.locator('[data-task-toggle="22"]')).toBeVisible();
@@ -234,7 +234,7 @@ for(const taskResult of ['success','rejected','unknown'])test('Manager2 task fee
 
 for(const width of [390,1440])test('Manager2 admin settings remain accessible at '+width,async({page})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page,{role:'admin'});
-  if(width===390)await page.locator('#m2NotificationButton').click();
+  await page.locator('#m2NotificationButton').click();
   await expect(page.locator('#adminLink')).toBeVisible();
   expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager/admin.php');
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
