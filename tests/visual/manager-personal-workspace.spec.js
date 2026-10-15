@@ -8,7 +8,12 @@ function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 async function bounded(page){expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1)}
 async function capture(page,browser,width,state){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`personal-${browser}-${width}-${state}.png`)})}
 async function settled(page,s){await expect.poll(()=>s.pending.size).toBe(0);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true)}
-async function recoverAccount(page){await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await page.locator('#managerAuthLogin').fill('synthetic-account');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden()}
+async function recoverAccount(page,fixture,manager){
+ // Suspend the old frontend identity before changing the fake backend account.
+ // Its pending avatar jobs must be aborted while they still match that account.
+ await page.evaluate(()=>WorkspaceV2.showAuthRecovery());fixture.switchManager(manager);
+ await page.locator('#managerAuthLogin').fill('synthetic-account');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();
+}
 async function openLead(page,id=11){await expect.poll(()=>page.evaluate(()=>!WorkspaceV2.S.booting)).toBe(true);if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator(`#inboxList [data-conversation-id="${id}"]`).click();await expect(page.locator('#replyText')).toBeEnabled()}
 async function openPersonal(page){
  const screen=await page.evaluate(()=>WorkspaceV2Mobile.isMobile()?WorkspaceV2Mobile.getScreen():'desktop');
@@ -141,11 +146,11 @@ test('UNKNOWN committed save survives reload and receipt lookup cannot repeat cr
 
 test('different account isolates private labels, pinned choices, appearance and late old-account snapshot',async({page})=>{
  const state=emptyState();state.tabs=[{id:10,name:'Только Марии',queue:'mine',channel:'',source_id:0,label_id:0,reply_needed:false,pinned_only:false}];state.labels=[{id:20,name:'Личная Марии'}];state.members={'20':[11]};state.pins=[11];state.settings.font='large';const s=await setup(page,{state,holdSnapshot:true});
- s.account(8).state=emptyState();s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});s.setHoldSnapshot(false);await recoverAccount(page);s.releaseSnapshot();await settled(page,s);await expect(page.locator('[data-pw-selection="tab:10"]')).toHaveCount(0);await expect(page.locator('body')).not.toHaveClass(/pwLargeFont/);await openPersonal(page);await expect(page.locator('#pwDialog')).not.toContainText('Личная Марии');await createLabel(page,'Личная Ольги');expect(s.account(7).state.labels.map(l=>l.name)).toEqual(['Личная Марии']);expect(s.account(8).state.labels.map(l=>l.name)).toEqual(['Личная Ольги']);clean(s);
+ s.account(8).state=emptyState();s.setHoldSnapshot(false);await recoverAccount(page,s,{id:8,role:'manager',display_name:'Ольга',is_working:true});s.releaseSnapshot();await settled(page,s);await expect(page.locator('[data-pw-selection="tab:10"]')).toHaveCount(0);await expect(page.locator('body')).not.toHaveClass(/pwLargeFont/);await openPersonal(page);await expect(page.locator('#pwDialog')).not.toContainText('Личная Марии');await createLabel(page,'Личная Ольги');expect(s.account(7).state.labels.map(l=>l.name)).toEqual(['Личная Марии']);expect(s.account(8).state.labels.map(l=>l.name)).toEqual(['Личная Ольги']);clean(s);
 });
 
 test('late old-account save cannot restore private tabs or appearance in the next account',async({page})=>{
- const s=await setup(page,{holdWrite:true});await openPersonal(page);await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill('Вкладка прежнего аккаунта');await page.locator('#pwTabSave').click();await expect.poll(()=>writes(s).length).toBe(1);s.account(8).state=emptyState();s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});await recoverAccount(page);s.releaseWrite();await settled(page,s);await openPersonal(page);await expect(page.locator('[data-pw-edit-tab]')).toHaveCount(0);await expect(page.locator('#pwTabEditor')).toHaveCount(0);expect(writes(s)).toHaveLength(1);clean(s);
+ const s=await setup(page,{holdWrite:true});await openPersonal(page);await page.locator('#pwNewTab').click();await page.locator('#pwTabName').fill('Вкладка прежнего аккаунта');await page.locator('#pwTabSave').click();await expect.poll(()=>writes(s).length).toBe(1);s.account(8).state=emptyState();await recoverAccount(page,s,{id:8,role:'manager',display_name:'Ольга',is_working:true});s.releaseWrite();await settled(page,s);await openPersonal(page);await expect(page.locator('[data-pw-edit-tab]')).toHaveCount(0);await expect(page.locator('#pwTabEditor')).toHaveCount(0);expect(writes(s)).toHaveLength(1);clean(s);
 });
 
 test('typing during a held create keeps the newer draft bound to the created ID instead of creating a duplicate',async({page})=>{
