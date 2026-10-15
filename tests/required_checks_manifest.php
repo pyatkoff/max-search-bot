@@ -211,6 +211,7 @@ return [
         'php tests/run_manager_workspace_v2_notifications_regression.php',
         'node tests/run_manager_notifications_client_behavior_regression.js',
         'node tests/run_manager_startup_loading_behavior_regression.js',
+        'node tests/run_manager_filters_pending_behavior_regression.js',
         'node tests/run_manager_inbox_refresh_coalescing_behavior_regression.js',
         'node tests/run_manager_push_activation_race_behavior_regression.js',
         'node tests/run_manager_message_text_behavior_regression.js',

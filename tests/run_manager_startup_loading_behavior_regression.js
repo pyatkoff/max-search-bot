@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict');
-const {createHarness,response,deferred}=require('./run_manager_reauth_composer_behavior_regression');
+const {createHarness,response,deferred,hidden,assertNoMutations}=require('./run_manager_reauth_composer_behavior_regression');
 
 // Execute the real Workspace core, Inbox and Conversation assets. Only DOM and
 // transport/native notification dependencies are synthetic; no production data.
@@ -7,7 +7,7 @@ const cases=[];
 const test=(name,run)=>cases.push({name,run});
 async function within(promise){
   let timer;
-  try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Startup is waiting for a secondary notification operation')),300);})]);}
+  try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Startup is waiting for a secondary operation')),300);})]);}
   finally{clearTimeout(timer);}
 }
 function liveRows(count=200){
@@ -19,6 +19,54 @@ function withRows(h){
 function renderedIds(h){
   return h.ids.get('inboxList').children.flatMap(node=>node.children||[]).filter(node=>node.dataset.conversationId).map(node=>Number(node.dataset.conversationId));
 }
+
+for(const action of ['catalog','filter_options'])for(const mobile of [false,true])test(action+' never settling does not block Inbox or an authorized reply, mobile='+mobile,async()=>{
+  const h=createHarness({inbox:true,mobile}),held=deferred();
+  h.setHook((url,r)=>r.action===action?held.promise:r.action==='list'?response({ok:true,conversations:liveRows()}):null);
+  await within(h.start({open:false}));
+  assert.equal(h.W.S.booting,false);assert.equal(h.W.S.workspaceBound,true);assert.equal(renderedIds(h).length,200);
+  await within(h.C.open(101));await h.draft('Exact unsent draft\n  with whitespace');const file={name:'synthetic.png'};h.setFile(file);
+  assert.equal(hidden(h),false);const lists=h.calls.filter(r=>r.action==='list').length,details=h.calls.filter(r=>r.action==='detail').length;
+  held.resolve(response(action==='catalog'?{ok:true}:{ok:true,filters:{projects:[],sources:[],managers:[]}}));
+  await new Promise(setImmediate);
+  assert.equal(h.calls.filter(r=>r.action==='list').length,lists);assert.equal(h.calls.filter(r=>r.action==='detail').length,details);
+  assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Exact unsent draft\n  with whitespace');assert.equal(h.getFile(),file);assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
+for(const action of ['catalog','filter_options'])test('same-manager recovery restores reply and attachment while '+action+' never settles',async()=>{
+  const h=createHarness({inbox:true}),held=deferred();await h.start();await h.draft('Recovery unsent draft');const file={name:'synthetic.txt'};h.setFile(file);await h.expire();
+  h.setHook((url,r)=>r.action===action?held.promise:null);await within(h.login());
+  assert.equal(h.W.S.current,101);assert.equal(hidden(h),false);assert.equal(h.ids.get('replyText').value,'Recovery unsent draft');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
+test('secondary card waits for catalog options without delaying the transcript, and only the current selection renders',async()=>{
+  const h=createHarness({inbox:true}),held=deferred(),cards=[];
+  h.window.WorkspaceV2LeadCard.render=(p,c)=>cards.push({id:c.id,stages:h.W.S.pipeline.stages});
+  h.setHook((url,r)=>r.action==='catalog'?held.promise:null);await within(h.start());
+  assert.equal(hidden(h),false);assert.equal(cards.length,0);await h.C.open(102);await h.draft('Current draft');
+  held.resolve(response({ok:true,stages:[{stage_key:'working',display_name:'В работе'}]}));await new Promise(setImmediate);
+  assert.equal(cards.length,1);assert.equal(cards[0].id,102);assert.equal(cards[0].stages[0].stage_key,'working');
+  assert.equal(h.ids.get('replyText').value,'Current draft');assertNoMutations(h);
+});
+
+test('new account starts its Inbox without previous-account directory labels while metadata is held',async()=>{
+  const h=createHarness({inbox:true}),held=deferred();await h.start({open:false});
+  h.W.S.filterSources=[{id:12,display_name:'Previous account source'}];h.W.S.filterManagers=[{id:9,display_name:'Previous account manager'}];h.W.S.filterOptionsReady=true;
+  h.W.S.leadSourceFilter=12;h.W.S.leadManagerFilter='9';h.W.showAuthRecovery();
+  h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8,role:'admin'}});
+  h.setHook((url,r)=>r.action==='catalog'?held.promise:null);await within(h.login());
+  assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.filterSources.length,0);assert.equal(h.W.S.filterManagers.length,0);assert.equal(h.W.S.filterOptionsReady,false);
+  assert.equal(h.W.S.leadSourceFilter,12);assert.equal(h.W.S.leadManagerFilter,'9');
+  assert.equal(h.calls.filter(r=>r.action==='list').length,2);assertNoMutations(h);
+});
+
+for(const action of ['catalog','filter_options'])for(const status of [401,500])test('late '+action+' '+status+' keeps canonical auth recovery and loaded data',async()=>{
+  const h=createHarness({inbox:true}),held=deferred();h.setHook((url,r)=>r.action===action?held.promise:r.action==='list'?response({ok:true,conversations:liveRows(2)}):null);
+  await within(h.start());await h.draft('Preserved on metadata failure');const file={name:'synthetic.txt'};h.setFile(file);
+  held.resolve(response({ok:false},status));await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,status===401);assert.equal(hidden(h),status===401);assert.equal(renderedIds(h).length,2);
+  assert.equal(h.ids.get('replyText').value,'Preserved on metadata failure');assert.equal(h.getFile(),file);assert.equal(h.ids.get('inboxList').innerHTML.includes('startupFailure'),false);assertNoMutations(h);
+});
 
 for(const heldStage of ['init','refresh'])test('200 live-shaped leads render while notification '+heldStage+' never settles',async()=>{
   const h=createHarness({inbox:true}),pending=deferred(),events=[];
@@ -81,10 +129,10 @@ test('late Inbox from expired startup cannot populate a new account',async()=>{
   assert.deepEqual(renderedIds(h),[1]);assert.equal(h.W.S.manager.id,8);
 });
 
-test('late catalog and filter responses from expired startup cannot clear a new session or reload its Inbox',async()=>{
-  const h=createHarness({inbox:true}),oldCatalog=deferred(),entered=deferred();let filterRenders=0;
+for(const action of ['catalog','filter_options'])for(const status of [200,401])test('late '+action+' '+status+' from expired startup cannot clear a new session or reload its Inbox',async()=>{
+  const h=createHarness({inbox:true}),oldMetadata=deferred(),entered=deferred();let filterRenders=0;
   h.window.WorkspaceV2Filters={bind(){},render(){filterRenders++;}};
-  h.setHook((url,r)=>r.action==='catalog'?(entered.resolve(),oldCatalog.promise):null);
+  h.setHook((url,r)=>r.action===action?(entered.resolve(),oldMetadata.promise):null);
   const oldBoot=h.start({open:false});await entered.promise;
   h.W.showAuthRecovery();
   h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8},csrf:'synthetic-new-account'});
@@ -96,14 +144,14 @@ test('late catalog and filter responses from expired startup cannot clear a new 
   });
   await within(h.login());
   const lists=h.calls.filter(r=>r.action==='list').length,renders=filterRenders;
-  oldCatalog.resolve(response({ok:true,stages:[{stage_key:'old',display_name:'Expired account catalog'}]}));
-  await within(oldBoot);
+  oldMetadata.resolve(response({ok:true,stages:[{stage_key:'old',display_name:'Expired account catalog'}],filters:{projects:[],sources:[{id:999,display_name:'Expired source'}],managers:[]}},status));
+  await within(oldBoot);await new Promise(setImmediate);
   assert.equal(h.W.S.pipeline.stages[0].display_name,'New session catalog');
   assert.equal(h.W.S.filterSources[0].id,88);
   assert.equal(h.W.S.filterOptionsReady,true);
   assert.equal(h.calls.filter(r=>r.action==='list').length,lists);
   assert.equal(filterRenders,renders);
-  assert.equal(h.W.S.manager.id,8);
+  assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.authExpired,false);assertNoMutations(h);
 });
 
 (async()=>{let failed=0;for(const {name,run} of cases){try{await run();console.log('PASS '+name);}catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0;})();
