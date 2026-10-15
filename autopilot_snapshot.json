@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-15T22:43:05+00:00",
+    "generated_at": "2026-10-15T23:36:21+00:00",
     "production": {
-        "sha": "586ab7e074165991f8399a7e85011b06528db262",
+        "sha": "368a79778f4152391cab53900446e3075bb454f6",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 8,
             "overdue_count": 8,
             "stuck_count": 8,
-            "oldest_wait_seconds": 235235,
+            "oldest_wait_seconds": 238431,
             "routing_blocked_count": 0
         },
         "push": {
@@ -40,8 +40,8 @@
             "subscription_table_exists": true,
             "working_manager_notification_path_ok": false,
             "working_manager_count": 5,
-            "usable_notification_path_count": 3,
-            "no_subscription_count": 2,
+            "usable_notification_path_count": 4,
+            "no_subscription_count": 1,
             "unhealthy_subscription_count": 0,
             "other_unusable_count": 0
         },
@@ -54,9 +54,9 @@
                 "waiting": 7,
                 "assigned_to_others": 107,
                 "load_ms": {
-                    "all": 74.3,
-                    "mine": 15.4,
-                    "waiting": 58.8
+                    "all": 70.2,
+                    "mine": 14,
+                    "waiting": 52.9
                 },
                 "sample_check": {
                     "ok": true,
@@ -76,9 +76,9 @@
                 "waiting": 7,
                 "assigned_to_others": 108,
                 "load_ms": {
-                    "all": 75.4,
-                    "mine": 5.7,
-                    "waiting": 58.9
+                    "all": 69.8,
+                    "mine": 4.7,
+                    "waiting": 52.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -98,9 +98,9 @@
                 "waiting": 8,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 83.6,
-                    "mine": 37.1,
-                    "waiting": 61.3
+                    "all": 78.5,
+                    "mine": 35.8,
+                    "waiting": 59.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -120,9 +120,9 @@
                 "waiting": 7,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 77.6,
-                    "mine": 280.9,
-                    "waiting": 59.6
+                    "all": 74.6,
+                    "mine": 274.4,
+                    "waiting": 55.9
                 },
                 "sample_check": {
                     "ok": true,
@@ -142,9 +142,9 @@
                 "waiting": 7,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 93,
-                    "mine": 2.9,
-                    "waiting": 60.7
+                    "all": 79.9,
+                    "mine": 2.5,
+                    "waiting": 55.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -164,9 +164,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 92.1,
-                    "mine": 21,
-                    "waiting": 52.4
+                    "all": 83.2,
+                    "mine": 20.8,
+                    "waiting": 53.7
                 },
                 "sample_check": {
                     "ok": true,
@@ -186,9 +186,9 @@
                 "waiting": 8,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 69.1,
-                    "mine": 48.9,
-                    "waiting": 58.1
+                    "all": 120.3,
+                    "mine": 48,
+                    "waiting": 56.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -213,17 +213,17 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-15 21:42:53",
+        "since_utc": "2026-10-15 22:36:09",
         "summary": {
-            "sessions": 1,
-            "raw_sessions": 1,
+            "sessions": 0,
+            "raw_sessions": 0,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 1,
+                "resolved": 0,
                 "unresolved": 0
             },
-            "started": 1,
-            "needs_collected": 1,
+            "started": 0,
+            "needs_collected": 0,
             "tours_opened": 0,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
@@ -239,9 +239,7 @@
                 "avg_seconds": null,
                 "max_seconds": null
             },
-            "drop_points": {
-                "needs_collected": 1
-            },
+            "drop_points": [],
             "flags": []
         }
     },
@@ -250,7 +248,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "586ab7e074165991f8399a7e85011b06528db262",
+        "sha": "368a79778f4152391cab53900446e3075bb454f6",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -259,7 +257,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-15T22:43:05Z"
+        "reported_at": "2026-10-15T23:36:21Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -267,7 +265,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T22:42:47+00:00",
+        "generated_at": "2026-10-15T23:36:03+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -362,7 +360,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T22:42:47+00:00",
+        "generated_at": "2026-10-15T23:36:03+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -660,7 +658,7 @@
                 "date": "2026-10-16",
                 "partial": true,
                 "since_utc": "2026-10-15 22:00:00",
-                "until_utc": "2026-10-15 22:42:47",
+                "until_utc": "2026-10-15 23:36:03",
                 "channels": [
                     {
                         "channel": "max",
@@ -751,7 +749,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-15T22:43:03+00:00",
+        "generated_at": "2026-10-15T23:36:19+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -775,8 +773,8 @@
             },
             "manager": {
                 "files": 90,
-                "bytes": 818057,
-                "code_lines": 5730
+                "bytes": 821671,
+                "code_lines": 5755
             },
             "website": {
                 "files": 4,
@@ -794,9 +792,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 331,
-                "bytes": 3169661,
-                "code_lines": 32584
+                "files": 332,
+                "bytes": 3199215,
+                "code_lines": 32877
             },
             "tools": {
                 "files": 58,
@@ -831,8 +829,8 @@
             },
             {
                 "path": "manager/assets/workspace-v2-conversation.js",
-                "lines": 465,
-                "bytes": 50056,
+                "lines": 466,
+                "bytes": 50191,
                 "severity": "medium"
             },
             {
@@ -860,9 +858,9 @@
                 "severity": "observe"
             },
             {
-                "path": "services/InteractionGuard.php",
-                "lines": 354,
-                "bytes": 14318,
+                "path": "tests/visual/manager2-workspace.spec.js",
+                "lines": 363,
+                "bytes": 44847,
                 "severity": "observe"
             }
         ],
