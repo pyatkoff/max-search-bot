@@ -82,7 +82,7 @@ $unsupported['attachments'] = [['type' => 'video', 'provider' => 'telegram']];
 $unsupported['metadata']['capability'] = 'requires_attention';
 $unsupported['metadata']['capability_reason'] = 'unsupported_media';
 $unsupportedStored = $albumRegister($unsupported);
-telegramAlbumCheck('unsupported non-anchor observation cannot carry a misleading sent state', $unsupportedStored['state'] === 'requires_attention' && $unsupportedStored['error_reason'] === 'unsupported_media');
+telegramAlbumCheck('unsupported non-anchor observation cannot carry a misleading sent state', $unsupportedStored['state'] === 'requires_attention' && count(array_filter($members->rows($first['publication_id']), static fn(array $row): bool => $row['external_message_id'] === '69' && $row['state'] === 'requires_attention' && $row['error_reason'] === 'unsupported_media')) === 1);
 $foreign = telegramAlbumSnapshot('foreign', '602', 602);
 $foreign['keyboard'] = [[['text' => 'Чужие комментарии', 'callback_data' => 'foreign-comment']]];
 $foreignMerged = ChannelPostTelegramAlbum::merge(telegramAlbumSnapshot('foreign', '601', 601), $foreign);
