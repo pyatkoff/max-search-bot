@@ -290,8 +290,9 @@ final class ChannelPostRegistryService
             $current = $this->publication($publicationId);
             $before = json_decode((string)$written['snapshot_json'], true) ?: [];
             if ($current && $current['platform'] === 'telegram' && (int)$current['version_id'] !== $versionId
-                && $current['state'] === 'unknown' && ChannelPostTelegramAlbum::sameTargetObservation($before, $current['snapshot'])) {
-                $this->execute("UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state='unknown'", [$state, $reason, self::json($receipt), self::now(), (int)$current['version_id'], $publicationId]);
+                && in_array($current['state'], ['unknown', 'claimed'], true) && (int)$current['write_attempts'] > 0
+                && ChannelPostTelegramAlbum::sameTargetObservation($before, $current['snapshot'])) {
+                $this->execute("UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('unknown','claimed') AND write_attempts>0", [$state, $reason, self::json($receipt), self::now(), (int)$current['version_id'], $publicationId]);
             }
             return true;
         });

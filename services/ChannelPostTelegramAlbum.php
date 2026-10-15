@@ -51,12 +51,13 @@ final class ChannelPostTelegramAlbum
         $snapshot['raw_body'] = $mid === $targetId ? (array)($incoming['raw_body'] ?? []) : (array)($previous['raw_body'] ?? []);
         $snapshot['attachments'] = [];
         $caption = null; $reason = '';
-        foreach ($items as $item) {
+        foreach ($items as $key => $item) {
             if ($caption === null && (string)($item['text'] ?? '') !== '') $caption = $item;
             foreach ((array)($item['attachments'] ?? []) as $attachment) {
                 if (is_array($attachment)) $snapshot['attachments'][] = $attachment;
             }
             if (($item['metadata']['capability'] ?? '') !== 'supported') $reason = (string)($item['metadata']['capability_reason'] ?? 'unsupported_media');
+            if ($key !== 'm_' . $targetId && !empty($item['keyboard'])) $reason = 'telegram_album_non_anchor_keyboard';
         }
         $snapshot['text'] = (string)($caption['text'] ?? '');
         $snapshot['markup'] = (array)($caption['markup'] ?? []);
@@ -75,6 +76,13 @@ final class ChannelPostTelegramAlbum
     public static function successorOperation(array $previous, array $merged, bool $anchorEvent): array
     {
         $out = ['state' => 'pending', 'write_attempts' => 0, 'receipt' => [], 'reason' => ''];
+        if (($merged['metadata']['capability'] ?? '') !== 'supported') {
+            $out['state'] = 'requires_attention';
+            $out['write_attempts'] = (int)($previous['write_attempts'] ?? 0) > 0 ? 1 : 0;
+            $out['receipt'] = json_decode((string)($previous['receipt_json'] ?? '{}'), true) ?: [];
+            $out['reason'] = (string)($merged['metadata']['capability_reason'] ?? 'unsupported_media');
+            return $out;
+        }
         if ($anchorEvent || !self::sameTargetObservation((array)($previous['snapshot'] ?? []), $merged)) return $out;
         $state = (string)($previous['state'] ?? '');
         $attempts = (int)($previous['write_attempts'] ?? 0);
@@ -93,6 +101,18 @@ final class ChannelPostTelegramAlbum
     private static function member(array $snapshot): array
     {
         unset($snapshot['raw_body'], $snapshot['content_hash']);
+        // A stored photo member was previously rejected solely because it belonged
+        // to an album. The new merge policy removes that obsolete limitation.
+        if (($snapshot['metadata']['capability_reason'] ?? '') === 'album_not_supported') {
+            $images = (array)($snapshot['attachments'] ?? []);
+            $valid = $images !== [];
+            foreach ($images as $image) {
+                if (!is_array($image) || ($image['type'] ?? '') !== 'image' || ($image['provider'] ?? '') !== 'telegram'
+                    || (string)($image['file_unique_id'] ?? '') === '' || (string)($image['telegram_file_id'] ?? '') === '') $valid = false;
+            }
+            $snapshot['metadata']['capability'] = $valid ? 'supported' : 'requires_attention';
+            $snapshot['metadata']['capability_reason'] = $valid ? '' : 'unsupported_media';
+        }
         unset($snapshot['metadata']['telegram_album_items'], $snapshot['metadata']['telegram_album_event_message_id']);
         return $snapshot;
     }
