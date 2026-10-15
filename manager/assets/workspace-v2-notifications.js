@@ -1,5 +1,5 @@
 (function(){
-  let initialized=false,enableInFlight=false,interactiveEnableInFlight=false,autoRecoveryAttempted=false,lastStatus=null,activationFlight=null,recentInteractiveFailure=null,subscriptionFlight=null,workerRegistrationFlight=null,recentFailureSession=null,autoRecoverySession=null,lastStatusSession=null;
+  let initialized=false,enableInFlight=false,interactiveEnableInFlight=false,autoRecoveryAttempted=false,lastStatus=null,activationFlight=null,recentInteractiveFailure=null,subscriptionFlight=null,workerRegistrationFlight=null,permissionFlight=null,recentFailureSession=null,autoRecoverySession=null,lastStatusSession=null;
   function esc(value){const div=document.createElement('div');div.textContent=value??'';return div.innerHTML;}
   function reasonText(reason){return {healthy_subscription:'Уведомления включены',no_subscription:'Уведомления не подключены',subscription_unhealthy:'Уведомления требуют внимания',subscription_table_missing:'Уведомления недоступны',manager_inactive:'Профиль менеджера неактивен',managers_table_missing:'Статус уведомлений недоступен',health_check_failed:'Не удалось проверить уведомления',session_expired:'Войдите в кабинет',enable_failed:'Не удалось включить уведомления',enable_timeout:'Подключение не завершилось',permission_denied:'Разрешение на уведомления не выдано',unsupported_push:'Этот браузер не поддерживает уведомления',service_worker_failed:'Не удалось подготовить уведомления',subscription_failed:'Браузер не подключил уведомления',server_setup_failed:'Не удалось завершить подключение уведомлений'}[reason]||'Статус уведомлений неизвестен';}
   function isSetupFailure(reason){return ['enable_failed','enable_timeout','permission_denied','unsupported_push','service_worker_failed','subscription_failed','server_setup_failed'].includes(String(reason||''));}
@@ -33,6 +33,15 @@
   function handleUnauthorized(root){window.WorkspaceV2?.showAuthRecovery?.();render(root,{notification_path_usable:false,notification_path_reason:'session_expired'});}
   async function parseJson(response){return response.json().catch(()=>null);}
   function withTimeout(promise,ms,label){let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label||'timeout')),ms);})]).finally(()=>clearTimeout(timer));}
+  function requestedPermission(){
+    if(permissionFlight)return permissionFlight;
+    // Keep the native request alive across UI timeouts. Call it synchronously
+    // from the click so browsers retain the user gesture for the first prompt.
+    const pending=Promise.resolve(Notification.requestPermission());
+    permissionFlight=pending;
+    pending.then(()=>{if(permissionFlight===pending)permissionFlight=null;},()=>{if(permissionFlight===pending)permissionFlight=null;});
+    return pending;
+  }
   function registeredWorker(){
     if(workerRegistrationFlight)return workerRegistrationFlight;
     const pending=Promise.resolve().then(()=>navigator.serviceWorker.register('sw.js',{scope:'./'}));
@@ -146,7 +155,8 @@
       try{
         if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw new Error('unsupported_push');
         setupStage='permission';
-        const permission=Notification.permission==='granted'?'granted':requestPermission?await withTimeout(Notification.requestPermission(),15000,'permission_timeout'):Notification.permission;
+        const permission=Notification.permission==='granted'?'granted':requestPermission?await withTimeout(requestedPermission(),15000,'permission_timeout'):Notification.permission;
+        requireSession(activationSession);
         if(permission!=='granted'){if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:'permission_denied'});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,new Error('permission_not_granted'));}return false;}
         setupStage='service_worker_register';const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
         setupStage='service_worker_ready';const reg=await readyRegistration(registered);
