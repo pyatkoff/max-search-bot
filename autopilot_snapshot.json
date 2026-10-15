@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-15T00:10:10+00:00",
+    "generated_at": "2026-10-15T00:26:16+00:00",
     "production": {
-        "sha": "cbd68026c3f7fe8d6c822bd96d9b6d829fb5be0b",
+        "sha": "5c4689c885f1b867614565a20dcb1387fafcd75c",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 6,
             "overdue_count": 6,
             "stuck_count": 6,
-            "oldest_wait_seconds": 154054,
+            "oldest_wait_seconds": 155021,
             "routing_blocked_count": 0
         },
         "push": {
@@ -54,9 +54,9 @@
                 "waiting": 5,
                 "assigned_to_others": 98,
                 "load_ms": {
-                    "all": 74.7,
-                    "mine": 14,
-                    "waiting": 54.4
+                    "all": 79.3,
+                    "mine": 14.9,
+                    "waiting": 57.7
                 },
                 "sample_check": {
                     "ok": true,
@@ -76,9 +76,9 @@
                 "waiting": 5,
                 "assigned_to_others": 98,
                 "load_ms": {
-                    "all": 73.8,
-                    "mine": 5.1,
-                    "waiting": 53.8
+                    "all": 98.2,
+                    "mine": 4.7,
+                    "waiting": 54.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -98,9 +98,9 @@
                 "waiting": 6,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 88.8,
-                    "mine": 34,
-                    "waiting": 55
+                    "all": 82.6,
+                    "mine": 39.7,
+                    "waiting": 58.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -120,9 +120,9 @@
                 "waiting": 5,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 74.8,
-                    "mine": 371,
-                    "waiting": 54
+                    "all": 80,
+                    "mine": 390.1,
+                    "waiting": 57.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -142,9 +142,9 @@
                 "waiting": 5,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 80.9,
-                    "mine": 2.3,
-                    "waiting": 52.3
+                    "all": 87.8,
+                    "mine": 2.7,
+                    "waiting": 63.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -164,9 +164,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 82.5,
-                    "mine": 22.9,
-                    "waiting": 50.5
+                    "all": 85.8,
+                    "mine": 22,
+                    "waiting": 55.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -186,9 +186,9 @@
                 "waiting": 6,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 68.8,
-                    "mine": 39.2,
-                    "waiting": 54.4
+                    "all": 73.1,
+                    "mine": 45,
+                    "waiting": 57.2
                 },
                 "sample_check": {
                     "ok": true,
@@ -213,7 +213,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-14 23:09:52",
+        "since_utc": "2026-10-14 23:25:59",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -250,7 +250,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "cbd68026c3f7fe8d6c822bd96d9b6d829fb5be0b",
+        "sha": "5c4689c885f1b867614565a20dcb1387fafcd75c",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -259,7 +259,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-15T00:10:09Z"
+        "reported_at": "2026-10-15T00:26:16Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -267,7 +267,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T00:09:46+00:00",
+        "generated_at": "2026-10-15T00:25:52+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -362,7 +362,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T00:09:46+00:00",
+        "generated_at": "2026-10-15T00:25:52+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -660,7 +660,7 @@
                 "date": "2026-10-15",
                 "partial": true,
                 "since_utc": "2026-10-14 22:00:00",
-                "until_utc": "2026-10-15 00:09:46",
+                "until_utc": "2026-10-15 00:25:52",
                 "channels": [
                     {
                         "channel": "max",
@@ -752,7 +752,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-15T00:10:05+00:00",
+        "generated_at": "2026-10-15T00:26:13+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -771,8 +771,8 @@
             },
             "integrations": {
                 "files": 15,
-                "bytes": 68726,
-                "code_lines": 1341
+                "bytes": 72159,
+                "code_lines": 1386
             },
             "manager": {
                 "files": 90,
@@ -796,8 +796,8 @@
             },
             "tests": {
                 "files": 314,
-                "bytes": 2737300,
-                "code_lines": 28983
+                "bytes": 2746550,
+                "code_lines": 29059
             },
             "tools": {
                 "files": 51,
