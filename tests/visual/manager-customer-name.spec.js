@@ -33,7 +33,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   // while notification/worker behavior remains in its dedicated suite.
   if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
-  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
+  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conv(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:readSource(url.pathname.slice(1))});
   if(!url.pathname.startsWith('/manager/'))return block();

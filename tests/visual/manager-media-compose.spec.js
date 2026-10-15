@@ -15,7 +15,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/'))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,url.pathname.slice(1)))});
   if(url.pathname==='/manager2/')return route.fulfill({contentType:'text/html',body:shell});
   if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
-  if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
+  if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(url.pathname==='/manager/media-upload.php'){
    uploads.push(request.postDataBuffer().toString());
    if(holdFirst&&uploads.length===1)await new Promise(resolve=>held.push(resolve));
