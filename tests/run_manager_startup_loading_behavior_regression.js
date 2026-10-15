@@ -49,6 +49,11 @@ test('secondary card waits for catalog options without delaying the transcript, 
   assert.equal(h.ids.get('replyText').value,'Current draft');assertNoMutations(h);
 });
 
+test('a previously initialized core without the optional catalog signal still opens an authorized transcript',async()=>{
+  const h=createHarness({inbox:true});await h.start({open:false});delete h.W.whenCatalogReady;
+  await within(h.C.open(101));assert.equal(h.W.S.current,101);assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
 test('new account starts its Inbox without previous-account directory labels while metadata is held',async()=>{
   const h=createHarness({inbox:true}),held=deferred();await h.start({open:false});
   h.W.S.filterSources=[{id:12,display_name:'Previous account source'}];h.W.S.filterManagers=[{id:9,display_name:'Previous account manager'}];h.W.S.filterOptionsReady=true;
