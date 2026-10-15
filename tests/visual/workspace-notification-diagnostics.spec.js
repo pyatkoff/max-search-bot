@@ -24,7 +24,7 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
     let registered=false;
     const subscription={options:{applicationServerKey:new Uint8Array([1])},toJSON(){return {endpoint:'https://push.example.test/PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY',keys:{auth:'synthetic',p256dh:'synthetic'}};}};
-    const registration={pushManager:{
+    const registration={scope:location.origin+'/manager/',active:{state:'activated'},pushManager:{
       async getSubscription(){fixturePushCalls.push('read');return registered?subscription:null;},
       async subscribe(){fixturePushCalls.push('subscribe');if(backgroundPending&&!window.fixtureFinishPush)return new Promise((resolve,reject)=>{window.fixtureFinishPush=outcome=>{if(outcome==='success'){registered=true;resolve(subscription);}else reject(new DOMException('Registration failed - could not connect to push server','AbortError'));};});registered=recoverAfterAbort;throw new DOMException(recoverAfterAbort?'PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY':'Registration failed - could not connect to push server','AbortError');},
     },async showNotification(){fixturePushCalls.push('confirmation');if(!recoverAfterAbort&&!registered)throw new Error('Unexpected confirmation');}};

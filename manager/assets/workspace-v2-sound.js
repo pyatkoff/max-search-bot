@@ -83,7 +83,9 @@ async function unlock(){
 async function workerReady(){
   // When OS push is enabled, an old worker must not duplicate page audio.
   if(!('Notification'in window)||Notification.permission!=='granted')return;
-  const worker=navigator.serviceWorker?.controller;
+  let worker;
+  try{worker=(await window.WorkspaceV2Notifications?.readyRegistration())?.active;}
+  catch(e){throw new Error('sound_worker_reload');}
   if(!worker)throw new Error('sound_worker_reload');
   const channel=new MessageChannel();
   try{
