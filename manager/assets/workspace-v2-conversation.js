@@ -1,5 +1,5 @@
 (function(){
-const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=false,accessLost=false;const drafts=new Map();
+const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0;
 let photoViewer=null;
@@ -261,12 +261,15 @@ function renderHeader(c){const name=c.display_name||'Турист';$('conversati
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
 async function refreshVisible(){
-  if(refreshPending||!canRefreshVisible())return false;
+  if(!canRefreshVisible())return false;
+  // A different confirmed context may proceed before an obsolete read settles.
+  const key=JSON.stringify(historyContext());
+  if(refreshPending?.key===key)return false;
   const target=Number(S.current),generation=openSeq,epoch=refreshEpoch,owner=Number(S.manager.id),authGeneration=S.authGeneration;
   const stillCurrent=()=>canRefreshVisible()&&Number(S.current)===target&&openSeq===generation&&refreshEpoch===epoch&&Number(S.manager?.id)===owner&&S.authGeneration===authGeneration;
-  refreshPending=true;
+  const flight={key};refreshPending=flight;
   try{
-    const d=await api('detail',{conversation_id:target});
+    const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
     if(!d?.ok){
       if([403,404].includes(d?.http_status)){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
@@ -284,7 +287,7 @@ async function refreshVisible(){
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
     window.WorkspaceV2Inbox?.markRead(target);return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
-  finally{refreshPending=false}
+  finally{if(refreshPending===flight)refreshPending=null}
 }
 function renderLeadLoading(c){
   const root=$('leadCard');if(!root)return;
@@ -457,5 +460,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={bind,open,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
 })();

@@ -64,6 +64,63 @@ for(const width of[390,430,768,1440])test.describe('Stable transcript '+width,()
  });
 });
 
+// The old automatic read deliberately stays pending across real shell navigation.
+const refreshDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).length;
+const refreshLists=state=>state.calls.filter(c=>c.action==='list').length;
+async function focusRefresh(page){await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}
+async function holdAutomatic(page,state){
+ const hold=deferred(),before=refreshDetails(state);state.latest.push(hold);
+ await focusRefresh(page);await expect.poll(()=>refreshDetails(state)).toBe(before+1);return hold;
+}
+async function proveCurrentFlight(page,state,old,id){
+ const current=await holdAutomatic(page,state),details=refreshDetails(state),lists=refreshLists(state);
+ const obsoleteResponse=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===401);
+ old.resolve({body:{ok:false,error:'unauthorized'},status:401});await (await obsoleteResponse).finished();await settled(page);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();
+ expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(false);
+ await page.evaluate(()=>{for(let i=0;i<5;i++)window.dispatchEvent(new Event('focus'))});await settled(page);
+ expect(refreshDetails(state)).toBe(details);expect(refreshLists(state)).toBe(lists);
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(false);
+ const all=state.documents[id],nextId=all.at(-1).id+1;
+ all.push({id:nextId,sender_type:'customer',text:'Новое входящее без ожидания старого запроса',created_at:'2026-10-14 08:02:00'});
+ current.resolve(state.snapshot({conversation_id:id}));
+ await expect(page.locator('#messages [data-scroll-message-key="'+nextId+'"]')).toHaveCount(1);
+ await focusRefresh(page);await expect.poll(()=>refreshDetails(state)).toBe(details+1);
+ await expect(page.locator('#composer')).toBeVisible();return nextId;
+}
+for(const width of [390,430,768,1440])test('obsolete automatic detail releases the new conversation at '+width+'x420',async({page,browserName})=>{
+ await page.setViewportSize({width,height:420});const state=await setup(page,{total:35,media:true});state.documents[12]=messages(35,true);await open(page);
+ await page.locator('#replyText').fill('Черновик клиента А');await page.locator('#replyFile').setInputFiles({name:'client-a.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic A')});
+ const old=await holdAutomatic(page,state);
+ await open(page,12);await page.locator('#replyText').fill('Точный черновик клиента Б\nБез отправки');await page.locator('#replyFile').setInputFiles({name:'client-b.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
+ await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.refreshPlayingAudio=audio});
+ await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);
+ // WebKit wheel scrolling is asynchronous: capture only after the native scroll
+ // reaches the earlier-history boundary, not while its animation is in progress.
+ await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);await settled(page);
+ expect(await page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);const before=await anchor(page);
+ await proveCurrentFlight(page,state,old,12);await sameAnchor(page,before);
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.refreshPlayingAudio&&!audio.paused)).toBe(true);
+ await expect(page.locator('#replyText')).toHaveValue('Точный черновик клиента Б\nБез отправки');await expect(page.locator('#mediaSelection')).toContainText('client-b.txt');
+ const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await screenshot(page,browserName,width,'refresh-context-short');
+ await open(page,11);await expect(page.locator('#replyText')).toHaveValue('Черновик клиента А');await expect(page.locator('#mediaSelection')).toContainText('client-a.txt');
+ await open(page,12);await expect(page.locator('#replyText')).toHaveValue('Точный черновик клиента Б\nБез отправки');await expect(page.locator('#mediaSelection')).toContainText('client-b.txt');clean(state);
+});
+for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic detail releases recovered account '+owner+' at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const state=await setup(page,{total:3});await open(page);
+ await page.locator('#replyText').fill('Приватный черновик прежнего аккаунта');await page.locator('#replyFile').setInputFiles({name:'private.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic private')});
+ const old=await holdAutomatic(page,state);state.unauthorized=true;
+ await page.evaluate(()=>WorkspaceV2.api('counts').catch(()=>null));await expect(page.locator('#managerAuthRecovery')).toBeVisible();state.accountId=owner;
+ await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();if(owner===8)await open(page);else await expect(page.locator('#composer')).toBeVisible();
+ await expect(page.locator('#replyText')).toHaveValue(owner===7?'Приватный черновик прежнего аккаунта':'');
+ if(owner===7)await expect(page.locator('#mediaSelection')).toContainText('private.txt');else await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);
+ await page.locator('#replyText').fill('Текущий подтверждённый аккаунт');await proveCurrentFlight(page,state,old,11);
+ expect(await page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(owner);await expect(page.locator('#replyText')).toHaveValue('Текущий подтверждённый аккаунт');
+ await screenshot(page,browserName,width,'refresh-recovery-'+owner);clean(state);
+});
+
 for(const width of[390,430,768,1440])test.describe('History pagination '+width,()=>{
  test.use({viewport:{width,height:844}});
  test('explicit older pages preserve reading anchor, incoming messages and drafts without duplicate refresh rows',async({page,browserName})=>{
