@@ -1,0 +1,49 @@
+name: Reconcile MAX upload receipt with GET only
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-reconcile.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Prepare established canonical identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Read exact enabled mode, event clocks and last natural scheduler receipt only
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "bd8edc2899e98891af60791e5dd9ea80101bb719"; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          try{
+            require 'config.php';require 'services/MaxChannelConversionWorker.php';
+            $p=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($p);if(!$s||$s['mode']!=='send')throw new RuntimeException('mode');
+            $api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);$repo=new MaxChannelConversionOutbox($p);$found=0;$held=0;$statuses=[];
+            $q=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='unknown' ORDER BY id LIMIT 3");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+              $status=$api->findUnknown($row);
+              if($status){$repo->status($row,$status,time());$found++;$key=(string)($status['status']??'unknown');$statuses[$key]=($statuses[$key]??0)+1;}else{$held++;}
+            }
+            $counts=[];foreach($p->query("SELECT state,COUNT(*) AS c FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' GROUP BY state")->fetchAll(PDO::FETCH_ASSOC) as $row)$counts[$row['state']]=(int)$row['c'];
+            echo json_encode(['ok'=>true,'mode'=>$s['mode'],'receipts_recovered'=>$found,'outcomes_still_held'=>$held,'api_statuses'=>$statuses,'queue_counts'=>$counts,'conversion_requests'=>0])."\n";
+          }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"receipt_reconciliation_failed\",\"conversion_requests\":0}\n";exit(1);}
+          PHP
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
