@@ -160,21 +160,28 @@ class ManagerConversationService
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
         $replySql=($queue==='mine'||($queue==='personal'&&in_array('mine',$queues,true)))?self::awaitingManagerReplySql('c'):'0';
+        $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
         $whereSql=implode(' AND ',$where);
         $orderSql=($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'));
         $fromSql='FROM conversations c JOIN customers cu ON cu.id=c.customer_id';
         $predicateSql=' WHERE '.$whereSql;
-        if($queue==='all'||$queue==='closed'||$queue==='personal'){
+        if($queue==='mine'){
+            // Rank every eligible assignment before the cap, then annotate only
+            // that page. Reuse its exact reply rank rather than evaluating it again.
+            $fromSql='FROM (SELECT c.id,'.$replyProjection.' AS awaiting_manager_reply FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
+            $predicateSql='';
+            $replyProjection='inbox_page.awaiting_manager_reply';
+        }elseif($queue==='all'||$queue==='closed'||$queue==='personal'){
             // These queues rank only conversation timestamps. Materialize their
             // customer-backed candidate page before annotating messages/events;
-            // request/reply-ranked queues must keep their original query path.
+            // Other request-ranked queues keep their original query path.
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
         }
         $sql='SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,'
             .'cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name,'
             .$requestSql.' AS manager_request_at,CASE WHEN '.$awaitingSql.' THEN 1 ELSE 0 END AS awaiting_first_reply,'
-            .'CASE WHEN '.$replySql.' THEN 1 ELSE 0 END AS awaiting_manager_reply,'
+            .$replyProjection.' AS awaiting_manager_reply,'
             .'GREATEST(TIMESTAMPDIFF(SECOND,'.$requestSql.',NOW()),0) AS wait_age_seconds,'
             .'(SELECT mm.text FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_text,'
             .'(SELECT mm.direction FROM messages mm WHERE mm.conversation_id=c.id ORDER BY mm.id DESC LIMIT 1) AS last_direction,'
