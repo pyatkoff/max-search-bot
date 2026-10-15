@@ -94,7 +94,11 @@ for(const width of [390,430,768,1440])test('obsolete automatic detail releases t
  const old=await holdAutomatic(page,state);
  await open(page,12);await page.locator('#replyText').fill('Точный черновик клиента Б\nБез отправки');await page.locator('#replyFile').setInputFiles({name:'client-b.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
  await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.refreshPlayingAudio=audio});
- await page.locator('#messages').hover();await page.mouse.wheel(0,-1500);await settled(page);const before=await anchor(page);
+ await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);
+ // WebKit wheel scrolling is asynchronous: capture only after the native scroll
+ // reaches the earlier-history boundary, not while its animation is in progress.
+ await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);await settled(page);
+ expect(await page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);const before=await anchor(page);
  await proveCurrentFlight(page,state,old,12);await sameAnchor(page,before);
  expect(await page.locator('#messages audio').evaluate(audio=>audio===window.refreshPlayingAudio&&!audio.paused)).toBe(true);
  await expect(page.locator('#replyText')).toHaveValue('Точный черновик клиента Б\nБез отправки');await expect(page.locator('#mediaSelection')).toContainText('client-b.txt');
