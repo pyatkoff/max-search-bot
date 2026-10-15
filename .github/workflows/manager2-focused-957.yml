@@ -28,4 +28,4 @@ jobs:
         if: always()
         with:
           name: manager2-focused-957
-          path: test-results/**
+          path: manager2-artifacts/*.png

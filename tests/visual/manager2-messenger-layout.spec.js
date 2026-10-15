@@ -164,7 +164,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(180);
     await fitsViewport(page);clean(fixture);
   });
-  test('compact activity stays beside the name and leaves two lines for a message preview',async({page},testInfo)=>{
+  test('compact activity stays beside the name and leaves two lines for a message preview',async({page,browserName},testInfo)=>{
     const fixture=await setup(page,{longPreview:true}),item=page.locator('#inboxList [data-conversation-id="11"]'),activity=item.locator('.leadActivityTime');
     const formatted=await page.evaluate(()=>Manager2Presentation.formatInboxActivity('2026-10-14 12:00:00'));
     await expect(activity).toHaveText(formatted.text);await expect(activity).toHaveAttribute('title','Последняя активность: '+formatted.exact);await expect(activity).toHaveAttribute('aria-label','Последняя активность: '+formatted.exact);
@@ -176,7 +176,8 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
         const rowHeight=element.getBoundingClientRect().height,pin=element.querySelector('.pwMarkerPin'),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta');
         return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,pinHeight:pin?.getBoundingClientRect().height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
       });
-      await testInfo.attach('compact-inbox-'+width+'x'+height,{body:await item.screenshot(),contentType:'image/png'});
+      fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});
+      await testInfo.attach('compact-inbox-'+width+'x'+height,{body:await item.screenshot({path:path.join(root,'manager2-artifacts',`compact-inbox-${browserName}-${width}x${height}.png`)}),contentType:'image/png'});
       await expect(item.locator('.m2ChatMeta .pwRowMarkers .pwMarkerPin')).toBeVisible();
       await expect(item.locator('.pwMarkerPin')).toHaveText('Закреплён');
       expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true});await fitsViewport(page);
