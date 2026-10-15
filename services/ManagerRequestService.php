@@ -40,13 +40,17 @@ class ManagerRequestService
 
     public static function sourceEntryMessageText(bool $withinWorkingHours): string
     {
-        return "Здравствуйте! 👋\n\n"
-            . ($withinWorkingHours ? "Менеджер скоро присоединится к вам и с удовольствием ответит на ваши вопросы." : "Менеджер ответит в рабочее время.");
+        return "Здравствуйте! 👋\n"
+            . ($withinWorkingHours
+                ? "Менеджер скоро присоединится к вам и с удовольствием ответит."
+                : "Менеджер ответит в рабочее время — с 10:00 до 20:00 по Калининграду.")
+            . "\nПока можете написать ваш вопрос ниже";
     }
 
     public static function onlineMessageText(): string
     {
-        return "👩‍💼 <b>Запрос передан менеджеру</b>\n\nОн ответит вам в этом чате.";
+        return "👩‍💼 <b>Запрос передан менеджеру</b>\n\n"
+            . "Он ответит в этом чате. Если хотите что-то добавить, напишите здесь.";
     }
 
     public static function workingWaitMessageText(): string
@@ -64,6 +68,7 @@ class ManagerRequestService
     public static function outsideHoursMessageText(): string
     {
         return "👩‍💼 <b>Запрос передан менеджеру</b>\n\n"
-            . "Ваш запрос сохранён в очереди. Ответ придёт прямо в этот чат в следующий рабочий период.";
+            . "Он ответит в этом чате в рабочее время — с 10:00 до 20:00 по Калининграду.\n"
+            . "Если хотите что-то добавить, напишите здесь.";
     }
 }

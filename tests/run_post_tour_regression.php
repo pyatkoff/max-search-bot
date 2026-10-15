@@ -30,6 +30,8 @@ ProjectConfig::resetForTests([
 ]);
 
 $followup=PostTourService::followupModel();
+ptCheck('followup offers help without a fixed best-options promise',$followup['text'],"🙂 <b>Могу помочь с выбором</b>\n\nМенеджер поможет с выбором и уточнит актуальные цены.\n\nПараметры поездки сохранены — повторно заполнять их не нужно.");
+ptCheck('followup manager label',$followup['buttons'][0][0]['text']??null,'👩‍💼 Помощь с выбором тура');
 ptCheck('followup manager payload',$followup['buttons'][0][0]['callback_data']??null,'manager_after_tours');
 ptCheck('followup found payload',$followup['buttons'][1][0]['callback_data']??null,'tours_found');
 ptCheck('followup edit payload',$followup['buttons'][2][0]['callback_data']??null,'edit_params');
@@ -47,6 +49,8 @@ ptCheck('non-lead copy mentions max',strpos($offer['text'],'MAX-канал')!==f
 
 $leadOffer=PostTourService::channelOfferModel(55,true);
 ptCheck('lead copy confirmation',strpos($leadOffer['text'],'Заявка отправлена')!==false,true);
+ptCheck('lead copy confirms saved details without claiming a manager read them',str_contains($leadOffer['text'],'Параметры поездки и номер телефона сохранены. Менеджер свяжется с вами.'),true);
+ptCheck('lead copy does not claim manager received details',str_contains($leadOffer['text'],'Менеджер получил'),false);
 
 ProjectConfig::resetForTests([
     'messenger'=>['provider'=>'telegram'],
@@ -62,6 +66,7 @@ ptCheck('native followup keeps return-to-tours button',array_column(array_merge(
 ptCheck('native followup omits subscription copy',str_contains($native['text'],'подпис'),false);
 $nativeLead = PostTourService::channelOfferModel(55,true,false);
 ptCheck('native lead confirmation is preserved',str_contains($nativeLead['text'],'Заявка отправлена'),true);
+ptCheck('native lead confirms saved details',$nativeLead['text'],"✅ <b>Заявка отправлена</b>\n\nПараметры поездки и номер телефона сохранены. Менеджер свяжется с вами.");
 ptCheck('native lead confirmation omits channel promo',str_contains($nativeLead['text'],'канал'),false);
 
 MaxSearchApi::$channel='';

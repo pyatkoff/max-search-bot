@@ -94,7 +94,7 @@ class ChannelOfferService
     {
         return (bool)IntegrationRegistry::messenger()->sendWithButtons(
             $chatId,
-            "🔎 Отлично, всё записал. Подбираю подходящие варианты…",
+            "🔎 Готовлю ссылку на поиск по вашим параметрам…",
             []
         );
     }

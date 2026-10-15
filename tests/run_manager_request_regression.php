@@ -45,7 +45,7 @@ mrCheck('handoff text does not raise phone capture',strpos($model['online_text']
 mrCheck('working wait text confirms handoff',strpos($model['working_wait_text'],'Запрос передан менеджеру')!==false,true);
 mrCheck('working wait text does not raise phone capture',strpos($model['working_wait_text'],'телефон')===false,true);
 mrCheck('fallback text available after no reply',strpos($model['fallback_text'],'не успел ответить')!==false,true);
-mrCheck('outside-hours text available',strpos($model['outside_hours_text'],'следующий рабочий период')!==false,true);
+mrCheck('outside-hours text gives concrete response hours',strpos($model['outside_hours_text'],'с 10:00 до 20:00 по Калининграду')!==false,true);
 
 MaxSearchApi::$claim = null;
 MaxSearchApi::$saveCalls = 0;
@@ -148,9 +148,11 @@ $bounded=$projectMedia($many);
 mrCheck('summary media is bounded to twenty recent attachments',count($bounded),20);
 mrCheck('bounded media retains newest originals without synthetic IDs',array_column($bounded,'url'),array_map(static function($id){return'media-file.php?message_id='.$id.'&attachment=0';},range(106,125)));
 
-mrCheck('channel entry gives one concise manager greeting',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\n\nМенеджер скоро присоединится к вам и с удовольствием ответит на ваши вопросы.");
+mrCheck('channel entry uses owner greeting and invites the question',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\nМенеджер скоро присоединится к вам и с удовольствием ответит.\nПока можете написать ваш вопрос ниже");
 mrCheck('night channel entry avoids soon promise',strpos(ManagerRequestService::sourceEntryMessageText(false),'скоро')===false,true);
 mrCheck('night channel entry explains working hours',strpos(ManagerRequestService::sourceEntryMessageText(false),'ответит в рабочее время')!==false,true);
+mrCheck('night channel entry invites the question now',strpos(ManagerRequestService::sourceEntryMessageText(false),'Пока можете написать ваш вопрос ниже')!==false,true);
+mrCheck('regular handoff invites additions rather than repeating the request',strpos($model['online_text'],'Если хотите что-то добавить, напишите здесь.')!==false,true);
 mrCheck('night handoff does not raise phone capture',strpos($model['outside_hours_text'],'телефон')===false,true);
 
 $managerActionSource = (string)file_get_contents(__DIR__ . '/../actions/ManagerAction.php');
