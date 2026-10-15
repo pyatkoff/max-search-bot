@@ -21,12 +21,19 @@ function setInitials(node,text){
 }
 function fullCurrent(target=viewer){return !!target&&viewer===target&&current(target)&&Number(S.current||0)===target.contextId&&dialog?.open}
 function clearFullCache(conversationId=0){fullCache.forEach((entry,key)=>{if(!conversationId||entry.conversationId===conversationId){URL.revokeObjectURL(entry.url);fullCache.delete(key)}})}
+function focusableAvatar(node){
+  if(!node?.isConnected||node.disabled||!visible(node)||getComputedStyle(node).visibility==='hidden')return false;
+  // Mobile panels cover the Inbox without hiding its DOM. A return target must
+  // actually be exposed, rather than merely having a rectangle in the viewport.
+  const rect=node.getBoundingClientRect(),hit=document.elementFromPoint(Math.max(0,Math.min(window.innerWidth-1,rect.left+rect.width/2)),Math.max(0,Math.min(window.innerHeight-1,rect.top+rect.height/2)));
+  return hit===node||!!(hit&&node.contains(hit));
+}
 function closeViewer({clear=false,restore=true}={}){
   const previous=viewer;viewer=null;fullJob?.controller.abort();fullJob=null;
   if(previous?.leave){window.removeEventListener('popstate',previous.leave);window.removeEventListener('pagehide',previous.leave)}
   if(dialog?.open)dialog.close();dialog?.querySelector('.customerAvatarFullImage')?.removeAttribute('src');
   if(clear)clearFullCache();
-  if(restore&&previous&&current(previous)&&Number(S.current||0)===previous.contextId){const focusable=node=>node?.isConnected&&!node.disabled&&visible(node)&&getComputedStyle(node).visibility!=='hidden',opener=focusable(previous.opener)?previous.opener:[...document.querySelectorAll('[data-customer-avatar="'+previous.conversationId+'"] .customerAvatarOpen')].find(focusable);opener?.focus({preventScroll:true})}
+  if(restore&&previous&&current(previous)&&Number(S.current||0)===previous.contextId){const opener=focusableAvatar(previous.opener)?previous.opener:[...document.querySelectorAll('[data-customer-avatar="'+previous.conversationId+'"] .customerAvatarOpen')].find(focusableAvatar);opener?.focus({preventScroll:true})}
 }
 function syncViewer(){if(viewer&&!fullCurrent())closeViewer({clear:true,restore:false})}
 function conversationChanging(id){if(viewer&&Number(id)!==viewer.contextId)closeViewer({clear:true,restore:false})}
