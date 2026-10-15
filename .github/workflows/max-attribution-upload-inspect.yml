@@ -1,0 +1,62 @@
+name: Inspect uncertain MAX upload without resending
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-upload-inspect.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Prepare established canonical identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Read exact enabled mode, event clocks and last natural scheduler receipt only
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "bd8edc2899e98891af60791e5dd9ea80101bb719"; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          try{
+            require 'config.php';require 'services/MaxChannelConversionWorker.php';
+            $p=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($p);$api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);
+            $rows=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state='unknown' ORDER BY id LIMIT 3")->fetchAll(PDO::FETCH_ASSOC);
+            $expected=[];$preflight=[];
+            foreach($rows as $row){
+              $expected[MetrikaOfflineClient::comment($row)]=true;$temp=null;$ch=null;
+              try{
+                $csv=MetrikaOfflineClient::csv($row,time());if($row['counter_id']!==(string)METRIKA_COUNTER_ID)throw new RuntimeException('wrong_conversion_counter');
+                $temp=tempnam(MaxTrackerLookupConfig::csvDirectory(),'drycheck-');chmod($temp,0600);if(file_put_contents($temp,$csv)!==strlen($csv))throw new RuntimeException('private_csv_unavailable');
+                $ch=curl_init('https://api-metrika.yandex.net/management/v1/counter/98615635/offline_conversions/upload');
+                $configured=curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>['file'=>new CURLFile($temp,'text/csv','offline_conversions.csv')]]);
+                if(!$configured)throw new RuntimeException('curl_configuration_failed');
+                $preflight[]=['ok'=>true,'request_executed'=>false];
+              }catch(Throwable $e){$allowed=['invalid_conversion_event','wrong_conversion_counter','private_csv_unavailable','curl_configuration_failed'];$preflight[]=['ok'=>false,'reason'=>in_array($e->getMessage(),$allowed,true)?$e->getMessage():'preflight_failed','request_executed'=>false];}
+              finally{if($ch!==null)curl_close($ch);if(is_string($temp)&&is_file($temp))unlink($temp);}
+            }
+            $method=new ReflectionMethod(MetrikaOfflineClient::class,'request');$method->setAccessible(true);$reports=[];
+            foreach([100,10000] as $limit){
+              $r=$method->invoke($api,'GET','offline_conversions/uploadings?limit='.$limit.'&offset=0');$d=json_decode((string)($r['body']??''),true,32,JSON_BIGINT_AS_STRING);$list=is_array($d['uploadings']??null)?$d['uploadings']:[];$own=[];$times=[];
+              foreach($list as $u){$times[]=(string)($u['create_time']??'');if(isset($expected[(string)($u['comment']??'')]))$own[]=['id_valid'=>MaxTrackerLookupProtocol::id((string)($u['id']??'')),'client_id_type'=>(string)($u['client_id_type']??''),'status'=>(string)($u['status']??''),'source_quantity'=>(int)($u['source_quantity']??-1),'line_quantity'=>(int)($u['line_quantity']??-1)];}
+              $reports[]=['limit'=>$limit,'http'=>(int)($r['http']??0),'transport_error'=>(int)($r['error']??0),'response_keys'=>is_array($d)?array_keys($d):[],'rows'=>count($list),'first_created'=>$times[0]??null,'last_created'=>$times?end($times):null,'matching_uploads'=>$own,'api_error_types'=>array_values(array_filter(array_map(static fn($e)=>is_array($e)?(string)($e['error_type']??''):'',(array)($d['errors']??[]))))];
+            }
+            echo json_encode(['ok'=>true,'unknown_rows'=>count($rows),'local_upload_preflight'=>$preflight,'upload_list_reports'=>$reports,'conversion_requests'=>0])."\n";
+          }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"upload_inspection_failed\",\"conversion_requests\":0}\n";exit(1);}
+          PHP
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
