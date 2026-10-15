@@ -25,6 +25,10 @@ function harness(shared,options={}){
   }
   const feed={upper:100,rows:[],owner:7,requests:[],fail:false,deferred:null};
   const context={document,localStorage,navigator:{},setTimeout,clearTimeout,setInterval:()=>1,clearInterval(){},Date,console,AudioContext:Audio,addEventListener:(type,fn)=>listeners[type]=fn};
+  if(options.outsideWorkerScope){
+    context.Notification={permission:'granted'};context.navigator.serviceWorker={controller:null,addEventListener(){}};context.MessageChannel=MessageChannel;context.workerReadiness=0;
+    context.WorkspaceV2Notifications={async readyRegistration(){context.workerReadiness++;return {active:{state:'activated',postMessage(_data,ports){ports[0].postMessage({soundLedger:1});ports[0].close();}}};}};
+  }
   context.window=context;context.self=context;
   context.WorkspaceV2={S:{manager:{id:7},authGeneration:1,authExpired:false},notificationEvents:async cursor=>{
     feed.requests.push(cursor);if(feed.deferred)await feed.deferred;if(feed.fail)throw new Error('network');
@@ -47,6 +51,10 @@ function harness(shared,options={}){
   return {context,feed,elements,storage,preferences,activation,listeners,contexts,get count(){return count;},get resumes(){return resumes;},block:()=>blocked=true,unblock:()=>blocked=false,defer:p=>gate=p,controller:context.WorkspaceV2Sound};
 }
 (async()=>{
+ const outside=harness(undefined,{outsideWorkerScope:true});await outside.controller.enable();
+ check('manager2 without a controlling worker can enable sound using canonical registration',outside.elements.get('soundStatus').attributes['data-state'],'ready');
+ check('sound checks readiness through canonical registration',outside.context.workerReadiness,1);
+ check('outside-scope enable schedules one test cue',outside.count,1);
  const h=harness();
  check('sound starts disabled',h.elements.get('soundToggle').attributes['aria-pressed'],'false');
  check('loading the old conversation never schedules audio',h.count,0);

@@ -11,12 +11,12 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
 function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
-function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,differentReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
-  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
+function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
+  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,readyReads:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
   const workerJobs=[];
-  const registration={scope:'https://app.anytoour.ru/manager/',active:{postMessage(data){workerJobs.push(worker('message',data));}},pushManager:{
+  const registration={scope:'https://app.anytoour.ru/manager/',active:{state:'activated',postMessage(data){workerJobs.push(worker('message',data));}},pushManager:{
     async getSubscription(){state.reads++;return readSubscription?await readSubscription(state.reads,state):state.sub;},
     async subscribe(options){assert.equal(options.userVisibleOnly,true);assert.deepEqual(Array.from(options.applicationServerKey),Array.from(state.serverKey));state.subscribes++;state.active++;state.maxActive=Math.max(state.maxActive,state.active);try{if(state.active>1)throw abort('synthetic overlapping registration');const sub=subscribe?await subscribe(state.subscribes,state):subscription(state.serverKey);state.sub=attach(sub);return sub;}finally{state.active--;}}
   },async showNotification(title){if(title==='AnyTour')state.confirmations++;else state.shown++;}};
@@ -30,7 +30,7 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const root={innerHTML:'',className:''};
     const document={readyState:'loading',addEventListener(){},getElementById(){return root},createElement(){return{set textContent(value){this.value=String(value??'');},get innerHTML(){return this.value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}};}};
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
-    const navigator={serviceWorker:{async register(){state.registered++;return differentReady?{scope:registration.scope,pushManager:{getSubscription(){throw new Error('Used register object instead of ready registration');}}}:registration;},ready:Promise.resolve(registration),addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
+    const navigator={serviceWorker:{async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
     const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
@@ -139,8 +139,9 @@ async function run(){
 
   const cancelled=environment({lockManager:locks(),deadlineMs:5,saveRequest:async(options,state)=>{if(state.saveAttempts===1)await new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>{state.aborts++;reject(abort());},{once:true}));}}),cancelPage=cancelled.page();
   assert.equal(await cancelPage.api.enable(cancelPage.root),false);await new Promise(resolve=>setTimeout(resolve,10));assert.equal(cancelled.state.aborts,1);assert.equal(await cancelPage.api.enable(cancelPage.root),true);assert.equal(cancelled.state.subscribes,1);assert.equal(cancelled.state.saveAttempts,2);assert.equal(cancelled.state.saves,1);
-  const ready=environment({differentReady:true}),readyPage=ready.page();assert.equal(await readyPage.api.enable(readyPage.root),true);
-  console.log('PASS  bounded HTTP abort releases origin lock and canonical ready registration is used');
+  const ready=environment({unrelatedReady:true}),readyPage=ready.page();assert.equal(await readyPage.api.enable(readyPage.root),true);assert.equal(ready.state.readyReads,0);assert.equal(ready.state.saves,1);
+  const outside=environment({outsideScope:true}),outsidePage=outside.page();assert.equal(await outsidePage.api.enable(outsidePage.root),true);assert.equal(outside.state.readyReads,0);assert.equal(outside.state.subscribes,1);assert.equal(outside.state.saves,1);
+  console.log('PASS  bounded HTTP abort releases origin lock and canonical registered worker is used without global ready');
 
   for(const accountChanged of [false,true]){
     const lateAuth=deferred(),authEnv=environment({subscribe:()=>lateAuth.promise}),authPage=authEnv.page();const authEnable=authPage.api.enable(authPage.root);await turn();

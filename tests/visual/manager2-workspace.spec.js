@@ -20,7 +20,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
     window.fixtureWorkers=[];
     let subscription=null;
-    const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
+    const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
     function FakeNotification(){}FakeNotification.permission='default';FakeNotification.requestPermission=async()=>{FakeNotification.permission='granted';return 'granted'};
     Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});

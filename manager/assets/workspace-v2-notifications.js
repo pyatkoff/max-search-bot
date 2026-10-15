@@ -40,6 +40,28 @@
     pending.then(()=>{if(workerRegistrationFlight===pending)workerRegistrationFlight=null;},()=>{if(workerRegistrationFlight===pending)workerRegistrationFlight=null;});
     return pending;
   }
+  async function readyRegistration(registration=null){
+    const reg=registration||await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
+    // Manager2 shares the canonical /manager/ worker. Global ready/controller
+    // match the document URL, so they cannot establish readiness on /manager2/.
+    if(reg.active?.state==='activated')return reg;
+    return new Promise((resolve,reject)=>{
+      let timer,finished=false;
+      const workers=new Set();
+      const cleanup=()=>{clearTimeout(timer);reg.removeEventListener('updatefound',inspect);workers.forEach(worker=>worker.removeEventListener('statechange',inspect));};
+      const finish=error=>{if(finished)return;finished=true;cleanup();if(error)reject(error);else resolve(reg);};
+      const inspect=()=>{
+        if(finished)return;
+        if(reg.active?.state==='activated'){finish();return;}
+        const candidates=[reg.active,reg.waiting,reg.installing].filter(Boolean);
+        candidates.forEach(worker=>{if(!workers.has(worker)){workers.add(worker);worker.addEventListener('statechange',inspect);}});
+        if(workers.size&&[...workers].every(worker=>worker.state==='redundant')&&candidates.every(worker=>worker.state==='redundant'))finish(new Error('service_worker_redundant'));
+      };
+      reg.addEventListener('updatefound',inspect);
+      timer=setTimeout(()=>finish(new Error('service_worker_ready_timeout')),10000);
+      inspect();
+    });
+  }
   async function subscriptionRequest(job,url,options,label){
     const controller=typeof AbortController==='function'?new AbortController():null;
     const pending=(async()=>{const response=await fetch(url,controller?{...options,signal:controller.signal}:options);job.httpStatus=response.status;return{response,data:await parseJson(response)};})();
@@ -127,8 +149,7 @@
         const permission=Notification.permission==='granted'?'granted':requestPermission?await withTimeout(Notification.requestPermission(),15000,'permission_timeout'):Notification.permission;
         if(permission!=='granted'){if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:'permission_denied'});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,new Error('permission_not_granted'));}return false;}
         setupStage='service_worker_register';const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
-        setupStage='service_worker_ready';const reg=await withTimeout(navigator.serviceWorker.ready,10000,'service_worker_ready_timeout');
-        if(registered.scope&&registered.scope!==reg.scope)throw new Error('service_worker_scope_mismatch');
+        setupStage='service_worker_ready';const reg=await readyRegistration(registered);
         setupStage='push_key';const keyResp=await withTimeout(fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'}),10000,'push_key_timeout'),keyJson=await parseJson(keyResp);
         requireSession(activationSession);setupHttpStatus=keyResp.status;if(keyResp.status===401){handleUnauthorized(root);return false;}
         if(!keyResp.ok||!keyJson?.ok||!keyJson.public_key)throw new Error('push_key_failed');
@@ -152,7 +173,7 @@
   async function refresh(){resetSessionState();const refreshSession=sessionSnapshot();const root=document.getElementById('notificationStatus');if(!root)return;try{const response=await fetch('push-status.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'});const data=await parseJson(response);requireSession(refreshSession);if(response.status===401){handleUnauthorized(root);return;}if(!response.ok||!data?.ok)throw new Error('push_status_failed');lastStatus=data.push_status||{};lastStatusSession=refreshSession;if(interactiveEnableInFlight&&sameSession(activationFlight?.session))render(root,withCurrentWorking({notification_path_usable:false,notification_path_reason:'no_subscription'}));else render(root,recentInteractiveFailure?withCurrentWorking(recentInteractiveFailure):lastStatus);maybeRecoverGranted(root);}catch(error){if(!sameSession(refreshSession))return;render(root,recentInteractiveFailure||withCurrentWorking({notification_path_usable:false,notification_path_reason:'health_check_failed'}));}}
   function handleSetupClick(event){const target=event.target,button=target&&typeof target.closest==='function'?target.closest('[data-enable-push]'):null;if(!button)return;event.preventDefault();enable(document.getElementById('notificationStatus'));}
   document.addEventListener('click',handleSetupClick);
-  async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');const ready=await withTimeout(navigator.serviceWorker.ready,10000,'service_worker_ready_timeout');ready.active?.postMessage({type:'SYNC_PUSH'});navigator.serviceWorker.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION'&&Number(data.conversationId||0)>0){window.WorkspaceV2Conversation?.open(Number(data.conversationId));}});}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
-  window.WorkspaceV2Notifications={refresh,init,enable,maybeRecoverGranted};
+  async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');const ready=await readyRegistration(registered);ready.active?.postMessage({type:'SYNC_PUSH'});navigator.serviceWorker.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION'&&Number(data.conversationId||0)>0){window.WorkspaceV2Conversation?.open(Number(data.conversationId));}});}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
+  window.WorkspaceV2Notifications={refresh,init,enable,maybeRecoverGranted,readyRegistration};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 })();

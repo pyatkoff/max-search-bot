@@ -21,7 +21,7 @@ async function setup(page,{role='manager',savedTabs=false,longPreview=false}={})
   page.on('requestfailed',request=>pending.delete(request));
   page.on('pageerror',error=>errors.push(error.message));
   await page.addInitScript(()=>{
-    const registration={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
+    const registration={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>registration,ready:Promise.resolve(registration),addEventListener(){}}});
     function FixtureNotification(){}FixtureNotification.permission='default';
     Object.defineProperty(window,'Notification',{configurable:true,value:FixtureNotification});

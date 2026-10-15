@@ -247,3 +247,75 @@ test('storage failure is reported and testing while off never opts in',async({pa
   await expect(page.locator('#soundMessage')).toContainText('Не удалось сохранить');
   await expect(page.locator('#soundToggle')).toHaveAttribute('aria-pressed','true');
 });
+
+// Keep native ServiceWorkerContainer and ServiceWorkerRegistration throughout.
+// A canonical /manager worker can serve push/audio at /manager2 without ever
+// controlling that page; <base> does not widen its scope or settle global ready.
+async function outsideScopeManager2(page){
+  const calls={key:0,save:0,feed:0},unexpected=[];
+  const fixture=fs.readFileSync(require('node:path').join(__dirname,'workspace-v2-fixture.html'),'utf8').replace('<head>','<head><base href="/manager/">');
+  await page.route('**/*',route=>{
+    const request=route.request(),url=new URL(request.url());
+    if(url.origin!==base){unexpected.push(request.url());return route.abort();}
+    if(url.pathname==='/manager2/')return route.fulfill({contentType:'text/html',body:fixture});
+    const reply=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
+    if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,notification_path_reason:'manager_inactive'}});
+    if(url.pathname==='/manager/push.php'&&url.searchParams.get('action')==='key'){calls.key++;return reply({ok:true,public_key:'AQ',csrf:'synthetic-csrf'});}
+    if(url.pathname==='/manager/push.php'&&request.method()==='POST'){
+      const body=request.postDataJSON();expect(body.action).toBe('subscribe');expect(body.csrf).toBe('synthetic-csrf');calls.save++;
+      return reply({ok:true,push_status:{is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1}});
+    }
+    if(url.pathname==='/manager/notification-events.php'){calls.feed++;return reply({ok:true,manager_id:7,cursor:100,events:[],has_more:false});}
+    if(url.pathname.endsWith('.php')){unexpected.push(request.method()+' '+url.pathname);return route.abort();}
+    return route.continue();
+  });
+  await page.goto(base+'/manager2/');
+  await page.evaluate(()=>{
+    document.querySelector('.notificationHealth').id='notificationStatus';
+    window.toneStarts=0;const start=OscillatorNode.prototype.start;
+    OscillatorNode.prototype.start=function(...args){window.toneStarts++;return start.apply(this,args);};
+    // The real permission stays ungranted, so no OS notification can be shown.
+    // Only its app-visible read and native PushManager provider calls are faked.
+    if(!window.Notification)window.Notification=function(){};
+    Object.defineProperty(Notification,'permission',{configurable:true,get:()=> 'granted'});
+    if(!window.PushManager)window.PushManager=function(){};
+    window.nativePushCalls={read:0,subscribe:0};let subscription=null;
+    const manager={async getSubscription(){nativePushCalls.read++;return subscription;},async subscribe(options){nativePushCalls.subscribe++;subscription={options,toJSON(){return{endpoint:'https://push.example.invalid/synthetic',keys:{p256dh:'synthetic',auth:'synthetic'}};}};return subscription;}};
+    Object.defineProperty(ServiceWorkerRegistration.prototype,'pushManager',{configurable:true,get:()=>manager});
+  });
+  await page.addScriptTag({url:base+'/manager/assets/workspace-v2.js'});
+  await page.evaluate(()=>Object.assign(WorkspaceV2.S,{manager:{id:7},authGeneration:1,authExpired:false,csrf:'synthetic-csrf',current:11}));
+  await page.addScriptTag({url:base+'/manager/assets/workspace-v2-notifications.js'});
+  const canonical=await page.evaluate(async()=>{
+    const registration=await navigator.serviceWorker.register('sw.js',{scope:'./'});
+    if(registration.active?.state!=='activated')await new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(new Error('native_worker_activation_timeout')),10000);
+      const worker=registration.installing||registration.waiting||registration.active;
+      const check=()=>{if(registration.active?.state==='activated'){clearTimeout(timer);worker.removeEventListener('statechange',check);resolve();}};
+      worker.addEventListener('statechange',check);check();
+    });
+    return{url:location.pathname,base:new URL(document.baseURI).pathname,scope:new URL(registration.scope).pathname,script:new URL(registration.active.scriptURL).pathname,state:registration.active.state,controller:navigator.serviceWorker.controller,ready:await Promise.race([navigator.serviceWorker.ready.then(()=> 'resolved'),new Promise(resolve=>setTimeout(()=>resolve('pending'),30))])};
+  });
+  expect(canonical).toEqual({url:'/manager2/',base:'/manager/',scope:'/manager/',script:'/manager/sw.js',state:'activated',controller:null,ready:'pending'});
+  expect(await page.evaluate(async()=>(await navigator.serviceWorker.getRegistrations()).map(reg=>new URL(reg.scope).pathname))).toEqual(['/manager/']);
+  return{calls,unexpected};
+}
+
+test('native manager2 activation uses canonical active registration while global ready never resolves',async({page})=>{
+  const {calls,unexpected}=await outsideScopeManager2(page);
+  expect(await page.evaluate(()=>WorkspaceV2Notifications.enable(document.getElementById('notificationStatus')))).toBe(true);
+  await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+  expect(await page.evaluate(()=>nativePushCalls.subscribe)).toBe(1);expect(calls.save).toBe(1);
+  expect(await page.evaluate(()=>navigator.serviceWorker.controller)).toBeNull();expect(unexpected).toEqual([]);
+});
+
+test('native manager2 sound probes the canonical worker without requiring a controlling worker',async({page})=>{
+  const {calls,unexpected}=await outsideScopeManager2(page);
+  await page.addScriptTag({url:base+'/manager/assets/workspace-v2-sound-ledger.js'});
+  await page.addScriptTag({url:base+'/manager/assets/workspace-v2-sound.js'});
+  await page.evaluate(()=>WorkspaceV2Sound.activate(7));
+  await enable(page);
+  expect(await tones(page)).toBe(1);expect(calls.feed).toBe(1);
+  expect(await page.evaluate(()=>navigator.serviceWorker.controller)).toBeNull();
+  expect(await page.evaluate(()=>nativePushCalls.subscribe)).toBe(0);expect(calls.save).toBe(0);expect(unexpected).toEqual([]);
+});
