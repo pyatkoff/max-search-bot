@@ -19,7 +19,7 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
  const messages=id=>Array.from({length:35+(revisions.get(id)||0)},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i>=34?'А сколько будет на других датах, на двоих с ребёнком?':'Сообщение '+(i+1)+'. Обсуждаем семейный отдых, отели и даты.',created_at:'2026-10-14 09:20:00'}));
  await page.addInitScript(()=>{
   sessionStorage.clear();
-  Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>({scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null}}),addEventListener(){}}});
+  Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>({scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null}}),addEventListener(){}}});
   function FakeNotification(){}FakeNotification.permission='denied';Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});
  });
  page.on('pageerror',e=>errors.push(e.message));

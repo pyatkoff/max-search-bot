@@ -18,7 +18,7 @@ async function setup(page,options={}){
  page.on('request',r=>pending.add(r));page.on('requestfinished',r=>pending.delete(r));page.on('requestfailed',r=>pending.delete(r));page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
   window.notesFixtureTiming={};const observer=new MutationObserver(()=>{if(!notesFixtureTiming.inboxMs&&document.querySelector('#inboxList .leadItem'))notesFixtureTiming.inboxMs=performance.now()});observer.observe(document,{subtree:true,childList:true});
-  const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
+  const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});function N(){}N.permission='default';Object.defineProperty(window,'Notification',{configurable:true,value:N});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
  });
  await page.route('**/*',async route=>{

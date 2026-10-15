@@ -35,7 +35,7 @@ async function setup(page,options={}){
  await page.addInitScript(()=>{
   window.personalFixtureTiming={};
   const observer=new MutationObserver(()=>{if(!window.personalFixtureTiming.inboxMs&&document.querySelector('#inboxList .leadItem'))window.personalFixtureTiming.inboxMs=performance.now()});observer.observe(document,{subtree:true,childList:true});
-  const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
+  const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});
   function N(){}N.permission='default';Object.defineProperty(window,'Notification',{configurable:true,value:N});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
  });
