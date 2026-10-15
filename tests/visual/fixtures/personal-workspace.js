@@ -13,7 +13,7 @@ function personalRows(rows,state,tab,selection,owner){
  const open=row=>row.status!=='closed',accessible=row=>!row.manager_id||Number(row.manager_id)===owner;
  const inQueue=(row,queue)=>queue==='all'?open(row)&&accessible(row):queue==='closed'?!open(row):queue==='mine'?row.status==='manager'&&Number(row.manager_id)===owner:queue==='waiting'?accessible(row)&&((row.status==='waiting_manager'&&!row.manager_id)||!!row.awaiting_first_reply):false;
  const labelMembers=new Set(labels.flatMap(id=>state.labels.some(label=>Number(label.id)===Number(id))?state.members[id]||[]:[]).map(Number));
- return rows.filter(row=>(queues.length?queues.some(queue=>inQueue(row,queue)):open(row))
+ return rows.filter(row=>accessible(row)&&(queues.length?queues.some(queue=>inQueue(row,queue)):open(row))
   &&(!channels.length||channels.includes(row.channel))&&(!sources.length||sources.map(Number).includes(Number(row.source_id)))
   &&(!labels.length||labelMembers.has(Number(row.id)))&&(!(selection==='pinned'||tab?.pinned_only)||state.pins.includes(Number(row.id)))
   &&(!tab?.reply_needed||row.status==='waiting_manager'||(row.status==='manager'&&!!row.awaiting_manager_reply)));
@@ -51,7 +51,10 @@ async function setup(page,options={}){
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch{return block()}}
   const owner=manager.id;calls.push({path:url.pathname,owner,payload_bytes:Buffer.byteLength(req.postData()||''),...d});
   if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){
-   if([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel||!visibleIds.has(Number(url.searchParams.get('conversation_id'))))return block();
+   // The retained pre-capacity shell predates the account/channel avatar URL.
+   // Only its explicit paired baseline may use that historical request shape.
+   const legacy=options.legacyAvatar===true&&options.sourceRoot&&[...url.searchParams.keys()].join(',')==='conversation_id'&&conv(Number(url.searchParams.get('conversation_id'))).channel==='telegram';
+   if(!visibleIds.has(Number(url.searchParams.get('conversation_id')))||(!legacy&&([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel)))return block();
    return route.fulfill({status:404,body:''});
   }
   if(method==='POST'&&d.csrf!=='fixture-csrf'&&!['me','login'].includes(d.action))throw new Error('Canonical CSRF missing: '+url.pathname+' '+d.action);
@@ -75,18 +78,25 @@ async function setup(page,options={}){
    if(d.action==='operation'){const previous=receipts.get(owner+':'+d.operation_id);return reply({...snapshot(owner),found:!!previous,result:previous?{...previous,...snapshot(owner)}:null})}
    if(d.action==='list'){
     const state=account(owner).state,tab=state.tabs.find(t=>'tab:'+t.id===d.selection);
-    if(d.selection!=='pinned'&&!tab)return reply({ok:false,error:'not_found'},404);
-    const items=personalRows(clone(options.personalRows||rows()),state,tab,d.selection,owner);
+    if(d.selection!=='pinned'&&!tab)return reply({...snapshot(owner),ok:false,error:'not_found'},404);
+    const items=personalRows(clone(options.personalRows||rows()),state,tab,d.selection,owner).filter(row=>(!d.project_key||d.project_key==='*'||row.project_key===d.project_key)&&(!Number(d.source_id)||Number(row.source_id)===Number(d.source_id))&&(!d.search||[row.display_name,row.last_text].some(value=>String(value||'').toLocaleLowerCase().includes(String(d.search).toLocaleLowerCase()))));
     const capturedError=listError,result={...snapshot(owner),conversations:items,bounded_count:items.length,has_more:!!options.limited,limited:!!options.limited,count_scope:'loaded_visible',limit:200};if(holdList)await new Promise(resolve=>heldLists.push(resolve));if(capturedError)return reply({ok:false,error:'list_failed'},500);return reply(result);
    }
-   const allowed=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','pin','settings'];
+   const allowed=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','pin','settings','group_create','group_rename','group_delete','group_membership'];
    if(!allowed.includes(d.action))return block();
    if(d.action==='tab_save'&&Array.isArray(d.tab?.queues)&&!d.tab.queues.length)return reply({ok:false,error:'invalid_tab'},400);
    const a=account(owner);
    if(writeResult==='conflict'||Number(d.expected_version)!==a.version){writeResult='success';return reply({...snapshot(owner),ok:false,error:'conflict'},409)}
    if(writeResult==='rejected')return reply({ok:false,error:'forbidden'},403);
    const state=a.state;
+   if(d.action==='group_create'&&(state.tabs.length>=12||state.labels.length>=30))return reply({ok:false,error:state.tabs.length>=12?'tab_limit_exceeded':'label_limit_exceeded'},400);
+   if(d.action==='group_membership'&&!visibleIds.has(Number(d.conversation_id)))return reply({ok:false,error:'forbidden'},403);
+   if(['group_rename','group_delete','group_membership'].includes(d.action)&&!state.tabs.some(tab=>tab.kind==='group'&&Number(tab.id)===Number(d.id)))return reply({ok:false,error:'not_found'},404);
    let outcome={};
+   if(d.action==='group_create'){while(state.tabs.some(tab=>tab.id===nextId)||state.labels.some(label=>label.id===nextId))nextId++;const label={id:nextId++,name:d.name};const tab={id:nextId++,name:d.name,kind:'group',group_label_id:label.id,label_id:label.id,label_ids:[label.id],queue:'all',queues:['all','closed'],channel:'',source_id:0,reply_needed:false,pinned_only:false};state.labels.push(label);state.tabs.push(tab);outcome={id:tab.id,label_id:label.id};}
+   if(d.action==='group_rename'){const tab=state.tabs.find(tab=>Number(tab.id)===Number(d.id));tab.name=d.name;const label=state.labels.find(label=>Number(label.id)===Number(tab.group_label_id));if(label)label.name=d.name;outcome={id:tab.id,label_id:tab.group_label_id};}
+   if(d.action==='group_delete'){const tab=state.tabs.find(tab=>Number(tab.id)===Number(d.id)),label=Number(tab.group_label_id);state.tabs=state.tabs.filter(t=>Number(t.id)!==Number(d.id));state.labels=state.labels.filter(l=>Number(l.id)!==label);delete state.members[label];if(state.settings.start_tab==='tab:'+d.id)state.settings.start_tab='waiting';outcome.deleted_id=d.id;}
+   if(d.action==='group_membership'){const tab=state.tabs.find(tab=>Number(tab.id)===Number(d.id)),key=Number(tab.group_label_id),ids=(state.members[key]||[]).filter(id=>id!==Number(d.conversation_id));if(d.enabled)ids.push(Number(d.conversation_id));if(ids.length)state.members[key]=ids;else delete state.members[key];}
    if(d.action==='tab_save'){const tab={queue:'mine',channel:'',source_id:0,reply_needed:false,label_id:0,pinned_only:false,...d.tab,id:Number(d.id||0)||nextId++};const i=state.tabs.findIndex(t=>t.id===tab.id);if(i<0)state.tabs.push(tab);else state.tabs[i]=tab;outcome.id=tab.id;}
    if(d.action==='tab_delete'){state.tabs=state.tabs.filter(t=>t.id!==Number(d.id));if(state.settings.start_tab==='tab:'+d.id)state.settings.start_tab='waiting';outcome.deleted_id=d.id;}
    if(d.action==='tab_reorder')state.tabs=(d.ids||d.tab_ids||[]).map(id=>state.tabs.find(t=>t.id===id));

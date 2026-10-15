@@ -195,11 +195,58 @@ foreach ($badMulti as $invalid) pwCheck('invalid multi-choice type duplicate bou
 pwCheck('every selected source needs active current project access',pwMut('tab_save',['id'=>$multiId,'tab'=>array_replace($multiInput,['source_ids'=>[1,3]])])['error']==='forbidden'&&pwMut('tab_save',['id'=>$multiId,'tab'=>array_replace($multiInput,['source_ids'=>[1,5]])])['error']==='forbidden');
 pwMut('tab_delete',['id'=>$multiId]);
 
+// Manual groups are explicit account preferences, never inferred from an old
+// label-filter tab. One operation owns their row, marker and receipt.
+$prior=pwState();$groupCommand=['name'=>'Подбор','expected_version'=>$prior['version'],'operation_id'=>'manual-group-create-once-0001'];
+$group=pwMut('group_create',$groupCommand);$groupId=$group['id'];$groupLabel=$group['label_id'];
+$groupTab=array_values(array_filter($group['state']['tabs'],static fn(array $row):bool=>$row['id']===$groupId))[0];
+pwCheck('manual group creates one bound label and explicit sticky tab in one revision',$group['ok']&&$group['version']===$prior['version']+1&&count($group['state']['tabs'])===count($prior['state']['tabs'])+1&&count($group['state']['labels'])===count($prior['state']['labels'])+1&&$groupTab['kind']==='group'&&$groupTab['group_label_id']===$groupLabel&&$groupTab['label_ids']===[$groupLabel]&&$groupTab['queues']===['all','closed']&&!$groupTab['reply_needed']&&!$groupTab['pinned_only']);
+pwCheck('lost group-create result retries exactly once and remains account-private',pwMut('group_create',$groupCommand)==$group&&pwState(8)['state']['tabs']===[]&&!ManagerPersonalWorkspaceService::operation(8,$groupCommand['operation_id'])['found']);
+pwCheck('group-create operation key cannot be reused for another group',pwMut('group_create',array_replace($groupCommand,['name'=>'Другая группа']))['error']==='operation_mismatch');
+pwCheck('legacy label-filter tab stays distinct from explicit group',!isset($prior['state']['tabs'][0]['kind'])&&pwMut('group_membership',['id'=>$prior['state']['tabs'][0]['id'],'conversation_id'=>1,'enabled'=>true])['error']==='not_found');
+$groupVersion=pwState()['version'];
+foreach ([['tab_save',['id'=>$groupId,'tab'=>['name'=>'Changed binding']]],['tab_delete',['id'=>$groupId]],['label_save',['id'=>$groupLabel,'name'=>'Changed binding']],['label_delete',['id'=>$groupLabel]]] as [$action,$command]) pwCheck('generic editors cannot break atomic group binding',pwMut($action,$command)['error']==='group_action_required'&&pwState()['version']===$groupVersion);
+pwCheck('group name validation and namespace duplicates are atomic',pwMut('group_create',['name'=>' '])['error']==='invalid_name'&&pwMut('group_create',['name'=>str_repeat('я',65)])['error']==='invalid_name'&&pwMut('group_create',['name'=>'Подбор'])['error']==='duplicate_name'&&pwMut('group_rename',['id'=>$groupId,'name'=>'Вторая метка'])['error']==='duplicate_name'&&pwState()['version']===$groupVersion);
+foreach ([1,2003,2004] as $conversationId) pwMut('group_membership',['id'=>$groupId,'conversation_id'=>$conversationId,'enabled'=>true]);
+$groupSelection=['selection'=>'tab:'.$groupId];$pdo->lists=0;
+$groupRows=ManagerPersonalWorkspaceService::list(7,$groupSelection);
+pwCheck('group reads only selected IDs including closed and unassigned with one bounded query',array_column($groupRows['conversations'],'id')===[2003,2004,1]&&$pdo->lists===1&&!$groupRows['limited']);
+$memberVersion=pwState()['version'];
+pwCheck('group membership repeat is a receipt-backed no-op',pwMut('group_membership',['id'=>$groupId,'conversation_id'=>1,'enabled'=>true])['version']===$memberVersion);
+$pdo->exec("UPDATE messages SET direction='outbound',sender_type='manager' WHERE id=1; INSERT INTO manager_conversation_reads VALUES(7,1,1)");
+$afterReply=ManagerPersonalWorkspaceService::list(7,$groupSelection);
+pwCheck('reply and read markers do not remove sticky manual membership',in_array(1,array_column($afterReply['conversations'],'id'),true)&&pwState()['version']===$memberVersion&&((array)pwState()['state']['members'])[$groupLabel]===[1,2003,2004]);
+$pdo->exec("UPDATE messages SET direction='inbound',sender_type='customer' WHERE id=1; DELETE FROM manager_conversation_reads WHERE manager_id=7 AND conversation_id=1");
+pwCheck('group transient filters intersect selected members',array_column(ManagerPersonalWorkspaceService::list(7,$groupSelection+['channel'=>'max','source_id'=>1])['conversations'],'id')===[2003,2004,1]&&ManagerPersonalWorkspaceService::list(7,$groupSelection+['channel'=>'telegram'])['conversations']===[]);
+pwCheck('group mutation rechecks current source and project visibility',pwMut('group_membership',['id'=>$groupId,'conversation_id'=>2002,'enabled'=>true])['error']==='forbidden'&&pwMut('group_membership',['id'=>$groupId,'conversation_id'=>2001,'enabled'=>true])['error']==='forbidden');
+$pdo->exec('UPDATE conversations SET source_id=2 WHERE id=1');
+pwCheck('lost visibility hides group member and rejects even removal',!in_array(1,array_column(ManagerPersonalWorkspaceService::list(7,$groupSelection)['conversations'],'id'),true)&&pwMut('group_membership',['id'=>$groupId,'conversation_id'=>1,'enabled'=>false])['error']==='forbidden'&&in_array(1,((array)pwState()['state']['members'])[$groupLabel],true));
+$pdo->exec('UPDATE conversations SET source_id=1 WHERE id=1');
+$renamed=pwMut('group_rename',['id'=>$groupId,'name'=>'В работе']);
+pwCheck('rename updates only the bound pair preserving membership',array_values(array_filter($renamed['state']['tabs'],static fn(array $row):bool=>$row['id']===$groupId))[0]['name']==='В работе'&&array_values(array_filter($renamed['state']['labels'],static fn(array $row):bool=>$row['id']===$groupLabel))[0]['name']==='В работе'&&((array)$renamed['state']['members'])[$groupLabel]===[1,2003,2004]);
+$receipt=ManagerPersonalWorkspaceService::operation(7,$groupCommand['operation_id']);$oldReplay=pwMut('group_create',$groupCommand);
+pwCheck('old group receipt recovers latest renamed state with original IDs',$receipt['found']&&$receipt['result']['id']===$groupId&&$receipt['result']['label_id']===$groupLabel&&$receipt['result']['version']===$renamed['version']&&$oldReplay['state']==$renamed['state']);
+$conflict=pwMut('group_rename',['id'=>$groupId,'name'=>'Stale rename','expected_version'=>$groupVersion]);
+pwCheck('stale group command cannot overwrite newer membership or name',$conflict['error']==='conflict'&&$conflict['state']==$renamed['state']);
+$group2=pwMut('group_create',['name'=>'Обдумывают']);$mixedOrder=array_reverse(array_column($group2['state']['tabs'],'id'));
+pwCheck('canonical reorder persists mixed groups and legacy tabs',array_column(pwMut('tab_reorder',['ids'=>$mixedOrder])['state']['tabs'],'id')===$mixedOrder);
+$dependent=pwMut('tab_save',['tab'=>['name'=>'Legacy group-label reference','label_id'=>$groupLabel]]);
+pwMut('settings',['settings'=>['start_tab'=>'tab:'.$groupId]]);
+$deletedGroup=pwMut('group_delete',['id'=>$groupId]);
+pwCheck('group deletion atomically removes bound marker memberships and startup but preserves tombstones',$deletedGroup['deleted_id']===$groupId&&$deletedGroup['label_id']===$groupLabel&&!in_array($groupId,array_column($deletedGroup['state']['tabs'],'id'),true)&&!in_array($groupLabel,array_column($deletedGroup['state']['labels'],'id'),true)&&!isset(((array)$deletedGroup['state']['members'])[$groupLabel])&&$deletedGroup['state']['settings']['start_tab']==='waiting'&&ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$dependent['id']])['conversations']===[]);
+pwCheck('deleted group cannot become another selection or accept membership',ManagerPersonalWorkspaceService::list(7,$groupSelection)['error']==='not_found'&&pwMut('group_membership',['id'=>$groupId,'conversation_id'=>1,'enabled'=>true])['error']==='not_found');
+$deletedVersion=pwState()['version'];$deletedReplay=pwMut('group_create',$groupCommand);
+pwCheck('late create replay after deletion never recreates the old group',$deletedReplay['ok']&&$deletedReplay['id']===$groupId&&$deletedReplay['version']===$deletedVersion&&!in_array($groupId,array_column($deletedReplay['state']['tabs'],'id'),true));
+pwMut('group_delete',['id'=>$group2['id']]);pwMut('tab_delete',['id'=>$dependent['id']]);
+
 // Atomic rollback at receipt write prevents UNKNOWN being mistaken for success.
 $pdo->exec("CREATE TRIGGER reject_workspace_receipt BEFORE UPDATE ON manager_personal_workspace_operations WHEN NEW.operation_id='rollback-operation-0001' BEGIN SELECT RAISE(FAIL,'Synthetic receipt failure'); END");
 $initial=pwState();$input=['name'=>'Rollback label','expected_version'=>$initial['version'],'operation_id'=>'rollback-operation-0001'];$failed=false;
 try {pwMut('label_save',$input);} catch (PDOException $e) {$failed=true;}
 pwCheck('receipt failure rolls back preference state and allocation',$failed&&pwState()==$initial&&!ManagerPersonalWorkspaceService::operation(7,$input['operation_id'])['found']);
+$groupRollback=['name'=>'Rollback group','expected_version'=>$initial['version'],'operation_id'=>'rollback-operation-0001'];$failed=false;
+try {pwMut('group_create',$groupRollback);} catch (PDOException $e) {$failed=true;}
+pwCheck('group receipt failure rolls back both allocations revision and UNKNOWN outcome',$failed&&pwState()==$initial&&!ManagerPersonalWorkspaceService::operation(7,$groupRollback['operation_id'])['found']);
 $pdo->exec('DROP TRIGGER reject_workspace_receipt');
 $retry=pwMut('label_save',$input);
 pwCheck('same operation after genuine rollback commits exactly once',$retry['ok']&&pwMut('label_save',$input)['id']===$retry['id']);
@@ -208,8 +255,12 @@ pwCheck('same operation after genuine rollback commits exactly once',$retry['ok'
 // seeding is restricted to existing account preference rows, never live data.
 for ($i=count(pwState()['state']['tabs']);$i<12;$i++) pwMut('tab_save',['tab'=>['name'=>'Tab bound '.$i]]);
 pwCheck('tab12 bound is explicit and persisted',pwMut('tab_save',['tab'=>['name'=>'Too many']])['error']==='tab_limit_exceeded'&&count(pwState()['state']['tabs'])===12);
+$capacity=pwState();
+pwCheck('group tab capacity leaves no orphan label or allocation',pwMut('group_create',['name'=>'Too many groups'])['error']==='tab_limit_exceeded'&&pwState()==$capacity);
 for ($i=count(pwState()['state']['labels']);$i<30;$i++) pwMut('label_save',['name'=>'Label bound '.$i]);
 pwCheck('label30 bound is explicit',pwMut('label_save',['name'=>'Too many'])['error']==='label_limit_exceeded');
+pwMut('tab_delete',['id'=>pwState()['state']['tabs'][0]['id']]);$capacity=pwState();
+pwCheck('group label capacity leaves no orphan tab or allocation',pwMut('group_create',['name'=>'No marker capacity'])['error']==='label_limit_exceeded'&&pwState()==$capacity);
 $raw=json_decode((string)$pdo->query('SELECT state_json FROM manager_personal_workspace_states WHERE manager_id=7')->fetchColumn(),true);
 $raw['pins']=range(1,200);$raw['members']=[(string)$secondId=>range(1,2000)];
 $seed=$pdo->prepare('UPDATE manager_personal_workspace_states SET state_json=? WHERE manager_id=7');$seed->execute([json_encode($raw,JSON_THROW_ON_ERROR)]);
@@ -294,6 +345,21 @@ try {
     $badTab=$request($endpoint,['action'=>'tab_save','tab'=>'invalid-array','expected_version'=>2,'operation_id'=>'http-personal-invalid-001']+$csrf,$firstCookie);
     $badVersion=$request($endpoint,['action'=>'settings','settings'=>[],'expected_version'=>'2','operation_id'=>'http-personal-invalid-002']+$csrf,$firstCookie);
     pwCheck('real malformed fields422 never become storage503',$badTab['status']===422&&$badTab['body']['error']==='invalid_tab'&&$badVersion['status']===422&&$badVersion['body']['error']==='invalid_version');
+    $groupCreate=['action'=>'group_create','name'=>'Подбор','expected_version'=>2,'operation_id'=>'http-personal-group-create-01','manager_id'=>102];
+    $groupCsrf=$request($endpoint,$groupCreate,$firstCookie);
+    pwCheck('real group creation requires canonical CSRF before allocation',$groupCsrf['status']===403&&$groupCsrf['body']['error']==='csrf');
+    $httpGroup=$request($endpoint,$groupCreate+$csrf,$firstCookie);$httpReplay=$request($endpoint,$groupCreate+$csrf,$firstCookie);
+    $httpGroupId=$httpGroup['body']['id'];$httpGroupLabel=$httpGroup['body']['label_id'];
+    $otherGroups=$request($endpoint,['action'=>'snapshot']+$csrf,$secondCookie);
+    pwCheck('real group create and lost-response replay atomically allocate bound pair in session account',$httpGroup['status']===200&&$httpGroup['body']['version']===3&&$httpReplay['body']===$httpGroup['body']&&$httpGroup['body']['state']['tabs'][0]['kind']==='group'&&$httpGroup['body']['state']['tabs'][0]['group_label_id']===$httpGroupLabel&&count($httpGroup['body']['state']['labels'])===2&&$otherGroups['body']['state']['tabs']===[]);
+    $groupBreak=$request($endpoint,['action'=>'label_delete','id'=>$httpGroupLabel,'expected_version'=>3,'operation_id'=>'http-personal-group-break-001']+$csrf,$firstCookie);
+    pwCheck('real generic editor cannot split group binding',$groupBreak['status']===422&&$groupBreak['body']['error']==='group_action_required'&&$groupBreak['body']['version']===3);
+    $httpRename=$request($endpoint,['action'=>'group_rename','id'=>$httpGroupId,'name'=>'В работе','expected_version'=>3,'operation_id'=>'http-personal-group-rename-01']+$csrf,$firstCookie);
+    $groupRecovery=$request($endpoint,['action'=>'operation','operation_id'=>$groupCreate['operation_id']]+$csrf,$firstCookie);
+    pwCheck('real group receipt recovers current renamed state and original allocated IDs',$httpRename['status']===200&&$httpRename['body']['version']===4&&$groupRecovery['body']['found']&&$groupRecovery['body']['result']['id']===$httpGroupId&&$groupRecovery['body']['result']['label_id']===$httpGroupLabel&&$groupRecovery['body']['result']['state']===$httpRename['body']['state']);
+    $httpDelete=$request($endpoint,['action'=>'group_delete','id'=>$httpGroupId,'expected_version'=>4,'operation_id'=>'http-personal-group-delete-01']+$csrf,$firstCookie);
+    $missingGroup=$request($endpoint,['action'=>'list','selection'=>'tab:'.$httpGroupId]+$csrf,$firstCookie);
+    pwCheck('real deleted group selection returns404 and current snapshot rather than broad all list',$httpDelete['status']===200&&$httpDelete['body']['state']['tabs']===[]&&count($httpDelete['body']['state']['labels'])===1&&$missingGroup['status']===404&&$missingGroup['body']['error']==='not_found'&&$missingGroup['body']['version']===$httpDelete['body']['version']&&$missingGroup['body']['state']===$httpDelete['body']['state']&&!isset($missingGroup['body']['conversations']));
     $inactiveLogin=$request('/manager/fixture-session.php?id=103',[],'','GET');
     $inactive=$request($endpoint,['action'=>'snapshot']+$csrf,$inactiveLogin['cookie']);
     pwCheck('real canonical auth rejects disabled account401',$inactive['status']===401&&$inactive['body']['error']==='unauthorized');

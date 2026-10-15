@@ -311,7 +311,7 @@
     document.querySelector('.queueTabs').addEventListener('click',()=>{if(section==='tasks')section='dialogues';setTimeout(syncNavigation,0)});
     $('mobileLeadBtn').addEventListener('click',e=>{e.stopImmediatePropagation();openClientCard(e.currentTarget)});
     $('mobileLeadClose').addEventListener('click',()=>{if(!window.WorkspaceV2Mobile?.isMobile())closeClientCard()});
-    window.addEventListener('popstate',()=>setTimeout(()=>{syncClientCard();if(window.WorkspaceV2Mobile?.getScreen()==='conversation'&&clientCardOpener?.isConnected)clientCardOpener.focus({preventScroll:true})},0));
+    window.addEventListener('popstate',event=>{setTimeout(()=>{if(event.workspaceOverlayHandled)return;syncClientCard();if(window.WorkspaceV2Mobile?.getScreen()==='conversation'&&clientCardOpener?.isConnected)clientCardOpener.focus({preventScroll:true})},0)});
     window.addEventListener('resize',()=>{if(window.WorkspaceV2Mobile?.isMobile()&&$('workspaceRoot').classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');syncClientCard()});
     $('leadZone').addEventListener('keydown',e=>{if(e.key==='Escape'&&!window.WorkspaceV2Mobile?.isMobile()&&!e.target.closest('dialog')){e.preventDefault();closeClientCard()}});
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});

@@ -66,7 +66,7 @@ async function back(page){if(await page.locator('#mobileBack').isVisible()){awai
 for(const width of [390,430,768,1440])test('short capacity minimal single tab '+width,async({page,browserName})=>{
  if(process.env.M2_CAPACITY_BASE_ROOT){
   const baseline=await page.context().newPage();try{
-   await baseline.setViewportSize({width,height:420});const old=await setup(baseline,{state:stateFor(1,0),sourceRoot:process.env.M2_CAPACITY_BASE_ROOT});await settled(baseline,old);await select(baseline,old,1);
+   await baseline.setViewportSize({width,height:420});const old=await setup(baseline,{state:stateFor(1,0),sourceRoot:process.env.M2_CAPACITY_BASE_ROOT,legacyAvatar:true});await settled(baseline,old);await select(baseline,old,1);
    const g=await geometry(baseline);console.log('BASELINE '+width+' '+JSON.stringify(g));
    await capture(baseline,browserName,width,420,'one-short-tab','baseline-selected');
    expect(g.visibleRow).toBeLessThan(48);let pointerOpened=false;

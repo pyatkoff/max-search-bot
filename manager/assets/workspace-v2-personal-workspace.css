@@ -26,3 +26,30 @@
 .pwConditionHint{margin:0}
 .pwMulti summary:focus-visible{outline:3px solid #b3925a;outline-offset:-3px}
 @media(max-width:500px){.pwEditor .pwGrid{grid-template-columns:1fr}.pwDialog .pwChoices .pwCheck{min-height:44px}}
+
+/* Manual groups share the lazy personal settings dialog and confirmed state. */
+.pwCreateGroupTab{flex:0 0 auto;min-height:34px;white-space:nowrap;border-style:dashed!important;color:#365c47!important;background:#f6f9f2!important}
+.pwGroupTab{border-color:#bdcdb8!important}
+.pwConversationGroups{display:flex;gap:4px;align-items:center;max-width:100%;overflow-x:auto;scrollbar-width:thin;margin-top:3px}
+.pwConversationGroups[hidden],.pwGroupOpen[hidden]{display:none!important}
+.pwConversationGroups button{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;max-width:160px;min-height:22px;padding:2px 5px;background:#edf3e7;border:1px solid #d5e1cc;border-radius:5px;color:#496348;font:inherit;font-size:10px;cursor:pointer}
+.pwConversationGroups button span:first-child{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pwConversationGroups button:focus-visible,.pwGroupOpen:focus-visible{outline:3px solid #b3925a;outline-offset:2px}
+.pwDialog[data-pw-mode^="group-"]{width:min(480px,calc(100vw - 32px))}
+.pwDialog[data-pw-mode^="group-"] .pwScroll section{border-bottom:0}
+.pwDialog[data-pw-mode^="group-"][data-pw-recovery="false"] .pwRecovery{display:none}
+.pwGroupChoices{display:grid;gap:7px;margin:12px 0}
+.pwGroupChoice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px;border:1px solid #dce5d8;border-radius:9px;background:#fff;min-width:0}
+.pwGroupChoice>span{min-width:0;display:grid;gap:3px;overflow-wrap:anywhere}
+.pwGroupChoice strong{font-size:14px;line-height:1.4}
+.pwGroupChoice small{font-size:11px;color:#718068}
+.pwGroupChoice>button{flex:0 0 auto;min-height:40px;min-width:84px;font-size:13px}
+.pwGroupChoice.isMember{border-color:#bdcfb5;background:#f3f7ef}
+.pwGroupChoice.isMember small{color:#426741}
+.pwGroupChoice.isMember>button{background:#f8faf6;border-color:#c9d7c1;color:#496548}
+.pwGroupBack{margin-bottom:12px;background:transparent!important;border-color:transparent!important;padding-left:0!important;font-size:12px!important}
+.pwGroupHint{margin-top:0}
+#pwGroupName{font-size:16px;min-height:44px}
+#pwGroupPickerCreate{min-height:40px;width:100%;border-style:dashed}
+@media(max-width:500px){.pwDialog[data-pw-mode^="group-"]{width:calc(100vw - 16px)}.pwGroupChoice{padding:9px;gap:8px}.pwGroupChoice>button{min-height:44px}.pwCreateGroupTab{min-height:36px;font-size:12px}.conversationHead .pwGroupOpen{min-height:36px;white-space:nowrap}.pwConversationGroups{max-height:26px}.pwConversationGroups button{min-height:24px;max-width:130px}}
+@media(max-height:500px){.pwDialog[data-pw-mode^="group-"] .pwHeader{padding-bottom:4px}.pwDialog[data-pw-mode^="group-"] .pwScroll{padding-bottom:8px}.pwGroupChoices{margin:6px 0}.pwGroupChoice{padding:7px 9px}}

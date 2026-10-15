@@ -100,10 +100,10 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .filtersPanel{width:100%;box-sizing:border-box;flex-shrink:1;margin-bottom:7px;max-height:min(40vh,330px)}
 .manager2 .m2TaskFilters{margin:0 0 7px}
 .manager2 .pwLane{padding:0;margin:0;width:100%;border:0;min-height:0}
-.manager2 .pwControlRow{display:block}
+.manager2 .pwControlRow{display:flex;gap:5px;align-items:center}
 .manager2 #pwOpen,.manager2 #pwLane [data-pw-selection=pinned]{display:none}
 .manager2 .pwSelections{gap:4px;padding:5px 0 6px;min-height:0}
-.manager2 .pwSelections:not(:has([data-pw-selection^="tab:"])){display:none}
+.manager2 .pwSelections:not(:has([data-pw-selection^="tab:"])){min-width:0}
 .manager2 .pwSelections button{min-height:32px;padding:4px 8px;font-size:12px;border-radius:6px}
 .manager2 .pwLane>.pwScopeHint{margin:0;padding:3px 0 5px;font-size:11px}
 .manager2 .leadItem{padding:12px;border-bottom-color:#edf0e9}
@@ -171,3 +171,11 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2ChatMeta .unreadBadge{margin-left:auto;flex:0 0 auto}
 /* A lone personal pin shares the metadata line; named labels keep their own row. */
 .manager2 .m2ChatMeta>.pwRowMarkers{margin:0;flex:0 0 auto;line-height:1}
+
+/* A group is a direct personal destination, alongside saved filtered tabs. */
+.manager2 #pwNewGroup{flex:0 0 auto;min-height:32px;font-size:12px;padding:4px 8px;border-radius:6px}
+.manager2 .pwSelections{min-width:0;flex:1;display:flex}
+.manager2 .conversationHead .pwGroupOpen{flex-shrink:0;padding:0 9px;font-size:12px}
+.manager2 .pwConversationGroups{margin-top:4px}
+.manager2 .pwConversationGroups button{background:#edf3e7;border-color:#d8e3ce;color:#4b6548}
+@media(max-width:740px){.manager2 .conversationHead .pwGroupOpen{padding:0 7px;min-height:40px;font-size:11px}.manager2 .pwConversationGroups button{font-size:10px;max-width:100px}.manager2 .pwControlRow{gap:4px}}
