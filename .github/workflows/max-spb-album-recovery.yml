@@ -1,0 +1,94 @@
+name: Fixed SPB MAX album recovery
+on:
+  push:
+    branches: [test/max-spb-album-recovery-20261015]
+    paths: [.github/workflows/max-spb-album-recovery.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 8a096c541dc39d438b49fed7a78838376f9df3dc
+  RECOVERY_MODE: preview
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/test/max-spb-album-recovery-20261015'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 8a096c541dc39d438b49fed7a78838376f9df3dc
+      - name: Verify reviewed CLI and authoritative release before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          php -l tools/recover_spb_channel_post_album.php
+          php -l services/ChannelPostMaxAlbumRecovery.php
+          current=$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)
+          test "$current" = "$EXPECTED_PRODUCTION_SHA"
+          release=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=50" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$release" = success
+          test "$(git rev-parse HEAD:tools/recover_spb_channel_post_album.php)" = "$(git rev-parse "$EXPECTED_PRODUCTION_SHA:tools/recover_spb_channel_post_album.php")"
+      - name: Prepare established SSH key
+        env:
+          RECOVERY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/recovery_key"
+          raw="$RECOVERY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || exit 2
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Preview only the fixed existing SPB publication
+        env:
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/recover_spb_channel_post_album.php --expected-sha=$EXPECTED_PRODUCTION_SHA" > "$RUNNER_TEMP/spb-preview.json"
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['RUNNER_TEMP']+'/spb-preview.json') as f: d=json.load(f)
+          print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['state']=='preview' and d['image_count']==6
+          assert d['provider_requests']==0 and d['write_attempts']==0
+          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          PY
+      - name: Apply once through installed guarded recovery
+        if: env.RECOVERY_MODE == 'apply'
+        env:
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=0
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/recover_spb_channel_post_album.php --expected-sha=$EXPECTED_PRODUCTION_SHA --apply" > "$RUNNER_TEMP/spb-apply.json" || status=$?
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['RUNNER_TEMP']+'/spb-apply.json') as f: d=json.load(f)
+          print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['state']=='sent' and d['version_number']==3
+          assert 1<=d['image_count']<=11 and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          r=d['receipt']
+          assert r['write_attempts']==1 and r['button_verified'] is True and r['content_preserved'] is True
+          assert d['provider_requests']<=6
+          PY
+          exit "$status"
+      - name: Remove ephemeral SSH key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/recovery_key"
