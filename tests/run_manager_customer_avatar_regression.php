@@ -175,9 +175,9 @@ try {
         $accountOnly=$request($endpoint.'&account=1',$cookie);
         avCheck('real HTTP legacy account-only URL still revalidates',$accountOnly['status']===200 && $header($accountOnly,'Cache-Control')==='private, no-cache, must-revalidate');
         $dailyEndpoint=$endpoint.'&account=1&channel=telegram';$daily=$request($dailyEndpoint,$cookie);$dailyTag=$header($daily,'ETag');
-        avCheck('real HTTP current-account and channel URL receives private daily cache',$daily['status']===200 && $daily['bytes']===$png && $header($daily,'Cache-Control')==='private, max-age=86400' && $header($daily,'Vary')==='Cookie' && $dailyTag!==$tag && $header($daily,'Pragma')===null && $header($daily,'Expires')===null);
+        avCheck('real HTTP current-account and channel URL receives private daily cache',$daily['status']===200 && $daily['bytes']===$png && $header($daily,'Cache-Control')==='private, max-age=86400, must-revalidate' && $header($daily,'Vary')==='Cookie' && $dailyTag!==$tag && $header($daily,'Pragma')===null && $header($daily,'Expires')===null);
         $dailyConditional=$request($dailyEndpoint,$cookie,'GET',['If-None-Match: '.$dailyTag]);
-        avCheck('real HTTP stale scoped validator remains authorized before empty 304',$dailyConditional['status']===304 && $dailyConditional['bytes']==='' && $header($dailyConditional,'Cache-Control')==='private, max-age=86400');
+        avCheck('real HTTP stale scoped validator remains authorized before empty 304',$dailyConditional['status']===304 && $dailyConditional['bytes']==='' && $header($dailyConditional,'Cache-Control')==='private, max-age=86400, must-revalidate');
         foreach (['2','0','01','-1','1.0','1e0','9223372036854775808',''] as $wrongAccount) {
             $wrong=$request($endpoint.'&account='.rawurlencode($wrongAccount),$cookie,'GET',['If-None-Match: '.$tag]);
             avCheck('real HTTP rejects foreign or malformed account scope '.json_encode($wrongAccount),$wrong['status']===404 && $wrong['bytes']==='' && str_contains($wrong['headers'],'no-store') && $header($wrong,'ETag')===null);
@@ -194,7 +194,7 @@ try {
         $fullTag=$header($fullBinary,'ETag');
         avCheck('real HTTP explicit full photo returns gallery count and separate validator',$fullBinary['status']===200 && $fullBinary['bytes']===$png && $header($fullBinary,'X-Avatar-Photo-Count')==='2' && $header($fullBinary,'X-Avatar-Photo-Limited')===null && $fullTag!==$tag);
         $dailyFull=$request($fullEndpoint.'&account=1&channel=telegram',$cookie);
-        avCheck('real HTTP current-account full photo receives daily cache and count',$dailyFull['status']===200 && $header($dailyFull,'Cache-Control')==='private, max-age=86400' && $header($dailyFull,'X-Avatar-Photo-Count')==='2');
+        avCheck('real HTTP current-account full photo receives daily cache and count',$dailyFull['status']===200 && $header($dailyFull,'Cache-Control')==='private, max-age=86400, must-revalidate' && $header($dailyFull,'X-Avatar-Photo-Count')==='2');
         $fullUnchanged=$request($fullEndpoint,$cookie,'GET',['If-None-Match: '.$fullTag]);
         avCheck('real HTTP full image conditional hit preserves gallery metadata',$fullUnchanged['status']===304 && $fullUnchanged['bytes']==='' && $header($fullUnchanged,'X-Avatar-Photo-Count')==='2');
         $fullRecord['photo_count']=1000;$fullRecord['limited']=true;file_put_contents($httpCache.'/'.$fullSlot.'.json',json_encode($fullRecord));
@@ -223,7 +223,7 @@ try {
         $oldAccountScope=$request($dailyEndpoint,$otherAllowedCookie,'GET',['If-None-Match: '.$tag]);
         avCheck('real HTTP account switch on same cookie rejects previous scoped URL',$oldAccountScope['status']===404 && $oldAccountScope['bytes']==='' && str_contains($oldAccountScope['headers'],'no-store') && $header($oldAccountScope,'ETag')===null);
         $newAccountScope=$request($endpoint.'&account=4&channel=telegram',$otherAllowedCookie);
-        avCheck('real HTTP switched account receives its own daily URL',$newAccountScope['status']===200 && $newAccountScope['bytes']===$png && $header($newAccountScope,'Cache-Control')==='private, max-age=86400' && $header($newAccountScope,'ETag')!==$tag);
+        avCheck('real HTTP switched account receives its own daily URL',$newAccountScope['status']===200 && $newAccountScope['bytes']===$png && $header($newAccountScope,'Cache-Control')==='private, max-age=86400, must-revalidate' && $header($newAccountScope,'ETag')!==$tag);
         $outside=$request('/manager/fixture-session.php?id=2',$cookie);$outsideCookie=$outside['cookie']?:$cookie;
         $deniedAccount=$request($endpoint,$outsideCookie,'GET',['If-None-Match: '.$tag]);
         avCheck('real HTTP account switch cannot expose prior portrait or 304',$deniedAccount['status']===404 && str_contains($deniedAccount['headers'],'no-store') && $header($deniedAccount,'ETag')===null);
