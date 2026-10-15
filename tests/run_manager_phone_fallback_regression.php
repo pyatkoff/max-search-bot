@@ -25,7 +25,7 @@ mpfCheck('20:00 ends working hours',ManagerAvailabilityService::withinWorkingHou
 mpfCheck('fallback delay is exactly five minutes',ManagerPhoneFallbackService::DELAY_SECONDS,300);
 mpfCheck('fallback copy explains manager has not replied',strpos(ManagerRequestService::fallbackMessageText(),'не успел ответить')!==false,true);
 mpfCheck('fallback copy offers phone without claiming it is mandatory',strpos(ManagerRequestService::fallbackMessageText(),'можете оставить номер')!==false,true);
-mpfCheck('outside-hours copy gives concrete working hours',strpos(ManagerRequestService::outsideHoursMessageText(),'в рабочее время — с 10:00 до 20:00 по Калининграду')!==false,true);
+mpfCheck('outside-hours copy promises a morning reply',strpos(ManagerRequestService::outsideHoursMessageText(),'Он ответит вам утром в этом чате.')!==false,true);
 mpfCheck('outside-hours copy confirms handoff',strpos(ManagerRequestService::outsideHoursMessageText(),'Запрос передан менеджеру')!==false,true);
 
 // Fresh private evidence showed an ordinary chat sentence after the optional
