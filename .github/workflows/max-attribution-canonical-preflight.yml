@@ -1,0 +1,42 @@
+name: MAX canonical lookup identity (read only)
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-canonical-preflight.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Prepare established canonical SSH key
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Read purpose-separated identity fingerprint only
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$RUNNER_TEMP/key"' EXIT
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          $level=ob_get_level();ob_start();
+          try{require $root.'/config.php';require_once $root.'/services/LeadBridgeConfig.php';}
+          finally{while(ob_get_level()>$level)ob_end_clean();}
+          $secret=LeadBridgeConfig::secret();if($secret==='')exit(2);
+          $proof=hash_hmac('sha256','max-attribution-readonly-20261015-1345',hash_hmac('sha256','anytour-max-tracker-lookup-v1',$secret,true));
+          echo json_encode(['ok'=>true,'auth_fingerprint'=>hash('sha256',$proof),'receiver_host'=>parse_url(LeadBridgeConfig::receiverUrl(),PHP_URL_HOST),'receiver_path'=>parse_url(LeadBridgeConfig::receiverUrl(),PHP_URL_PATH),'writes'=>0])."\n";
+          PHP
+      - name: Remove temporary key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/key"
