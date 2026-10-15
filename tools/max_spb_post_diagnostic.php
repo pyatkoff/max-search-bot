@@ -52,6 +52,20 @@ final class MaxSpbPostDiagnostic
             'media_count'=>count((array)($snapshot['attachments'] ?? [])),
             'media_types'=>[], 'keyboard_row_count'=>count((array)($snapshot['keyboard'] ?? [])),
             'has_media_group'=>!empty($snapshot['media_group_id']) || !empty($snapshot['metadata']['media_group_id']),
+            'keyboard_shapes'=>array_map(static function ($row): array {
+                $out = [];
+                foreach (array_slice((array)$row, 0, 7) as $button) {
+                    if (!is_array($button)) { $out[] = ['type'=>'invalid']; continue; }
+                    $type = $button['type'] ?? '';
+                    $out[] = [
+                        'type'=>in_array($type, ['link','callback','message','open_app','request_contact','request_geo_location'], true) ? $type : 'other',
+                        'has_url'=>is_string($button['url'] ?? null),
+                        'has_payload'=>is_string($button['payload'] ?? null),
+                        'has_contact_id'=>isset($button['contact_id']),
+                    ];
+                }
+                return $out;
+            }, array_slice((array)($snapshot['keyboard'] ?? []), 0, 30)),
             'receipt'=>[],
         ];
         foreach ((array)($snapshot['attachments'] ?? []) as $item) {
