@@ -1,0 +1,43 @@
+name: MAX attribution signing key rollout
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-key-init.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  initialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Prepare existing canonical deployment identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Initialize private signing key on exact installed source, export public key only
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "e7b3eb4267624cf3edf1d82ccc3e3cce4f4f953e"; php tools/max_attribution_signing_key.php init' > "$RUNNER_TEMP/verification.pem"
+          openssl pkey -pubin -in "$RUNNER_TEMP/verification.pem" -noout
+          openssl pkey -pubin -in "$RUNNER_TEMP/verification.pem" -outform DER | sha256sum | awk '{print "public_key_sha256=" $1}'
+      - name: Export only the public verification key
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-attribution-public-key
+          path: ${{ runner.temp }}/verification.pem
+          if-no-files-found: error
+          retention-days: 1
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
