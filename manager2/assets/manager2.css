@@ -152,3 +152,6 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 }
 
 @media(max-width:1100px){.manager2 .workspace:not([data-mobile-screen=lead]) .leadZone{visibility:hidden}.manager2 .workspace[data-mobile-screen=lead] .leadZone{visibility:visible}}
+
+/* Scroll the bounded heading instead of shrinking controls beneath each other in WebKit. */
+.manager2 .inboxHead>*{flex-shrink:0}
