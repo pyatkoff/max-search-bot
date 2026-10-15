@@ -30,12 +30,16 @@ function hasRenderedData(){if(S.viewMode==='kanban')return !!document.querySelec
 function setQueue(queue,{reload=false,personal=false}={}){queue=String(queue||'waiting');const button=document.querySelector(`.queueTabs button[data-q="${queue}"]`);if(!button)return false;if(!personal)window.WorkspaceV2PersonalWorkspace?.clearSelection();else window.WorkspaceV2Kanban?.setMode('list');document.querySelectorAll('.queueTabs button').forEach(x=>x.classList.toggle('active',x===button));S.queue=queue;refreshSelectionScope();window.Manager2Presentation?.syncNavigation();if(reload)return load({preserveScroll:false});return true}
 function autoRefresh(force=false){
   if(document.visibilityState==='hidden'||S.authExpired)return false;
-  const scope=currentRefreshScope();if(scope.pendingLoads||scope.automatic)return false;
+  const scope=currentRefreshScope(),conversationScope=()=>JSON.stringify(window.WorkspaceV2Conversation?.captureRefreshContext?.()||null);
+  // Keep list-load coalescing; detach only the obsolete transcript phase.
+  if(scope.automatic?.conversation&&scope.automatic.conversation!==conversationScope())scope.automatic=null;
+  if(scope.pendingLoads||scope.automatic)return false;
   const now=Date.now();if(!force&&now-scope.lastAutoRefreshAt<AUTO_REFRESH_MS-1000)return false;
   const cycle={};scope.lastAutoRefreshAt=now;scope.automatic=cycle;
   const generation=S.authGeneration,managerId=Number(S.manager?.id||0),refreshing=load({preserveScroll:true}),seq=loadSeq;
   refreshing.then(loaded=>{
     if(!loaded||seq!==loadSeq||S.authExpired||generation!==S.authGeneration||Number(S.manager?.id||0)!==managerId||document.visibilityState==='hidden')return;
+    cycle.conversation=conversationScope();
     return window.WorkspaceV2Conversation?.refreshVisible();
   }).catch(()=>{}).finally(()=>{if(scope.automatic===cycle)scope.automatic=null});
   return true;

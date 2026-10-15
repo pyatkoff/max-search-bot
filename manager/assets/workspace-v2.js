@@ -48,17 +48,19 @@ function hideAuthRecovery(){
   const overlay=$('managerAuthRecovery');if(overlay)overlay.classList.add('hidden');
   document.body.classList.remove('managerAuthOpen');
 }
-async function request(url,action,data={}){
+async function request(url,action,data={},options={}){
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
   const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
+  // A read owner can revoke an obsolete response before global auth handling.
+  if(options.isCurrent&&!options.isCurrent())return{ok:false,error:'stale_context'};
   if(r.status===401){showAuthRecovery();throw new Error('unauthorized')}
   if(!r.ok)return{...j,ok:false,http_status:r.status};
   return j;
 }
-const api=(action,data={})=>request('api.php',action,data);
+const api=(action,data={},options)=>request('api.php',action,data,options);
 const pipe=(action,data={})=>request('pipeline-api.php',action,data);
 const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
 function statusText(s){return{ai:'С ботом',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Диалог закрыт'}[s]||s||''}

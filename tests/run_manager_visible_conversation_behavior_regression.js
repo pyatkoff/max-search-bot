@@ -122,4 +122,60 @@ test('401 uses existing recovery and malformed matching data never replaces hist
  const h=await setup();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:true,conversation:{...h.conversation,id:999},messages:[next]}):null);assert.equal(await h.C.refreshVisible(),false);assert.equal(h.W.S.current,101);assert.equal(h.W.S.detail.messages.length,1);
  h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},401):null);assert.equal(await h.C.refreshVisible(),false);assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);assertNoMutations(h);
 });
+
+// Keep the obsolete read pending until the replacement context has progressed.
+// These execute the canonical Inbox/core/Conversation together, not a refresh stub.
+async function replaceRefreshContext(h,mode){
+ if(mode==='navigation')await h.C.open(202,{preserveAttachment:true});
+ else{
+  const owner=mode==='different-account'?8:7;
+  h.W.showAuthRecovery();h.setIdentity({...h.identity,manager:{...h.identity.manager,id:owner},csrf:'synthetic-recovered'});h.ownership({manager_id:owner});
+  await h.login();if(owner===8)await h.C.open(101,{preserveAttachment:true});
+ }
+ assert.equal(h.W.S.authExpired,false);assert.equal(hidden(h),false);
+}
+const listCount=h=>h.calls.filter(r=>r.action==='list').length;
+function rejectableRead(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no});return{promise,resolve,reject}}
+for(const mobile of [false,true])for(const mode of ['navigation','same-account','different-account']){
+ const label=`${mobile?'mobile branch':'desktop'} ${mode}`;
+ test('pending obsolete detail does not block direct refresh in '+label,async()=>{
+  const h=await setup({mobile}),old=deferred();await h.draft('Private previous reply');const file={name:'previous.txt'};h.setFile(file);
+  h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?old.promise:null);const obsolete=h.C.refreshVisible();await flush();h.intercept(null);
+  try{
+   await replaceRefreshContext(h,mode);
+   if(mode==='same-account'){assert.equal(h.ids.get('replyText').value,'Private previous reply');assert.equal(h.getFile(),file)}
+   if(mode==='different-account'){assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null)}
+   await h.draft('Current exact reply');const currentFile={name:'current.txt'};h.setFile(currentFile);h.arrive();const before=detailCount(h);
+   assert.equal(await h.C.refreshVisible(),true);assert.equal(detailCount(h),before+1);assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),[1,2]);assert.equal(h.ids.get('replyText').value,'Current exact reply');assert.equal(h.getFile(),currentFile);assertNoMutations(h);
+  }finally{old.resolve(response({ok:true,conversation:h.conversation,messages:[first]}));await obsolete}
+ });
+ test('pending obsolete automatic cycle does not block focus events in '+label,async()=>{
+  const h=await setup({mobile}),old=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?old.promise:null);
+  assert.equal(h.window.WorkspaceV2Inbox.autoRefresh(true),true);await flush();h.intercept(null);
+  try{
+   await replaceRefreshContext(h,mode);await h.draft('Focus reply');const file={name:'focus.txt'};h.setFile(file);h.arrive();const details=detailCount(h),lists=listCount(h);
+   h.events.get('focus')();await flush();assert.equal(detailCount(h),details+1);assert.equal(listCount(h),lists+1);assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),[1,2]);assert.equal(h.ids.get('replyText').value,'Focus reply');assert.equal(h.getFile(),file);assertNoMutations(h);
+  }finally{old.resolve(response({ok:true,conversation:h.conversation,messages:[first]}));await flush()}
+ });
+ for(const outcome of ['success','forbidden','unauthorized','network'])test('old '+outcome+' cannot render, recover auth or release a held current cycle in '+label,async()=>{
+  const h=await setup({mobile}),old=rejectableRead(),current=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?old.promise:null);
+  assert.equal(h.window.WorkspaceV2Inbox.autoRefresh(true),true);await flush();h.intercept(null);
+  try{
+   await replaceRefreshContext(h,mode);await h.draft('Current private reply');const file={name:'current.txt'};h.setFile(file);h.arrive();
+   h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?current.promise:null);
+   const before=detailCount(h);h.events.get('focus')();await flush();assert.equal(detailCount(h),before+1);
+   const details=detailCount(h),lists=listCount(h),context=h.C.captureReplyContext();
+   if(outcome==='network')old.reject(new Error('Synthetic obsolete connection failure'));
+   else old.resolve(response(outcome==='success'?{ok:true,conversation:h.conversation,messages:[{...first,id:999}]}:{ok:false},outcome==='unauthorized'?401:outcome==='forbidden'?403:200));
+   await flush();assert.equal(h.W.S.authExpired,false);assert.deepEqual(h.C.captureReplyContext(),context);assert.equal(hidden(h),false);assert.equal(h.ids.get('replyText').value,'Current private reply');assert.equal(h.getFile(),file);assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),[1]);
+   for(let i=0;i<5;i++){h.events.get('focus')();h.timers[0].fn();}await flush();assert.equal(listCount(h),lists);assert.equal(detailCount(h),details);assert.equal(await h.C.refreshVisible(),false);
+   current.resolve(response({ok:true,conversation:{...h.W.S.detail.conversation},messages:[first,next]}));await flush();assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),[1,2]);
+   h.intercept(null);h.events.get('focus')();await flush();assert.equal(detailCount(h),details+1);assertNoMutations(h);
+  }finally{old.resolve(response({ok:false},500));current.resolve(response({ok:false},500));await flush()}
+ });
+}
+for(const mobile of [false,true])test('A to B to A admits fresh automatic detail before obsolete A settles: '+mobile,async()=>{
+ const h=await setup({mobile}),old=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?old.promise:null);h.window.WorkspaceV2Inbox.autoRefresh(true);await flush();h.intercept(null);
+ try{await h.C.open(202,{preserveAttachment:true});await h.C.open(101,{preserveAttachment:true});h.arrive();const before=detailCount(h);h.events.get('focus')();await flush();assert.equal(detailCount(h),before+1);assert.deepEqual(Array.from(h.W.S.detail.messages,m=>m.id),[1,2]);assertNoMutations(h)}finally{old.resolve(response({ok:true,conversation:h.conversation,messages:[first]}));await flush()}
+});
 (async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();
