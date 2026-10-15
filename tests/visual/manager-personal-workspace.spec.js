@@ -120,3 +120,15 @@ test('a stale held list cannot adopt old private state or count after a later se
  const state=emptyState();state.tabs=[{id:10,name:'Исходная вкладка',queue:'mine',channel:'',source_id:0,label_id:0,reply_needed:false,pinned_only:false}];const s=await setup(page,{state});await settled(page,s);await page.locator('[data-pw-selection="tab:10"]').click();await expect(page.locator('#pwListScope')).toContainText('Загружено 2');s.account(7).state.tabs[0].name='Поздняя старая настройка';s.account(7).state.settings.font='large';s.account(7).version=20;s.setHoldList(true);const before=personalCalls(s).filter(c=>c.action==='list').length,oldLoad=page.evaluate(()=>WorkspaceV2Inbox.load());await expect.poll(()=>personalCalls(s).filter(c=>c.action==='list').length).toBe(before+1);
  s.setHoldList(false);s.setListError(true);await page.evaluate(()=>{WorkspaceV2.S.leadSearch='Новый поиск';return WorkspaceV2Inbox.load()});await expect(page.locator('#inboxLoadStatus')).toContainText('Не удалось');s.releaseList();await oldLoad;await expect(page.locator('#pwListScope')).toHaveCount(0);await expect(page.locator('[data-pw-selection="tab:10"]')).toHaveText('Исходная вкладка');await expect(page.locator('body')).not.toHaveClass(/pwLargeFont/);clean(s);
 });
+
+
+test('a queued personal-dialog close preserves a newer tab focus and still restores a missing opener focus',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});const state=emptyState();state.tabs=[{id:10,name:'Моя вкладка',queue:'mine',channel:'',source_id:0,label_id:0,reply_needed:false,pinned_only:false}];
+ const s=await setup(page,{state});await settled(page,s);await page.locator('#m2WorkspaceSettings').click();await expect(page.locator('#pwDialog')).toBeVisible();await closePersonal(page);await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();
+ const selected=page.locator('[data-pw-selection="tab:10"]');await selected.focus();await expect(selected).toBeFocused();
+ // Deliver the same event after the native close has completed and the user
+ // has already chosen another control. The handler must not steal that choice.
+ await page.locator('#pwDialog').dispatchEvent('close');await expect(selected).toBeFocused();
+ await selected.press('Enter');await expect.poll(()=>personalCalls(s).filter(c=>c.action==='list').length).toBe(1);await expect(selected).toBeFocused();
+ await page.evaluate(()=>{document.activeElement.blur();document.getElementById('pwDialog').dispatchEvent(new Event('close'))});await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();clean(s);
+});
