@@ -112,6 +112,9 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     expect(header.height).toBeLessThanOrEqual(170);
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(650);
     const initial=fixture.calls.length;
+    await page.locator('#m2InboxSearchToggle').focus();await page.keyboard.press('/');
+    await expect(page.locator('#leadSearch')).toBeVisible();await expect(page.locator('#leadSearch')).toBeFocused();
+    await page.locator('#leadSearch').press('Escape');await expect(page.locator('#m2InboxSearchToggle')).toBeFocused();
     await page.locator('#m2InboxSearchToggle').press('Enter');
     await expect(page.locator('#leadSearch')).toBeVisible();
     await expect(page.locator('#leadSearch')).toBeFocused();
@@ -165,6 +168,8 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       await expect(page.locator('#replyText')).toHaveValue('Черновик остаётся при открытии карточки');
       await expect(page.locator('#mediaSelection')).toHaveText(attachment);
     }
+    await title.focus();await page.keyboard.press('Alt+l');await expect(card).toBeVisible();
+    await page.locator('#mobileLeadClose').click();await expect(card).not.toBeVisible();await expect(page.locator('#mobileLeadBtn')).toBeFocused();
     await settle(fixture);expect(fixture.calls.length).toBe(before);
     await page.setViewportSize({width,height:420});
     await page.locator('#replyText').focus();
