@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ManagerConversationAccessPolicy.php';
 require_once __DIR__.'/ProjectConfig.php';
+require_once __DIR__.'/../integrations/MaxCustomerAvatarAdapter.php';
 
 /** Optional channel portraits. No business writes; never called by list/detail APIs. */
 final class ManagerCustomerAvatarService
@@ -15,26 +16,32 @@ final class ManagerCustomerAvatarService
     private const MAX_RECORD_BYTES = 351000;
     private string $directory;
     private $fetch;
+    private MaxCustomerAvatarAdapter $max;
 
     /** Injectable bounded transport/cache location for offline regression only. */
-    public function __construct(?string $directory=null, ?callable $fetch=null)
+    public function __construct(?string $directory=null, ?callable $fetch=null, ?MaxCustomerAvatarAdapter $max=null)
     {
         $this->directory=$directory ?? sys_get_temp_dir().'/max-search-bot-manager-avatars-'.substr(hash('sha256',dirname(__DIR__)),0,16);
         $this->fetch=$fetch ?? [self::class,'request'];
+        $this->max=$max ?? new MaxCustomerAvatarAdapter();
     }
 
     /** Returns validated bytes and MIME or null. Authorization precedes ALL cache reads. */
     public function avatar(int $managerId, int $conversationId): ?array
     {
         if ($managerId<=0 || $conversationId<=0 || !ManagerAuthService::byId($managerId)) return null;
-        $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=? LIMIT 1');
+        $q=ConversationDb::connection()->prepare('SELECT c.id,c.customer_channel_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,c.channel,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=? LIMIT 1');
         $q->execute([$conversationId]);$identity=$q->fetch(PDO::FETCH_ASSOC);
         if (!$identity || !ManagerConversationAccessPolicy::canView($managerId,$identity)) return null;
         // The existing token belongs to this deployment's exact project, not to
         // every project a manager can view. Never try another project's token.
         if ((string)$identity['project_key']!==ProjectConfig::projectId()) return null;
         if (session_status()===PHP_SESSION_ACTIVE) session_write_close();
-        $key=hash('sha256',json_encode([(string)$identity['project_key'],(string)$identity['channel'],(string)$identity['external_user_id']],JSON_THROW_ON_ERROR));
+        $cacheIdentity=[(string)$identity['project_key'],(string)$identity['channel'],(string)$identity['external_user_id']];
+        // Version the newly supported provider and bind its stored-message proof
+        // to this conversation/channel, without invalidating Telegram's cache.
+        if ($identity['channel']==='max') $cacheIdentity=['max-private-v1',...$cacheIdentity,(int)$identity['id'],(int)$identity['customer_channel_id']];
+        $key=hash('sha256',json_encode($cacheIdentity,JSON_THROW_ON_ERROR));
         $dir=$this->privateDirectory();if ($dir===null) return null;
         // Fixed slots bound both records AND lock files. A slot collision evicts
         // only the cache entry; the full identity hash must match before serving.
@@ -51,7 +58,7 @@ final class ManagerCustomerAvatarService
                 $bytes=base64_decode((string)$record['bytes'],true);
                 return is_string($bytes)?self::image($bytes):null;
             }
-            try {$photo=$this->telegramPhoto($identity);} catch (Throwable $e) {$photo=null;}
+            try {$photo=$identity['channel']==='max'?$this->maxPhoto($identity):$this->telegramPhoto($identity);} catch (Throwable $e) {$photo=null;}
             $record=['key'=>$key,'expires'=>time()+($photo?self::POSITIVE_TTL:self::NEGATIVE_TTL)];
             if ($photo) $record['bytes']=base64_encode($photo['bytes']);
             $tmp=$dir.'/'.$slot.'.tmp';
@@ -70,11 +77,6 @@ final class ManagerCustomerAvatarService
 
     private function telegramPhoto(array $identity): ?array
     {
-        // MAX User has no avatar. Its official avatar-capable ChatMember endpoint
-        // requires a group/channel and bot admin rights, not a private dialogue:
-        // https://dev.max.ru/docs-api/objects/User
-        // https://dev.max.ru/docs-api/methods/GET/chats/-chatId-/members
-        // No supported private-user profile lookup exists in the current adapter.
         if ($identity['channel']!=='telegram') return null;
         $id=(string)$identity['external_user_id'];
         $token=defined('TELEGRAM_BOT_TOKEN')?trim((string)TELEGRAM_BOT_TOKEN):'';
@@ -98,6 +100,20 @@ final class ManagerCustomerAvatarService
         $file=$data['result']??[];$path=(string)($file['file_path']??'');
         if (empty($data['ok']) || !preg_match('~^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)+$~D',$path) || str_contains($path,'..') || (int)($file['file_size']??0)>self::MAX_BYTES) return null;
         $bytes=$call('https://api.telegram.org/file/bot'.$token.'/'.$path,null,self::MAX_BYTES);
+        return $bytes!==null?self::image($bytes):null;
+    }
+
+    private function maxPhoto(array $identity): ?array
+    {
+        $user=MaxCustomerAvatarAdapter::decimalId($identity['external_user_id']??null);
+        if ($user===null) return null;
+        // The existing (conversation_id,id) index bounds this read to 256 recent
+        // metadata rows, even in a long callback/outbound-only conversation.
+        // Never hydrate text/history or use the internal chat alias as a MAX ID.
+        $q=ConversationDb::connection()->prepare("SELECT external_message_id FROM (SELECT id,channel,direction,sender_type,sender_id,external_message_id,metadata_json FROM messages WHERE conversation_id=? ORDER BY id DESC LIMIT 256) recent WHERE channel='max' AND direction='inbound' AND sender_type='customer' AND sender_id=? AND external_message_id IS NOT NULL AND external_message_id<>'' AND CASE WHEN JSON_VALID(metadata_json) THEN JSON_UNQUOTE(JSON_EXTRACT(metadata_json,'$.type')) ELSE NULL END='message' ORDER BY id DESC LIMIT 1");
+        $q->execute([(int)$identity['id'],$user]);$mid=$q->fetchColumn();
+        if (!is_string($mid)) return null;
+        $bytes=$this->max->photo($user,$mid,self::MAX_BYTES);
         return $bytes!==null?self::image($bytes):null;
     }
 
