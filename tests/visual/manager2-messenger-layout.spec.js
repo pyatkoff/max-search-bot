@@ -175,7 +175,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
         const title=element.querySelector('.leadTitle').getBoundingClientRect(),time=element.querySelector('.leadActivityTime').getBoundingClientRect(),identity=element.querySelector('.leadIdentity').getBoundingClientRect(),preview=element.querySelector('.leadPreview'),box=preview.getBoundingClientRect(),lineHeight=parseFloat(getComputedStyle(preview).lineHeight);
         return {sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:element.getBoundingClientRect().height<=130};
       });
-      expect(geometry).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true});await fitsViewport(page);
+      console.log('ROW_GEOMETRY',width,height,JSON.stringify(await item.evaluate(el=>({height:el.getBoundingClientRect().height,padding:getComputedStyle(el).padding,children:[...el.querySelectorAll('.leadPrimary,.leadIdentity,.leadTitleLine,.leadTitle,.leadActivityTime,.leadPreview,.m2ChatMeta')].map(n=>({className:n.className,rect:{width:n.getBoundingClientRect().width,height:n.getBoundingClientRect().height},css:{display:getComputedStyle(n).display,margin:getComputedStyle(n).margin,lineHeight:getComputedStyle(n).lineHeight,whiteSpace:getComputedStyle(n).whiteSpace,gridColumns:getComputedStyle(n).gridTemplateColumns}}))}))));expect(geometry).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true});await fitsViewport(page);
     }
     clean(fixture);
   });

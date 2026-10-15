@@ -1,0 +1,31 @@
+name: Manager2 focused Inbox geometry
+on:
+  push:
+    branches: [test/manager2-957-inbox-geometry-20261015]
+permissions:
+  contents: read
+jobs:
+  geometry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Actual PHP shell focused Chromium geometry
+        run: npx playwright test tests/visual/manager2-messenger-layout.spec.js --grep 'compact activity' --reporter=line --workers=1 --screenshot=only-on-failure
+      - name: Actual PHP shell focused WebKit geometry
+        if: always()
+        run: npx playwright test tests/visual/manager2-messenger-layout.spec.js --grep 'compact activity' --browser=webkit --reporter=line --workers=1 --screenshot=only-on-failure
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-focused-957
+          path: test-results/**
