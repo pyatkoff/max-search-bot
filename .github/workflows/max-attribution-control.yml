@@ -1,0 +1,75 @@
+name: Authorized MAX attribution control
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-control.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare existing canonical deployment identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Exact source, signed read-only probe and authorized collect activation
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "e7b3eb4267624cf3edf1d82ccc3e3cce4f4f953e"; php tools/max_channel_attribution.php probe; php tools/max_channel_attribution.php collect'
+      - name: Verify real authenticated identities and scheduler permissions without conversion upload
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          try{
+            require 'config.php';require 'services/MaxChannelConversionWorker.php';
+            $p=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($p);
+            if(!$s||!in_array($s['mode'],['collect','send'],true))throw new RuntimeException('mode');
+            if((int)$p->query('SELECT TIMESTAMPDIFF(SECOND,UTC_TIMESTAMP(),NOW())')->fetchColumn()!==0)throw new RuntimeException('clock');
+            $private=MaxTrackerLookupConfig::privateKey();if($private==='')throw new RuntimeException('key');unset($private);
+            $dir=MaxTrackerLookupConfig::csvDirectory();$temp=tempnam($dir,'permission-');if($temp===false)throw new RuntimeException('temp');
+            try{if(file_put_contents($temp,'permission probe')!==16||(fileperms($temp)&0077)!==0)throw new RuntimeException('permissions');}finally{unlink($temp);}
+            $repo=new MaxChannelConversionOutbox($p);$users=[];
+            $q=$p->query("SELECT id,external_chat_id FROM conversations WHERE project_key='anytour' AND channel='max' AND is_test=0 AND started_at>=DATE_SUB(NOW(),INTERVAL 21 DAY) ORDER BY id DESC LIMIT 100");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $c){$v=$repo->conversation((string)$c['id'],(string)$c['external_chat_id'],$s);if($v)$users[(string)$v['external_user_id']]=true;if(count($users)>=25)break;}
+            if(!$users)throw new RuntimeException('no_sample');
+            $ids=(new MaxTrackerLookupClient())->lookup($s['counter_id'],array_map('strval',array_keys($users)));$matched=0;
+            foreach($ids as $identity)if($identity!==null)$matched++;
+            if($matched===0)throw new RuntimeException('no_identity');
+            echo json_encode(['ok'=>true,'mode'=>$s['mode'],'clock_utc'=>true,'private_permissions'=>true,'sample_users'=>count($users),'matched_identities'=>$matched,'conversion_requests'=>0])."\n";
+          }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"runtime_proof_failed\",\"conversion_requests\":0}\n";exit(1);}
+          PHP
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'python3 -' <<'PY'
+          import json,subprocess
+          result=subprocess.run(['crontab','-l'],capture_output=True,text=True,check=True)
+          lines=[line for line in result.stdout.splitlines() if line.strip() and not line.lstrip().startswith('#') and 'cron_metrika.php' in line]
+          assert len(lines)==1 and 'flock -n /tmp/max-search-metrika-cron.lock' in lines[0] and '/usr/bin/php /var/www/anytoour/data/www/app.anytoour.ru/cron_metrika.php' in lines[0]
+          print(json.dumps({'ok':True,'same_user_scheduler_entries':1}))
+          PY
+      - name: Authorized final mode operation
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "e7b3eb4267624cf3edf1d82ccc3e3cce4f4f953e"; php tools/max_channel_attribution.php status'
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
