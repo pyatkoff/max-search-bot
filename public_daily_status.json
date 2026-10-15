@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-15T14:08:23+00:00",
+    "generated_at": "2026-10-15T14:19:16+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -25,7 +25,7 @@
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 19,
-            "still_unanswered": 1,
+            "still_unanswered": 2,
             "measured_responses": 19,
             "avg_seconds": 7984,
             "max_seconds": 46792
@@ -41,7 +41,7 @@
         "flags": {
             "repeated_callback_input": 2,
             "excessive_turns": 2,
-            "manager_requested_no_reply": 1
+            "manager_requested_no_reply": 2
         },
         "calendar_day": {
             "conversations_started": 19,
