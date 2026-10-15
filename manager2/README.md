@@ -6,7 +6,7 @@ Owner-authorized production presentation at `/manager2/`, based on the agreed co
 
 `index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope and administrative links at their existing endpoints. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
 
-The new chrome and body-scoped assets provide the forest navigation rail, account/shift/notification header, queue/search, central conversation and compact client card. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
+The new chrome and body-scoped assets provide the forest navigation rail, compact queue/search tools, central conversation and a client card opened on demand. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
 
 ## Feature preservation
 
@@ -57,7 +57,7 @@ Working names are common manager-only labels visible to colleagues with access t
 
 ## Customer portraits
 
-Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Private MAX dialogues and website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
+Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
 
 The canonical protected binary endpoint owns fresh authorization and a bounded private cache. Offline provider/SQLite/loopback regressions and actual PHP-shell browser scenarios cover cache permissions, delayed photos, unsupported channels, account/client switching, drafts and responsive layout. Those checks do not confirm natural Telegram profile-photo availability or physical-device behavior; no real customer messages or operational changes are required for acceptance.
 
@@ -72,3 +72,13 @@ Selection remains in memory only and cannot survive reload. Unknown results cann
 An explicit continuation button explains that it cancels waiting for a manager. A confirmed cancellation event appears with Moscow time in the client conversation; a literal message naming a callback never produces this notice. Later lifecycle changes or missing evidence suppress an outdated cause. The original transcript and technical/business states retain their canonical owners.
 
 Before/after actual PHP-shell screenshots wait for the mobile transition to finish; transient animation frames are not treated as layout defects. Focused acceptance covers day/night MAX/Telegram copy, bounded authorized context, cross-client drafts, refresh, account/access clearing,390/430/768/1440 and420pxheight. Production and natural customer receipt remain separate.
+
+## Messenger layout
+
+The work area starts at the top of the viewport. The branded workplace strip is removed; the account button in the navigation opens shift, browser sound/push health, administrator links and the previous cabinet. A persistent colored account indicator still reports notification problems. Inbox heading tools reveal search and filters, select personal pins, and open the existing personal workspace editor. Saved personal tabs remain visible; their conditions, rename and deletion stay in that editor. A collapsed nonempty search retains an active indicator and continues to filter until explicitly cleared.
+
+Chat rows show the portrait/initials, name, one-line last message, activity, unread count and channel. Green ownership marks mean the current manager, amber means free; accessible labels and tooltips explain the colors. Administrators additionally see the assigned manager. The list uses the same authorized rows and queue/filter projection. Travel/sales/task-summary rows are kept in the client card; waiting-for-reply signals stay compact in the list. The plan section retains task grouping.
+
+The client card is closed by default on desktop. The client name is a native button, and the explicit client button performs the same action. Close restores focus to the opener; mobile keeps canonical Back/Forward history. Dirty-task navigation guards can reveal the card on desktop as well as mobile. Working-name history/editing, existing tasks, status/actions and source/service details retain their original canonical modules. Opening the card or heading tools does not request another API read or replace reply/file/task state.
+
+`tests/visual/manager2-messenger-layout.spec.js` verifies the real shell at390/430/768/1440px and420px height, including tools, optional card, keyboard focus, roles, personal tabs and preserved composer data. Local JavaScript checks are separate from the required PHP/rendered-browser CI gates.

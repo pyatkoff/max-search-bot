@@ -33,6 +33,8 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
   if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   if(method==='GET'&&url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
+  // Optional portraits remain absent for these exact synthetic clients.
+  if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){if([...url.searchParams.keys()].length!==1||!['11','12'].includes(url.searchParams.get('conversation_id')))return block();return route.fulfill({status:404,body:''})}
   if(method==='GET'&&url.pathname==='/manager/post-context-media.php'){
    calls.push({path:url.pathname,query:Object.fromEntries(url.searchParams)});
    if(!['11','12'].includes(url.searchParams.get('conversation_id'))||!['100','101','102','202'].includes(url.searchParams.get('entry_id'))||url.searchParams.get('attachment')!=='0')return block();
@@ -97,7 +99,7 @@ for(const width of [390,430,768,1440])test.describe('Source publication at '+wid
   await expect(host.locator('.postContextToggle')).toHaveAttribute('aria-expanded','false');await expect(host.locator('.postContextOverlay')).not.toBeVisible();
   expect((await host.boundingBox()).height).toBeLessThanOrEqual(44);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(500);
   expect(s.calls.filter(c=>c.path==='/manager/post-context-media.php')).toHaveLength(0);expect(await host.locator('.postContextThumb').first().getAttribute('src')).toBeNull();
-  await page.locator('#conversationTitle').click();await capture(page,browserName,width,'collapsed');const collapsedCapacity=await conversationCapacity(page);await openPostOverlay(page);await unchangedCapacity(page,collapsedCapacity);
+  await page.locator('.conversationHead').click({position:{x:1,y:1}});await capture(page,browserName,width,'collapsed');const collapsedCapacity=await conversationCapacity(page);await openPostOverlay(page);await unchangedCapacity(page,collapsedCapacity);
   await expect(host.locator('.postContextCard .postContextTitle')).toHaveText('Турция — семейный отдых в октябре');await expect(host.locator('.postContextMeta').first()).toContainText('12:20 МСК');
   await expect(host.locator('.postContextThumb').first()).toBeVisible();await expect.poll(()=>host.locator('.postContextThumb').first().evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);
   await expect(host.locator('.postContextOriginal').first()).toHaveAttribute('href','https://max.ru/c/-80095447388179/AaE53iyDMmw');
@@ -130,7 +132,7 @@ for(const width of [390,430,768,1440])for(const height of [320,360])for(const wi
  await page.setViewportSize({width,height:900});const s=await setup(page);await openLead(page);await expect(page.locator('#conversationPostContext')).toHaveAttribute('data-state','ready');
  const text=withDraft?Array.from({length:8},(_,i)=>'Строка '+(i+1)+' — уточним даты и поездку.').join('\n'):'';
  if(withDraft){await page.locator('#replyText').fill(text);await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Isolated unsent attachment')})}
- const file=await page.locator('#mediaSelection').textContent();await page.setViewportSize({width,height});await page.locator('#conversationTitle').click();
+ const file=await page.locator('#mediaSelection').textContent();await page.setViewportSize({width,height});await page.locator('.conversationHead').click({position:{x:1,y:1}});
  const before=await conversationCapacity(page);await openPostOverlay(page);await unchangedCapacity(page,before);
  const zone=await page.locator('#conversationZone').boundingBox(),overlay=await page.locator('.postContextOverlay').boundingBox(),close=await page.locator('.postContextClose').boundingBox();
  expect(overlay.y).toBeGreaterThanOrEqual(zone.y);expect(close.y).toBeGreaterThanOrEqual(zone.y);expect(close.y+close.height).toBeLessThanOrEqual(before.composer.y);expect(close.height).toBeGreaterThanOrEqual(width<=740?40:36);
@@ -217,8 +219,8 @@ test('unknown channel-save result blocks a duplicate write until explicit readba
 });
 
 test('publication settings entry follows administrator access on desktop and mobile',async({page,browserName})=>{
- await page.setViewportSize({width:1440,height:900});const s=await setup(page,{managerRole:'admin'});const link=page.locator('#m2PublicationsLink');await expect(link).toBeVisible();await expect(link).toHaveAttribute('href','/manager/publications.php');const rail=await page.locator('.m2Rail').boundingBox();for(const control of [link,page.locator('#adminLink')]){const box=await control.boundingBox();expect(box.x).toBeGreaterThanOrEqual(rail.x-1);expect(box.x+box.width).toBeLessThanOrEqual(rail.x+rail.width+1)}await capture(page,browserName,1440,'admin-entry');
- await page.setViewportSize({width:390,height:900});await page.locator('#m2NotificationButton').click();await expect(page.locator('#m2Notifications')).toBeVisible();await expect(link).toBeVisible();await expect(link).toBeInViewport();expect((await link.boundingBox()).height).toBeGreaterThanOrEqual(44);expect(await link.evaluate(el=>getComputedStyle(el).color)).toBe(await page.locator('#adminLink').evaluate(el=>getComputedStyle(el).color));await capture(page,browserName,390,'admin-entry');
+ await page.setViewportSize({width:1440,height:900});const s=await setup(page,{managerRole:'admin'});const link=page.locator('#m2PublicationsLink'),account=page.locator('#m2NotificationButton'),dialog=page.locator('#m2Notifications');await expect(account).toBeVisible();await expect(link).not.toBeVisible();await expect(link).toHaveAttribute('href','/manager/publications.php');await account.click();await expect(dialog).toBeVisible();const menu=await dialog.boundingBox();for(const control of [link,page.locator('#adminLink')]){await expect(control).toBeVisible();const box=await control.boundingBox();expect(box.x).toBeGreaterThanOrEqual(menu.x-1);expect(box.x+box.width).toBeLessThanOrEqual(menu.x+menu.width+1)}await capture(page,browserName,1440,'admin-entry');await page.locator('#m2NotificationsClose').click();await expect(account).toBeFocused();
+ await page.setViewportSize({width:390,height:900});await account.click();await expect(dialog).toBeVisible();await expect(link).toBeVisible();await expect(link).toBeInViewport();expect((await link.boundingBox()).height).toBeGreaterThanOrEqual(44);expect(await link.evaluate(el=>getComputedStyle(el).color)).toBe(await page.locator('#adminLink').evaluate(el=>getComputedStyle(el).color));await capture(page,browserName,390,'admin-entry');
  // These changes use the canonical role and admin-link state; the optional
  // shortcut must never keep administrator controls after access or auth loss.
  await page.evaluate(()=>{WorkspaceV2.S.manager.role='manager';document.getElementById('adminLink').classList.add('hidden')});await expect(link).not.toBeVisible();
