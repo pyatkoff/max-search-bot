@@ -1,0 +1,100 @@
+name: MAX attribution conversations trial (read only)
+on:
+  push:
+    branches: [test/max-attribution-trial-20261015]
+    paths:
+      - .github/workflows/max-attribution-trial.yml
+      - tools/max_attribution_trial.php
+      - tools/max_attribution_trial.crt
+      - tests/run_max_attribution_trial.py
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-conversations-trial-20261015
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/test/max-attribution-trial-20261015'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate bounded source
+        run: |
+          set -euo pipefail
+          php -l tools/max_attribution_trial.php
+          python3 tests/run_max_attribution_trial.py
+          openssl x509 -in tools/max_attribution_trial.crt -noout -checkend 0
+      - name: Verify authoritative main before loading credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current=$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)
+          test "$current" = c78428948ff290ce5cb5ff1af3bdcb848519c364
+      - name: Prepare established SSH key
+        env:
+          DIAGNOSTIC_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/attribution_key"
+          raw="$DIAGNOSTIC_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded=$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || exit 2
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Capture current MAX conversation pseudonyms privately
+        env:
+          DIAGNOSTIC_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DIAGNOSTIC_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          remote="$DIAGNOSTIC_USER@$DIAGNOSTIC_HOST"
+          opts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/attribution_key")
+          remote_tmp=''
+          cleanup() {
+            if [[ "$remote_tmp" =~ ^/tmp/max-attribution-trial\.[A-Za-z0-9]+$ ]]; then ssh "${opts[@]}" "$remote" "rm -rf -- '$remote_tmp'" >/dev/null 2>&1 || true; fi
+            rm -f "$RUNNER_TEMP/attribution_conversations.json" "$RUNNER_TEMP/attribution_key"
+          }
+          trap cleanup EXIT
+          ssh "${opts[@]}" "$remote" bash -s <<'REMOTE'
+          set -euo pipefail
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = c78428948ff290ce5cb5ff1af3bdcb848519c364
+          git diff --quiet
+          git diff --cached --quiet
+          REMOTE
+          remote_tmp=$(ssh "${opts[@]}" "$remote" 'umask 077; mktemp -d /tmp/max-attribution-trial.XXXXXXXX')
+          [[ "$remote_tmp" =~ ^/tmp/max-attribution-trial\.[A-Za-z0-9]+$ ]] || exit 2
+          scp -q "${opts[@]}" tools/max_attribution_trial.php "$remote:$remote_tmp/readback.php"
+          ssh "${opts[@]}" "$remote" "php -d display_errors=0 -d log_errors=0 '$remote_tmp/readback.php' --expected-sha=c78428948ff290ce5cb5ff1af3bdcb848519c364" > "$RUNNER_TEMP/attribution_conversations.json"
+          python3 - "$RUNNER_TEMP/attribution_conversations.json" <<'PY'
+          import json,sys,pathlib
+          p=pathlib.Path(sys.argv[1]); assert p.stat().st_size<=2000000
+          d=json.loads(p.read_text()); assert d['ok']
+          assert d['business_writes']==d['provider_requests']==d['conversion_calls']==0
+          assert d['installed_sha']=='c78428948ff290ce5cb5ff1af3bdcb848519c364'
+          assert d['hash_domain']=='max-attribution-trial-20261015-v1|'
+          assert len(d['rows'])<=150
+          assert all(not any(k in r for k in ['external_user_id','external_chat_id','client_id','yclid','text','phone','name']) for r in d['rows'])
+          print('Conversation capture validated; rows='+str(len(d['rows'])))
+          PY
+          openssl cms -encrypt -binary -aes-256-gcm -in "$RUNNER_TEMP/attribution_conversations.json" \
+            -out "$RUNNER_TEMP/max-attribution-conversations.cms" -outform DER tools/max_attribution_trial.crt
+      - name: Upload ciphertext only
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-attribution-conversations-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/max-attribution-conversations.cms
+          retention-days: 1
+          if-no-files-found: error
+      - name: Remove private temporary files
+        if: always()
+        run: rm -f "$RUNNER_TEMP/attribution_key" "$RUNNER_TEMP/attribution_conversations.json" "$RUNNER_TEMP/max-attribution-conversations.cms"
