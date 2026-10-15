@@ -1,8 +1,6 @@
 const {test,expect}=require('@playwright/test');
-const {execFileSync}=require('node:child_process');const fs=require('node:fs');const path=require('node:path');
-const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
-const shell=execFileSync('php',['manager/admin.php'],{cwd:root,encoding:'utf8'});
-const assets=new Set(['admin.css','admin.js','admin-edit-safety.js','manager-time.js','manager-http-client.js']);
+const fs=require('node:fs');const path=require('node:path');
+const {root,origin,entries,serveAdminShell}=require('./fixtures/admin-shell');
 const projects=[{id:1,project_key:'synthetic-main',display_name:'Основной синтетический проект',is_active:1},{id:2,project_key:'synthetic-second',display_name:'Второй синтетический проект',is_active:1}];
 const identity=(id=7,role='admin')=>({ok:true,csrf:'synthetic-csrf-'+id,manager:{id,role,display_name:'Синтетический администратор '+id},projects});
 function snapshot(){return{ok:true,admin:{projects:projects.map(p=>({...p})),managers:[
@@ -19,10 +17,10 @@ async function setup(page,options={}){
  const state={calls:[],unexpected:[],errors:[],me:options.me||[identity()],snapshots:options.snapshots||[snapshot()],writes:options.writes||{}};
  page.on('pageerror',error=>state.errors.push(error.message));
  await page.route('**/*',async route=>{const request=route.request(),url=new URL(request.url()),method=request.method();const block=action=>{state.unexpected.push(method+' '+url.pathname+(action?' '+action:''));return route.abort()};
- if(url.origin!==origin)return block();if(method==='GET'&&url.pathname==='/manager/admin.php')return route.fulfill({contentType:'text/html',body:shell});if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});const asset=url.pathname.match(/^\/manager\/assets\/([^/]+)$/)?.[1];if(method==='GET'&&assets.has(asset))return route.fulfill({contentType:asset.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,'manager/assets',asset))});
+ if(url.origin!==origin)return block();if(await serveAdminShell(route))return;if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
  if(method!=='POST'||url.pathname!=='/manager/api.php')return block();let data;try{data=request.postDataJSON()}catch(e){return block('invalid-json')}state.calls.push(data);
  const queue=data.action==='me'?state.me:data.action==='admin_snapshot'?state.snapshots:state.writes[data.action];if(!queue||!queue.length)return block(data.action+' not-authorized-in-fixture');if(data.action!=='me'&&!/^synthetic-csrf-\d+$/.test(data.csrf||''))return block('invalid-csrf');let response=queue.shift();if(typeof response==='function')response=await response(data);if(response?.promise)response=await response.promise;if(response?.abort)return route.abort('failed');if(response?.invalidJSON)return route.fulfill({contentType:'application/json',body:'{invalid json'});const body=response?.body||response;return route.fulfill({status:response?.status||(body?.ok===false?500:200),contentType:'application/json',body:JSON.stringify(body)});
- });await page.goto(origin+'/manager/admin.php');return state;
+ });await page.goto(origin+(options.entry||'/manager2/admin.php'));return state;
 }
 function clean(state){expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([])}
 async function ready(page){await expect(page.locator('#app')).toBeVisible();await expect(page.locator('#managers .item')).toHaveCount(4)}
@@ -49,6 +47,28 @@ for(const width of[390,430,768,1440])test.describe('Admin redesigned workspace '
 
 test.describe('Admin mutation and identity boundaries',()=>{
  test.use({viewport:{width:1440,height:900}});
+ test('alternate and legacy entrypoints retain canonical assets, navigation and protected reads',async({page})=>{
+  let canonicalIds,canonicalScripts;
+  for(const entry of entries){
+   const state=await setup(page,{entry});await ready(page);
+   const rendered=await page.evaluate(()=>({base:document.baseURI,ids:[...document.querySelectorAll('[id]')].map(node=>node.id).sort(),scripts:[...document.scripts].map(node=>new URL(node.src).pathname),links:[...document.querySelectorAll('.nav a')].map(node=>new URL(node.href).pathname)}));
+   expect(new Set(rendered.ids).size).toBe(rendered.ids.length);
+   expect(rendered.scripts.every(src=>src.startsWith('/manager/assets/'))).toBe(true);
+   expect(rendered.links).toContain('/manager2/');expect(rendered.links).toContain('/manager/routing.php');expect(rendered.links).toContain('/manager/pipeline-admin.php');
+   if(entry==='/manager/admin.php'){canonicalIds=rendered.ids;canonicalScripts=rendered.scripts}else{
+    expect(rendered.base).toBe(origin+'/manager/');expect(rendered.ids).toEqual(canonicalIds);expect(rendered.scripts).toEqual(canonicalScripts);
+    await expect(page.locator('link[href^="/manager2/assets/"]')).toHaveCount(1);
+   }
+   expect(state.calls.map(call=>call.action)).toEqual(['me','admin_snapshot']);clean(state);
+   await page.unroute('**/*');
+  }
+ });
+ test('anonymous navigation exposes sign-in guidance without a catalog or editor request',async({page})=>{
+  const state=await setup(page,{me:[{status:401,body:{ok:false,error:'unauthorized'}}],snapshots:[]});
+  await expect(page.locator('#denied')).toContainText('Войдите в кабинет менеджера');await expect(page.locator('#app')).toBeHidden();
+  for(const kind of ['project','manager','rule'])await expect(page.locator('#'+kind+'Editor')).toBeHidden();
+  expect(state.calls.map(call=>call.action)).toEqual(['me']);clean(state);
+ });
  test('account, shift and notification states are separate and missing states stay unknown',async({page})=>{
   const state=await setup(page);await ready(page);const maria=page.locator('#managers .item').filter({hasText:'Мария Синтетическая'}),anton=page.locator('#managers .item').filter({hasText:'Антон Синтетический'}),unknown=page.locator('#managers .item').filter({hasText:'Неизвестные состояния'});
   await expect(maria).toContainText('Аккаунт активен');await expect(maria).toContainText('Вне смены');await expect(maria).toContainText('Уведомления доступны');await expect(anton).toContainText('Аккаунт отключён');await expect(anton).toContainText('На смене');await expect(anton).toContainText('Уведомления недоступны');await expect(unknown).toContainText('Аккаунт: нет данных');await expect(unknown).toContainText('Смена: нет данных');await expect(unknown).toContainText('Уведомления: нет данных');await expect(unknown).not.toContainText('Вне смены');clean(state);

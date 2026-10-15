@@ -1,22 +1,39 @@
 <?php
 $baseDir=dirname(__DIR__);
 require_once __DIR__.'/lib/ManagerHttp.php';
-ManagerHttp::start();
+$manager2Admin=($managerAdminPresentation??'')==='manager2';
+// The alternate shell cannot receive the /manager/ scoped cookie. Protected
+// canonical APIs retain session issuance, authentication and CSRF ownership.
+if(!$manager2Admin) ManagerHttp::start();
 $managerTimeVersion=(string)(@filemtime(__DIR__.'/assets/manager-time.js')?:1);
 $httpClientVersion=(string)(@filemtime(__DIR__.'/assets/manager-http-client.js')?:1);
 $adminJsVersion=(string)(@filemtime(__DIR__.'/assets/admin.js')?:1);
 $adminEditSafetyVersion=(string)(@filemtime(__DIR__.'/assets/admin-edit-safety.js')?:1);
 $adminCssVersion=(string)(@filemtime(__DIR__.'/assets/admin.css')?:1);
+$manager2AdminCssVersion=(string)(@filemtime(dirname(__DIR__).'/manager2/assets/admin.css')?:1);
 ?>
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <?php if($manager2Admin): ?><base href="/manager/"><meta name="theme-color" content="#17483d"><?php endif; ?>
   <title>AnyTour — администрирование</title>
   <link rel="stylesheet" href="assets/admin.css?v=<?=htmlspecialchars($adminCssVersion,ENT_QUOTES,'UTF-8')?>">
+  <?php if($manager2Admin): ?><link rel="stylesheet" href="/manager2/assets/admin.css?v=<?=htmlspecialchars($manager2AdminCssVersion,ENT_QUOTES,'UTF-8')?>"><?php endif; ?>
 </head>
-<body>
+<body<?= $manager2Admin?' class="manager2Admin"':'' ?>>
+<?php if($manager2Admin): ?>
+<a class="m2AdminSkip" href="/manager2/admin.php#adminSections">К разделам администрирования</a>
+<nav class="m2AdminRail" aria-label="Основная навигация">
+  <a class="m2AdminMark" href="/manager2/" aria-label="AnyTour — к диалогам">a<span>.</span></a>
+  <div class="m2AdminRailLinks">
+    <a href="/manager2/" title="Диалоги"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.8 7.8 0 0 1-.9 3.7 8 8 0 0 1-7.1 4.3 7.8 7.8 0 0 1-3.7-.9L3 20l1.4-5.3a7.8 7.8 0 0 1-.9-3.7 8 8 0 0 1 4.3-7.1 7.8 7.8 0 0 1 3.7-.9h.5a8 8 0 0 1 8 8z"/></svg><span>Диалоги</span></a>
+    <a href="/manager2/admin.php" aria-current="page" title="Администрирование"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/><circle cx="9" cy="7" r="4"/></svg><span>Администрирование</span></a>
+  </div>
+  <span class="m2AdminRailLabel" aria-hidden="true">AnyTour</span>
+</nav>
+<?php endif; ?>
 <div class="wrap">
   <header class="head">
     <div class="adminHeading">
@@ -37,7 +54,7 @@ $adminCssVersion=(string)(@filemtime(__DIR__.'/assets/admin.css')?:1);
   <div id="denied" class="card adminAccessNotice hidden" role="status">Доступно только администратору.</div>
 
   <main id="app" class="hidden">
-    <nav class="adminSections" aria-label="Разделы администрирования">
+    <nav id="adminSections" class="adminSections" aria-label="Разделы администрирования" tabindex="-1">
       <button type="button" class="adminSectionButton active" data-admin-section="managers" aria-controls="adminSection-managers" aria-pressed="true">Менеджеры</button>
       <button type="button" class="adminSectionButton" data-admin-section="projects" aria-controls="adminSection-projects" aria-pressed="false">Проекты</button>
       <button type="button" class="adminSectionButton" data-admin-section="priority" aria-controls="adminSection-priority" aria-pressed="false">Приоритет заявок</button>

@@ -47,7 +47,7 @@ mvCheck('admin UI isolates priority availability from fresh project and manager 
 mvCheck('admin UI renders priority failures independently without claiming unverified manager health',strpos($adminJs,"sectionView('priority'")!==false && strpos($adminJs,"$('managers').innerHTML=sectionView('managers'")!==false && strpos($adminJs,"Менеджеры и проекты продолжают работать")===false && strpos($adminJs,"if(!S.priorityAvailable||$('saveRule').disabled)return")!==false);
 mvCheck('canonical manager entrypoint owns workspace markup',strpos($workspace,'id="workspaceRoot"')!==false && !is_file($base.'/manager/workspace-v2.php'));
 mvCheck('explicit index URL canonicalizes to root without network redirect',strpos($workspaceJs,'history.replaceState')!==false && strpos($workspaceJs,'/\\/index\\.php$/')!==false && strpos($workspaceJs,'workspace-v2')===false && strpos($workspaceJs,'location.replace(')===false);
-mvCheck('Workspace contains admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,'href="admin.php"')!==false && strpos($workspace,'Настройки и менеджеры')!==false);
+mvCheck('Workspace contains presentation-specific admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,"\$manager2?'/manager2/admin.php':'admin.php'")!==false && strpos($workspace,'Настройки и менеджеры')!==false);
 mvCheck('Workspace admin settings link starts hidden',strpos($workspace,'id="adminLink" class="actionBtn hidden"')!==false);
 mvCheck('Workspace admin settings link is role gated',strpos($workspaceJs,"adminLink.classList.toggle('hidden',S.manager.role!=='admin')")!==false);
 mvCheck('Workspace registers manager service worker',strpos($workspaceNotifications,"serviceWorker.register('sw.js'")!==false);
