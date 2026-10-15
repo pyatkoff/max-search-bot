@@ -4,9 +4,17 @@ Owner-authorized production presentation at `/manager2/`, based on the agreed co
 
 ## Runtime ownership
 
-`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope and administrative links at their existing endpoints. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
+`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope at their existing endpoints. The administration link explicitly opens `/manager2/admin.php`. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
 
 The new chrome and body-scoped assets provide the forest navigation rail, compact queue/search tools, central conversation and a client card opened on demand. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
+
+## Administration
+
+`admin.php` includes the canonical `manager/admin.php` markup with an identity-free Manager2 presentation. It reuses `admin.js`, `admin-edit-safety.js`, the shared JSON client and Moscow-time helper, without loading Inbox or Conversation code. The canonical `/manager/` base keeps all protected reads and saves on the existing API; the new HTML never issues or replaces a session cookie. The previous administrative URL remains compatible.
+
+Managers, project access, projects, existing priority rules and the last 50 safe audit summaries retain their existing forms, validation, drafts and account/generation guards. Local section switches, search and combined filters reuse the single snapshot. Account, working shift and notification reachability remain separate facts. Return links lead to `/manager2/`; routing and sales-catalog links keep their existing destinations.
+
+The Manager2-only stylesheet provides a compact forest navigation rail, a restrained header, clear sections and responsive list/editor layout. Desktop and mobile fixtures cover 390/430/768/1440px, short screens, keyboard focus and preservation of newer form input. Saves in the acceptance suite use synthetic data only.
 
 ## Feature preservation
 

@@ -236,6 +236,6 @@ for(const width of [390,1440])test('Manager2 admin settings remain accessible at
   await page.setViewportSize({width,height:900});const s=await setup(page,{role:'admin'});
   await page.locator('#m2NotificationButton').click();
   await expect(page.locator('#adminLink')).toBeVisible();
-  expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager/admin.php');
+  expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager2/admin.php');
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
