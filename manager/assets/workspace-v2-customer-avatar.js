@@ -81,11 +81,11 @@ async function load(job){
   }finally{clearTimeout(timer)}
 }
 function invalidateConversation(conversationId){
-  const id=Number(conversationId),key=owner+':'+id;
-  active.get(key)?.controller.abort();active.delete(key);waiting.delete(key);dropCache(key);
+  const id=Number(conversationId),keys=['telegram','max'].map(channel=>owner+':'+id+':'+channel);
+  keys.forEach(key=>{active.get(key)?.controller.abort();active.delete(key);waiting.delete(key);dropCache(key)});
   slots.forEach((record,node)=>{if(record.conversationId===id){observer?.unobserve(node);clearImage(node);slots.delete(node)}});
   // A denial must not be retried by every list/header refresh.
-  if(owner)cache.set(key,{until:Date.now()+NEGATIVE_TTL,bytes:0});pruneCache();
+  if(owner)keys.forEach(key=>cache.set(key,{until:Date.now()+NEGATIVE_TTL,bytes:0}));pruneCache();
 }
 function visible(node){const rect=node.getBoundingClientRect();return rect.width>0&&rect.height>0&&rect.bottom>0&&rect.top<window.innerHeight&&rect.right>0&&rect.left<window.innerWidth}
 function fallbackScan(){if(!ensureOwner())return;cleanup();slots.forEach((record,node)=>{record.visible=visible(node);if(record.visible)queue(record)})}
@@ -98,12 +98,12 @@ function ensureObserver(){
 function attach(node,c){
   const conversationId=Number(c?.id||0);if(!node||!Number.isSafeInteger(conversationId)||conversationId<=0||!ensureOwner())return;
   const previous=slots.get(node);if(previous){observer?.unobserve(node);clearImage(node);slots.delete(node);delete node.dataset.customerAvatar}
-  // Current private-profile adapter supports Telegram only. Keep MAX/website
-  // initials immediately without issuing known-unavailable HTTP requests.
-  if(c.channel!=='telegram')return;
+  // Both messengers use the same protected, visible-only binary endpoint.
+  // Website clients keep initials without portrait requests.
+  if(!['telegram','max'].includes(c.channel))return;
   ensureObserver();
   node.classList.add('customerAvatar');node.dataset.customerAvatar=String(conversationId);node.setAttribute('aria-hidden','true');
-  const record={owner,epoch,conversationId,key:owner+':'+conversationId,visible:false};slots.set(node,record);
+  const record={owner,epoch,conversationId,key:owner+':'+conversationId+':'+c.channel,visible:false};slots.set(node,record);
   const entry=cacheEntry(record.key);if(entry?.url)paint(node,record,entry);
   if(observer)observer.observe(node);
   else{

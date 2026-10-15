@@ -57,7 +57,7 @@ Working names are common manager-only labels visible to colleagues with access t
 
 ## Customer portraits
 
-Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Private MAX dialogues and website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
+Optional Telegram and MAX portraits appear in the list, conversation header and client card. Missing or unavailable photos and website clients keep initials. MAX verifies a stored customer message and its real private chat before loading one thumbnail through an exact-origin, bounded transport. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work. See `docs/MAX_CUSTOMER_AVATARS.md` for provider, cache and verification boundaries.
 
 The canonical protected binary endpoint owns fresh authorization and a bounded private cache. Offline provider/SQLite/loopback regressions and actual PHP-shell browser scenarios cover cache permissions, delayed photos, unsupported channels, account/client switching, drafts and responsive layout. Those checks do not confirm natural Telegram profile-photo availability or physical-device behavior; no real customer messages or operational changes are required for acceptance.
 

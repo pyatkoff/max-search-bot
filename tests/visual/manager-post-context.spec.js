@@ -33,6 +33,7 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
   if(method==='GET'&&url.pathname==='/manager/sw.js')return route.fulfill({contentType:'application/javascript',body:''});
   if(method==='GET'&&url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
   if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
+ if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){if([...url.searchParams.keys()].length!==1||!['11','12'].includes(url.searchParams.get('conversation_id')))return block();return route.fulfill({status:404,body:''})}
   if(method==='GET'&&url.pathname==='/manager/post-context-media.php'){
    calls.push({path:url.pathname,query:Object.fromEntries(url.searchParams)});
    if(!['11','12'].includes(url.searchParams.get('conversation_id'))||!['100','101','102','202'].includes(url.searchParams.get('entry_id'))||url.searchParams.get('attachment')!=='0')return block();

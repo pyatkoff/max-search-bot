@@ -3,14 +3,18 @@
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerCustomerAvatarService.php';
 define('TELEGRAM_BOT_TOKEN','123456:synthetic_avatar_token');
+define('MAX_SEARCH_TOKEN','synthetic_max_avatar_token');
 ProjectConfig::resetForTests(['id'=>'anytour']);
 $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+$pdo->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
 foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
 $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
 CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
 CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,source_id INTEGER,status TEXT,manager_id INTEGER,started_at TEXT,last_message_at TEXT,channel TEXT);
+CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,channel TEXT,direction TEXT,sender_type TEXT,sender_id TEXT,external_message_id TEXT,metadata_json TEXT);
+CREATE INDEX idx_messages_conversation ON messages(conversation_id,id);
 CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT);
 CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,primary_group_id INTEGER,fallback_mode TEXT,fallback_group_id INTEGER,fallback_after_minutes INTEGER,is_active INTEGER);
 CREATE TABLE manager_group_members(manager_id INTEGER,group_id INTEGER);
@@ -58,7 +62,7 @@ try {
     avCheck('routing visibility revocation is checked on cache hits',$service->avatar(1,100)===null && count($calls)===$before);
     $pdo->exec('UPDATE conversations SET source_id=0 WHERE id=100');
     avCheck('other-project token is never tried despite authorized admin',$service->avatar(2,400)===null && count($calls)===$before);
-    avCheck('MAX unsupported private profile falls back without network',$service->avatar(1,300)===null && count($calls)===$before);
+    avCheck('MAX without an eligible saved message falls back without network',$service->avatar(1,300)===null && count($calls)===$before);
     avCheck('same customer channel mismatch fails closed',($pdo->exec('UPDATE conversations SET customer_id=99 WHERE id=100')!==false) && $service->avatar(1,100)===null);
     $pdo->exec('UPDATE conversations SET customer_id=10 WHERE id=100');
     $before=count($calls);$other=$service->avatar(1,200);
@@ -114,6 +118,7 @@ try {
         if (basename($file)==='ManagerCustomerAvatarService.php') copy($file,$httpRoot.'/services/'.basename($file));
         else symlink($file,$httpRoot.'/services/'.basename($file));
     }
+    symlink($sourceRoot.'/integrations',$httpRoot.'/integrations');
     copy($sourceRoot.'/manager/customer-avatar.php',$httpRoot.'/manager/customer-avatar.php');symlink($sourceRoot.'/manager/lib',$httpRoot.'/manager/lib');
     $config="<?php\nrequire_once ".var_export($sourceRoot.'/services/ManagerRequestContext.php',true).";\nrequire_once ".var_export($sourceRoot.'/services/ProjectConfig.php',true).";\n".
         '$fixturePdo=new PDO('.var_export('sqlite:'.$httpRoot.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);' ."\n".
@@ -125,6 +130,9 @@ try {
     $httpCache=sys_get_temp_dir().'/max-search-bot-manager-avatars-'.substr(hash('sha256',$httpRoot),0,16);mkdir($httpCache,0700);
     $key=hash('sha256',json_encode(['anytour','telegram','123'],JSON_THROW_ON_ERROR));
     file_put_contents($httpCache.'/'.$slot().'.json',json_encode(['key'=>$key,'expires'=>time()+60,'bytes'=>base64_encode($png)]));chmod($httpCache.'/'.$slot().'.json',0600);
+    $maxKey=hash('sha256',json_encode(['max-private-v1','anytour','max','123',300,30],JSON_THROW_ON_ERROR));
+    $maxSlot=(string)(hexdec(substr($maxKey,0,4))%ManagerCustomerAvatarService::CACHE_SLOTS);
+    file_put_contents($httpCache.'/'.$maxSlot.'.json',json_encode(['key'=>$maxKey,'expires'=>time()+60,'bytes'=>base64_encode($png)]));chmod($httpCache.'/'.$maxSlot.'.json',0600);
     $process=null;
     try {
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$errstr);if (!$socket) throw new RuntimeException('Cannot allocate loopback fixture');
@@ -144,6 +152,8 @@ try {
         avCheck('real HTTP anonymous avatar remains unauthorized',$anon['status']===401 && !str_contains($anon['bytes'],$png));
         $cookie=$request('/manager/fixture-session.php?id=1')['cookie'];$binary=$request($endpoint,$cookie);
         avCheck('real HTTP authenticated cache returns exact binary',$binary['status']===200 && $binary['bytes']===$png);
+        $maxBinary=$request('/manager/customer-avatar.php?conversation_id=300',$cookie);
+        avCheck('real HTTP MAX cache returns validated binary through canonical endpoint',$maxBinary['status']===200 && $maxBinary['bytes']===$png && str_contains($maxBinary['headers'],'Content-Type: image/png'));
         avCheck('binary endpoint has private no-store nosniff sandbox headers',str_contains($binary['headers'],'Cache-Control: private, no-store') && str_contains($binary['headers'],'Content-Type: image/png') && str_contains($binary['headers'],'X-Content-Type-Options: nosniff') && str_contains($binary['headers'],"Content-Security-Policy: default-src 'none'; sandbox"));
         avCheck('binary HTTP endpoint rejects write methods',$request($endpoint,$cookie,'POST')['status']===405);
         avCheck('binary HTTP endpoint rejects invalid conversation IDs',$request('/manager/customer-avatar.php?conversation_id=100x',$cookie)['status']===404);
@@ -156,6 +166,7 @@ try {
         if (is_resource($process)) {proc_terminate($process);proc_close($process);}
         foreach (glob($httpCache.'/*') as $file) unlink($file);rmdir($httpCache);
     }
+    require __DIR__.'/fixtures/manager_max_avatar_regression.php';
     echo 'TOTAL '.$passed." | FAIL 0\n";
 } finally {
     $remove=static function(string $dir) use(&$remove):void {foreach (scandir($dir) as $name) {if ($name==='.' || $name==='..') continue;$p=$dir.'/'.$name;if (is_dir($p) && !is_link($p)) $remove($p);else unlink($p);}rmdir($dir);};$remove($root);
