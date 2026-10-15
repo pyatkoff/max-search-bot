@@ -185,7 +185,7 @@ $write = array_values(array_filter($provider->calls, static fn($c) => $c['method
 channelPostCheck('MAX edit omits text, markup, format and link', array_keys($write['body']), ['attachments']);
 channelPostCheck('MAX image uses existing token without import', $write['body']['attachments'][0], ['type' => 'image', 'payload' => ['token' => 'fixture-private-image-token']]);
 channelPostCheck('MAX text/markup/photo IDs/link preserved', $provider->message['body']['text'] === $fixtures['max']['body']['text'] && $provider->message['body']['markup'] === $fixtures['max']['body']['markup'] && $provider->message['body']['attachments'][0]['payload']['photo_id'] === 901 && $provider->message['link'] === $fixtures['max']['link']);
-channelPostCheck('original URL row remains before new row', $provider->message['body']['attachments'][1]['payload']['buttons'][0], $fixtures['max']['body']['attachments'][1]['payload']['buttons'][0]);
+channelPostCheck('MAX keyboard contains only our individual URL button', $provider->message['body']['attachments'][1]['payload']['buttons'], [[['type'=>'link','text'=>'Рассчитать на мои даты','url'=>ChannelPostButtonTransport::buttonUrl(array_values($store->posts)[0])]]]);
 channelPostCheck('safe result never includes original text/media tokens', strpos(json_encode($result), 'fixture-private') === false && strpos(json_encode($result), 'Турция') === false);
 channelPostCheck('completed worker replay performs no external operation', channelPostRun($service), []);
 $selfEdit = channelPostReceive($service, $provider->message, 'max', true);
@@ -227,8 +227,11 @@ foreach (['max', 'telegram'] as $platform) {
     if ($platform === 'max') $callback['body']['attachments'][1]['payload']['buttons'][0][] = ['type' => 'callback', 'text' => 'Чужая кнопка', 'payload' => 'foreign'];
     else $callback['reply_markup']['inline_keyboard'][0][] = ['text' => 'Чужая кнопка', 'callback_data' => 'foreign'];
     $provider->message = $callback; channelPostReceive($service, $callback, $platform);
-    channelPostCheck($platform . ' foreign callback ownership fail closed', channelPostRun($service, $platform)[0]['reason'], 'foreign_keyboard_owner');
-    channelPostCheck($platform . ' existing foreign callback not rewritten', $provider->writes(), 0);
+    $replaced = channelPostRun($service, $platform);
+    channelPostCheck($platform . ' owner-requested foreign keyboard replacement succeeds', $replaced[0]['state'] ?? '', 'sent');
+    channelPostCheck($platform . ' foreign callback removed with one write', $provider->writes(), 1);
+    $rows = $platform === 'max' ? $provider->message['body']['attachments'][1]['payload']['buttons'] : $provider->message['reply_markup']['inline_keyboard'];
+    channelPostCheck($platform . ' replacement contains only our own URL', count($rows) === 1 && count($rows[0]) === 1 && ($rows[0][0]['url'] ?? '') === ChannelPostButtonTransport::buttonUrl(array_values($store->posts)[0]));
 }
 
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['max']);
@@ -278,7 +281,7 @@ channelPostCheck('Telegram human photo post reply markup verified', $tgResult[0]
 $edit = array_values(array_filter($provider->calls, static fn($c) => $c['path'] === 'editMessageReplyMarkup'))[0];
 channelPostCheck('Telegram edit changes reply markup only', array_keys($edit['body']), ['chat_id', 'message_id', 'reply_markup']);
 channelPostCheck('Telegram caption/photo/entities preserved', $provider->message['caption'] === $fixtures['telegram']['caption'] && $provider->message['caption_entities'] === $fixtures['telegram']['caption_entities'] && $provider->message['photo'] === $fixtures['telegram']['photo']);
-channelPostCheck('Telegram original URL keyboard row retained', $provider->message['reply_markup']['inline_keyboard'][0], $fixtures['telegram']['reply_markup']['inline_keyboard'][0]);
+channelPostCheck('Telegram keyboard contains only our individual URL button', $provider->message['reply_markup']['inline_keyboard'], [[['text'=>'Рассчитать на мои даты','url'=>ChannelPostButtonTransport::buttonUrl(array_values($store->posts)[0])]]]);
 channelPostCheck('Telegram own edit retains same immutable version', channelPostReceive($service, $provider->message, 'telegram', true)['version_id'], $first['version_id']);
 
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['telegram'], 'telegram');
@@ -460,5 +463,89 @@ channelPostCheck('actual Telegram ambiguous edit stored UNKNOWN', channelPostRun
 channelPostCheck('actual Telegram self-edit resolves UNKNOWN without another write', channelPostReceive($actualTgService, $actualTgProvider->message, 'telegram', true)['state'], 'sent');
 channelPostCheck('actual Telegram token/version remain stable after reconciliation', $actualRegistry->publication($tgOriginal['publication_id'])['version_id'], $tgOriginal['version_id']);
 channelPostCheck('actual Telegram durable write count remains one', $actualRegistry->publication($tgOriginal['publication_id'])['write_attempts'], 1);
+
+/** A MAX album is one actual MID containing all ordered image attachments. */
+function channelPostMaxAlbum(array $base, int $count, bool $keyboard = true): array {
+    $images = [];
+    for ($i = 0; $i < $count; $i++) {
+        $images[] = ['type'=>'image','payload'=>['photo_id'=>1901+$i,'token'=>'fixture-album-token-'.$i,'url'=>'https://cdn.example.test/album-'.$i]];
+    }
+    $base['body']['mid'] = 'mid.album-'.$count.'-'.($keyboard ? 'keyboard' : 'plain');
+    $base['body']['attachments'] = $images;
+    if ($keyboard) $base['body']['attachments'][] = ['type'=>'inline_keyboard','payload'=>['buttons'=>[[
+        ['type'=>'open_app','text'=>'Комментарии','contact_id'=>424242,'payload'=>'fixture-foreign-private-launch'],
+    ]]]];
+    return $base;
+}
+foreach ([2, 6, 10, 11] as $photoCount) foreach ([false, true] as $hasKeyboard) {
+    $album = channelPostMaxAlbum($fixtures['max'], $photoCount, $hasKeyboard);
+    [$albumStore, $albumProvider, $albumTransport, $albumService] = channelPostScenario($album);
+    $accepted = channelPostReceive($albumService, $album);
+    channelPostCheck('MAX '.$photoCount.' photos durably queue with no API request', !empty($accepted['queued']) && count($albumProvider->calls) === 0);
+    $done = channelPostRun($albumService);
+    channelPostCheck('MAX '.$photoCount.' photos receive only our button', $done[0]['state'] ?? '', 'sent');
+    channelPostCheck('MAX album performs one bounded edit', [$albumProvider->writes(), count($albumProvider->calls)], [1,5]);
+    $after = $albumProvider->message;
+    $afterMedia = array_values(array_filter($after['body']['attachments'], static fn($a)=>$a['type']==='image'));
+    $beforeMedia = array_values(array_filter($album['body']['attachments'], static fn($a)=>$a['type']==='image'));
+    channelPostCheck('MAX every photo and original ordering preserved', $afterMedia, $beforeMedia);
+    channelPostCheck('MAX exact caption markup and forward context preserved', [$after['body']['text'],$after['body']['markup'],$after['link']], [$album['body']['text'],$album['body']['markup'],$album['link']]);
+    $keys = array_values(array_filter($after['body']['attachments'], static fn($a)=>$a['type']==='inline_keyboard'));
+    $own = ChannelPostButtonTransport::buttonUrl(array_values($albumStore->posts)[0]);
+    channelPostCheck('MAX foreign open_app replaced by one keyboard and one own link', count($keys)===1 && $keys[0]['payload']['buttons'] === [[['type'=>'link','text'=>'Рассчитать на мои даты','url'=>$own]]]);
+    $writes = array_values(array_filter($albumProvider->calls, static fn($c)=>$c['method']==='PUT'));
+    channelPostCheck('MAX album edits attachments only', isset($writes[0]) && array_keys($writes[0]['body'])===['attachments']);
+    $self = channelPostReceive($albumService, $after, 'max', true);
+    channelPostCheck('MAX keyboard replacement is not a tour content version', $self['version_id'] ?? 0, $accepted['version_id']);
+    channelPostCheck('MAX album self event and worker do not duplicate edit', channelPostRun($albumService)===[] && $albumProvider->writes()===1);
+}
+foreach ([12,13] as $photoCount) foreach ([false,true] as $hasKeyboard) {
+    $album = channelPostMaxAlbum($fixtures['max'], $photoCount, $hasKeyboard);
+    [$s,$p,$tr,$svc] = channelPostScenario($album);
+    $blocked = channelPostReceive($svc,$album);
+    channelPostCheck('MAX total attachment limit reserves our keyboard', [$blocked['state'] ?? '', $blocked['reason'] ?? '', count($p->calls)], ['requires_attention','attachment_limit',0]);
+}
+$album = channelPostMaxAlbum($fixtures['max'],6);
+$changedKeyboard=$album; $changedKeyboard['body']['attachments'][6]['payload']['buttons']=[[['type'=>'callback','text'=>'Другой бот','payload'=>'foreign']]];
+channelPostCheck('keyboard-only changes do not change tour fingerprint', ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($album)), ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($changedKeyboard)));
+$rotated=$album;
+foreach ($rotated['body']['attachments'] as &$attachment) if ($attachment['type']==='image') { $attachment['payload']['token'].='-rotated'; $attachment['payload']['url'].='?renewed'; }
+unset($attachment);
+channelPostCheck('all album signed token rotations keep content fingerprint', ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($album)), ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($rotated)));
+[$s,$p,$tr,$svc]=channelPostScenario($album); channelPostReceive($svc,$album);
+$p->message['body']['attachments'][5]['payload']['photo_id']=999999;
+channelPostCheck('changed last album photo rejects stale edit', channelPostRun($svc)[0]['reason'] ?? '', 'post_changed_since_event');
+channelPostCheck('stale album cannot write', $p->writes(),0);
+$bad=$album; unset($bad['body']['attachments'][5]['payload']['photo_id']);
+[$s,$p,$tr,$svc]=channelPostScenario($bad); $r=channelPostReceive($svc,$bad);
+channelPostCheck('bad last album image is not hidden by album support', [$r['reason'] ?? '',count($p->calls)],['image_stable_id_missing',0]);
+$bad=$album; $bad['body']['attachments'][5]=['type'=>'video','payload'=>['token'=>'fixture-video']];
+[$s,$p,$tr,$svc]=channelPostScenario($bad); $r=channelPostReceive($svc,$bad);
+channelPostCheck('mixed album keeps unsupported-media guard', [$r['reason'] ?? '',count($p->calls)],['unsupported_media',0]);
+[$s,$p,$tr,$svc]=channelPostScenario($album); channelPostReceive($svc,$album);
+unset($p->message['body']['attachments'][5]['payload']['token']);
+channelPostCheck('every album photo needs a fresh reusable token', channelPostRun($svc)[0]['reason'] ?? '', 'image_token_missing');
+channelPostCheck('missing last image token cannot drop a photo or write', $p->writes(),0);
+foreach (['timeout_applied','timeout_unapplied'] as $mode) {
+    [$s,$p,$tr,$svc]=channelPostScenario($album); channelPostReceive($svc,$album); $p->mode=$mode;
+    $r=channelPostRun($svc); channelPostCheck('album lost response has honest outcome', $r[0]['state'] ?? '', $mode==='timeout_applied'?'sent':'unknown');
+    channelPostRun($svc);
+    channelPostCheck('album lost response never repeats PUT', $p->writes(),1);
+}
+foreach (['max','telegram'] as $platform) {
+    [$s,$p,$tr,$svc]=channelPostScenario($fixtures[$platform],$platform);
+    channelPostReceive($svc,$fixtures[$platform],$platform); channelPostRun($svc,$platform);
+    $withExtra=$p->message;
+    if ($platform==='max') $withExtra['body']['attachments'][1]['payload']['buttons'][]=[['type'=>'callback','text'=>'Чужая','payload'=>'foreign']];
+    else $withExtra['reply_markup']['inline_keyboard'][]=[['text'=>'Чужая','callback_data'=>'foreign']];
+    $snapshot=$platform==='max'?ChannelPostIncomingAdapter::maxSnapshot($withExtra):ChannelPostIncomingAdapter::telegramSnapshot($withExtra);
+    $own=ChannelPostButtonTransport::buttonUrl(array_values($s->posts)[0]);
+    channelPostCheck($platform.' an own button plus foreign rows is not an exact finished keyboard', ChannelPostIncomingAdapter::containsButton($snapshot,$own,'Рассчитать на мои даты') && count($snapshot['keyboard'])>1);
+    // A new pending operation with an already-present own link must still remove foreign rows.
+    $p2=new FixturePostProvider($withExtra); $op=array_values($s->posts)[0]; $op['snapshot']=$snapshot;
+    $tr2=new ChannelPostButtonTransport([$p2,'request']); $r=$tr2->attempt($op,static fn()=>true);
+    channelPostCheck($platform.' own-plus-foreign keyboard is replaced, not accepted early', [$r['state'],$p2->writes()],['sent',1]);
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
