@@ -62,6 +62,26 @@ class ManagerConversationService
         return '⏱ Без ответа '.$hours.' ч'.($rest>0?' '.$rest.' мин':'');
     }
 
+    /** One canonical lifecycle/ownership predicate, also used by saved unions. */
+    private static function queuePredicate(string $queue,int $managerId,bool $isAdmin,array &$args): string
+    {
+        if($queue==='attention'||$queue==='waiting'){
+            $sql="((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')';
+            if($queue==='waiting'||!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+            return '('.$sql.')';
+        }
+        if($queue==='requested'){
+            $sql=self::latestManagerRequestSql('c').' IS NOT NULL';
+            if(!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+            return '('.$sql.')';
+        }
+        if($queue==='mine'){array_push($args,'manager',$managerId);return '(c.status=? AND c.manager_id=?)';}
+        if($queue==='closed'){$args[]='closed';return 'c.status=?';}
+        $args[]='closed';$sql='c.status<>?';
+        if(!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
+        return '('.$sql.')';
+    }
+
     public static function list(int $managerId, string $queue='waiting', int $limit=100, string $projectKey='*', string $managerFilter='', string $leadStageKey='', int $leadTagId=0, array $personalFilters=[], ?array &$pageMetadata=null): array
     {
         RoutingAccessService::ensureSchema();ManagerReadService::ensureSchema();
@@ -74,26 +94,30 @@ class ManagerConversationService
         }else{
             $projectKey=self::resolveProject($managerId,$projectKey);if($projectKey==='')return[];$where[]='c.project_key=?';$args[]=$projectKey;
         }
-        if($queue==='attention' || $queue==='waiting'){
-            $where[]="((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')';
-            if($queue==='waiting'||!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
-        }
-        elseif($queue==='requested'){
-            $where[]=self::latestManagerRequestSql('c').' IS NOT NULL';
-            if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
-        }
-        elseif($queue==='mine'){$where[]='c.status=?';$args[]='manager';$where[]='c.manager_id=?';$args[]=$managerId;}
-        elseif($queue==='closed'){$where[]='c.status=?';$args[]='closed';}
-        else{
-            $where[]='c.status<>?';$args[]='closed';
-            if(!$isAdmin){$where[]='(c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
-        }
+        $queues=$personalFilters['queues']??null;
+        if(array_key_exists('queues',$personalFilters)){
+            if(!is_array($queues)||!array_is_list($queues)||!$queues||count($queues)>4||count(array_unique($queues,SORT_REGULAR))!==count($queues))throw new InvalidArgumentException('Invalid personal queues');
+            $parts=[];
+            foreach($queues as $selectedQueue){
+                if(!is_string($selectedQueue)||!in_array($selectedQueue,['waiting','mine','all','closed'],true))throw new InvalidArgumentException('Invalid personal queue');
+                $parts[]=self::queuePredicate($selectedQueue,$managerId,$isAdmin,$args);
+            }
+            $where[]='('.implode(' OR ',$parts).')';
+            // A union has one newest-first bounded page, never one page per queue.
+            $queue=count($queues)===1?$queues[0]:'personal';
+        }else $where[]=self::queuePredicate($queue,$managerId,$isAdmin,$args);
 
         if($isAdmin && $queue!=='mine'){
             $managerFilter=trim($managerFilter);
             if($managerFilter==='unassigned'){$where[]='c.manager_id IS NULL';}
             elseif($managerFilter==='mine'){$where[]='c.manager_id=?';$args[]=$managerId;}
             elseif(ctype_digit($managerFilter) && (int)$managerFilter>0){$where[]='c.manager_id=?';$args[]=(int)$managerFilter;}
+        }
+        if($isAdmin && $queue==='mine' && $queues!==null){
+            // Personal conditions always intersect the external manager filter.
+            // Ordinary Mine keeps its historical global-filter behavior.
+            $managerFilter=trim($managerFilter);
+            if($managerFilter==='unassigned'||(ctype_digit($managerFilter)&&(int)$managerFilter>0&&(int)$managerFilter!==$managerId))$where[]='1=0';
         }
 
         $leadStageKey=trim($leadStageKey);
@@ -103,7 +127,17 @@ class ManagerConversationService
         // Account preference owner supplies values only, never arbitrary SQL.
         // Select the one collection before the existing bounded candidate page.
         if($personalFilters){
-            if(array_diff(array_keys($personalFilters),['channel','source_id','reply_needed','ids']))throw new InvalidArgumentException('Invalid personal filters');
+            if(array_diff(array_keys($personalFilters),['queues','channels','source_ids','channel','source_id','reply_needed','ids']))throw new InvalidArgumentException('Invalid personal filters');
+            foreach(['channels'=>3,'source_ids'=>100] as $field=>$max){
+                if(!array_key_exists($field,$personalFilters))continue;
+                $values=$personalFilters[$field];
+                if(!is_array($values)||!array_is_list($values)||count($values)>$max||count(array_unique($values,SORT_REGULAR))!==count($values))throw new InvalidArgumentException('Invalid personal '.$field);
+                foreach($values as $value){
+                    if($field==='channels'&&(!is_string($value)||!in_array($value,['max','telegram','website'],true)))throw new InvalidArgumentException('Invalid personal channel');
+                    if($field==='source_ids'&&(!is_int($value)||$value<=0))throw new InvalidArgumentException('Invalid personal source');
+                }
+                if($values){$where[]=($field==='channels'?'c.channel':'c.source_id').' IN ('.implode(',',array_fill(0,count($values),'?')).')';array_push($args,...$values);}
+            }
             $channel=$personalFilters['channel']??'';
             if(!in_array($channel,['','max','telegram','website'],true))throw new InvalidArgumentException('Invalid personal channel');
             if($channel!==''){$where[]='c.channel=?';$args[]=$channel;}
@@ -125,12 +159,12 @@ class ManagerConversationService
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
-        $replySql=$queue==='mine'?self::awaitingManagerReplySql('c'):'0';
+        $replySql=($queue==='mine'||($queue==='personal'&&in_array('mine',$queues,true)))?self::awaitingManagerReplySql('c'):'0';
         $whereSql=implode(' AND ',$where);
         $orderSql=($queue==='attention'||$queue==='waiting')?'COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC':($queue==='requested'?'manager_request_at DESC':($queue==='mine'?'awaiting_manager_reply DESC,COALESCE(c.last_message_at,c.started_at) DESC':'COALESCE(c.last_message_at,c.started_at) DESC'));
         $fromSql='FROM conversations c JOIN customers cu ON cu.id=c.customer_id';
         $predicateSql=' WHERE '.$whereSql;
-        if($queue==='all'||$queue==='closed'){
+        if($queue==='all'||$queue==='closed'||$queue==='personal'){
             // These queues rank only conversation timestamps. Materialize their
             // customer-backed candidate page before annotating messages/events;
             // request/reply-ranked queues must keep their original query path.

@@ -146,4 +146,64 @@ $pdo->exec('DROP TRIGGER personal_workspace_reject_receipt');
 $retry=nativeWorkspaceMutate(2,'label_save',$rollback);
 nativeWorkspaceCheck('native same command after confirmed rollback commits once',$retry['ok']&&nativeWorkspaceMutate(2,'label_save',$rollback)['id']===$retry['id']);
 nativeWorkspaceCheck('native workspace preferences never write manager business fields',(int)$pdo->query("SELECT COUNT(*) FROM managers WHERE fixture_marker='personal-workspace-native-fixture'")->fetchColumn()===3&&(int)$pdo->query('SELECT SUM(is_active) FROM managers')->fetchColumn()===2);
+
+// Native prepared-query coverage after the isolated concurrency workers finish.
+// Every table below belongs to the same explicitly empty ephemeral schema gate.
+$pdo->exec("ALTER TABLE managers ADD login VARCHAR(64) NOT NULL DEFAULT 'fixture',ADD display_name VARCHAR(64) NOT NULL DEFAULT 'Synthetic manager',ADD role VARCHAR(16) NOT NULL DEFAULT 'manager',ADD email VARCHAR(64) NOT NULL DEFAULT '',ADD is_working TINYINT NOT NULL DEFAULT 1");
+foreach ([
+    'projects(id INT PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(64),is_active TINYINT)',
+    'manager_projects(manager_id INT,project_id INT)',
+    'customers(id INT PRIMARY KEY,display_name VARCHAR(64),phone VARCHAR(32),email VARCHAR(64))',
+    'manager_customer_names(customer_id INT PRIMARY KEY,working_name VARCHAR(64),version INT)',
+    'conversations(id INT PRIMARY KEY,customer_id INT,project_key VARCHAR(64),source_id INT,channel VARCHAR(16),entry_channel VARCHAR(64),attribution_region VARCHAR(32),attribution_campaign VARCHAR(32),status VARCHAR(32),lead_stage_key VARCHAR(32),manager_id INT,started_at DATETIME,last_message_at DATETIME,closed_at DATETIME,is_test TINYINT,external_chat_id VARCHAR(64),lead_outcome VARCHAR(16) DEFAULT \'open\',lead_close_reason VARCHAR(32),lead_outcome_note TEXT,lead_sale_amount DECIMAL(12,2),lead_sale_date DATE)',
+    'conversation_sources(id INT PRIMARY KEY,project_id INT,display_name VARCHAR(64),primary_group_id INT,fallback_mode VARCHAR(16),fallback_group_id INT,fallback_after_minutes INT,is_active TINYINT)',
+    'manager_group_members(manager_id INT,group_id INT)',
+    'conversation_events(id INT PRIMARY KEY,conversation_id INT,event_type VARCHAR(64),created_at DATETIME,payload_json TEXT,actor_type VARCHAR(16),KEY(conversation_id,id))',
+    'messages(id INT PRIMARY KEY,conversation_id INT,direction VARCHAR(16),sender_type VARCHAR(16),text TEXT,metadata_json TEXT,created_at DATETIME,KEY(conversation_id,id))',
+    'manager_conversation_reads(manager_id INT,conversation_id INT,last_read_message_id INT,PRIMARY KEY(manager_id,conversation_id))',
+    'lead_stages(stage_key VARCHAR(32) PRIMARY KEY,display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT,is_terminal TINYINT,is_won TINYINT)',
+    'lead_tags(id INT PRIMARY KEY,tag_key VARCHAR(32),display_name VARCHAR(64),color VARCHAR(16),sort_order INT,is_active TINYINT)',
+    'conversation_lead_tags(conversation_id INT,tag_id INT,PRIMARY KEY(conversation_id,tag_id))',
+    'lead_stage_history(id INT PRIMARY KEY,conversation_id INT,created_at DATETIME)',
+    'lead_tasks(id INT PRIMARY KEY,conversation_id INT,title VARCHAR(128),due_at_utc DATETIME,is_pinned TINYINT,status VARCHAR(16))',
+    'lead_close_reasons(reason_key VARCHAR(32),display_name VARCHAR(64),sort_order INT,is_active TINYINT)',
+] as $table) $pdo->exec('CREATE TABLE '.$table.' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+foreach ([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class) (new ReflectionProperty($class,'schemaReady'))->setValue(null,true);
+$pdo->exec("INSERT INTO projects VALUES(1,'native-personal','Synthetic personal',1),(2,'native-denied','Synthetic denied',1);
+INSERT INTO manager_projects VALUES(1,1),(2,1);
+INSERT INTO customers VALUES(1,'Synthetic client','','');
+INSERT INTO conversation_sources VALUES(1,1,'First',0,'none',0,0,1),(2,1,'Second',0,'none',0,0,1),(3,2,'Denied',0,'none',0,0,1),(4,1,'Inactive',0,'none',0,0,0)");
+$insert=$pdo->prepare("INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,lead_stage_key,manager_id,started_at,last_message_at,is_test) VALUES(?,1,'native-personal',?,?,?,'new',?,'2026-10-10 00:00:00',?,0)");
+$insert->execute([1,1,'max','manager',1,'2026-10-10 00:00:01']);
+$insert->execute([2,2,'telegram','closed',1,'2026-10-10 00:00:02']);
+$insert->execute([3,2,'telegram','waiting_manager',null,'2026-10-10 00:00:03']);
+$insert->execute([4,2,'website','closed',1,'2026-10-10 00:00:04']);
+$insert->execute([5,1,'max','manager',2,'2026-10-10 00:00:05']);
+for ($id=10;$id<240;$id++) $insert->execute([$id,1,'website','ai',null,'2026-10-14 00:00:00']);
+$nativeFirst=nativeWorkspaceMutate(1,'label_save',['name'=>'Первая выбранная']);$nativeFirstId=$nativeFirst['id'];
+$nativeSecond=nativeWorkspaceMutate(1,'label_save',['name'=>'Вторая выбранная']);$nativeSecondId=$nativeSecond['id'];
+foreach ([[1,$nativeFirstId],[2,$nativeSecondId],[4,$nativeSecondId]] as [$conversationId,$selectedLabel]) nativeWorkspaceMutate(1,'label_membership',['conversation_id'=>$conversationId,'label_id'=>$selectedLabel,'enabled'=>true]);
+$multiConditions=['name'=>'Несколько условий MySQL','queues'=>['mine','closed'],'channels'=>['max','telegram'],'source_ids'=>[1,2],'label_ids'=>[$nativeFirstId,$nativeSecondId]];
+$nativeMulti=nativeWorkspaceMutate(1,'tab_save',['tab'=>$multiConditions]);$nativeMultiId=$nativeMulti['id'];
+$selection=['selection'=>'tab:'.$nativeMultiId];$nativeRows=ManagerPersonalWorkspaceService::list(1,$selection);
+nativeWorkspaceCheck('native prepared SQL applies queue channel source and label unions before200 newer unmatched rows',array_map('intval',array_column($nativeRows['conversations'],'id'))===[2,1]&&!$nativeRows['limited']);
+$nativeSnapshot=ManagerPersonalWorkspaceService::snapshot(1);$nativeSaved=array_values(array_filter($nativeSnapshot['state']['tabs'],static fn(array $item):bool=>$item['id']===$nativeMultiId))[0];
+nativeWorkspaceCheck('native JSON preserves plural selectors and stable legacy tab',$nativeSaved['queues']===['mine','closed']&&$nativeSaved['channels']===['max','telegram']&&$nativeSaved['source_ids']===[1,2]&&$nativeSaved['label_ids']===[$nativeFirstId,$nativeSecondId]&&nativeWorkspaceEqual(array_values(array_filter($nativeSnapshot['state']['tabs'],static fn(array $item):bool=>$item['id']===$tab2['id']))[0],array_values(array_filter($tab2['state']['tabs'],static fn(array $item):bool=>$item['id']===$tab2['id']))[0]));
+nativeWorkspaceCheck('native external selectors intersect the saved union',array_map('intval',array_column(ManagerPersonalWorkspaceService::list(1,$selection+['channel'=>'telegram','source_id'=>2])['conversations'],'id'))===[2]&&ManagerPersonalWorkspaceService::list(1,$selection+['source_id'=>-1])['conversations']===[]&&ManagerPersonalWorkspaceService::list(1,$selection+['channel'=>'website'])['conversations']===[]);
+nativeWorkspaceMutate(1,'pin',['conversation_id'=>1,'enabled'=>true]);
+nativeWorkspaceMutate(1,'tab_save',['id'=>$nativeMultiId,'tab'=>$multiConditions+['pinned_only'=>true]]);
+nativeWorkspaceCheck('native pinned condition intersects labels rather than adding another union',array_map('intval',array_column(ManagerPersonalWorkspaceService::list(1,$selection)['conversations'],'id'))===[1]);
+nativeWorkspaceMutate(1,'tab_save',['id'=>$nativeMultiId,'tab'=>$multiConditions]);
+nativeWorkspaceMutate(1,'label_delete',['id'=>$nativeSecondId]);
+nativeWorkspaceCheck('native deleted label contributes empty branch with remaining label intact',array_map('intval',array_column(ManagerPersonalWorkspaceService::list(1,$selection)['conversations'],'id'))===[1]);
+nativeWorkspaceMutate(1,'label_delete',['id'=>$nativeFirstId]);
+nativeWorkspaceCheck('native all removed labels never broaden the saved collection',ManagerPersonalWorkspaceService::list(1,$selection)['conversations']===[]);
+$multiConditions['label_ids']=[];$multiConditions['channels']=[];$multiConditions['source_ids']=[];$multiConditions['queues']=['waiting','closed'];
+nativeWorkspaceMutate(1,'tab_save',['id'=>$nativeMultiId,'tab'=>$multiConditions]);
+nativeWorkspaceCheck('native queue union selects closed and waiting before unmatched noise cap',array_map('intval',array_column(ManagerPersonalWorkspaceService::list(1,$selection)['conversations'],'id'))===[4,3,2]);
+nativeWorkspaceCheck('native all selected sources require current active access',nativeWorkspaceMutate(1,'tab_save',['id'=>$nativeMultiId,'tab'=>array_replace($multiConditions,['source_ids'=>[1,3]])])['error']==='forbidden'&&nativeWorkspaceMutate(1,'tab_save',['id'=>$nativeMultiId,'tab'=>array_replace($multiConditions,['source_ids'=>[1,4]])])['error']==='forbidden');
+$nativeOverlap=ManagerConversationService::list(1,'all',200,'*','','',0,['queues'=>['mine','all']]);
+nativeWorkspaceCheck('native overlapping queues are one bounded unique page',count($nativeOverlap)===200&&count(array_unique(array_column($nativeOverlap,'id'),SORT_REGULAR))===200&&!in_array(5,array_map('intval',array_column($nativeOverlap,'id')),true));
+$pdo->exec("UPDATE managers SET role='admin' WHERE id=2");
+nativeWorkspaceCheck('native saved Mine intersects admin manager filter without changing ordinary Mine',array_map('intval',array_column(ManagerConversationService::list(2,'all',200,'*','','',0,['queues'=>['mine']]),'id'))===[5]&&ManagerConversationService::list(2,'all',200,'*','1','',0,['queues'=>['mine']])===[]&&array_map('intval',array_column(ManagerConversationService::list(2,'mine',200,'*','1'),'id'))===[5]);
 echo 'NATIVE PERSONAL WORKSPACE MYSQL OK ('.$passed." checks)\n";

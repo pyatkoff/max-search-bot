@@ -54,7 +54,7 @@ INSERT INTO projects VALUES(1,'anytour','Synthetic AnyTour',1),(2,'other','Synth
 INSERT INTO manager_projects VALUES(7,1),(8,1),(90,1),(9,2);
 INSERT INTO managers VALUES(7,'one','First','manager','',1,1),(8,'two','Second','manager','',1,1),(90,'admin','Admin','admin','',1,1),(9,'other','Other','manager','',1,1),(10,'disabled','Disabled','admin','',0,1);
 INSERT INTO customers VALUES(1,'Synthetic client','123','');
-INSERT INTO conversation_sources VALUES(1,1,'Allowed',0,'none',0,0,1),(2,1,'Restricted',101,'none',0,0,1),(3,2,'Other',0,'none',0,0,1);");
+INSERT INTO conversation_sources VALUES(1,1,'Allowed',0,'none',0,0,1),(2,1,'Restricted',101,'none',0,0,1),(3,2,'Other',0,'none',0,0,1),(4,1,'Second allowed',0,'none',0,0,1),(5,1,'Inactive',0,'none',0,0,0);");
 $insert=$pdo->prepare('INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,lead_stage_key,manager_id,started_at,last_message_at,is_test) VALUES(?,1,?,?,?,? ,\'new\',?,?,?,0)');
 $message=$pdo->prepare("INSERT INTO messages VALUES(?,?,'inbound','customer',?,'{}',?)");
 $pdo->beginTransaction();
@@ -67,6 +67,11 @@ $insert->execute([2001,'other',3,'max','manager',9,'2026-10-14 00:00:00','2026-1
 $insert->execute([2002,'anytour',2,'max','manager',7,'2026-10-14 00:00:00','2026-10-14 00:00:00']);
 $insert->execute([2003,'anytour',1,'max','closed',7,'2026-10-14 00:00:00','2026-10-14 00:00:00']);
 $insert->execute([2004,'anytour',1,'max','waiting_manager',null,'2026-10-14 00:00:00','2026-10-14 00:00:00']);
+$insert->execute([2005,'anytour',4,'telegram','manager',7,'2026-10-12 00:00:00','2026-10-12 00:00:00']);
+$insert->execute([2006,'anytour',4,'website','closed',8,'2026-10-12 00:00:00','2026-10-12 00:00:00']);
+$insert->execute([2007,'anytour',1,'max','manager',8,'2026-10-12 00:00:00','2026-10-12 00:00:00']);
+$insert->execute([2008,'anytour',4,'telegram','waiting_manager',null,'2026-10-12 00:00:00','2026-10-12 00:00:00']);
+$insert->execute([2009,'anytour',1,'max','manager',90,'2026-10-12 00:00:00','2026-10-12 00:00:00']);
 $pdo->commit();
 $passed=0;
 function pwCheck(string $label,bool $ok): void {global $passed;if (!$ok) throw new RuntimeException('FAIL '.$label);$passed++;echo 'PASS '.$label."\n";}
@@ -144,6 +149,51 @@ pwMut('tab_delete',['id'=>$tabId]);
 pwCheck('deleting startup tab returns safe system default',pwState()['state']['settings']['start_tab']==='waiting');
 $next=pwMut('tab_save',['tab'=>['name'=>'After delete']]);
 pwCheck('deleted IDs never reused under account lock',$next['id']>$reply['id']);
+
+// Multi-choice conditions are one bounded SQL selection: OR within each field,
+// AND between fields and the external inbox filters. Legacy tabs stay scalar.
+$third=pwMut('label_save',['name'=>'Несколько условий']);$thirdId=$third['id'];
+foreach ([2,2003,2005,2006] as $conversationId) pwMut('label_membership',['conversation_id'=>$conversationId,'label_id'=>$thirdId,'enabled'=>true]);
+$multiInput=['name'=>'MAX и Telegram, мои и закрытые','queues'=>['mine','closed'],'channels'=>['max','telegram'],'source_ids'=>[1,4],'label_ids'=>[$secondId,$thirdId],'reply_needed'=>false,'pinned_only'=>false];
+$multi=pwMut('tab_save',['tab'=>$multiInput]);$multiId=$multi['id'];
+$multiSaved=array_values(array_filter($multi['state']['tabs'],static fn(array $item):bool=>$item['id']===$multiId))[0];
+pwCheck('plural selections roundtrip with compatibility aliases and stable order',$multi['ok']&&$multiSaved['queues']===['mine','closed']&&$multiSaved['channels']===['max','telegram']&&$multiSaved['source_ids']===[1,4]&&$multiSaved['label_ids']===[$secondId,$thirdId]&&$multiSaved['queue']==='all'&&$multiSaved['channel']===''&&$multiSaved['source_id']===0&&$multiSaved['label_id']===0);
+$pdo->lists=0;$pdo->annotations=0;$multiRows=ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId]);
+pwCheck('multi queue channel source and label unions intersect before one candidate cap',array_column($multiRows['conversations'],'id')===[2003,2,1,2005]&&$pdo->lists===1&&$pdo->annotations===4&&!$multiRows['limited']);
+pwCheck('external channel and source intersect each saved multi-selection',array_column(ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId,'channel'=>'telegram','source_id'=>4])['conversations'],'id')===[2005]&&ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId,'channel'=>'website'])['conversations']===[]&&ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId,'source_id'=>-1])['conversations']===[]);
+$multiInput['pinned_only']=true;pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
+pwCheck('pinned condition intersects the union of selected labels',array_column(ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId])['conversations'],'id')===[1]);
+$multiInput['pinned_only']=false;pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
+$missingOnly=pwMut('tab_save',['tab'=>array_replace($multiInput,['name'=>'Только удалённая метка','label_ids'=>[$thirdId]])]);
+pwMut('label_delete',['id'=>$thirdId]);
+pwCheck('deleted selected label stays empty while surviving selected label still matches',array_column(ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId])['conversations'],'id')===[1]);
+pwCheck('all deleted selected label branches remain empty rather than any',ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$missingOnly['id']])['conversations']===[]);
+pwMut('tab_delete',['id'=>$missingOnly['id']]);
+pwCheck('saving missing label in a multi-selection is rejected without broadening',pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput])['error']==='not_found');
+$multiInput['label_ids']=[];pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
+$pdo->lists=0;$union=ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId]);
+pwCheck('large queue union is one newest200 page with canonical ownership',$pdo->lists===1&&$union['limited']&&count($union['conversations'])<=200&&(int)$union['conversations'][0]['id']===2003&&!in_array(2007,array_column($union['conversations'],'id'),true));
+$overlap=ManagerConversationService::list(7,'all',200,'*','','',0,['queues'=>['mine','all']]);
+pwCheck('overlapping mine and all selectors never duplicate rows',count($overlap)===count(array_unique(array_column($overlap,'id'),SORT_REGULAR)));
+$multiInput['queues']=['waiting','closed'];$multiInput['channels']=[];$multiInput['source_ids']=[];pwMut('tab_save',['id'=>$multiId,'tab'=>$multiInput]);
+$waitingClosedIds=array_column(ManagerPersonalWorkspaceService::list(7,['selection'=>'tab:'.$multiId])['conversations'],'id');sort($waitingClosedIds);
+pwCheck('empty optional selectors mean any and waiting plus closed includes both canonical projections',$waitingClosedIds===[2003,2004,2006,2008]);
+$aliases=pwMut('tab_save',['id'=>$multiId,'tab'=>array_merge($multiInput,['queue'=>'mine','channel'=>'website','source_id'=>3,'label_id'=>999])]);
+$aliasTab=array_values(array_filter($aliases['state']['tabs'],static fn(array $item):bool=>$item['id']===$multiId))[0];
+pwCheck('authoritative plural empty selectors clear stale legacy aliases without narrowing or broadening queues',$aliases['ok']&&$aliasTab['queues']===['waiting','closed']&&$aliasTab['queue']==='all'&&$aliasTab['channel']===''&&$aliasTab['source_id']===0&&$aliasTab['label_id']===0);
+pwCheck('admin union still cannot broaden Mine ownership',!in_array(2007,array_column(ManagerConversationService::list(90,'all',200,'*','','',0,['queues'=>['mine','waiting']]),'id'),true));
+pwCheck('saved Mine intersects admin external manager filter while ordinary Mine remains compatible',array_column(ManagerConversationService::list(90,'all',200,'*','','',0,['queues'=>['mine']]),'id')===[2009]&&ManagerConversationService::list(90,'all',200,'*','7','',0,['queues'=>['mine']])===[]&&ManagerConversationService::list(90,'all',200,'*','unassigned','',0,['queues'=>['mine']])===[]&&array_column(ManagerConversationService::list(90,'mine',200,'*','7'),'id')===[2009]);
+$pdo->exec("INSERT INTO conversation_events VALUES(30001,1,'waiting_manager','2026-10-11 00:00:00','{}','system'),(30002,2007,'waiting_manager','2026-10-11 00:00:00','{}','system'),(30003,2004,'waiting_manager','2026-10-11 00:00:00','{}','system')");
+$requestedIds=array_column(ManagerConversationService::list(7,'requested',200,'*'),'id');sort($requestedIds);
+pwCheck('canonical requested queue keeps own and unassigned and excludes another manager after predicate extraction',$requestedIds===[1,2004]);
+$attentionIds=array_column(ManagerConversationService::list(7,'attention',200,'*'),'id');$adminAttentionIds=array_column(ManagerConversationService::list(90,'attention',200,'*'),'id');
+pwCheck('canonical urgent queue preserves nonadmin ownership and admin oversight',in_array(1,$attentionIds,true)&&!in_array(2007,$attentionIds,true)&&in_array(2007,$adminAttentionIds,true));
+$pdo->exec('DELETE FROM conversation_events WHERE id IN (30001,30002,30003)');
+$badMulti=[['queues'=>[]],['queues'=>['mine','mine']],['queues'=>['mine',1]],['queues'=>['attention']],['channels'=>['max','max']],['channels'=>['max','']],['channels'=>'max'],['source_ids'=>['1']],['source_ids'=>[1,1]],['source_ids'=>[0]],['source_ids'=>range(1,101)],['label_ids'=>[$secondId,$secondId]],['label_ids'=>[true]],['label_ids'=>range(1,31)],['channels'=>['x'=>'max']]];
+$v=pwState()['version'];
+foreach ($badMulti as $invalid) pwCheck('invalid multi-choice type duplicate bound or value rejected atomically',pwMut('tab_save',['id'=>$multiId,'tab'=>array_replace($multiInput,$invalid)])['error']==='invalid_tab'&&pwState()['version']===$v);
+pwCheck('every selected source needs active current project access',pwMut('tab_save',['id'=>$multiId,'tab'=>array_replace($multiInput,['source_ids'=>[1,3]])])['error']==='forbidden'&&pwMut('tab_save',['id'=>$multiId,'tab'=>array_replace($multiInput,['source_ids'=>[1,5]])])['error']==='forbidden');
+pwMut('tab_delete',['id'=>$multiId]);
 
 // Atomic rollback at receipt write prevents UNKNOWN being mistaken for success.
 $pdo->exec("CREATE TRIGGER reject_workspace_receipt BEFORE UPDATE ON manager_personal_workspace_operations WHEN NEW.operation_id='rollback-operation-0001' BEGIN SELECT RAISE(FAIL,'Synthetic receipt failure'); END");

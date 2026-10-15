@@ -3,6 +3,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const root=path.resolve(__dirname,'..');
 const presentation=fs.readFileSync(path.join(root,'manager2/assets/manager2.js'),'utf8');
 const filters=fs.readFileSync(path.join(root,'manager/assets/workspace-v2-filters.js'),'utf8');
+const managerTime=fs.readFileSync(path.join(root,'manager/assets/manager-time.js'),'utf8');
 let checks=0;
 function check(name,fn){fn();checks++;console.log('PASS '+name)}
 function harness(){
@@ -17,11 +18,39 @@ function harness(){
   const document={body:{classList:{contains:()=>true}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
   const context=vm.createContext({window,document,sessionStorage:{setItem:(k,v)=>saved.set(k,v)},Map,Number,String,Intl,console});
   vm.runInContext(filters,context);
+  vm.runInContext(managerTime,context);
   // Exercise the actual exported navigation and filter owners without shell boot.
   vm.runInContext(presentation.replace('  init();',''),context);
   return {S,elements,title,taskFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,classWrites:()=>classWrites};
 }
 (async()=>{
+  {
+    const h=harness(),moves=[],pin={classList:{contains:name=>name==='pwMarkerPin'}},markers={children:[pin],firstElementChild:pin},unread={},meta={insertBefore:(node,before)=>moves.push({node,before}),querySelector:()=>unread};
+    const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.m2ChatMeta'?meta:null};
+    h.presentation.enhanceInboxMarkers(node);
+    check('a lone personal pin shares metadata before the unread count',()=>assert.deepEqual(moves,[{node:markers,before:unread}]));
+    markers.children=[pin,{}];h.presentation.enhanceInboxMarkers(node);
+    check('named personal labels keep their own marker row',()=>assert.equal(moves.length,1));
+    h.presentation.enhanceInboxMarkers({querySelector:()=>null});
+    check('missing metadata or personal markers require no synthetic row',()=>assert.equal(moves.length,1));
+  }
+  {
+    const h=harness(),format=h.presentation.formatInboxActivity;
+    const cases=[
+      ['today uses Moscow time','2026-10-15 09:07:08','2026-10-15 18:00:00','12:07','15.10.2026 12:07:08 МСК'],
+      ['UTC evening belongs to tomorrow in Moscow','2026-10-15 21:05:00','2026-10-15 21:30:00','00:05','16.10.2026 00:05:00 МСК'],
+      ['Moscow midnight changes the prior day to yesterday','2026-10-15 20:59:00','2026-10-15 21:00:00','Вчера','15.10.2026 23:59:00 МСК'],
+      ['month rollover keeps yesterday','2026-09-30 12:00:00','2026-10-01 09:00:00','Вчера','30.09.2026 15:00:00 МСК'],
+      ['year rollover keeps yesterday','2025-12-31 12:00:00','2026-01-01 09:00:00','Вчера','31.12.2025 15:00:00 МСК'],
+      ['older date in current year omits year','2026-10-12 12:00:00','2026-10-15 09:00:00','12.10','12.10.2026 15:00:00 МСК'],
+      ['older year remains distinguishable','2025-12-30 12:00:00','2026-01-01 09:00:00','30.12.25','30.12.2025 15:00:00 МСК'],
+      ['leap-day rollover keeps yesterday','2024-02-29 12:00:00','2024-03-01 09:00:00','Вчера','29.02.2024 15:00:00 МСК'],
+      ['explicit offset identifies the same Moscow instant','2026-10-15T05:07:08-04:00','2026-10-15 18:00:00','12:07','15.10.2026 12:07:08 МСК']
+    ];
+    for(const [name,value,now,text,exact] of cases)check('inbox activity '+name,()=>assert.deepEqual(JSON.parse(JSON.stringify(format(value,now))),{text,exact}));
+    for(const value of ['',null,'invalid','2026-02-30 09:00:00'])check('inbox activity rejects invalid timestamp '+String(value),()=>assert.equal(format(value,'2026-10-15 09:00:00'),null));
+    check('inbox activity cannot infer a date without a valid reference clock',()=>assert.equal(format('2026-10-15 09:00:00','invalid'),null));
+  }
   for(const target of ['dialogues','tasks','archive','sales']){
     const h=harness(),p=h.navigate(target);
     check(target+' performs exactly one list request',()=>assert.equal(h.requests.length,1));
