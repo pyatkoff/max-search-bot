@@ -88,6 +88,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .inboxHead .brand{font-size:18px}
 .manager2 .m2InboxTools{display:flex;align-items:center;gap:1px;flex-shrink:0}
 .manager2 .m2InboxTool,.manager2 .m2InboxTools .filtersToggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:36px;min-height:36px;min-width:34px;border:0;border-radius:7px;padding:0;background:transparent;color:#5c7063;cursor:pointer;font-size:21px}
+.manager2 .m2InboxTools .filtersToggle{font-size:0}
 .manager2 .m2InboxTool:hover,.manager2 .m2InboxTools .filtersToggle:hover{background:#edf4ee}
 .manager2 .m2InboxTool[aria-pressed=true],.manager2 .m2InboxTool.isActive{color:#25624f;background:#e9f3ed}
 .manager2 .m2InboxTool:disabled{opacity:.45;cursor:default}
