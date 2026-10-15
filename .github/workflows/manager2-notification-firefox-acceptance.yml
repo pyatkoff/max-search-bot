@@ -40,4 +40,19 @@ jobs:
           done
           exit 1
       - name: Native manager2 worker scope and sound acceptance
-        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'native manager2' --reporter=line --workers=1
+        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'native manager2' --reporter=line --workers=1 --trace=retain-on-failure
+      - name: Print synthetic failure context
+        if: failure()
+        run: |
+          for context in test-results/*/error-context.md; do
+            if [ -f "$context" ]; then cat "$context"; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: native-firefox-failure-${{ github.sha }}
+          path: |
+            test-results/**/error-context.md
+            test-results/**/trace.zip
+          if-no-files-found: ignore
+          retention-days: 7
