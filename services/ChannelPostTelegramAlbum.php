@@ -57,7 +57,6 @@ final class ChannelPostTelegramAlbum
                 if (is_array($attachment)) $snapshot['attachments'][] = $attachment;
             }
             if (($item['metadata']['capability'] ?? '') !== 'supported') $reason = (string)($item['metadata']['capability_reason'] ?? 'unsupported_media');
-            if ($key !== 'm_' . $targetId && !empty($item['keyboard'])) $reason = 'telegram_album_non_anchor_keyboard';
         }
         $snapshot['text'] = (string)($caption['text'] ?? '');
         $snapshot['markup'] = (array)($caption['markup'] ?? []);
