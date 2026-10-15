@@ -26,8 +26,8 @@ a later message/cache expiry. No transcript text is selected.
 `MaxCustomerAvatarAdapter` makes one message GET and verifies the exact MID,
 sender and private recipient before using its real signed int64 chat ID. One
 chat GET must then match that chat ID, type `dialog` and `dialog_with_user.user_id`.
-Only `dialog_with_user.avatar_url`, the documented thumbnail, can be downloaded.
-Channel icons and the full-size URL are never fallbacks. The successful owner
+The thumbnail path downloads only `dialog_with_user.avatar_url`. Channel icons
+and the full-size URL are never implicit thumbnail fallbacks. The successful owner
 diagnostic in #954 is evidence for private-dialogue URL availability, not proof
 that every customer has an accessible portrait; it is not repeated by this work.
 
@@ -60,3 +60,83 @@ and assets at 390/430/768/1440 px, including short screens, late responses,
 account/access changes, drafts and selected files. They are separate from a
 production image decode/display check and natural customer privacy cases.
 Neither the diagnostic JSON nor synthetic tests close M2-22 by themselves.
+
+## Repeated refreshes
+
+The owner explicitly accepts an older portrait and requests no freshness check
+on every reload. Successful photos therefore stay fresh for 24 hours in the
+browser and server caches. The page keeps an account/generation-scoped object-URL
+cache bounded to 48 thumbnails and 8 MiB. List, conversation-header and client-card
+surfaces share each entry. Full photos have a separate eight-entry, 8 MiB page
+cache and are loaded only when opened. Polling preserves the decoded thumbnail
+node instead of removing and inserting it again.
+
+Successful account-and-channel-scoped binary responses use
+`private, max-age=86400, must-revalidate`, `Vary: Cookie` and a validator scoped to
+the manager, conversation, image mode and content. The loader uses the normal
+browser HTTP cache. An ordinary complete page reload can therefore reuse the
+fresh response without an avatar HTTP request. The URL includes the current
+manager and channel so a different account or channel cannot reuse its cache
+entry. The endpoint checks those values against the authenticated manager and
+canonical conversation. Legacy unscoped requests retain private mandatory
+revalidation for compatibility. After expiry, an unchanged authorized photo can
+return 304 without another image body.
+
+The canonical authenticated list/detail response determines which portraits may
+be attached. Account recovery and confirmed access loss clear the displayed
+object URLs and viewer. Authentication, current access and project identity are
+checked whenever the binary endpoint is reached, before cache reads or a
+conditional response. A fresh browser cache deliberately does not perform a new
+server permission check for each photo request; already downloaded bytes may
+remain cached for the accepted 24-hour freshness window. Errors remain
+`no-store`; there is no public cache or separate persistent browser blob store.
+
+The server retains validated bytes for 24 hours in 128 private fixed thumbnail
+slots and 32 independent full-photo slots. Slot collisions, host cleanup or
+browser eviction can require another read before that time. Unavailable/provider
+error results retain the existing short retry windows (one minute in the page,
+five minutes on the server), so a transient failure does not hide a photo for a
+day.
+
+## On-demand profile-photo viewer
+
+Clicking an available avatar opens a separate, keyboard-accessible modal. It
+starts with the already loaded thumbnail and requests a larger photo only after
+that explicit action. Closing, account recovery, access loss and a conversation
+change cancel pending work and prevent late responses from repainting the viewer.
+Viewing an avatar does not open a different conversation, mark it read, send a
+message or save a reply/file draft.
+
+The protected binary endpoint's explicit `size=full&photo=N` mode uses 32
+independent fixed cache slots and retains the same authorization and provider-identity
+checks. Larger images are limited to 1 MiB and 4096 pixels in either dimension;
+the thumbnail limits above remain unchanged. No larger image or profile history
+is preloaded with the Inbox.
+
+Telegram uses `getUserProfilePhotos` with `offset=N, limit=1` and chooses the
+largest permitted size of that available photo. Navigation is based on the
+returned count, with at most the first 1000 photos exposed by this bounded
+interface. An exceeded cap is reported rather than presented as a complete
+archive. This is the bot-visible set, not a promise of every photo in the account.
+The private binary response reports the available count in `X-Avatar-Photo-Count`
+and sets `X-Avatar-Photo-Limited: 1` only when that cap is exceeded.
+
+MAX exposes a single optional `full_avatar_url`; the explicit larger-photo mode
+can use it after the existing MID/private-dialogue/user checks. It has the same
+exact CDN origin, DNS pinning and strict-TLS rules. No undocumented MAX profile
+history is inferred. If the larger image is unavailable, the viewer retains its
+thumbnail and explains that a larger version could not be loaded. Provider URLs
+and Telegram token-bearing download links remain server-only.
+
+Official provider contracts:
+
+- [Telegram getUserProfilePhotos](https://core.telegram.org/bots/api#getuserprofilephotos)
+- [MAX UserWithPhoto](https://dev.max.ru/docs-api/objects/UserWithPhoto)
+
+Actual loopback PHP regressions cover the protected 200/304 headers, empty
+conditional body, image validation and account/access/session changes. A separate
+browser fixture serves the real avatar JavaScript over loopback HTTP without
+request interception, because Playwright routing disables the HTTP cache. It
+measures first-load body bytes, a fresh full reload without another avatar
+request, expired-response revalidation and account/channel isolation. Those
+synthetic measurements are not production latency or transfer totals.

@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+// Both thumbnail and full-photo cases acquire a real session lock. Retain this
+// small diagnostic output until both have finished, before HTTP headers are sent.
+ob_start();
 require_once dirname(__DIR__).'/services/ManagerCustomerAvatarService.php';
 define('TELEGRAM_BOT_TOKEN','123456:synthetic_avatar_token');
 define('MAX_SEARCH_TOKEN','synthetic_max_avatar_token');
@@ -103,6 +106,8 @@ try {
     avCheck('cache records and locks remain bounded across many identities',count(glob($root.'/bounded/*'))<=ManagerCustomerAvatarService::CACHE_SLOTS*2);
     foreach (glob($root.'/bounded/*.json') as $file) if (filesize($file)>351000) throw new RuntimeException('unbounded record');
     avCheck('all records remain byte bounded',true);
+    $pdo->exec("UPDATE customer_channels SET external_user_id='123' WHERE id=10");
+    require __DIR__.'/fixtures/manager_full_avatar_regression.php';
     // Exercise the actual protected binary endpoint with canonical auth, a
     // separate SQLite DB/session and prewarmed synthetic binary cache. No token,
     // production config, customer send or external network is involved.
@@ -127,12 +132,17 @@ try {
         'ProjectConfig::resetForTests(["id"=>"anytour"]);';
     file_put_contents($httpRoot.'/config.php',$config);
     file_put_contents($httpRoot.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=(int)($_GET["id"]??1);ManagerHttp::respond(["ok"=>true]);');
+    $httpDb->exec("INSERT INTO managers VALUES(4,'same-project','Same project','admin','',1,1);INSERT INTO manager_projects VALUES(4,1)");
     $httpCache=sys_get_temp_dir().'/max-search-bot-manager-avatars-'.substr(hash('sha256',$httpRoot),0,16);mkdir($httpCache,0700);
     $key=hash('sha256',json_encode(['anytour','telegram','123'],JSON_THROW_ON_ERROR));
     file_put_contents($httpCache.'/'.$slot().'.json',json_encode(['key'=>$key,'expires'=>time()+60,'bytes'=>base64_encode($png)]));chmod($httpCache.'/'.$slot().'.json',0600);
     $maxKey=hash('sha256',json_encode(['max-private-v1','anytour','max','123',300,30],JSON_THROW_ON_ERROR));
     $maxSlot=(string)(hexdec(substr($maxKey,0,4))%ManagerCustomerAvatarService::CACHE_SLOTS);
     file_put_contents($httpCache.'/'.$maxSlot.'.json',json_encode(['key'=>$maxKey,'expires'=>time()+60,'bytes'=>base64_encode($png)]));chmod($httpCache.'/'.$maxSlot.'.json',0600);
+    $fullKey=hash('sha256',json_encode(['full-v1','anytour','telegram','123',0],JSON_THROW_ON_ERROR));
+    $fullSlot='full-'.(string)(hexdec(substr($fullKey,0,4))%ManagerCustomerAvatarService::FULL_CACHE_SLOTS);
+    $fullRecord=['key'=>$fullKey,'expires'=>time()+60,'bytes'=>base64_encode($png),'photo_count'=>2,'limited'=>false];
+    file_put_contents($httpCache.'/'.$fullSlot.'.json',json_encode($fullRecord));chmod($httpCache.'/'.$fullSlot.'.json',0600);
     $process=null;
     try {
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$errstr);if (!$socket) throw new RuntimeException('Cannot allocate loopback fixture');
@@ -141,27 +151,87 @@ try {
         if (!is_resource($process)) throw new RuntimeException('Cannot start loopback PHP');fclose($pipes[0]);
         $ready=false;for ($wait=0;$wait<200;$wait++) {$probe=@stream_socket_client('tcp://'.$address,$errno,$errstr,0.05);if ($probe) {fclose($probe);$ready=true;break;}usleep(10000);}
         if (!$ready) throw new RuntimeException('Loopback PHP not ready');
-        $request=static function(string $path,string $cookie='',string $method='GET') use ($address):array {
-            $context=stream_context_create(['http'=>['method'=>$method,'header'=>$cookie!==''?'Cookie: '.$cookie:'','ignore_errors'=>true,'timeout'=>3]]);
+        $request=static function(string $path,string $cookie='',string $method='GET',array $extraHeaders=[]) use ($address):array {
+            $requestHeaders=$cookie!==''?['Cookie: '.$cookie]:[];
+            $context=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",array_merge($requestHeaders,$extraHeaders)),'ignore_errors'=>true,'timeout'=>3]]);
             $body=file_get_contents('http://'.$address.$path,false,$context);$headers=$http_response_header??[];
             preg_match('/^HTTP\/[^ ]+ ([0-9]+)/',(string)($headers[0]??''),$status);$responseCookie='';
             foreach ($headers as $h) if (preg_match('/^Set-Cookie: (anytour_manager_panel=[^;]+)/i',$h,$match)) $responseCookie=$match[1];
             return ['status'=>(int)($status[1]??0),'bytes'=>(string)$body,'headers'=>implode("\n",$headers),'cookie'=>$responseCookie];
         };
         $endpoint='/manager/customer-avatar.php?conversation_id=100';$anon=$request($endpoint);
-        avCheck('real HTTP anonymous avatar remains unauthorized',$anon['status']===401 && !str_contains($anon['bytes'],$png));
+        $header=static function(array $response,string $name):?string {if (preg_match('/^'.preg_quote($name,'/').':\s*(.+)$/mi',$response['headers'],$match)) return trim($match[1]);return null;};
+        avCheck('real HTTP anonymous avatar remains unauthorized and uncacheable',$anon['status']===401 && !str_contains($anon['bytes'],$png) && str_contains($anon['headers'],'no-store') && $header($anon,'ETag')===null);
         $cookie=$request('/manager/fixture-session.php?id=1')['cookie'];$binary=$request($endpoint,$cookie);
         avCheck('real HTTP authenticated cache returns exact binary',$binary['status']===200 && $binary['bytes']===$png);
+        $tag=$header($binary,'ETag');
+        avCheck('real HTTP image exposes bounded opaque validator',is_string($tag) && preg_match('/^"[a-f0-9]{64}"$/D',$tag)===1);
+        $unchanged=$request($endpoint,$cookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP matching conditional image returns empty 304',$unchanged['status']===304 && $unchanged['bytes']==='' && $header($unchanged,'ETag')===$tag && str_contains($unchanged['headers'],'private, no-cache, must-revalidate') && $header($unchanged,'Vary')==='Cookie' && $header($unchanged,'Content-Type')==='image/png');
+        $mismatch=$request($endpoint,$cookie,'GET',['If-None-Match: "unrelated"']);
+        avCheck('real HTTP mismatched validator returns full 200',$mismatch['status']===200 && $mismatch['bytes']===$png);
+        $weak=$request($endpoint,$cookie,'GET',['If-None-Match: "unrelated", W/'.$tag]);
+        avCheck('real HTTP weak validator list matches only authorized representation',$weak['status']===304 && $weak['bytes']==='');
+        $accountOnly=$request($endpoint.'&account=1',$cookie);
+        avCheck('real HTTP legacy account-only URL still revalidates',$accountOnly['status']===200 && $header($accountOnly,'Cache-Control')==='private, no-cache, must-revalidate');
+        $dailyEndpoint=$endpoint.'&account=1&channel=telegram';$daily=$request($dailyEndpoint,$cookie);$dailyTag=$header($daily,'ETag');
+        avCheck('real HTTP current-account and channel URL receives private daily cache',$daily['status']===200 && $daily['bytes']===$png && $header($daily,'Cache-Control')==='private, max-age=86400' && $header($daily,'Vary')==='Cookie' && $dailyTag!==$tag && $header($daily,'Pragma')===null && $header($daily,'Expires')===null);
+        $dailyConditional=$request($dailyEndpoint,$cookie,'GET',['If-None-Match: '.$dailyTag]);
+        avCheck('real HTTP stale scoped validator remains authorized before empty 304',$dailyConditional['status']===304 && $dailyConditional['bytes']==='' && $header($dailyConditional,'Cache-Control')==='private, max-age=86400');
+        foreach (['2','0','01','-1','1.0','1e0','9223372036854775808',''] as $wrongAccount) {
+            $wrong=$request($endpoint.'&account='.rawurlencode($wrongAccount),$cookie,'GET',['If-None-Match: '.$tag]);
+            avCheck('real HTTP rejects foreign or malformed account scope '.json_encode($wrongAccount),$wrong['status']===404 && $wrong['bytes']==='' && str_contains($wrong['headers'],'no-store') && $header($wrong,'ETag')===null);
+        }
+        $arrayAccount=$request($endpoint.'&account[]=1',$cookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP rejects array account scope without caching',$arrayAccount['status']===404 && str_contains($arrayAccount['headers'],'no-store') && $header($arrayAccount,'ETag')===null);
+        foreach (['max','website','Telegram',''] as $wrongChannel) {
+            $wrong=$request($endpoint.'&account=1&channel='.rawurlencode($wrongChannel),$cookie,'GET',['If-None-Match: '.$dailyTag]);
+            avCheck('real HTTP foreign or malformed channel scope fails closed '.json_encode($wrongChannel),$wrong['status']===404 && $wrong['bytes']==='' && str_contains($wrong['headers'],'no-store') && $header($wrong,'ETag')===null);
+        }
+        $arrayChannel=$request($endpoint.'&account=1&channel[]=telegram',$cookie,'GET',['If-None-Match: '.$dailyTag]);
+        avCheck('real HTTP rejects array channel scope without caching',$arrayChannel['status']===404 && str_contains($arrayChannel['headers'],'no-store') && $header($arrayChannel,'ETag')===null);
+        $fullEndpoint=$endpoint.'&size=full&photo=0';$fullBinary=$request($fullEndpoint,$cookie);
+        $fullTag=$header($fullBinary,'ETag');
+        avCheck('real HTTP explicit full photo returns gallery count and separate validator',$fullBinary['status']===200 && $fullBinary['bytes']===$png && $header($fullBinary,'X-Avatar-Photo-Count')==='2' && $header($fullBinary,'X-Avatar-Photo-Limited')===null && $fullTag!==$tag);
+        $dailyFull=$request($fullEndpoint.'&account=1&channel=telegram',$cookie);
+        avCheck('real HTTP current-account full photo receives daily cache and count',$dailyFull['status']===200 && $header($dailyFull,'Cache-Control')==='private, max-age=86400' && $header($dailyFull,'X-Avatar-Photo-Count')==='2');
+        $fullUnchanged=$request($fullEndpoint,$cookie,'GET',['If-None-Match: '.$fullTag]);
+        avCheck('real HTTP full image conditional hit preserves gallery metadata',$fullUnchanged['status']===304 && $fullUnchanged['bytes']==='' && $header($fullUnchanged,'X-Avatar-Photo-Count')==='2');
+        $fullRecord['photo_count']=1000;$fullRecord['limited']=true;file_put_contents($httpCache.'/'.$fullSlot.'.json',json_encode($fullRecord));
+        $limited=$request($fullEndpoint,$cookie,'GET',['If-None-Match: '.$fullTag]);
+        avCheck('real HTTP changed count and limit flag invalidate same-byte photo',$limited['status']===200 && $header($limited,'X-Avatar-Photo-Count')==='1000' && $header($limited,'X-Avatar-Photo-Limited')==='1' && $header($limited,'ETag')!==$fullTag);
+        $fullRecord['bytes']=base64_encode('invalid-image');file_put_contents($httpCache.'/'.$fullSlot.'.json',json_encode($fullRecord));
+        $invalidCached=$request($fullEndpoint,$cookie,'GET',['If-None-Match: '.$header($limited,'ETag')]);
+        avCheck('real HTTP conditional hit validates cached image before 304',$invalidCached['status']===404 && $invalidCached['bytes']==='' && str_contains($invalidCached['headers'],'no-store') && $header($invalidCached,'ETag')===null);
         $maxBinary=$request('/manager/customer-avatar.php?conversation_id=300',$cookie);
         avCheck('real HTTP MAX cache returns validated binary through canonical endpoint',$maxBinary['status']===200 && $maxBinary['bytes']===$png && str_contains($maxBinary['headers'],'Content-Type: image/png'));
-        avCheck('binary endpoint has private no-store nosniff sandbox headers',str_contains($binary['headers'],'Cache-Control: private, no-store') && str_contains($binary['headers'],'Content-Type: image/png') && str_contains($binary['headers'],'X-Content-Type-Options: nosniff') && str_contains($binary['headers'],"Content-Security-Policy: default-src 'none'; sandbox"));
+        avCheck('binary endpoint requires private auth-first revalidation with nosniff sandbox headers',str_contains($binary['headers'],'Cache-Control: private, no-cache, must-revalidate') && $header($binary,'Vary')==='Cookie' && str_contains($binary['headers'],'Content-Type: image/png') && str_contains($binary['headers'],'X-Content-Type-Options: nosniff') && str_contains($binary['headers'],"Content-Security-Policy: default-src 'none'; sandbox"));
         avCheck('binary HTTP endpoint rejects write methods',$request($endpoint,$cookie,'POST')['status']===405);
         avCheck('binary HTTP endpoint rejects invalid conversation IDs',$request('/manager/customer-avatar.php?conversation_id=100x',$cookie)['status']===404);
+        foreach (['&size=large','&size[]=full','&size=full&photo=-1','&size=full&photo=1000','&size=full&photo=1.5','&size=full&photo[]=1','&photo=1'] as $query) {
+            $invalid=$request($endpoint.$query,$cookie,'GET',['If-None-Match: '.$tag]);
+            avCheck('binary HTTP rejects malformed size or index '.$query,$invalid['status']===404 && $invalid['bytes']==='' && str_contains($invalid['headers'],'no-store') && $header($invalid,'ETag')===null);
+        }
         $httpDb->exec('DELETE FROM manager_projects WHERE manager_id=1');
-        $revoked=$request($endpoint,$cookie);avCheck('real HTTP ACL revocation defeats prewarmed cache',$revoked['status']===404 && $revoked['bytes']==='');
+        $revoked=$request($endpoint,$cookie,'GET',['If-None-Match: '.$tag]);avCheck('real HTTP ACL revocation defeats conditional prewarmed cache',$revoked['status']===404 && $revoked['bytes']==='' && str_contains($revoked['headers'],'no-store') && $header($revoked,'ETag')===null);
+        $revokedDaily=$request($dailyEndpoint,$cookie,'GET',['If-None-Match: '.$dailyTag]);
+        avCheck('real HTTP revoked scoped request cannot receive photo or 304',$revokedDaily['status']===404 && $revokedDaily['bytes']==='' && str_contains($revokedDaily['headers'],'no-store') && $header($revokedDaily,'ETag')===null);
         $httpDb->exec('INSERT INTO manager_projects VALUES(1,1)');
+        $otherAllowed=$request('/manager/fixture-session.php?id=4',$cookie);$otherAllowedCookie=$otherAllowed['cookie']?:$cookie;
+        $otherAccount=$request($endpoint,$otherAllowedCookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP another authorized account receives its own validator and 200',$otherAccount['status']===200 && $otherAccount['bytes']===$png && $header($otherAccount,'ETag')!==$tag);
+        $oldAccountScope=$request($dailyEndpoint,$otherAllowedCookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP account switch on same cookie rejects previous scoped URL',$oldAccountScope['status']===404 && $oldAccountScope['bytes']==='' && str_contains($oldAccountScope['headers'],'no-store') && $header($oldAccountScope,'ETag')===null);
+        $newAccountScope=$request($endpoint.'&account=4&channel=telegram',$otherAllowedCookie);
+        avCheck('real HTTP switched account receives its own daily URL',$newAccountScope['status']===200 && $newAccountScope['bytes']===$png && $header($newAccountScope,'Cache-Control')==='private, max-age=86400' && $header($newAccountScope,'ETag')!==$tag);
         $outside=$request('/manager/fixture-session.php?id=2',$cookie);$outsideCookie=$outside['cookie']?:$cookie;
-        avCheck('real HTTP account switch cannot expose prior portrait',$request($endpoint,$outsideCookie)['status']===404);
+        $deniedAccount=$request($endpoint,$outsideCookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP account switch cannot expose prior portrait or 304',$deniedAccount['status']===404 && str_contains($deniedAccount['headers'],'no-store') && $header($deniedAccount,'ETag')===null);
+        $expired=$request('/manager/fixture-session.php?id=0',$outsideCookie);$expiredCookie=$expired['cookie']?:$outsideCookie;
+        $expiredPhoto=$request($endpoint,$expiredCookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP expired session defeats cached conditional image',$expiredPhoto['status']===401 && str_contains($expiredPhoto['headers'],'no-store') && $header($expiredPhoto,'ETag')===null);
+        $expiredDaily=$request($dailyEndpoint,$expiredCookie,'GET',['If-None-Match: '.$tag]);
+        avCheck('real HTTP expired session rejects account-scoped conditional request',$expiredDaily['status']===401 && str_contains($expiredDaily['headers'],'no-store') && $header($expiredDaily,'ETag')===null);
     } finally {
         if (is_resource($process)) {proc_terminate($process);proc_close($process);}
         foreach (glob($httpCache.'/*') as $file) unlink($file);rmdir($httpCache);
@@ -170,4 +240,5 @@ try {
     echo 'TOTAL '.$passed." | FAIL 0\n";
 } finally {
     $remove=static function(string $dir) use(&$remove):void {foreach (scandir($dir) as $name) {if ($name==='.' || $name==='..') continue;$p=$dir.'/'.$name;if (is_dir($p) && !is_link($p)) $remove($p);else unlink($p);}rmdir($dir);};$remove($root);
+    ob_end_flush();
 }
