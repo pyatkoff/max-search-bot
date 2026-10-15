@@ -1,0 +1,74 @@
+name: Recover and verify MAX receipts without resending
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths: [.github/workflows/max-attribution-recover-verify.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Prepare established canonical identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Recover unique receipts with GET only and verify clocks and scheduler
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "444f66c79b95b295a3bd1f97cc8e11e6a0aa472a"; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          try{
+            require 'config.php';require 'services/MaxChannelConversionWorker.php';
+            $p=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($p);
+            if(!$s||$s['mode']!=='send')throw new RuntimeException('mode');
+            $api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);$repo=new MaxChannelConversionOutbox($p);$recovered=0;$refreshed=0;$held=0;
+            $q=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state IN ('unknown','accepted') ORDER BY id LIMIT 3");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+              $status=$row['state']==='unknown'?$api->findUnknown($row):$api->poll((string)$row['upload_id']);
+              if($status){$repo->status($row,$status,time());if($row['state']==='unknown')$recovered++;else $refreshed++;}elseif($row['state']==='unknown')$held++;
+            }
+            $counts=[];$q=$p->query("SELECT state,COUNT(*) AS c FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' GROUP BY state");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row)$counts[$row['state']]=(int)$row['c'];
+            $repo=new MaxChannelConversionOutbox($p);$events=0;$bad=0;
+            $q=$p->query("SELECT o.*,c.external_chat_id FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id WHERE o.project_key='anytour' AND o.counter_id='98615635' ORDER BY o.id DESC LIMIT 25");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+              $events++;$c=$repo->conversation((string)$row['conversation_id'],(string)$row['external_chat_id'],$s);
+              $event=$c?$repo->event($c,(string)$row['target'],$s):null;
+              if(!$event||MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$event['created_at'],new DateTimeZone('UTC'))!==(int)$row['event_unix'])$bad++;
+            }
+            $apiStates=[];$api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);
+            $q=$p->query("SELECT upload_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND state IN ('accepted','processed','unmatched') AND upload_id IS NOT NULL ORDER BY id DESC LIMIT 3");
+            foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){$status=$api->poll((string)$row['upload_id']);$key=is_array($status)?(string)($status['status']??'unavailable'):'unavailable';if(!in_array($key,['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'],true))$key='unavailable';$apiStates[$key]=($apiStates[$key]??0)+1;}
+            $path='metrika_upload.log';$text='';
+            if(is_file($path)){$f=fopen($path,'rb');if($f){$size=filesize($path);if($size>65536)fseek($f,-65536,SEEK_END);$text=(string)stream_get_contents($f,65536);fclose($f);}}
+            $last=null;$lastTime=null;
+            foreach(explode("\n",$text) as $line){
+              if(preg_match('/\A([0-9-]{10} [0-9:]{8}) MAX_CHANNEL (.+)\z/D',$line,$m)){
+                $d=json_decode($m[2],true);$last=is_array($d)?$d:null;
+                $time=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$m[1],new DateTimeZone(date_default_timezone_get()));$lastTime=$time?$time->getTimestamp():null;
+              }
+            }
+            $worker=[];foreach(['collected','resolved','accepted','processed','unknown','errors'] as $key)$worker[$key]=(int)($last[$key]??-1);
+            $fresh=is_int($lastTime)&&time()-$lastTime>=-5&&time()-$lastTime<=360;
+            $healthy=$fresh&&($last['mode']??'')==='send'&&$worker['errors']===0&&$bad===0;
+            echo json_encode(['ok'=>$healthy,'mode'=>$s['mode'],'counter_id'=>$s['counter_id'],'activated_at_unix'=>(int)$s['activated_at_unix'],'receipts_recovered'=>$recovered,'accepted_receipts_refreshed'=>$refreshed,'outcomes_still_held'=>$held,'queue_counts'=>$counts,'event_clocks_checked'=>$events,'event_clock_mismatches'=>$bad,'scheduler_recent'=>$fresh,'last_worker'=>$worker,'api_upload_statuses'=>$apiStates,'verification_conversion_requests'=>0])."\n";
+            if(!$healthy)exit(1);
+          }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"runtime_verification_failed\",\"verification_conversion_requests\":0}\n";exit(1);}
+          PHP
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
