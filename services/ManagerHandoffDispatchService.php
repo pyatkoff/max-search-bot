@@ -72,7 +72,7 @@ class ManagerHandoffDispatchService
         try {
             $model = ManagerRequestService::prepare($chatId, $name, $fromTours);
             MaxSearchApi::deletePrevMessage($chatId);
-            $buttons = [[['text'=>'Продолжить с ботом · отменить ожидание','callback_data'=>(string)$model['back_callback']]]];
+            $buttons = [[['text'=>'Вернуться к боту · отменить ожидание','callback_data'=>(string)$model['back_callback']]]];
             if ($withinWorkingHours) {
                 $text = (string)($managerAvailable ? $model['online_text'] : $model['working_wait_text']);
             } else {
@@ -81,7 +81,6 @@ class ManagerHandoffDispatchService
             if ($sourceEntry) {
                 $text = ManagerRequestService::sourceEntryMessageText($withinWorkingHours);
             }
-            $text .= "\n\nКнопка «Продолжить с ботом» отменит ожидание менеджера.";
             $result['sent'] = (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $text, $buttons);
         } catch (Throwable $ignored) {
             // A failed acknowledgement must never undo or hide the saved request.
