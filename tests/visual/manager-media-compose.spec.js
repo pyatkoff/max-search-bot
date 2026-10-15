@@ -6,7 +6,7 @@ const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'}
 async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,holdFirst=false,suspendedSecond=false,failedRefresh=false}={}){
  const uploads=[],errors=[],held=[];let lists=0,details=0;
  const manager={id:7,display_name:'Мария',role:'manager',is_working:true};
- const conversation=id=>({id,customer_id:id,display_name:id===11?'Анна':'Алексей',manager_id:7,status:'manager',channel:'telegram'});
+ const conversation=id=>({id,customer_id:id,display_name:id===11?'Анна':'Алексей',manager_id:manager.id,status:'manager',channel:'telegram'});
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url());
@@ -15,7 +15,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/'))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,url.pathname.slice(1)))});
   if(url.pathname==='/manager2/')return route.fulfill({contentType:'text/html',body:shell});
   if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
-  if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
+  if(request.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(url.pathname==='/manager/media-upload.php'){
    uploads.push(request.postDataBuffer().toString());
    if(holdFirst&&uploads.length===1)await new Promise(resolve=>held.push(resolve));
@@ -49,7 +49,7 @@ async function setup(page,{failSecond=false,unknown=false,unknownSecond=false,ho
   throw new Error('Unexpected endpoint '+url.pathname);
  });
  await page.goto(origin+'/manager2/');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await page.locator('[data-conversation-id="11"]').click();await expect(page.locator('#composer')).toBeVisible();
- return{uploads,errors,release:()=>held.shift()?.(),lists:()=>lists};
+ return{uploads,errors,switchManager:next=>Object.assign(manager,next),release:()=>held.shift()?.(),lists:()=>lists};
 }
 const files=[{name:'Маршрут.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic')},{name:'Билеты.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF synthetic')}];
 for(const width of [390,430,768,1440])for(const height of [900,420])test(`selection ${width}x${height}`,async({page,browserName})=>{
@@ -78,7 +78,7 @@ test('pending attachment stops after switching client and old-account response c
 });
 test('pending account changes preserve new account file after old response',async({page})=>{
  const s=await setup(page,{holdFirst:true});await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect.poll(()=>s.uploads.length).toBe(1);
- await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2.S.manager={id:8,role:'manager'};WorkspaceV2Media.resetDrafts();WorkspaceV2Media.configure('new-account',11);WorkspaceV2Media.addFiles([new File(['new-account'],'New-account.txt',{type:'text/plain'})])});s.release();await expect.poll(()=>page.evaluate(()=>document.getElementById('sendReply').disabled)).toBe(false);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaFileName')).toHaveText('New-account.txt');expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
+ s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2.S.manager={id:8,role:'manager'};WorkspaceV2Media.resetDrafts();WorkspaceV2Media.configure('new-account',11);WorkspaceV2Media.addFiles([new File(['new-account'],'New-account.txt',{type:'text/plain'})])});s.release();await expect.poll(()=>page.evaluate(()=>document.getElementById('sendReply').disabled)).toBe(false);await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaFileName')).toHaveText('New-account.txt');expect(s.uploads).toHaveLength(1);expect(s.errors).toEqual([]);
 });
 
 test('partial provider suspension remains visible and blocks send when detail refresh fails',async({page})=>{

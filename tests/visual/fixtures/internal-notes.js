@@ -34,7 +34,7 @@ async function setup(page,options={}){
   if(!url.pathname.startsWith('/manager/'))return block();
   let d={};if(method==='POST'){try{d=req.postDataJSON()||{}}catch{return block()}}
   const owner=manager.id,role=manager.role;calls.push({path:url.pathname,owner,payload_bytes:Buffer.byteLength(req.postData()||''),...d});
-  if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){if([...url.searchParams.keys()].join(',')!=='conversation_id'||![11,12].includes(Number(url.searchParams.get('conversation_id'))))return block();return route.fulfill({status:404,body:''})}
+  if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){if([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel||![11,12].includes(Number(url.searchParams.get('conversation_id'))))return block();return route.fulfill({status:404,body:''})}
   if(method==='POST'&&d.csrf!=='fixture-csrf'&&!['me','login'].includes(d.action))throw new Error('Canonical CSRF missing: '+url.pathname+' '+d.action);
   if(url.pathname==='/manager/api.php'){
    if(d.action==='me'||d.action==='login')return reply({ok:true,manager:clone(manager),csrf:'fixture-csrf',projects:[]});

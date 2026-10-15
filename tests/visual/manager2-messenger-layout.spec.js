@@ -36,7 +36,7 @@ async function setup(page,{role='manager',savedTabs=false,longPreview=false}={})
     if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
     if(method==='GET'&&/^\/manager2?\/assets\/[\w.-]+$/.test(url.pathname))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,url.pathname.slice(1)))});
     if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){
-      expect([...url.searchParams.keys()]).toEqual(['conversation_id']);
+      expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);
       expect(['11','12']).toContain(url.searchParams.get('conversation_id'));
       return route.fulfill({status:404,body:''});
     }
