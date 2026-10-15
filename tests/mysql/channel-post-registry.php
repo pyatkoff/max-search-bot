@@ -23,10 +23,12 @@ $pdo->exec("CREATE TABLE projects (id BIGINT UNSIGNED NOT NULL PRIMARY KEY,proje
 $pdo->exec("CREATE TABLE conversation_sources (id BIGINT UNSIGNED NOT NULL PRIMARY KEY,project_id BIGINT UNSIGNED NOT NULL,source_key VARCHAR(96) NOT NULL,display_name VARCHAR(191) NOT NULL,channel VARCHAR(32) NOT NULL,is_active TINYINT NOT NULL DEFAULT 1,handling_mode VARCHAR(16) NOT NULL DEFAULT 'manager',FOREIGN KEY (project_id) REFERENCES projects(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 $pdo->exec("CREATE TABLE conversations (id BIGINT UNSIGNED NOT NULL PRIMARY KEY,project_key VARCHAR(64) NOT NULL,channel VARCHAR(32) NOT NULL,status VARCHAR(32) NOT NULL DEFAULT 'ai',manager_id BIGINT UNSIGNED NULL,source_id BIGINT UNSIGNED NULL,entry_channel VARCHAR(64) NULL,external_chat_id VARCHAR(191) NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 $pdo->exec("CREATE TABLE conversation_events (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,conversation_id BIGINT UNSIGNED NOT NULL,event_type VARCHAR(64) NOT NULL,actor_type VARCHAR(32),payload_json LONGTEXT,created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (conversation_id) REFERENCES conversations(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-$migration = (string)file_get_contents(dirname(__DIR__, 2) . '/migrations/033_channel_post_context.sql');
 $runner = new MigrationRunner(dirname(__DIR__, 2) . '/migrations', $pdo);
 $splitter = new ReflectionMethod(MigrationRunner::class, 'splitStatements');
-foreach ($splitter->invoke($runner, $migration) as $statement) $pdo->exec($statement);
+foreach (['033_channel_post_context.sql', '036_channel_post_member_delivery.sql'] as $migrationFile) {
+    $migration = (string)file_get_contents(dirname(__DIR__, 2) . '/migrations/' . $migrationFile);
+    foreach ($splitter->invoke($runner, $migration) as $statement) $pdo->exec($statement);
+}
 
 $passed = 0;
 function nativePostCheck(string $name, bool $condition): void
@@ -45,8 +47,8 @@ function nativePostConstraint(callable $operation): bool
     try { $operation(); } catch (PDOException $error) { return (string)$error->getCode() === '23000'; }
     return false;
 }
-nativePostCheck('actual forward migration creates all private channel tables on native MySQL', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('post_channels','post_publications','post_versions','post_observations','post_entries')")->fetchColumn() === 5);
-nativePostCheck('all migrated tables use InnoDB with real foreign keys', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name LIKE 'post_%' AND engine='InnoDB'")->fetchColumn() === 5 && (int)$pdo->query("SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema=DATABASE() AND table_name LIKE 'post_%'")->fetchColumn() === 10);
+nativePostCheck('actual forward migration creates all private channel tables on native MySQL', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('post_channels','post_publications','post_versions','post_observations','post_entries','post_member_deliveries')")->fetchColumn() === 6);
+nativePostCheck('all migrated tables use InnoDB with real foreign keys', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name LIKE 'post_%' AND engine='InnoDB'")->fetchColumn() === 6 && (int)$pdo->query("SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema=DATABASE() AND table_name LIKE 'post_%'")->fetchColumn() === 11);
 $pdo->exec("INSERT INTO projects VALUES (1,'anytour','AnyTour',1),(2,'foreign','Foreign',1)");
 $pdo->exec("INSERT INTO conversation_sources VALUES (11,1,'max_anytour_msk1','Москва','max',1,'manager'),(12,1,'tg_anytour_msk','ТГ Москва','telegram',1,'ask'),(13,1,'max_other','Другой','max',1,'manager'),(14,1,'max_ai','ИИ','max',1,'ai'),(21,2,'max_anytour_msk1','Чужой','max',1,'manager')");
 $pdo->exec("INSERT INTO conversations (id,project_key,channel,status,manager_id,source_id,external_chat_id) VALUES (100,'anytour','max','manager',77,11,'501'),(101,'anytour','telegram','waiting_manager',NULL,12,'502'),(102,'anytour','max','waiting_manager',NULL,11,'503'),(200,'foreign','max','ai',NULL,21,'504')");
@@ -144,4 +146,27 @@ nativePostCheck('native accepted observation clock protects unchanged MAX/TG bod
 $safe = $registry->managerContext(100,'anytour');
 nativePostCheck('native manager projection contains no signed URLs/provider tokens/raw snapshot', !str_contains(json_encode($safe),'PRIVATE-token') && !str_contains(json_encode($safe),'cdn.example.com') && $registry->managerContext(100,'foreign')['current'] === null);
 nativePostCheck('native admin configuration lists only its own bounded scope', count($registry->listChannels('anytour')) === 2 && $registry->listChannels('foreign') === []);
+
+$nativeAlbumSnapshot = static function (string $mid, int $sequence, array $keyboard=[]): array {
+    return ['text'=>'','format'=>'native','markup'=>[],'keyboard'=>$keyboard,
+        'attachments'=>[['type'=>'image','provider'=>'telegram','telegram_file_id'=>'native-file-'.$mid,'file_unique_id'=>'native-unique-'.$mid]],
+        'metadata'=>['capability'=>'supported','capability_reason'=>'','media_group_id'=>'native-group','actual_message_id'=>$mid,
+            'source_event_id'=>'native-member-'.$mid.'-'.$sequence,'source_revision_ms'=>'1791972000000','source_sequence'=>(string)$sequence,'source_sequence_scope'=>'telegram_update_id']];
+};
+$nativeAlbumRegister = static fn(array $snapshot): array => $registry->registerPublication('anytour','telegram','Any_tour_bot','-10012345','group:native-group',$snapshot);
+$nativeAlbum = $nativeAlbumRegister($nativeAlbumSnapshot('901',900));
+$nativeMembers = $registry->memberDelivery();
+$nativeAnchorClaim = $nativeMembers->claim($nativeAlbum['publication_id']);
+$nativeAlbumRegister($nativeAlbumSnapshot('902',901,[[['text'=>'Foreign','callback_data'=>'foreign']]]));
+nativePostCheck('native member row survives unrelated album assembly before write start', $nativeAnchorClaim !== null && $nativeAnchorClaim['external_message_id']==='901' && $nativeMembers->markStarted($nativeAnchorClaim));
+nativePostCheck('native member start CAS rejects a second connection', !$otherRegistry->memberDelivery()->markStarted($nativeAnchorClaim));
+nativePostCheck('native member response completes only its exact claimed observation', $nativeMembers->finish($nativeAnchorClaim,'sent','verified',['write_attempts'=>1,'content_preserved'=>true,'button_verified'=>true]));
+$nativeClear = $nativeMembers->claim($nativeAlbum['publication_id']);
+nativePostCheck('native foreign keyboard on another member receives a separate clear lease', $nativeClear !== null && $nativeClear['external_message_id']==='902' && $nativeClear['button_mode']==='clear_keyboard' && $nativeMembers->markStarted($nativeClear));
+nativePostCheck('native ambiguous member write is durable', $nativeMembers->finish($nativeClear,'unknown','edit_outcome_unknown',['write_attempts'=>1]));
+$nativeAlbumRegister($nativeAlbumSnapshot('903',902));
+nativePostCheck('native next member never resets an ambiguous cleanup to writable', $otherRegistry->memberDelivery()->claim($nativeAlbum['publication_id']) === null && $registry->publication($nativeAlbum['publication_id'])['state']==='unknown');
+$nativeAlbumRegister($nativeAlbumSnapshot('902',903));
+nativePostCheck('native clean exact-member event resolves the group without another edit', $registry->publication($nativeAlbum['publication_id'])['state']==='sent' && !$nativeMembers->finish($nativeClear,'unknown','late',[]));
+
 echo 'NATIVE CHANNEL POST MYSQL OK (' . $passed . " checks)\n";

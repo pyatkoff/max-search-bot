@@ -32,13 +32,21 @@ final class ChannelPostMemberDeliveryService
             $reason = !$supported ? (string)($member['metadata']['capability_reason'] ?? 'unsupported_media') : ($correct ? 'observed_final_markup' : '');
             $now = self::now();
             if (!$old) {
+                // A forward migration may first meet an album whose anchor was
+                // already attempted by the previous single-anchor delivery path.
+                if ($role === 'anchor' && !$correct && (int)($publication['write_attempts'] ?? 0) > 0) {
+                    $state = ($publication['state'] ?? '') === 'sent' ? 'sent' : 'unknown';
+                    $reason = 'legacy_anchor_outcome';
+                }
                 $this->run('INSERT INTO post_member_deliveries (publication_id,external_message_id,desired_role,observation_key,snapshot_json,state,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
                     [(int)$publication['publication_id'], $mid, $role, $key, self::json($member), $state, $reason, '{}', $now, $now]);
             } else {
                 // Only a newer authenticated observation of THIS member replaces
                 // its decision. Registering another photo keeps the same key.
-                $this->run('UPDATE post_member_deliveries SET desired_role=?,observation_key=?,snapshot_json=?,state=?,claim_token=NULL,claimed_at=NULL,write_attempts=0,error_reason=?,receipt_json=?,updated_at=? WHERE id=?',
-                    [$role, $key, self::json($member), $state, $reason, '{}', $now, (int)$old['id']]);
+                $retainedAttempts = $correct ? (int)$old['write_attempts'] : 0;
+                $retainedReceipt = $correct ? (string)$old['receipt_json'] : '{}';
+                $this->run('UPDATE post_member_deliveries SET desired_role=?,observation_key=?,snapshot_json=?,state=?,claim_token=NULL,claimed_at=NULL,write_attempts=?,error_reason=?,receipt_json=?,updated_at=? WHERE id=?',
+                    [$role, $key, self::json($member), $state, $retainedAttempts, $reason, $retainedReceipt, $now, (int)$old['id']]);
             }
         }
         $this->refresh((int)$publication['publication_id']);
@@ -117,17 +125,17 @@ final class ChannelPostMemberDeliveryService
         if ($own) { $this->locked($publicationId, function () use ($publicationId): void { $this->refresh($publicationId); }); return; }
         $rows = $this->rows($publicationId);
         if (!$rows) return;
-        $state = 'sent'; $attempts = 0; $verified = 0;
+        $state = 'sent'; $attempts = 0; $verified = 0; $reason = '';
         foreach ($rows as $row) {
             $attempts += $row['write_attempts'];
             if ($row['state'] === 'sent') $verified++;
-            if ($row['state'] === 'requires_attention') $state = 'requires_attention';
+            if ($row['state'] === 'requires_attention') { $state = 'requires_attention'; $reason = (string)$row['error_reason']; }
             elseif ($row['state'] === 'unknown' && $state !== 'requires_attention') $state = 'unknown';
             elseif ($row['state'] !== 'sent' && !in_array($state, ['requires_attention', 'unknown'], true)) $state = 'pending';
         }
         $receipt = self::json(['member_count' => count($rows), 'verified_member_count' => $verified, 'button_verified' => $state === 'sent', 'write_attempts' => $attempts]);
         $this->run('UPDATE post_versions SET state=?,write_attempts=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=(SELECT current_version_id FROM post_publications WHERE id=?) AND publication_id=?',
-            [$state, $attempts, $state === 'sent' ? '' : 'album_members_' . $state, $receipt, self::now(), $publicationId, $publicationId]);
+            [$state, $attempts, $state === 'sent' ? '' : ($reason !== '' ? $reason : 'album_members_' . $state), $receipt, self::now(), $publicationId, $publicationId]);
     }
 
     private function locked(int $publicationId, callable $callback)
