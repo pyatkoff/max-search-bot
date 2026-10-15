@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
+require_once __DIR__ . '/../integrations/ChannelPostIncomingAdapter.php';
 
 /**
  * Private, project-scoped channel publication registry. Runtime never creates
@@ -142,7 +144,22 @@ final class ChannelPostRegistryService
                 }
             }
             $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
-            if ($previous) {
+            $album = $platform === 'telegram' && str_starts_with($messageId, 'group:') && ChannelPostTelegramAlbum::isAlbum($snapshot);
+            $albumOperation = ['state' => 'pending', 'write_attempts' => 0, 'receipt' => [], 'reason' => ''];
+            if ($album) {
+                $priorSnapshot = $previous ? (json_decode((string)$previous['snapshot_json'], true) ?: []) : null;
+                $merged = ChannelPostTelegramAlbum::merge($priorSnapshot, $snapshot);
+                if ($merged['stale']) {
+                    if ($sourceEventKey !== null) $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [(int)$publication['id'], $sourceEventKey, (int)$previous['id'], self::now()]);
+                    $result = $this->publication((int)$publication['id']);
+                    if ($result) $result['stale_observation'] = true;
+                    return $result;
+                }
+                $snapshot = self::snapshot($merged['snapshot']);
+                $hash = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', (string)$channel['bot_url']);
+                if ($previous) $albumOperation = ChannelPostTelegramAlbum::successorOperation($previous + ['snapshot' => $priorSnapshot], $snapshot, (bool)$merged['anchor_event']);
+            }
+            if ($previous && !$album) {
                 $priorSnapshot = json_decode((string)$previous['snapshot_json'], true) ?: [];
                 $incomingTime = self::revisionTime($snapshot);
                 $priorTime = self::revisionTime($priorSnapshot);
@@ -168,10 +185,11 @@ final class ChannelPostRegistryService
                     return $result;
                 }
             }
-            if (!$previous || !hash_equals((string)$previous['content_hash'], $hash)) {
+            // Album observations also append immutable per-member clocks when the body is unchanged.
+            if ($album || !$previous || !hash_equals((string)$previous['content_hash'], $hash)) {
                 $version = $previous ? (int)$previous['version_number'] + 1 : 1;
                 $now = self::now();
-                $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,created_at,updated_at) VALUES (?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $now, $now]);
+                $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $albumOperation['state'], $albumOperation['write_attempts'], $albumOperation['reason'], self::json($albumOperation['receipt']), $now, $now]);
                 $versionId = (int)$this->pdo->lastInsertId();
                 $this->execute('UPDATE post_publications SET current_version_id=? WHERE id=?', [$versionId, (int)$publication['id']]);
                 if ($previous) {
@@ -247,6 +265,8 @@ final class ChannelPostRegistryService
     public function markExternalWriteStarted(int $publicationId, int $versionId, string $claimToken): bool
     {
         return $this->transaction(function () use ($publicationId, $versionId, $claimToken): bool {
+            // Serialize the final write decision with album-member registration.
+            $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return false;
             return $this->execute("UPDATE post_versions SET state='write_started',write_attempts=write_attempts+1,updated_at=? WHERE id=? AND publication_id=? AND claim_token=? AND state='claimed' AND write_attempts=0", [self::now(), $versionId, $publicationId, $claimToken]) === 1;
@@ -258,8 +278,24 @@ final class ChannelPostRegistryService
         if (!in_array($state, ['sent', 'unknown', 'requires_attention', 'pending'], true)) throw new InvalidArgumentException('invalid_operation_state');
         $reason = preg_match('/\A[a-zA-Z0-9_-]{0,96}\z/D', $reason) ? $reason : 'operation_failed';
         $receipt = self::receipt($receipt);
-        $extra = $state === 'pending' ? " AND write_attempts=0 AND state='claimed'" : " AND state IN ('claimed','write_started')";
-        return $this->execute('UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND claim_token=?' . $extra, [$state, $reason, self::json($receipt), self::now(), $versionId, $publicationId, $claimToken]) === 1;
+        return $this->transaction(function () use ($publicationId, $versionId, $claimToken, $state, $reason, $receipt): bool {
+            $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
+            $written = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [$versionId, $publicationId]);
+            $extra = $state === 'pending' ? " AND write_attempts=0 AND state='claimed'" : " AND state IN ('claimed','write_started')";
+            $saved = $this->execute('UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND claim_token=?' . $extra, [$state, $reason, self::json($receipt), self::now(), $versionId, $publicationId, $claimToken]) === 1;
+            if (!$saved || !$written || (int)$written['write_attempts'] === 0 || $state === 'pending') return $saved;
+            // A later photo may arrive while the sole anchor edit is in flight.
+            // Only a successor with the identical authenticated anchor observation
+            // inherits this outcome; a new anchor edit cannot be overwritten here.
+            $current = $this->publication($publicationId);
+            $before = json_decode((string)$written['snapshot_json'], true) ?: [];
+            if ($current && $current['platform'] === 'telegram' && (int)$current['version_id'] !== $versionId
+                && in_array($current['state'], ['unknown', 'claimed'], true) && (int)$current['write_attempts'] > 0
+                && ChannelPostTelegramAlbum::sameTargetObservation($before, $current['snapshot'])) {
+                $this->execute("UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('unknown','claimed') AND write_attempts>0", [$state, $reason, self::json($receipt), self::now(), (int)$current['version_id'], $publicationId]);
+            }
+            return true;
+        });
     }
 
     /** Caller must first verify the bot-owned URL in an authenticated channel edit. */

@@ -42,10 +42,13 @@ final class ChannelPostAutomationService
             $url = ChannelPostButtonTransport::buttonUrl($publication);
             $label = (string)$publication['channel']['button_text'];
             $original = $event['snapshot'];
-            if (($original['metadata']['capability'] ?? '') === 'supported'
+            $telegramAlbum = $platform === 'telegram' && str_starts_with($event['external_message_id'], 'group:');
+            $observedTarget = $telegramAlbum ? ChannelPostTelegramAlbum::target((array)$publication['snapshot']) : $snapshot;
+            $targetEvent = !$telegramAlbum || ($original['metadata']['actual_message_id'] ?? null) === ($observedTarget['metadata']['actual_message_id'] ?? null);
+            if ($targetEvent && ($original['metadata']['capability'] ?? '') === 'supported'
                 && ChannelPostIncomingAdapter::containsOnlyButton($original, $url, $label)
-                && ($publication['content_hash'] ?? '') === $snapshot['content_hash']
-                && ChannelPostIncomingAdapter::contentFingerprint($original, $url, (string)$channel['bot_url']) === $snapshot['content_hash']) {
+                && ($telegramAlbum || ($publication['content_hash'] ?? '') === $snapshot['content_hash'])
+                && ChannelPostIncomingAdapter::contentFingerprint($original, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($observedTarget, $url, (string)$channel['bot_url'])) {
                 $registry->confirmObservedButton($publicationId, $versionId, ['event_id' => $event['source_event_id'], 'verified' => true, 'reconciled' => ($publication['state'] ?? '') === 'unknown']);
                 return ['recognized' => true, 'queued' => false, 'state' => 'sent', 'publication_id' => $publicationId, 'version_id' => $versionId];
             }
@@ -69,31 +72,53 @@ final class ChannelPostAutomationService
             $registry = $this->registry();
             $pending = $registry->pendingPublications($projectKey, $platform, $botKey, max(1, min(5, $limit)));
             foreach ($pending as $publication) {
-                $id = (int)$publication['publication_id']; $version = (int)$publication['version_id'];
-                $reconcile = ($publication['state'] ?? '') === 'unknown' || !empty($publication['write_attempted']);
-                $claim = $registry->claimPublication($id, $version, $reconcile);
-                if (!$claim) continue;
-                $claimToken = (string)$claim['claim_token'];
-                $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken): bool {
-                    $fresh = $registry->publication($id);
-                    if (!$fresh || (int)$fresh['version_id'] !== $version
-                        || ($fresh['claim_token'] ?? '') !== $claimToken
-                        || self::configurationFingerprint((array)$fresh['channel']) !== self::configurationFingerprint((array)$claim['channel'])) return false;
-                    return $registry->markExternalWriteStarted($id, $version, $claimToken);
-                };
-                $result = $this->transport->attempt($claim, $beforeWrite, $reconcile);
-                $saved = $registry->finishPublication($id, $version, $claimToken, (string)$result['state'], (string)$result['reason'], (array)$result['receipt']);
-                $results[] = [
-                    'publication_id' => $id, 'version_id' => $version,
-                    'state' => $saved ? $result['state'] : 'unknown',
-                    'reason' => $saved ? $result['reason'] : 'receipt_storage_failed',
-                    'reconcile_only' => $reconcile, 'receipt' => $result['receipt'],
-                ];
+                $result = $this->processOperation($publication);
+                if ($result !== null) $results[] = $result;
             }
         } catch (Throwable $e) {
             $results[] = ['state' => 'unknown', 'reason' => 'channel_worker_unavailable'];
         }
         return $results;
+    }
+
+    /** Explicit recovery selects one exact current version, never the global queue. */
+    public function processPublication(string $projectKey, string $platform, string $botKey, int $publicationId, int $versionId): array
+    {
+        try {
+            $publication = $this->registry()->publication($publicationId);
+            if (!$publication || $publication['project_key'] !== $projectKey || $publication['platform'] !== $platform
+                || $publication['bot_key'] !== $botKey || (int)$publication['version_id'] !== $versionId) {
+                return ['state'=>'requires_attention', 'reason'=>'target_publication_changed'];
+            }
+            return $this->processOperation($publication) ?? ['state'=>'requires_attention', 'reason'=>'target_not_claimable'];
+        } catch (Throwable $e) {
+            return ['state'=>'unknown', 'reason'=>'channel_worker_unavailable'];
+        }
+    }
+
+    private function processOperation(array $publication): ?array
+    {
+        $registry = $this->registry();
+        $id = (int)$publication['publication_id']; $version = (int)$publication['version_id'];
+        $reconcile = ($publication['state'] ?? '') === 'unknown' || !empty($publication['write_attempted']);
+        $claim = $registry->claimPublication($id, $version, $reconcile);
+        if (!$claim) return null;
+        $claimToken = (string)$claim['claim_token'];
+        $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken): bool {
+            $fresh = $registry->publication($id);
+            if (!$fresh || (int)$fresh['version_id'] !== $version
+                || ($fresh['claim_token'] ?? '') !== $claimToken
+                || self::configurationFingerprint((array)$fresh['channel']) !== self::configurationFingerprint((array)$claim['channel'])) return false;
+            return $registry->markExternalWriteStarted($id, $version, $claimToken);
+        };
+        $result = $this->transport->attempt($claim, $beforeWrite, $reconcile);
+        $saved = $registry->finishPublication($id, $version, $claimToken, (string)$result['state'], (string)$result['reason'], (array)$result['receipt']);
+        return [
+            'publication_id' => $id, 'version_id' => $version,
+            'state' => $saved ? $result['state'] : 'unknown',
+            'reason' => $saved ? $result['reason'] : 'receipt_storage_failed',
+            'reconcile_only' => $reconcile, 'receipt' => $result['receipt'],
+        ];
     }
 
     private function registry()

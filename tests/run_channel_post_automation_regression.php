@@ -331,8 +331,8 @@ $album = $fixtures['telegram']; $album['media_group_id'] = 'album-91';
 $one = channelPostReceive($service, $album, 'telegram'); $album['message_id'] = 62; $album['photo'][1]['file_unique_id'] = 'next-photo';
 $two = channelPostReceive($service, $album, 'telegram');
 channelPostCheck('Telegram album items share one post token', count($store->posts) === 1 && $one['publication_id'] === $two['publication_id']);
-channelPostCheck('unsupported album honestly requires attention', $two['state'], 'requires_attention');
-channelPostCheck('unsupported album creates no API write', $provider->writes(), 0);
+channelPostCheck('Telegram photo album accepted for grouped processing', $two['state'], 'pending');
+channelPostCheck('Telegram album receive remains network-free', $provider->writes(), 0);
 
 $dbAbsent = new ChannelPostAutomationService(new class { public function channel(...$args) { throw new RuntimeException('DB unavailable'); } });
 channelPostCheck('channel DB outage remains consumed before customer dispatcher', channelPostReceive($dbAbsent, $fixtures['max'])['recognized']);
@@ -546,6 +546,63 @@ foreach (['max','telegram'] as $platform) {
     $tr2=new ChannelPostButtonTransport([$p2,'request']); $r=$tr2->attempt($op,static fn()=>true);
     channelPostCheck($platform.' own-plus-foreign keyboard is replaced, not accepted early', [$r['state'],$p2->writes()],['sent',1]);
 }
+
+
+foreach (['max','telegram'] as $platform) {
+    [$s,$p,$tr,$svc]=channelPostScenario($fixtures[$platform],$platform);
+    $first=channelPostReceive($svc,$fixtures[$platform],$platform);
+    $second=$fixtures[$platform];
+    if($platform==='max') $second['body']['mid']='mid.explicit-target';
+    else $second['message_id']=123456;
+    $target=channelPostReceive($svc,$second,$platform);$p->message=$second;
+    $wrong=$svc->processPublication('wrong',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$target['publication_id'],$target['version_id']);
+    channelPostCheck($platform.' exact target rejects another project without provider access',[$wrong['reason'],count($p->calls)],['target_publication_changed',0]);
+    $badVersion=$svc->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$target['publication_id'],$target['version_id']+100);
+    channelPostCheck($platform.' exact target rejects stale version without provider access',[$badVersion['reason'],count($p->calls)],['target_publication_changed',0]);
+    $done=$svc->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$target['publication_id'],$target['version_id']);
+    channelPostCheck($platform.' explicit operation sends only exact publication',[$done['state'],$p->writes(),$s->publication($first['publication_id'])['state']],['sent',1,'pending']);
+    $again=$svc->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$target['publication_id'],$target['version_id']);
+    channelPostCheck($platform.' completed explicit target does not replay',[$again['reason'],$p->writes()],['target_not_claimable',1]);
+}
+
+
+/** Real registry + transport: ten Telegram updates are one album and one edit. */
+$tgGroupBase=$fixtures['telegram'];$tgGroupBase['media_group_id']='tg-ten-photos';
+$tgGroupBase['message_id']=701;$tgGroupBase['photo'][1]['file_unique_id']='group-photo-701';
+$tgGroupProvider=new FixturePostProvider($tgGroupBase);
+$tgGroupService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$tgGroupProvider,'request']));
+$tgGroupToken=null;$tgGroupReceipt=null;
+foreach(range(701,710) as $index=>$mid) {
+    $member=$tgGroupBase;$member['message_id']=$mid;
+    $member['photo'][1]['file_unique_id']='group-photo-'.$mid;
+    $member['photo'][1]['file_id']='group-file-'.$mid;
+    if($mid!==701) unset($member['caption'],$member['caption_entities']);
+    $r=$tgGroupService->receive('telegram',['update_id'=>7000+$index,'channel_post'=>$member],'anytour','Any_tour_bot');
+    if($tgGroupToken===null)$tgGroupToken=$actualRegistry->publication($r['publication_id'])['start_payload'];
+    $tgGroupReceipt=$r;
+    $tgGroupService->processPublication('anytour','telegram','Any_tour_bot',$r['publication_id'],$r['version_id']);
+}
+$tgGroupLatest=$actualRegistry->publication($tgGroupReceipt['publication_id']);
+channelPostCheck('Telegram ten updates have one token and all ten recorded images',[$tgGroupLatest['start_payload'],count($tgGroupLatest['snapshot']['attachments']),$tgGroupLatest['snapshot']['text']],[$tgGroupToken,10,$tgGroupBase['caption']]);
+channelPostCheck('Telegram complete group writes one own keyboard on stable numeric member',[$tgGroupProvider->writes(),$tgGroupLatest['state'],$tgGroupLatest['snapshot']['metadata']['actual_message_id']],[1,'sent','701']);
+$tgGroupWrites=array_values(array_filter($tgGroupProvider->calls,static fn($c)=>$c['path']==='editMessageReplyMarkup'));
+channelPostCheck('Telegram group edit omits photo and caption fields',isset($tgGroupWrites[0])&&array_keys($tgGroupWrites[0]['body'])===['chat_id','message_id','reply_markup']&&(string)$tgGroupWrites[0]['body']['message_id']==='701');
+$tgSelf=$tgGroupProvider->message;$tgSelf['edit_date']=$tgSelf['date']+1;
+$self=$tgGroupService->receive('telegram',['update_id'=>7100,'edited_channel_post'=>$tgSelf],'anytour','Any_tour_bot');
+channelPostCheck('Telegram anchor self edit confirms whole aggregate without duplicating button',[$self['state'],$tgGroupProvider->writes(),count($actualRegistry->publication($self['publication_id'])['snapshot']['attachments'])],['sent',1,10]);
+$tgUnknown=$tgGroupBase;$tgUnknown['media_group_id']='tg-unknown-album';$tgUnknown['message_id']=801;
+$unknownProvider=new FixturePostProvider($tgUnknown);$unknownProvider->mode='timeout_applied';
+$unknownService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$unknownProvider,'request']));
+$ur=$unknownService->receive('telegram',['update_id'=>8000,'channel_post'=>$tgUnknown],'anytour','Any_tour_bot');
+$uo=$unknownService->processPublication('anytour','telegram','Any_tour_bot',$ur['publication_id'],$ur['version_id']);
+channelPostCheck('Telegram group ambiguous reply is honestly unknown',$uo['state'],'unknown');
+$other=$tgUnknown;$other['message_id']=802;$other['photo'][1]['file_unique_id']='group-photo-802';unset($other['caption'],$other['caption_entities']);
+$ur=$unknownService->receive('telegram',['update_id'=>8001,'channel_post'=>$other],'anytour','Any_tour_bot');
+$unknownService->processPublication('anytour','telegram','Any_tour_bot',$ur['publication_id'],$ur['version_id']);
+channelPostCheck('Telegram later album photo cannot cause a second ambiguous write',[$unknownProvider->writes(),$actualRegistry->publication($ur['publication_id'])['state']],[1,'unknown']);
+$ownEvent=$unknownProvider->message;$ownEvent['edit_date']=$ownEvent['date']+2;
+$resolved=$unknownService->receive('telegram',['update_id'=>8002,'edited_channel_post'=>$ownEvent],'anytour','Any_tour_bot');
+channelPostCheck('authenticated target event resolves grouped UNKNOWN with both images',[$resolved['state'],$unknownProvider->writes(),count($actualRegistry->publication($resolved['publication_id'])['snapshot']['attachments'])],['sent',1,2]);
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);

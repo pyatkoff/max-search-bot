@@ -59,8 +59,8 @@ final class ChannelPostIncomingAdapter
             if ($group !== '' && !preg_match('/\A[A-Za-z0-9_-]{1,100}\z/', $group)) return null;
             $event = [
                 'platform' => 'telegram', 'channel_id' => $channelId,
-                // An unsupported album still gets one shared publication identity,
-                // never an unrelated token for each photo in the same group.
+                // A media group has one publication identity and one start token,
+                // never an unrelated customer entry for each photo.
                 'external_message_id' => $group !== '' ? 'group:' . $group : $messageId,
                 'snapshot' => $snapshot, 'edited' => $edited,
             ];
@@ -123,7 +123,8 @@ final class ChannelPostIncomingAdapter
             $reason = 'unsupported_media';
             $media[] = ['type' => $field, 'provider' => 'telegram'];
         }
-        if (!empty($message['media_group_id'])) $reason = 'album_not_supported';
+        // Telegram delivers each album member separately; the registry merges
+        // authenticated members under the shared group identity.
         $keyboard = $message['reply_markup']['inline_keyboard'] ?? [];
         if (!is_array($keyboard)) { $keyboard = []; $reason = 'invalid_keyboard'; }
         $chatId = self::channelId($message['chat']['id'] ?? null);

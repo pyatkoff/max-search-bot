@@ -2,8 +2,9 @@
 
 An administrator connects a channel once in `/manager/publications.php`, selects
 an existing active source with `manager` or `ask` handling, and enables automatic
-buttons. SMM then publishes ordinary posts with text or one photograph. The bot
-receives the authenticated channel update, stores its exact content, and appends
+buttons. SMM then publishes ordinary posts with text or photographs (up to 11 in one MAX
+post, or 10 in a Telegram media group). The bot
+receives the authenticated channel update, stores its exact content, and replaces any existing channel keyboard with only
 the native URL button `Рассчитать на мои даты` to that same post.
 
 The URL contains an opaque `p_<token>` instead of the public source key. The
@@ -24,14 +25,22 @@ photograph and previous entries. Prices remain the prices in the publication.
 - MAX uses its actual webhook MID, including private channels whose API URL is
   null. No undocumented permalink decoder is used.
 - MAX re-reads the post before its single attachments-only edit, preserving text,
-  markup, stable photo IDs and existing URL buttons. Telegram edits reply markup
-  only. Foreign callback buttons, albums and other unsupported media receive
-  `requires_attention` without a provider write.
+  markup and every ordered stable photo ID. Existing channel keyboards are
+  deliberately replaced with exactly one AnyTour URL button on both platforms,
+  including other bots' comment or callback buttons (owner instruction 2026-10-15).
+  Telegram edits reply markup only. Non-photo media remain `requires_attention`
+  without a provider write.
 - New explicit entries use the source's existing handling policy. Existing
   assigned/waiting conversations keep their manager and routing source; a new
   post only updates publication context. Original paid MAX attribution survives.
 - Repeated authenticated events are idempotent. Missing provider event identity
   produces a fresh local entry, without claiming deduplication for that case.
+- Telegram media-group members merge under the publication-row lock into one
+  publication and one start token. The first observed member is the stable button
+  target; later members retain their own event clocks, so out-of-order delivery
+  cannot erase photos or move the button. Sent and ambiguous in-flight anchor
+  operations carry to successor versions without another edit. The original
+  caption and ordered image identities are retained in immutable group snapshots.
 - A separate observation clock advances even when a bot edit leaves the body
   unchanged. Telegram's authenticated update ID orders edits within the same
   second; newer event dates take precedence if its sequence has reset.
@@ -93,7 +102,8 @@ does not publish posts, import historical posts, or replay customer updates.
 Open `/manager/publications.php` as an authorized project administrator. Connect
 only the test channel first, select the actual manager source, and enable it.
 For the owner-provided MAX test channel the canonical ID is `-80095447388179`.
-Publish a new ordinary post after activation; historical posts are not imported.
+Publish a new ordinary text or photo-album post after activation; historical posts
+are not imported.
 Verify one button, unchanged caption/photo, and the correct original post after
 a real test entry. Repeat entry, another post and an edited post must retain the
 manager while preserving the separate entry history. No customer send is needed
@@ -137,3 +147,24 @@ Revert the code through the normal reviewed release flow, without migration down
 or destructive data repair. A rolled-back bot may not understand existing
 `p_` links, so retain entry resolution until those links are retired or the fix
 is restored. Existing webhook security and private-log containment stay intact.
+
+## Album correction and the reported SPB post
+
+The former MAX single-image guard produced `album_not_supported` on the owner's
+six-image post. MAX permits twelve total attachments, including the keyboard;
+therefore this feature reserves one slot and accepts up to eleven photos. See
+[the official media contract](https://dev.max.ru/docs-api/use-cases/sending-messages/media).
+Telegram media groups contain at most ten messages and are keyed by their shared
+`media_group_id`, with a numeric member ID used only for the actual markup edit.
+No code decodes a MAX permalink or manufactures a Telegram update.
+
+`ChannelPostAutomationService::processPublication()` processes only one exact
+current publication/version through the existing lease, write receipt and
+UNKNOWN rules. It is available to a separately reviewed recovery operation;
+it never drains or expires the global queue. Re-observing a previously rejected
+MAX post requires a fresh provider read and a new immutable snapshot; resetting
+its database state or replaying a historical webhook is not an accepted repair.
+
+Album source and synthetic provider tests are distinct from a natural Telegram
+album acceptance. After an authorized release, verify one individual button,
+unchanged photographs/caption, a real owner entry and the correct Manager2 context.

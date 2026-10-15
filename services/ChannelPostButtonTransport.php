@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../integrations/ChannelPostApiTransport.php';
 require_once __DIR__ . '/../integrations/ChannelPostIncomingAdapter.php';
+require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
 
 /**
  * Bounded channel-only edits. No uploads, customer sends, webhook/config changes,
@@ -59,7 +60,13 @@ final class ChannelPostButtonTransport
             self::check($bot !== '' && self::botUrlMatches($platform, (string)($channel['bot_url'] ?? ''), $bot), 'canonical_bot_url_mismatch');
             self::check($url !== '' && $label !== '' && self::length($label) <= 128, 'invalid_button');
             self::check(($snapshot['metadata']['capability'] ?? '') === 'supported', (string)($snapshot['metadata']['capability_reason'] ?? 'unsupported_post'));
-            self::check($mid !== '' && strpos($mid, 'group:') !== 0, 'album_not_supported');
+            $telegramAlbum = $platform === 'telegram' && str_starts_with($mid, 'group:');
+            $targetSnapshot = $telegramAlbum ? ChannelPostTelegramAlbum::target($snapshot) : $snapshot;
+            if ($telegramAlbum) {
+                self::check($mid === 'group:' . (string)($snapshot['metadata']['media_group_id'] ?? ''), 'album_identity_mismatch');
+                $mid = (string)($targetSnapshot['metadata']['actual_message_id'] ?? '');
+            }
+            self::check($mid !== '' && strpos($mid, 'group:') !== 0, 'invalid_message_id');
             $this->identity($platform, $bot, $channelId);
 
             if ($platform === 'max') {
@@ -95,7 +102,7 @@ final class ChannelPostButtonTransport
 
             self::check((bool)preg_match('/\A[1-9][0-9]{0,19}\z/', $mid), 'invalid_message_id');
             $rows = [[['text'=>$label, 'url'=>$url]]];
-            if (ChannelPostIncomingAdapter::containsOnlyButton($snapshot, $url, $label)) return $this->result('sent', 'observed_in_channel_update');
+            if (ChannelPostIncomingAdapter::containsOnlyButton($targetSnapshot, $url, $label)) return $this->result('sent', 'observed_in_channel_update');
             // Telegram Bot API has no getMessage. UNKNOWN is reconciled only by a
             // subsequently observed edited_channel_post, never a second edit.
             if ($reconcileOnly) return $this->result('unknown', 'telegram_awaiting_edit_event');
@@ -108,7 +115,7 @@ final class ChannelPostButtonTransport
                 self::check((string)($returned['chat']['id'] ?? '') === $channelId && (string)($returned['message_id'] ?? '') === $mid, 'edited_post_identity_mismatch');
                 $after = ChannelPostIncomingAdapter::telegramSnapshot($returned);
                 $contentEqual = is_array($after)
-                    && ChannelPostIncomingAdapter::contentFingerprint($snapshot, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($after, $url, (string)$channel['bot_url']);
+                    && ChannelPostIncomingAdapter::contentFingerprint($targetSnapshot, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($after, $url, (string)$channel['bot_url']);
                 $this->receipt['content_preserved'] = $contentEqual;
                 $this->receipt['button_verified'] = is_array($after) && ChannelPostIncomingAdapter::containsOnlyButton($after, $url, $label);
                 if ($contentEqual && $this->receipt['button_verified']) return $this->result('sent', 'verified');
