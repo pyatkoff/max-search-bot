@@ -15,7 +15,7 @@ final class ManagerPersonalWorkspaceService
     private const MAX_MEMBERSHIPS=2000;
     private const MAX_PINS=200;
     private const MAX_BYTES=65536;
-    private const ACTIONS=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','pin','settings'];
+    private const ACTIONS=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','group_create','group_rename','group_delete','group_membership','pin','settings'];
 
     public static function snapshot(int $actor): array
     {
@@ -104,7 +104,7 @@ final class ManagerPersonalWorkspaceService
         if ($selection==='pinned') $filter['ids']=$state['pins'];
         elseif (preg_match('/^tab:([1-9][0-9]*)$/D',$selection,$m)) {
             $tab=self::find($state['tabs'],(int)$m[1]);
-            if ($tab===null) return self::error('not_found');
+            if ($tab===null) return self::error('not_found')+['version'=>$snapshot['version'],'state'=>$state];
             $conditions=self::tabConditions($tab);
             if ($conditions===null) return self::error('invalid_tab');
             $queues=$conditions['queues'];$queue=count($queues)===1?$queues[0]:'all';
@@ -169,7 +169,8 @@ final class ManagerPersonalWorkspaceService
             $tabs=[];foreach ($ids as $id) $tabs[]=self::find($state['tabs'],$id);
             $state['tabs']=$tabs;return ['ok'=>true];
         }
-        if (in_array($action,['pin','label_membership'],true)) {
+        if (in_array($action,['group_create','group_rename','group_delete'],true)) return self::applyGroup($action,$input,$state);
+        if (in_array($action,['pin','label_membership','group_membership'],true)) {
             $conversationId=$input['conversation_id']??null;$enabled=$input['enabled']??null;
             if (!is_int($conversationId)||$conversationId<=0||!is_bool($enabled)) return self::error('invalid_membership');
             // Fresh singleton permission on every write, including removal/no-op.
@@ -183,6 +184,13 @@ final class ManagerPersonalWorkspaceService
                 $state['pins']=$ids;return ['ok'=>true];
             }
             $label=$input['label_id']??null;
+            if ($action==='group_membership') {
+                $id=$input['id']??null;
+                if (!is_int($id)||$id<=0) return self::error('invalid_id');
+                $group=self::find($state['tabs'],$id);
+                if ($group===null||($group['kind']??'')!=='group') return self::error('not_found');
+                $label=$group['group_label_id']??null;
+            }
             if (!is_int($label)||self::find($state['labels'],$label)===null) return self::error('not_found');
             $ids=$state['members'][(string)$label]??[];
             if ($enabled&&!in_array($conversationId,$ids,true)) {
@@ -196,6 +204,8 @@ final class ManagerPersonalWorkspaceService
         if (!is_int($id)||$id<0) return self::error('invalid_id');
         $tabs=str_starts_with($action,'tab_');$key=$tabs?'tabs':'labels';$row=$id>0?self::find($state[$key],$id):null;
         if ($id>0&&$row===null) return self::error('not_found');
+        // Bound group rows may only change together through their atomic owner.
+        if ($row!==null&&($tabs?($row['kind']??'')==='group':self::groupForLabel($state,$id)!==null)) return self::error('group_action_required');
         if (str_ends_with($action,'_delete')) {
             if ($id===0) return self::error('not_found');
             $state[$key]=array_values(array_filter($state[$key],static fn(array $item):bool=>$item['id']!==$id));
@@ -238,6 +248,51 @@ final class ManagerPersonalWorkspaceService
         } else foreach ($state[$key] as &$item) if ($item['id']===$id) $item=array_merge(['id'=>$id],$value);
         unset($item);
         return ['ok'=>true,'id'=>$id];
+    }
+
+    /** One command/receipt owns both the visible group and its private marker. */
+    private static function applyGroup(string $action, array $input, array &$state): array
+    {
+        $id=$input['id']??0;
+        if (!is_int($id)||$id<0) return self::error('invalid_id');
+        $group=$id>0?self::find($state['tabs'],$id):null;
+        if ($action!=='group_create'&&($group===null||($group['kind']??'')!=='group')) return self::error('not_found');
+        if ($action==='group_create'&&$id!==0) return self::error('invalid_id');
+        $labelId=$group['group_label_id']??0;
+        if ($action==='group_delete') {
+            $state['tabs']=array_values(array_filter($state['tabs'],static fn(array $item):bool=>$item['id']!==$id));
+            $state['labels']=array_values(array_filter($state['labels'],static fn(array $item):bool=>$item['id']!==$labelId));
+            unset($state['members'][(string)$labelId]);
+            if ($state['settings']['start_tab']==='tab:'.$id) $state['settings']['start_tab']='waiting';
+            // Other saved selections retain the deleted label as an empty
+            // branch, exactly like ordinary label tombstones.
+            return ['ok'=>true,'deleted_id'=>$id,'label_id'=>$labelId];
+        }
+        $name=$input['name']??null;
+        if (!is_string($name)||trim($name)===''||self::length(trim($name))>64||preg_match('/[\x00-\x1f\x7f]/u',$name)) return self::error('invalid_name');
+        $name=trim($name);
+        foreach ($state['tabs'] as $tab) if ($tab['id']!==$id&&$tab['name']===$name) return self::error('duplicate_name');
+        foreach ($state['labels'] as $label) if ($label['id']!==$labelId&&$label['name']===$name) return self::error('duplicate_name');
+        if ($action==='group_create') {
+            if (count($state['tabs'])>=self::MAX_TABS) return self::error('tab_limit_exceeded');
+            if (count($state['labels'])>=self::MAX_LABELS) return self::error('label_limit_exceeded');
+            $id=$state['next_tab_id']++;$labelId=$state['next_label_id']++;
+            $state['tabs'][]=['id'=>$id,'kind'=>'group','group_label_id'=>$labelId,'name'=>$name,'queue'=>'all','queues'=>['all','closed'],'channel'=>'','source_id'=>0,'reply_needed'=>false,'label_id'=>$labelId,'label_ids'=>[$labelId],'pinned_only'=>false];
+            $state['labels'][]=['id'=>$labelId,'name'=>$name];
+        } else {
+            if (!is_int($labelId)||self::find($state['labels'],$labelId)===null) return self::error('not_found');
+            foreach ($state['tabs'] as &$tab) if ($tab['id']===$id) $tab['name']=$name;
+            unset($tab);
+            foreach ($state['labels'] as &$label) if ($label['id']===$labelId) $label['name']=$name;
+            unset($label);
+        }
+        return ['ok'=>true,'id'=>$id,'label_id'=>$labelId];
+    }
+
+    private static function groupForLabel(array $state, int $labelId): ?array
+    {
+        foreach ($state['tabs'] as $tab) if (($tab['kind']??'')==='group'&&($tab['group_label_id']??0)===$labelId) return $tab;
+        return null;
     }
 
     private static function defaults(): array

@@ -29,7 +29,7 @@ if (($argv[1]??'')==='--worker') {
     }
     $command=json_decode((string)($argv[2]??''),true,32,JSON_THROW_ON_ERROR);
     if (!is_array($command)||!is_int($command['actor']??null)||!in_array($command['actor'],[1,2],true)
-        ||!in_array($command['action']??null,['label_save','settings'],true)||!is_array($command['input']??null)) {
+        ||!in_array($command['action']??null,['label_save','settings','group_create'],true)||!is_array($command['input']??null)) {
         fwrite(STDERR,"Refusing invalid synthetic worker command\n");exit(1);
     }
     echo "READY\n";fflush(STDOUT);
@@ -138,10 +138,25 @@ $sameCommand=['actor'=>2,'action'=>'label_save','input'=>['id'=>0,'name'=>'Об�
 $duplicates=nativeWorkspaceRace([$sameCommand,$sameCommand]);$afterDuplicate=ManagerPersonalWorkspaceService::snapshot(2);
 nativeWorkspaceCheck('two native same-key writers return one allocation and one committed receipt',$duplicates[0]['ok']&&$duplicates[1]['ok']&&$duplicates[0]['id']===$duplicates[1]['id']&&nativeWorkspaceEqual($duplicates[0]['state'],$duplicates[1]['state'])&&nativeWorkspaceEqual($duplicates[0]['state'],$afterDuplicate['state'])&&$duplicates[0]['version']===$afterDuplicate['version']&&$duplicates[1]['version']===$afterDuplicate['version']&&$afterDuplicate['version']===$other['version']+1&&count($afterDuplicate['state']['labels'])===2&&(int)$pdo->query("SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=2 AND operation_id='native-parallel-same-command-01'")->fetchColumn()===1);
 
+$groupCommand=['actor'=>2,'action'=>'group_create','input'=>['name'=>'Подбор','expected_version'=>$afterDuplicate['version'],'operation_id'=>'native-parallel-same-group-01']];
+$groups=nativeWorkspaceRace([$groupCommand,$groupCommand]);$groupState=ManagerPersonalWorkspaceService::snapshot(2);
+$nativeGroupId=$groups[0]['id'];$nativeGroupLabel=$groups[0]['label_id'];
+nativeWorkspaceCheck('two native same-key group creates commit one bound pair in one revision',$groups[0]['ok']&&$groups[1]['ok']&&$groups[0]['id']===$groups[1]['id']&&$groups[0]['label_id']===$groups[1]['label_id']&&nativeWorkspaceEqual($groups[0]['state'],$groups[1]['state'])&&$groupState['version']===$afterDuplicate['version']+1&&count($groupState['state']['tabs'])===1&&count($groupState['state']['labels'])===3&&$groupState['state']['tabs'][0]['kind']==='group'&&$groupState['state']['tabs'][0]['group_label_id']===$nativeGroupLabel&&$groupState['state']['tabs'][0]['queues']===['all','closed']&&(int)$pdo->query("SELECT COUNT(*) FROM manager_personal_workspace_operations WHERE manager_id=2 AND operation_id='native-parallel-same-group-01'")->fetchColumn()===1);
+$groupBeforeRace=ManagerPersonalWorkspaceService::snapshot(1);
+$groupRace=nativeWorkspaceRace([
+    ['actor'=>1,'action'=>'group_create','input'=>['name'=>'Первая группа','expected_version'=>$groupBeforeRace['version'],'operation_id'=>'native-different-group-first-01']],
+    ['actor'=>1,'action'=>'group_create','input'=>['name'=>'Вторая группа','expected_version'=>$groupBeforeRace['version'],'operation_id'=>'native-different-group-other-01']],
+]);
+$groupCommitted=ManagerPersonalWorkspaceService::snapshot(1);
+nativeWorkspaceCheck('two native distinct group writers serialize one pair and one conflict',count(array_filter($groupRace,static fn(array $row):bool=>!empty($row['ok'])))===1&&count(array_filter($groupRace,static fn(array $row):bool=>($row['error']??'')==='conflict'))===1&&$groupCommitted['version']===$groupBeforeRace['version']+1&&count($groupCommitted['state']['tabs'])===count($groupBeforeRace['state']['tabs'])+1&&count($groupCommitted['state']['labels'])===count($groupBeforeRace['state']['labels'])+1);
+
 $pdo->exec("CREATE TRIGGER personal_workspace_reject_receipt BEFORE UPDATE ON manager_personal_workspace_operations FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='synthetic receipt failure'");
 $beforeRollback=ManagerPersonalWorkspaceService::snapshot(2);$rolledBack=false;$rollback=['name'=>'Откат','expected_version'=>$beforeRollback['version'],'operation_id'=>'native-rollback-operation-01'];
 try {nativeWorkspaceMutate(2,'label_save',$rollback);} catch (PDOException $error) {$rolledBack=true;}
 nativeWorkspaceCheck('native receipt failure rolls back allocation revision and UNKNOWN receipt',$rolledBack&&nativeWorkspaceEqual(ManagerPersonalWorkspaceService::snapshot(2),$beforeRollback)&&!ManagerPersonalWorkspaceService::operation(2,$rollback['operation_id'])['found']);
+$rolledBack=false;$groupRollback=['name'=>'Откат группы','expected_version'=>$beforeRollback['version'],'operation_id'=>'native-group-rollback-operation-01'];
+try {nativeWorkspaceMutate(2,'group_create',$groupRollback);} catch (PDOException $error) {$rolledBack=true;}
+nativeWorkspaceCheck('native failed group receipt rolls back both allocations and revision',$rolledBack&&nativeWorkspaceEqual(ManagerPersonalWorkspaceService::snapshot(2),$beforeRollback)&&!ManagerPersonalWorkspaceService::operation(2,$groupRollback['operation_id'])['found']);
 $pdo->exec('DROP TRIGGER personal_workspace_reject_receipt');
 $retry=nativeWorkspaceMutate(2,'label_save',$rollback);
 nativeWorkspaceCheck('native same command after confirmed rollback commits once',$retry['ok']&&nativeWorkspaceMutate(2,'label_save',$rollback)['id']===$retry['id']);
@@ -206,4 +221,21 @@ $nativeOverlap=ManagerConversationService::list(1,'all',200,'*','','',0,['queues
 nativeWorkspaceCheck('native overlapping queues are one bounded unique page',count($nativeOverlap)===200&&count(array_unique(array_column($nativeOverlap,'id'),SORT_REGULAR))===200&&!in_array(5,array_map('intval',array_column($nativeOverlap,'id')),true));
 $pdo->exec("UPDATE managers SET role='admin' WHERE id=2");
 nativeWorkspaceCheck('native saved Mine intersects admin manager filter without changing ordinary Mine',array_map('intval',array_column(ManagerConversationService::list(2,'all',200,'*','','',0,['queues'=>['mine']]),'id'))===[5]&&ManagerConversationService::list(2,'all',200,'*','1','',0,['queues'=>['mine']])===[]&&array_map('intval',array_column(ManagerConversationService::list(2,'mine',200,'*','1'),'id'))===[5]);
+
+foreach ([1,2,3] as $conversationId) nativeWorkspaceMutate(2,'group_membership',['id'=>$nativeGroupId,'conversation_id'=>$conversationId,'enabled'=>true]);
+$groupRows=ManagerPersonalWorkspaceService::list(2,['selection'=>'tab:'.$nativeGroupId]);
+nativeWorkspaceCheck('native group selected IDs include active closed and waiting before unrelated cap',array_map('intval',array_column($groupRows['conversations'],'id'))===[3,2,1]&&!$groupRows['limited']&&$groupRows['bounded_count']===3);
+$groupVersion=ManagerPersonalWorkspaceService::snapshot(2)['version'];
+$pdo->exec("INSERT INTO messages VALUES(1001,1,'outbound','manager','Synthetic reply','{}','2026-10-15 12:00:00'); INSERT INTO manager_conversation_reads VALUES(2,1,1001)");
+nativeWorkspaceCheck('native reply and read do not change sticky group collection',array_map('intval',array_column(ManagerPersonalWorkspaceService::list(2,['selection'=>'tab:'.$nativeGroupId])['conversations'],'id'))===[3,2,1]&&ManagerPersonalWorkspaceService::snapshot(2)['version']===$groupVersion);
+nativeWorkspaceCheck('native generic group editors cannot break marker binding',nativeWorkspaceMutate(2,'tab_save',['id'=>$nativeGroupId,'tab'=>['name'=>'Broken']])['error']==='group_action_required'&&nativeWorkspaceMutate(2,'label_delete',['id'=>$nativeGroupLabel])['error']==='group_action_required');
+$renamed=nativeWorkspaceMutate(2,'group_rename',['id'=>$nativeGroupId,'name'=>'В работе']);
+$groupReceipt=ManagerPersonalWorkspaceService::operation(2,$groupCommand['input']['operation_id']);
+nativeWorkspaceCheck('native group rename and old receipt preserve current pair and memberships',$renamed['ok']&&$renamed['state']['tabs'][0]['name']==='В работе'&&$groupReceipt['found']&&$groupReceipt['result']['id']===$nativeGroupId&&$groupReceipt['result']['label_id']===$nativeGroupLabel&&nativeWorkspaceEqual($groupReceipt['result']['state'],$renamed['state']));
+$pdo->exec('DELETE FROM manager_projects WHERE manager_id=2');
+nativeWorkspaceCheck('native revoked access hides group rows and blocks membership removal',ManagerPersonalWorkspaceService::list(2,['selection'=>'tab:'.$nativeGroupId])['conversations']===[]&&nativeWorkspaceMutate(2,'group_membership',['id'=>$nativeGroupId,'conversation_id'=>1,'enabled'=>false])['error']==='forbidden');
+$pdo->exec('INSERT INTO manager_projects VALUES(2,1)');
+nativeWorkspaceMutate(2,'settings',['settings'=>['start_tab'=>'tab:'.$nativeGroupId]]);
+$deleted=nativeWorkspaceMutate(2,'group_delete',['id'=>$nativeGroupId]);
+nativeWorkspaceCheck('native group deletion clears its own pair and membership with safe startup',$deleted['ok']&&$deleted['state']['tabs']===[]&&!in_array($nativeGroupLabel,array_column($deleted['state']['labels'],'id'),true)&&!isset(((array)$deleted['state']['members'])[$nativeGroupLabel])&&$deleted['state']['settings']['start_tab']==='waiting'&&ManagerPersonalWorkspaceService::list(2,['selection'=>'tab:'.$nativeGroupId])['error']==='not_found');
 echo 'NATIVE PERSONAL WORKSPACE MYSQL OK ('.$passed." checks)\n";
