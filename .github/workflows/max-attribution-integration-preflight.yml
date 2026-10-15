@@ -1,0 +1,107 @@
+name: MAX attribution integration preflight
+on:
+  push:
+    branches: [test/max-attribution-integration-preflight-20261015]
+    paths:
+      - .github/workflows/max-attribution-integration-preflight.yml
+      - tools/max_attribution_preflight.php
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl,pdo_sqlite,mbstring
+          coverage: none
+      - name: Package test runtime only
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/php-runtime/bin" "$RUNNER_TEMP/php-runtime/lib" "$RUNNER_TEMP/php-runtime/ext"
+          cp -L "$(command -v php)" "$RUNNER_TEMP/php-runtime/bin/php"
+          ext_dir=$(php -r 'echo ini_get("extension_dir");')
+          for name in pdo pdo_sqlite sqlite3 curl mbstring; do
+            if [[ -f "$ext_dir/$name.so" ]]; then cp -L "$ext_dir/$name.so" "$RUNNER_TEMP/php-runtime/ext/"; fi
+          done
+          for target in "$RUNNER_TEMP/php-runtime/bin/php" "$RUNNER_TEMP/php-runtime/ext/"*.so; do
+            ldd "$target" | awk '{for(i=1;i<=NF;i++)if($i ~ /^\//)print $i}' | while IFS= read -r lib; do cp -L "$lib" "$RUNNER_TEMP/php-runtime/lib/"; done
+          done
+          php -v > "$RUNNER_TEMP/php-runtime/VERSION.txt"
+          tar -czf "$RUNNER_TEMP/php-runtime.tar.gz" -C "$RUNNER_TEMP" php-runtime
+      - uses: actions/upload-artifact@v4
+        with:
+          name: max-attribution-php82-runtime
+          path: ${{ runner.temp }}/php-runtime.tar.gz
+          retention-days: 1
+  read-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate fixed probe
+        run: php -l tools/max_attribution_preflight.php
+      - name: Prepare existing server keys
+        env:
+          LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          write_key(){
+            local raw="$1" out="$2"
+            if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s' "$raw" | base64 --decode > "$out"; fi
+            chmod 600 "$out"; ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$LEGACY_KEY" "$RUNNER_TEMP/legacy_key"
+          write_key "$CANONICAL_KEY" "$RUNNER_TEMP/canonical_key"
+      - name: Prove existing bridge identity and tracker availability without writes
+        env:
+          LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
+          LEGACY_USER: ${{ secrets.DEPLOY_USER }}
+          CANONICAL_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          CANONICAL_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          nonce=$(openssl rand -hex 16)
+          legacy_tmp=''; canonical_tmp=''
+          lopts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/legacy_key")
+          copts=(-o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/canonical_key")
+          cleanup(){
+            if [[ "$legacy_tmp" =~ ^/tmp/max-attribution-preflight\.[A-Za-z0-9]+$ ]]; then ssh "${lopts[@]}" "$LEGACY_USER@$LEGACY_HOST" "rm -rf -- '$legacy_tmp'" >/dev/null 2>&1 || true; fi
+            if [[ "$canonical_tmp" =~ ^/tmp/max-attribution-preflight\.[A-Za-z0-9]+$ ]]; then ssh "${copts[@]}" "$CANONICAL_USER@$CANONICAL_HOST" "rm -rf -- '$canonical_tmp'" >/dev/null 2>&1 || true; fi
+            rm -f "$RUNNER_TEMP/legacy.json" "$RUNNER_TEMP/canonical.json" "$RUNNER_TEMP/legacy_key" "$RUNNER_TEMP/canonical_key"
+          }
+          trap cleanup EXIT
+          legacy_root=$(ssh "${lopts[@]}" "$LEGACY_USER@$LEGACY_HOST" bash -s <<'REMOTE'
+          set -euo pipefail
+          shopt -s nullglob
+          receivers=("$HOME"/www/*/max-search/lead-receiver.php)
+          [[ "${#receivers[@]}" == 1 ]]
+          root=$(dirname "${receivers[0]}")
+          [[ "$root" =~ ^/[A-Za-z0-9_./-]+$ ]]
+          printf '%s' "$root"
+          REMOTE
+          )
+          [[ "$legacy_root" =~ ^/[A-Za-z0-9_./-]+$ ]]
+          legacy_tmp=$(ssh "${lopts[@]}" "$LEGACY_USER@$LEGACY_HOST" 'umask 077; mktemp -d /tmp/max-attribution-preflight.XXXXXXXX')
+          canonical_tmp=$(ssh "${copts[@]}" "$CANONICAL_USER@$CANONICAL_HOST" 'umask 077; mktemp -d /tmp/max-attribution-preflight.XXXXXXXX')
+          [[ "$legacy_tmp" =~ ^/tmp/max-attribution-preflight\.[A-Za-z0-9]+$ ]]
+          [[ "$canonical_tmp" =~ ^/tmp/max-attribution-preflight\.[A-Za-z0-9]+$ ]]
+          scp -q "${lopts[@]}" tools/max_attribution_preflight.php "$LEGACY_USER@$LEGACY_HOST:$legacy_tmp/probe.php"
+          scp -q "${copts[@]}" tools/max_attribution_preflight.php "$CANONICAL_USER@$CANONICAL_HOST:$canonical_tmp/probe.php"
+          ssh "${lopts[@]}" "$LEGACY_USER@$LEGACY_HOST" "php '$legacy_tmp/probe.php' '$legacy_root' '$nonce' legacy" > "$RUNNER_TEMP/legacy.json"
+          ssh "${copts[@]}" "$CANONICAL_USER@$CANONICAL_HOST" "php '$canonical_tmp/probe.php' /var/www/anytoour/data/www/app.anytoour.ru '$nonce' canonical" > "$RUNNER_TEMP/canonical.json"
+          python3 - "$RUNNER_TEMP/legacy.json" "$RUNNER_TEMP/canonical.json" <<'PY'
+          import json,sys,hmac
+          a,b=[json.load(open(p)) for p in sys.argv[1:]]
+          assert a['ok'] and b['ok'] and a['tracker_ready']
+          assert hmac.compare_digest(a['proof'],b['proof'])
+          print('MAX_TRACKER_PREFLIGHT=PASS shared_auth=true tracker_schema=true correct_counter=true business_writes=0 conversion_requests=0')
+          PY
+      - name: Remove temporary server keys
+        if: always()
+        run: rm -f "$RUNNER_TEMP/legacy_key" "$RUNNER_TEMP/canonical_key" "$RUNNER_TEMP/legacy.json" "$RUNNER_TEMP/canonical.json"
