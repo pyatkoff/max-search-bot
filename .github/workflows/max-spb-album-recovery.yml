@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 8a096c541dc39d438b49fed7a78838376f9df3dc
-  RECOVERY_MODE: preview
+  RECOVERY_MODE: apply
 jobs:
   recover:
     if: github.ref == 'refs/heads/test/max-spb-album-recovery-20261015'
