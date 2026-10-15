@@ -39,8 +39,78 @@ jobs:
             sleep 1
           done
           exit 1
+      - name: Prepare native AudioContext probe
+        run: |
+          cat > "$RUNNER_TEMP/audio-context-probe.cjs" <<'JS'
+          const {firefox}=require('@playwright/test');
+          (async()=>{
+            const browser=await firefox.launch();
+            const page=await browser.newPage();
+            const messages=[];
+            page.on('console',message=>messages.push({type:message.type(),text:message.text()}));
+            page.on('pageerror',error=>messages.push({type:'pageerror',name:error.name,message:error.message}));
+            await page.goto('http://127.0.0.1:4173/tests/visual/workspace-v2-fixture.html');
+            await page.evaluate(()=>{
+              window.audioProbe={events:[],resume:'not-started'};
+              const button=document.createElement('button');
+              button.id='native-audio-probe';button.textContent='Native audio probe';
+              button.addEventListener('click',event=>{
+                const result=window.audioProbe;
+                result.trustedClick=event.isTrusted;
+                result.userActivation=navigator.userActivation?.isActive??null;
+                const started=performance.now();
+                try{
+                  const Context=window.AudioContext||window.webkitAudioContext;
+                  const context=new Context();window.nativeProbeContext=context;
+                  result.initialState=context.state;result.sampleRate=context.sampleRate;
+                  context.addEventListener('statechange',()=>result.events.push({state:context.state,ms:Math.round(performance.now()-started)}));
+                  result.resume='pending';
+                  context.resume().then(()=>{
+                    result.resume='resolved';result.resolvedState=context.state;
+                    try{
+                      const oscillator=context.createOscillator(),gain=context.createGain();
+                      gain.gain.value=0.001;oscillator.connect(gain);gain.connect(context.destination);
+                      oscillator.start();oscillator.stop(context.currentTime+0.1);result.oscillatorStarted=true;
+                    }catch(error){result.oscillatorError={name:error.name,message:error.message};}
+                  },error=>{result.resume='rejected';result.resumeError={name:error.name,message:error.message};});
+                }catch(error){result.constructorError={name:error.name,message:error.message};}
+              });
+              document.body.prepend(button);
+            });
+            await page.getByRole('button',{name:'Native audio probe',exact:true}).click();
+            await page.waitForTimeout(2500);
+            const result=await page.evaluate(()=>({...audioProbe,finalState:window.nativeProbeContext?.state??null}));
+            console.log(JSON.stringify({label:process.argv[2],browser:browser.version(),result,messages}));
+            await page.evaluate(()=>window.nativeProbeContext?.close().catch(()=>{}));
+            await browser.close();
+          })().catch(error=>{console.error(error);process.exitCode=1;});
+          JS
+      - name: Inspect runner audio before setup
+        run: |
+          command -v pulseaudio || true
+          if command -v pactl; then pactl info || true; fi
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" node "$RUNNER_TEMP/audio-context-probe.cjs" before-pulse
+      - name: Start local PulseAudio null sink
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pulseaudio
+          export XDG_RUNTIME_DIR="$RUNNER_TEMP/anytour-audio-runtime"
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          pulseaudio --start --exit-idle-time=-1 --log-target="file:$RUNNER_TEMP/pulseaudio.log"
+          export PULSE_SERVER="unix:$XDG_RUNTIME_DIR/pulse/native"
+          pactl info
+          pactl load-module module-null-sink sink_name=anytour_test_null
+          pactl set-default-sink anytour_test_null
+          pactl list short sinks
+          echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
+          echo "PULSE_SERVER=$PULSE_SERVER" >> "$GITHUB_ENV"
+      - name: Native AudioContext with local audio server
+        run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node "$RUNNER_TEMP/audio-context-probe.cjs" after-pulse
       - name: Native manager2 worker scope and sound acceptance
         run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'native manager2' --reporter=line --workers=1 --trace=retain-on-failure
+      - name: Existing native sound case with local audio server
+        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep '^new message in the open conversation signals without changing draft or transcript$' --reporter=line --workers=1 --trace=retain-on-failure
       - name: Print synthetic failure context
         if: failure()
         run: |
