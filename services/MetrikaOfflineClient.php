@@ -47,8 +47,8 @@ final class MetrikaOfflineClient
         if(in_array($http,[420,429],true))return ['outcome'=>'retry','reason'=>'rate_limited'];
         if($http>=400&&$http<500)return ['outcome'=>'rejected','reason'=>'api_rejected'];
         $d=$this->decode($result);$u=$d['uploading']??null;
-        if($http>=200&&$http<300&&is_array($u)&&MaxTrackerLookupProtocol::id((string)($u['id']??''))
-            &&($u['client_id_type']??'')==='CLIENT_ID')return ['outcome'=>'accepted','upload_id'=>(string)$u['id'],'status'=>(string)($u['status']??'UPLOADED')];
+        if($http>=200&&$http<300&&$this->validReceipt($u)
+            &&(!array_key_exists('comment',$u)||$u['comment']===self::comment($event)))return ['outcome'=>'accepted','upload_id'=>(string)$u['id'],'status'=>(string)($u['status']??'UPLOADED')];
         return ['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];
     }
 
@@ -58,7 +58,7 @@ final class MetrikaOfflineClient
         $r=$this->request('GET','offline_conversions/uploading/'.$uploadId);
         if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)return null;
         $d=$this->decode($r);$u=$d['uploading']??null;
-        return is_array($u)&&(string)($u['id']??'')===$uploadId&&($u['client_id_type']??'')==='CLIENT_ID'?$u:null;
+        return $this->validReceipt($u)&&(string)$u['id']===$uploadId?$u:null;
     }
 
     /** Read-only recovery of a lost POST acknowledgement; no automatic resend. */
@@ -69,11 +69,21 @@ final class MetrikaOfflineClient
             $r=$this->request('GET','offline_conversions/uploadings?limit=100&offset='.($page*100));
             if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)return null;
             $d=$this->decode($r);$list=$d['uploadings']??null;if(!is_array($list))return null;
-            foreach($list as $u)if(is_array($u)&&($u['comment']??'')===$comment&&($u['client_id_type']??'')==='CLIENT_ID'
-                &&MaxTrackerLookupProtocol::id((string)($u['id']??'')))$matches[(string)$u['id']]=$u;
+            foreach($list as $u)if($this->validReceipt($u)&&($u['comment']??'')===$comment)$matches[(string)$u['id']]=$u;
             if(count($list)<100)break;
         }
         return count($matches)===1?array_values($matches)[0]:null;
+    }
+
+    /** The live BASIC API omits client_id_type; explicit conflicting values fail closed. */
+    private function validReceipt($receipt): bool
+    {
+        return is_array($receipt)
+            &&(is_int($receipt['id']??null)||is_string($receipt['id']??null))
+            &&MaxTrackerLookupProtocol::id((string)$receipt['id'])
+            &&in_array($receipt['status']??null,['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'],true)
+            &&(!array_key_exists('type',$receipt)||$receipt['type']==='BASIC')
+            &&(!array_key_exists('client_id_type',$receipt)||$receipt['client_id_type']==='CLIENT_ID');
     }
 
     public function goalsReady(): bool
