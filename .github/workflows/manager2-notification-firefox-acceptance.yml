@@ -109,8 +109,31 @@ jobs:
         run: NODE_PATH="$GITHUB_WORKSPACE/node_modules" node "$RUNNER_TEMP/audio-context-probe.cjs" after-pulse
       - name: Native manager2 worker scope and sound acceptance
         run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'native manager2' --reporter=line --workers=1 --trace=retain-on-failure
+      - name: Prepare diagnostic-only baseline test copy
+        run: |
+          node <<'JS'
+          const fs=require('node:fs');
+          let source=fs.readFileSync('tests/visual/workspace-sound.spec.js','utf8');
+          const start=source.indexOf("test(\'new message in the open conversation signals without changing draft or transcript\'");
+          const end=source.indexOf("\ntest(\'two enabled tabs share",start);
+          if(start<0||end<0)throw new Error('exact baseline case missing');
+          let target=source.slice(start,end);
+          const beginning="  const feed=await setup(page);await enable(page);\n";
+          if(!target.includes(beginning))throw new Error('baseline setup missing');
+          target=target.replace(beginning,()=>"  const feed=await setup(page);\n  try{\n    await enable(page);\n");
+          const ending=target.lastIndexOf("\n});");
+          if(ending<0)throw new Error('baseline closing missing');
+          target=target.slice(0,ending)+"\n  }finally{\n    const runtime=await page.evaluate(async()=>{\n      const ledger=await new Promise(resolve=>{\n        const request=indexedDB.open('anytour-workspace-sound-v1',1);\n        request.onerror=()=>resolve({error:request.error?.name});\n        request.onsuccess=()=>{\n          const db=request.result;\n          try{\n            const transaction=db.transaction('accounts'),read=transaction.objectStore('accounts').get(7);\n            read.onsuccess=()=>resolve(read.result??null);\n            read.onerror=()=>resolve({error:read.error?.name});\n            transaction.oncomplete=()=>db.close();\n          }catch(error){db.close();resolve({error:error.name});}\n        };\n      });\n      return{\n        now:Date.now(),visibility:document.visibilityState,hasFocus:document.hasFocus(),\n        permission:typeof Notification==='undefined'?'unsupported':Notification.permission,\n        tones:window.toneStarts,state:document.getElementById('soundStatus')?.dataset.state,\n        message:document.getElementById('soundMessage')?.textContent,\n        ledger,audioEvents:window.nativeAudioDiagnostic?.events,\n        audioStates:window.nativeAudioDiagnostic?.contexts.map(context=>({state:context.state,currentTime:context.currentTime,sampleRate:context.sampleRate})),\n        workspace:{authGeneration:WorkspaceV2.S.authGeneration,authExpired:WorkspaceV2.S.authExpired,manager:WorkspaceV2.S.manager?.id}\n      };\n    }).catch(error=>({diagnosticError:error.message}));\n    console.log('BASELINE_DIAGNOSTIC '+JSON.stringify({requests:feed.requests,responses:feed.diagnosticResponses,runtime}));\n  }\n});\n";
+          source=source.slice(0,start)+target+source.slice(end);
+          source=source.replace('    window.toneStarts=0;',()=>"    window.toneStarts=0;\n    window.nativeAudioDiagnostic={contexts:[],events:[]};\n    const nativeResume=AudioContext.prototype.resume;\n    AudioContext.prototype.resume=function(...args){\n      const diagnostic=window.nativeAudioDiagnostic;\n      if(!diagnostic.contexts.includes(this)){\n        diagnostic.contexts.push(this);\n        this.addEventListener('statechange',()=>diagnostic.events.push({kind:'statechange',state:this.state,at:Date.now()}));\n      }\n      diagnostic.events.push({kind:'resume-call',state:this.state,at:Date.now()});\n      const promise=Reflect.apply(nativeResume,this,args);\n      promise.then(()=>diagnostic.events.push({kind:'resume-resolve',state:this.state,at:Date.now()}),\n        error=>diagnostic.events.push({kind:'resume-reject',state:this.state,name:error.name,message:error.message,at:Date.now()}));\n      return promise;\n    };");
+          source=source.replace('feed.requests.push(data);',()=>"feed.requests.push(data);\n    (feed.diagnosticResponses??=[]).push({at:Date.now(),request:data,response:{ok:feed.status===200,manager_id:feed.owner,cursor:feed.upper,events:JSON.parse(JSON.stringify(feed.rows)),has_more:false}});\n    ");
+          if(!source.includes('BASELINE_DIAGNOSTIC'))throw new Error('diagnostic copy not prepared');
+          new Function(source);
+          fs.writeFileSync('tests/visual/workspace-sound-firefox-diagnostic.spec.js',source);
+          console.log('Prepared diagnostic-only copy; original source/tests unchanged');
+          JS
       - name: Existing native sound case with local audio server
-        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'new message in the open conversation signals without changing draft or transcript' --reporter=line --workers=1 --trace=retain-on-failure
+        run: npx playwright test tests/visual/workspace-sound-firefox-diagnostic.spec.js --browser=firefox --grep 'new message in the open conversation signals without changing draft or transcript' --reporter=line --workers=1 --trace=retain-on-failure
       - name: Print synthetic failure context
         if: failure()
         run: |
