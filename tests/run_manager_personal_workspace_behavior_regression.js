@@ -7,11 +7,11 @@ function harness(handler){
   function element(id=''){
     const handlers=new Map(),attrs=new Map(),node={id,disabled:false,hidden:false,isConnected:true,open:false,value:'',checked:false,textContent:'',dataset:{},innerMarkup:'',children:[],parentNode:null,
       classList:{toggle(name,on){if(on)classes.add(name);else classes.delete(name)},remove(){},add(){}},
-      addEventListener(type,cb){handlers.set(type,cb)},emit(type,event={}){return handlers.get(type)?.(event)},
-      setAttribute(k,v){attrs.set(k,String(v))},getAttribute:k=>attrs.get(k),focus(){active=node},blur(){active=null},setSelectionRange(start,end){node.selectionStart=start;node.selectionEnd=end},
-      showModal(){node.open=true},close(){node.open=false;node.emit('close')},appendChild(child){node.children.push(child);nodes.set(child.id,child)},
-      insertBefore(child){node.children.push(child);nodes.set(child.id,child)},querySelector:()=>null,querySelectorAll:()=>[],
-      get innerHTML(){return node.innerMarkup},set innerHTML(html){node.innerMarkup=html;for(const m of html.matchAll(/id="([^"]+)"/g))nodes.set(m[1],element(m[1]));for(const m of html.matchAll(/<(input|select)[^>]*id="([^"]+)"[^>]*>/g)){const n=nodes.get(m[2]);n.value=m[0].match(/value="([^"]*)"/)?.[1]||'';n.checked=/ checked/.test(m[0]);if(m[1]==='select'){const rest=html.slice(m.index+m[0].length).split('</select>')[0];n.value=rest.match(/value="([^"]+)" selected/)?.[1]||rest.match(/value="([^"]*)"/)?.[1]||''}}for(const m of html.matchAll(/<(button|input)[^>]*data-pw-([\w-]+)="([^"]*)"[^>]*>/g)){const n=element(),attr='data-pw-'+m[2];n.dataset[('pw-'+m[2]).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=m[3];nodes.set('['+attr+'="'+m[3]+'"]',n)}}
+      addEventListener(type,cb){handlers.set(type,cb)},emit(type,event={}){return handlers.get(type)?.({currentTarget:node,...event})},
+      contains(target){for(let n=target;n;n=n.parentNode)if(n===node)return true;return false},getClientRects(){return node.hidden?[]:[{}]},setAttribute(k,v){attrs.set(k,String(v))},getAttribute:k=>attrs.get(k),focus(){active=node},blur(){active=null},setSelectionRange(start,end){node.selectionStart=start;node.selectionEnd=end},
+      showModal(){node.open=true},close(){node.open=false;node.emit('close')},appendChild(child){child.parentNode=node;node.children.push(child);nodes.set(child.id,child)},
+      insertBefore(child){child.parentNode=node;node.children.push(child);nodes.set(child.id,child)},querySelector:()=>null,querySelectorAll:()=>[],
+      get innerHTML(){return node.innerMarkup},set innerHTML(html){node.innerMarkup=html;for(const m of html.matchAll(/id="([^"]+)"/g)){const child=element(m[1]);child.parentNode=node;nodes.set(m[1],child);}for(const m of html.matchAll(/<(input|select)[^>]*id="([^"]+)"[^>]*>/g)){const n=nodes.get(m[2]);n.value=m[0].match(/value="([^"]*)"/)?.[1]||'';n.checked=/ checked/.test(m[0]);if(m[1]==='select'){const rest=html.slice(m.index+m[0].length).split('</select>')[0];n.value=rest.match(/value="([^"]+)" selected/)?.[1]||rest.match(/value="([^"]*)"/)?.[1]||''}}for(const m of html.matchAll(/<(button|input)[^>]*data-pw-([\w-]+)="([^"]*)"[^>]*>/g)){const n=element(),attr='data-pw-'+m[2];n.dataset[('pw-'+m[2]).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=m[3];n.parentNode=node;nodes.set('['+attr+'="'+m[3]+'"]',n)}}
     };return node;
   }
   const body=element('body'),anchor=element('queueTabs'),parent=element();anchor.parentNode=parent;
@@ -80,6 +80,15 @@ const tick=()=>new Promise(r=>setTimeout(r,0));
   focus.nodes.get('pwOpen').focus();await focus.api.open();const membership=focus.nodes.get('[data-pw-membership="9"]');membership.focus();await focus.api.snapshot();assert.equal(focus.active(),focus.nodes.get('[data-pw-membership="9"]'),'snapshot render preserves membership focus');
   const beforeSave=focus.nodes.get('[data-pw-membership="9"]');beforeSave.focus();await focus.api.mutate('label_membership',{conversation_id:101,label_id:9,enabled:true});assert.notEqual(focus.active(),beforeSave);assert.equal(focus.active(),focus.nodes.get('[data-pw-membership="9"]'),'membership save retains same checkbox focus');
   console.log('PASS lane, successful dialog close and membership refresh/save preserve stable keyboard focus');
+
+  const delayedClose=harness(()=>snapshot());await delayedClose.api.activate(5);delayedClose.nodes.get('pwOpen').focus();await delayedClose.api.open();
+  delayedClose.nodes.get('pwClose').onclick();const delayedDialog=delayedClose.nodes.get('pwDialog'),chosenTab=delayedClose.nodes.get('[data-pw-selection="tab:7"]');chosenTab.focus();delayedDialog.emit('close');assert.equal(delayedClose.active(),chosenTab,'late modal close cannot steal a newer user tab focus');
+  for(const unavailable of ['hidden','disabled','disconnected','inside']){
+    const target=unavailable==='inside'?delayedClose.nodes.get('pwClose'):chosenTab;target.hidden=unavailable==='hidden';target.disabled=unavailable==='disabled';target.isConnected=unavailable!=='disconnected';target.focus();delayedDialog.emit('close');assert.equal(delayedClose.active(),delayedClose.nodes.get('pwOpen'),unavailable+' focus restores the available opener');target.hidden=false;target.disabled=false;target.isConnected=true;
+  }
+  chosenTab.focus();chosenTab.blur();delayedDialog.emit('close');assert.equal(delayedClose.active(),delayedClose.nodes.get('pwOpen'),'missing focus still restores the canonical opener');
+  console.log('PASS delayed modal close preserves newer outside focus and restores an available opener for missing/hidden/disabled/disconnected/inside focus');
+
 
   const staleList=deferred();let listCalls=0;
   const latest=harness(action=>action==='snapshot'?snapshot(1):action==='list'?(++listCalls===1?staleList.promise:{ok:false,error:'storage_unavailable',http_status:503}):snapshot());await latest.api.activate(5);await latest.api.selectSelection('tab:7');const oldList=latest.api.fetchRows({search:'старое'});const observed=assert.rejects(oldList,/stale_personal_selection/);latest.S.leadSearch='новое';await assert.rejects(()=>latest.api.fetchRows({search:'новое'}),/personal_list_failed/);const staleState=snapshot(8);staleState.state.labels[0].name='Нельзя принять старый запрос';staleList.resolve({...staleState,conversations:[{id:101}],bounded_count:1,limit:200,limited:false,count_scope:'loaded_visible'});await observed;
