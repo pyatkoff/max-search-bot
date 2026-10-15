@@ -92,6 +92,21 @@ async function fitsViewport(page){
   expect(size.width).toBeLessThanOrEqual(size.vw+1);
   expect(size.height).toBeLessThanOrEqual(size.vh+1);
 }
+async function clientCardHeaderFits(page){
+  for(const id of ['mobileLeadClose','pwClientOpen','inOpen'])await expect(page.locator('#'+id)).toBeVisible();
+  await expect.poll(()=>page.locator('#leadZone>.zoneHead').evaluate(header=>{
+    const bounds=header.getBoundingClientRect(),text=header.querySelector('.leadHeaderText'),identity=text.getBoundingClientRect();
+    const buttons=[...header.querySelectorAll('.leadHeaderActions button')].filter(button=>!button.hidden);
+    return {
+      textFits:text.scrollWidth<=text.clientWidth+1,
+      separateRows:buttons.every(button=>button.getBoundingClientRect().top>=identity.bottom+4),
+      contained:buttons.every(button=>{const box=button.getBoundingClientRect();return box.left>=bounds.left-1&&box.right<=bounds.right+1&&box.top>=bounds.top-1&&box.bottom<=bounds.bottom+1}),
+      readableTargets:buttons.every(button=>{const box=button.getBoundingClientRect();return box.width>=36&&box.height>=40&&parseFloat(getComputedStyle(button).fontSize)>=12}),
+      unobstructed:buttons.every(button=>{const box=button.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return hit===button||button.contains(hit)})
+    };
+  })).toEqual({textFits:true,separateRows:true,contained:true,readableTargets:true,unobstructed:true});
+  expect((await page.locator('#leadZone>.zoneHead').boundingBox()).height).toBeLessThanOrEqual(160);
+}
 function clean(fixture){expect(fixture.unexpected).toEqual([]);expect(fixture.errors).toEqual([]);expect(fixture.calls.filter(call=>['send','send_media','set_working','tab_save','tab_delete'].includes(call.action))).toEqual([])}
 
 for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()=>{
@@ -165,6 +180,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       if(width>1100)await expect(workspace).toHaveClass(/m2ClientCardOpen/);
       else await expect(workspace).toHaveAttribute('data-mobile-screen','lead');
       await expect(page.locator('#m2ClientName')).toHaveText('Анна Морозова');
+      await clientCardHeaderFits(page);await page.setViewportSize({width,height:420});await clientCardHeaderFits(page);await page.setViewportSize({width,height:900});
       await page.locator('#mobileLeadClose').click();
       await expect(card).not.toBeVisible();
       await expect(page.locator(opener)).toBeFocused();
