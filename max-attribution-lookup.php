@@ -5,7 +5,7 @@ ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
 header('Content-Type: application/json; charset=utf-8');header('Cache-Control: no-store');header('X-Content-Type-Options: nosniff');
 function max_attribution_reply(array $data,int $status):void{http_response_code($status);echo json_encode($data,JSON_UNESCAPED_SLASHES);exit;}
 if(($_SERVER['REQUEST_METHOD']??'')!=='POST')max_attribution_reply(['ok'=>false,'error'=>'method_not_allowed'],405);
-if(stripos((string)($_SERVER['CONTENT_TYPE']??''),'application/json')!==0)max_attribution_reply(['ok'=>false,'error'=>'json_required'],415);
+if(strtolower(trim(explode(';',(string)($_SERVER['CONTENT_TYPE']??''),2)[0]))!=='application/json')max_attribution_reply(['ok'=>false,'error'=>'json_required'],415);
 if((int)($_SERVER['CONTENT_LENGTH']??0)>8192)max_attribution_reply(['ok'=>false,'error'=>'body_too_large'],413);
 $raw=(string)file_get_contents('php://input',false,null,0,8193);
 try{

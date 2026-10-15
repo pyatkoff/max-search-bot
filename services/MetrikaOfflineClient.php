@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/MaxTrackerLookupProtocol.php';
+require_once __DIR__.'/MaxTrackerLookupConfig.php';
 require_once __DIR__.'/MaxChannelConversionOutbox.php';
 
 /** Existing counter/token, new ClientId CSV transport. No raw API logging. */
@@ -99,7 +100,7 @@ final class MetrikaOfflineClient
                     if(strlen($body)+strlen($chunk)>1048576){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);
                 }];
             if($method==='POST'){
-                $temp=tempnam(sys_get_temp_dir(),'max-channel-csv-');if($temp===false)throw new RuntimeException('private_csv_unavailable');
+                $temp=tempnam(MaxTrackerLookupConfig::csvDirectory(),'conversion-');if($temp===false)throw new RuntimeException('private_csv_unavailable');
                 chmod($temp,0600);if(file_put_contents($temp,$csv)!==strlen((string)$csv))throw new RuntimeException('private_csv_unavailable');
                 $options[CURLOPT_POST]=true;$options[CURLOPT_POSTFIELDS]=['file'=>new CURLFile($temp,'text/csv','offline_conversions.csv')];
             }

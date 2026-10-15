@@ -99,7 +99,7 @@ purpose-bound body, a 90-second validity window, exact counter/identity validati
 and strict response/body bounds. It does not reuse or copy another service token.
 
 The private signing key belongs outside the canonical bot webroot:
-`data/private/max-attribution-signing.pem`, mode 0600 in a 0700 directory.
+`data/private/max-attribution/signing.pem`, mode 0600 in a 0700 directory.
 `php tools/max_attribution_signing_key.php init` creates it once and emits only
 the public verification key; an existing key is preserved. Keep that output in a
 private operator/runner temp file. The tracker receives only that public key.
@@ -146,7 +146,8 @@ After authorized publication, migration and tracker release:
 5. Observe an actual upload ID followed by processing status. HTTP acceptance is
    separate from validated rows, session attribution and Direct optimization.
 
-Uploads contain `ClientId,Target,DateTime` and use the existing counter/token.
+Temporary CSV files also stay under the private feature directory (0700/0600)
+and are removed after each request. Uploads contain `ClientId,Target,DateTime` and use the existing counter/token.
 Every attempt claims the event atomically before POST. Successful receipts store
 Metrika upload ID; subsequent checks use GET. A transport timeout, 5xx, malformed
 response or crash after claim moves the event to **unknown**, never to resend.

@@ -83,6 +83,7 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
             body = encoded(data)
             check(request(None, 'GET')[0] == 405, 'GET never returns identities')
             check(request(body, content_type='text/plain')[0] == 415, 'JSON only')
+            check(request(body, content_type='application/jsonevil')[0] == 415, 'media type must match exactly')
             check(request(b'x' * 8193)[0] == 413, 'body bound')
             check(request(body)[0] == 401, 'signature required before missing database')
             check(request(body, signed='invalid')[0] == 401, 'malformed signature rejected')
