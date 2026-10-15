@@ -11,7 +11,7 @@ function stateFor(tabs,labels,font='normal',density='comfortable',long=false){
  state.labels=Array.from({length:labels},(_,i)=>({id:100+i,name:'Личная метка для семейного отдыха и пожеланий '+i}));
  state.labels.forEach(l=>state.members[l.id]=[11]);state.settings.font=font;state.settings.density=density;return state;
 }
-async function settled(page,s){await expect.poll(()=>s.pending.size).toBe(0);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);await expect(page.locator('#pwOpen')).toBeVisible()}
+async function settled(page,s){await expect.poll(()=>s.pending.size).toBe(0);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);await expect(page.locator('#m2WorkspaceSettings:visible, #pwOpen:visible')).toBeVisible()}
 function clean(s){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>['send','tab_save','label_save','settings','set_stage','set_outcome','create_task','update_task'].includes(c.action))).toEqual([])}
 async function capture(page,browser,width,height,scenario,stage){
  const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
@@ -27,13 +27,14 @@ async function capacity(page){
  expect(g.overflow).toBeLessThanOrEqual(1);expect(g.listHeight).toBeGreaterThanOrEqual(80);expect(g.visibleRow).toBeGreaterThanOrEqual(48);return g;
 }
 async function keyboardTo(page,selector,{beforeSearch=false}={}){
- // Tabs precede search in document order; use real Shift+Tab for them. A
- // forward full-page wrap would leave/reenter browser chrome, generating a
- // genuine focus-triggered Inbox refresh unrelated to selecting this tab.
- // Client rows follow search and are reached with ordinary forward Tab.
+ // Start from the visible search field and follow the actual shell order.
+ // The messenger heading moves controls without replacing the canonical field;
+ // backwards traversal avoids a browser-chrome wrap for preceding controls.
+ if(!await page.locator('#leadSearch').isVisible())await page.locator('#m2InboxSearchToggle').click();
  await page.locator('#leadSearch').click();
+ const follows=await page.locator('#leadSearch').evaluate((el,selector)=>!!(el.compareDocumentPosition(document.querySelector(selector))&Node.DOCUMENT_POSITION_FOLLOWING),selector);
  for(let i=0;i<70;i++){
-  await page.keyboard.press(beforeSearch?'Shift+Tab':'Tab');
+  await page.keyboard.press(follows?'Tab':'Shift+Tab');
   if(await page.locator(selector).evaluate(el=>document.activeElement===el))return;
  }
  throw new Error('Keyboard cannot reach '+selector);
@@ -95,9 +96,9 @@ for(const width of [390,430,768,1440])for(const height of [420,900])for(const pr
 }
 
 for(const width of [390,1440])test('all thirty labels remain readable in their own editor '+width,async({page,browserName})=>{
- await page.setViewportSize({width,height:420});const s=await setup(page,{state:stateFor(12,30,'large','compact',true)});await settled(page,s);await page.locator('#pwOpen').click();await expect(page.locator('#pwDialog')).toBeVisible();await expect(page.locator('[data-pw-edit-label]')).toHaveCount(30);
+ await page.setViewportSize({width,height:420});const s=await setup(page,{state:stateFor(12,30,'large','compact',true)});await settled(page,s);await page.locator('#m2WorkspaceSettings:visible, #pwOpen:visible').click();await expect(page.locator('#pwDialog')).toBeVisible();await expect(page.locator('[data-pw-edit-label]')).toHaveCount(30);
  const last=page.locator('[data-pw-edit-label="129"]');await last.scrollIntoViewIfNeeded();await expect(last).toBeInViewport();await expect(page.locator('#pwLabels')).toContainText('Личная метка для семейного отдыха и пожеланий 29');
- await last.click();await expect(page.locator('#pwLabelName')).toHaveValue('Личная метка для семейного отдыха и пожеланий 29');await expect(page.locator('#pwLabelName')).toBeFocused();await page.locator('#pwLabelCancel').click();await expect(page.locator('#pwNewLabel')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).toBeHidden();await expect(page.locator('#pwOpen')).toBeFocused();await capture(page,browserName,width,420,'all-labels','closed');await capacity(page);clean(s);
+ await last.click();await expect(page.locator('#pwLabelName')).toHaveValue('Личная метка для семейного отдыха и пожеланий 29');await expect(page.locator('#pwLabelName')).toBeFocused();await page.locator('#pwLabelCancel').click();await expect(page.locator('#pwNewLabel')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#pwDialog')).toBeHidden();await expect(page.locator('#m2WorkspaceSettings:visible, #pwOpen:visible')).toBeFocused();await capture(page,browserName,width,420,'all-labels','closed');await capacity(page);clean(s);
 });
 
 for(const width of [390,430,768,1440])test('failed personal refresh keeps a usable short list and retries only that selection '+width,async({page,browserName})=>{
