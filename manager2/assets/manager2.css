@@ -157,6 +157,6 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .inboxHead>*{flex-shrink:0}
 
 /* Client identity owns a full row; client actions wrap below without covering it. */
-.manager2 .leadZone>.zoneHead{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:start}
+.manager2 .leadZone>.zoneHead{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:start;flex-shrink:0}
 .manager2 .leadHeaderActions{flex-wrap:wrap;min-width:0}
 .manager2 .leadHeaderActions .actionBtn{min-height:40px;font-size:13px}
