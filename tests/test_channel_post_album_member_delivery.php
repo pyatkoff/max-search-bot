@@ -85,6 +85,7 @@ memberCheck('anchor response verifies only the exact original member', $anchorRe
     && count($provider->writes()) === 1 && (string)$provider->writes()[0]['body']['message_id'] === '101');
 memberCheck('receipt remains valid across unrelated album assembly', $members->finish($operation, $anchorResult['state'], $anchorResult['reason'], $anchorResult['receipt']));
 memberCheck('completed member receipt cannot run twice', !$members->finish($operation, 'unknown', 'late_receipt', []));
+memberCheck('anchor success does not hide another member awaiting cleanup', $registry->publication($first['publication_id'])['state'] === 'pending' && memberRow($members->rows($first['publication_id']),'102')['state'] === 'pending');
 $cleanup = $members->claim($first['publication_id']);
 memberCheck('non-anchor foreign keyboard has its own numeric clear operation', $cleanup !== null && $cleanup['external_message_id'] === '102'
     && $cleanup['button_mode'] === 'clear_keyboard' && count($cleanup['snapshot']['attachments']) === 1
@@ -123,7 +124,11 @@ $reopened = (new ChannelPostRegistryService($pdo))->memberDelivery();
 $persisted = memberRow($reopened->rows($unknownFirst['publication_id']),'202');
 memberCheck('restart retains unknown outcome and its single attempted write', $persisted['state'] === 'unknown' && (int)$persisted['write_attempts'] === 1);
 memberRegister($registry,memberSnapshot(memberMessage('unknown-clear','203'),202));
+$wrongNewer = memberRegister($registry,memberSnapshot($unknownOther,203));
 $reopened->refresh($unknownFirst['publication_id']);
+memberCheck('newer wrong markup on the same ambiguous member never authorizes a retry', memberRow($reopened->rows($unknownFirst['publication_id']),'202')['state'] === 'unknown'
+    && (int)memberRow($reopened->rows($unknownFirst['publication_id']),'202')['write_attempts'] === 1
+    && $reopened->claim($unknownFirst['publication_id']) === null);
 memberCheck('unrelated later photo cannot make unknown cleanup writable', $reopened->claim($unknownFirst['publication_id']) === null
     && memberRow($reopened->rows($unknownFirst['publication_id']),'202')['state'] === 'unknown'
     && !$reopened->markStarted($unknownOperation) && count($unknownProvider->writes()) === 1);
@@ -135,5 +140,40 @@ memberCheck('new authenticated exact-member clean observation reconciles without
     && $registry->publication($unknownFirst['publication_id'])['state'] === 'sent' && count($unknownProvider->writes()) === 1);
 memberCheck('late ambiguous receipt cannot undo authenticated clean evidence', !$members->finish($unknownOperation,'unknown','late_lost_receipt',[]) && memberRow($members->rows($unknownFirst['publication_id']),'202')['state'] === 'sent');
 memberCheck('unknown reconciliation preserves all three immutable images and one token', count($clean['snapshot']['attachments']) === 3 && $clean['start_payload'] === $unknownFirst['start_payload']);
+
+$startedFirst = memberRegister($registry,memberSnapshot(memberMessage('inflight-edit','251',$foreign),350));
+$startedClaim = $members->claim($startedFirst['publication_id']);
+memberCheck('anchor write starts under its original authenticated observation', $startedClaim !== null && $members->markStarted($startedClaim));
+memberRegister($registry,memberSnapshot(memberMessage('inflight-edit','251',$foreign,'Новая подпись'),351,1791972001000));
+memberCheck('newer wrong anchor event during write cannot reset its durable attempt', $members->claim($startedFirst['publication_id']) === null
+    && memberRow($members->rows($startedFirst['publication_id']),'251')['state'] === 'unknown'
+    && (int)memberRow($members->rows($startedFirst['publication_id']),'251')['write_attempts'] === 1);
+$selfFirst = memberRegister($registry,memberSnapshot(memberMessage('self-before-receipt','261',$foreign),360));
+$selfClaim = $members->claim($selfFirst['publication_id']);
+memberCheck('early self-event fixture starts one exact member edit', $selfClaim !== null && $members->markStarted($selfClaim));
+$selfMessage = memberMessage('self-before-receipt','261',[[['text'=>'Рассчитать на мои даты','url'=>ChannelPostButtonTransport::buttonUrl($selfFirst)]]]);
+$selfObserved = memberRegister($registry,memberSnapshot($selfMessage,361,1791972001000));
+$selfRows = $members->rows($selfFirst['publication_id']);
+memberCheck('authenticated final markup before HTTP response confirms only the matching member', memberRow($selfRows,'261')['state'] === 'sent' && $selfObserved['state'] === 'sent');
+memberCheck('verified API response after its own final event reports success without replacing newer evidence', $members->finish($selfClaim,'sent','verified',['write_attempts'=>1,'content_preserved'=>true,'button_verified'=>true])
+    && $members->rows($selfFirst['publication_id']) === $selfRows);
+
+$expiryFirst = memberRegister($registry,memberSnapshot(memberMessage('expiry','301'),400));
+$expiryClaim = $members->claim($expiryFirst['publication_id']);
+memberCheck('crash fixture durably records write start before losing its worker', $expiryClaim !== null && $members->markStarted($expiryClaim));
+$expire = $pdo->prepare("UPDATE post_member_deliveries SET claimed_at='2000-01-01 00:00:00' WHERE id=?");
+$expire->execute([$expiryClaim['delivery_member_id']]);
+memberCheck('expired attempted write becomes unknown without another claim', $members->claim($expiryFirst['publication_id']) === null
+    && memberRow($members->rows($expiryFirst['publication_id']),'301')['state'] === 'unknown'
+    && (int)memberRow($members->rows($expiryFirst['publication_id']),'301')['write_attempts'] === 1);
+memberCheck('expired worker cannot replace the durable unknown receipt', !$members->finish($expiryClaim,'sent','late',[]));
+$unstartedFirst = memberRegister($registry,memberSnapshot(memberMessage('unstarted','401'),500));
+$unstartedClaim = $members->claim($unstartedFirst['publication_id']);
+$expire->execute([$unstartedClaim['delivery_member_id']]);
+$replacement = $members->claim($unstartedFirst['publication_id']);
+memberCheck('only an expired claim with no provider attempt can receive a new lease', $replacement !== null
+    && $replacement['delivery_member_id'] === $unstartedClaim['delivery_member_id']
+    && $replacement['delivery_claim_token'] !== $unstartedClaim['delivery_claim_token']
+    && !$members->markStarted($unstartedClaim) && $members->markStarted($replacement));
 
 echo 'OK ' . $memberPassed . " album member delivery checks\n";
