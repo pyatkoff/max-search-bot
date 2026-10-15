@@ -102,6 +102,11 @@
     const text=day===currentDay?pad(wall.getUTCHours())+':'+pad(wall.getUTCMinutes()):currentDay-day===86400000?'Вчера':pad(wall.getUTCDate())+'.'+pad(wall.getUTCMonth()+1)+(sameYear?'':'.'+String(wall.getUTCFullYear()).slice(-2));
     return {text,exact:time.format(date,{year:true})+':'+pad(wall.getUTCSeconds())+' '+time.label};
   }
+  function enhanceInboxMarkers(node){
+    const markers=node?.querySelector('.pwRowMarkers'),meta=node?.querySelector('.m2ChatMeta');
+    if(!markers||!meta||markers.children.length!==1||!markers.firstElementChild.classList.contains('pwMarkerPin'))return;
+    meta.insertBefore(markers,meta.querySelector('.unreadBadge'));
+  }
   function enhanceInbox(rows){
     const searchToggle=$('m2InboxSearchToggle'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow');
     if(searchToggle&&search&&searchRow){
@@ -312,6 +317,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch};
   init();
 })();

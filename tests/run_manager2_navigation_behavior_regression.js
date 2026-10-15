@@ -25,6 +25,16 @@ function harness(){
 }
 (async()=>{
   {
+    const h=harness(),moves=[],pin={classList:{contains:name=>name==='pwMarkerPin'}},markers={children:[pin],firstElementChild:pin},unread={},meta={insertBefore:(node,before)=>moves.push({node,before}),querySelector:()=>unread};
+    const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.m2ChatMeta'?meta:null};
+    h.presentation.enhanceInboxMarkers(node);
+    check('a lone personal pin shares metadata before the unread count',()=>assert.deepEqual(moves,[{node:markers,before:unread}]));
+    markers.children=[pin,{}];h.presentation.enhanceInboxMarkers(node);
+    check('named personal labels keep their own marker row',()=>assert.equal(moves.length,1));
+    h.presentation.enhanceInboxMarkers({querySelector:()=>null});
+    check('missing metadata or personal markers require no synthetic row',()=>assert.equal(moves.length,1));
+  }
+  {
     const h=harness(),format=h.presentation.formatInboxActivity;
     const cases=[
       ['today uses Moscow time','2026-10-15 09:07:08','2026-10-15 18:00:00','12:07','15.10.2026 12:07:08 МСК'],
