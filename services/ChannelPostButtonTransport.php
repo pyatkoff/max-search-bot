@@ -101,8 +101,11 @@ final class ChannelPostButtonTransport
             }
 
             self::check((bool)preg_match('/\A[1-9][0-9]{0,19}\z/', $mid), 'invalid_message_id');
-            $rows = [[['text'=>$label, 'url'=>$url]]];
-            if (ChannelPostIncomingAdapter::containsOnlyButton($targetSnapshot, $url, $label)) return $this->result('sent', 'observed_in_channel_update');
+            $clear = ($operation['button_mode'] ?? '') === 'clear_keyboard';
+            self::check(!$clear || isset($operation['delivery_member_id']), 'unclaimed_keyboard_cleanup');
+            $rows = $clear ? [] : [[['text'=>$label, 'url'=>$url]]];
+            $correct = $clear ? empty($targetSnapshot['keyboard']) : ChannelPostIncomingAdapter::containsOnlyButton($targetSnapshot, $url, $label);
+            if ($correct) return $this->result('sent', 'observed_in_channel_update');
             // Telegram Bot API has no getMessage. UNKNOWN is reconciled only by a
             // subsequently observed edited_channel_post, never a second edit.
             if ($reconcileOnly) return $this->result('unknown', 'telegram_awaiting_edit_event');
@@ -117,7 +120,7 @@ final class ChannelPostButtonTransport
                 $contentEqual = is_array($after)
                     && ChannelPostIncomingAdapter::contentFingerprint($targetSnapshot, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($after, $url, (string)$channel['bot_url']);
                 $this->receipt['content_preserved'] = $contentEqual;
-                $this->receipt['button_verified'] = is_array($after) && ChannelPostIncomingAdapter::containsOnlyButton($after, $url, $label);
+                $this->receipt['button_verified'] = is_array($after) && ($clear ? empty($after['keyboard']) : ChannelPostIncomingAdapter::containsOnlyButton($after, $url, $label));
                 if ($contentEqual && $this->receipt['button_verified']) return $this->result('sent', 'verified');
             }
             return $this->result(self::explicitReject($edited) ? 'requires_attention' : 'unknown', self::explicitReject($edited) ? 'provider_rejected_edit' : 'edit_outcome_unknown');

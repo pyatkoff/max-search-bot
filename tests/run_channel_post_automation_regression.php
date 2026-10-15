@@ -566,10 +566,30 @@ foreach (['max','telegram'] as $platform) {
 }
 
 
-/** Real registry + transport: ten Telegram updates are one album and one edit. */
+
+/** Exact per-message provider: sibling cleanup cannot edit or verify the anchor. */
+final class FixtureAlbumPostProvider
+{
+    public array $messages = [];
+    public array $calls = [];
+    public string $mode = 'success';
+    public function __construct(array $message) { $this->add($message); }
+    public function add(array $message): void { $this->messages[(string)$message['message_id']] = $message; }
+    public function request(string $platform,string $method,string $path,array $query,?array $body): array {
+        $this->calls[] = compact('platform','method','path','query','body');
+        $mid = $path === 'editMessageReplyMarkup' ? (string)($body['message_id'] ?? '') : (string)array_key_first($this->messages);
+        if (!isset($this->messages[$mid])) throw new RuntimeException('unobserved album message');
+        $provider = new FixturePostProvider($this->messages[$mid]); $provider->mode = $this->mode;
+        try { return $provider->request($platform,$method,$path,$query,$body); }
+        finally { $this->messages[$mid] = $provider->message; }
+    }
+    public function writes(): int { return count(array_filter($this->calls,static fn($c)=>$c['path']==='editMessageReplyMarkup')); }
+}
+
+/** Real registry + transport: one anchor button and cleanup for every sibling. */
 $tgGroupBase=$fixtures['telegram'];$tgGroupBase['media_group_id']='tg-ten-photos';
 $tgGroupBase['message_id']=701;$tgGroupBase['photo'][1]['file_unique_id']='group-photo-701';
-$tgGroupProvider=new FixturePostProvider($tgGroupBase);
+$tgGroupProvider=new FixtureAlbumPostProvider($tgGroupBase);
 $tgGroupService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$tgGroupProvider,'request']));
 $tgGroupToken=null;$tgGroupReceipt=null;
 foreach(range(701,710) as $index=>$mid) {
@@ -577,6 +597,7 @@ foreach(range(701,710) as $index=>$mid) {
     $member['photo'][1]['file_unique_id']='group-photo-'.$mid;
     $member['photo'][1]['file_id']='group-file-'.$mid;
     if($mid!==701) unset($member['caption'],$member['caption_entities']);
+    $tgGroupProvider->add($member);
     $r=$tgGroupService->receive('telegram',['update_id'=>7000+$index,'channel_post'=>$member],'anytour','Any_tour_bot');
     if($tgGroupToken===null)$tgGroupToken=$actualRegistry->publication($r['publication_id'])['start_payload'];
     $tgGroupReceipt=$r;
@@ -584,25 +605,34 @@ foreach(range(701,710) as $index=>$mid) {
 }
 $tgGroupLatest=$actualRegistry->publication($tgGroupReceipt['publication_id']);
 channelPostCheck('Telegram ten updates have one token and all ten recorded images',[$tgGroupLatest['start_payload'],count($tgGroupLatest['snapshot']['attachments']),$tgGroupLatest['snapshot']['text']],[$tgGroupToken,10,$tgGroupBase['caption']]);
-channelPostCheck('Telegram complete group writes one own keyboard on stable numeric member',[$tgGroupProvider->writes(),$tgGroupLatest['state'],$tgGroupLatest['snapshot']['metadata']['actual_message_id']],[1,'sent','701']);
+channelPostCheck('Telegram complete group writes one anchor and clears nine foreign sibling keyboards',[$tgGroupProvider->writes(),$tgGroupLatest['state'],$tgGroupLatest['snapshot']['metadata']['actual_message_id']],[10,'sent','701']);
+$anchorRows=$tgGroupProvider->messages['701']['reply_markup']['inline_keyboard'];
+$groupUrl=ChannelPostButtonTransport::buttonUrl($tgGroupLatest);
+channelPostCheck('Telegram complete group has exactly the individual AnyTour anchor button',$anchorRows,[[['text'=>'Рассчитать на мои даты','url'=>$groupUrl]]]);
+foreach(range(702,710) as $mid) channelPostCheck('Telegram foreign sibling '.$mid.' is empty without a duplicate own link',$tgGroupProvider->messages[(string)$mid]['reply_markup']['inline_keyboard'],[]);
+channelPostCheck('Telegram every album image remains attached to its original numeric message',array_map(static fn($m)=>$m['photo'][1]['file_unique_id'],array_values($tgGroupProvider->messages)),array_map(static fn($mid)=>'group-photo-'.$mid,range(701,710)));
 $tgGroupWrites=array_values(array_filter($tgGroupProvider->calls,static fn($c)=>$c['path']==='editMessageReplyMarkup'));
 channelPostCheck('Telegram group edit omits photo and caption fields',isset($tgGroupWrites[0])&&array_keys($tgGroupWrites[0]['body'])===['chat_id','message_id','reply_markup']&&(string)$tgGroupWrites[0]['body']['message_id']==='701');
-$tgSelf=$tgGroupProvider->message;$tgSelf['edit_date']=$tgSelf['date']+1;
+$tgSelf=$tgGroupProvider->messages['701'];$tgSelf['edit_date']=$tgSelf['date']+1;
 $self=$tgGroupService->receive('telegram',['update_id'=>7100,'edited_channel_post'=>$tgSelf],'anytour','Any_tour_bot');
-channelPostCheck('Telegram anchor self edit confirms whole aggregate without duplicating button',[$self['state'],$tgGroupProvider->writes(),count($actualRegistry->publication($self['publication_id'])['snapshot']['attachments'])],['sent',1,10]);
+channelPostCheck('Telegram anchor self edit retains the verified whole aggregate without another write',[$self['state'],$tgGroupProvider->writes(),count($actualRegistry->publication($self['publication_id'])['snapshot']['attachments'])],['sent',10,10]);
 $tgUnknown=$tgGroupBase;$tgUnknown['media_group_id']='tg-unknown-album';$tgUnknown['message_id']=801;
-$unknownProvider=new FixturePostProvider($tgUnknown);$unknownProvider->mode='timeout_applied';
+$unknownProvider=new FixtureAlbumPostProvider($tgUnknown);$unknownProvider->mode='timeout_applied';
 $unknownService=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$unknownProvider,'request']));
 $ur=$unknownService->receive('telegram',['update_id'=>8000,'channel_post'=>$tgUnknown],'anytour','Any_tour_bot');
 $uo=$unknownService->processPublication('anytour','telegram','Any_tour_bot',$ur['publication_id'],$ur['version_id']);
 channelPostCheck('Telegram group ambiguous reply is honestly unknown',$uo['state'],'unknown');
 $other=$tgUnknown;$other['message_id']=802;$other['photo'][1]['file_unique_id']='group-photo-802';unset($other['caption'],$other['caption_entities']);
+$unknownProvider->add($other);$unknownProvider->mode='success';
 $ur=$unknownService->receive('telegram',['update_id'=>8001,'channel_post'=>$other],'anytour','Any_tour_bot');
 $unknownService->processPublication('anytour','telegram','Any_tour_bot',$ur['publication_id'],$ur['version_id']);
-channelPostCheck('Telegram later album photo cannot cause a second ambiguous write',[$unknownProvider->writes(),$actualRegistry->publication($ur['publication_id'])['state']],[1,'unknown']);
-$ownEvent=$unknownProvider->message;$ownEvent['edit_date']=$ownEvent['date']+2;
+channelPostCheck('Telegram later foreign sibling is cleared while the anchor stays unknown',[$unknownProvider->writes(),$actualRegistry->publication($ur['publication_id'])['state']],[2,'unknown']);
+$unknownWrites=array_values(array_filter($unknownProvider->calls,static fn($c)=>$c['path']==='editMessageReplyMarkup'));
+channelPostCheck('Telegram UNKNOWN anchor is never written twice while another member is cleaned',array_map(static fn($c)=>(string)$c['body']['message_id'],$unknownWrites),['801','802']);
+channelPostCheck('Telegram sibling clear removes its foreign keyboard despite unknown anchor',$unknownProvider->messages['802']['reply_markup']['inline_keyboard'],[]);
+$ownEvent=$unknownProvider->messages['801'];$ownEvent['edit_date']=$ownEvent['date']+2;
 $resolved=$unknownService->receive('telegram',['update_id'=>8002,'edited_channel_post'=>$ownEvent],'anytour','Any_tour_bot');
-channelPostCheck('authenticated target event resolves grouped UNKNOWN with both images',[$resolved['state'],$unknownProvider->writes(),count($actualRegistry->publication($resolved['publication_id'])['snapshot']['attachments'])],['sent',1,2]);
+channelPostCheck('authenticated target event resolves grouped UNKNOWN with both images',[$resolved['state'],$unknownProvider->writes(),count($actualRegistry->publication($resolved['publication_id'])['snapshot']['attachments'])],['sent',2,2]);
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);

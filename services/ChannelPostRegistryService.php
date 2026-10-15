@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
+require_once __DIR__ . '/ChannelPostMemberDeliveryService.php';
 require_once __DIR__ . '/../integrations/ChannelPostIncomingAdapter.php';
 
 /**
@@ -19,6 +20,11 @@ final class ChannelPostRegistryService
     public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo ?? ConversationDb::connection();
+    }
+
+    public function memberDelivery(): ChannelPostMemberDeliveryService
+    {
+        return new ChannelPostMemberDeliveryService($this->pdo);
     }
 
     /** Explicit admin configuration; new channels are disabled unless opted in. */
@@ -205,6 +211,10 @@ final class ChannelPostRegistryService
             }
             $result = $this->publication((int)$publication['id']);
             if ($result && $sourceEventKey !== null) $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [(int)$publication['id'], $sourceEventKey, (int)$result['version_id'], self::now()]);
+            if ($album && $result) {
+                $this->memberDelivery()->synchronize($result);
+                $result = $this->publication((int)$publication['id']);
+            }
             return $result;
         });
     }
@@ -251,6 +261,8 @@ final class ChannelPostRegistryService
         return $this->transaction(function () use ($publicationId, $versionId, $reconcileOnly): ?array {
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return null;
+            // Telegram albums have distinct per-member edit claims.
+            if ($publication['platform'] === 'telegram' && str_starts_with((string)$publication['external_message_id'], 'group:')) return null;
             $expected = $reconcileOnly ? 'unknown' : 'pending';
             $claim = bin2hex(random_bytes(16));
             $now = self::now();

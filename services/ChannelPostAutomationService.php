@@ -29,7 +29,8 @@ final class ChannelPostAutomationService
             if (!$channel) return $safe + ['reason' => 'channel_not_managed'];
             $snapshot = $event['snapshot'];
             $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', (string)$channel['bot_url']);
-            $snapshot['keyboard'] = ChannelPostIncomingAdapter::withoutOwnedButton((array)$snapshot['keyboard'], '', (string)$channel['bot_url']);
+            // Keep authenticated markup for every album member, including any
+            // misplaced own link. Fingerprints already exclude replaceable keys.
             if (!empty($snapshot['metadata']['media_group_id'])) $snapshot['media_group_id'] = $snapshot['metadata']['media_group_id'];
             $publication = $registry->registerPublication($projectKey, $platform, $botKey, $event['channel_id'], $event['external_message_id'], $snapshot);
             if (!$publication) return $safe + ['reason' => 'channel_configuration_changed'];
@@ -38,6 +39,12 @@ final class ChannelPostAutomationService
                 // A retried acknowledgement can safely drain an already durable
                 // pending job without trusting the older envelope as new evidence.
                 return ['recognized' => true, 'queued' => in_array($publication['state'] ?? '', ['pending', 'unknown'], true), 'state' => 'ignored', 'reason' => !empty($publication['stale_observation']) ? 'stale_channel_observation' : 'duplicate_channel_observation', 'publication_id' => $publicationId, 'version_id' => $versionId];
+            }
+            if ($platform === 'telegram' && str_starts_with($event['external_message_id'], 'group:')) {
+                // Member observations reconcile only their own durable decision.
+                // An anchor's successful edit never confirms another photo.
+                return ['recognized'=>true, 'queued'=>in_array($publication['state'], ['pending','unknown'], true),
+                    'state'=>(string)$publication['state'], 'publication_id'=>$publicationId, 'version_id'=>$versionId];
             }
             $url = ChannelPostButtonTransport::buttonUrl($publication);
             $label = (string)$publication['channel']['button_text'];
@@ -100,6 +107,18 @@ final class ChannelPostAutomationService
     {
         $registry = $this->registry();
         $id = (int)$publication['publication_id']; $version = (int)$publication['version_id'];
+        if ($publication['platform'] === 'telegram' && str_starts_with((string)$publication['external_message_id'], 'group:')) {
+            $delivery = $registry->memberDelivery();
+            $member = $delivery->claim($id);
+            if (!$member) return null;
+            $result = $this->transport->attempt($member, static fn(): bool => $delivery->markStarted($member), false);
+            $saved = $delivery->finish($member, (string)$result['state'], (string)$result['reason'], (array)$result['receipt']);
+            $current = $registry->publication($id);
+            return ['publication_id'=>$id, 'version_id'=>(int)($current['version_id'] ?? $version),
+                'state'=>$saved ? (string)($current['state'] ?? 'unknown') : 'unknown',
+                'reason'=>$saved ? (string)$result['reason'] : 'receipt_storage_failed',
+                'reconcile_only'=>false, 'receipt'=>$result['receipt']];
+        }
         $reconcile = ($publication['state'] ?? '') === 'unknown' || !empty($publication['write_attempted']);
         $claim = $registry->claimPublication($id, $version, $reconcile);
         if (!$claim) return null;
