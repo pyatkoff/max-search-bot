@@ -1,9 +1,9 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-15T10:01:54+00:00",
+    "generated_at": "2026-10-15T10:07:40+00:00",
     "production": {
-        "sha": "fdc92518d8c6afd86e391c5cacd6df9714d81fc9",
+        "sha": "c78428948ff290ce5cb5ff1af3bdcb848519c364",
         "branch": "main"
     },
     "migrations": {
@@ -31,7 +31,7 @@
             "pending_count": 1,
             "overdue_count": 1,
             "stuck_count": 1,
-            "oldest_wait_seconds": 189561,
+            "oldest_wait_seconds": 189910,
             "routing_blocked_count": 0
         },
         "push": {
@@ -54,9 +54,9 @@
                 "waiting": 0,
                 "assigned_to_others": 104,
                 "load_ms": {
-                    "all": 72.5,
-                    "mine": 14.5,
-                    "waiting": 50.8
+                    "all": 73.9,
+                    "mine": 14.2,
+                    "waiting": 47.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -76,9 +76,9 @@
                 "waiting": 0,
                 "assigned_to_others": 105,
                 "load_ms": {
-                    "all": 76.2,
-                    "mine": 5.2,
-                    "waiting": 53
+                    "all": 72.2,
+                    "mine": 4.5,
+                    "waiting": 47.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -98,9 +98,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 84.1,
-                    "mine": 36,
-                    "waiting": 56.6
+                    "all": 80.2,
+                    "mine": 32.9,
+                    "waiting": 52.3
                 },
                 "sample_check": {
                     "ok": true,
@@ -120,9 +120,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 78.9,
-                    "mine": 414.3,
-                    "waiting": 50
+                    "all": 73.2,
+                    "mine": 365.6,
+                    "waiting": 47.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -142,9 +142,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 85.3,
-                    "mine": 2.3,
-                    "waiting": 49.4
+                    "all": 79.4,
+                    "mine": 2.4,
+                    "waiting": 45.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -164,9 +164,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 84.9,
-                    "mine": 21.2,
-                    "waiting": 58.7
+                    "all": 77.2,
+                    "mine": 19.9,
+                    "waiting": 46.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -186,9 +186,9 @@
                 "waiting": 1,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 101.1,
-                    "mine": 51,
-                    "waiting": 57.1
+                    "all": 72.5,
+                    "mine": 51.5,
+                    "waiting": 58.3
                 },
                 "sample_check": {
                     "ok": true,
@@ -213,7 +213,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-15 09:01:40",
+        "since_utc": "2026-10-15 09:07:27",
         "summary": {
             "sessions": 3,
             "raw_sessions": 3,
@@ -250,7 +250,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "fdc92518d8c6afd86e391c5cacd6df9714d81fc9",
+        "sha": "c78428948ff290ce5cb5ff1af3bdcb848519c364",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -259,7 +259,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-15T10:01:54Z"
+        "reported_at": "2026-10-15T10:07:40Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -267,7 +267,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T10:01:33+00:00",
+        "generated_at": "2026-10-15T10:07:21+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -362,7 +362,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-15T10:01:33+00:00",
+        "generated_at": "2026-10-15T10:07:21+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -660,7 +660,7 @@
                 "date": "2026-10-15",
                 "partial": true,
                 "since_utc": "2026-10-14 22:00:00",
-                "until_utc": "2026-10-15 10:01:33",
+                "until_utc": "2026-10-15 10:07:21",
                 "channels": [
                     {
                         "channel": "max",
@@ -754,7 +754,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-15T10:01:52+00:00",
+        "generated_at": "2026-10-15T10:07:38+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -768,17 +768,17 @@
             },
             "services": {
                 "files": 181,
-                "bytes": 941615,
-                "code_lines": 18264
+                "bytes": 943093,
+                "code_lines": 18280
             },
             "integrations": {
-                "files": 15,
-                "bytes": 72817,
-                "code_lines": 1399
+                "files": 16,
+                "bytes": 84728,
+                "code_lines": 1622
             },
             "manager": {
                 "files": 90,
-                "bytes": 762281,
+                "bytes": 762467,
                 "code_lines": 5309
             },
             "website": {
@@ -797,9 +797,9 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 318,
-                "bytes": 2835500,
-                "code_lines": 29965
+                "files": 319,
+                "bytes": 2852184,
+                "code_lines": 30087
             },
             "tools": {
                 "files": 52,
@@ -873,7 +873,7 @@
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
             "direct_sql_writes": 28,
-            "authorization_mentions": 31,
+            "authorization_mentions": 32,
             "validation_mentions": 11
         },
         "signals": {
@@ -913,6 +913,7 @@
             ],
             "authorization_mentions": [
                 "integrations/ChannelPostApiTransport.php",
+                "integrations/MaxCustomerAvatarAdapter.php",
                 "integrations/MaxInboundMediaDownloadAdapter.php",
                 "integrations/MaxPrivateAvatarProbe.php",
                 "integrations/MaxWebhookHealth.php",
