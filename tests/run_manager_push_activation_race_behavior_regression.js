@@ -41,7 +41,39 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
   async function worker(type,data){let promise;events[type]({data,waitUntil(value){promise=value;}});await promise;}
   return{state,page,worker,async settleWorker(){await Promise.all(workerJobs);}};
 }
+async function lateNativeOutcomeCases(){
+  const failures=[];
+  for(const outcome of ['success','failure']){
+    const native=deferred(),env=environment({subscribe:count=>count===1?native.promise:Promise.reject(abort('Registration failed - could not connect to push server')),deadlineMs:5}),page=env.page();
+    assert.equal(await page.api.enable(page.root),false);assert.match(page.root.innerHTML,/TIMEOUT/);
+    assert.match(page.root.innerHTML,/Браузер ещё подключает уведомления/);assert.match(page.root.innerHTML,/>Проверить<\/button>/);assert.ok(!page.root.innerHTML.includes('Если окно разрешения'));
+    env.state.otherDeviceHealthy=true;await page.api.refresh();assert.ok(!page.root.innerHTML.includes('Уведомления включены'));
+    if(outcome==='success')native.resolve(subscription());else native.reject(abort('Registration failed - could not connect to push server'));
+    await turn();await new Promise(resolve=>setTimeout(resolve,5));await turn();
+    const expected=outcome==='success'?'Уведомления включены':'AbortError/PUSH_NETWORK';
+    if(!page.root.innerHTML.includes(expected)||page.root.innerHTML.includes('TIMEOUT'))failures.push(`${outcome}: native terminal result remains hidden behind the UI timeout`);
+    assert.equal(env.state.subscribes,outcome==='success'?1:2);assert.equal(env.state.saves,outcome==='success'?1:0);assert.equal(env.state.confirmations,0);assert.equal(env.state.permissions,0);
+    assert.ok(!page.root.innerHTML.includes(secret));
+  }
+  if(failures.length)throw new Error(failures.join('; '));
+  console.log('PASS  late native success and failure replace only their own UI timeout without another setup or confirmation');
+
+  const native=deferred(),env=environment({subscribe:()=>native.promise,deadlineMs:5}),page=env.page();
+  assert.equal(await page.api.enable(page.root),false);page.auth.manager.id=2;page.auth.authGeneration++;page.auth.csrf='new-account';page.root.innerHTML='Current account';
+  native.resolve(subscription());await turn();await turn();
+  assert.equal(env.state.saves,0);assert.equal(env.state.confirmations,0);assert.equal(page.root.innerHTML,'Current account');
+  const denied=deferred(),expired=environment({subscribe:()=>denied.promise,deadlineMs:5,saveRequest(){throw new Error('push_session_expired');}}),expiredPage=expired.page();
+  assert.equal(await expiredPage.api.enable(expiredPage.root),false);denied.resolve(subscription());await turn();await turn();
+  assert.equal(expired.state.auth,1);assert.equal(expired.state.saves,0);assert.equal(expired.state.confirmations,0);assert.match(expiredPage.root.innerHTML,/Войдите в кабинет/);assert.ok(!expiredPage.root.innerHTML.includes('TIMEOUT'));
+  console.log('PASS  native settlement after UI timeout respects account changes and canonical expired-session recovery');
+  let requests=0;const oldNative=deferred(),newer=environment({subscribe:()=>oldNative.promise,deadlineMs:5,keyRequest(){if(++requests>1)throw new TypeError(secret);}}),newerPage=newer.page();
+  assert.equal(await newerPage.api.enable(newerPage.root),false);assert.equal(await newerPage.api.enable(newerPage.root),false);assert.match(newerPage.root.innerHTML,/TypeError/);
+  oldNative.resolve(subscription());await turn();await turn();
+  assert.match(newerPage.root.innerHTML,/TypeError/);assert.ok(!newerPage.root.innerHTML.includes('Уведомления включены'));assert.equal(newer.state.subscribes,1);assert.equal(newer.state.saves,1);assert.equal(newer.state.confirmations,0);
+  console.log('PASS  late results from an older UI attempt cannot replace a newer explicit diagnosis');
+}
 async function run(){
+  await lateNativeOutcomeCases();
   // Reload can start granted-permission recovery before the visible Enable click.
   // That click must observe this attempt, with feedback now rather than a queued retry.
   const backgroundNative=deferred(),promoted=environment({subscribe:()=>backgroundNative.promise}),promotedPage=promoted.page();
@@ -76,8 +108,8 @@ async function run(){
   assert.equal(promotedTimeout.state.subscribes,1);assert.equal(promotedTimeout.state.maxActive,1);assert.equal(promotedTimeout.state.registered,1);
   promotedTimeout.state.otherDeviceHealthy=true;await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);
   timeoutNative.resolve(subscription());await turn();await turn();assert.equal(promotedTimeout.state.saves,1);assert.equal(promotedTimeout.state.confirmations,0);
-  await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);assert.ok(!promotedTimeoutPage.root.innerHTML.includes('Уведомления включены'));assert.equal(promotedTimeout.state.subscribes,1);
-  console.log('PASS  promotion keeps the original UI deadline and late settlement preserves the clicked failure');
+  assert.match(promotedTimeoutPage.root.innerHTML,/Уведомления включены/);await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/Уведомления включены/);assert.equal(promotedTimeout.state.subscribes,1);
+  console.log('PASS  promotion keeps the original UI deadline and only same-job saved success can clear its timeout');
 
   for(const accountChanged of [false,true]){
     const oldNative=deferred(),stalePromotion=environment({subscribe:()=>oldNative.promise}),stalePage=stalePromotion.page();

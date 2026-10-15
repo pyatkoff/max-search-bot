@@ -4,7 +4,7 @@ const origin='http://127.0.0.1:4173';
 
 // Exercise the real notification module with in-memory browser/HTTP failures.
 // No real permission prompt, push subscription, save or notification is created.
-async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false,permissionPending=false,keyBodyPending=false,confirmationPending=false}={}){
+async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false,permissionPending=false,keyBodyPending=false,confirmationPending=false,nativeDeadline=false}={}){
   const unexpected=[];
   await page.route('**/*',route=>{
     const request=route.request(),url=new URL(request.url());
@@ -14,15 +14,15 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     return route.continue();
   });
   await page.goto(origin+'/tests/visual/workspace-v2-fixture.html');
-  await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending})=>{
+  await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending,nativeDeadline})=>{
     document.querySelector('.notificationHealth').id='notificationStatus';
     window.fixturePushCalls=[];
     window.fixturePushStatus={is_working:working,notification_path_usable:false,notification_path_reason:'no_subscription'};
     window.WorkspaceV2={S:{csrf:'synthetic'}};
     const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=resolve;});return Promise.resolve('granted');}};
-    if(permissionPending||keyBodyPending){
+    if(permissionPending||keyBodyPending||nativeDeadline){
       const schedule=window.setTimeout.bind(window),cancel=window.clearTimeout.bind(window);
-      window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);const expire=()=>{cancel(id);callback(...args);};if(permissionPending&&delay===15000)window.fixtureExpirePermission=expire;if(keyBodyPending&&delay===10000)window.fixtureExpireKey=expire;return id;};
+      window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);const expire=()=>{cancel(id);callback(...args);};if(nativeDeadline&&delay===15000)window.fixtureExpireSubscription=expire;if(permissionPending&&delay===15000)window.fixtureExpirePermission=expire;if(keyBodyPending&&delay===10000)window.fixtureExpireKey=expire;return id;};
     }
     Object.defineProperty(window,'Notification',{configurable:true,value:notification});
     Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
@@ -42,7 +42,7 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
       if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};}
       throw new Error('Unexpected request');
     };
-  },{working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending});
+  },{working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending,nativeDeadline});
   await page.addScriptTag({url:origin+'/manager/assets/workspace-v2-notifications.js'});
   await expect(page.locator('#notificationStatus [data-enable-push]')).toBeVisible();
   return unexpected;
@@ -176,6 +176,38 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
     await expect(page.locator('.composer textarea')).toHaveValue(originalDraft);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
     expect(errors).toEqual([]);expect(unexpected).toEqual([]);
+  });
+});
+
+for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])for(const outcome of ['success','failure'])test.describe(`push native late outcome ${width}x${height} ${outcome}`,()=>{
+  test.use({viewport:{width,height}});
+  test('shows pending native work and follows its exact terminal result without another click',async({page,browserName})=>{
+    const unexpected=await setup(page,true,{backgroundPending:true,nativeDeadline:true});
+    const originalDraft=await page.locator('.composer textarea').inputValue();
+    await expect.poll(()=>page.evaluate(()=>typeof fixtureFinishPush)).toBe('function');
+    await page.locator('#notificationStatus [data-enable-push]').click();
+    await page.evaluate(()=>fixtureExpireSubscription());
+    const root=page.locator('#notificationStatus'),button=root.locator('[data-enable-push]');
+    await expect(root).toContainText('Браузер ещё подключает уведомления');await expect(root).toContainText('Разрешение получено');
+    await expect(root).not.toContainText('Если окно разрешения');await expect(button).toBeEnabled();await expect(button).toHaveText('Проверить');
+    await page.evaluate(()=>{fixturePushStatus={is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return WorkspaceV2Notifications.refresh();});
+    await expect(root).toContainText('Браузер ещё подключает уведомления');await expect(root).not.toContainText('Уведомления включены');
+    fs.mkdirSync('notification-diagnostic-artifacts',{recursive:true});
+    await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}x${height}-native-${outcome}-pending.png`});
+    await page.evaluate(outcome=>fixtureFinishPush(outcome),outcome);
+    if(outcome==='success'){
+      await expect(root).toContainText('Уведомления включены');await expect(root.locator('.notificationDiagnostic')).toHaveCount(0);
+    }else{
+      await expect(root.locator('.notificationDiagnostic')).toContainText('AbortError/PUSH_NETWORK');
+      await expect(root.locator('.notificationDiagnostic')).not.toContainText('TIMEOUT');await expect(button).toBeEnabled();
+    }
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='subscribe').length)).toBe(outcome==='success'?1:2);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(outcome==='success'?1:0);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='confirmation'||call==='permission').length)).toBe(0);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php?action=key').length)).toBe(1);
+    await expect(page.locator('.composer textarea')).toHaveValue(originalDraft);await expect(root).not.toContainText('PRIVATE_ENDPOINT');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}x${height}-native-${outcome}-result.png`});expect(unexpected).toEqual([]);
   });
 });
 
