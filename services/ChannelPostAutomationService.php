@@ -43,7 +43,7 @@ final class ChannelPostAutomationService
             $label = (string)$publication['channel']['button_text'];
             $original = $event['snapshot'];
             if (($original['metadata']['capability'] ?? '') === 'supported'
-                && ChannelPostIncomingAdapter::containsButton($original, $url, $label)
+                && ChannelPostIncomingAdapter::containsOnlyButton($original, $url, $label)
                 && ($publication['content_hash'] ?? '') === $snapshot['content_hash']
                 && ChannelPostIncomingAdapter::contentFingerprint($original, $url, (string)$channel['bot_url']) === $snapshot['content_hash']) {
                 $registry->confirmObservedButton($publicationId, $versionId, ['event_id' => $event['source_event_id'], 'verified' => true, 'reconciled' => ($publication['state'] ?? '') === 'unknown']);

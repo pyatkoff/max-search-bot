@@ -71,7 +71,7 @@ final class ChannelPostButtonTransport
                 self::check($expectedHash === ChannelPostIncomingAdapter::contentFingerprint($currentSnapshot, $url, (string)$channel['bot_url']), 'post_changed_since_event');
                 self::check(($currentSnapshot['metadata']['capability'] ?? '') === 'supported', (string)($currentSnapshot['metadata']['capability_reason'] ?? 'unsupported_post'));
                 $body = self::maxEditBody($current, $url, $label, (string)$channel['bot_url']);
-                if (ChannelPostIncomingAdapter::containsButton($currentSnapshot, $url, $label)) return $this->result('sent', 'already_present');
+                if (ChannelPostIncomingAdapter::containsOnlyButton($currentSnapshot, $url, $label)) return $this->result('sent', 'already_present');
                 if ($reconcileOnly) return $this->result('unknown', 'button_not_observed');
                 self::check($beforeWrite() === true, 'write_claim_or_config_changed');
                 $put = $this->call('max', 'PUT', '/messages', ['message_id' => $mid], $body, 'append_button');
@@ -85,7 +85,7 @@ final class ChannelPostButtonTransport
                         && self::hash($current['body']['markup'] ?? null) === self::hash($after['body']['markup'] ?? null)
                         && self::hash($current['link'] ?? null) === self::hash($after['link'] ?? null);
                     $this->receipt['content_preserved'] = $contentEqual;
-                    $this->receipt['button_verified'] = is_array($afterSnapshot) && ChannelPostIncomingAdapter::containsButton($afterSnapshot, $url, $label);
+                    $this->receipt['button_verified'] = is_array($afterSnapshot) && ChannelPostIncomingAdapter::containsOnlyButton($afterSnapshot, $url, $label);
                     if ($contentEqual && $this->receipt['button_verified']) return $this->result('sent', self::accepted($put, 'max') ? 'verified' : 'verified_after_unknown_response');
                 } catch (ChannelPostTransportFailure $e) {
                     $this->receipt['verification_reason'] = $e->getMessage();
@@ -94,8 +94,8 @@ final class ChannelPostButtonTransport
             }
 
             self::check((bool)preg_match('/\A[1-9][0-9]{0,19}\z/', $mid), 'invalid_message_id');
-            $rows = self::appendRows((array)($snapshot['keyboard'] ?? []), $url, $label, (string)$channel['bot_url'], false);
-            if (ChannelPostIncomingAdapter::containsButton($snapshot, $url, $label)) return $this->result('sent', 'observed_in_channel_update');
+            $rows = [[['text'=>$label, 'url'=>$url]]];
+            if (ChannelPostIncomingAdapter::containsOnlyButton($snapshot, $url, $label)) return $this->result('sent', 'observed_in_channel_update');
             // Telegram Bot API has no getMessage. UNKNOWN is reconciled only by a
             // subsequently observed edited_channel_post, never a second edit.
             if ($reconcileOnly) return $this->result('unknown', 'telegram_awaiting_edit_event');
@@ -110,7 +110,7 @@ final class ChannelPostButtonTransport
                 $contentEqual = is_array($after)
                     && ChannelPostIncomingAdapter::contentFingerprint($snapshot, $url, (string)$channel['bot_url']) === ChannelPostIncomingAdapter::contentFingerprint($after, $url, (string)$channel['bot_url']);
                 $this->receipt['content_preserved'] = $contentEqual;
-                $this->receipt['button_verified'] = is_array($after) && ChannelPostIncomingAdapter::containsButton($after, $url, $label);
+                $this->receipt['button_verified'] = is_array($after) && ChannelPostIncomingAdapter::containsOnlyButton($after, $url, $label);
                 if ($contentEqual && $this->receipt['button_verified']) return $this->result('sent', 'verified');
             }
             return $this->result(self::explicitReject($edited) ? 'requires_attention' : 'unknown', self::explicitReject($edited) ? 'provider_rejected_edit' : 'edit_outcome_unknown');
@@ -158,50 +158,24 @@ final class ChannelPostButtonTransport
 
     private static function maxEditBody(array $message, string $url, string $label, string $botUrl): array
     {
-        $out = []; $keyboardIndex = null;
+        $out = [];
         foreach ((array)($message['body']['attachments'] ?? []) as $attachment) {
             self::check(is_array($attachment) && is_array($attachment['payload'] ?? null), 'invalid_attachment');
             $type = $attachment['type'] ?? ''; $payload = $attachment['payload'];
             if ($type === 'image') {
                 self::check(is_string($payload['token'] ?? null) && $payload['token'] !== '', 'image_token_missing');
-                // Official existing-image request mapping. Never reimport the URL.
-                $out[] = ['type' => 'image', 'payload' => ['token' => $payload['token']]];
-            } elseif ($type === 'inline_keyboard') {
-                self::check($keyboardIndex === null && is_array($payload['buttons'] ?? null), 'invalid_keyboard');
-                $keyboardIndex = count($out);
-                $out[] = ['type' => 'inline_keyboard', 'payload' => ['buttons' => self::appendRows($payload['buttons'], $url, $label, $botUrl, true)]];
-            } else throw new ChannelPostTransportFailure('unsupported_media');
-        }
-        if ($keyboardIndex === null) $out[] = ['type' => 'inline_keyboard', 'payload' => ['buttons' => [[['type' => 'link', 'text' => $label, 'url' => $url]]]]];
-        self::check(count($out) <= 12, 'attachment_limit');
-        // MAX observed probe proved attachments-only PUT preserves native text,
-        // caption entities and links. Do not reconstruct any of those fields.
-        return ['attachments' => $out];
-    }
-
-    private static function appendRows(array $rows, string $url, string $label, string $botUrl, bool $max): array
-    {
-        self::check(count($rows) <= 30, 'keyboard_row_limit');
-        $ownedCount = 0; $exactCount = 0;
-        foreach ($rows as $row) {
-            self::check(is_array($row) && $row !== [] && count($row) <= ($max ? 7 : 8), 'invalid_keyboard_row');
-            foreach ($row as $button) {
-                self::check(is_array($button) && is_string($button['text'] ?? null) && is_string($button['url'] ?? null), 'foreign_keyboard_owner');
-                self::check(!$max || ($button['type'] ?? '') === 'link', 'foreign_keyboard_owner');
-                self::check($max || array_diff(array_keys($button), ['text', 'url']) === [], 'foreign_keyboard_owner');
-                self::check((bool)preg_match('/\Ahttps?:\/\/[^\s]{1,2048}\z/', $button['url']), 'invalid_keyboard_url');
-                $owned = preg_match('/\A' . preg_quote(rtrim($botUrl, '/') . '?start=', '/') . 'p_[A-Za-z0-9_-]{8,60}\z/', $button['url']);
-                if ($owned) $ownedCount++;
-                if ($button['url'] === $url && $button['text'] === $label) $exactCount++;
+                // Preserve every original image and its order; never import a URL.
+                $out[] = ['type'=>'image', 'payload'=>['token'=>$payload['token']]];
+            } elseif ($type !== 'inline_keyboard') {
+                throw new ChannelPostTransportFailure('unsupported_media');
             }
+            // The owner explicitly requests replacing all previous buttons,
+            // including another bot's open_app/callback, with our one URL.
         }
-        self::check($ownedCount <= 1 && ($ownedCount === 0 || $exactCount === 1), 'conflicting_publication_button');
-        if ($exactCount === 1) return $rows;
-        self::check(count($rows) < 30, 'keyboard_row_limit');
-        $button = ['text' => $label, 'url' => $url];
-        if ($max) $button = ['type' => 'link'] + $button;
-        $rows[] = [$button];
-        return $rows;
+        self::check(count($out) <= ChannelPostIncomingAdapter::maxPhotoLimit(), 'attachment_limit');
+        $out[] = ['type'=>'inline_keyboard', 'payload'=>['buttons'=>[[['type'=>'link','text'=>$label,'url'=>$url]]]]];
+        // Omit text/markup/format/link: an attachments-only edit preserves them.
+        return ['attachments'=>$out];
     }
 
     private function call(string $platform, string $method, string $path, array $query, ?array $body, string $purpose): array

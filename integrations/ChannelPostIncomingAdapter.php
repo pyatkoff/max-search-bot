@@ -6,6 +6,9 @@ final class ChannelPostIncomingAdapter
 {
     private const MAX_JSON_BYTES = 1048576;
 
+    /** MAX allows twelve total attachments, one reserved for our keyboard. */
+    public static function maxPhotoLimit(): int { return 11; }
+
     public static function isChannelUpdate(string $platform, array $update): bool
     {
         if ($platform === 'telegram') return array_key_exists('channel_post', $update) || array_key_exists('edited_channel_post', $update);
@@ -92,8 +95,7 @@ final class ChannelPostIncomingAdapter
             if ($type !== 'image') $reason = 'unsupported_media';
             elseif (!preg_match('/\A[0-9]+\z/', (string)($payload['photo_id'] ?? ''))) $reason = 'image_stable_id_missing';
         }
-        if (count($media) > 1) $reason = 'album_not_supported';
-        if (count($attachments) > 12) $reason = 'attachment_limit';
+        if (count($media) > self::maxPhotoLimit() || count($attachments) > 12) $reason = 'attachment_limit';
         $channelId = self::channelId($message['recipient']['chat_id'] ?? null);
         $url = (string)($message['url'] ?? '');
         if ($url !== '' && !self::maxPostUrlAllowed($url, $channelId)) $url = '';
@@ -140,7 +142,7 @@ final class ChannelPostIncomingAdapter
         ];
     }
 
-    /** Signed tokens/URLs and our appended URL keyboard do not create a new post version. */
+    /** Tour content excludes expiring credentials and all replaceable channel keyboards. */
     public static function contentFingerprint(array $snapshot, string $ownedButtonUrl = '', string $botUrl = ''): string
     {
         $media = [];
@@ -151,7 +153,9 @@ final class ChannelPostIncomingAdapter
                 'stable_id' => (string)($item['photo_id'] ?? $item['file_unique_id'] ?? $item['telegram_file_id'] ?? ''),
             ];
         }
-        $keyboard = self::withoutOwnedButton((array)($snapshot['keyboard'] ?? []), $ownedButtonUrl, $botUrl);
+        // The owner requests only our button on MAX and Telegram. A comment
+        // bot's keyboard is not tour content and cannot advance its version.
+        $keyboard = [];
         return hash('sha256', (string)json_encode([
             $snapshot['text'] ?? '', $snapshot['markup'] ?? null, $media, $keyboard,
             $snapshot['metadata']['link'] ?? null, $snapshot['metadata']['media_group_id'] ?? '',
@@ -181,6 +185,14 @@ final class ChannelPostIncomingAdapter
             if (is_array($button) && ($button['url'] ?? '') === $url && ($button['text'] ?? '') === $label && (!isset($button['type']) || $button['type'] === 'link')) $count++;
         }
         return $count === 1;
+    }
+
+    /** A mixed keyboard is not the owner-requested final publication state. */
+    public static function containsOnlyButton(array $snapshot, string $url, string $label): bool
+    {
+        $rows = $snapshot['keyboard'] ?? [];
+        return is_array($rows) && count($rows) === 1 && isset($rows[0]) && is_array($rows[0])
+            && count($rows[0]) === 1 && self::containsButton($snapshot, $url, $label);
     }
 
     public static function channelId($value): string
