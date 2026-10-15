@@ -71,9 +71,11 @@
       inspect();
     });
   }
-  async function subscriptionRequest(job,url,options,label){
+  async function setupRequest(state,url,options,label){
     const controller=typeof AbortController==='function'?new AbortController():null;
-    const pending=(async()=>{const response=await fetch(url,controller?{...options,signal:controller.signal}:options);job.httpStatus=response.status;return{response,data:await parseJson(response)};})();
+    // Bound the complete HTTP body, not just response headers. An expired
+    // session needs no JSON body before returning to the sign-in recovery path.
+    const pending=(async()=>{const response=await fetch(url,controller?{...options,signal:controller.signal}:options);state.httpStatus=response.status;return{response,data:response.status===401?null:await parseJson(response)};})();
     try{return await withTimeout(pending,10000,label);}
     catch(error){if(error?.message===label)controller?.abort();throw error;}
   }
@@ -105,7 +107,7 @@
       if(sub&&unhealthy){
         // Another tab may already have renewed the registration while this tab
         // waited for the origin lock. Fresh server health prevents a second repair.
-        const {response,data}=await subscriptionRequest(job,'push-status.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'},'subscription_health_timeout');
+        const {response,data}=await setupRequest(job,'push-status.php',{headers:{Accept:'application/json'},credentials:'same-origin',cache:'no-store'},'subscription_health_timeout');
         if(response.status===401)throw new Error('push_session_expired');
         if(!response.ok||!data?.ok)throw new Error('subscription_health_failed');
         unhealthy=String(data.push_status?.notification_path_reason||'')==='subscription_unhealthy';
@@ -116,7 +118,7 @@
       requireActiveJob(job);if(!sub){subscriptionStage(job,'subscription_create');sub=await recoverSubscription(reg,key,job);}
       requireActiveJob(job);
       subscriptionStage(job,'push_save');
-      const {response:save,data:saved}=await subscriptionRequest(job,'push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:job.session.csrf,subscription:sub.toJSON()})},'push_save_timeout');
+      const {response:save,data:saved}=await setupRequest(job,'push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:job.session.csrf,subscription:sub.toJSON()})},'push_save_timeout');
       requireActiveJob(job);if(save.status===401)throw new Error('push_session_expired');
       if(!save.ok||!saved?.ok||!saved.push_status)throw new Error('push_save_failed');
       if(!saved.push_status.notification_path_usable)throw new Error('push_save_unhealthy');
@@ -160,12 +162,15 @@
         if(permission!=='granted'){if(interactive){finalStatus=withCurrentWorking({notification_path_usable:false,notification_path_reason:'permission_denied'});finalStatus.setup_diagnostic=setupFailureDiagnostic(setupStage,new Error('permission_not_granted'));}return false;}
         setupStage='service_worker_register';const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');
         setupStage='service_worker_ready';const reg=await readyRegistration(registered);
-        setupStage='push_key';const keyResp=await withTimeout(fetch('push.php?action=key',{credentials:'same-origin',cache:'no-store'}),10000,'push_key_timeout'),keyJson=await parseJson(keyResp);
-        requireSession(activationSession);setupHttpStatus=keyResp.status;if(keyResp.status===401){handleUnauthorized(root);return false;}
+        requireSession(activationSession);setupStage='push_key';const keyRequest={httpStatus:0};let keyResponse;
+        try{keyResponse=await setupRequest(keyRequest,'push.php?action=key',{credentials:'same-origin',cache:'no-store'},'push_key_timeout');}finally{setupHttpStatus=keyRequest.httpStatus;}
+        requireSession(activationSession);const {response:keyResp,data:keyJson}=keyResponse;if(keyResp.status===401){handleUnauthorized(root);return false;}
         if(!keyResp.ok||!keyJson?.ok||!keyJson.public_key)throw new Error('push_key_failed');
         const key=b64ToUint8(keyJson.public_key);setupStage='subscription_wait';job=subscriptionJob(reg,key);
         const status=await observeSubscription(job);requireSession(activationSession);lastStatus=status;lastStatusSession=activationSession;finalStatus=lastStatus;recentInteractiveFailure=null;recentFailureSession=null;
-        if(showConfirmation){try{await reg.showNotification('AnyTour',{body:'Уведомления включены',tag:'anytour-push-enabled'});}catch(e){}}
+        // Saving a healthy subscription completes setup. Optional OS display
+        // must neither hold the UI busy nor turn that saved result into failure.
+        if(showConfirmation){try{Promise.resolve(reg.showNotification('AnyTour',{body:'Уведомления включены',tag:'anytour-push-enabled'})).catch(()=>{});}catch(e){}}
         return true;
       }catch(error){
         setupStage=job?.stage||setupStage;setupHttpStatus=job?.httpStatus??setupHttpStatus;

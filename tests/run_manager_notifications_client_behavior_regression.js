@@ -31,9 +31,10 @@ const context = {
 vm.runInNewContext(source, context, { filename: 'workspace-v2-notifications.js' });
 
 const secretMarker = 'PRIVATE_ENDPOINT_TOKEN_DO_NOT_DISPLAY';
-function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, clock = null } = {}) {
+function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, keyBody = null, confirmationRequest = null, clock = null } = {}) {
   const localRoot = { className: '', innerHTML: '' };
   const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, auth: 0 };
+  const keySignals = [];
   let userGesture = false, permissionDuringGesture = false;
   const step = name => { calls[name]++; if (failAt === name) throw failure; };
   const healthy = { is_working: working, notification_path_usable: true, notification_path_reason: 'healthy_subscription', healthy_subscription_count: 1 };
@@ -46,7 +47,7 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
       async getSubscription() { step('read'); return failAt === 'repair' ? staleSubscription : null; },
       async subscribe() { step('subscribe'); return subscription; },
     },
-    async showNotification() { step('confirmation'); },
+    showNotification() { step('confirmation'); return confirmationRequest ? confirmationRequest() : Promise.resolve(); },
   };
   const serviceWorker = {
     async register() { step('register'); return registration; },
@@ -68,17 +69,19 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
       const name = options?.method === 'POST' ? 'save' : 'key';
       if (!(failAt === name && httpStatus)) step(name); else calls[name]++;
       const status = failAt === name && httpStatus ? httpStatus : 200;
-      return { ok: status === 200, status, async json() { return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ok: true, push_status: healthy } : { ok: false, error: secretMarker }; } };
+      if (name === 'key') keySignals.push(options?.signal);
+      return { ok: status === 200, status, async json() { if (name === 'key' && keyBody) return keyBody(calls.key); return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ok: true, push_status: healthy } : { ok: false, error: secretMarker }; } };
     },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     console: { warn() {} },
     setTimeout(callback, delay) { if (clock) return clock.setTimeout(callback, delay); return delay === 500 ? 0 : setTimeout(callback, outsideScope && delay >= 10000 ? 10 : delay); },
     clearTimeout(id) { if (clock) clock.clearTimeout(id); else clearTimeout(id); },
     Uint8Array,
+    AbortController,
   };
   vm.runInNewContext(source, localContext, { filename: 'workspace-v2-notifications.js' });
   return {
-    root: localRoot, calls,
+    root: localRoot, calls, keySignals,
     api: localContext.window.WorkspaceV2Notifications,
     async enable() { userGesture = true; const result = this.api.enable(localRoot); userGesture = false; return result; },
     clearFailure() { failAt = ''; },
@@ -273,6 +276,62 @@ async function pendingPermissionCases() {
   console.log('PASS  permission UI timeout reuses pending native work; settlement, session changes and synchronous failures retain safe retry');
 }
 
+async function pendingSetupCases() {
+  const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+  const drain = async () => { for (let index = 0; index < 100; index++) await Promise.resolve(); };
+  const manualClock = () => {
+    let nextId = 0; const timers = new Map();
+    return {
+      setTimeout(callback, delay) { const id = ++nextId; timers.set(id, { callback, delay }); return id; },
+      clearTimeout(id) { timers.delete(id); },
+      expireSetup() { for (const [id, timer] of [...timers]) if (timer.delay >= 10000) { timers.delete(id); timer.callback(); } },
+      get setupTimers() { return [...timers.values()].filter(timer => timer.delay >= 10000).length; },
+    };
+  };
+  const baselineFailures = [];
+  const body = deferred(), clock = manualClock();
+  const key = activationHarness({ clock, keyBody: attempt => attempt === 1 ? body.promise : { ok: true, public_key: 'AQ' } });
+  let keyResult = null;
+  key.enable().then(value => { keyResult = value; }); await drain();
+  clock.expireSetup(); await drain();
+  if (keyResult !== false || !key.root.innerHTML.includes('Этап: Получение настроек') || !key.root.innerHTML.includes('Код: TIMEOUT') || key.root.innerHTML.includes('disabled')) baselineFailures.push('key body remains pending beyond its bounded setup wait');
+  const confirmation = deferred(), confirmationClock = manualClock();
+  const pending = activationHarness({ clock: confirmationClock, confirmationRequest: () => confirmation.promise });
+  let confirmationResult = null;
+  const enabled = pending.enable(); enabled.then(value => { confirmationResult = value; });
+  const joined = pending.enable(); await drain();
+  if (confirmationResult !== true || !pending.root.innerHTML.includes('Уведомления включены') || pending.root.innerHTML.includes('disabled')) baselineFailures.push('saved setup still waits for optional native confirmation');
+  if (baselineFailures.length) throw new Error(baselineFailures.join('; '));
+  if (key.calls.subscribe || key.calls.save || key.calls.confirmation || clock.setupTimers || !key.keySignals[0]?.aborted) throw new Error('key body timeout does not abort owned HTTP cleanly before any native mutation');
+  if (await key.enable() !== true) throw new Error('key body timeout prevents a fresh explicit retry');
+  body.resolve({ ok: true, public_key: 'AQ' }); await drain();
+  if (key.calls.key !== 2 || key.calls.subscribe !== 1 || key.calls.save !== 1 || key.calls.confirmation !== 1 || !key.root.innerHTML.includes('Уведомления включены')) throw new Error('late key body repeats or overwrites the completed retry');
+  if (await joined !== true || await enabled !== true || pending.calls.subscribe !== 1 || pending.calls.save !== 1 || pending.calls.confirmation !== 1 || confirmationClock.setupTimers) throw new Error('concurrent setup observers repeat subscription, save or optional confirmation');
+  pending.changeSession(); const beforeLate = { ...pending.calls }, beforeHtml = pending.root.innerHTML;
+  confirmation.reject(new DOMException(secretMarker, 'NotAllowedError')); await drain();
+  if (JSON.stringify(pending.calls) !== JSON.stringify(beforeLate) || pending.root.innerHTML !== beforeHtml) throw new Error('late confirmation changes a new session or repeats setup');
+  console.log('PASS  whole key body is bounded and abortable; saved setup completes without waiting for optional native confirmation');
+
+  const changedBody = deferred(), changed = activationHarness({ keyBody: () => changedBody.promise, clock: manualClock() });
+  const obsolete = changed.enable(); await drain(); changed.changeSession(); changedBody.resolve({ ok: true, public_key: 'AQ' });
+  if (await obsolete !== false || changed.calls.subscribe || changed.calls.save || changed.calls.confirmation) throw new Error('late key body starts a subscription for a changed account');
+  for (const status of [401, 403]) {
+    const httpClock = manualClock(), http = activationHarness({ failAt: 'key', httpStatus: status, keyBody: () => new Promise(() => {}), clock: httpClock });
+    let result = null; http.enable().then(value => { result = value; }); await drain(); httpClock.expireSetup(); await drain();
+    if (result !== false || http.calls.subscribe || http.calls.save || http.root.innerHTML.includes(secretMarker)) throw new Error(`HTTP ${status} key body does not settle safely`);
+    if (status === 401 ? http.calls.auth !== 1 || http.root.innerHTML.includes('notificationDiagnostic') : !http.root.innerHTML.includes('Код: HTTP_403')) throw new Error(`HTTP ${status} key body loses authorization or safe status diagnosis`);
+  }
+  for (const keyBody of [() => Promise.reject(new SyntaxError(secretMarker)), () => ({ ok: true }), () => null]) {
+    const invalid = activationHarness({ keyBody });
+    if (await invalid.enable() !== false || !invalid.root.innerHTML.includes('Код: KEY_RESPONSE') || invalid.calls.subscribe || invalid.calls.save || invalid.root.innerHTML.includes(secretMarker)) throw new Error('invalid key JSON changes setup or exposes raw response details');
+  }
+  for (const confirmationRequest of [() => Promise.reject(new Error(secretMarker)), () => { throw new Error(secretMarker); }]) {
+    const failed = activationHarness({ confirmationRequest });
+    if (await failed.enable() !== true || !failed.root.innerHTML.includes('Уведомления включены') || failed.calls.subscribe !== 1 || failed.calls.save !== 1 || failed.calls.confirmation !== 1 || failed.root.innerHTML.includes(secretMarker)) throw new Error('optional confirmation failure hides a saved healthy setup');
+  }
+  console.log('PASS  key auth, invalid JSON and late account changes remain safe; optional confirmation failures never undo saved setup');
+}
+
 async function run() {
   const manager2 = activationHarness({ outsideScope: true });
   if (await manager2.enable() !== true || manager2.calls.ready !== 0 || manager2.calls.subscribe !== 1 || manager2.calls.save !== 1) throw new Error('/manager2 must enable through its canonical active registration while global serviceWorker.ready remains pending');
@@ -354,6 +413,7 @@ async function run() {
   console.log('PASS  unusable canonical server status remains an actionable setup failure');
   await activationDiagnosticCases();
   await pendingPermissionCases();
+  await pendingSetupCases();
   await registrationLifecycleCases();
 }
 
