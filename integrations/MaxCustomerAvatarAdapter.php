@@ -22,11 +22,11 @@ final class MaxCustomerAvatarAdapter
         $this->clock=$clock ?? static fn():float=>microtime(true);
     }
 
-    public function photo(string $userId, string $mid, int $limit): ?string
+    public function photo(string $userId, string $mid, int $limit, bool $full=false): ?string
     {
         $token=defined('MAX_SEARCH_TOKEN')?trim((string)MAX_SEARCH_TOKEN):'';
         if (self::decimalId($userId)===null || !preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$mid)
-            || $token==='' || preg_match('/[\x00-\x20\x7f]/',$token) || $limit<1 || $limit>262144) return null;
+            || $token==='' || preg_match('/[\x00-\x20\x7f]/',$token) || $limit<1 || $limit>($full?1048576:262144)) return null;
         $deadline=($this->clock)()+5.0;
         try {
             $message=$this->json(self::API.'/messages/'.rawurlencode($mid),$token,$deadline);
@@ -39,8 +39,9 @@ final class MaxCustomerAvatarAdapter
             $user=is_array($data['dialog_with_user']??null)?$data['dialog_with_user']:[];
             if (($data['type']??null)!=='dialog' || self::chatId($data['chat_id']??null)!==$chat
                 || self::decimalId($user['user_id']??null)!==$userId) return null;
-            // Fetch only the documented thumbnail, never Chat.icon or a full-size fallback.
-            $url=$user['avatar_url']??null;
+            // Full images are requested explicitly by the viewer. Never fall
+            // back to another size or to Chat.icon after a missing/invalid URL.
+            $url=$user[$full?'full_avatar_url':'avatar_url']??null;
             if (!self::imageUrl($url)) return null;
             unset($data,$user);
             $budget=$this->budget($deadline);

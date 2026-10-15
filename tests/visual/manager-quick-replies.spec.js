@@ -39,7 +39,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   if(url.origin!==origin)return block();
   if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
-  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
+  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conv(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
   // WebKit may issue native registration despite the mocked push capability.
   // The response-library fixture uses an inert worker; dedicated worker suites
@@ -348,7 +348,7 @@ test('quick replies failure/loading/empty states, persistent editor and account 
  s.setHoldList(false);s.setListError(false);await page.locator('[data-qr-retry]').click();await expect(page.locator('[data-qr-select]')).toHaveCount(3);
  await page.locator('#qrSearch').fill('отсутствующий ответ');await expect(page.locator('#qrList')).toContainText('Подходящих ответов нет');await page.locator('#qrSearch').fill('');await expect(page.locator('[data-qr-select]')).toHaveCount(3);
  await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мой незавершённый ответ');await page.locator('#qrBody').fill('Личный черновик шаблона');await page.locator('#qrClose').click();await expect(page.locator('#quickRepliesOpen')).toBeFocused();await openLibrary(page);await expect(page.locator('#qrTitle')).toHaveValue('Мой незавершённый ответ');await page.locator('#qrClose').click();
- await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8)});
+ s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2Conversation.resetForIdentityChange();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга',is_working:true};WorkspaceV2Conversation.activateReplySession(8)});
  await page.evaluate(()=>WorkspaceV2QuickReplies.open());await expect(page.locator('#qrTitle')).toHaveCount(0);await expect(page.locator('#qrDetail')).not.toContainText('Личный черновик');expect(await page.evaluate(()=>sessionStorage.getItem('workspaceV2.quickReplyDraft.7'))).toContain('Личный черновик шаблона');clean(s);
 });
 
@@ -376,7 +376,7 @@ test('unknown committed template creation reconciles receipt without duplicate c
 
 test('edit conflict keeps manager text and stale list cannot cross identity',async({page})=>{
  const s=await setup(page,{conflictUpdate:true});await openLead(page);await openLibrary(page);await page.locator('[data-qr-select="1"]').click();await page.locator('#qrEdit').click();await page.locator('#qrBody').fill('Мой текст при конфликте');await page.locator('#qrSave').click();await expect(page.locator('#qrStatus')).toContainText('изменён в другом окне');await expect(page.locator('#qrBody')).toHaveValue('Мой текст при конфликте');await expect(page.locator('#qrReloadConflict')).toBeVisible();
- await page.locator('#qrCancelEdit').click();await page.locator('#qrClose').click();s.setHoldList(true);await openLibrary(page);await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга'}});s.releaseList();await expect(page.locator('#quickRepliesDialog')).toHaveCount(0);s.setHoldList(false);await page.evaluate(()=>WorkspaceV2QuickReplies.open());await expect(page.locator('#qrDetail')).not.toContainText('Мой текст при конфликте');clean(s);
+ await page.locator('#qrCancelEdit').click();await page.locator('#qrClose').click();s.setHoldList(true);await openLibrary(page);await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','true');s.switchManager({id:8,role:'manager',display_name:'Ольга',is_working:true});await page.evaluate(()=>{WorkspaceV2.S.authGeneration++;WorkspaceV2QuickReplies.resetSession();WorkspaceV2.S.manager={id:8,role:'manager',display_name:'Ольга'}});s.releaseList();await expect(page.locator('#quickRepliesDialog')).toHaveCount(0);s.setHoldList(false);await page.evaluate(()=>WorkspaceV2QuickReplies.open());await expect(page.locator('#qrDetail')).not.toContainText('Мой текст при конфликте');clean(s);
 });
 
 test('quoted title/category stay inert text when template editor is reopened',async({page})=>{

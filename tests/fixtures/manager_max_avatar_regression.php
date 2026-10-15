@@ -59,6 +59,26 @@ $f=$maxFixture(['identity_seconds'=>5.1]);avCheck('MAX shared deadline stops aft
 $f=$maxFixture(['dns_seconds'=>5.1]);avCheck('MAX shared deadline stops before CDN after slow DNS',$photo($f)===null && count($f->calls)===2);
 $f=$maxFixture(['chat'=>['dialog_with_user'=>['avatar_url'=>null]]]);avCheck('MAX absent miniature never downloads full photo or group icon',$photo($f)===null && count($f->calls)===2);
 
+$fullMax=static fn(object $f):?string=>$f->adapter->photo('123','mid.synthetic_max_customer',ManagerCustomerAvatarService::FULL_MAX_BYTES,true);
+$f=$maxFixture();
+avCheck('MAX explicit full photo uses only documented full URL',$fullMax($f)===$png && count($f->calls)===3 && $f->calls[2]['url']==='https://i.oneme.ru/full?never-download');
+$fullCdn=$f->calls[2]['options'];
+avCheck('MAX full photo retains private CDN transport without bot Authorization',!array_filter($headers($f->calls[2]),static fn($h):bool=>stripos($h,'authorization:')===0) && ($fullCdn[CURLOPT_RESOLVE]??null)===['i.oneme.ru:443:93.184.216.34'] && ($fullCdn[CURLOPT_FOLLOWLOCATION]??null)===false && ($fullCdn[CURLOPT_SSL_VERIFYPEER]??null)===true && ($fullCdn[CURLOPT_SSL_VERIFYHOST]??null)===2);
+foreach ([
+    ['message'=>['body'=>['mid'=>'mid.foreign']]],
+    ['message'=>['sender'=>['user_id'=>'124']]],
+    ['message'=>['recipient'=>['chat_type'=>'channel']]],
+    ['message'=>['recipient'=>['chat_id'=>'0']]],
+] as $i=>$case) {$f=$maxFixture($case);avCheck('MAX full identity failure stops before chat or image '.$i,$fullMax($f)===null && count($f->calls)===1 && !$f->dns);}
+foreach ([['type'=>'channel'],['chat_id'=>'-457'],['dialog_with_user'=>['user_id'=>'124']]] as $i=>$chat) {$f=$maxFixture(['chat'=>$chat]);avCheck('MAX full chat mismatch stops before DNS '.$i,$fullMax($f)===null && count($f->calls)===2 && !$f->dns);}
+foreach ([null,'','https://evil.example/full','https://i.oneme.ru:8443/full','https://user:pass@i.oneme.ru/full','https://127.0.0.1/full'] as $i=>$url) {$f=$maxFixture(['chat'=>['dialog_with_user'=>['full_avatar_url'=>$url]]]);avCheck('MAX absent or unsafe full URL never falls back to thumbnail '.$i,$fullMax($f)===null && count($f->calls)===2 && !$f->dns);}
+foreach ([['127.0.0.1'],['93.184.216.34','10.0.0.1'],[]] as $i=>$ips) {$f=$maxFixture(['ips'=>$ips]);avCheck('MAX full rejects unsafe or absent DNS before image '.$i,$fullMax($f)===null && count($f->calls)===2);}
+foreach ([['image_status'=>302],['primary_ip'=>'127.0.0.1'],['ssl_result'=>20],['image'=>str_repeat('x',ManagerCustomerAvatarService::FULL_MAX_BYTES+1)]] as $i=>$case) {$f=$maxFixture($case);avCheck('MAX full rejects transport or byte limit '.$i,$fullMax($f)===null);}
+$f=$maxFixture(['image'=>$png.str_repeat("\0",ManagerCustomerAvatarService::MAX_BYTES)]);avCheck('MAX explicit full transport accepts bytes beyond thumbnail ceiling',$fullMax($f)!==null);
+$f=$maxFixture(['identity_seconds'=>5.1]);avCheck('MAX full retains shared deadline after slow identity',$fullMax($f)===null && count($f->calls)===1);
+$f=$maxFixture(['dns_seconds'=>5.1]);avCheck('MAX full retains shared deadline after slow DNS',$fullMax($f)===null && count($f->calls)===2);
+$f=$maxFixture();avCheck('MAX rejects limit beyond full ceiling before any transport',$f->adapter->photo('123','mid.synthetic_max_customer',ManagerCustomerAvatarService::FULL_MAX_BYTES+1,true)===null && !$f->calls);
+
 // Bounded DNS parser fixtures validate resolver responses without live DNS.
 $wire=static function(string $name):string {$out='';foreach(explode('.',$name) as $label)$out.=chr(strlen($label)).$label;return $out."\0";};
 $question=$wire('i.oneme.ru').pack('nn',1,1);
@@ -88,6 +108,15 @@ $pdo->exec("INSERT INTO messages VALUES(1,300,'max','inbound','customer','123','
 $f=$maxFixture();$maxService=new ManagerCustomerAvatarService($root.'/max-service',$fetch,$f->adapter);$resolved=$maxService->avatar(1,300);
 avCheck('MAX service chooses eligible customer MID behind callbacks and foreign rows',$resolved!==null && $resolved['bytes']===$png && count($f->calls)===3 && $f->calls[0]['url']==='https://platform-api2.max.ru/messages/mid.synthetic_max_customer');
 $before=count($f->calls);avCheck('MAX warm cache makes zero provider or DNS calls',$maxService->avatar(1,300)===$resolved && count($f->calls)===$before && count($f->dns)===1);
+$large=$maxService->avatar(1,300,'full',0);
+avCheck('MAX service full image reports one photo and loads separately from thumbnail',$large!==null && $large['bytes']===$png && $large['photo_count']===1 && $large['limited']===false && count($f->calls)===$before+3 && $f->calls[$before+2]['url']==='https://i.oneme.ru/full?never-download');
+$before=count($f->calls);
+avCheck('MAX full cache and thumbnail cache coexist without provider work',$maxService->avatar(1,300,'full',0)===$large && $maxService->avatar(1,300)===$resolved && count($f->calls)===$before);
+avCheck('MAX nonexistent gallery index never calls provider',$maxService->avatar(1,300,'full',1)===null && count($f->calls)===$before);
+$fullUnsafe=$maxFixture(['image'=>substr_replace($png,pack('N',4097),16,4)]);$fullUnsafeService=new ManagerCustomerAvatarService($root.'/max-full-dimensions',$fetch,$fullUnsafe->adapter);
+avCheck('MAX full service validates 4096 dimension ceiling',$fullUnsafeService->avatar(1,300,'full',0)===null && count($fullUnsafe->calls)===3);
+$fullSvg=$maxFixture(['image'=>'<svg xmlns="http://www.w3.org/2000/svg"><script>bad()</script></svg>']);$fullSvgService=new ManagerCustomerAvatarService($root.'/max-full-svg',$fetch,$fullSvg->adapter);
+avCheck('MAX full service validates binary image MIME',$fullSvgService->avatar(1,300,'full',0)===null && count($fullSvg->calls)===3);
 $pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');avCheck('MAX fresh ACL prevents prewarmed portrait disclosure',$maxService->avatar(1,300)===null && count($f->calls)===$before);$pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
 $pdo->exec("UPDATE customer_channels SET external_user_id='124' WHERE id=30");avCheck('MAX changed external identity cannot read prior cache or foreign MID',$maxService->avatar(1,300)===null && count($f->calls)===$before+1 && str_ends_with($f->calls[$before]['url'],'/messages/mid.foreign_sender'));$pdo->exec("UPDATE customer_channels SET external_user_id='123' WHERE id=30");
 // Candidate exists outside the latest 256 metadata rows. A bounded lookup must
