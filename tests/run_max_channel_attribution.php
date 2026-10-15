@@ -71,7 +71,56 @@ foreach([
 }
 $gets=0;$client=new MetrikaOfflineClient('98615635','fake',function($method,$url,$csv)use(&$gets,$event){$gets++;same($method,'GET','recovery GET only');same($csv,null,'no recovery upload');return ['http'=>200,'body'=>json_encode(['uploadings'=>[['id'=>909,'comment'=>MetrikaOfflineClient::comment($event),'client_id_type'=>'CLIENT_ID','status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1]]])];});
 same($client->findUnknown($event)['id'],909,'lost acknowledgement recovered');same($gets,1,'bounded lookup');
-$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>array_map(fn($id)=>['id'=>$id,'comment'=>MetrikaOfflineClient::comment($event),'client_id_type'=>'CLIENT_ID'],[909,910])])]);same($client->findUnknown($event),null,'ambiguous recovery remains held');
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>array_map(fn($id)=>['id'=>$id,'comment'=>MetrikaOfflineClient::comment($event),'client_id_type'=>'CLIENT_ID','status'=>'UPLOADED'],[909,910])])]);same($client->findUnknown($event),null,'ambiguous recovery remains held');
+// Live Management API receipts omit client_id_type even for our ClientId CSV.
+// Validate that omission on all three receipt paths without weakening identity,
+// upload-id, status or exact-comment checks.
+$receipt=['id'=>909,'type'=>'BASIC','status'=>'UPLOADED','source_quantity'=>1,'line_quantity'=>1];
+foreach([
+    ['omitted identity field',$receipt,true],
+    ['explicit ClientID',$receipt+['client_id_type'=>'CLIENT_ID'],true],
+    ['legacy receipt without type',array_diff_key($receipt,['type'=>true]),true],
+    ['null identity',$receipt+['client_id_type'=>null],false],
+    ['empty identity',$receipt+['client_id_type'=>''],false],
+    ['other identity',$receipt+['client_id_type'=>'YCLID'],false],
+    ['null upload type',array_replace($receipt,['type'=>null]),false],
+    ['empty upload type',array_replace($receipt,['type'=>'']),false],
+    ['other upload type',array_replace($receipt,['type'=>'CALLS']),false],
+    ['missing id',array_diff_key($receipt,['id'=>true]),false],
+    ['zero id',array_replace($receipt,['id'=>0]),false],
+    ['negative id',array_replace($receipt,['id'=>-909]),false],
+    ['invalid id',array_replace($receipt,['id'=>'909suffix']),false],
+    ['boolean id',array_replace($receipt,['id'=>true]),false],
+    ['floating id',array_replace($receipt,['id'=>909.5]),false],
+    ['missing status',array_diff_key($receipt,['status'=>true]),false],
+    ['null status',array_replace($receipt,['status'=>null]),false],
+    ['unknown status',array_replace($receipt,['status'=>'NOT_A_STATUS']),false],
+] as [$label,$upload,$valid]){
+    $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploading'=>$upload])]);
+    same($client->upload($event,$now+901)['outcome'],$valid?'accepted':'unknown','POST receipt '.$label);
+    same($client->poll('909')!==null,$valid,'poll receipt '.$label);
+    $upload['comment']=MetrikaOfflineClient::comment($event);
+    $client=new MetrikaOfflineClient('98615635','fake',function($method,$url,$body)use($upload){same($method,'GET','receipt recovery never posts');same($body,null,'receipt recovery has no CSV');return ['http'=>200,'body'=>json_encode(['uploadings'=>[$upload]])];});
+    same($client->findUnknown($event)!==null,$valid,'recovery receipt '.$label);
+}
+foreach(['PREPARED','PROCESSED'] as $status){
+    $upload=array_replace($receipt,['status'=>$status]);
+    $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploading'=>$upload])]);
+    same($client->poll('909')['status']??null,$status,'valid poll lifecycle status '.$status);
+}
+foreach([MetrikaOfflineClient::comment($event),MetrikaOfflineClient::comment($event).'other',null] as $comment){
+    $upload=$receipt+['comment'=>$comment];
+    $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploading'=>$upload])]);
+    same($client->upload($event,$now+901)['outcome'],$comment===MetrikaOfflineClient::comment($event)?'accepted':'unknown','POST receipt comment must agree when present');
+}
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploading'=>array_replace($receipt,['id'=>910])])]);
+same($client->poll('909'),null,'poll cannot attach another upload id');
+$wrongComment=$receipt+['comment'=>MetrikaOfflineClient::comment($event).'other'];
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>[$wrongComment]])]);
+same($client->findUnknown($event),null,'similar recovery comment never matches');
+$duplicateComment=array_map(fn($id)=>array_replace($receipt,['id'=>$id,'comment'=>MetrikaOfflineClient::comment($event)]),[909,910]);
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>$duplicateComment])]);
+same($client->findUnknown($event),null,'two valid receipts without identity field remain ambiguous');
 $goals=array_map(fn($goal)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$goal['target']]]],array_values(MetrikaOfflineClient::CHANNEL_GOALS));
 foreach($goals as $index=>&$g)$g['id']=$index+10;unset($g);
 $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$goals])]);same($client->goalsReady(),true,'existing exact goals');
