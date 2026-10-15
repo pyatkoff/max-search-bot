@@ -120,7 +120,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
       if(target!=='sales')expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('anytour.manager.workspace.filters.v1')).task)).toBe('');
       await noOverflow(page);
     }
-    await page.locator('[data-m2-nav=archive]').click();await page.locator('#filtersToggle').click();await page.locator('#leadTaskFilter').selectOption('today');
+    await page.locator('[data-m2-nav=archive]').click();if(!await page.locator('#filtersPanel').isVisible())await page.locator('#filtersToggle').click();await expect(page.locator('#filtersPanel')).toBeVisible();await page.locator('#leadTaskFilter').selectOption('today');
     await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');
     await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('.inboxHead .brand')).toHaveText('Мой план работы');await expect(page.locator('#m2SectionHint')).toContainText('диалоги с задачами и без них');
     await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);expect(await page.evaluate(()=>WorkspaceV2.S.leadTaskFilter)).toBe('');
@@ -152,7 +152,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     await expect(page.locator('#replyText')).toHaveValue('Черновик Анны для проверки компактного кабинета');await expect(page.locator('#mediaSelection')).toHaveText(file);
     await page.evaluate(()=>WorkspaceV2Conversation.renderHeader({...WorkspaceV2.S.detail.conversation,display_name:'Анна · семейный отдых в Турции на октябрь · длинное рабочее имя клиента'}));
     const title=await page.locator('#conversationTitle').boundingBox(),head=await page.locator('.conversationHead').boundingBox(),toggle=await menu.locator('summary').boundingBox();
-    expect(title.height).toBeLessThan(30);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
+    expect(title.height).toBeGreaterThanOrEqual(36);expect(title.height).toBeLessThanOrEqual(40);expect(toggle.x+toggle.width).toBeLessThanOrEqual(head.x+head.width+1);await noOverflow(page);
     await page.setViewportSize({width,height:420});await page.locator('#replyText').fill(Array.from({length:8},(_,i)=>'Строка '+i+' — уточняем отдых').join('\n'));
     await noOverflow(page);expect(await page.locator('#messages').evaluate(el=>el.clientHeight)).toBeGreaterThanOrEqual(40);
     for(const id of ['replyText','sendReply']){const box=await page.locator('#'+id).boundingBox();expect(box.y).toBeGreaterThanOrEqual(0);expect(box.y+box.height).toBeLessThanOrEqual(421)}

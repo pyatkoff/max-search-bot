@@ -117,7 +117,8 @@
       if(S.manager?.role==='admin'&&String(c.manager_name||'').trim()){
         const manager=document.createElement('span');manager.className='m2ChatManager';manager.textContent=c.manager_name;manager.title='Ответственный менеджер';secondary.appendChild(manager);
       }
-      const wait=el.querySelector('.leadWaitCompact'),reply=el.querySelector('.leadReplyStatus');
+      const wait=el.querySelector('.leadWaitCompact');let reply=el.querySelector('.leadReplyStatus');
+      if(!reply&&Number(c.awaiting_manager_reply||0)===1){reply=document.createElement('span');reply.className='leadReplyStatus';reply.textContent='Ждёт ответа'}
       if(reply)secondary.appendChild(reply);if(wait)secondary.appendChild(wait);
       if(secondary.childNodes.length)identity?.appendChild(secondary);
       el.querySelectorAll('.leadSource:not(.leadActivityTime),.leadTrip,.leadContextRow,.leadActionRow').forEach(node=>node.remove());
@@ -145,6 +146,13 @@
     if(window.WorkspaceV2Mobile?.isMobile())return; // Mobile owns its existing Back/history operation.
     $('workspaceRoot')?.classList.remove('m2ClientCardOpen');syncClientCard();
     const target=clientCardOpener?.isConnected?clientCardOpener:$('mobileLeadBtn');target?.focus({preventScroll:true});
+  }
+  function revealInboxSearch({focus=true}={}){
+    if(!S.manager||S.authExpired)return false;
+    const input=$('leadSearch'),row=document.querySelector('.inboxSearchRow'),toggle=$('m2InboxSearchToggle');
+    if(!input||!row||!toggle)return false;
+    const mobile=window.WorkspaceV2Mobile;if(mobile?.isMobile()&&mobile.getScreen()!=='inbox')mobile.showInbox();
+    row.hidden=false;toggle.setAttribute('aria-expanded','true');if(focus)input.focus();return true;
   }
   function initInboxTools(){
     const heading=document.querySelector('.inboxHead .brandRow'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow'),filters=$('filtersToggle');
@@ -290,6 +298,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,ownershipSignal,openClientCard,closeClientCard,syncClientCard};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,ownershipSignal,openClientCard,closeClientCard,syncClientCard,revealInboxSearch};
   init();
 })();
