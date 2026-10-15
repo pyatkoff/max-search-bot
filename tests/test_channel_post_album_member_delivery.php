@@ -85,6 +85,7 @@ memberCheck('anchor response verifies only the exact original member', $anchorRe
     && count($provider->writes()) === 1 && (string)$provider->writes()[0]['body']['message_id'] === '101');
 memberCheck('receipt remains valid across unrelated album assembly', $members->finish($operation, $anchorResult['state'], $anchorResult['reason'], $anchorResult['receipt']));
 memberCheck('completed member receipt cannot run twice', !$members->finish($operation, 'unknown', 'late_receipt', []));
+memberCheck('anchor success does not hide another member awaiting cleanup', $registry->publication($first['publication_id'])['state'] === 'pending' && memberRow($members->rows($first['publication_id']),'102')['state'] === 'pending');
 $cleanup = $members->claim($first['publication_id']);
 memberCheck('non-anchor foreign keyboard has its own numeric clear operation', $cleanup !== null && $cleanup['external_message_id'] === '102'
     && $cleanup['button_mode'] === 'clear_keyboard' && count($cleanup['snapshot']['attachments']) === 1
@@ -135,5 +136,23 @@ memberCheck('new authenticated exact-member clean observation reconciles without
     && $registry->publication($unknownFirst['publication_id'])['state'] === 'sent' && count($unknownProvider->writes()) === 1);
 memberCheck('late ambiguous receipt cannot undo authenticated clean evidence', !$members->finish($unknownOperation,'unknown','late_lost_receipt',[]) && memberRow($members->rows($unknownFirst['publication_id']),'202')['state'] === 'sent');
 memberCheck('unknown reconciliation preserves all three immutable images and one token', count($clean['snapshot']['attachments']) === 3 && $clean['start_payload'] === $unknownFirst['start_payload']);
+
+$expiryFirst = memberRegister($registry,memberSnapshot(memberMessage('expiry','301'),400));
+$expiryClaim = $members->claim($expiryFirst['publication_id']);
+memberCheck('crash fixture durably records write start before losing its worker', $expiryClaim !== null && $members->markStarted($expiryClaim));
+$expire = $pdo->prepare("UPDATE post_member_deliveries SET claimed_at='2000-01-01 00:00:00' WHERE id=?");
+$expire->execute([$expiryClaim['delivery_member_id']]);
+memberCheck('expired attempted write becomes unknown without another claim', $members->claim($expiryFirst['publication_id']) === null
+    && memberRow($members->rows($expiryFirst['publication_id']),'301')['state'] === 'unknown'
+    && (int)memberRow($members->rows($expiryFirst['publication_id']),'301')['write_attempts'] === 1);
+memberCheck('expired worker cannot replace the durable unknown receipt', !$members->finish($expiryClaim,'sent','late',[]));
+$unstartedFirst = memberRegister($registry,memberSnapshot(memberMessage('unstarted','401'),500));
+$unstartedClaim = $members->claim($unstartedFirst['publication_id']);
+$expire->execute([$unstartedClaim['delivery_member_id']]);
+$replacement = $members->claim($unstartedFirst['publication_id']);
+memberCheck('only an expired claim with no provider attempt can receive a new lease', $replacement !== null
+    && $replacement['delivery_member_id'] === $unstartedClaim['delivery_member_id']
+    && $replacement['delivery_claim_token'] !== $unstartedClaim['delivery_claim_token']
+    && !$members->markStarted($unstartedClaim) && $members->markStarted($replacement));
 
 echo 'OK ' . $memberPassed . " album member delivery checks\n";
