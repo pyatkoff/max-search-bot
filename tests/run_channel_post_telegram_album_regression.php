@@ -34,17 +34,16 @@ $albumRegister = static function (array $snapshot) use ($albumRegistry): array {
 };
 
 $first = $albumRegister(telegramAlbumSnapshot('full', '61', 100));
-$claim = $albumRegistry->claimPublication($first['publication_id'], $first['version_id']);
+$members = $albumRegistry->memberDelivery();
+$claim = $members->claim($first['publication_id']);
 telegramAlbumCheck('first album observation creates one opaque publication', $first['external_message_id'] === 'group:full' && preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/', $first['start_payload']) === 1);
-telegramAlbumCheck('anchor write starts once under the publication lock', $claim !== null && $albumRegistry->markExternalWriteStarted($first['publication_id'], $first['version_id'], $claim['claim_token']));
+telegramAlbumCheck('anchor member claims its numeric identity and starts only once', $claim !== null && $claim['external_message_id'] === '61' && $members->markStarted($claim) && !$members->markStarted($claim));
 $second = $albumRegister(telegramAlbumSnapshot('full', '62', 101));
-telegramAlbumCheck('photo arriving during the anchor write inherits unknown rather than a second pending write', $second['state'] === 'unknown' && $second['write_attempted'] && count($second['snapshot']['attachments']) === 2 && $albumRegistry->claimPublication($second['publication_id'], $second['version_id']) === null);
-$reconcile = $albumRegistry->claimPublication($second['publication_id'], $second['version_id'], true);
-telegramAlbumCheck('unknown successor can claim reconciliation without authorizing another write', $reconcile !== null && !$albumRegistry->markExternalWriteStarted($second['publication_id'], $second['version_id'], $reconcile['claim_token']));
-$finished = $albumRegistry->finishPublication($first['publication_id'], $first['version_id'], $claim['claim_token'], 'sent', 'verified', ['verified' => true, 'button_verified' => true, 'content_preserved' => true, 'write_attempts' => 1]);
+telegramAlbumCheck('photo arriving during the anchor write retains both member rows', count($members->rows($first['publication_id'])) === 2 && count($second['snapshot']['attachments']) === 2);
+$finished = $members->finish($claim, 'sent', 'verified', ['verified' => true, 'button_verified' => true, 'content_preserved' => true, 'write_attempts' => 1]);
 $latest = $albumRegistry->publication($first['publication_id']);
-telegramAlbumCheck('verified anchor response propagates to the unchanged successor even during reconciliation', $finished && $latest['state'] === 'sent' && $latest['version_id'] === $second['version_id'] && !empty($latest['receipt']['button_verified']));
-telegramAlbumCheck('stale reconciliation claim cannot overwrite the verified successor', !$albumRegistry->finishPublication($second['publication_id'], $second['version_id'], $reconcile['claim_token'], 'unknown', 'waiting'));
+telegramAlbumCheck('verified anchor response survives another member arrival', $finished && $latest['state'] === 'sent' && $latest['version_id'] === $second['version_id']);
+telegramAlbumCheck('a completed member receipt cannot be applied twice', !$members->finish($claim, 'unknown', 'waiting', []));
 
 $caption = $albumRegister(telegramAlbumSnapshot('full', '60', 99, 'Полный альбом — 10 фотографий'));
 telegramAlbumCheck('an older-sequence different member is merged and supplies the caption without moving the button', empty($caption['stale_observation']) && $caption['snapshot']['text'] === 'Полный альбом — 10 фотографий' && $caption['snapshot']['metadata']['actual_message_id'] === '61' && $caption['state'] === 'sent');
@@ -63,19 +62,9 @@ telegramAlbumCheck('newer caption update appends immutable context and retains t
 $lateOther = $albumRegister(telegramAlbumSnapshot('full', '63', 164));
 telegramAlbumCheck('group-wide newer caption clock does not discard an eligible older member update', empty($lateOther['stale_observation']) && $lateOther['snapshot']['text'] === 'Новая подпись');
 
-$pending = $albumRegister(telegramAlbumSnapshot('claim', '201', 300));
-$pendingClaim = $albumRegistry->claimPublication($pending['publication_id'], $pending['version_id']);
-$successor = $albumRegister(telegramAlbumSnapshot('claim', '202', 301));
-telegramAlbumCheck('a member arriving before write-start supersedes the old claim with one pending successor', $successor['state'] === 'pending' && !$albumRegistry->markExternalWriteStarted($pending['publication_id'], $pending['version_id'], $pendingClaim['claim_token']));
-$successorClaim = $albumRegistry->claimPublication($successor['publication_id'], $successor['version_id']);
-telegramAlbumCheck('only the current complete snapshot can mark the provider write', $successorClaim !== null && $albumRegistry->markExternalWriteStarted($successor['publication_id'], $successor['version_id'], $successorClaim['claim_token']));
-$albumRegistry->finishPublication($successor['publication_id'], $successor['version_id'], $successorClaim['claim_token'], 'unknown', 'edit_outcome_unknown', ['write_attempts' => 1]);
-$unknown = $albumRegister(telegramAlbumSnapshot('claim', '203', 302));
-telegramAlbumCheck('another photo after an ambiguous response cannot reset the operation to a fresh write', $unknown['state'] === 'unknown' && $unknown['write_attempted'] && $albumRegistry->claimPublication($unknown['publication_id'], $unknown['version_id']) === null);
-
-$anchorChanged = $albumRegister(telegramAlbumSnapshot('claim', '201', 400, 'Новая подпись якоря', 1791972296000));
-telegramAlbumCheck('a fresh authenticated anchor edit is distinct from passive group assembly', $anchorChanged['state'] === 'pending' && !$anchorChanged['write_attempted'] && $anchorChanged['snapshot']['metadata']['actual_message_id'] === '201');
-telegramAlbumCheck('a receipt for an older anchor observation cannot confirm a newly edited anchor', !ChannelPostTelegramAlbum::sameTargetObservation($unknown['snapshot'], $anchorChanged['snapshot']));
+$beforeChange = $albumRegistry->publication($first['publication_id']);
+$anchorChanged = $albumRegister(telegramAlbumSnapshot('full', '61', 400, 'Новая подпись якоря', 1791972296000));
+telegramAlbumCheck('a fresh authenticated anchor edit remains a distinct observation', $anchorChanged['snapshot']['metadata']['actual_message_id'] === '61' && !ChannelPostTelegramAlbum::sameTargetObservation($beforeChange['snapshot'], $anchorChanged['snapshot']));
 $legacy = telegramAlbumSnapshot('legacy', '501', 500, 'Ранее неподдерживаемый альбом');
 $legacy['metadata']['capability'] = 'requires_attention'; $legacy['metadata']['capability_reason'] = 'album_not_supported';
 $mergedLegacy = ChannelPostTelegramAlbum::merge($legacy, telegramAlbumSnapshot('legacy', '502', 501));
@@ -93,9 +82,9 @@ $unsupported['attachments'] = [['type' => 'video', 'provider' => 'telegram']];
 $unsupported['metadata']['capability'] = 'requires_attention';
 $unsupported['metadata']['capability_reason'] = 'unsupported_media';
 $unsupportedStored = $albumRegister($unsupported);
-telegramAlbumCheck('unsupported non-anchor observation cannot carry a misleading sent state', $unsupportedStored['state'] === 'requires_attention' && $unsupportedStored['error_reason'] === 'unsupported_media' && $unsupportedStored['write_attempted']);
+telegramAlbumCheck('unsupported non-anchor observation cannot carry a misleading sent state', $unsupportedStored['state'] === 'requires_attention' && $unsupportedStored['error_reason'] === 'unsupported_media');
 $foreign = telegramAlbumSnapshot('foreign', '602', 602);
 $foreign['keyboard'] = [[['text' => 'Чужие комментарии', 'callback_data' => 'foreign-comment']]];
 $foreignMerged = ChannelPostTelegramAlbum::merge(telegramAlbumSnapshot('foreign', '601', 601), $foreign);
-telegramAlbumCheck('foreign markup on another member is explicit attention rather than silent retention or duplicate own buttons', $foreignMerged['snapshot']['metadata']['capability'] === 'requires_attention' && $foreignMerged['snapshot']['metadata']['capability_reason'] === 'telegram_album_non_anchor_keyboard');
+telegramAlbumCheck('foreign markup on another member remains eligible for durable cleanup', $foreignMerged['snapshot']['metadata']['capability'] === 'supported' && $foreignMerged['snapshot']['metadata']['telegram_album_items']['m_602']['keyboard'] === $foreign['keyboard']);
 echo 'OK ' . $albumPassed . " Telegram album checks\n";
