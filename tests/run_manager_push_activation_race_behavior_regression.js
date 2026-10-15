@@ -11,12 +11,12 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
 function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
-function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,differentReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
-  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
+function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
+  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,readyReads:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
   const workerJobs=[];
-  const registration={scope:'https://app.anytoour.ru/manager/',active:{postMessage(data){workerJobs.push(worker('message',data));}},pushManager:{
+  const registration={scope:'https://app.anytoour.ru/manager/',active:{state:'activated',postMessage(data){workerJobs.push(worker('message',data));}},pushManager:{
     async getSubscription(){state.reads++;return readSubscription?await readSubscription(state.reads,state):state.sub;},
     async subscribe(options){assert.equal(options.userVisibleOnly,true);assert.deepEqual(Array.from(options.applicationServerKey),Array.from(state.serverKey));state.subscribes++;state.active++;state.maxActive=Math.max(state.maxActive,state.active);try{if(state.active>1)throw abort('synthetic overlapping registration');const sub=subscribe?await subscribe(state.subscribes,state):subscription(state.serverKey);state.sub=attach(sub);return sub;}finally{state.active--;}}
   },async showNotification(title){if(title==='AnyTour')state.confirmations++;else state.shown++;}};
@@ -30,7 +30,7 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const root={innerHTML:'',className:''};
     const document={readyState:'loading',addEventListener(){},getElementById(){return root},createElement(){return{set textContent(value){this.value=String(value??'');},get innerHTML(){return this.value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}};}};
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
-    const navigator={serviceWorker:{async register(){state.registered++;return differentReady?{scope:registration.scope,pushManager:{getSubscription(){throw new Error('Used register object instead of ready registration');}}}:registration;},ready:Promise.resolve(registration),addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
+    const navigator={serviceWorker:{async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
     const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
@@ -41,7 +41,39 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
   async function worker(type,data){let promise;events[type]({data,waitUntil(value){promise=value;}});await promise;}
   return{state,page,worker,async settleWorker(){await Promise.all(workerJobs);}};
 }
+async function lateNativeOutcomeCases(){
+  const failures=[];
+  for(const outcome of ['success','failure']){
+    const native=deferred(),env=environment({subscribe:count=>count===1?native.promise:Promise.reject(abort('Registration failed - could not connect to push server')),deadlineMs:5}),page=env.page();
+    assert.equal(await page.api.enable(page.root),false);assert.match(page.root.innerHTML,/TIMEOUT/);
+    assert.match(page.root.innerHTML,/Браузер ещё подключает уведомления/);assert.match(page.root.innerHTML,/>Проверить<\/button>/);assert.ok(!page.root.innerHTML.includes('Если окно разрешения'));
+    env.state.otherDeviceHealthy=true;await page.api.refresh();assert.ok(!page.root.innerHTML.includes('Уведомления включены'));
+    if(outcome==='success')native.resolve(subscription());else native.reject(abort('Registration failed - could not connect to push server'));
+    await turn();await new Promise(resolve=>setTimeout(resolve,5));await turn();
+    const expected=outcome==='success'?'Уведомления включены':'AbortError/PUSH_NETWORK';
+    if(!page.root.innerHTML.includes(expected)||page.root.innerHTML.includes('TIMEOUT'))failures.push(`${outcome}: native terminal result remains hidden behind the UI timeout`);
+    assert.equal(env.state.subscribes,outcome==='success'?1:2);assert.equal(env.state.saves,outcome==='success'?1:0);assert.equal(env.state.confirmations,0);assert.equal(env.state.permissions,0);
+    assert.ok(!page.root.innerHTML.includes(secret));
+  }
+  if(failures.length)throw new Error(failures.join('; '));
+  console.log('PASS  late native success and failure replace only their own UI timeout without another setup or confirmation');
+
+  const native=deferred(),env=environment({subscribe:()=>native.promise,deadlineMs:5}),page=env.page();
+  assert.equal(await page.api.enable(page.root),false);page.auth.manager.id=2;page.auth.authGeneration++;page.auth.csrf='new-account';page.root.innerHTML='Current account';
+  native.resolve(subscription());await turn();await turn();
+  assert.equal(env.state.saves,0);assert.equal(env.state.confirmations,0);assert.equal(page.root.innerHTML,'Current account');
+  const denied=deferred(),expired=environment({subscribe:()=>denied.promise,deadlineMs:5,saveRequest(){throw new Error('push_session_expired');}}),expiredPage=expired.page();
+  assert.equal(await expiredPage.api.enable(expiredPage.root),false);denied.resolve(subscription());await turn();await turn();
+  assert.equal(expired.state.auth,1);assert.equal(expired.state.saves,0);assert.equal(expired.state.confirmations,0);assert.match(expiredPage.root.innerHTML,/Войдите в кабинет/);assert.ok(!expiredPage.root.innerHTML.includes('TIMEOUT'));
+  console.log('PASS  native settlement after UI timeout respects account changes and canonical expired-session recovery');
+  let requests=0;const oldNative=deferred(),newer=environment({subscribe:()=>oldNative.promise,deadlineMs:5,keyRequest(){if(++requests>1)throw new TypeError(secret);}}),newerPage=newer.page();
+  assert.equal(await newerPage.api.enable(newerPage.root),false);assert.equal(await newerPage.api.enable(newerPage.root),false);assert.match(newerPage.root.innerHTML,/TypeError/);
+  oldNative.resolve(subscription());await turn();await turn();
+  assert.match(newerPage.root.innerHTML,/TypeError/);assert.ok(!newerPage.root.innerHTML.includes('Уведомления включены'));assert.equal(newer.state.subscribes,1);assert.equal(newer.state.saves,1);assert.equal(newer.state.confirmations,0);
+  console.log('PASS  late results from an older UI attempt cannot replace a newer explicit diagnosis');
+}
 async function run(){
+  await lateNativeOutcomeCases();
   // Reload can start granted-permission recovery before the visible Enable click.
   // That click must observe this attempt, with feedback now rather than a queued retry.
   const backgroundNative=deferred(),promoted=environment({subscribe:()=>backgroundNative.promise}),promotedPage=promoted.page();
@@ -76,8 +108,8 @@ async function run(){
   assert.equal(promotedTimeout.state.subscribes,1);assert.equal(promotedTimeout.state.maxActive,1);assert.equal(promotedTimeout.state.registered,1);
   promotedTimeout.state.otherDeviceHealthy=true;await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);
   timeoutNative.resolve(subscription());await turn();await turn();assert.equal(promotedTimeout.state.saves,1);assert.equal(promotedTimeout.state.confirmations,0);
-  await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/TIMEOUT/);assert.ok(!promotedTimeoutPage.root.innerHTML.includes('Уведомления включены'));assert.equal(promotedTimeout.state.subscribes,1);
-  console.log('PASS  promotion keeps the original UI deadline and late settlement preserves the clicked failure');
+  assert.match(promotedTimeoutPage.root.innerHTML,/Уведомления включены/);await promotedTimeoutPage.api.refresh();assert.match(promotedTimeoutPage.root.innerHTML,/Уведомления включены/);assert.equal(promotedTimeout.state.subscribes,1);
+  console.log('PASS  promotion keeps the original UI deadline and only same-job saved success can clear its timeout');
 
   for(const accountChanged of [false,true]){
     const oldNative=deferred(),stalePromotion=environment({subscribe:()=>oldNative.promise}),stalePage=stalePromotion.page();
@@ -139,8 +171,9 @@ async function run(){
 
   const cancelled=environment({lockManager:locks(),deadlineMs:5,saveRequest:async(options,state)=>{if(state.saveAttempts===1)await new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>{state.aborts++;reject(abort());},{once:true}));}}),cancelPage=cancelled.page();
   assert.equal(await cancelPage.api.enable(cancelPage.root),false);await new Promise(resolve=>setTimeout(resolve,10));assert.equal(cancelled.state.aborts,1);assert.equal(await cancelPage.api.enable(cancelPage.root),true);assert.equal(cancelled.state.subscribes,1);assert.equal(cancelled.state.saveAttempts,2);assert.equal(cancelled.state.saves,1);
-  const ready=environment({differentReady:true}),readyPage=ready.page();assert.equal(await readyPage.api.enable(readyPage.root),true);
-  console.log('PASS  bounded HTTP abort releases origin lock and canonical ready registration is used');
+  const ready=environment({unrelatedReady:true}),readyPage=ready.page();assert.equal(await readyPage.api.enable(readyPage.root),true);assert.equal(ready.state.readyReads,0);assert.equal(ready.state.saves,1);
+  const outside=environment({outsideScope:true}),outsidePage=outside.page();assert.equal(await outsidePage.api.enable(outsidePage.root),true);assert.equal(outside.state.readyReads,0);assert.equal(outside.state.subscribes,1);assert.equal(outside.state.saves,1);
+  console.log('PASS  bounded HTTP abort releases origin lock and canonical registered worker is used without global ready');
 
   for(const accountChanged of [false,true]){
     const lateAuth=deferred(),authEnv=environment({subscribe:()=>lateAuth.promise}),authPage=authEnv.page();const authEnable=authPage.api.enable(authPage.root);await turn();

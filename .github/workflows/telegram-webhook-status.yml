@@ -2,14 +2,48 @@ name: Telegram webhook status
 
 on:
   workflow_dispatch:
+    inputs:
+      operation:
+        description: Telegram webhook operation
+        type: choice
+        required: true
+        default: inspect
+        options:
+          - inspect
+          - preview_channel_posts
+          - enable_channel_posts
+          - reconcile_channel_posts
+      expected_sha:
+        description: Full installed application SHA, required for channel post operations
+        type: string
+        required: false
 
 permissions:
   contents: read
+
+concurrency:
+  group: telegram-channel-post-webhook-setup
+  cancel-in-progress: false
 
 jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate explicit operation and installed SHA
+        env:
+          OPERATION: ${{ inputs.operation || 'inspect' }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$OPERATION" in
+            inspect) ;;
+            preview_channel_posts|enable_channel_posts|reconcile_channel_posts)
+              [[ "$EXPECTED_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || { echo "A full 40-character hexadecimal installed SHA is required" >&2; exit 2; }
+              ;;
+            *) echo "Unsupported Telegram webhook operation" >&2; exit 2 ;;
+          esac
+
       - name: Prepare SSH private key
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -29,12 +63,40 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Read current Telegram webhook without changing it
+      - name: Inspect or explicitly configure Telegram channel post updates
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          OPERATION: ${{ inputs.operation || 'inspect' }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
         shell: bash
         run: |
           set -euo pipefail
+          if [[ "$OPERATION" == inspect ]]; then
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
+              'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_webhook_status.php'
+            exit 0
+          fi
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || exit 2
+          case "$OPERATION" in
+            preview_channel_posts|enable_channel_posts|reconcile_channel_posts) ;;
+            *) exit 2 ;;
+          esac
           ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
-            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_webhook_status.php'
+            bash -s -- "$EXPECTED_SHA" "$OPERATION" <<'REMOTE'
+          set -euo pipefail
+          expected_sha="$1"
+          operation="$2"
+          [[ "$expected_sha" =~ ^[0-9a-fA-F]{40}$ ]] || exit 2
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = "${expected_sha,,}"
+          git diff --quiet
+          git diff --cached --quiet
+          export CHANNEL_POST_WEBHOOK_STATE_DIR=/var/www/anytoour/data/channel-post-operations/webhook
+          case "$operation" in
+            preview_channel_posts) php tools/channel_post_webhook_updates.php telegram ;;
+            enable_channel_posts) php tools/channel_post_webhook_updates.php telegram --apply ;;
+            reconcile_channel_posts) php tools/channel_post_webhook_updates.php telegram --reconcile ;;
+            *) exit 2 ;;
+          esac
+          REMOTE

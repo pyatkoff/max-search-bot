@@ -118,7 +118,10 @@ return [
     ],
     'manager' => [
         'php tests/run_channel_post_registry_regression.php',
+        'php tests/run_channel_post_max_album_recovery_regression.php',
         'php tests/run_channel_post_automation_regression.php',
+        'php tests/run_channel_post_telegram_album_regression.php',
+        'php tests/test_channel_post_album_member_delivery.php',
         'php tests/run_channel_post_entry_regression.php',
         'php tests/run_channel_post_admin_regression.php',
         'php tests/run_channel_post_media_regression.php',
@@ -126,6 +129,10 @@ return [
         'php tests/run_manager_post_context_regression.php',
         'node tests/run_manager_post_context_behavior_regression.js',
         'php tests/run_manager_quick_reply_regression.php',
+        'php tests/run_manager_personal_workspace_regression.php',
+        'node tests/run_manager_personal_workspace_behavior_regression.js',
+        'php tests/run_manager_internal_note_regression.php',
+        'node tests/run_manager_internal_notes_behavior_regression.js',
         'php tests/run_manager_customer_name_regression.php',
         'php tests/run_manager_customer_avatar_regression.php',
         'node tests/run_manager_media_batch_behavior_regression.js',
@@ -232,6 +239,11 @@ return [
     ],
     'diagnostics' => [
         'php tests/run_manager_read_profile_regression.php',
+        'php tests/run_max_subscription_attribution_policy.php',
+        'php tests/run_max_channel_attribution.php',
+        'python3 tests/run_max_attribution_key.py',
+        'php tests/run_max_private_avatar_probe_regression.php',
+        'python3 tests/run_max_owner_avatar_workflow_regression.py',
         'php tests/run_channel_daily_report_regression.php',
         'php tests/run_legacy_paid_yclid_reader_regression.php',
         'php tests/run_paid_daily_report_regression.php',
@@ -258,3 +270,4 @@ return [
         'php tests/run_live_child_age_count_regression.php',
     ],
 ];
+

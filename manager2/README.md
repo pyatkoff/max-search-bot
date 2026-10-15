@@ -4,9 +4,17 @@ Owner-authorized production presentation at `/manager2/`, based on the agreed co
 
 ## Runtime ownership
 
-`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope and administrative links at their existing endpoints. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
+`index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope at their existing endpoints. The administration link explicitly opens `/manager2/admin.php`. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
 
-The new chrome and body-scoped assets provide the forest navigation rail, account/shift/notification header, queue/search, central conversation and compact client card. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
+The new chrome and body-scoped assets provide the forest navigation rail, compact queue/search tools, central conversation and a client card opened on demand. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
+
+## Administration
+
+`admin.php` includes the canonical `manager/admin.php` markup with an identity-free Manager2 presentation. It reuses `admin.js`, `admin-edit-safety.js`, the shared JSON client and Moscow-time helper, without loading Inbox or Conversation code. The canonical `/manager/` base keeps all protected reads and saves on the existing API; the new HTML never issues or replaces a session cookie. The previous administrative URL remains compatible.
+
+Managers, project access, projects, existing priority rules and the last 50 safe audit summaries retain their existing forms, validation, drafts and account/generation guards. Local section switches, search and combined filters reuse the single snapshot. Account, working shift and notification reachability remain separate facts. Return links lead to `/manager2/`; routing and sales-catalog links keep their existing destinations.
+
+The Manager2-only stylesheet provides a compact forest navigation rail, a restrained header, clear sections and responsive list/editor layout. Desktop and mobile fixtures cover 390/430/768/1440px, short screens, keyboard focus and preservation of newer form input. Saves in the acceptance suite use synthetic data only.
 
 ## Feature preservation
 
@@ -16,6 +24,7 @@ The new chrome and body-scoped assets provide the forest navigation rail, accoun
 | Live original transcript, linked replies/forwards, arrival refresh and scroll anchoring | Conversation / Jump |
 | Own-message sending, draft/session recovery, emoji, first-five-minute editing | Conversation / Message Edit |
 | Personal quick-answer buttons, account-owned selection/order, editable library and name substitution | Quick Replies / canonical Manager Quick Reply service |
+| Personal tabs, labels, multiple memberships, pins and reading/start settings | Personal Workspace / canonical Manager Personal Workspace service |
 | Images, video, audio and files; upload/context/delivery failures | Media / Conversation |
 | Multiple tasks, deadlines in Moscow time, pin, completion/reopen, postpone, dirty drafts | Tasks / Task Draft / Task Presets |
 | Stages/history, tags, outcomes, loss reason, sale amount/date, desktop board | Pipeline / Outcome / Kanban / Stage History |
@@ -41,6 +50,11 @@ The prototype itself uses demonstration data. Its experimental behavior is not u
 
 ## Convenient response workflow
 
+Personal workspace controls are independent of sales/CRM. “Мои вкладки” manages named selections, order, labels and start/readability settings; the client action manages private labels and pins. A client can belong to several labels. Only the selected tab is fetched through the canonical visibility/list projection, with the existing bounded 200-row scope shown explicitly. Deleting a referenced label keeps its tab empty until explicitly edited; it never silently expands the selection.
+
+Preferences use account-scoped canonical storage (forward-only migration 034), version checks and transactional receipts. Another device loads the saved settings; stale or old-account responses cannot restore another account's controls. The background preferences read never delays the Inbox; if it arrives late, the saved start tab is offered explicitly without interrupting reading. Unknown writes remain blocked for receipt reconciliation, never automatic resend. These controls do not send customer messages or create a second reply draft/media store.
+Internal notes are a separate employee-only list/editor marked “Видно только сотрудникам”. Opening them is explicit; loading cannot hold the Inbox or composer. Existing conversation access controls apply on every read/write; staff can add context, while only its author or an administrator can edit a note. Note saves use versions and transactional receipts; uncertain results are read back without repeating the command. Original client messages, reply drafts and files are not changed or sent by this feature. Storage is canonical and introduced only through forward-only migration035.
+
 The canonical reply library supports personal/shared answers, categories, search, favorites and explicit editable insertion. Shared editing is role-gated on the server; uncertain library saves reconcile their original operation receipt. Library loading is lazy and cannot delay the Inbox or transcript.
 
 Transcript display and composer authorization complete independently of the secondary client card. Search explicitly covers loaded messages; the next-waiting control covers the current successfully loaded selection, with unchanged filters and access checks. Message drafts retain their existing account-scoped storage; selected files are preserved in memory between authorized conversations and cannot be restored after a page reload.
@@ -51,7 +65,7 @@ Working names are common manager-only labels visible to colleagues with access t
 
 ## Customer portraits
 
-Optional Telegram portraits appear in the list, conversation header and client card. Missing or unavailable photos keep initials. Private MAX dialogues and website clients keep initials without unsupported lookups. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work.
+Optional Telegram and MAX portraits appear in the list, conversation header and client card. Missing or unavailable photos and website clients keep initials. MAX verifies a stored customer message and its real private chat before loading one thumbnail through an exact-origin, bounded transport. Photos load after the main screen, only for visible identities; navigation, access loss and account recovery invalidate stale portrait work. See `docs/MAX_CUSTOMER_AVATARS.md` for provider, cache and verification boundaries.
 
 The canonical protected binary endpoint owns fresh authorization and a bounded private cache. Offline provider/SQLite/loopback regressions and actual PHP-shell browser scenarios cover cache permissions, delayed photos, unsupported channels, account/client switching, drafts and responsive layout. Those checks do not confirm natural Telegram profile-photo availability or physical-device behavior; no real customer messages or operational changes are required for acceptance.
 
@@ -66,3 +80,15 @@ Selection remains in memory only and cannot survive reload. Unknown results cann
 An explicit continuation button explains that it cancels waiting for a manager. A confirmed cancellation event appears with Moscow time in the client conversation; a literal message naming a callback never produces this notice. Later lifecycle changes or missing evidence suppress an outdated cause. The original transcript and technical/business states retain their canonical owners.
 
 Before/after actual PHP-shell screenshots wait for the mobile transition to finish; transient animation frames are not treated as layout defects. Focused acceptance covers day/night MAX/Telegram copy, bounded authorized context, cross-client drafts, refresh, account/access clearing,390/430/768/1440 and420pxheight. Production and natural customer receipt remain separate.
+
+## Messenger layout
+
+The work area starts at the top of the viewport. The branded workplace strip is removed; the account button in the navigation opens shift, browser sound/push health, administrator links and the previous cabinet. A persistent colored account indicator still reports notification problems. Inbox heading tools reveal search and filters, select personal pins, and open the existing personal workspace editor. Saved personal tabs remain visible; their conditions, rename and deletion stay in that editor. A collapsed nonempty search retains an active indicator and continues to filter until explicitly cleared.
+
+Chat rows show the portrait/initials, name, a two-line last-message preview, activity, unread count and channel. The compact activity stays beside the name: today uses HH:mm, yesterday uses “Вчера”, earlier dates use DD.MM (DD.MM.YY outside the current year). Dates are compared in Moscow time through the canonical ManagerTime parser; the tooltip and accessible label retain the full Moscow date and time. The preview uses the full available text width, and unread counts stay on the metadata row. Green ownership marks mean the current manager, amber means free; accessible labels and tooltips explain the colors. Administrators additionally see the assigned manager. The list uses the same authorized rows and queue/filter projection. Travel/sales/task-summary rows are kept in the client card; waiting-for-reply signals stay compact in the list. The plan section retains task grouping.
+
+The client card is closed by default on desktop. The client name is a native button, and the explicit client button performs the same action. A top-right × button labelled “Закрыть карточку клиента” returns to the conversation without changing its status. Close restores focus to the opener; mobile keeps canonical Back/Forward history. The conversation menu uses “Закрыть обращение” for the existing technical close action. Dirty-task navigation guards can reveal the card on desktop as well as mobile. Working-name history/editing, existing tasks, status/actions and source/service details retain their original canonical modules. Opening the card or heading tools does not request another API read or replace reply/file/task state.
+
+`tests/visual/manager2-messenger-layout.spec.js` verifies the real shell at390/430/768/1440px and420px height, including tools, optional card, keyboard focus, roles, personal tabs and preserved composer data. Local JavaScript checks are separate from the required PHP/rendered-browser CI gates.
+
+Personal tab conditions support checkbox selection of several queues, channels, sources and personal labels. Values within one field are alternatives; fields intersect. “All open” and “Closed” can be combined. Optional empty fields impose no restriction; a queue is required. Legacy single-value tabs are read and edited without losing conditions. An unavailable selected label remains visible for correction and cannot silently turn its condition into an unrestricted one.

@@ -1,13 +1,7 @@
 const {test,expect}=require('@playwright/test');
-const {execFileSync}=require('node:child_process');
 const fs=require('node:fs');
 const path=require('node:path');
-
-const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
-// Render the actual PHP shell and serve its canonical assets directly. Every
-// browser API response is synthetic; unexpected requests and writes are blocked.
-const shell=execFileSync('php',['manager/admin.php'],{cwd:root,encoding:'utf8'});
-const assets=new Set(['admin.css','admin.js','admin-edit-safety.js','manager-time.js','manager-http-client.js']);
+const {root,origin,serveAdminShell}=require('./fixtures/admin-shell');
 const projects=[
   {id:1,project_key:'synthetic-main',display_name:'Синтетический основной проект',is_active:1},
   {id:2,project_key:'synthetic-second',display_name:'Синтетический второй проект',is_active:1}
@@ -28,13 +22,8 @@ async function setup(page,snapshots){
     const request=route.request(),url=new URL(request.url()),method=request.method();
     const block=action=>{unexpected.push(method+' '+url.pathname+(action?' '+action:''));return route.abort()};
     if(url.origin!==origin)return block();
-    if(method==='GET'&&url.pathname==='/manager/admin.php')return route.fulfill({contentType:'text/html',body:shell});
+    if(await serveAdminShell(route))return;
     if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
-    const asset=url.pathname.match(/^\/manager\/assets\/([^/]+)$/)?.[1];
-    if(method==='GET'&&assets.has(asset))return route.fulfill({
-      contentType:asset.endsWith('.css')?'text/css':'application/javascript',
-      body:fs.readFileSync(path.join(root,'manager/assets',asset))
-    });
     if(method!=='POST'||url.pathname!=='/manager/api.php')return block();
     let data;try{data=request.postDataJSON()}catch(error){return block('invalid-json')}
     calls.push(data);
@@ -46,7 +35,7 @@ async function setup(page,snapshots){
     if(!response)return block('unexpected-snapshot');
     return reply(response,response.ok?200:500);
   });
-  await page.goto(origin+'/manager/admin.php');
+  await page.goto(origin+'/manager2/admin.php');
   await expect(page.locator('#app')).toBeVisible();
   return{calls,unexpected,errors};
 }

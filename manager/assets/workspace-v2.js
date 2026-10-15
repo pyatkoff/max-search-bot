@@ -30,6 +30,8 @@ function ensureAuthRecovery(){
 function showAuthRecovery(message=''){
   if(!S.authExpired){S.authGeneration++;window.WorkspaceV2Sound?.suspend();window.WorkspaceV2Conversation?.suspendForAuthRecovery()}
   window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2CustomerName?.resetSession();window.WorkspaceV2CustomerAvatar?.resetSession();
+  window.WorkspaceV2PersonalWorkspace?.suspend();
+window.WorkspaceV2InternalNotes?.suspend();
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
@@ -46,17 +48,19 @@ function hideAuthRecovery(){
   const overlay=$('managerAuthRecovery');if(overlay)overlay.classList.add('hidden');
   document.body.classList.remove('managerAuthOpen');
 }
-async function request(url,action,data={}){
+async function request(url,action,data={},options={}){
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
   const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
+  // A read owner can revoke an obsolete response before global auth handling.
+  if(options.isCurrent&&!options.isCurrent())return{ok:false,error:'stale_context'};
   if(r.status===401){showAuthRecovery();throw new Error('unauthorized')}
   if(!r.ok)return{...j,ok:false,http_status:r.status};
   return j;
 }
-const api=(action,data={})=>request('api.php',action,data);
+const api=(action,data={},options)=>request('api.php',action,data,options);
 const pipe=(action,data={})=>request('pipeline-api.php',action,data);
 const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
 function statusText(s){return{ai:'С ботом',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Диалог закрыт'}[s]||s||''}
@@ -67,6 +71,8 @@ function tripField(label,value){return`<div class="field"><span class="label">${
 function applyIdentity(me){
   S.csrf=me.csrf||'';S.manager=me.manager||null;S.projects=Array.isArray(me.projects)?me.projects:[];
   window.WorkspaceV2Sound?.activate(S.manager?.id);
+  window.WorkspaceV2PersonalWorkspace?.activate(S.manager?.id);
+window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
@@ -93,7 +99,8 @@ async function applyCustomerName(name,context){
 }
 function bindWorkspaceOnce(){
   if(S.workspaceBound)return;
-  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();
+  window.WorkspaceV2Filters?.bind();window.WorkspaceV2Conversation?.bind();window.WorkspaceV2Inbox?.bind();window.WorkspaceV2Kanban?.bind();window.WorkspaceV2Mobile?.bind();window.WorkspaceV2Shortcuts?.bind();window.WorkspaceV2QuickReplies?.bind();window.WorkspaceV2PersonalWorkspace?.bind();
+window.WorkspaceV2InternalNotes?.bind();
   S.workspaceBound=true;window.WorkspaceV2CustomerName?.configure({onUpdated:applyCustomerName});
 }
 async function refreshNotificationHealth(generation,managerId){

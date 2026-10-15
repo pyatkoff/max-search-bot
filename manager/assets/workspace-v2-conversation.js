@@ -1,5 +1,5 @@
 (function(){
-const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=false,accessLost=false;const drafts=new Map();
+const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0;
 let photoViewer=null;
@@ -257,16 +257,19 @@ function historyContext(){return {...captureReplyContext(),refreshEpoch}}
 function isCurrentHistory(context){const current=historyContext();return !busy&&!opening&&!accessLost&&!S.authExpired&&Object.keys(current).every(key=>current[key]===context?.[key])&&Number(S.detail?.conversation?.id)===Number(S.current)}
 function loseHistoryAccess(){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(Number(S.current));forgetSavedConversation(Number(S.current));clearCurrentReply(Number(S.current));window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2History?.reset();if(S.detail?.conversation)renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
 function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.resolve(false)}
-function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;$('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null)}
+function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
 async function refreshVisible(){
-  if(refreshPending||!canRefreshVisible())return false;
+  if(!canRefreshVisible())return false;
+  // A different confirmed context may proceed before an obsolete read settles.
+  const key=JSON.stringify(historyContext());
+  if(refreshPending?.key===key)return false;
   const target=Number(S.current),generation=openSeq,epoch=refreshEpoch,owner=Number(S.manager.id),authGeneration=S.authGeneration;
   const stillCurrent=()=>canRefreshVisible()&&Number(S.current)===target&&openSeq===generation&&refreshEpoch===epoch&&Number(S.manager?.id)===owner&&S.authGeneration===authGeneration;
-  refreshPending=true;
+  const flight={key};refreshPending=flight;
   try{
-    const d=await api('detail',{conversation_id:target});
+    const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
     if(!d?.ok){
       if([403,404].includes(d?.http_status)){W.HandoffCancellation?.render($('handoffCancellation'),null);closePhotoViewer(false);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);window.WorkspaceV2ConversationSearch?.reset();renderActions(S.detail.conversation);setRefreshStatus('Доступ к диалогу изменился. Выберите доступный диалог в списке.')}
@@ -284,7 +287,7 @@ async function refreshVisible(){
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
     window.WorkspaceV2Inbox?.markRead(target);return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
-  finally{refreshPending=false}
+  finally{if(refreshPending===flight)refreshPending=null}
 }
 function renderLeadLoading(c){
   const root=$('leadCard');if(!root)return;
@@ -297,7 +300,7 @@ async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous,retainLoaded=options.preserveHistory===true&&target===previous&&!options.restoreSession;
   if(!target||S.authExpired)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
-  if(switching){closeEmojiPicker();closePhotoViewer(false)}
+  if(switching){closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
   opening=seq;refreshEpoch++;if(!retainLoaded)window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
@@ -356,7 +359,7 @@ async function nextWaiting(){
   if(!next){setLoadStatus('В загруженной подборке больше нет клиентов, которые ждут ответа.','success');return false}
   return open(Number(next.id));
 }
-function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id&&(S.manager.role==='admin'||S.manager.is_working),suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';window.Manager2Presentation?.enhanceConversationActions(root);applyInteractionState();autoGrow()}
+function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id&&(S.manager.role==='admin'||S.manager.is_working),suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть обращение','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';window.Manager2Presentation?.enhanceConversationActions(root);applyInteractionState();autoGrow()}
 function action(text,cl,fn){const b=document.createElement('button');b.className='actionBtn '+cl;b.type='button';b.textContent=text;b.disabled=busy||accessLost;b.onclick=fn;$('conversationActions').appendChild(b)}
 const lifecycleCopy={take:{loading:'Берём диалог…',success:'Диалог назначен вам',error:'Не удалось взять диалог'},release:{loading:'Передаём диалог боту…',success:'Диалог передан боту',error:'Не удалось передать диалог боту'},close:{loading:'Закрываем диалог…',success:'Диалог закрыт',error:'Не удалось закрыть диалог'},reopen:{loading:'Переоткрываем диалог…',success:'Диалог снова в работе',error:'Не удалось переоткрыть диалог'}};
 async function change(a){
@@ -457,5 +460,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,refreshVisible,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={bind,open,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
 })();

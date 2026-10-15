@@ -1,0 +1,46 @@
+name: Manager internal notes
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/ManagerInternalNoteService.php'
+      - 'manager/internal-notes-api.php'
+      - 'manager/assets/workspace-v2-internal-notes.*'
+      - 'migrations/035_manager_internal_notes.sql'
+      - 'tests/run_manager_internal_note*'
+      - 'tests/mysql/manager-internal-notes.php'
+      - '.github/workflows/manager-internal-notes.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-mysql:
+    name: internal notes / native mysql
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: internal-notes-test-only
+          MYSQL_DATABASE: manager_internal_notes_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pinternal-notes-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Apply actual migration and verify isolated notes transactions
+        env:
+          INTERNAL_NOTES_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_internal_notes_test;charset=utf8mb4
+          INTERNAL_NOTES_TEST_MYSQL_USER: root
+          INTERNAL_NOTES_TEST_MYSQL_PASSWORD: internal-notes-test-only
+        run: php tests/mysql/manager-internal-notes.php

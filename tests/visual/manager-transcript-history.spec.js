@@ -13,7 +13,7 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
  const lead=id=>({ok:true,can_edit_pipeline:true,pipeline:{stage,stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция'},contact:{phone:''},source:{project_label:'Синтетический проект',channel:'max'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
  const detail=data=>{const all=state.documents[data.conversation_id]||[],older=Number(data.before_id)>0,pool=older?all.filter(m=>m.id<Number(data.before_id)):all,rows=pool.slice(-pageSize).map(m=>({...m})),first=rows[0]?.id||0,hasMore=pool.length>rows.length;if(!older&&state.summary)rows.unshift({...state.summary});return{ok:true,conversation:conversation(Number(data.conversation_id)),messages:rows,delivery_failure:null,has_manager_reply:all.some(m=>m.sender_type==='manager'),history:{has_more:hasMore,before_id:first,page_size:pageSize,mode:older?'older':'latest'}}};
- await page.addInitScript(()=>{sessionStorage.clear();const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});function FakeNotification(){}FakeNotification.permission='denied';Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}})});
+ await page.addInitScript(()=>{sessionStorage.clear();const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});function FakeNotification(){}FakeNotification.permission='denied';Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}})});
  page.on('pageerror',e=>state.errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url()),method=req.method();const block=action=>{state.unexpected.push(method+' '+url.pathname+(action?' '+action:''));return route.abort()};
  // WebKit exposes local media/emoji object-URL reads to routing. Permit only
@@ -21,8 +21,11 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
  if(url.origin!==origin)return block();if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});if(method==='GET'&&url.pathname==='/synthetic-history.wav')return route.fulfill({contentType:'audio/wav',body:syntheticAudio});
  if(method==='GET'&&(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/'))){const p=path.resolve(assetRoot,'.'+url.pathname);if(!p.startsWith(assetRoot+path.sep)||!fs.existsSync(p))return block('asset');return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(p)})}
+ // Optional portraits remain absent for these exact synthetic clients.
+ if(method==='GET'&&url.pathname==='/manager/customer-avatar.php'){if([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(state.accountId)||url.searchParams.get('channel')!==conversation(Number(url.searchParams.get('conversation_id'))).channel||!['11','12'].includes(url.searchParams.get('conversation_id')))return block();return route.fulfill({status:404,body:''})}
  if(!url.pathname.startsWith('/manager/')||!['GET','POST'].includes(method))return block();let data={};if(method==='POST'){try{data=req.postDataJSON()||{}}catch(e){return block('invalid-json')}}state.calls.push({path:url.pathname,...data});
  const reply=(body,status=200)=>{if(url.pathname==='/manager/api.php'&&data.action==='detail')state.payloadBytes.push(Buffer.byteLength(JSON.stringify(body)));return route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)})};
+ if(method==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot'&&data.csrf==='synthetic-history-csrf')return state.unauthorized?reply({ok:false,error:'unauthorized'},401):reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-history-csrf'&&[11,12].includes(data.conversation_id)){if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);if(state.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}})}
  if(method==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'&&data.csrf==='synthetic-history-csrf'){if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100})}
  if(url.pathname==='/manager/api.php'){
@@ -59,6 +62,63 @@ for(const width of[390,430,768,1440])test.describe('Stable transcript '+width,()
  test('appending retains selection and a playing audio node',async({page,browserName})=>{
   const state=await setup(page,{total:35,media:true});await open(page);await expect(page.locator('#messages audio')).toHaveCount(1);await page.locator('#messages audio').evaluate(async a=>{await new Promise(r=>a.readyState>=1?r():a.addEventListener('loadedmetadata',r,{once:true}));await a.play();a.currentTime=5;await new Promise(r=>a.seeking?a.addEventListener('seeked',r,{once:true}):r());window.syntheticPlayingAudio=a;window.syntheticAudioTime=a.currentTime});await page.locator('#messages [data-scroll-message-key="33"] .msgBody').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);window.syntheticSelectedText=s.toString()});await screenshot(page,browserName,width,'unchanged-selection');state.documents[11].push({id:36,sender_type:'customer',text:'Новое синтетическое сообщение после начала аудио',created_at:'2026-10-14 08:01:00'});await refresh(page);await expect(page.locator('#messages')).toContainText('Новое синтетическое сообщение после начала аудио');const retained=await page.evaluate(()=>({selection:getSelection().toString()===window.syntheticSelectedText,audio:document.querySelector('#messages audio')===window.syntheticPlayingAudio,playing:!document.querySelector('#messages audio').paused,time:document.querySelector('#messages audio').currentTime>=window.syntheticAudioTime-.05}));expect(retained).toEqual({selection:true,audio:true,playing:true,time:true});await screenshot(page,browserName,width,'retained-selection');clean(state);
  });
+});
+
+// The old automatic read deliberately stays pending across real shell navigation.
+const refreshDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).length;
+const refreshLists=state=>state.calls.filter(c=>c.action==='list').length;
+async function focusRefresh(page){await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}
+async function holdAutomatic(page,state){
+ const hold=deferred(),before=refreshDetails(state);state.latest.push(hold);
+ await focusRefresh(page);await expect.poll(()=>refreshDetails(state)).toBe(before+1);return hold;
+}
+async function proveCurrentFlight(page,state,old,id){
+ const current=await holdAutomatic(page,state),details=refreshDetails(state),lists=refreshLists(state);
+ const obsoleteResponse=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===401);
+ old.resolve({body:{ok:false,error:'unauthorized'},status:401});await (await obsoleteResponse).finished();await settled(page);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();
+ expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(false);
+ await page.evaluate(()=>{for(let i=0;i<5;i++)window.dispatchEvent(new Event('focus'))});await settled(page);
+ expect(refreshDetails(state)).toBe(details);expect(refreshLists(state)).toBe(lists);
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(false);
+ const all=state.documents[id],nextId=all.at(-1).id+1;
+ all.push({id:nextId,sender_type:'customer',text:'Новое входящее без ожидания старого запроса',created_at:'2026-10-14 08:02:00'});
+ current.resolve(state.snapshot({conversation_id:id}));
+ await expect(page.locator('#messages [data-scroll-message-key="'+nextId+'"]')).toHaveCount(1);
+ await focusRefresh(page);await expect.poll(()=>refreshDetails(state)).toBe(details+1);
+ await expect(page.locator('#composer')).toBeVisible();return nextId;
+}
+for(const width of [390,430,768,1440])test('obsolete automatic detail releases the new conversation at '+width+'x420',async({page,browserName})=>{
+ await page.setViewportSize({width,height:420});const state=await setup(page,{total:35,media:true});state.documents[12]=messages(35,true);await open(page);
+ await page.locator('#replyText').fill('Черновик клиента А');await page.locator('#replyFile').setInputFiles({name:'client-a.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic A')});
+ const old=await holdAutomatic(page,state);
+ await open(page,12);await page.locator('#replyText').fill('Точный черновик клиента Б\nБез отправки');await page.locator('#replyFile').setInputFiles({name:'client-b.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
+ await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.refreshPlayingAudio=audio});
+ await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);
+ // WebKit wheel scrolling is asynchronous: capture only after the native scroll
+ // reaches the earlier-history boundary, not while its animation is in progress.
+ await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);await settled(page);
+ expect(await page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);const before=await anchor(page);
+ await proveCurrentFlight(page,state,old,12);await sameAnchor(page,before);
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.refreshPlayingAudio&&!audio.paused)).toBe(true);
+ await expect(page.locator('#replyText')).toHaveValue('Точный черновик клиента Б\nБез отправки');await expect(page.locator('#mediaSelection')).toContainText('client-b.txt');
+ const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(421);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await screenshot(page,browserName,width,'refresh-context-short');
+ await open(page,11);await expect(page.locator('#replyText')).toHaveValue('Черновик клиента А');await expect(page.locator('#mediaSelection')).toContainText('client-a.txt');
+ await open(page,12);await expect(page.locator('#replyText')).toHaveValue('Точный черновик клиента Б\nБез отправки');await expect(page.locator('#mediaSelection')).toContainText('client-b.txt');clean(state);
+});
+for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic detail releases recovered account '+owner+' at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const state=await setup(page,{total:3});await open(page);
+ await page.locator('#replyText').fill('Приватный черновик прежнего аккаунта');await page.locator('#replyFile').setInputFiles({name:'private.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic private')});
+ const old=await holdAutomatic(page,state);state.unauthorized=true;
+ await page.evaluate(()=>WorkspaceV2.api('counts').catch(()=>null));await expect(page.locator('#managerAuthRecovery')).toBeVisible();state.accountId=owner;
+ await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();if(owner===8)await open(page);else await expect(page.locator('#composer')).toBeVisible();
+ await expect(page.locator('#replyText')).toHaveValue(owner===7?'Приватный черновик прежнего аккаунта':'');
+ if(owner===7)await expect(page.locator('#mediaSelection')).toContainText('private.txt');else await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);
+ await page.locator('#replyText').fill('Текущий подтверждённый аккаунт');await proveCurrentFlight(page,state,old,11);
+ expect(await page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(owner);await expect(page.locator('#replyText')).toHaveValue('Текущий подтверждённый аккаунт');
+ await screenshot(page,browserName,width,'refresh-recovery-'+owner);clean(state);
 });
 
 for(const width of[390,430,768,1440])test.describe('History pagination '+width,()=>{
@@ -140,7 +200,7 @@ for(const width of[390,430])test.describe('Short history menu lifecycle '+width,
  test('short menu older control and visible gap warning survive a breakpoint with keyboard focus',async({page})=>{
   const state=await setup(page,{total:1000});await open(page);state.documents[11].push(...messages(300).map(m=>({...m,id:m.id+1000,sender_type:'customer'})));await refresh(page);await expect(page.locator('#conversationHistoryStatus')).toContainText('Между загруженными');await expect(page.locator('#conversationHistoryStatus')).toBeVisible();await expect(page.locator('#conversationLoadOlder')).toBeHidden();
   await page.locator('#replyText').fill('Синтетический черновик\nВторая строка');await page.locator('#replyFile').setInputFiles({name:'gap.txt',mimeType:'text/plain',buffer:Buffer.from('Синтетический файл')});await useConversationTool(page,'conversationSearchOpen');expect((await page.locator('#messages').boundingBox()).height).toBeGreaterThanOrEqual(40);expect((await page.locator('#sendReply').boundingBox()).y+44).toBeLessThanOrEqual(421);await page.locator('#conversationSearchClose').click();
-  await (await revealConversationTool(page,'conversationLoadOlder')).focus();await page.setViewportSize({width,height:844});await expect(page.locator('#conversationLoadOlder')).toBeFocused();expect(await page.locator('#conversationLoadOlder').evaluate(el=>el.parentElement.id)).toBe('conversationHistoryControls');await page.setViewportSize({width,height:420});await expect(page.locator('#conversationLoadOlder')).toBeFocused();await expect(page.locator('#conversationLoadOlder')).toBeVisible();await page.locator('#conversationLoadOlder').press('Escape');await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();await expect(page.locator('#conversationLoadOlder')).toBeHidden();await expect(page.locator('#conversationHistoryStatus')).toBeVisible();
+  await (await revealConversationTool(page,'conversationLoadOlder')).focus();await page.setViewportSize({width,height:844});await expect(page.locator('#conversationLoadOlder')).toBeFocused();await expect.poll(()=>page.locator('#conversationLoadOlder').evaluate(el=>el.parentElement.id)).toBe('conversationHistoryControls');await page.setViewportSize({width,height:420});await expect(page.locator('#conversationLoadOlder')).toBeFocused();await expect(page.locator('#conversationLoadOlder')).toBeVisible();await page.locator('#conversationLoadOlder').press('Escape');await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();await expect(page.locator('#conversationLoadOlder')).toBeHidden();await expect(page.locator('#conversationHistoryStatus')).toBeVisible();
   await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#messages [data-scroll-message-key="1050"]')).toHaveCount(1);expect(await page.evaluate(()=>WorkspaceV2History.getState().has_gap)).toBe(false);clean(state);
  });
 });

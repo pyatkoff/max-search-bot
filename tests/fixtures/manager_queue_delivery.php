@@ -56,11 +56,11 @@ try {
   $result=ManagerHandoffDispatchService::dispatch($id,$platform,'',false,null,true);
   queueCheck($result['queue_applied'],true,'source greeting retains durable handoff');
   $seen=end(IntegrationRegistry::$messenger->observed);
-  queueCheck($seen[3],($hours?'entry day':'entry night')."\n\nКнопка «Продолжить с ботом» отменит ожидание менеджера.",'initial source greeting selects canonical hours and explains cancellation');
+  queueCheck($seen[3],$hours?'entry day':'entry night','initial source greeting is sent intact without a cancellation paragraph');
   queueCheck(ManagerHandoffDispatchService::sourceEntryText(),$hours?'entry day':'entry night','source text helper retains canonical greeting');
  }
  queueCheck(IntegrationRegistry::$messenger->buttons[0][0]['callback_data'],'back_check','button callback remains exact');
- queueCheck(IntegrationRegistry::$messenger->buttons[0][0]['text'],'Продолжить с ботом · отменить ожидание','button explains cancellation');
+ queueCheck(IntegrationRegistry::$messenger->buttons[0][0]['text'],'Вернуться к боту · отменить ожидание','button explains cancellation');
  foreach(IntegrationRegistry::$messenger->observed as $observation){queueCheck(array_slice($observation,0,3),['waiting_manager',1,false],'queue and event committed before customer send');}
  IntegrationRegistry::$messenger->platform='max';
  $pdo->exec("INSERT INTO conversations VALUES(100,'fixture',1,'max','owned','manager',7)");

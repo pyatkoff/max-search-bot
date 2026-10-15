@@ -24,16 +24,16 @@ $passed=0;$failed=0;
 function mvCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
 mvCheck('ordinary all queue includes unassigned plus own',strpos($service,"(c.manager_id IS NULL OR c.manager_id=?)")!==false);
-mvCheck('own-only restriction is only for non-admin',strpos($service,"if(!\$isAdmin){\$where[]='(c.manager_id IS NULL OR c.manager_id=?)'")!==false);
+mvCheck('own-only restriction is only for non-admin',strpos($service,"if(!\$isAdmin){\$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)'")!==false&&str_contains($service,'self::queuePredicate($queue,$managerId,$isAdmin,$args)'));
 mvCheck('admin manager filter is optional',strpos($service,"if(\$isAdmin && \$queue!=='mine')")!==false);
 mvCheck('admin unassigned filter exists',strpos($service,"\$managerFilter==='unassigned'")!==false);
 mvCheck('admin mine filter exists',strpos($service,"\$managerFilter==='mine'")!==false);
 mvCheck('api forwards manager filter only for admin',strpos($api,"\$isAdmin?(string)(\$data['manager_filter']??''):''")!==false);
 mvCheck('off-shift all queue falls back to mine only',strpos($api,"!\$isAdmin&&\$queue==='all'&&!ManagerAvailabilityService::isWorking")!==false);
 mvCheck('off-shift waiting queue is not forcibly emptied',strpos($api,"\$counts['waiting']=['count'=>0,'unread'=>0]")===false);
-mvCheck('waiting queue includes taken conversations awaiting first reply',strpos($service,"\$queue==='attention' || \$queue==='waiting'")!==false && strpos($service,"awaitingFirstReplySql('c')")!==false);
+mvCheck('waiting queue includes taken conversations awaiting first reply',strpos($service,"\$queue==='attention'||\$queue==='waiting'")!==false && strpos($service,"awaitingFirstReplySql('c')")!==false);
 mvCheck('awaiting first reply requires manager outbound after latest request',strpos($service,"mr.sender_type='manager'")!==false && strpos($service,"mr.created_at>=")!==false);
-mvCheck('urgent queue keeps ordinary manager scoped to own assignment',strpos($service,"if(!\$isAdmin){\$where[]='(c.manager_id IS NULL OR c.manager_id=?)';\$args[]=\$managerId;}")!==false);
+mvCheck('urgent queue keeps ordinary manager scoped to own assignment',strpos($service,"if(!\$isAdmin){\$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';\$args[]=\$managerId;}")!==false);
 mvCheck('urgent queue exposes latest request and awaiting marker',strpos($service,' AS manager_request_at,CASE WHEN ')!==false && strpos($service,' AS awaiting_first_reply')!==false);
 mvCheck('urgent queue sorts oldest manager request first',strpos($service,"COALESCE(manager_request_at,c.last_message_at,c.started_at) ASC")!==false);
 
@@ -47,7 +47,7 @@ mvCheck('admin UI isolates priority availability from fresh project and manager 
 mvCheck('admin UI renders priority failures independently without claiming unverified manager health',strpos($adminJs,"sectionView('priority'")!==false && strpos($adminJs,"$('managers').innerHTML=sectionView('managers'")!==false && strpos($adminJs,"Менеджеры и проекты продолжают работать")===false && strpos($adminJs,"if(!S.priorityAvailable||$('saveRule').disabled)return")!==false);
 mvCheck('canonical manager entrypoint owns workspace markup',strpos($workspace,'id="workspaceRoot"')!==false && !is_file($base.'/manager/workspace-v2.php'));
 mvCheck('explicit index URL canonicalizes to root without network redirect',strpos($workspaceJs,'history.replaceState')!==false && strpos($workspaceJs,'/\\/index\\.php$/')!==false && strpos($workspaceJs,'workspace-v2')===false && strpos($workspaceJs,'location.replace(')===false);
-mvCheck('Workspace contains admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,'href="admin.php"')!==false && strpos($workspace,'Настройки и менеджеры')!==false);
+mvCheck('Workspace contains presentation-specific admin settings link',strpos($workspace,'id="adminLink"')!==false && strpos($workspace,"\$manager2?'/manager2/admin.php':'admin.php'")!==false && strpos($workspace,'Настройки и менеджеры')!==false);
 mvCheck('Workspace admin settings link starts hidden',strpos($workspace,'id="adminLink" class="actionBtn hidden"')!==false);
 mvCheck('Workspace admin settings link is role gated',strpos($workspaceJs,"adminLink.classList.toggle('hidden',S.manager.role!=='admin')")!==false);
 mvCheck('Workspace registers manager service worker',strpos($workspaceNotifications,"serviceWorker.register('sw.js'")!==false);

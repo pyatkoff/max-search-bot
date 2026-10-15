@@ -21,7 +21,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     if(!sessionStorage.getItem('manager2-fixture-initialized')){sessionStorage.clear();sessionStorage.setItem('manager2-fixture-initialized','1')}
     window.fixtureWorkers=[];
     let subscription=null;
-    const reg={scope:location.origin+'/manager/',active:{postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
+    const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
     function FakeNotification(){}FakeNotification.permission='default';FakeNotification.requestPermission=async()=>{FakeNotification.permission='granted';return 'granted'};
     Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
@@ -32,13 +32,14 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
     if(req.method()==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
-  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id']);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
+  if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
     if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
     if(!url.pathname.endsWith('.php'))return route.continue();
     if(!url.pathname.startsWith('/manager/')){unexpected.push(req.method()+' '+url.pathname);return route.abort()}
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
     calls.push({path:url.pathname,...data});
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(req.method()==='POST'&&url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot'&&data.csrf==='synthetic-csrf')return authenticated?reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot()):reply({ok:false,error:'unauthorized'},401);
     if(req.method()==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-csrf'&&[11,12].includes(data.conversation_id)){if(!authenticated)return reply({ok:false,error:'unauthorized'},401);if(cancellationState.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}})}
     if(req.method()==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'&&data.csrf==='synthetic-csrf'){if(!authenticated)return reply({ok:false,error:'unauthorized'},401);return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100})}
     if(url.pathname==='/manager/api.php'){
