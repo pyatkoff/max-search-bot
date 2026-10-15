@@ -29,6 +29,8 @@ final class MaxChannelConversionWorker
             $api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);
         }
         foreach($repo->rows('ready',$now,5) as $row){
+            // Collection can capture an event after this tick's clock snapshot.
+            if((int)$row['event_unix']>$now)continue;
             $token=$repo->claim((string)$row['id'],$now);if($token===null)continue;
             try{$response=$api->upload($row,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
             $repo->finish((string)$row['id'],$token,$response,$now);

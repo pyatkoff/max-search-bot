@@ -182,4 +182,32 @@ $p->exec("UPDATE max_channel_conversion_outbox SET state='pending' WHERE id=1");
 $p->exec('UPDATE max_channel_attribution_settings SET message_cursor=0');
 rejects(fn()=>$repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>throw new RuntimeException('capture_failed')),'collector failure');same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],0,'cursor not lost after failure');
 same($repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>null),9,'bounded collector advances');same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],9,'cursor saved after success');
+// A collector can capture an event one second after the tick's clock snapshot.
+// Keep that row unclaimed until the next tick, with its real occurrence time.
+$p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM messages');
+$p->exec("UPDATE max_channel_attribution_settings SET mode='send',message_cursor=0");
+$clockEvent=$now+1;
+$p->prepare("INSERT INTO messages VALUES(1,1,'max','inbound','customer',?,?)")->execute([gmdate('Y-m-d H:i:s',$clockEvent),json_encode(['type'=>'message'])]);
+$clockRepo=new MaxChannelConversionOutbox($p);$clockSettings=MaxChannelConversionOutbox::settings($p);
+$clockCollector=function(int $id)use($clockRepo,$clockSettings,$clockEvent):void{
+    $conversation=$clockRepo->conversation((string)$id,'-1234567890123456789',$clockSettings);
+    $clockRepo->capture($conversation,'max_bot_activity_start',$clockSettings,$clockEvent);
+};
+$clockApi=new class{
+    public int $posts=0;
+    function upload($row,$now){MetrikaOfflineClient::csv($row,$now);$this->posts++;return ['outcome'=>'accepted','upload_id'=>'991','status'=>'UPLOADED'];}
+    function poll($id){throw new RuntimeException('unexpected_poll');}
+    function findUnknown($row){throw new RuntimeException('unexpected_recovery');}
+};
+$result=MaxChannelConversionWorker::tick($p,$lookup,$clockApi,$now,$clockCollector);
+$clockRow=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+same($result['collected'],1,'collector sees new event');same($result['resolved'],1,'new event identity resolved');
+same($clockRow['state'],'ready','event newer than tick clock remains ready');same((int)$clockRow['attempts'],0,'future event not claimed');
+same($clockApi->posts,0,'no premature upload');same($result['unknown'],0,'clock boundary cannot produce unknown');
+same((int)$clockRow['event_unix'],$clockEvent,'capture preserves actual event instant');
+$result=MaxChannelConversionWorker::tick($p,$lookup,$clockApi,$clockEvent);
+$afterClockRow=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch();
+same($afterClockRow['state'],'accepted','next tick uploads event');same($clockApi->posts,1,'one upload after event instant');
+same((int)$afterClockRow['attempts'],1,'one claim only');same((int)$afterClockRow['event_unix'],$clockEvent,'upload preserves actual event instant');
+same($afterClockRow['client_id'],$clockRow['client_id'],'clock defer preserves frozen ClientID');same($afterClockRow['tracker_record_id'],$clockRow['tracker_record_id'],'clock defer preserves tracker record');
 echo 'PASS '.$checks.' MAX channel attribution checks ('.$p->getAttribute(PDO::ATTR_DRIVER_NAME).")\n";
