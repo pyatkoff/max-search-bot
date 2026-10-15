@@ -165,6 +165,15 @@ rate limiting or a proven pre-send DNS/connect failure can retry with backoff.
 Recovery reads at most 300 upload records; an older/unfindable outcome stays held
 for operator review. The comment is a recovery marker, not an API idempotency key.
 
+The live BASIC upload API can omit `client_id_type` in both upload listings and
+individual receipts. Receipt validation permits that omission, while rejecting
+explicit values other than `CLIENT_ID`, an explicit non-`BASIC` type, malformed
+IDs and unknown statuses. Polling requires the exact stored upload ID; lost
+acknowledgement recovery requires one unique exact deterministic comment. This
+compatibility check never resets an unknown event to ready or repeats its POST.
+An event captured after the worker tick starts waits in ready until the next tick
+before being claimed; its occurrence time and resolved identity remain frozen.
+
 A single tick resolves at most 25 queued events, uploads at most five, and polls at
 most three accepted plus three unknown events. Stage uniqueness and SQL claims
 protect concurrent workers. Pending/ready events older than 21 days expire.
