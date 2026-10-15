@@ -191,8 +191,17 @@ final class ChannelPostRegistryService
                     return $result;
                 }
             }
+            // A newer authenticated wrong keyboard may replace a KNOWN completed
+            // edit. Keep an immutable operation version, never reset UNKNOWN or
+            // an in-flight write because another bot has sent an edit event.
+            $keyboardCorrection = $previous && !$album && $sourceEventKey !== null
+                && $previous['state'] === 'sent' && hash_equals((string)$previous['content_hash'], $hash)
+                && ($snapshot['metadata']['capability'] ?? '') === 'supported'
+                && !ChannelPostIncomingAdapter::containsOnlyButton($snapshot,
+                    rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode((string)$publication['start_payload']),
+                    (string)$channel['button_text']);
             // Album observations also append immutable per-member clocks when the body is unchanged.
-            if ($album || !$previous || !hash_equals((string)$previous['content_hash'], $hash)) {
+            if ($album || $keyboardCorrection || !$previous || !hash_equals((string)$previous['content_hash'], $hash)) {
                 $version = $previous ? (int)$previous['version_number'] + 1 : 1;
                 $now = self::now();
                 $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $albumOperation['state'], $albumOperation['write_attempts'], $albumOperation['reason'], self::json($albumOperation['receipt']), $now, $now]);

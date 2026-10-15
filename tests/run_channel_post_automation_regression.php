@@ -634,5 +634,47 @@ $ownEvent=$unknownProvider->messages['801'];$ownEvent['edit_date']=$ownEvent['da
 $resolved=$unknownService->receive('telegram',['update_id'=>8002,'edited_channel_post'=>$ownEvent],'anytour','Any_tour_bot');
 channelPostCheck('authenticated target event resolves grouped UNKNOWN with both images',[$resolved['state'],$unknownProvider->writes(),count($actualRegistry->publication($resolved['publication_id'])['snapshot']['attachments'])],['sent',2,2]);
 
+
+foreach(['max','telegram'] as $platform){
+    $message=$fixtures[$platform];
+    if($platform==='max')$message['body']['mid']='mid.late-foreign-keyboard';
+    else $message['message_id']=9901;
+    $provider=new FixturePostProvider($message);
+    $service=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$provider,'request']));
+    $initial=channelPostReceive($service,$message,$platform);
+    $service->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$initial['publication_id'],$initial['version_id']);
+    $foreign=$provider->message;
+    if($platform==='max'){
+        $foreign['body']['attachments'][1]['payload']['buttons'][]=[['type'=>'open_app','text'=>'Комментарии другого бота','contact_id'=>4242,'payload'=>'foreign']];
+        $foreign['timestamp']+=5000;
+    }else{
+        $foreign['reply_markup']['inline_keyboard'][]=[['text'=>'Комментарии другого бота','callback_data'=>'foreign']];
+        $foreign['edit_date']=$foreign['date']+5;
+    }
+    $provider->message=$foreign;
+    $observed=channelPostReceive($service,$foreign,$platform,true);
+    channelPostCheck($platform.' newer foreign keyboard after a verified edit queues a fresh correction',[$observed['state'],$observed['version_id']>$initial['version_id']],['pending',true]);
+    $service->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$observed['publication_id'],$observed['version_id']);
+    $snapshot=$platform==='max'?ChannelPostIncomingAdapter::maxSnapshot($provider->message):ChannelPostIncomingAdapter::telegramSnapshot($provider->message);
+    $current=$actualRegistry->publication($observed['publication_id']);
+    channelPostCheck($platform.' late foreign button is removed without changing tour text',ChannelPostIncomingAdapter::containsOnlyButton($snapshot,ChannelPostButtonTransport::buttonUrl($current),'Рассчитать на мои даты')&&$provider->writes()===2&&$current['state']==='sent');
+    channelPostReceive($service,$foreign,$platform,true);
+    channelPostCheck($platform.' duplicate foreign edit does not repeat the correction',$provider->writes(),2);
+    $message2=$message;
+    if($platform==='max')$message2['body']['mid']='mid.unknown-new-foreign-keyboard';
+    else $message2['message_id']=9902;
+    $provider2=new FixturePostProvider($message2);$provider2->mode='timeout_unapplied';
+    $service2=new ChannelPostAutomationService($actualRegistry,new ChannelPostButtonTransport([$provider2,'request']));
+    $r=channelPostReceive($service2,$message2,$platform);
+    $service2->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$r['publication_id'],$r['version_id']);
+    $newWrong=$message2;
+    if($platform==='max'){$newWrong['timestamp']+=9000;$newWrong['body']['attachments'][1]['payload']['buttons'][]=[['type'=>'callback','text'=>'Чужая','payload'=>'foreign']];}
+    else{$newWrong['edit_date']=$newWrong['date']+9;$newWrong['reply_markup']['inline_keyboard'][]=[['text'=>'Чужая','callback_data'=>'foreign']];}
+    $provider2->message=$newWrong;
+    $r2=channelPostReceive($service2,$newWrong,$platform,true);
+    $service2->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$r2['publication_id'],$r2['version_id']);
+    channelPostCheck($platform.' newer wrong-keyboard event cannot reset ambiguous write',[$provider2->writes(),$actualRegistry->publication($r2['publication_id'])['state']],[1,'unknown']);
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);

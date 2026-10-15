@@ -43,7 +43,7 @@ final class ChannelPostMemberDeliveryService
             } else {
                 // Only a newer authenticated observation of THIS member replaces
                 // its decision. Registering another photo keeps the same key.
-                $unresolved = (int)$old['write_attempts'] > 0 && in_array((string)$old['state'], ['write_started','unknown','claimed'], true);
+                $unresolved = $old['state'] === 'unknown' || ((int)$old['write_attempts'] > 0 && in_array((string)$old['state'], ['write_started','claimed'], true));
                 // Even a newer wrong-markup event can race the already started
                 // HTTP edit. It is never permission to send that edit twice.
                 if ($unresolved && !$correct) {
@@ -125,7 +125,8 @@ final class ChannelPostMemberDeliveryService
                 $current = $this->one('SELECT * FROM post_member_deliveries WHERE id=? AND publication_id=?', [(int)$operation['delivery_member_id'], (int)$operation['publication_id']]);
                 // An authenticated final-markup event can beat the edit response.
                 // Its newer verified state wins without reporting a storage fault.
-                if ($current && $current['state'] === 'sent'
+                if ($state === 'sent' && !empty($receipt['button_verified']) && !empty($receipt['content_preserved'])
+                    && $current && $current['state'] === 'sent'
                     && !hash_equals((string)$current['observation_key'], (string)$operation['delivery_observation_key'])
                     && ($current['desired_role'] === 'clear') === (($operation['button_mode'] ?? '') === 'clear_keyboard')) {
                     $observed = json_decode((string)$current['snapshot_json'], true) ?: [];
