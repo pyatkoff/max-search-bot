@@ -96,6 +96,7 @@ function queryPageExpected(array $fixtures,string $queue,int $limit=200,string $
     $rows=array_values(array_filter($fixtures,static function(array $row)use($queue,$managerFilter,$stage,$tag,$admin):bool{
         if($row['is_test']||$row['customer_id']!==1||strcasecmp($row['project_key'],'anytour')!==0)return false;
         if(($queue==='closed')!==($row['status']==='closed'))return false;
+        if($queue==='mine'&&($row['status']!=='manager'||$row['manager_id']!==7))return false;
         if(!$admin&&$queue!=='closed'&&$row['manager_id']!==null&&$row['manager_id']!==7)return false;
         if($managerFilter==='unassigned'&&$row['manager_id']!==null)return false;
         if(($managerFilter==='mine'||$managerFilter==='7')&&$row['manager_id']!==7)return false;
@@ -104,7 +105,13 @@ function queryPageExpected(array $fixtures,string $queue,int $limit=200,string $
         if($tag>0&&$row['id']%4!==0)return false;
         return true;
     }));
-    usort($rows,static fn(array $a,array $b):int=>strcmp($b['last_message_at']??$b['started_at'],$a['last_message_at']??$a['started_at']));
+    usort($rows,static function(array $a,array $b)use($queue):int{
+        if($queue==='mine'){
+            $rank=(int)($b['reply_needed']??true)<=>(int)($a['reply_needed']??true);
+            if($rank!==0)return$rank;
+        }
+        return strcmp($b['last_message_at']??$b['started_at'],$a['last_message_at']??$a['started_at']);
+    });
     $rows=array_slice($rows,0,200);
     // Preserve legacy routing visibility after selecting the page, without backfilling.
     if($restricted)$rows=array_values(array_filter($rows,static fn(array $row):bool=>$row['source_id']!==2));
@@ -135,13 +142,48 @@ queryPageCheck('ordinary ownership and source visibility remain post-page withou
 $rows=ManagerConversationService::list(7,'closed',200,'*');
 queryPageCheck('ordinary archive ownership/source visibility preserves the capped candidate window',array_column($rows,'id')===queryPageExpected($fixtures,'closed',200,'','',0,false,true));
 
-// Semantic queues still need their original request/reply ranking before the cap.
+// Request-ranked queues retain their existing path.
 $db->exec("UPDATE managers SET role='admin' WHERE id=7");
-foreach(['waiting','attention','requested','mine'] as $queue){
+foreach(['waiting','attention','requested'] as $queue){
     $rows=ManagerConversationService::list(7,$queue,200,'*');
     queryPageCheck("{$queue} includes real fixture leads",count($rows)>0);
     queryPageCheck("{$queue} retains its original semantic query path",!str_contains($pdo->lastListSql,'inbox_page'));
 }
+
+// More than 200 recent answered assignments must not displace older clients
+// awaiting a reply. The independently computed fixture rank stays before LIMIT.
+$mineFixtures=array_values(array_filter($fixtures,static fn(array $row):bool=>$row['status']==='manager'&&$row['manager_id']===7&&!$row['is_test']&&$row['project_key']==='anytour'));
+usort($mineFixtures,static fn(array $a,array $b):int=>strcmp($b['last_message_at']??$b['started_at'],$a['last_message_at']??$a['started_at']));
+$answeredIds=[];
+foreach(array_slice($mineFixtures,0,300) as $row){
+    $id=$row['id'];$at=gmdate('Y-m-d H:i:s',strtotime($row['last_message_at']??$row['started_at'])+60);
+    $message->execute([100000+$id*10,$id,'outbound','manager','answered-'.$id,'{}',$at]);
+    // A later button remains unread but does not create another pending reply.
+    $message->execute([100001+$id*10,$id,'inbound','customer','show_tours','{"type":"callback"}',$at]);
+    $db->prepare('UPDATE conversations SET last_message_at=? WHERE id=?')->execute([$at,$id]);
+    $fixtures[$id]['last_message_at']=$at;$fixtures[$id]['reply_needed']=false;$answeredIds[]=$id;
+}
+$readsBeforeMine=$db->query('SELECT * FROM manager_conversation_reads ORDER BY manager_id,conversation_id')->fetchAll();
+$pdo->annotations=0;$minePage=null;
+$mineRows=ManagerConversationService::list(7,'mine',200,'*','','',0,[],$minePage);
+queryPageCheck('Mine ranks pending clients before over 200 newer answered assignments',array_column($mineRows,'id')===queryPageExpected($fixtures,'mine')&&!array_intersect(array_column($mineRows,'id'),$answeredIds));
+queryPageCheck('Mine annotates only its 200 reply-ranked candidates',$pdo->annotations===200&&$minePage===['candidate_count'=>200,'limit_reached'=>true]);
+echo 'EVIDENCE queue=mine answered_candidates=300 projected_rows='.count($mineRows).' annotation_calls='.$pdo->annotations."\n";
+queryPageCheck('Mine keeps exact pending rank and unread values',!array_filter($mineRows,static fn(array $row):bool=>(int)$row['awaiting_manager_reply']!==1||(int)$row['unread_count']!==((int)$row['id']%5===0?1:2)));
+$shortPage=null;$shortMine=ManagerConversationService::list(7,'mine',37,'anytour','','',0,[],$shortPage);
+queryPageCheck('Mine caller limit keeps the same 200-candidate window',array_column($shortMine,'id')===queryPageExpected($fixtures,'mine',37)&&$shortPage===['candidate_count'=>200,'limit_reached'=>true]);
+$savedMine=ManagerConversationService::list(7,'waiting',200,'anytour','','',0,['queues'=>['mine']]);
+queryPageCheck('saved singleton Mine keeps the exact reply-ranked page',array_column($savedMine,'id')===array_column($mineRows,'id'));
+$filteredMine=ManagerConversationService::list(7,'mine',200,'anytour','','quote',1);
+queryPageCheck('Mine keeps stage and tag conditions ahead of the cap',array_column($filteredMine,'id')===queryPageExpected($fixtures,'mine',200,'','quote',1));
+foreach(array_slice($mineRows,0,12) as $row){
+    $id=(int)$row['id'];$db->prepare('UPDATE conversations SET source_id=2 WHERE id=?')->execute([$id]);$fixtures[$id]['source_id']=2;
+}
+$db->exec("UPDATE managers SET role='manager' WHERE id=7");
+$visibleMine=ManagerConversationService::list(7,'mine',200,'*');
+queryPageCheck('Mine keeps post-page routing visibility without backfill',count($visibleMine)===188&&array_column($visibleMine,'id')===queryPageExpected($fixtures,'mine',200,'','',0,false,true));
+queryPageCheck('Mine ranking and list reads never advance read markers',$db->query('SELECT * FROM manager_conversation_reads ORDER BY manager_id,conversation_id')->fetchAll()===$readsBeforeMine);
+$db->exec("UPDATE managers SET role='admin' WHERE id=7");
 
 // The working New queue is personal even for an administrator. Administrative
 // All/attention views remain available; this selection must never reassign leads.
