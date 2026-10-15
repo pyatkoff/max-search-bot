@@ -4,7 +4,7 @@ const origin='http://127.0.0.1:4173';
 
 // Exercise the real notification module with in-memory browser/HTTP failures.
 // No real permission prompt, push subscription, save or notification is created.
-async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false,permissionPending=false}={}){
+async function setup(page,working,{recoverAfterAbort=false,backgroundPending=false,permissionPending=false,keyBodyPending=false,confirmationPending=false}={}){
   const unexpected=[];
   await page.route('**/*',route=>{
     const request=route.request(),url=new URL(request.url());
@@ -14,15 +14,15 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     return route.continue();
   });
   await page.goto(origin+'/tests/visual/workspace-v2-fixture.html');
-  await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending})=>{
+  await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending})=>{
     document.querySelector('.notificationHealth').id='notificationStatus';
     window.fixturePushCalls=[];
     window.fixturePushStatus={is_working:working,notification_path_usable:false,notification_path_reason:'no_subscription'};
     window.WorkspaceV2={S:{csrf:'synthetic'}};
     const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=resolve;});return Promise.resolve('granted');}};
-    if(permissionPending){
+    if(permissionPending||keyBodyPending){
       const schedule=window.setTimeout.bind(window),cancel=window.clearTimeout.bind(window);
-      window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);if(delay===15000)window.fixtureExpirePermission=()=>{cancel(id);callback(...args);};return id;};
+      window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);const expire=()=>{cancel(id);callback(...args);};if(permissionPending&&delay===15000)window.fixtureExpirePermission=expire;if(keyBodyPending&&delay===10000)window.fixtureExpireKey=expire;return id;};
     }
     Object.defineProperty(window,'Notification',{configurable:true,value:notification});
     Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
@@ -31,18 +31,18 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     const registration={scope:location.origin+'/manager/',active:{state:'activated'},pushManager:{
       async getSubscription(){fixturePushCalls.push('read');return registered?subscription:null;},
       async subscribe(){fixturePushCalls.push('subscribe');if(backgroundPending&&!window.fixtureFinishPush)return new Promise((resolve,reject)=>{window.fixtureFinishPush=outcome=>{if(outcome==='success'){registered=true;resolve(subscription);}else reject(new DOMException('Registration failed - could not connect to push server','AbortError'));};});registered=recoverAfterAbort;throw new DOMException(recoverAfterAbort?'PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY':'Registration failed - could not connect to push server','AbortError');},
-    },async showNotification(){fixturePushCalls.push('confirmation');if(!recoverAfterAbort&&!registered)throw new Error('Unexpected confirmation');}};
+    },async showNotification(){fixturePushCalls.push('confirmation');if(!recoverAfterAbort&&!registered)throw new Error('Unexpected confirmation');if(confirmationPending)return new Promise((resolve,reject)=>{window.fixtureRejectConfirmation=()=>reject(new Error('PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY'));});}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{
       ready:Promise.resolve(registration),async register(){fixturePushCalls.push('register');return registration;},addEventListener(){},
     }});
     window.fetch=async(url,options)=>{
       fixturePushCalls.push(String(url));
       if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};
-      if(url==='push.php?action=key')return {ok:true,status:200,json:async()=>({ok:true,public_key:'AQ'})};
+      if(url==='push.php?action=key'){window.fixtureKeySignal=options?.signal;return {ok:true,status:200,json:async()=>{if(keyBodyPending&&!window.fixtureFinishKey)return new Promise(resolve=>{window.fixtureFinishKey=()=>resolve({ok:true,public_key:'AQ'});});return {ok:true,public_key:'AQ'};}};}
       if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};}
       throw new Error('Unexpected request');
     };
-  },{working,recoverAfterAbort,backgroundPending,permissionPending});
+  },{working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending});
   await page.addScriptTag({url:origin+'/manager/assets/workspace-v2-notifications.js'});
   await expect(page.locator('#notificationStatus [data-enable-push]')).toBeVisible();
   return unexpected;
@@ -129,6 +129,53 @@ for(const width of [390,430,768,1440])for(const outcome of ['success','failure']
     const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));expect(size.scroll).toBeLessThanOrEqual(size.width+1);
     await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}-recovery-${outcome}-result.png`});
     expect(unexpected).toEqual([]);
+  });
+});
+
+for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])test.describe(`push bounded setup ${width}x${height}`,()=>{
+  test.use({viewport:{width,height}});
+  test('key body timeout restores Retry and a late body cannot repeat the saved setup',async({page,browserName})=>{
+    const unexpected=await setup(page,true,{keyBodyPending:true,recoverAfterAbort:true});
+    const originalDraft=await page.locator('.composer textarea').inputValue();
+    const button=page.locator('#notificationStatus [data-enable-push]');
+    await button.focus();await button.press('Enter');await expect(button).toBeDisabled();
+    await expect.poll(()=>page.evaluate(()=>typeof fixtureFinishKey)).toBe('function');
+    await page.evaluate(()=>fixtureExpireKey());
+    const diagnostic=page.locator('#notificationStatus .notificationDiagnostic');
+    await expect(diagnostic).toContainText('Этап: Получение настроек');await expect(diagnostic).toContainText('Код: TIMEOUT');
+    await expect(button).toBeEnabled();expect(await page.evaluate(()=>fixtureKeySignal.aborted)).toBe(true);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='subscribe'||call==='push.php').length)).toBe(0);
+    await diagnostic.locator('summary').focus();await diagnostic.locator('summary').press('Enter');await expect(diagnostic).toHaveAttribute('open','');
+    fs.mkdirSync('notification-diagnostic-artifacts',{recursive:true});
+    await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}x${height}-key-body-timeout.png`});
+    await button.click();await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+    await page.evaluate(()=>fixtureFinishKey());
+    await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php?action=key').length)).toBe(2);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='subscribe').length)).toBe(1);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(1);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='confirmation').length)).toBe(1);
+    await expect(page.locator('.composer textarea')).toHaveValue(originalDraft);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);expect(unexpected).toEqual([]);
+  });
+  test('pending or rejected optional confirmation leaves saved success usable',async({page,browserName})=>{
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const unexpected=await setup(page,true,{confirmationPending:true,recoverAfterAbort:true});
+    const originalDraft=await page.locator('.composer textarea').inputValue();
+    await page.locator('#notificationStatus [data-enable-push]').click();
+    await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+    await expect(page.locator('#notificationStatus [data-enable-push]')).toHaveCount(0);
+    expect(await page.evaluate(()=>typeof fixtureRejectConfirmation)).toBe('function');
+    fs.mkdirSync('notification-diagnostic-artifacts',{recursive:true});
+    await page.screenshot({path:`notification-diagnostic-artifacts/${browserName}-${width}x${height}-confirmation-pending.png`});
+    await page.evaluate(()=>fixtureRejectConfirmation());await page.evaluate(()=>WorkspaceV2Notifications.refresh());
+    await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='subscribe').length)).toBe(1);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(1);
+    expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='confirmation').length)).toBe(1);
+    await expect(page.locator('.composer textarea')).toHaveValue(originalDraft);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+    expect(errors).toEqual([]);expect(unexpected).toEqual([]);
   });
 });
 
