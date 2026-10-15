@@ -110,7 +110,7 @@ jobs:
       - name: Native manager2 worker scope and sound acceptance
         run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'native manager2' --reporter=line --workers=1 --trace=retain-on-failure
       - name: Existing native sound case with local audio server
-        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep '^new message in the open conversation signals without changing draft or transcript$' --reporter=line --workers=1 --trace=retain-on-failure
+        run: npx playwright test tests/visual/workspace-sound.spec.js --browser=firefox --grep 'new message in the open conversation signals without changing draft or transcript' --reporter=line --workers=1 --trace=retain-on-failure
       - name: Print synthetic failure context
         if: failure()
         run: |
