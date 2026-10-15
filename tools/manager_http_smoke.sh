@@ -77,6 +77,20 @@ assert_body_contains manager2_index '<base href="/manager/">'
 assert_body_contains manager2_style 'body.manager2'
 assert_body_contains manager2_script 'window.Manager2Presentation'
 
+request manager2_admin "$MANAGER2_BASE_URL/admin.php"
+request manager2_admin_style "$MANAGER2_BASE_URL/assets/admin.css"
+assert_status manager2_admin 200
+assert_status manager2_admin_style 200
+assert_body_contains manager2_admin '<base href="/manager/">'
+assert_body_contains manager2_admin 'class="manager2Admin"'
+assert_body_contains manager2_admin 'id="adminSection-managers"'
+assert_body_contains manager2_admin 'assets/admin-edit-safety.js?v='
+assert_body_contains manager2_admin_style '.manager2Admin'
+if grep -iq '^Set-Cookie:' "$TMP_DIR/manager2_admin.headers"; then
+  echo 'FAIL manager2_admin: identity-free HTML must not issue a session cookie'
+  exit 1
+fi
+
 request consultant_root "$CONSULTANT_BASE_URL/"
 request consultant_index "$CONSULTANT_BASE_URL/index.php"
 request consultant_widget "$CONSULTANT_BASE_URL/widget.js"

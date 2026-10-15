@@ -173,11 +173,16 @@ test('historical receipt confirms command while fresh snapshot paints newer coll
  const s=await setup(page,{unknownSave:true});await openLead(page);await openNameDialog(page);await expect(page.locator('#cnInput')).toBeEnabled();await page.locator('#cnInput').fill('Моё первоначальное имя');await page.locator('#cnSave').click();await expect(page.locator('#cnResolve')).toBeVisible();s.advanceName('Более новое имя коллеги');await page.locator('#cnResolve').click();await expect(page.locator('#conversationTitle')).toHaveText('Более новое имя коллеги');await expect(page.locator('#cnEffective')).toHaveText('Более новое имя коллеги');await expect(page.locator('#cnStatus')).toContainText('показан текущий вариант');expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php'&&c.action==='save')).toHaveLength(1);expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php'&&c.action==='get')).toHaveLength(2);clean(s);
 });
 
-test('fixture Inbox timing and request counts keep name data lazy',async({page})=>{
- await page.setViewportSize({width:1440,height:900});const samples=[],requests=[];
+test('fixture Inbox timing and request counts keep name data lazy',async({browser})=>{
+ const samples=[],requests=[];
  for(let i=0;i<10;i++){
-  await page.unroute('**/*');const started=Date.now(),s=await setup(page);samples.push(Date.now()-started);requests.push(s.calls.map(c=>c.path+' '+c.action));
-  expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php')).toHaveLength(0);expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list')).toHaveLength(1);clean(s);
+  // A fresh document must not inherit a cancelled background request/listener
+  // from the preceding sample. Keep current-sample errors fully asserted.
+  const page=await browser.newPage({viewport:{width:1440,height:900}});
+  try{
+   const started=Date.now(),s=await setup(page);samples.push(Date.now()-started);requests.push(s.calls.map(c=>c.path+' '+c.action));
+   expect(s.calls.filter(c=>c.path==='/manager/customer-name-api.php')).toHaveLength(0);expect(s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='list')).toHaveLength(1);clean(s);
+  }finally{await page.close()}
  }
  const sorted=[...samples].sort((a,b)=>a-b);console.log(JSON.stringify({fixture:'2clients/35messages/1440x900',metric:'browser-pageGoto-to-visible-Inbox',n:10,p50:sorted[4],p95:sorted[9],samples,http:requests,production:false}));
 });

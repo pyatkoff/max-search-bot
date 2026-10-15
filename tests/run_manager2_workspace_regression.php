@@ -13,10 +13,18 @@ function renderWorkspace(string $entry):string{
     return $html;
 }
 $legacy=renderWorkspace('manager/index.php');$modern=renderWorkspace('manager2/index.php');
+$legacyAdmin=renderWorkspace('manager/admin.php');$modernAdmin=renderWorkspace('manager2/admin.php');
 $checks=0;
 function checkManager2(string $name,bool $ok):void{global $checks;if(!$ok){fwrite(STDERR,'FAIL '.$name."\n");exit(1);}echo 'PASS '.$name."\n";$checks++;}
 checkManager2('canonical entrypoint renders without modern presentation',str_contains($legacy,'<title>AnyTour — кабинет менеджера</title>')&&!str_contains($legacy,'class="manager2"')&&!str_contains($legacy,'<base '));
 checkManager2('alternate entrypoint opts into the real canonical shell',str_contains($modern,'<body class="manager2">')&&str_contains($modern,'id="workspaceRoot"')&&str_contains($modern,'<base href="/manager/">'));
+checkManager2('each workspace links to its matching admin presentation',preg_match('~id="adminLink"[^>]*href="admin\.php"~',$legacy)===1&&preg_match('~id="adminLink"[^>]*href="/manager2/admin\.php"~',$modern)===1);
+checkManager2('alternate admin renders its modern shell with canonical base',str_contains($modernAdmin,'<body class="manager2Admin">')&&str_contains($modernAdmin,'<base href="/manager/">')&&!str_contains($legacyAdmin,'<base '));
+preg_match_all('/\bid="([^"]+)"/',$legacyAdmin,$legacyAdminIds);preg_match_all('/\bid="([^"]+)"/',$modernAdmin,$modernAdminIds);
+checkManager2('alternate admin retains every canonical editor and control exactly once',$legacyAdminIds[1]===$modernAdminIds[1]&&count(array_unique($modernAdminIds[1]))===count($modernAdminIds[1]));
+preg_match_all('/<script src="([^"]+)"/',$legacyAdmin,$legacyAdminScripts);preg_match_all('/<script src="([^"]+)"/',$modernAdmin,$modernAdminScripts);
+checkManager2('alternate admin keeps canonical behavior modules and order',$legacyAdminScripts[1]===$modernAdminScripts[1]&&count($modernAdminScripts[1])===4);
+checkManager2('alternate admin adds only its cache-busted presentation stylesheet',substr_count($modernAdmin,'/manager2/assets/admin.css?v=')===1&&is_file($root.'/manager2/assets/admin.css'));
 preg_match_all('/<script src="([^"]+)"/',$legacy,$oldAssets);preg_match_all('/<script src="([^"]+)"/',$modern,$newAssets);
 checkManager2('all canonical behavior modules are retained in their original order',array_values(array_filter($newAssets[1],static fn($s)=>!str_starts_with($s,'/manager2/')&&!str_starts_with($s,'/manager/assets/workspace-v2-post-context.js?')))===$oldAssets[1]);
 checkManager2('optional original-post module loads once before presentation startup',substr_count($modern,'/manager/assets/workspace-v2-post-context.js?')===1&&strpos($modern,'/manager/assets/workspace-v2-post-context.js?')<strpos($modern,'/manager2/assets/manager2.js'));
