@@ -41,6 +41,21 @@ function metrikaFail($message, $restoreProcessing = false)
     exit(1);
 }
 
+// Reuse the established scheduler. The new path is OFF until explicitly enabled.
+// Lookup/upload work never runs inside a customer webhook or manager reply.
+try {
+    require_once __DIR__.'/services/MaxChannelConversionWorker.php';
+    $channelSettings=MaxChannelConversionOutbox::settings();
+    if($channelSettings&&$channelSettings['mode']!=='off'){
+        require_once __DIR__.'/maxsearchclass.php';
+        require_once __DIR__.'/services/MetrikaConversionGoalService.php';
+        $channelResult=MaxChannelConversionWorker::tick(null,null,null,null,[MetrikaConversionGoalService::class,'reconcileChannelConversation']);
+        metrikaLog('MAX_CHANNEL '.json_encode($channelResult,JSON_UNESCAPED_SLASHES));
+    }
+} catch (Throwable $ignored) {
+    metrikaLog('MAX_CHANNEL background_failed');
+}
+
 if (!defined('METRIKA_COUNTER_ID') || trim((string)METRIKA_COUNTER_ID) === '') {
     metrikaFail('METRIKA_COUNTER_ID is not configured');
 }
@@ -250,3 +265,4 @@ echo 'OK upload_id=' . $uploadId
     . ' line_quantity=' . $lineQuantity
     . ' status=' . $status
     . PHP_EOL;
+

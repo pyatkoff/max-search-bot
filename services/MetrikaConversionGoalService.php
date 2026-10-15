@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
+require_once __DIR__ . '/MaxChannelConversionOutbox.php';
 
 /**
  * Conversation-aware owner for higher-funnel Yandex Metrika conversion goals.
@@ -98,6 +99,24 @@ class MetrikaConversionGoalService
         }
     }
 
+    /** Background recovery from recorded MAX messages, scoped by the outbox. */
+    public static function reconcileChannelConversation(int $conversationId): void
+    {
+        $settings=MaxChannelConversionOutbox::settings();
+        if(!$settings||$settings['mode']==='off')return;
+        $chat=self::chatId($conversationId);
+        $repository=new MaxChannelConversionOutbox(ConversationDb::connection());
+        $conversation=$repository->conversation((string)$conversationId,$chat,$settings);
+        if(!$conversation)return;
+        if(class_exists('MaxSearchApi')&&method_exists('MaxSearchApi','metrikaGoalAllowed')&&!MaxSearchApi::metrikaGoalAllowed($chat))return;
+        foreach(MaxChannelConversionOutbox::TARGETS as $target){
+            if(self::hasEvent($conversationId,self::marker($target)))continue;
+            if($target!=='max_bot_activity_start'&&(!self::hasEvent($conversationId,'waiting_manager')||!self::hasEvent($conversationId,'manager_message')))continue;
+            if(!$repository->event($conversation,$target,$settings))continue;
+            if(!self::emitOnce($conversationId,$target,null))throw new RuntimeException('channel_stage_capture_failed');
+        }
+    }
+
     private static function emitOnce(int $conversationId, string $target, ?callable $queue): bool
     {
         $marker = self::marker($target);
@@ -105,7 +124,7 @@ class MetrikaConversionGoalService
         $chatId = self::chatId($conversationId);
         if ($chatId === '') return false;
 
-        $queued = $queue ? (bool)$queue($chatId, $target) : self::queue($chatId, $target);
+        $queued = $queue ? (bool)$queue($chatId, $target) : self::queue($chatId, $target, $conversationId);
         if (!$queued) return false;
 
         $payload = json_encode(['target'=>$target], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
@@ -114,10 +133,10 @@ class MetrikaConversionGoalService
         return true;
     }
 
-    private static function queue(string $chatId, string $target): bool
+    private static function queue(string $chatId, string $target, int $conversationId): bool
     {
         if (!class_exists('MaxSearchApi') || !method_exists('MaxSearchApi', 'queueMetrikaGoal')) return false;
-        return (bool)MaxSearchApi::queueMetrikaGoal($chatId, $target);
+        return (bool)MaxSearchApi::queueMetrikaGoal($chatId, $target, ['conversation_id'=>(string)$conversationId]);
     }
 
     private static function chatId(int $conversationId): string
@@ -159,3 +178,4 @@ class MetrikaConversionGoalService
         } catch (Throwable $ignored) {}
     }
 }
+

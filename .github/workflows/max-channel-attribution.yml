@@ -1,0 +1,52 @@
+name: MAX channel attribution native integration
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/Max*Attribution*'
+      - 'services/MaxTrackerLookup*'
+      - 'services/MaxChannelConversion*'
+      - 'services/Metrika*'
+      - 'maxsearchclass.php'
+      - 'cron_metrika.php'
+      - 'max-attribution-lookup.php'
+      - 'migrations/037_max_channel_conversion_outbox.sql'
+      - 'tests/*max*attribution*'
+      - 'tests/test_max_tracker_mysql.php'
+      - 'tests/fixtures/max_channel_attribution.php'
+      - 'tools/*max*attribution*'
+      - '.github/workflows/max-channel-attribution.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mysql-http:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-only
+          MYSQL_DATABASE: max_attribution_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      MAX_ATTRIBUTION_TEST_MYSQL_DSN: 'mysql:host=127.0.0.1;dbname=max_attribution_test;charset=utf8mb4'
+      MAX_ATTRIBUTION_TEST_MYSQL_USER: root
+      MAX_ATTRIBUTION_TEST_MYSQL_PASS: fixture-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, openssl, mbstring, curl
+          coverage: none
+      - name: Exercise native queue, claims, timestamps and transport state transitions
+        run: php tests/run_max_channel_attribution.php
+      - name: Exercise SELECT-only tracker lookup and counter precedence
+        run: php tests/test_max_tracker_mysql.php
+      - name: Exercise real HTTP signature, bounds and database lookup
+        run: python3 tests/run_max_attribution_http.py

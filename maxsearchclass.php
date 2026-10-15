@@ -4,6 +4,7 @@ require_once(__DIR__ . '/maxsearchbaseclass.php');
 require_once(__DIR__ . '/services/ProjectConfig.php');
 require_once(__DIR__ . '/services/TrafficAttributionService.php');
 require_once(__DIR__ . '/services/AnalyticsService.php');
+require_once(__DIR__ . '/services/MaxChannelConversionOutbox.php');
 require_once(__DIR__ . '/services/MaxTransport.php');
 require_once(__DIR__ . '/services/FollowupQueueService.php');
 require_once(__DIR__ . '/services/AiSearchContextService.php');
@@ -156,9 +157,12 @@ class MaxSearchApi extends MaxSearchBase
         $countryNorm=function_exists('mb_strtolower')?mb_strtolower(trim($country),'UTF-8'):strtolower(trim($country));$countryNorm=str_replace('ё','е',$countryNorm);
         return in_array($countryNorm,['россия','абхазия'],true)?['country_id'=>$countryId,'country'=>$country]:false;
     }
-    public static function queueMetrikaGoal($chatID,$target){
+    public static function metrikaGoalAllowed($chatID): bool { return static::metrikaExcludedDestination($chatID)===false; }
+    public static function queueMetrikaGoal($chatID,$target,?array $eventContext=null){
         $target=trim((string)$target);if($target==='')return false;$excluded=static::metrikaExcludedDestination($chatID);
         if($excluded){static::funnelLog($chatID,'metrika_skipped_destination',['target'=>$target,'country_id'=>$excluded['country_id'],'country'=>$excluded['country']]);return false;}
+        $channelQueued=MaxChannelConversionOutbox::queueIfEligible($chatID,$target,$eventContext);
+        if($channelQueued!==null)return $channelQueued;
         $meta=static::getTrafficMeta($chatID);$yclid=static::getLatestYclid($chatID);if($yclid==='')$yclid=trim((string)($meta['yclid']??''));if($yclid==='')return false;
         $dir=__DIR__.'/metrika_dedupe';if(!is_dir($dir))@mkdir($dir,0755,true);$key=hash('sha256',$yclid.'|'.$target);$file=$dir.'/'.$key.'.lock';$fp=@fopen($file,'c+');if(!$fp)return AnalyticsService::queueMetrika(__DIR__,$chatID,$yclid,$target,$meta);
         $result=false;if(flock($fp,LOCK_EX)){rewind($fp);$done=trim((string)stream_get_contents($fp));if($done!=='')$result=true;else{$result=AnalyticsService::queueMetrika(__DIR__,$chatID,$yclid,$target,$meta);if($result){ftruncate($fp,0);rewind($fp);fwrite($fp,date('c'));fflush($fp);}}flock($fp,LOCK_UN);}fclose($fp);return $result;
@@ -177,3 +181,4 @@ class MaxSearchApi extends MaxSearchBase
     public static function scheduleSearchIntroFollowup($chatID,$delaySeconds=60){return FollowupQueueService::schedule(__DIR__,$chatID,(int)$delaySeconds,null,'search_intro');}
     public static function cancelToursFollowup($chatID){return FollowupQueueService::cancel(__DIR__,$chatID);}
 }
+

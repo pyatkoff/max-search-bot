@@ -238,6 +238,9 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_max_subscription_attribution_policy.php',
+        'php tests/run_max_channel_attribution.php',
+        'python3 tests/run_max_attribution_key.py',
         'php tests/run_max_private_avatar_probe_regression.php',
         'python3 tests/run_max_owner_avatar_workflow_regression.py',
         'php tests/run_channel_daily_report_regression.php',
@@ -266,3 +269,4 @@ return [
         'php tests/run_live_child_age_count_regression.php',
     ],
 ];
+
