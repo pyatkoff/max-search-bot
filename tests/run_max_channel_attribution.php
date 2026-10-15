@@ -72,9 +72,44 @@ foreach([
 $gets=0;$client=new MetrikaOfflineClient('98615635','fake',function($method,$url,$csv)use(&$gets,$event){$gets++;same($method,'GET','recovery GET only');same($csv,null,'no recovery upload');return ['http'=>200,'body'=>json_encode(['uploadings'=>[['id'=>909,'comment'=>MetrikaOfflineClient::comment($event),'client_id_type'=>'CLIENT_ID','status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1]]])];});
 same($client->findUnknown($event)['id'],909,'lost acknowledgement recovered');same($gets,1,'bounded lookup');
 $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>array_map(fn($id)=>['id'=>$id,'comment'=>MetrikaOfflineClient::comment($event),'client_id_type'=>'CLIENT_ID'],[909,910])])]);same($client->findUnknown($event),null,'ambiguous recovery remains held');
-$goals=array_map(fn($target)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]],MaxChannelConversionOutbox::TARGETS);
+$goals=array_map(fn($goal)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$goal['target']]]],array_values(MetrikaOfflineClient::CHANNEL_GOALS));
+foreach($goals as $index=>&$g)$g['id']=$index+10;unset($g);
 $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$goals])]);same($client->goalsReady(),true,'existing exact goals');
 $goals[0]['conditions'][0]['type']='contain';$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$goals])]);same($client->goalsReady(),false,'similar goal insufficient');
+// Existing shared goals cannot satisfy channel-only readiness.
+$legacy=array_map(fn($target)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]],MaxChannelConversionOutbox::TARGETS);
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$legacy])]);same($client->goalsReady(),false,'legacy goals stay separate');
+foreach(MetrikaOfflineClient::CHANNEL_GOALS as $stage=>$definition){$e=$event;$e['target']=$stage;$lines=array_map('str_getcsv',explode("\n",trim(MetrikaOfflineClient::csv($e,$now+901))));same($lines[1][1],$definition['target'],'dedicated channel CSV target');}
+// Explicit provisioning creates only the three allowlisted exact goals.
+$shared=[['id'=>1,'name'=>'Existing shared activity','type'=>'action','conditions'=>[['type'=>'contain','url'=>'max_bot_activity_start']]]];
+$live=$shared;$writes=[];
+$transport=function($method,$url,$body)use(&$live,&$writes){
+    if($method==='GET')return ['http'=>200,'body'=>json_encode(['goals'=>$live])];
+    same($method,'POST','provision never edits or deletes');ok(str_ends_with($url,'/goals'),'only goals endpoint');
+    $g=json_decode($body,true)['goal'];same($g['type'],'action','JS goal');same(count($g['conditions']),1,'one exact condition');same($g['conditions'][0]['type'],'exact','exact required');
+    ok(in_array($g['conditions'][0]['url'],array_column(MetrikaOfflineClient::CHANNEL_GOALS,'target'),true),'allowlisted new target');
+    $g['id']=100+count($writes);$writes[]=$g;$live[]=$g;return ['http'=>200,'body'=>json_encode(['goal'=>$g])];
+};
+$client=new MetrikaOfflineClient('98615635','fake',$transport);
+same(count($client->provisionChannelGoals()['goals']),3,'read-only goal plan');same(count($writes),0,'plan never writes');
+$result=$client->provisionChannelGoals(true);same(count($writes),3,'creates three missing goals');same($result['existing_goals_checked'],1,'prior semantics checked');same($live[0],$shared[0],'old contain goal unchanged');
+$client->provisionChannelGoals(true);same(count($writes),3,'repeat provisioning reuses exact goals');same($client->goalsReady(),true,'created goals ready');
+$conflict=$shared;$conflict[]=['id'=>2,'name'=>'Conflict','type'=>'action','conditions'=>[['type'=>'contain','url'=>'max_channel_activity_start']]];
+$client=new MetrikaOfflineClient('98615635','fake',function($m)use($conflict){same($m,'GET','conflict never mutates');return ['http'=>200,'body'=>json_encode(['goals'=>$conflict])];});rejects(fn()=>$client->provisionChannelGoals(true),'conflicting new target requires operator review');
+$client=new MetrikaOfflineClient('2','fake',fn()=>throw new RuntimeException('unexpected_io'));rejects(fn()=>$client->provisionChannelGoals(true),'provision counter pinned before IO');
+$client=new MetrikaOfflineClient('98615635','fake',fn($m)=>$m==='GET'?['http'=>200,'body'=>json_encode(['goals'=>$shared])]:['error'=>28,'http'=>0]);rejects(fn()=>$client->provisionChannelGoals(true),'unknown creation stops without resend');
+$exact=[];foreach(MetrikaOfflineClient::CHANNEL_GOALS as $i=>$d)$exact[]=['id'=>200+count($exact),'name'=>$d['name'],'type'=>'action','conditions'=>[['type'=>'exact','url'=>$d['target']]]];
+$multi=$exact;$multi[0]['conditions'][]=['type'=>'exact','url'=>'other_event'];
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$multi])]);same($client->goalsReady(),false,'additional goal matches cannot pass readiness');
+$duplicates=$exact;$copy=$exact[0];$copy['id']=999;$duplicates[]=$copy;
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$duplicates])]);same($client->goalsReady(),false,'duplicate exact goals cannot pass readiness');
+$lateConflict=$shared;$defs=array_values(MetrikaOfflineClient::CHANNEL_GOALS);$lateConflict[]=['id'=>9,'name'=>$defs[2]['name'],'type'=>'action','conditions'=>[['type'=>'contain','url'=>'other_value']]];
+$client=new MetrikaOfflineClient('98615635','fake',function($m)use($lateConflict){same($m,'GET','all conflicts checked before first POST');return ['http'=>200,'body'=>json_encode(['goals'=>$lateConflict])];});rejects(fn()=>$client->provisionChannelGoals(true),'later conflicting name creates no partial goals');
+$readCount=0;$writeCount=0;
+$client=new MetrikaOfflineClient('98615635','fake',function($m,$url,$body)use(&$readCount,&$writeCount,$shared,$exact){
+ if($m==='GET'){$readCount++;$goals=$shared;if($readCount>1){$goals[0]['conditions'][0]['type']='exact';$goals=array_merge($goals,$exact);}return ['http'=>200,'body'=>json_encode(['goals'=>$goals])];}
+ same($m,'POST','concurrent mutation never rolled back by PUT/DELETE');$g=json_decode($body,true)['goal'];$g['id']=700+$writeCount++;return ['http'=>200,'body'=>json_encode(['goal'=>$g])];
+});rejects(fn()=>$client->provisionChannelGoals(true),'concurrent old-goal semantic change blocks activation');same($writeCount,3,'only three allowlisted goals requested');
 // Real signed protocol; wrong key, replay time and malformed identities all fail closed.
 $key=openssl_pkey_new(['private_key_bits'=>2048,'private_key_type'=>OPENSSL_KEYTYPE_RSA]);openssl_pkey_export($key,$private);$public=openssl_pkey_get_details($key)['key'];
 $body=MaxTrackerLookupProtocol::body('98615635',['1234567890123456789'],$now);$signature=MaxTrackerLookupProtocol::signature($body,$private);

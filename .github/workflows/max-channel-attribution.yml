@@ -15,6 +15,7 @@ on:
       - 'tests/test_max_tracker_mysql.php'
       - 'tests/fixtures/max_channel_attribution.php'
       - 'tools/*max*attribution*'
+      - 'tools/max_channel_goals.php'
       - '.github/workflows/max-channel-attribution.yml'
   workflow_dispatch:
 permissions:
