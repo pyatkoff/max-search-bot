@@ -131,6 +131,23 @@ jobs:
              $out['recent_provider_posts']['posts'][]=['published_ms'=>(int)$ts,'published_utc'=>is_numeric($ts)?gmdate('Y-m-d H:i:s',(int)floor((float)$ts/1000)):'','registered'=>in_array((string)($m['body']['mid']??''),array_column($rows,'external_message_id'),true),'target_url_match'=>($m['url']??'')===$target,'url_available'=>is_string($m['url']??null)&&$m['url']!=='','sender_is_bot'=>($m['sender']['is_bot']??false)===true,'chat_type'=>$safe($m['recipient']['chat_type']??''),'snapshot_valid'=>is_array($ss),'content_hash'=>is_array($ss)?ChannelPostIncomingAdapter::contentFingerprint($ss):null,'capability_reason'=>$safe($ss['metadata']['capability_reason']??''),'attachment_types'=>$types((array)($m['body']['attachments']??[]))];
             }
            }
+           $out['exact_read_consistency']=[];
+           $mid=null;
+           for($i=0;$i<3;$i++) {
+            $er=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>'-72182945320979','from'=>1792160091403,'to'=>1792160091403,'count'=>100],null);
+            $mm=$er['data']['messages']??[];$em=count($mm)===1?$mm[0]:null;
+            $es=is_array($em)?ChannelPostIncomingAdapter::maxSnapshot($em):null;
+            $parts=[];
+            if(is_array($es)){
+             foreach(['text','markup']as $k)$parts[$k]=hash('sha256',json_encode($es[$k]??null,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+             $media=array_map(static fn($a)=>[$a['type']??'',(string)($a['photo_id']??'')],$es['attachments']);
+             $parts['media']=hash('sha256',json_encode($media));
+             $parts['link']=hash('sha256',json_encode($es['metadata']['link']??null,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+            }
+            $thisMid=$em['body']['mid']??null;
+            $out['exact_read_consistency'][]=['rank'=>$i+1,'http'=>$er['http'],'count'=>count($mm),'same_message'=>$i===0||$mid===$thisMid,'content_hash'=>is_array($es)?ChannelPostIncomingAdapter::contentFingerprint($es):null,'components'=>$parts,'has_link'=>is_array($es['metadata']['link']??null),'link_type'=>$safe($es['metadata']['link']['type']??''),'link_has_message'=>isset($es['metadata']['link']['message']),'published_ms'=>$em['timestamp']??null];
+            if($i===0)$mid=$thisMid;
+           }
            $out['server_utc']=gmdate('c');
            $out['ok']=true;
           } catch(Throwable $ignored) {$out['error']='read_only_diagnostic_unavailable';}
