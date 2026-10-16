@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../contracts/OutboundMetadataMessengerInterface.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
 require_once __DIR__ . '/../services/MaxTransport.php';
 
-class MaxMessengerAdapter implements MessengerInterface
+class MaxMessengerAdapter implements OutboundMetadataMessengerInterface
 {
     private $send;
     private $sendWithButtons;
@@ -39,8 +39,13 @@ class MaxMessengerAdapter implements MessengerInterface
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
+        return $this->sendWithButtonsAndMetadata($chatId,$text,$buttons,[]);
+    }
+
+    public function sendWithButtonsAndMetadata($chatId, string $text, array $buttons, array $metadata): bool
+    {
         $ok = (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
-        if ($ok && $this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, ['has_buttons'=>true]);
+        if ($ok && $this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, array_merge($metadata,['has_buttons'=>true]));
         return $ok;
     }
 

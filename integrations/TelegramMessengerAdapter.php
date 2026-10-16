@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../contracts/OutboundMetadataMessengerInterface.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
 
-class TelegramMessengerAdapter implements MessengerInterface
+class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
 {
     private $sendCallable;
     private $senderType;
@@ -24,10 +24,15 @@ class TelegramMessengerAdapter implements MessengerInterface
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
+        return $this->sendWithButtonsAndMetadata($chatId,$text,$buttons,[]);
+    }
+
+    public function sendWithButtonsAndMetadata($chatId, string $text, array $buttons, array $metadata): bool
+    {
         $payload = ['chat_id'=>$chatId,'text'=>$text,'parse_mode'=>'HTML'];
         $replyMarkup = self::convertButtons($buttons);
         if ($replyMarkup !== []) $payload['reply_markup'] = json_encode($replyMarkup, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
-        return $this->request('sendMessage', $payload);
+        return $this->request('sendMessage', $payload, $metadata);
     }
 
     public function sendMedia($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text = '', string $previewUrl = ''): bool
@@ -112,18 +117,18 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $hasContact ? ['keyboard'=>$keyboard,'resize_keyboard'=>true,'one_time_keyboard'=>true] : ['inline_keyboard'=>$keyboard];
     }
 
-    private function request(string $method, array $payload): bool
+    private function request(string $method, array $payload, array $metadata = []): bool
     {
         if ($this->sendCallable) {
             $result=call_user_func($this->sendCallable,$method,$payload);
             $this->lastExternalMessageId=is_array($result)?trim((string)($result['result']['message_id']??$result['message_id']??'')):'';
             $ok=(bool)$result;
             if ($ok && $this->recordOutbound && $method === 'sendMessage' && isset($payload['chat_id'])) {
-                ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
+                ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), $this->senderType, array_merge($metadata,['has_buttons'=>isset($payload['reply_markup'])]));
             }
             return $ok;
         }
-        return $this->curlRequest($method,$payload,false);
+        return $this->curlRequest($method,$payload,false,$metadata);
     }
 
     private function multipartRequest(string $method,array $payload): bool
@@ -132,7 +137,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         return $this->curlRequest($method,$payload,true);
     }
 
-    private function curlRequest(string $method,array $payload,bool $multipart): bool
+    private function curlRequest(string $method,array $payload,bool $multipart,array $metadata = []): bool
     {
         $chatId = $payload['chat_id'] ?? null;
         if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') {
@@ -156,7 +161,7 @@ class TelegramMessengerAdapter implements MessengerInterface
         if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
         DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
         if ($ok && $this->recordOutbound && !$multipart && $method === 'sendMessage' && $chatId !== null) {
-            ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, ['has_buttons'=>isset($payload['reply_markup'])]);
+            ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, array_merge($metadata,['has_buttons'=>isset($payload['reply_markup'])]));
         }
         return $ok;
     }
