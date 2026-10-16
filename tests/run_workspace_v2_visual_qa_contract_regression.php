@@ -3,6 +3,8 @@
 declare(strict_types=1);
 $root=dirname(__DIR__);
 $workflow=(string)@file_get_contents($root.'/.github/workflows/workspace-v2-visual-qa.yml');
+$inventory=(string)@file_get_contents($root.'/tools/manager2_visual_inventory.js');
+$shards=(string)@file_get_contents($root.'/tools/manager2_visual_shards.js');
 $previewWorkflow=(string)@file_get_contents($root.'/.github/workflows/manager2-preview.yml');
 $fixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-fixture.html');
 $layoutSpec=(string)@file_get_contents($root.'/tests/visual/workspace-v2-layout.spec.js');
@@ -39,7 +41,8 @@ vqCheck('visual QA is isolated from production',stripos($workflow,'deploy_')===f
 vqCheck('workflow only targets manager visual paths',strpos($workflow,"- 'manager/**'")!==false&&strpos($workflow,"- 'tests/visual/**'")!==false);
 vqCheck('fixture uses production Workspace V2 styles',strpos($fixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-mobile.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-tasks.css')!==false&&strpos($fixture,'../../manager/assets/workspace-v2-notifications.css')!==false);
 vqCheck('visual workflow does not rewrite fixture at runtime',strpos($workflow,'sed -i')===false&&strpos($workflow,"grep -q 'workspace-v2-mobile.css'")!==false);
-vqCheck('visual workflow runs browser layout assertions',strpos($workflow,'workspace-v2-layout.spec.js')!==false&&strpos($workflow,'Assert responsive layout contracts')!==false&&strpos($workflow,'@playwright/test@1.55.0')!==false);
+vqCheck('visual workflow runs registered layout assertions through exact partitions',strpos($workflow,'tools/manager2_visual_shards.js run-part')!==false&&strpos($workflow,'Assert responsive layout contracts')!==false&&strpos($workflow,'@playwright/test@1.55.0')!==false&&strpos($inventory,"'workspace-v2-layout'")!==false&&strpos($inventory,'function partitionSpecs(')!==false&&strpos($shards,'inventory.partitionSpecs(browser,part)')!==false);
+vqCheck('partition jobs have independent namespaces and mandatory fail-closed assembly',strpos($workflow,'part: [0, 1]')!==false&&strpos($workflow,'workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-${{ matrix.part }}')!==false&&strpos($workflow,'QA_PARTS_RESULT: ${{ needs.browser-parts.result }}')!==false&&strpos($workflow,'tools/manager2_visual_shards.js assemble')!==false&&strpos($shards,"result==='success'")!==false);
 vqCheck('layout assertions cover overflow composer bubbles media and desktop zones',strpos($layoutSpec,'expectNoHorizontalOverflow')!==false&&strpos($layoutSpec,"'.composer textarea'")!==false&&strpos($layoutSpec,"'.quickReplies'")!==false&&strpos($layoutSpec,"'.msg.customer'")!==false&&strpos($layoutSpec,"'.msg:has(.attachments)'")!==false&&strpos($layoutSpec,"'.inboxZone'")!==false&&strpos($layoutSpec,"'.conversationZone'")!==false&&strpos($layoutSpec,"'.leadZone'")!==false);
 vqCheck('activity fixture uses production inbox and mobile styles',strpos($activityFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-mobile.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-theme.css')!==false);
 vqCheck('startup fixture uses production core inbox notification and mobile styles',strpos($startupFixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-notifications.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-mobile.css')!==false);
