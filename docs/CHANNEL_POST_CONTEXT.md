@@ -168,3 +168,36 @@ its database state or replaying a historical webhook is not an accepted repair.
 Album source and synthetic provider tests are distinct from a natural Telegram
 album acceptance. After an authorized release, verify one individual button,
 unchanged photographs/caption, a real owner entry and the correct Manager2 context.
+
+## Missing MAX event recovery (2026-10-16)
+
+The existing operational cron also runs the MAX worker once per minute with
+`--run --reconcile`. Each invocation reads one page (up to 100 posts) for one
+fairly selected enabled channel, then processes at most one durable button job.
+The provider-read window and inclusive page boundary live in migration040's
+private `post_channel_reconciliation` table. A full page resumes next time;
+ambiguous equal-millisecond pagination is an explicit attention state rather
+than a silently advanced cursor. Read failures retain the unfinished window.
+An overlapping five-minute window covers delayed provider visibility without
+creating duplicate publication identities or repeated edits.
+
+Rollout seeds existing channels from rollout time. Newly enabled/re-enabled
+channels start from that activation; ordinary scans never import earlier posts.
+Provider observations are recorded as provider reads, without manufacturing or
+replaying webhook updates. Changed registered content still requires its real
+edit observation; a fresh same-content read can repair a replaced keyboard only
+after the previous edit is known sent. UNKNOWN and active writes retain their
+existing immutable operation and can only reconcile through the canonical path.
+Configuration revisions fence delayed provider reads and cursor completions.
+Preview mode makes no database or provider writes, including lease expiration.
+
+A separately authorized existing post can be selected exactly by channel and
+provider publication timestamp with `tools/recover_max_channel_post.php`.
+Supply the installed clean `--expected-sha`, `--channel-id` and exact
+`--published-ms`. The default preview returns a content fingerprint and photo
+count. Apply additionally requires that fingerprint as `--content-hash` and
+`--apply`; it re-reads the same unique provider post and uses the existing
+claim/one-write/readback path. It preserves the original caption, markup,
+forward context and ordered photographs. No permalink decoder, global queue
+reset, customer send, webhook reconfiguration or historical event replay occurs.
+Migration040 and existing publication records remain in place on rollback.

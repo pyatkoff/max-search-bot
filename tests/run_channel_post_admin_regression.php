@@ -11,6 +11,7 @@ function cpaSchema(PDO $db): void
         CREATE TABLE manager_projects (manager_id INTEGER,project_id INTEGER);
         CREATE TABLE conversation_sources (id INTEGER PRIMARY KEY,project_id INTEGER,source_key TEXT,display_name TEXT,channel TEXT,handling_mode TEXT,is_active INTEGER);
         CREATE TABLE post_channels (id INTEGER PRIMARY KEY AUTOINCREMENT,project_id INTEGER,source_id INTEGER,platform TEXT,bot_key TEXT,canonical_bot_username TEXT,channel_id TEXT,display_name TEXT,bot_url TEXT,button_text TEXT,is_enabled INTEGER DEFAULT 0,config_version INTEGER DEFAULT 1,created_at TEXT,updated_at TEXT,UNIQUE(platform,channel_id));
+        CREATE TABLE post_channel_reconciliation (post_channel_id INTEGER PRIMARY KEY,enabled_since_ms INTEGER,completed_through_ms INTEGER,scan_until_ms INTEGER,before_ms INTEGER,claim_token TEXT,claimed_at TEXT,last_checked_at TEXT,error_reason TEXT DEFAULT '');
         CREATE TABLE post_publications (id INTEGER PRIMARY KEY,post_channel_id INTEGER,source_id INTEGER,external_message_id TEXT,start_payload TEXT,current_version_id INTEGER,created_at TEXT);
         CREATE TABLE post_versions (id INTEGER PRIMARY KEY,publication_id INTEGER,version_number INTEGER,state TEXT,snapshot_json TEXT);
         INSERT INTO projects VALUES (1,'admin-fixture','Synthetic admin project',1),(2,'hidden-project','Hidden project',1);

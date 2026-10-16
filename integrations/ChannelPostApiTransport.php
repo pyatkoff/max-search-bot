@@ -12,7 +12,11 @@ final class ChannelPostApiTransport
         $token = $platform === 'max' ? (defined('MAX_SEARCH_TOKEN') ? (string)MAX_SEARCH_TOKEN : '') : (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : '');
         if ($token === '') return ['http' => 0, 'data' => null, 'transport_error' => true];
         if ($platform === 'max') {
-            if (!(($method === 'GET' && $body === null && $query === []) || ($method === 'PUT' && $path === '/messages' && array_keys($query) === ['message_id'] && is_string($query['message_id']) && is_array($body) && array_keys($body) === ['attachments']))) return ['http' => 0, 'data' => null, 'transport_error' => true];
+            $page = $method === 'GET' && $path === '/messages' && $body === null && array_keys($query) === ['chat_id','from','to','count']
+                && is_string($query['chat_id']) && preg_match('/\A-[1-9][0-9]{0,19}\z/',$query['chat_id'])
+                && is_int($query['from']) && is_int($query['to']) && $query['to'] > 0 && $query['from'] >= $query['to']
+                && is_int($query['count']) && $query['count'] >= 1 && $query['count'] <= 100;
+            if (!(($page || ($method === 'GET' && $body === null && $query === [])) || ($method === 'PUT' && $path === '/messages' && array_keys($query) === ['message_id'] && is_string($query['message_id']) && is_array($body) && array_keys($body) === ['attachments']))) return ['http' => 0, 'data' => null, 'transport_error' => true];
             if (!preg_match('/\A\/(?:me|chats\/-[1-9][0-9]*(?:\/members\/me)?|messages(?:\/[A-Za-z0-9_.-]{1,200})?)\z/', $path)) return ['http' => 0, 'data' => null, 'transport_error' => true];
             $url = 'https://platform-api2.max.ru' . $path;
             $headers = ['Authorization: ' . $token, 'Accept: application/json', 'Content-Type: application/json'];

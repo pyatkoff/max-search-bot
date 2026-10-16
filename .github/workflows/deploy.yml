@@ -154,6 +154,22 @@ jobs:
             trap - ERR
             rm -f "$before" "$after"
             echo "METRIKA_CRON_COUNT=1"
+            before="$(mktemp)"
+            after="$(mktemp)"
+            crontab -l >"$before"
+            cp "$before" "$after"
+            sed -i -E "/# max-search-bot channel post recovery/d;/channel_post_worker\\.php.*--platform=max.*--reconcile/d" "$after"
+            {
+              echo "# max-search-bot channel post recovery"
+              echo "* * * * * flock -n /tmp/max-search-channel-post-cron.lock /usr/bin/php $root/tools/channel_post_worker.php --platform=max --run --reconcile >/dev/null 2>&1"
+            } >>"$after"
+            trap rollback ERR
+            crontab "$after"
+            count="$(crontab -l | grep -F "$root/tools/channel_post_worker.php --platform=max --run --reconcile" | wc -l | tr -d " ")"
+            [[ "$count" == "1" ]]
+            trap - ERR
+            rm -f "$before" "$after"
+            echo "CHANNEL_POST_CRON_COUNT=1"
           '
 
       - name: Production smoke checks
