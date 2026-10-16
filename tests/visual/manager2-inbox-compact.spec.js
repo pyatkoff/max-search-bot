@@ -63,7 +63,10 @@ async function noInboxStars(page){
 }
 async function headerGeometry(page){return pin(page).evaluate(el=>{
  const box=el.getBoundingClientRect(),name=document.querySelector('#conversationTitle').getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2),style=getComputedStyle(el);
- return {width:box.width,height:box.height,fontSize:parseFloat(style.fontSize),hit:hit===el||el.contains(hit),sameLine:Math.abs((box.top+box.height/2)-(name.top+name.height/2))<=6,nearName:box.left>=name.right-1&&box.left-name.right<=16};
+ // Native slide transforms can report 43.9999847 for a 44px control. Quantize
+ // below a CSS layout subpixel; the 44px and real pointer-hit checks stay strict.
+ const size=value=>Math.round(value*1024)/1024;
+ return {width:size(box.width),height:size(box.height),fontSize:parseFloat(style.fontSize),hit:hit===el||el.contains(hit),sameLine:Math.abs((box.top+box.height/2)-(name.top+name.height/2))<=6,nearName:box.left>=name.right-1&&box.left-name.right<=16};
 })}
 const profiles=[
  {width:390,font:'normal',density:'comfortable',groups:0},{width:390,font:'normal',density:'compact',groups:1},
