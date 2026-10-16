@@ -87,6 +87,30 @@ jobs:
             if(is_array($registered)){$url=ChannelPostButtonTransport::buttonUrl(['start_payload'=>$registered['start_payload'],'channel'=>$channel]);$p['state']=$safe($registered['state']);$p['only_our_button']=is_array($ss)&&ChannelPostIncomingAdapter::containsOnlyButton($ss,$url,(string)$channel['button_text']);}
             $out['recent_provider_posts']['posts'][]=$p;
            }
+           $raw='';$curl=curl_init('https://platform-api2.max.ru/messages?chat_id=-68765999669267&count=10');
+           curl_setopt_array($curl,MaxTlsConfig::strictCurlOptions()+[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>2,CURLOPT_TIMEOUT=>6,CURLOPT_HTTPHEADER=>['Authorization: '.MAX_SEARCH_TOKEN,'Accept: application/json'],CURLOPT_WRITEFUNCTION=>static function($h,string $b)use(&$raw):int{if(strlen($raw)+strlen($b)>2097152)return 0;$raw.=$b;return strlen($b);}]);
+           $success=curl_exec($curl);$http=(int)curl_getinfo($curl,CURLINFO_HTTP_CODE);curl_close($curl);
+           $dd=$success===false?[]:json_decode($raw,true,64);$out['unfiltered_latest']=['http'=>$http,'posts'=>[]];
+           foreach(array_slice((array)($dd['messages']??[]),0,10)as $m){
+            if((string)($m['recipient']['chat_id']??'')!==$channelId)continue;
+            $u=$m['url']??'';$urlOk=is_string($u)&&parse_url($u,PHP_URL_HOST)==='max.ru'&&(str_starts_with((string)parse_url($u,PHP_URL_PATH),'/anytour/')||str_starts_with((string)parse_url($u,PHP_URL_PATH),'/c/-68765999669267/'));
+            $ss=ChannelPostIncomingAdapter::maxSnapshot($m);
+            $out['unfiltered_latest']['posts'][]=['published_ms'=>(int)($m['timestamp']??0),'provider_permalink'=>$urlOk?$u:null,'target_slug_match'=>$urlOk&&basename((string)parse_url($u,PHP_URL_PATH))==='AaFFEhVqBT8','content_hash'=>is_array($ss)?ChannelPostIncomingAdapter::contentFingerprint($ss):null,'image_count'=>count((array)($ss['attachments']??[]))];
+           }
+           $html='';$curl=curl_init('https://max.ru/anytour/AaFFEhVqBT8');
+           curl_setopt_array($curl,MaxTlsConfig::strictCurlOptions()+[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>2,CURLOPT_TIMEOUT=>6,CURLOPT_HTTPHEADER=>['Accept: text/html'],CURLOPT_WRITEFUNCTION=>static function($h,string $b)use(&$html):int{if(strlen($html)+strlen($b)>2097152)return 0;$html.=$b;return strlen($b);}]);
+           $success=curl_exec($curl);$http=(int)curl_getinfo($curl,CURLINFO_HTTP_CODE);curl_close($curl);
+           $out['public_target_page']=['http'=>$http,'body_bytes'=>strlen($html),'has_target_slug'=>str_contains($html,'AaFFEhVqBT8'),'exposed_provider_mid_count'=>0,'meta_names'=>[]];
+           preg_match_all('~<meta\b[^>]*>~i',$html,$tags);
+           foreach(array_slice($tags[0]??[],0,60)as $tag){if(preg_match('~(?:property|name)=["\x27]([A-Za-z0-9_:.-]{1,80})~',$tag,$mt))$out['public_target_page']['meta_names'][]=$mt[1];}
+           preg_match_all('~\bmid\.[A-Za-z0-9_.-]{4,185}\b~',$html,$mids);$mids=array_values(array_unique($mids[0]??[]));$out['public_target_page']['exposed_provider_mid_count']=count($mids);
+           $out['target_page_messages']=[];
+           foreach(array_slice($mids,0,3)as $actualMid){
+            $pr=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($actualMid),[],null);$mm=$pr['data']??[];
+            if((string)($mm['recipient']['chat_id']??'')!==$channelId)continue;
+            $ss=ChannelPostIncomingAdapter::maxSnapshot($mm);$out['target_page_messages'][]=['http'=>$pr['http'],'published_ms'=>(int)($mm['timestamp']??0),'content_hash'=>is_array($ss)?ChannelPostIncomingAdapter::contentFingerprint($ss):null];
+           }
+          
            $out['server_utc']=gmdate('c');$out['ok']=true;
           }catch(Throwable $e){$out['error']=$e->getMessage()==='public_channel_mapping_not_unique'?'public_channel_mapping_not_unique':'read_only_diagnostic_unavailable';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
