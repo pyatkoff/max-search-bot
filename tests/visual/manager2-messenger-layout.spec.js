@@ -165,7 +165,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(180);
     await fitsViewport(page);clean(fixture);
   });
-  test('compact activity stays beside the name and leaves two lines for a message preview',async({page},testInfo)=>{
+  test('activity stays beside the name and leaves three preview lines in ordinary density',async({page},testInfo)=>{
     const fixture=await setup(page,{longPreview:true}),item=page.locator('#inboxList [data-conversation-id="11"]'),activity=item.locator('.leadActivityTime');
     const formatted=await page.evaluate(()=>Manager2Presentation.formatInboxActivity('2026-10-14 12:00:00'));
     await expect(activity).toHaveText(formatted.text);await expect(activity).toHaveAttribute('title','Последняя активность: '+formatted.exact);await expect(activity).toHaveAttribute('aria-label','Последняя активность: '+formatted.exact);
@@ -176,12 +176,12 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       const geometry=await item.evaluate(element=>{
         const title=element.querySelector('.leadTitle').getBoundingClientRect(),time=element.querySelector('.leadActivityTime').getBoundingClientRect(),identity=element.querySelector('.leadIdentity').getBoundingClientRect(),preview=element.querySelector('.leadPreview'),box=preview.getBoundingClientRect(),lineHeight=parseFloat(getComputedStyle(preview).lineHeight);
         const rowHeight=element.getBoundingClientRect().height,openBox=element.querySelector('.m2RowOpen').getBoundingClientRect(),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta'),channel=element.querySelector('.m2ChannelBadge').getBoundingClientRect(),unread=element.querySelector('.unreadBadge').getBoundingClientRect();
-        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130,channelBeforeName:channel.right<=title.left,unreadUpperRight:unread.top>=title.top&&unread.top<box.top+lineHeight&&Math.abs(unread.right-time.right)<=1&&parseFloat(getComputedStyle(preview).paddingRight)>=unread.width+4,openTarget:openBox.width>=44&&openBox.height>=44,noFavoriteActions:element.querySelectorAll('[data-pw-pin]').length===0},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,openHeight:openBox.height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
+        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,threeLines:box.height>lineHeight*2.5&&box.height<=lineHeight*3+1,bounded:rowHeight<=130+lineHeight,channelBeforeName:channel.right<=title.left,unreadUpperRight:unread.top>=title.top&&unread.top<box.top+lineHeight&&Math.abs(unread.right-time.right)<=1&&parseFloat(getComputedStyle(preview).paddingRight)>=unread.width+4,openTarget:openBox.width>=44&&openBox.height>=44,noFavoriteActions:element.querySelectorAll('[data-pw-pin]').length===0},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,openHeight:openBox.height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
       });
       await testInfo.attach('compact-inbox-'+width+'x'+height,{body:await item.screenshot(),contentType:'image/png'});
       await expect(item.locator('[data-pw-pin],.pwDirectPinControl')).toHaveCount(0);
       expect(await page.evaluate(()=>WorkspaceV2PersonalWorkspace.enhanceRows([{id:11}])[0].personal_pinned)).toBe(true);
-      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true,channelBeforeName:true,unreadUpperRight:true,openTarget:true,noFavoriteActions:true});await fitsViewport(page);
+      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,threeLines:true,bounded:true,channelBeforeName:true,unreadUpperRight:true,openTarget:true,noFavoriteActions:true});await fitsViewport(page);
     }
     clean(fixture);
   });
