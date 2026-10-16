@@ -76,6 +76,7 @@ class MaxSearchApi
     public static string $editMode = '';
     public static array $transitions = [];
     public static array $directSaves = [];
+    public static array $aiApplyCalls = [];
 
     public static function getCurentStatus($chatId): int { return self::$currentStatus; }
     public static function deletePrevMessage($chatId, $withButtons = false): void {}
@@ -87,12 +88,20 @@ class MaxSearchApi
     public static function getEditMode($chatId): string { return self::$editMode; }
     public static function setEditMode($chatId, $field): void { self::$editMode = (string)$field; }
     public static function getSavedData($chatId): array { return [self::$statusStars => self::storedValue($chatId)]; }
+    public static function getAiMissingFields($chatId): array { return ['nights']; }
     public static function formatSavedData(array $data): array { return []; }
     public static function funnelLog($chatId, $event, array $data = []): void {}
     public static function saveLastValue($chatId, $status, $value): bool
     {
         self::$directSaves[] = [$chatId, $status, $value];
         return true;
+    }
+    public static function applyAiParameters($chatId, array $params): array
+    {
+        self::$aiApplyCalls[] = ['chat_id'=>$chatId, 'params'=>$params];
+        $applied = [];
+        foreach (array_keys($params) as $field) $applied[(string)$field] = true;
+        return $applied;
     }
 
     private static function storedValue($chatId)
@@ -137,6 +146,7 @@ function starsCallbackReset(int $chatId, bool $withStep = true): StarsCallbackMe
     MaxSearchApi::$editMode = '';
     MaxSearchApi::$transitions = [];
     MaxSearchApi::$directSaves = [];
+    MaxSearchApi::$aiApplyCalls = [];
     StarsCallbackFakeData::$adds = 0;
     StarsCallbackFakeData::$updates = 0;
     StarsCallbackFakeData::$rows = [
@@ -239,6 +249,21 @@ starsCallbackCheck('missing free-text stars step makes no transition', MaxSearch
 starsCallbackCheck('missing free-text stars step renders no next view', count($messenger->buttons), 0);
 starsCallbackCheck('missing free-text stars step sends no false success hint', count($messenger->sent), 0);
 
+// Behavioral coverage for the combined-answer slice: exercise the real handler,
+// canonical application boundary and progression rather than only the splitter.
+$messenger = starsCallbackReset(716);
+StateMessageHandler::handle(['text'=>'4 звезды и всё включено'], 716, MaxSearchApi::$statusStars);
+starsCallbackCheck('combined answer stores explicit stars once', MaxSearchApi::getSavedData(716)[MaxSearchApi::$statusStars] ?? null, '4');
+starsCallbackCheck('combined answer applies explicit meal through canonical AI parameter boundary', MaxSearchApi::$aiApplyCalls, [
+    ['chat_id'=>716, 'params'=>['meal'=>'all_inclusive']],
+]);
+starsCallbackCheck('combined answer skips repeat meal step and asks the next missing field once', MaxSearchApi::$transitions, [MaxSearchApi::$statusAi]);
+starsCallbackCheck('combined answer renders no meal buttons', count($messenger->buttons), 0);
+starsCallbackCheck('combined answer sends one next-field question', count($messenger->sent), 1);
+starsCallbackCheck('combined answer next question is nights', strpos((string)($messenger->sent[0][1] ?? ''), 'На сколько ночей') !== false, true);
+starsCallbackCheck('combined answer updates existing stars step exactly once', StarsCallbackFakeData::$updates, 1);
+starsCallbackCheck('combined answer sends no stars validation repeat', strpos((string)($messenger->sent[0][1] ?? ''), 'категорию отеля') === false, true);
+
 $source = (string)file_get_contents(__DIR__ . '/../actions/callbacks/WizardCallbackAction.php');
 $stateSource = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $starsStateStart = strpos($stateSource, 'elseif($status==MaxSearchApi::$statusStars)');
@@ -259,7 +284,7 @@ starsCallbackCheck(
     true
 );
 
-foreach ([700, 701, 702, 703, 710, 711, 712, 713, 714, 715] as $chatId) {
+foreach ([700, 701, 702, 703, 710, 711, 712, 713, 714, 715, 716] as $chatId) {
     EditFlowService::clearSnapshot($chatId);
     @unlink(InteractionGuard::lockPath($chatId, 'wizard.forward'));
 }
