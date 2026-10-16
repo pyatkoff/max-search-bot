@@ -77,6 +77,8 @@ An explicit paste into the composer or native file choice prepares up to ten fil
 
 Selection remains in memory only and cannot survive reload. Unknown results cannot be durably reconciled by the current media endpoint; no automatic replay is introduced. Actual PHP-shell browser fixtures cover desktop/mobile and reduced height, clipboard preview, partial retry, account/client switching and caption guards. Fixture success is not proof of natural customer receipt.
 
+Received audio and video keep their native controls with `preload="none"`, set before their source. Opening or paging a transcript does not need to download every recording; explicit playback loads the chosen file through its existing protected URL. Browser preload is a hint, and the isolated Chromium/WebKit tests verify the actual request boundary rather than assuming every browser follows it. Playing nodes survive ordinary refresh and older-page insertion; native decode/network failures retain the existing open-file fallback. No new media transport, cache, storage or playback owner is introduced.
+
 ## Why a client continued with the bot
 
 An explicit continuation button explains that it cancels waiting for a manager. A confirmed cancellation event appears with Moscow time in the client conversation; a literal message naming a callback never produces this notice. Later lifecycle changes or missing evidence suppress an outdated cause. The original transcript and technical/business states retain their canonical owners.
@@ -214,7 +216,7 @@ evidence, not inferred from these fixtures.
 
 ### Reply field and expanded editor
 
-The main reply field grows from two lines to eight on a sufficiently tall desktop, with a smaller bounded height on narrow or short screens. Manager2's focused `reply-editor.js` owns this sizing; the textarea no longer inherits the zero flex basis or competing height caps that suppressed canonical auto-growth. The original cabinet keeps its current sizing path. The field uses the full composer width, with its existing media/emoji/send controls below it.
+The main reply field starts at one visible line for empty or short text and grows to eight on a sufficiently tall desktop, with a smaller bounded height on narrow or short screens. Focus alone does not enlarge it; clearing, confirmed send and collapse size it from the remaining canonical draft. Manager2's focused `reply-editor.js` owns this sizing; the textarea no longer inherits the zero flex basis or competing height caps that suppressed canonical auto-growth. The original cabinet keeps its current sizing path. The field uses the full composer width, with its existing media/emoji/send controls below it.
 
 “Развернуть” presents the same canonical form and `#replyText` inside a labelled native dialog, showing the current recipient. It never copies the draft or File queue. Collapse, Escape and browser Back retain native selection/direction, text, attached files and focus; the existing mobile overlay owner removes the same history entry. A context/auth/access change closes the presentation before another recipient can use it. The current Conversation, Media and submit owners retain all authorization, IME, in-flight, partial and unknown-outcome behavior. Layout performs no additional HTTP, SQL or persistence.
 
