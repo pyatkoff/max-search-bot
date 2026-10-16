@@ -55,6 +55,7 @@ class MetrikaConversionGoalService
     {
         try {
             if ($conversationId <= 0 || !self::hasEvent($conversationId, 'waiting_manager') || !self::hasEvent($conversationId, 'manager_message')) return false;
+            if(self::managedChannelConversation($conversationId))return self::managerRequest($conversationId,$queue);
             return self::emitOnce($conversationId, 'max_manager_reply', $queue);
         } catch (Throwable $e) {
             self::logFailure('manager_reply', $conversationId, $e);
@@ -62,12 +63,24 @@ class MetrikaConversionGoalService
         }
     }
 
+    /** The persisted handoff, including direct/night entries, owns this stage. */
+    public static function managerRequest(int $conversationId, ?callable $queue = null): bool
+    {
+        try{
+            $managed=self::managedChannelConversation($conversationId);
+            if(!$managed||!MaxChannelConversionOutbox::sharedGoalsActive($managed['settings']))return false;
+            if(!$managed['repository']->event($managed['conversation'],'max_manager_request',$managed['settings']))return false;
+            if(class_exists('MaxSearchApi')&&method_exists('MaxSearchApi','metrikaGoalAllowed')&&!MaxSearchApi::metrikaGoalAllowed(self::chatId($conversationId)))return false;
+            return self::emitOnce($conversationId,'max_manager_request',$queue);
+        }catch(Throwable $e){self::logFailure('manager_request',$conversationId,$e);return false;}
+    }
+
     public static function customerReplyAfterManager(int $conversationId, ?callable $queue = null): bool
     {
         try {
             if ($conversationId <= 0 || !self::hasEvent($conversationId, 'waiting_manager') || !self::hasEvent($conversationId, 'manager_message')) return false;
-            // If the first manager-reply goal could not be queued earlier (for example attribution
-            // became available just afterwards), make one safe retry before the deeper goal.
+            // Safely recover the earlier stage before the deeper goal. Managed
+            // MAX conversations capture their actual request, not a reply alias.
             self::managerReply($conversationId, $queue);
             return self::emitOnce($conversationId, 'max_customer_reply_after_manager', $queue);
         } catch (Throwable $e) {
@@ -103,7 +116,7 @@ class MetrikaConversionGoalService
     public static function reconcileChannelConversation(int $conversationId): void
     {
         $settings=MaxChannelConversionOutbox::settings();
-        if(!$settings||$settings['mode']==='off')return;
+        if(!$settings||$settings['mode']==='off'||!MaxChannelConversionOutbox::sharedGoalsActive($settings))return;
         $chat=self::chatId($conversationId);
         $repository=new MaxChannelConversionOutbox(ConversationDb::connection());
         $conversation=$repository->conversation((string)$conversationId,$chat,$settings);
@@ -111,10 +124,21 @@ class MetrikaConversionGoalService
         if(class_exists('MaxSearchApi')&&method_exists('MaxSearchApi','metrikaGoalAllowed')&&!MaxSearchApi::metrikaGoalAllowed($chat))return;
         foreach(MaxChannelConversionOutbox::TARGETS as $target){
             if(self::hasEvent($conversationId,self::marker($target)))continue;
-            if($target!=='max_bot_activity_start'&&(!self::hasEvent($conversationId,'waiting_manager')||!self::hasEvent($conversationId,'manager_message')))continue;
+            if($target!=='max_bot_activity_start'&&!self::hasEvent($conversationId,'waiting_manager'))continue;
+            if($target==='max_customer_reply_after_manager'&&!self::hasEvent($conversationId,'manager_message'))continue;
             if(!$repository->event($conversation,$target,$settings))continue;
             if(!self::emitOnce($conversationId,$target,null))throw new RuntimeException('channel_stage_capture_failed');
         }
+    }
+
+    private static function managedChannelConversation(int $conversationId): ?array
+    {
+        if($conversationId<=0)return null;
+        $settings=MaxChannelConversionOutbox::settings();
+        if(!$settings||$settings['mode']==='off')return null;
+        $repository=new MaxChannelConversionOutbox(ConversationDb::connection());
+        $conversation=$repository->conversation((string)$conversationId,self::chatId($conversationId),$settings);
+        return $conversation?['repository'=>$repository,'conversation'=>$conversation,'settings'=>$settings]:null;
     }
 
     private static function emitOnce(int $conversationId, string $target, ?callable $queue): bool
@@ -178,4 +202,5 @@ class MetrikaConversionGoalService
         } catch (Throwable $ignored) {}
     }
 }
+
 

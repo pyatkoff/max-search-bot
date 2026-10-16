@@ -16,24 +16,28 @@ class MaxSearchApi{
 }
 $p=maxAttributionFixture();ProjectConfig::resetForTests(['id'=>'anytour']);
 (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
-$s=MaxChannelConversionOutbox::settings($p);$repo=new MaxChannelConversionOutbox($p);$now=strtotime('2026-10-15 11:00:00 UTC');
+$repo=new MaxChannelConversionOutbox($p);$now=strtotime('2026-10-15 11:00:00 UTC');
+$repo->activateSharedGoals(strtotime('2026-10-15 10:00:00 UTC'));$s=MaxChannelConversionOutbox::settings($p);
 same($s['counter_id'],'98615635','counter string');
 $c=$repo->conversation('1','-1234567890123456789',$s);ok($c!==null,'exact MAX user and post');
 foreach([2,3,4,5,6] as $id)same($repo->conversation((string)$id,'-1234567890123456789',$s),null,'reject scope '.$id);
 same($repo->conversation('1 OR 1','-1234567890123456789',$s),null,'reject unsafe identity');
 ok($repo->conversation('7','-1234567890123456789',$s)!==null,'unique manager-source link without post');
 same($repo->event($c,'max_bot_activity_start',$s)['id'],2,'first callback after activation');
-same($repo->event($c,'max_manager_reply',$s)['id'],5,'first real manager reply');
+same($repo->event($c,'max_manager_request',$s),null,'manager answer does not synthesize a request');
 same($repo->event($c,'max_customer_reply_after_manager',$s)['id'],7,'same-second ordering and callback exclusion');
-$p->exec("INSERT INTO conversation_events(conversation_id,event_type) VALUES(1,'waiting_manager'),(1,'manager_message')");
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 10:00:03'),(1,'manager_message','2026-10-15 10:00:04')");
+same($repo->event($c,'max_manager_request',$s)['id'],1,'actual waiting-manager event owns request stage');
 MetrikaConversionGoalService::reconcileChannelConversation(1);
 same((int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn(),3,'canonical reconciler captures three stages');
 MetrikaConversionGoalService::reconcileChannelConversation(1);
 same((int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn(),3,'reentry deduplicates');
 same((int)row($p)['event_unix'],strtotime('2026-10-15 10:00:01 UTC'),'occurrence time frozen');
+same((int)row($p,2)['event_unix'],strtotime('2026-10-15 10:00:03 UTC'),'request uses actual transition time');
+same(row($p,2)['target'],'max_manager_request','request is independent from manager answer');
 same(row($p)['state'],'pending','no identity still durable');
 same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_sale',['conversation_id'=>'1']),null,'CRM delegates unchanged');
-same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_reply',null),null,'old two-argument path');
+same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_reply',null),null,'unrelated legacy two-argument path unchanged');
 $p->exec("UPDATE max_channel_attribution_settings SET mode='off'");
 same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_reply',['conversation_id'=>'1']),null,'off delegates old path');
 $noIO=new class{public function __call($name,$args){throw new RuntimeException('unexpected_io');}};
@@ -121,44 +125,55 @@ same($client->findUnknown($event),null,'similar recovery comment never matches')
 $duplicateComment=array_map(fn($id)=>array_replace($receipt,['id'=>$id,'comment'=>MetrikaOfflineClient::comment($event)]),[909,910]);
 $client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['uploadings'=>$duplicateComment])]);
 same($client->findUnknown($event),null,'two valid receipts without identity field remain ambiguous');
-$goals=array_map(fn($goal)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$goal['target']]]],array_values(MetrikaOfflineClient::CHANNEL_GOALS));
-foreach($goals as $index=>&$g)$g['id']=$index+10;unset($g);
-$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$goals])]);same($client->goalsReady(),true,'existing exact goals');
-$goals[0]['conditions'][0]['type']='contain';$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$goals])]);same($client->goalsReady(),false,'similar goal insufficient');
-// Existing shared goals cannot satisfy channel-only readiness.
-$legacy=array_map(fn($target)=>['type'=>'action','conditions'=>[['type'=>'exact','url'=>$target]]],MaxChannelConversionOutbox::TARGETS);
-$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$legacy])]);same($client->goalsReady(),false,'legacy goals stay separate');
-foreach(MetrikaOfflineClient::CHANNEL_GOALS as $stage=>$definition){$e=$event;$e['target']=$stage;$lines=array_map('str_getcsv',explode("\n",trim(MetrikaOfflineClient::csv($e,$now+901))));same($lines[1][1],$definition['target'],'dedicated channel CSV target');}
-// Explicit provisioning creates only the three allowlisted exact goals.
-$shared=[['id'=>1,'name'=>'Existing shared activity','type'=>'action','conditions'=>[['type'=>'contain','url'=>'max_bot_activity_start']]]];
-$live=$shared;$writes=[];
+// Shared readiness pins the owner's existing IDs and exact identifiers.
+$exact=[];foreach(MetrikaOfflineClient::SHARED_GOALS as $stage=>$definition)$exact[]=['id'=>$definition['id'],'name'=>'Existing '.$stage,'type'=>'action','is_favorite'=>true,'conditions'=>[['type'=>'exact','url'=>$definition['target']]]];
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$exact])]);same($client->goalsReady(),true,'selected existing exact goals ready');
+$contain=$exact;foreach($contain as &$g)$g['conditions'][0]['type']='contain';unset($g);
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$contain])]);same($client->goalsReady(),false,'contains cannot pass offline readiness');
+$wrongIds=$exact;$wrongIds[0]['id']=999;
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$wrongIds])]);same($client->goalsReady(),false,'matching identifier under another ID cannot replace selected goal');
+$multi=$exact;$multi[0]['conditions'][]=['type'=>'exact','url'=>'other_event'];
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$multi])]);same($client->goalsReady(),false,'additional condition cannot pass readiness');
+$duplicates=$exact;$copy=$exact[0];$copy['id']=999;$duplicates[]=$copy;
+$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$duplicates])]);same($client->goalsReady(),false,'duplicate exact identifier cannot pass readiness');
+foreach([MetrikaOfflineClient::CHANNEL_GOALS,MetrikaOfflineClient::SHARED_GOALS] as $definitions)foreach($definitions as $stage=>$definition){$e=$event;$e['target']=$stage;$e['transport_target']=$definition['target'];$lines=array_map('str_getcsv',explode("\n",trim(MetrikaOfflineClient::csv($e,$now+901))));same($lines[1][1],$definition['target'],'frozen historical or selected CSV target');}
+$bad=$event;unset($bad['transport_target']);rejects(fn()=>MetrikaOfflineClient::csv($bad,$now+901),'missing frozen transport target cannot silently change goal');
+$bad=$event;$bad['target']='max_manager_request';$bad['transport_target']='max_channel_manager_reply';rejects(fn()=>MetrikaOfflineClient::csv($bad,$now+901),'manager reply cannot be relabelled as a request');
+$beforeComment=MetrikaOfflineClient::comment($event);$legacyEvent=$event;$legacyEvent['transport_target']='max_channel_customer_reply_after_manager';same(MetrikaOfflineClient::comment($legacyEvent),$beforeComment,'transport selection preserves recovery identity');
+$legacyPosts=0;$client=new MetrikaOfflineClient('98615635','fake',function()use(&$legacyPosts){$legacyPosts++;return ['http'=>200,'body'=>'{}'];});
+foreach(MetrikaOfflineClient::CHANNEL_GOALS as $stage=>$definition){$held=$event;$held['target']=$stage;$held['transport_target']=$definition['target'];rejects(fn()=>$client->upload($held,$now+901),'historical target cannot receive a new conversion upload '.$stage);}
+same($legacyPosts,0,'all historical wire goals rejected before network IO');
+// Explicit configuration updates only the three selected IDs in place.
+$unrelated=['id'=>55,'name'=>'Existing unrelated dialog goal','type'=>'action','conditions'=>[['type'=>'contain','url'=>'g1_dialog']]];
+$historical=['id'=>56,'name'=>'Historical channel goal','type'=>'action','conditions'=>[['type'=>'exact','url'=>'max_channel_activity_start']]];
+$original=array_merge($contain,[$unrelated,$historical]);$live=$original;$writes=[];
 $transport=function($method,$url,$body)use(&$live,&$writes){
     if($method==='GET')return ['http'=>200,'body'=>json_encode(['goals'=>$live])];
-    same($method,'POST','provision never edits or deletes');ok(str_ends_with($url,'/goals'),'only goals endpoint');
-    $g=json_decode($body,true)['goal'];same($g['type'],'action','JS goal');same(count($g['conditions']),1,'one exact condition');same($g['conditions'][0]['type'],'exact','exact required');
-    ok(in_array($g['conditions'][0]['url'],array_column(MetrikaOfflineClient::CHANNEL_GOALS,'target'),true),'allowlisted new target');
-    $g['id']=100+count($writes);$writes[]=$g;$live[]=$g;return ['http'=>200,'body'=>json_encode(['goal'=>$g])];
+    same($method,'PUT','configuration updates existing goals only');
+    $g=json_decode($body,true)['goal'];same(count($g['conditions']),1,'one existing condition retained');same($g['conditions'][0]['type'],'exact','exact offline condition');
+    $found=false;foreach($live as &$existing)if(str_ends_with($url,'/goal/'.$existing['id'])){
+        ok(in_array((string)$existing['id'],array_map('strval',array_column(MetrikaOfflineClient::SHARED_GOALS,'id')),true),'only owner-selected IDs updated');
+        same($g['conditions'][0]['url'],$existing['conditions'][0]['url'],'existing identifier preserved');
+        $existing=array_replace($existing,$g);$writes[]=$existing;$found=true;$receipt=$existing;break;
+    }unset($existing);ok($found,'exact existing goal endpoint');return ['http'=>200,'body'=>json_encode(['goal'=>$receipt])];
 };
 $client=new MetrikaOfflineClient('98615635','fake',$transport);
-same(count($client->provisionChannelGoals()['goals']),3,'read-only goal plan');same(count($writes),0,'plan never writes');
-$result=$client->provisionChannelGoals(true);same(count($writes),3,'creates three missing goals');same($result['existing_goals_checked'],1,'prior semantics checked');same($live[0],$shared[0],'old contain goal unchanged');
-$client->provisionChannelGoals(true);same(count($writes),3,'repeat provisioning reuses exact goals');same($client->goalsReady(),true,'created goals ready');
-$conflict=$shared;$conflict[]=['id'=>2,'name'=>'Conflict','type'=>'action','conditions'=>[['type'=>'contain','url'=>'max_channel_activity_start']]];
-$client=new MetrikaOfflineClient('98615635','fake',function($m)use($conflict){same($m,'GET','conflict never mutates');return ['http'=>200,'body'=>json_encode(['goals'=>$conflict])];});rejects(fn()=>$client->provisionChannelGoals(true),'conflicting new target requires operator review');
-$client=new MetrikaOfflineClient('2','fake',fn()=>throw new RuntimeException('unexpected_io'));rejects(fn()=>$client->provisionChannelGoals(true),'provision counter pinned before IO');
-$client=new MetrikaOfflineClient('98615635','fake',fn($m)=>$m==='GET'?['http'=>200,'body'=>json_encode(['goals'=>$shared])]:['error'=>28,'http'=>0]);rejects(fn()=>$client->provisionChannelGoals(true),'unknown creation stops without resend');
-$exact=[];foreach(MetrikaOfflineClient::CHANNEL_GOALS as $i=>$d)$exact[]=['id'=>200+count($exact),'name'=>$d['name'],'type'=>'action','conditions'=>[['type'=>'exact','url'=>$d['target']]]];
-$multi=$exact;$multi[0]['conditions'][]=['type'=>'exact','url'=>'other_event'];
-$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$multi])]);same($client->goalsReady(),false,'additional goal matches cannot pass readiness');
-$duplicates=$exact;$copy=$exact[0];$copy['id']=999;$duplicates[]=$copy;
-$client=new MetrikaOfflineClient('98615635','fake',fn()=>['http'=>200,'body'=>json_encode(['goals'=>$duplicates])]);same($client->goalsReady(),false,'duplicate exact goals cannot pass readiness');
-$lateConflict=$shared;$defs=array_values(MetrikaOfflineClient::CHANNEL_GOALS);$lateConflict[]=['id'=>9,'name'=>$defs[2]['name'],'type'=>'action','conditions'=>[['type'=>'contain','url'=>'other_value']]];
-$client=new MetrikaOfflineClient('98615635','fake',function($m)use($lateConflict){same($m,'GET','all conflicts checked before first POST');return ['http'=>200,'body'=>json_encode(['goals'=>$lateConflict])];});rejects(fn()=>$client->provisionChannelGoals(true),'later conflicting name creates no partial goals');
+$client->configureSharedGoals();same(count($writes),0,'configuration plan remains read-only');
+$client->configureSharedGoals(true);same(count($writes),3,'three selected contain conditions updated in place');
+foreach($original as $index=>$old){$expected=$old;if($index<3)$expected['conditions'][0]['type']='exact';same($live[$index],$expected,'all existing goal data retained '.$index);}
+$client->configureSharedGoals(true);same(count($writes),3,'repeat configuration makes no writes');same($client->goalsReady(),true,'updated selected goals ready');
+foreach([$wrongIds,$multi,$duplicates,array_slice($exact,0,2)] as $conflict){
+    $conflictWrites=0;$client=new MetrikaOfflineClient('98615635','fake',function($method)use($conflict,&$conflictWrites){if($method!=='GET')$conflictWrites++;return ['http'=>200,'body'=>json_encode(['goals'=>$conflict])];});rejects(fn()=>$client->configureSharedGoals(true),'invalid selected goal set blocked');same($conflictWrites,0,'conflicting goal set makes no partial edits');
+}
+$wrongTarget=$contain;$wrongTarget[2]['conditions'][0]['url']='different_request';
+$conflictWrites=0;$client=new MetrikaOfflineClient('98615635','fake',function($method)use($wrongTarget,&$conflictWrites){if($method!=='GET')$conflictWrites++;return ['http'=>200,'body'=>json_encode(['goals'=>$wrongTarget])];});rejects(fn()=>$client->configureSharedGoals(true),'later conflicting identifier blocked');same($conflictWrites,0,'all selected goals checked before first PUT');
+$wrongCounterIO=0;$client=new MetrikaOfflineClient('2','fake',function()use(&$wrongCounterIO){$wrongCounterIO++;throw new RuntimeException('unexpected_io');});rejects(fn()=>$client->configureSharedGoals(true),'configuration wrong counter rejected');same($wrongCounterIO,0,'configuration counter pinned before IO');
+$uncertainWrites=0;$client=new MetrikaOfflineClient('98615635','fake',function($method)use($contain,&$uncertainWrites){if($method==='GET')return ['http'=>200,'body'=>json_encode(['goals'=>$contain])];$uncertainWrites++;return ['error'=>28,'http'=>0];});rejects(fn()=>$client->configureSharedGoals(true),'uncertain update requires explicit readback');same($uncertainWrites,1,'uncertain update never blindly repeats');
 $readCount=0;$writeCount=0;
-$client=new MetrikaOfflineClient('98615635','fake',function($m,$url,$body)use(&$readCount,&$writeCount,$shared,$exact){
- if($m==='GET'){$readCount++;$goals=$shared;if($readCount>1){$goals[0]['conditions'][0]['type']='exact';$goals=array_merge($goals,$exact);}return ['http'=>200,'body'=>json_encode(['goals'=>$goals])];}
- same($m,'POST','concurrent mutation never rolled back by PUT/DELETE');$g=json_decode($body,true)['goal'];$g['id']=700+$writeCount++;return ['http'=>200,'body'=>json_encode(['goal'=>$g])];
-});rejects(fn()=>$client->provisionChannelGoals(true),'concurrent old-goal semantic change blocks activation');same($writeCount,3,'only three allowlisted goals requested');
+$client=new MetrikaOfflineClient('98615635','fake',function($method,$url,$body)use(&$readCount,&$writeCount,$original,$exact){
+    if($method==='GET'){$readCount++;$goals=$original;if($readCount>=5){$goals=array_merge($exact,array_slice($original,3));$goals[3]['name']='Concurrent unrelated change';}return ['http'=>200,'body'=>json_encode(['goals'=>$goals])];}
+    same($method,'PUT','concurrent goal changes never rolled back');$goal=json_decode($body,true)['goal'];foreach($exact as $g)if(str_ends_with($url,'/goal/'.$g['id'])){$writeCount++;return ['http'=>200,'body'=>json_encode(['goal'=>array_replace($g,$goal)])];}throw new RuntimeException('wrong_goal_endpoint');
+});rejects(fn()=>$client->configureSharedGoals(true),'concurrent unrelated goal change blocks activation');same($writeCount,3,'only selected goal conditions requested');
 // Real signed protocol; wrong key, replay time and malformed identities all fail closed.
 $key=openssl_pkey_new(['private_key_bits'=>2048,'private_key_type'=>OPENSSL_KEYTYPE_RSA]);openssl_pkey_export($key,$private);$public=openssl_pkey_get_details($key)['key'];
 $body=MaxTrackerLookupProtocol::body('98615635',['1234567890123456789'],$now);$signature=MaxTrackerLookupProtocol::signature($body,$private);
@@ -181,7 +196,7 @@ $p->exec("UPDATE max_channel_conversion_outbox SET state='pending' WHERE id=1");
 // Cursor commits only after successful capture, allowing safe background recovery.
 $p->exec('UPDATE max_channel_attribution_settings SET message_cursor=0');
 rejects(fn()=>$repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>throw new RuntimeException('capture_failed')),'collector failure');same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],0,'cursor not lost after failure');
-same($repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>null),9,'bounded collector advances');same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],9,'cursor saved after success');
+same($repo->collect(MaxChannelConversionOutbox::settings($p),fn()=>null),10,'message and handoff collectors advance');same((int)MaxChannelConversionOutbox::settings($p)['message_cursor'],9,'cursor saved after success');
 // A collector can capture an event one second after the tick's clock snapshot.
 // Keep that row unclaimed until the next tick, with its real occurrence time.
 $p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM messages');
@@ -210,4 +225,77 @@ $afterClockRow=$p->query('SELECT * FROM max_channel_conversion_outbox')->fetch()
 same($afterClockRow['state'],'accepted','next tick uploads event');same($clockApi->posts,1,'one upload after event instant');
 same((int)$afterClockRow['attempts'],1,'one claim only');same((int)$afterClockRow['event_unix'],$clockEvent,'upload preserves actual event instant');
 same($afterClockRow['client_id'],$clockRow['client_id'],'clock defer preserves frozen ClientID');same($afterClockRow['tracker_record_id'],$clockRow['tracker_record_id'],'clock defer preserves tracker record');
+// Cutover preserves every outcome that may already have reached Metrika.
+$p=maxAttributionFixture();(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$repo=new MaxChannelConversionOutbox($p);
+$p->exec("UPDATE max_channel_attribution_settings SET mode='send',message_cursor=9");
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 11:00:00'),(1,'manager_message','2026-10-15 10:00:04')");
+$historicalRows=[
+    [1,'max_bot_activity_start','max_channel_activity_start','pending',0,null,null,null],
+    [2,'max_customer_reply_after_manager','max_channel_customer_reply_after_manager','ready',0,null,null,null],
+    [3,'max_manager_reply','max_channel_manager_reply','pending',0,null,null,null],
+    [4,'max_bot_activity_start','max_channel_activity_start','accepted',1,'440','UPLOADED',null],
+    [5,'max_customer_reply_after_manager','max_channel_customer_reply_after_manager','unknown',1,null,null,null],
+    [6,'max_bot_activity_start','max_channel_activity_start','ready',1,null,null,null],
+    [7,'max_manager_reply','max_channel_manager_reply','uploading',1,null,null,'existing-claim'],
+    [8,'max_customer_reply_after_manager','max_channel_customer_reply_after_manager','ready',0,null,null,'prior-claim'],
+    [9,'max_bot_activity_start','max_channel_activity_start','processed',1,'449','PROCESSED',null],
+    [10,'max_manager_reply','max_channel_manager_reply','ready',1,null,null,null],
+];
+foreach($historicalRows as [$id,$target,$wire,$state,$attempts,$uploadId,$uploadStatus,$claim]){
+    $q=$p->prepare('INSERT INTO max_channel_conversion_outbox (id,project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,client_id,tracker_record_id,tracker_observed_unix,state,attempts,upload_id,upload_status,claim_token,claimed_at_unix) VALUES (?,\'anytour\',?,\'1234567890123456789\',\'98615635\',?,?,?,?,\'frozen-record\',?,?,?,?,?,?,?)');
+    $q->execute([$id,100+$id,$target,$wire,$now-600,'1844674407370955161512345',$now-700,$state,$attempts,$uploadId,$uploadStatus,$claim,$claim!==null?$now:null]);
+}
+$readOnlyApi=new class{
+    public int $posts=0;public int $gets=0;
+    function upload($row,$now){$this->posts++;throw new RuntimeException('unexpected_historical_post');}
+    function poll($id){$this->gets++;return null;}
+    function findUnknown($row){$this->gets++;return null;}
+};
+$result=MaxChannelConversionWorker::tick($p,$noIO,$readOnlyApi,$now);
+same($readOnlyApi->posts,0,'migration alone cannot activate new POSTs');same($readOnlyApi->gets,2,'historical accepted and unknown still get read-only checks');same($result['resolved'],0,'activation pending performs no new identity work');
+$before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll();
+rejects(fn()=>$repo->activateSharedGoals($now),'activation requires collection pause before switching');
+$p->exec("UPDATE max_channel_attribution_settings SET mode='collect'");
+$oldSettings=MaxChannelConversionOutbox::settings($p);$cutover=$repo->activateSharedGoals($now);$selected=MaxChannelConversionOutbox::settings($p);
+same($selected['goal_set'],'shared','explicit activation selects old shared goals');same((int)$selected['activated_at_unix'],(int)$oldSettings['activated_at_unix'],'initial channel activation unchanged');same((int)$selected['message_cursor'],9,'message cursor never reset');
+same((int)$selected['request_event_cursor'],2,'request collector starts after prior recorded events');same((int)$selected['shared_goals_event_id'],2,'request cutoff freezes recorded event boundary');same((int)$selected['shared_goals_activated_at_unix'],$now,'request stage has fresh occurrence cutoff');
+same($cutover['switched'],2,'only pristine common stages change wire goal');same($cutover['retired'],1,'unsent manager answer retired without becoming a request');
+same(row($p,1)['transport_target'],'max_bot_activity_start','pristine activity now targets existing goal');same(row($p,2)['transport_target'],'max_customer_reply_after_manager','pristine customer response now targets existing goal');
+same(row($p,3)['state'],'retired','unsent answer retired');same(row($p,3)['target'],'max_manager_reply','historical answer retains original meaning');
+foreach([1,2,3] as $id)foreach(['event_unix','client_id','tracker_record_id','tracker_observed_unix','attempts','upload_id','upload_status'] as $field)same(row($p,$id)[$field],$before[$id-1][$field],'cutover keeps immutable '.$field.' row '.$id);
+foreach([4,5,6,7,8,9,10] as $id)same(row($p,$id),$before[$id-1],'possibly transmitted or claimed row remains byte-for-byte '.$id);
+same($repo->claim('10',$now),null,'previously attempted manager answer is held without new POST');
+same($repo->claim('6',$now),null,'previously attempted common stage retains old target and is held');
+same($repo->claim('8',$now),null,'previously claimed legacy common stage cannot be reposted to old goal');
+$readyIds=array_map('intval',array_column($repo->rows('ready',$now,10),'id'));same($readyIds,[2],'only selected shared targets enter upload selection');
+ok(!in_array(10,array_map('intval',array_column($repo->rows('ready',$now,10),'id')),true),'retired answer is absent from upload selection');
+$again=$repo->activateSharedGoals($now+3600);$sameSettings=MaxChannelConversionOutbox::settings($p);same($again['switched'],0,'repeat activation never retargets rows');same($again['retired'],0,'repeat activation never retires again');same($sameSettings['shared_goals_activated_at_unix'],$selected['shared_goals_activated_at_unix'],'repeat activation cannot widen history');same($sameSettings['shared_goals_event_id'],$selected['shared_goals_event_id'],'repeat activation retains event boundary');
+$c=$repo->conversation('1','-1234567890123456789',$selected);same($repo->event($c,'max_manager_request',$selected),null,'pre-cutover request in same second cannot be backfilled');
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'manager_message','2026-10-15 11:00:01')");same($repo->event($c,'max_manager_request',$selected),null,'new manager answer cannot masquerade as request');
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 10:59:59')");same($repo->event($c,'max_manager_request',$selected),null,'late inserted pre-cutoff handoff cannot backfill');
+$p->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(1,'waiting_manager','2026-10-15 11:00:01')");
+$request=$repo->event($c,'max_manager_request',$selected);same((int)$request['id'],5,'first actual new handoff selected');same($request['created_at'],'2026-10-15 11:00:01','real request occurrence preserved');
+$legacyRequest=MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_request',['conversation_id'=>'1']);same($legacyRequest,true,'channel request intercepted before old YCLID fallback');
+$requestRow=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE conversation_id=1 AND target='max_manager_request'")->fetch();ok(is_array($requestRow),'request captured durably');same($requestRow['transport_target'],'max_manager_request','request uses existing selected goal');same((int)$requestRow['event_unix'],$now+1,'request event time not queue time');
+MaxSearchApi::$allowed=false;same(MetrikaConversionGoalService::managerRequest(1),false,'existing conversion opt-out still gates requests');MaxSearchApi::$allowed=true;
+$targets=[];$queue=function($chat,$target)use(&$targets){$targets[]=$target;return MaxChannelConversionOutbox::queueIfEligible($chat,$target,['conversation_id'=>'1'])??false;};
+same(MetrikaConversionGoalService::managerRequest(1,$queue),true,'actual request flow uses dedicated stage');same(MetrikaConversionGoalService::managerReply(1,$queue),true,'manager reply recovery reuses already recorded actual request');same($targets,['max_manager_request'],'handoff and answer never generate separate YCLID or manager-reply duplicate');
+same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=1 AND target='max_manager_request'")->fetchColumn(),1,'one durable request across callbacks and recovery');
+same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_reply',['conversation_id'=>'1']),true,'retired manager-answer path consumed instead of YCLID fallback');
+// Request events recover independently even when there is no new message.
+$seen=[];$collected=$repo->collect(MaxChannelConversionOutbox::settings($p),function($id)use(&$seen){$seen[]=$id;});same($collected,2,'only newly recorded request events traversed');same($seen,[1,1],'request recovery does not replay message cursor');
+$afterRequests=MaxChannelConversionOutbox::settings($p);same((int)$afterRequests['message_cursor'],9,'handoff recovery leaves message cursor stable');same((int)$afterRequests['request_event_cursor'],5,'handoff cursor advances independently');
+$token=$repo->claim('2',$now);ok(is_string($token),'retargeted pristine row can be claimed');
+$fresh=$repo->claimedEvent('2',$token);same($before[1]['transport_target'],'max_channel_customer_reply_after_manager','worker selection before cutover keeps old snapshot');same($fresh['transport_target'],'max_customer_reply_after_manager','worker refreshes frozen target after claim across cutover');same($repo->claimedEvent('2',str_repeat('0',32)),null,'another worker cannot read claim by wrong token');
+// New code loaded before migration 038 must hold managed MAX conversions,
+// rather than silently delegating them into the older YCLID transport.
+$p->exec('ALTER TABLE max_channel_attribution_settings RENAME TO max_channel_attribution_settings_snapshot');
+$p->exec('CREATE TABLE max_channel_attribution_settings (project_key VARCHAR(64) PRIMARY KEY,mode VARCHAR(16),counter_id VARCHAR(20),activated_at_unix BIGINT,message_cursor BIGINT)');
+$p->exec("INSERT INTO max_channel_attribution_settings VALUES('anytour','send','98615635',1792058400,9)");
+$gap=MaxChannelConversionOutbox::settings($p);ok(is_array($gap),'pre-migration settings remain recognizable');same(MaxChannelConversionOutbox::sharedGoalsActive($gap),false,'pre-migration settings cannot activate shared sends');
+same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_bot_activity_start',['conversation_id'=>'1']),false,'migration gap blocks managed activity without YCLID fallback');
+same(MaxChannelConversionOutbox::queueIfEligible('-1234567890123456789','max_manager_request',null),false,'migration gap blocks legacy request without YCLID fallback');
+$gapPosts=$readOnlyApi->posts;MaxChannelConversionWorker::tick($p,$noIO,$readOnlyApi,$now);same($readOnlyApi->posts,$gapPosts,'migration gap performs no conversion POST');
+$p->exec('DROP TABLE max_channel_attribution_settings');$p->exec('ALTER TABLE max_channel_attribution_settings_snapshot RENAME TO max_channel_attribution_settings');
 echo 'PASS '.$checks.' MAX channel attribution checks ('.$p->getAttribute(PDO::ATTR_DRIVER_NAME).")\n";
+

@@ -38,13 +38,50 @@ $p->prepare('INSERT INTO messages VALUES(10,1,\'max\',\'inbound\',\'customer\',?
 $p->exec('DELETE FROM messages WHERE id=7 OR id=9');$q=$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',\'inbound\',\'customer\',?,?)');
 for($id=11;$id<211;$id++)$q->execute([$id,'2026-10-15 10:00:04','{"type":"callback"}']);
 $q->execute([211,'2026-10-15 10:00:04','{"type":"contact"}']);
-require_once dirname(__DIR__).'/services/MaxChannelConversionOutbox.php';$s=['project_key'=>'anytour','counter_id'=>'98615635','activated_at_unix'=>strtotime('2026-10-15 10:00:00 UTC')];
-$o=new MaxChannelConversionOutbox($p);$c=$o->conversation('1','-1234567890123456789',$s);same((int)$o->event($c,'max_customer_reply_after_manager',$s)['id'],211,'native JSON before limit and same-second order');
+require_once dirname(__DIR__).'/services/MaxChannelConversionOutbox.php';ProjectConfig::resetForTests(['id'=>'anytour']);$s=['project_key'=>'anytour','counter_id'=>'98615635','activated_at_unix'=>strtotime('2026-10-15 10:00:00 UTC')];
+$o=new MaxChannelConversionOutbox($p);$o->activateSharedGoals(strtotime('2026-10-15 10:00:00 UTC'));$s=MaxChannelConversionOutbox::settings($p);$c=$o->conversation('1','-1234567890123456789',$s);same((int)$o->event($c,'max_customer_reply_after_manager',$s)['id'],211,'native JSON before limit and same-second order');
 // InnoDB's conditional claim is shared between independent worker connections.
-$o->capture($c,'max_manager_reply',$s,strtotime('2026-10-15 11:00:00 UTC'));
+$o->capture($c,'max_bot_activity_start',$s,strtotime('2026-10-15 11:00:00 UTC'));
 $o->resolve('1',['external_user_id'=>'1234567890123456789','client_id'=>'555','record_id'=>'1'],1792062000);
 $second=new PDO(getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN'),getenv('MAX_ATTRIBUTION_TEST_MYSQL_USER')?:'root',getenv('MAX_ATTRIBUTION_TEST_MYSQL_PASS')?:'',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 $t=$o->claim('1',1792062000);same(is_string($t),true,'first independent worker claims');same((new MaxChannelConversionOutbox($second))->claim('1',1792062000),null,'second independent worker cannot POST');
+// The real handoff hook captures inside an outer transaction. A later committed
+// event may advance the cursor before this transaction commits its lower ID.
+foreach(['CONVERSATION_DB_HOST','CONVERSATION_DB_NAME','CONVERSATION_DB_USER','CONVERSATION_DB_PASS'] as $name)if(!defined($name))define($name,'fixture');
+ProjectConfig::resetForTests(['id'=>'anytour']);
+class MaxSearchApi{
+    public static function metrikaGoalAllowed($chat):bool{return true;}
+    public static function queueMetrikaGoal($chat,$target,?array $context=null):bool{return MaxChannelConversionOutbox::queueIfEligible($chat,$target,$context)??false;}
+}
+require_once dirname(__DIR__).'/services/ConversationControlService.php';
+$p->exec('DELETE FROM conversation_events');$p->exec('ALTER TABLE conversation_events AUTO_INCREMENT=100');
+$p->exec("UPDATE max_channel_attribution_settings SET mode='collect',message_cursor=211,request_event_cursor=0");
+$p->exec("UPDATE conversations SET status='ai' WHERE id=7");
+$p->exec("INSERT INTO customer_channels VALUES(4,'anytour','max','456')");
+$p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(8,4,'anytour','max','-456',0,'waiting_manager',2,'2026-10-15 10:00:00')");
+$second->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);$second->setAttribute(PDO::ATTR_EMULATE_PREPARES,false);$second->exec("SET time_zone='+00:00'");
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);
+$p->beginTransaction();same(ConversationControlService::markWaitingByChat('max','-1234567890123456789'),true,'real handoff succeeds within caller transaction');
+same($p->inTransaction(),true,'handoff preserves caller transaction');
+$waitingId=(int)$p->query("SELECT id FROM conversation_events WHERE conversation_id=7 AND event_type='waiting_manager'")->fetchColumn();same($waitingId,100,'outer transaction owns lower event ID');
+same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),1,'actual hook captures outbox before outer commit');
+same((int)$p->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7 AND event_type='metrika_max_manager_request'")->fetchColumn(),1,'actual hook records marker within same transaction');
+same((int)$second->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),0,'uncommitted capture remains invisible to worker');
+$second->exec("INSERT INTO conversation_events(conversation_id,event_type,created_at) VALUES(8,'waiting_manager',UTC_TIMESTAMP())");
+$laterId=(int)$second->lastInsertId();same($laterId>$waitingId,true,'independent handoff commits greater event ID first');
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$second);
+$independent=new MaxChannelConversionOutbox($second);$seen=[];$independent->collect(MaxChannelConversionOutbox::settings($second),function(int $id)use(&$seen){$seen[]=$id;MetrikaConversionGoalService::reconcileChannelConversation($id);});
+same($seen,[8],'collector sees later committed handoff only');same((int)MaxChannelConversionOutbox::settings($second)['request_event_cursor'],$laterId,'collector advances past uncommitted lower ID');
+$p->commit();
+same((int)$second->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),1,'late commit retains real request without relying on cursor replay');
+same((int)$second->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7 AND event_type='metrika_max_manager_request'")->fetchColumn(),1,'late marker commits atomically with request');
+// A caller rollback also removes its handoff, conversion and deduplication marker.
+$p->exec("DELETE FROM max_channel_conversion_outbox WHERE conversation_id=7");$p->exec('DELETE FROM conversation_events WHERE conversation_id=7');$p->exec("UPDATE conversations SET status='ai' WHERE id=7");
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$p);$p->beginTransaction();
+same(ConversationControlService::markWaitingByChat('max','-1234567890123456789'),true,'real handoff captures before caller rollback');
+same((int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7 AND target='max_manager_request'")->fetchColumn(),1,'rollback fixture captured real request');$p->rollBack();
+same((int)$second->query('SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes conversion');same((int)$second->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id=7')->fetchColumn(),0,'caller rollback removes waiting event and marker');same($second->query('SELECT status FROM conversations WHERE id=7')->fetchColumn(),'ai','caller rollback restores conversation state');
 // Reapplying only this uninstalled test migration retains the operator's mode.
 $p->exec("UPDATE max_channel_attribution_settings SET mode='collect'");$p->exec(file_get_contents(dirname(__DIR__).'/migrations/037_max_channel_conversion_outbox.sql'));same($p->query('SELECT mode FROM max_channel_attribution_settings')->fetchColumn(),'collect','migration does not overwrite mode');
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
+

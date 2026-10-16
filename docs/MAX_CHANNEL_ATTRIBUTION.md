@@ -53,8 +53,9 @@ The canonical `MetrikaConversionGoalService` supplies conversation context to
 `MaxSearchApi::queueMetrikaGoal`. For an eligible MAX conversation in collect/send
 mode, that method captures the first recorded occurrence in the SQL outbox.
 Other calls retain the existing YCLID path, including Telegram and CRM goals.
-Internal stage keys stay unchanged; only the new ClientID CSV transport translates
-them to three dedicated channel goal identifiers.
+The owner selected the three existing dialogue goals on 2026-10-16.
+The ClientID transport uses their original identifiers and numeric goal IDs.
+Historical channel identifiers remain attached to their original receipts only.
 
 Eligibility requires project `anytour`, channel `max`, a non-test conversation,
 exact positive `customer_channels.external_user_id`, and the matching negative
@@ -62,13 +63,16 @@ internal chat ID. Entry must have either a registered canonical MAX publication
 or an existing project-owned MAX source with `handling_mode=manager`. A tracker
 identity match does not itself prove channel subscription or a post entry.
 
-| Internal stage key | Dedicated exact Metrika identifier | Recorded event time |
+| Existing identifier | Goal ID | Recorded event time |
 | --- | --- | --- |
-| `max_bot_activity_start` | `max_channel_activity_start` | First accepted customer message, callback or contact after entry/activation |
-| `max_manager_reply` | `max_channel_manager_reply` | First recorded successful outbound manager message after entry/activation |
-| `max_customer_reply_after_manager` | `max_channel_customer_reply_after_manager` | First customer message/contact after that manager message; callbacks excluded |
+| `max_bot_activity_start` | `611089509` | First accepted customer message, callback or contact after entry/activation |
+| `max_manager_request` | `600725752` | First durable `waiting_manager` event after the shared-goal cutover |
+| `max_customer_reply_after_manager` | `605075686` | First customer message/contact after the manager message; callbacks excluded |
 
-The two reply goals retain the existing waiting-manager/manager-message guards.
+A request means a committed handoff, not an attempted greeting or a manager reply.
+The post-commit hook performs only a local capture. An independent, bounded
+`waiting_manager` event cursor recovers missed hooks and outer transactions.
+The customer-after-manager stage retains waiting-manager/manager-message guards.
 The existing destination exclusion also applies. Timestamp ordering uses
 `created_at,id`, so a later message in the same second is retained. UTC is
 verified before capture. The mirror's `messages.created_at` is the persisted
@@ -78,8 +82,11 @@ recorder. No queue/enrichment timestamp is substituted for it.
 `cron_metrika.php` runs a bounded worker before checking the old CSV queue. The
 existing scheduler therefore handles channel conversions even when that CSV is
 empty. Customer/manager requests perform no new HTTP calls. A 50-message cursor
-recovers missing direct captures; each event has a unique project/conversation/
-goal key. First activation starts at the current cursor, without historical replay.
+and a separate 50-request-event cursor recover missing direct captures; each event
+has a unique project/conversation/goal key. The original activation and message
+cursor are preserved. The new request stage has both a cutover timestamp and an
+immutable event-ID boundary, preventing a pre-cutover request in the same second
+from being uploaded later.
 
 `MaxTrackerLookupRepository` authenticates before connecting, opens a read-only
 MySQL transaction, selects only the requested MAX identities and correct effective
@@ -142,18 +149,33 @@ After authorized publication, migration and tracker release:
    no conversion request. Confirm actual tracker PHP/FPM supports PDO MySQL/OpenSSL.
 2. Run `php tools/max_channel_attribution.php collect`: start fresh collection
    and resolve identities without any Metrika upload. Check aggregate `status`.
-3. Verify the dedicated channel goals with `php tools/max_channel_goals.php status`.
-   During the owner-authorized rollout, `php tools/max_channel_goals.php apply`
-   creates only the missing three `max_channel_*` action goals, each with one
-   exact condition. It never PUTs/deletes/repairs a goal and refuses ambiguous or
-   conflicting existing definitions. It reads back the original goal names/types/
-   conditions and requires them all unchanged before reporting success. If a POST
-   outcome is uncertain, stop and GET/read back; never blindly retry creation.
-4. Review a natural channel entry and the recorded event/ClientID match privately.
-5. Run `php tools/max_channel_attribution.php send` only for the authorized pilot.
-   It verifies the dedicated exact goals with a GET and the configured counter.
-6. Observe an actual upload ID followed by processing status. HTTP acceptance is
-   separate from validated rows, session attribution and Direct optimization.
+3. Run `php tools/max_channel_goals.php status` to inspect the exact selected IDs.
+   The explicitly authorized `apply` command changes only their single condition
+   from `contain` to `exact`, preserving names, IDs, prices, favourites and other
+   attributes. It uses PUT `/goal/{id}`, never creates or deletes goals, and checks
+   the full before/after goal list. A missing/ambiguous goal or an uncertain PUT
+   stops the operation; inspect with GET before any further mutation.
+4. Run `php tools/max_channel_attribution.php shared` in collect mode after exact
+   goal verification. Migration `038_max_channel_shared_goals.sql` adds a frozen
+   `transport_target` to each row and explicit shared-goal activation settings.
+   The transition changes only never-attempted pending/ready activity/customer
+   rows to the old identifiers. It retires never-attempted manager-reply rows.
+   Accepted, uploading and unknown rows keep their target, event time, ClientID,
+   claim and receipt. Previously attempted retries retain their frozen targets
+   and stay held if that target belongs to the historical channel goals. All
+   future conversion POSTs require one of the three selected old identifiers.
+5. Run `php tools/max_channel_attribution.php send`. It verifies all three exact
+   identifiers and pinned existing IDs with GET, and requires shared activation.
+6. Review a natural entry and the event/ClientID match privately; observe actual
+   upload IDs followed by processing status. HTTP acceptance is separate from
+   validated rows, session attribution and Direct optimization.
+
+Until shared activation, new code performs no conversion POST and creates no
+new canonical markers for managed conversations. The existing message cursor
+remains available to recover activity after the short deployment interval.
+Already accepted conversions are never replayed into the selected old goals.
+The three `max_channel_*` goals and their history are retained without new
+manager-reply captures; exact upload-ID/comment GET recovery continues.
 
 Temporary CSV files also stay under the private feature directory (0700/0600)
 and are removed after each request. Uploads contain `ClientId,Target,DateTime` and use the existing counter/token.
@@ -189,17 +211,20 @@ being queued again.
 
 ## Existing goal compatibility
 
-The live readiness GET on 2026-10-15 returned 74 goals. The legacy activity and
-customer-after-manager targets used `contain`; the manager-reply target was
-absent. The strict send guard correctly kept the feature in collect mode with
-zero conversion requests. Yandex requires an exact JS condition for offline
-conversions ([official guide](https://yandex.ru/dev/metrika/ru/management/offline-conv)).
+The original 2026-10-15 readiness probe found two legacy `contain` goals and no
+`max_manager_reply` goal. The first rollout created three dedicated exact
+`max_channel_*` goals. A full actual list read on 2026-10-16 found 77 goals and
+confirmed the three old IDs selected by the owner above. The new selection
+replaces manager **reply** with actual manager **request**; those events must
+never share a relabelled timestamp.
 
-The new `max_channel_*` identifiers preserve every old goal and the old CSV path.
-They record the same three business stages exclusively through the new ClientID
-transport. Provisioning is an explicit rollout operation, never an automatic
-webhook/cron/deploy side effect. Campaign goal selection is unchanged: collecting
-these events does not by itself configure Direct optimization against new goals.
+Yandex requires exact JavaScript conditions for offline conversions
+([official guide](https://yandex.ru/dev/metrika/ru/management/offline-conv)).
+The owner-authorized correction retains the selected IDs/history and verifies
+that the only configuration change is `contain` to `exact` on those three goals.
+The other 74 goals, including `g1_dialog` and the historical channel goals, remain
+unchanged. Direct campaign selections are not edited. No CRM implementation or
+historical conversion replay belongs to this change.
 
 ## Verification and current status
 
@@ -215,3 +240,4 @@ the current notification/sound release as its base. This document does not asser
 that the lookup is installed, the mode is enabled, a production conversion has
 been accepted, or a natural event has been attributed. Those require explicit
 release/activation evidence recorded in #55.
+

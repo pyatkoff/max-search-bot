@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ProjectConfig.php';
 require_once __DIR__ . '/ManagerPushService.php';
+require_once __DIR__ . '/MetrikaConversionGoalService.php';
 
 class ConversationControlService
 {
@@ -25,7 +26,10 @@ class ConversationControlService
     {
         $row = self::statusByChat($platform, $chatId);
         if (!$row) return false;
-        if (in_array((string)$row['status'], ['waiting_manager','manager'], true)) return true;
+        if (in_array((string)$row['status'], ['waiting_manager','manager'], true)) {
+            MetrikaConversionGoalService::managerRequest((int)$row['id']);
+            return true;
+        }
         if ((string)$row['status'] !== 'ai' || !empty($row['manager_id'])) return false;
         $pdo = ConversationDb::connection();
         $ownTransaction = !$pdo->inTransaction();
@@ -41,10 +45,15 @@ class ConversationControlService
             }
             self::event((int)$row['id'], 'waiting_manager', 'customer', null, $payload);
             if ($ownTransaction) $pdo->commit();
+            else MetrikaConversionGoalService::managerRequest((int)$row['id']);
         } catch (Throwable $e) {
             if ($ownTransaction && $pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
+        // No API call here: owned transactions capture after commit. An outer
+        // transaction captured locally above, so a late commit cannot fall
+        // behind the event cursor; its outbox and marker roll back together.
+        if($ownTransaction)MetrikaConversionGoalService::managerRequest((int)$row['id']);
         try {
             ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
         } catch (Throwable $ignored) {
@@ -69,3 +78,4 @@ class ConversationControlService
             ->execute([$conversationId,$type,$actorType,$actorId !== null ? (string)$actorId : null,$json]);
     }
 }
+

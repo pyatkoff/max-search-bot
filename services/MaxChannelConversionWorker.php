@@ -13,9 +13,10 @@ final class MaxChannelConversionWorker
         if(!$s||$s['mode']==='off')return $result;
         $pdo=$pdo??ConversationDb::connection();$now=$now??time();$repo=new MaxChannelConversionOutbox($pdo);
         $repo->recover($now);
-        if($collector)$result['collected']=$repo->collect($s,$collector);
+        $shared=MaxChannelConversionOutbox::sharedGoalsActive($s);
+        if($collector&&$shared)$result['collected']=$repo->collect($s,$collector);
         $lookup=$lookup??new MaxTrackerLookupClient();
-        $pending=$repo->pending($now);$users=array_values(array_unique(array_column($pending,'external_user_id')));
+        $pending=$shared?$repo->pending($now):[];$users=array_values(array_unique(array_column($pending,'external_user_id')));
         if($users){
             try{
                 $identities=$lookup->lookup($s['counter_id'],$users);
@@ -28,10 +29,11 @@ final class MaxChannelConversionWorker
             if(!defined('METRIKA_COUNTER_ID')||trim((string)METRIKA_COUNTER_ID)!==$s['counter_id']||!defined('METRIKA_OAUTH_TOKEN'))throw new RuntimeException('metrika_config_missing');
             $api=new MetrikaOfflineClient($s['counter_id'],(string)METRIKA_OAUTH_TOKEN);
         }
-        foreach($repo->rows('ready',$now,5) as $row){
+        foreach($shared?$repo->rows('ready',$now,5):[] as $row){
             // Collection can capture an event after this tick's clock snapshot.
             if((int)$row['event_unix']>$now)continue;
             $token=$repo->claim((string)$row['id'],$now);if($token===null)continue;
+            $row=$repo->claimedEvent((string)$row['id'],$token);if(!$row)continue;
             try{$response=$api->upload($row,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
             $repo->finish((string)$row['id'],$token,$response,$now);
             if(($response['outcome']??'')==='accepted')$result['accepted']++;
@@ -48,3 +50,4 @@ final class MaxChannelConversionWorker
         return $result;
     }
 }
+
