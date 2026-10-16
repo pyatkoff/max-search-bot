@@ -7,6 +7,8 @@ require_once __DIR__ . '/ManagerRequestService.php';
 require_once __DIR__ . '/PostTourService.php';
 require_once __DIR__ . '/SearchDateSummary.php';
 require_once __DIR__ . '/ChannelOfferService.php';
+require_once __DIR__ . '/TripSummaryProjection.php';
+require_once __DIR__ . '/../contracts/OutboundMetadataMessengerInterface.php';
 
 class DialogueView
 {
@@ -194,7 +196,7 @@ class DialogueView
             ButtonFactory::row(ButtonFactory::callback('✏️ Изменить параметры',CallbackGeneration::wrap('edit_params',$generation)))
         );
         $text = "✅ <b>Готово! Проверьте параметры</b>\n\n" . implode("\n", $summary) . "\n\nЧто удобнее дальше?";
-        $ok = self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false);
+        $ok = self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false,TripSummaryProjection::metadata($summary));
         if ($ok) MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCheck, $generation);
         return $ok;
     }
@@ -307,10 +309,13 @@ class DialogueView
         return self::sendAndStatus($chatId,"📱 <b>Введите номер телефона</b>\n\nНапример: +71234567890",$buttons,MaxSearchApi::$statusPhone,false);
     }
 
-    private static function sendAndStatus($chatId, string $text, array $buttons, $status, bool $deletePrevious = false): bool
+    private static function sendAndStatus($chatId, string $text, array $buttons, $status, bool $deletePrevious = false, array $metadata = []): bool
     {
         if ($deletePrevious) MaxSearchApi::deletePrevMessage($chatId);
-        $ok = IntegrationRegistry::messenger()->sendWithButtons($chatId,$text,$buttons);
+        $messenger = IntegrationRegistry::messenger();
+        $ok = $metadata && $messenger instanceof OutboundMetadataMessengerInterface
+            ? $messenger->sendWithButtonsAndMetadata($chatId,$text,$buttons,$metadata)
+            : $messenger->sendWithButtons($chatId,$text,$buttons);
         if ($ok) MaxSearchApi::setStatus($chatId,$status);
         return (bool)$ok;
     }

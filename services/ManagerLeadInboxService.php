@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/LeadTaskService.php';
 require_once __DIR__ . '/SalesPipelineService.php';
+require_once __DIR__ . '/TripSummaryProjection.php';
 
 /** Read-only projection for Manager Workspace V2 inbox cards. */
 class ManagerLeadInboxService
@@ -14,8 +15,8 @@ class ManagerLeadInboxService
         $in=implode(',',array_fill(0,count($ids),'?'));$pdo=ConversationDb::connection();$lead=[];
         $q=$pdo->prepare("SELECT c.id,c.lead_outcome,c.lead_close_reason,c.lead_outcome_note,c.lead_sale_amount,c.lead_sale_date,cu.phone,cu.email FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE c.id IN ({$in})");$q->execute($ids);foreach($q->fetchAll() as $item)$lead[(int)$item['id']]=$item;
         $closeReasons=SalesPipelineService::closeReasonOptions();
-        $summaries=[];$q=$pdo->prepare("SELECT conversation_id,text FROM messages WHERE conversation_id IN ({$in}) AND sender_type='ai' AND direction='outbound' AND text LIKE '%Готово! Проверьте параметры%' ORDER BY id DESC");$q->execute($ids);
-        foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summaries[$id]=self::cleanTripSummary((string)($message['text']??''));}
+        $summaries=[];$q=$pdo->prepare("SELECT conversation_id,text,metadata_json FROM messages WHERE conversation_id IN ({$in}) AND sender_type='ai' AND direction='outbound' AND (text LIKE '%Готово! Проверьте параметры%' OR metadata_json LIKE '%\"trip_summary\"%') ORDER BY id DESC");$q->execute($ids);
+        foreach($q->fetchAll() as $message){$id=(int)($message['conversation_id']??0);if($id<=0||array_key_exists($id,$summaries))continue;$summary=TripSummaryProjection::fromMessage($message);if($summary!==null)$summaries[$id]=$summary;}
         $tasks=[];$taskRows=[];$openTaskCounts=[];$taskOrder=LeadTaskService::openTaskOrderSql('t');$q=$pdo->prepare("SELECT t.id,t.conversation_id,t.title,t.due_at_utc,t.is_pinned,CASE WHEN t.due_at_utc IS NOT NULL AND t.due_at_utc<UTC_TIMESTAMP() THEN 1 ELSE 0 END AS overdue FROM lead_tasks t WHERE t.conversation_id IN ({$in}) AND t.status='open' ORDER BY t.conversation_id ASC,{$taskOrder}");$q->execute($ids);
         foreach($q->fetchAll() as $task){$id=(int)($task['conversation_id']??0);if($id<=0)continue;$openTaskCounts[$id]=(int)($openTaskCounts[$id]??0)+1;if(!array_key_exists($id,$tasks))$tasks[$id]=$task;$taskRows[$id][]=$task;}
         $operationalStates=[];foreach($taskRows as $id=>$rowsForLead)$operationalStates[$id]=LeadTaskService::operationalProjection($rowsForLead);
@@ -66,11 +67,6 @@ class ManagerLeadInboxService
             return function_exists('mb_stripos')?mb_stripos($haystack,$search,0,'UTF-8')!==false:stripos($haystack,$search)!==false;
         }));
         return $taskFilter===''?$filtered:self::sortOperational($filtered);
-    }
-
-    private static function cleanTripSummary(string $text): string
-    {
-        $text=html_entity_decode(strip_tags($text),ENT_QUOTES|ENT_HTML5,'UTF-8');$text=preg_replace('/^\s*✅\s*Готово!\s*Проверьте параметры\s*/ui','',$text)??$text;$text=preg_replace('/\s*Что удобнее дальше\?\s*$/ui','',$text)??$text;$text=preg_replace('/\s+/u',' ',$text)??$text;return trim($text);
     }
 
     public static function projectLabel(array $row): string

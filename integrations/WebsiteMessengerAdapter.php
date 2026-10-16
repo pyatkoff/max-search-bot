@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../contracts/MessengerInterface.php';
+require_once __DIR__ . '/../contracts/OutboundMetadataMessengerInterface.php';
 require_once __DIR__ . '/../services/ConversationRecorder.php';
 
-class WebsiteMessengerAdapter implements MessengerInterface
+class WebsiteMessengerAdapter implements OutboundMetadataMessengerInterface
 {
     private $messages = [];
     private $senderType;
@@ -23,8 +23,13 @@ class WebsiteMessengerAdapter implements MessengerInterface
 
     public function sendWithButtons($chatId, string $text, array $buttons): bool
     {
+        return $this->sendWithButtonsAndMetadata($chatId,$text,$buttons,[]);
+    }
+
+    public function sendWithButtonsAndMetadata($chatId, string $text, array $buttons, array $metadata): bool
+    {
         $this->messages[] = ['type'=>'message','text'=>$text,'buttons'=>$buttons];
-        if ($this->recordOutbound) ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, ['has_buttons'=>true,'buttons'=>$buttons]);
+        if ($this->recordOutbound) ConversationRecorder::outbound('website', $chatId, $text, $this->senderType, array_merge($metadata,['has_buttons'=>true,'buttons'=>$buttons]));
         return true;
     }
 
