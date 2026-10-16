@@ -27,7 +27,10 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     }
     Object.defineProperty(window,'Notification',{configurable:true,value:notification});
     Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
-    let registered=false;
+    let registered=false,revision=1;
+    if(backgroundPending)localStorage.setItem('anytour-manager-push-installation:7',JSON.stringify({token:'a'.repeat(64),revision}));
+    const current=()=>({id:1,revision,enabled:true});
+    const receipt=body=>({ok:true,found:true,operation:{id:body.operation_id,action:body.action,result:{ok:true,connection_id:1,revision,enabled:true}},current_connection:current()});
     const subscription={options:{applicationServerKey:new Uint8Array([1])},toJSON(){return {endpoint:'https://push.example.test/PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY',keys:{auth:'synthetic',p256dh:'synthetic'}};}};
     const registration={scope:location.origin+'/manager/',active:{state:'activated'},pushManager:{
       async getSubscription(){fixturePushCalls.push('read');return registered?subscription:null;},
@@ -37,10 +40,12 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
       ready:Promise.resolve(registration),async getRegistration(){fixturePushCalls.push('lookup');return registration;},async register(){fixturePushCalls.push('register');return registration;},addEventListener(){},
     }});
     window.fetch=async(url,options)=>{
-      fixturePushCalls.push(String(url));
-      if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,...(options?.method==='POST'?{current_subscription:{notification_path_usable:registered,notification_path_reason:registered?'healthy_subscription':'no_subscription'}}:{})})};
+      const body=options?.method==='POST'?JSON.parse(options.body):null;
+      fixturePushCalls.push(body?.action==='enable_intent'?'push.php#enable_intent':String(url));
+      if(body?.action==='enable_intent'){revision++;return{ok:true,status:200,json:async()=>receipt(body)};}
+      if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,...(options?.method==='POST'?{current_subscription:{notification_path_usable:registered,notification_path_reason:registered?'healthy_subscription':'no_subscription'},current_connection:current()}:{})})};
       if(url==='push.php?action=key'){window.fixtureKeySignal=options?.signal;return {ok:true,status:200,json:async()=>{if(keyBodyPending&&!window.fixtureFinishKey)return new Promise(resolve=>{window.fixtureFinishKey=()=>resolve({ok:true,public_key:'AQ'});});return {ok:true,public_key:'AQ'};}};}
-      if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})};}
+      if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({...receipt(body),push_status:fixturePushStatus,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})};}
       throw new Error('Unexpected request');
     };
   },{working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending,nativeDeadline});

@@ -122,6 +122,7 @@ async function setup(page,options={}){
    if(holdWrite)await new Promise(resolve=>heldWrites.push(resolve));
    if(writeResult==='unknown')return route.abort('failed');return reply(result);
   }
+  if(url.pathname==='/manager/push.php'&&d.action==='connections')return reply({ok:true,connections:[],truncated:false});
   if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);

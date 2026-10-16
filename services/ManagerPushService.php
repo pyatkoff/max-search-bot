@@ -2,6 +2,7 @@
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerPriorityService.php';
+require_once __DIR__ . '/ManagerPushConnectionService.php';
 
 class ManagerPushService
 {
@@ -37,16 +38,6 @@ class ManagerPushService
 
     public static function publicKey(): string { return (string)self::vapid()['public_key']; }
 
-    public static function saveSubscription(int $managerId,array $subscription,string $userAgent=''): bool
-    {
-        $endpoint=trim((string)($subscription['endpoint']??''));
-        $keys=(array)($subscription['keys']??[]); $p256dh=trim((string)($keys['p256dh']??'')); $auth=trim((string)($keys['auth']??''));
-        if($endpoint===''||$p256dh===''||$auth==='') return false;
-        $hash=hash('sha256',$endpoint);
-        $q=ConversationDb::connection()->prepare('INSERT INTO manager_push_subscriptions (manager_id,endpoint,endpoint_hash,p256dh,auth_secret,user_agent) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE last_error_at=IF(p256dh<>VALUES(p256dh) OR auth_secret<>VALUES(auth_secret),NULL,last_error_at),last_error=IF(p256dh<>VALUES(p256dh) OR auth_secret<>VALUES(auth_secret),NULL,last_error),endpoint=VALUES(endpoint),p256dh=VALUES(p256dh),auth_secret=VALUES(auth_secret),user_agent=VALUES(user_agent),updated_at=NOW()');
-        return $q->execute([$managerId,$endpoint,$hash,$p256dh,$auth,mb_substr($userAgent,0,500)]);
-    }
-
     /** Targeted manager notification used by sales-workspace reminders, independent from dialogue routing/status. */
     public static function notifyManager(int $managerId,int $conversationId,string $title,string $body): array
     {
@@ -54,7 +45,7 @@ class ManagerPushService
         $dispatchId=self::dispatchId();
         try{
             $pdo=ConversationDb::connection();
-            $q=$pdo->prepare('SELECT * FROM manager_push_subscriptions WHERE manager_id=?');$q->execute([$managerId]);$subs=$q->fetchAll()?:[];
+            $subs=ManagerPushConnectionService::activeSubscriptions($pdo,[$managerId]);
             if(!$subs){
                 if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'notification_kind'=>'lead_task_reminder'],null,'warning');}catch(Throwable $ignored){}}
                 return['attempted'=>0,'delivered'=>0];
@@ -102,9 +93,7 @@ class ManagerPushService
                     $arrival->execute([$conversationId,$externalMessageId]);$incomingId=(int)$arrival->fetchColumn();
                 }catch(Throwable $ignored){}
             }
-            $in=implode(',',array_fill(0,count($managers),'?'));
-            $q=$pdo->prepare("SELECT * FROM manager_push_subscriptions WHERE manager_id IN ($in)"); $q->execute($managers);
-            $subs=$q->fetchAll();$subscribed=[];
+            $subs=ManagerPushConnectionService::activeSubscriptions($pdo,$managers);$subscribed=[];
             foreach($subs as $sub)$subscribed[(int)$sub['manager_id']]=true;
             if(class_exists('DiagnosticLogger')){
                 foreach($managers as $managerId){if(isset($subscribed[(int)$managerId]))continue;try{DiagnosticLogger::log('manager_push','no_subscription',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>(int)$managerId],null,'warning');}catch(Throwable $ignored){}}
@@ -128,6 +117,7 @@ class ManagerPushService
 
     private static function send(array $sub,string $payload,int $conversationId,string $dispatchId): bool
     {
+        if(!ManagerPushConnectionService::isCurrent(ConversationDb::connection(),$sub))return false;
         $cfg=self::vapid(); $endpoint=(string)$sub['endpoint'];
         $clientPub=self::b64ud((string)$sub['p256dh']); $auth=self::b64ud((string)$sub['auth_secret']);
         if(strlen($clientPub)!==65||strlen($auth)<16) throw new RuntimeException('invalid_subscription_key');
@@ -147,16 +137,15 @@ class ManagerPushService
         $headers=['TTL: 60','Content-Encoding: aes128gcm','Content-Type: application/octet-stream','Authorization: vapid t='.$jwt.', k='.(string)$cfg['public_key'],'Content-Length: '.strlen($body)];
         $ch=curl_init($endpoint); curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_HTTPHEADER=>$headers,CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>10,CURLOPT_HEADER=>false]); curl_exec($ch); $code=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE); $err=curl_error($ch); curl_close($ch);
         $pdo=ConversationDb::connection();$managerId=(int)($sub['manager_id']??0);$subscriptionId=(int)($sub['id']??0);
+        ManagerPushConnectionService::deliveryResult($pdo,$sub,$code,$err);
         if($code>=200&&$code<300){
-            $pdo->prepare('UPDATE manager_push_subscriptions SET last_success_at=NOW(),last_error=NULL WHERE id=?')->execute([$subscriptionId]);
             if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_success',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'info');}catch(Throwable $ignored){}}
             return true;
         }
         if(in_array($code,[404,410],true)){
             if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','subscription_expired',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code],null,'warning');}catch(Throwable $ignored){}}
-            $pdo->prepare('DELETE FROM manager_push_subscriptions WHERE id=?')->execute([$subscriptionId]);return false;
+            return false;
         }
-        $pdo->prepare('UPDATE manager_push_subscriptions SET last_error_at=NOW(),last_error=? WHERE id=?')->execute([mb_substr('HTTP '.$code.' '.$err,0,500),$subscriptionId]);
         if(class_exists('DiagnosticLogger')){try{DiagnosticLogger::log('manager_push','delivery_failed',['dispatch_id'=>$dispatchId,'conversation_id'=>$conversationId,'manager_id'=>$managerId,'subscription_id'=>$subscriptionId,'http_code'=>$code,'error'=>mb_substr($err,0,300)],null,'warning');}catch(Throwable $ignored){}}
         return false;
     }

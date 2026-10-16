@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const vm = require('vm');
+const {lifecycle}=require('./fixtures/manager_push_browser_fixture');
 
 const source = fs.readFileSync(require('path').join(__dirname, '..', 'manager', 'assets', 'workspace-v2-notifications.js'), 'utf8');
 const listeners = {};
@@ -20,7 +21,9 @@ const document = {
     };
   },
 };
+const baseProtocol=lifecycle(7);
 const context = {
+  localStorage:baseProtocol.localStorage,crypto:baseProtocol.crypto,
   document,
   navigator: {},
   window: { WorkspaceV2: { S: { csrf: 'test', manager: { id: 7 }, authGeneration: 0 } } },
@@ -36,6 +39,7 @@ vm.runInNewContext(source, context, { filename: 'workspace-v2-notifications.js' 
 const secretMarker = 'PRIVATE_ENDPOINT_TOKEN_DO_NOT_DISPLAY';
 function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, keyBody = null, confirmationRequest = null, clock = null, browser = null } = {}) {
   const localRoot = { className: '', innerHTML: '' };
+  const protocol=lifecycle(7);if(browser)protocol.localStorage.clear();
   const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, currentStatus: 0, lookup: 0, auth: 0 };
   const keySignals = [];
   let userGesture = false, permissionDuringGesture = false, nativeSubscription=browser?.subscription??null;
@@ -63,6 +67,7 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
   const localDocument = { ...document, addEventListener() {}, getElementById(id) { return id === 'notificationStatus' ? localRoot : null; } };
   const localContext = {
     document: localDocument,
+    localStorage:protocol.localStorage,crypto:protocol.crypto,
     navigator: { serviceWorker },
     window: { WorkspaceV2: { S: { csrf: secretMarker, manager: { id: 7 }, authGeneration: 0 }, showAuthRecovery() { calls.auth++; } }, PushManager: function(){}, Notification: notification },
     Notification: notification,
@@ -71,15 +76,17 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
         const current=options?.method==='POST';calls[current?'currentStatus':'status']++;
         if(current){const body=JSON.parse(options.body);assert.equal(body.csrf,localContext.window.WorkspaceV2.S.csrf);assert.equal(body.endpoint,nativeSubscription?.toJSON().endpoint);}
         if(browser?.statusRequest){const override=await browser.statusRequest(options);if(override)return override;}
-        return { ok: true, status: 200, async json() { return { ok: true, push_status: browser?.accountHealthy||(current&&!browser)?healthy:{ is_working: working, notification_path_usable: false, notification_path_reason: healthReason },...(current?{current_subscription:{notification_path_usable:browser?browser.currentHealthy===true:true,notification_path_reason:!browser||browser.currentHealthy?'healthy_subscription':browser.currentReason||'no_subscription'}}:{}) }; } };
+        return { ok: true, status: 200, async json() { return { ok: true, push_status: browser?.accountHealthy||(current&&!browser&&nativeSubscription)?healthy:{ is_working: working, notification_path_usable: false, notification_path_reason: healthReason },...(current?{current_subscription:{notification_path_usable:browser?browser.currentHealthy===true:!!nativeSubscription,notification_path_reason:(!browser&&nativeSubscription)||browser?.currentHealthy?'healthy_subscription':browser?.currentReason||'no_subscription'},current_connection:protocol.current()}:{}) }; } };
       }
+      const body=options?.method==='POST'?JSON.parse(options.body):null;
+      if(body?.action==='enable_intent')return{ok:true,status:200,json:async()=>protocol.reply(body)};
       const name = options?.method === 'POST' ? 'save' : 'key';
       if (!(failAt === name && httpStatus)) step(name); else calls[name]++;
       const status = failAt === name && httpStatus ? httpStatus : 200;
       if (name === 'key') keySignals.push(options?.signal);
       if(name==='save'&&browser?.saveRequest)await browser.saveRequest(options);
       if(name==='save'&&status===200&&browser)browser.currentHealthy=true;
-      return { ok: status === 200, status, async json() { if (name === 'key' && keyBody) return keyBody(calls.key); return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ok: true, push_status: healthy,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'} } : { ok: false, error: secretMarker }; } };
+      return { ok: status === 200, status, async json() { if (name === 'key' && keyBody) return keyBody(calls.key); return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ...protocol.reply(body), push_status: healthy,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'} } : { ok: false, error: secretMarker }; } };
     },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     console: { warn() {} },
@@ -124,8 +131,9 @@ async function currentBrowserCases(){
     await h.api.refresh();await drain();assert.equal(h.calls.subscribe,0);notGreen(h);
     assert.equal(await h.enable(),true);assert.equal(h.calls.subscribe,1);assert.equal(h.calls.save,1);assert.equal(h.calls.permission,0);assert.equal(h.calls.confirmation,1);assert.match(h.root.innerHTML,/Уведомления включены/);
   });
-  await check('account with no healthy subscription retains exactly one silent granted-permission recovery',async()=>{
+  await check('an existing active installation retains exactly one silent granted-permission recovery',async()=>{
     const native=deferred(),h=activationHarness({healthReason:'no_subscription',browser:{accountHealthy:false,subscribe:()=>native.promise}});
+    h.context.localStorage.setItem('anytour-manager-push-installation:7',JSON.stringify({token:'a'.repeat(64),revision:1}));
     await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.subscribe,1);noPrompt(h);await h.api.refresh();await drain();assert.equal(h.calls.subscribe,1);
     native.resolve(h.subscription);await drain();assert.equal(h.calls.save,1);assert.match(h.root.innerHTML,/Уведомления включены/);noPrompt(h);
   });
@@ -193,7 +201,7 @@ async function activationDiagnosticCases() {
     if (!harness.root.innerHTML.includes(`Этап: ${stage}`) || !harness.root.innerHTML.includes(`Код: ${code}`)) throw new Error(`${failAt} native failure has no safe inline diagnostic`);
     if (!harness.root.innerHTML.includes('<details class="notificationDiagnostic">') || !harness.root.innerHTML.includes('<summary>Подробности для администратора</summary>') || /<details[^>]*\bopen\b/.test(harness.root.innerHTML)) throw new Error(`${failAt} safe diagnosis is not behind an initially collapsed disclosure`);
     if (harness.root.innerHTML.includes(secretMarker) || harness.root.innerHTML.includes('https://push.example.test')) throw new Error(`${failAt} diagnosis leaks raw error or subscription secrets`);
-    if (!harness.root.innerHTML.includes('Повторить') || harness.root.innerHTML.includes('disabled')) throw new Error(`${failAt} does not restore the retry button`);
+    if (!harness.root.innerHTML.includes(failAt==='save'?'Проверить':'Повторить') || harness.root.innerHTML.includes('disabled')) throw new Error(`${failAt} does not restore the retry button`);
     if (harness.calls.subscribe > 1 || harness.calls.save > 1 || harness.calls.confirmation !== 0 || harness.calls.status !== 0) throw new Error(`${failAt} diagnosis introduces extra activation effects`);
     const callsBeforeRefresh = { ...harness.calls };
     await harness.api.refresh();
@@ -235,7 +243,7 @@ async function activationDiagnosticCases() {
   await recovering.api.refresh();
   await new Promise(resolve => setTimeout(resolve, 0));
   await recovering.api.refresh();
-  if (recovering.calls.subscribe !== 1 || recovering.calls.save !== 0 || recovering.calls.permission !== 0 || recovering.calls.confirmation !== 0 || recovering.root.innerHTML.includes('notificationDiagnostic') || recovering.api.maybeRecoverGranted(recovering.root) !== false) throw new Error('background recovery repeats, prompts permission or exposes interactive diagnosis');
+  if (recovering.calls.subscribe !== 1 || recovering.calls.save !== 0 || recovering.calls.permission !== 0 || recovering.calls.confirmation !== 0 || recovering.root.innerHTML.includes('notificationDiagnostic') || recovering.api.maybeRecoverGranted(recovering.root) !== false) throw new Error('background recovery repeats, prompts permission or exposes interactive diagnosis '+JSON.stringify(recovering.calls));
   console.log('PASS  canonical success, user permission gesture, authorization and recovery guards are preserved');
 }
 
@@ -475,12 +483,18 @@ async function run() {
     { ok: true, status: 200, async json() { return { ok: true, push_status: { is_working: true, notification_path_usable: false, notification_path_reason: 'subscription_unhealthy' },current_subscription:{notification_path_usable:false,notification_path_reason:'subscription_unhealthy'} }; } },
   ];
   const Notification = { permission: 'granted', async requestPermission() { return 'granted'; } };
+  const savedProtocol=lifecycle(7);
   const savedContext = {
+    localStorage:savedProtocol.localStorage,crypto:savedProtocol.crypto,
     document: savedDocument,
     navigator: { serviceWorker },
     window: { WorkspaceV2: { S: { csrf: 'test', manager: { id: 7 }, authGeneration: 0 } }, PushManager: function(){}, Notification },
     Notification,
-    fetch: async () => responses.shift(),
+    fetch:async(url,options)=>{
+      if(url==='push.php?action=key')return responses[0];
+      if(url==='push-status.php')return{ok:true,status:200,json:async()=>({ok:true,current_subscription:{notification_path_usable:false,notification_path_reason:'no_subscription'},current_connection:savedProtocol.current()})};
+      const body=JSON.parse(options.body);return{ok:true,status:200,json:async()=>({...savedProtocol.reply(body),...(body.action==='subscribe'?await responses[1].json():{})})};
+    },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     console: { warn() {} },
     setTimeout,
@@ -489,7 +503,7 @@ async function run() {
     URL,
   };
   vm.runInNewContext(source, savedContext, { filename: 'workspace-v2-notifications.js' });
-  savedListeners.click({ preventDefault() {}, target: { closest() { return {}; } } });
+  savedListeners.click({ preventDefault() {}, target: { closest(selector) { return selector==='[data-enable-push]'?{}:null; } } });
   await new Promise(resolve => setTimeout(resolve, 10));
   if (!savedRoot.innerHTML.includes('Не удалось завершить подключение уведомлений') || !savedRoot.innerHTML.includes('Повторить')) {
     throw new Error('unusable canonical server status is silently treated as successful setup');

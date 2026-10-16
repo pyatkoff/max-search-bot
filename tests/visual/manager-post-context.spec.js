@@ -67,6 +67,7 @@ async function setup(page,{holdPostIds=[],postStatus=200,postFailure=false,photo
    return reply(status===200?body:{ok:false,error:status===401?'unauthorized':'post_context_unavailable'},status);
   }
   if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
+  if(url.pathname==='/manager/push.php'&&d.action==='connections'){expect(d.expected_manager_id).toBe(manager.id);return reply({ok:true,connections:[],truncated:false})}
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   return block();
  });

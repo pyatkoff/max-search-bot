@@ -1,3 +1,4 @@
+const {lifecycle}=require('../fixtures/manager_push_browser_fixture');
 const {test, expect}=require('@playwright/test');
 const fs=require('node:fs');
 const base='http://127.0.0.1:4173';
@@ -252,7 +253,7 @@ test('storage failure is reported and testing while off never opts in',async({pa
 // A canonical /manager worker can serve push/audio at /manager2 without ever
 // controlling that page; <base> does not widen its scope or settle global ready.
 async function outsideScopeManager2(page){
-  const calls={key:0,save:0,feed:0},unexpected=[];let subscribed=false;
+  const protocol=lifecycle(7),calls={key:0,intent:0,save:0,feed:0},unexpected=[];let subscribed=false;
   const fixture=fs.readFileSync(require('node:path').join(__dirname,'workspace-v2-fixture.html'),'utf8').replace('<head>','<head><base href="/manager/">');
   await page.route('**/*',route=>{
     const request=route.request(),url=new URL(request.url());
@@ -262,15 +263,17 @@ async function outsideScopeManager2(page){
     if(url.pathname==='/manager/push-status.php'){
       const result={ok:true,push_status:{is_working:true,notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'manager_inactive',healthy_subscription_count:subscribed?1:0}};
       if(request.method()==='POST'){
-        expect(request.postDataJSON()).toEqual({csrf:'synthetic-csrf',endpoint:'https://push.example.invalid/synthetic'});
+        const body=request.postDataJSON();expect(body.csrf).toBe('synthetic-csrf');expect(body.installation_token).toMatch(/^[a-f0-9]{64}$/);if(body.endpoint)expect(body.endpoint).toBe('https://push.example.invalid/synthetic');result.current_connection=protocol.current();
         result.current_subscription={notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'};
       }
       return reply(result);
     }
     if(url.pathname==='/manager/push.php'&&url.searchParams.get('action')==='key'){calls.key++;return reply({ok:true,public_key:'AQ',csrf:'synthetic-csrf'});}
     if(url.pathname==='/manager/push.php'&&request.method()==='POST'){
-      const body=request.postDataJSON();expect(body.action).toBe('subscribe');expect(body.csrf).toBe('synthetic-csrf');expect(body.subscription.endpoint).toBe('https://push.example.invalid/synthetic');calls.save++;subscribed=true;
-      return reply({ok:true,push_status:{is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}});
+      const body=request.postDataJSON();expect(body.csrf).toBe('synthetic-csrf');expect(body.expected_manager_id).toBe(7);expect(body.operation_id).toMatch(/^[a-f0-9]{64}$/);expect(body.installation_token).toMatch(/^[a-f0-9]{64}$/);
+      if(body.action==='enable_intent'){calls.intent++;return reply(protocol.reply(body));}
+      expect(body.action).toBe('subscribe');expect(body.expected_revision).toBe(protocol.current().revision);expect(body.csrf).toBe('synthetic-csrf');expect(body.subscription.endpoint).toBe('https://push.example.invalid/synthetic');calls.save++;subscribed=true;
+      return reply({...protocol.reply(body),push_status:{is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}});
     }
     if(url.pathname==='/manager/notification-events.php'){calls.feed++;return reply({ok:true,manager_id:7,cursor:100,events:[],has_more:false});}
     if(url.pathname.endsWith('.php')){unexpected.push(request.method()+' '+url.pathname);return route.abort();}
@@ -312,7 +315,7 @@ test('native manager2 activation uses canonical active registration while global
   const {calls,unexpected}=await outsideScopeManager2(page);
   expect(await page.evaluate(()=>WorkspaceV2Notifications.enable(document.getElementById('notificationStatus')))).toBe(true);
   await expect(page.locator('#notificationStatus')).toContainText('Уведомления включены');
-  expect(await page.evaluate(()=>nativePushCalls.subscribe)).toBe(1);expect(calls.save).toBe(1);
+  expect(await page.evaluate(()=>nativePushCalls.subscribe)).toBe(1);expect(calls.save).toBe(1);expect(calls.intent).toBe(1);
   expect(await page.evaluate(()=>navigator.serviceWorker.controller)).toBeNull();expect(unexpected).toEqual([]);
 });
 

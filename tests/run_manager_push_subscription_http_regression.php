@@ -71,7 +71,7 @@ try {
     }
     $proof=static fn(string $endpoint,string $session,array $extra=[]): array=>$request('/manager/push-status.php',array_replace(['csrf'=>'fixture-csrf-only','endpoint'=>$endpoint],$extra),$session);
     $valid=$proof($endpointA,$cookie);
-    pushHttpCheck('POST confirms exact healthy browser alongside unchanged aggregate',$valid['status']===200&&array_keys($valid['json'])===['ok','push_status','current_subscription']&&$valid['json']['current_subscription']===$healthy&&$valid['json']['push_status']===$get['json']['push_status']);
+    pushHttpCheck('POST confirms exact healthy browser alongside unchanged aggregate',$valid['status']===200&&array_keys($valid['json'])===['ok','push_status','current_subscription','current_connection']&&$valid['json']['current_subscription']===$healthy&&$valid['json']['push_status']===$get['json']['push_status']);
     $badDevice=$proof($endpointB,$cookie,['manager_id'=>8]);
     pushHttpCheck('unhealthy exact browser cannot borrow healthy other device or posted account',$badDevice['status']===200&&$badDevice['json']['current_subscription']===$unhealthy&&$badDevice['json']['push_status']===$get['json']['push_status']);
     $otherOnly=$proof($endpointC,$cookie);
@@ -90,16 +90,51 @@ try {
     pushHttpCheck('anonymous subscribe cannot save or return proof',$anonymous['status']===401&&$anonymous['json']===['ok'=>false,'error'=>'unauthorized']);
     $forbidden=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'bad','subscription'=>$subscription],$cookie);
     pushHttpCheck('subscribe still checks CSRF before saving or proof',$forbidden['status']===403&&$forbidden['json']===['ok'=>false,'error'=>'csrf']&&$db->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll()===$before);
-    $saved=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'fixture-csrf-only','subscription'=>$subscription,'manager_id'=>8],$cookie);
-    pushHttpCheck('unchanged unhealthy subscribe response proves saved exact row rather than aggregate',$saved['status']===200&&array_keys($saved['json'])===['ok','push_status','current_subscription']&&$saved['json']['ok']===true&&$saved['json']['push_status']['notification_path_usable']===true&&$saved['json']['current_subscription']===$unhealthy);
-    pushHttpCheck('subscribe current proof does not expose submitted secrets or endpoint',!str_contains($saved['body'],'private-p256dh')&&!str_contains($saved['body'],'private-auth')&&!str_contains($saved['body'],$endpointB));
-    $subscription['endpoint']=$endpointC;$subscription['keys']=['p256dh'=>'new-private-key','auth'=>'new-private-auth'];
-    $new=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'fixture-csrf-only','subscription'=>$subscription],$cookie);
-    pushHttpCheck('new saved device is independently confirmed in subscribe response',$new['status']===200&&$new['json']['current_subscription']===$healthy&&$new['json']['push_status']['subscription_count']===3);
+    $legacy=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'fixture-csrf-only','subscription'=>$subscription],$cookie);
+    pushHttpCheck('old unversioned subscribe is blocked before any endpoint can resurrect',$legacy['status']===409&&$legacy['json']['error']==='installation_required'&&$db->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll()===$before);
+    $sequence=0;$op=static function(string $action,array $input=[],string $session='') use ($request,$cookie,&$sequence): array {
+        $body=['action'=>$action,'csrf'=>'fixture-csrf-only','expected_manager_id'=>7,'operation_id'=>str_pad(dechex(++$sequence),64,'0',STR_PAD_LEFT)]+$input;
+        return $request('/manager/push.php',$body,$session!==''?$session:$cookie);
+    };
+    $list=$request('/manager/push.php',['action'=>'connections','csrf'=>'fixture-csrf-only','endpoint'=>$endpointB,'expected_manager_id'=>7],$cookie);
+    pushHttpCheck('protected HTTP list contains only own safe browser projections',$list['status']===200&&count($list['json']['connections'])===2&&array_column($list['json']['connections'],'id')===[2,1]&&!preg_match('/private-|https:|p256dh|auth_secret|token_hash/', $list['body']));
+    foreach (['connections','operation','enable_intent','revoke'] as $action) {
+        $anonymous=$request('/manager/push.php',['action'=>$action]);$csrf=$request('/manager/push.php',['action'=>$action,'csrf'=>'bad'],$cookie);
+        pushHttpCheck('new '.$action.' retains auth and CSRF before lookup',$anonymous['status']===401&&$csrf['status']===403);
+    }
+    $method=$request('/manager/push.php?action=revoke',[],$cookie,'GET');pushHttpCheck('GET cannot invoke a mutation',$method['status']===405);
+    $token=str_repeat('b',64);
+    $intent=$op('enable_intent',['installation_token'=>$token,'expected_revision'=>1,'subscription'=>$subscription]);
+    pushHttpCheck('explicit HTTP intent adopts native legacy identity before repair',$intent['status']===200&&$intent['json']['current_connection']['id']===2&&$intent['json']['revision']===2);
+    $saved=$op('subscribe',['installation_token'=>$token,'expected_revision'=>2,'subscription'=>$subscription]);
+    pushHttpCheck('unchanged unhealthy keys cannot inherit healthy account status',$saved['status']===200&&$saved['json']['ok']&&$saved['json']['push_status']['notification_path_usable']&&$saved['json']['current_subscription']===$unhealthy);
+    pushHttpCheck('receipt and current proof contain no native material',!str_contains($saved['body'],'private-p256dh')&&!str_contains($saved['body'],'private-auth')&&!str_contains($saved['body'],$endpointB));
+    $wrongAccount=$request('/manager/push.php',['action'=>'revoke','csrf'=>'fixture-csrf-only','expected_manager_id'=>8,'connection_id'=>2,'expected_revision'=>2],$cookie);
+    pushHttpCheck('stale browser identity cannot mutate the current authenticated account',$wrongAccount['status']===403&&$wrongAccount['json']['error']==='session_changed');
+    $revoke=$op('revoke',['connection_id'=>2,'expected_revision'=>2]);$receipt=$revoke['json']['operation'];
+    pushHttpCheck('HTTP revoke turns off one installation without changing the shift',$revoke['status']===200&&!$revoke['json']['current_connection']['enabled']&&$db->query('SELECT * FROM managers ORDER BY id')->fetchAll()===$managerBefore);
+    $subscription['endpoint']='https://push-fixture.invalid/replacement-e2';
+    $late=$op('subscribe',['installation_token'=>$token,'expected_revision'=>2,'subscription'=>$subscription]);
+    pushHttpCheck('late native E2 cannot bypass HTTP revocation',$late['status']===409&&$late['json']['error']==='subscription_revoked');
+    require_once $root.'/services/ManagerPushConnectionService.php';
+    $fanout=ManagerPushConnectionService::activeSubscriptions($db,[7]);
+    pushHttpCheck('actual service selection after HTTP revoke fans out only to remaining A',count($fanout)===1&&$fanout[0]['endpoint']===$endpointA);
+    $stateBeforeRead=$db->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll();
+    $recovered=$request('/manager/push.php',['action'=>'operation','operation_id'=>$receipt['id'],'csrf'=>'fixture-csrf-only','expected_manager_id'=>7],$cookie);
+    pushHttpCheck('lost HTTP response reconciles original immutable receipt without resend',$recovered['status']===200&&$recovered['json']['found']&&$recovered['json']['operation']===$receipt&&!$recovered['json']['current_connection']['enabled']&&$db->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll()===$stateBeforeRead);
+    $foreignOp=$request('/manager/push.php',['action'=>'operation','operation_id'=>$receipt['id'],'csrf'=>'fixture-csrf-only','expected_manager_id'=>8],$cookie8);
+    pushHttpCheck('another account cannot discover an operation nonce',$foreignOp['status']===200&&$foreignOp['json']===['ok'=>true,'found'=>false]);
+    foreach ([3,99999] as $id) {$bad=$op('revoke',['connection_id'=>$id,'expected_revision'=>1]);pushHttpCheck('foreign/missing HTTP connection ID has identical 404',$bad['status']===404&&$bad['json']['error']==='not_found');}
+    $revoked=$request('/manager/push-status.php',['csrf'=>'fixture-csrf-only','installation_token'=>$token],$cookie);
+    pushHttpCheck('read-only intent proof recognizes remote off even without native endpoint',$revoked['status']===200&&$revoked['json']['current_subscription']['notification_path_reason']==='subscription_revoked');
+    $reenable=$op('enable_intent',['installation_token'=>$token,'expected_revision'=>3]);
+    $subscription['keys']=['p256dh'=>'new-private-key','auth'=>'new-private-auth'];
+    $new=$op('subscribe',['installation_token'=>$token,'expected_revision'=>$reenable['json']['revision'],'subscription'=>$subscription]);
+    pushHttpCheck('new explicit originating-browser intent restores E2 with honest own proof',$new['status']===200&&$new['json']['current_subscription']===$healthy&&$new['json']['push_status']['subscription_count']===2);
     $foreignRows=array_values(array_filter($db->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll(),static fn(array $r): bool=>(int)$r['manager_id']===8));
-    pushHttpCheck('subscribe never changes matching endpoint rows belonging to another account',$foreignRows===array_values(array_filter($before,static fn(array $r): bool=>(int)$r['manager_id']===8)));
+    pushHttpCheck('shared endpoint second account is unchanged through revoke and renewed intent',$foreignRows===array_values(array_filter($before,static fn(array $r): bool=>(int)$r['manager_id']===8)));
     $invalidSubscribe=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'fixture-csrf-only','subscription'=>[]],$cookie);
-    pushHttpCheck('invalid subscribe preserves 409 contract without fabricated proof',$invalidSubscribe['status']===409&&$invalidSubscribe['json']===['ok'=>false]);
+    pushHttpCheck('unversioned malformed save is blocked without fabricated proof',$invalidSubscribe['status']===409&&$invalidSubscribe['json']['error']==='installation_required');
     $db->exec('UPDATE managers SET is_active=0 WHERE id=7');$inactive=$proof($endpointA,$cookie);$db->exec('UPDATE managers SET is_active=1 WHERE id=7');
     pushHttpCheck('fresh auth rejects account deactivated after prior healthy read',$inactive['status']===401&&$inactive['json']===['ok'=>false,'error'=>'unauthorized']);
     pushHttpCheck('HTTP proof and subscribe never change manager shifts identities or access',$db->query('SELECT * FROM managers ORDER BY id')->fetchAll()===$managerBefore&&$db->query('SELECT * FROM manager_projects ORDER BY manager_id')->fetchAll()===$projectBefore);

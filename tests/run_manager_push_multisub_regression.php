@@ -28,8 +28,8 @@ mpCheck(
     strpos($pushMigration, 'UNIQUE KEY uq_manager_endpoint (manager_id,endpoint_hash)') !== false
 );
 mpCheck(
-    'selected managers load all registered subscriptions',
-    strpos($pushSource, 'SELECT * FROM manager_push_subscriptions WHERE manager_id IN ($in)') !== false
+    'both delivery callers delegate selection to the canonical active connection owner',
+    substr_count($pushSource,'ManagerPushConnectionService::activeSubscriptions(')===2
 );
 mpCheck(
     'one dispatch id is created for one notify call',
@@ -100,6 +100,76 @@ mpCheck(
     strpos($conversationSource, "action('Взять','primary',()=>change('take'))") !== false
 );
 
+$total = $passed + $failed;
+// Execute the real lifecycle SQL against isolated storage, including adversarial
+// captured interleavings. No endpoint is contacted and no native API is invoked.
+require_once __DIR__.'/fixtures/manager_push_subscription_fixture.php';
+require_once __DIR__.'/../services/ManagerPushConnectionService.php';
+require_once __DIR__.'/../services/ManagerPushHealth.php';
+$pdo=new ManagerPushSubscriptionHttpFixturePDO('sqlite::memory:');
+managerPushSubscriptionFixture($pdo);managerPushSubscriptionFixtureSeed($pdo);
+(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+$nonce=0;
+$mutate=static function(string $action,array $input,int $manager=7) use (&$nonce): array {
+    return ManagerPushConnectionService::mutate($manager,$action,['operation_id'=>str_pad(dechex(++$nonce),64,'0',STR_PAD_LEFT)]+$input,'Mozilla/5.0 (Windows NT 10.0) Firefox/141.0');
+};
+$sub=static fn(string $name,int $manager=7): array=>['endpoint'=>'https://push-fixture.invalid/subscription-'.$name,'keys'=>['p256dh'=>'private-p256dh-'.$manager.'-'.$name,'auth'=>'private-auth-'.$manager.'-'.$name]];
+$tokenA=str_repeat('a',64);$tokenB=str_repeat('b',64);$tokenC=str_repeat('c',64);
+$foreign=$pdo->query('SELECT * FROM manager_push_subscriptions WHERE manager_id=8 ORDER BY id')->fetchAll();
+$managers=$pdo->query('SELECT * FROM managers ORDER BY id')->fetchAll();
+$before=$pdo->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll();
+$pdo->exec('PRAGMA query_only=ON');$list=ManagerPushConnectionService::connections(7,'',$sub('a')['endpoint']);$pdo->exec('PRAGMA query_only=OFF');
+mpCheck('own browser list is read-only and marks only the native legacy endpoint',count($list['connections'])===2&&count(array_filter($list['connections'],static fn(array $r): bool=>$r['current']))===1&&$pdo->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll()===$before);
+mpCheck('list exposes no endpoints keys raw agent hashes or other accounts',!preg_match('/private-|https:|token_hash|endpoint_hash|auth_secret|p256dh/',json_encode($list))&&array_column($list['connections'],'id')===[2,1]);
+$a=$mutate('enable_intent',['installation_token'=>$tokenA,'expected_revision'=>1,'subscription'=>$sub('a')]);
+$a=$mutate('subscribe',['installation_token'=>$tokenA,'expected_revision'=>2,'subscription'=>$sub('a')]);
+$c=$mutate('enable_intent',['installation_token'=>$tokenC,'expected_revision'=>0]);$cid=$c['current_connection']['id'];
+$c=$mutate('subscribe',['installation_token'=>$tokenC,'expected_revision'=>1,'subscription'=>$sub('c')]);
+$b=$mutate('enable_intent',['installation_token'=>$tokenB,'expected_revision'=>1,'subscription'=>$sub('b')]);
+$firstIntent=$b['operation'];
+$b=$mutate('subscribe',['installation_token'=>$tokenB,'expected_revision'=>2,'subscription'=>$sub('b')]);
+mpCheck('explicit intents and saves preserve A B C as independent connections',$a['ok']&&$b['ok']&&$c['ok']&&count(ManagerPushConnectionService::activeSubscriptions($pdo,[7]))===3);
+$captured=ManagerPushConnectionService::activeSubscriptions($pdo,[7]);$capturedB=array_values(array_filter($captured,static fn(array $r): bool=>(int)$r['installation_id']===2))[0];
+$repair=$mutate('enable_intent',['installation_token'=>$tokenB,'expected_revision'=>2,'subscription'=>$sub('b')]);
+$revoke=$mutate('revoke',['connection_id'=>2,'expected_revision'=>3]);$receipt=$revoke['operation'];
+$late=$mutate('subscribe',['installation_token'=>$tokenB,'expected_revision'=>3,'subscription'=>$sub('e2')]);
+mpCheck('revoke survives a pending repair completing with a new endpoint',$repair['ok']&&$revoke['ok']&&!$late['ok']&&$late['error']==='subscription_revoked'&&ManagerPushConnectionService::current(7,$tokenB)['enabled']===false);
+$active=ManagerPushConnectionService::activeSubscriptions($pdo,[7]);
+mpCheck('subsequent fan-out selects A and C only',array_column($active,'endpoint')===[$sub('a')['endpoint'],$sub('c')['endpoint']]);
+mpCheck('captured revoked provider work cannot start later',!ManagerPushConnectionService::isCurrent($pdo,$capturedB)&&ManagerPushConnectionService::isCurrent($pdo,$active[0]));
+mpCheck('current endpoint and aggregate health exclude remote revocation',ManagerPushHealth::statusForSubscription($pdo,7,$sub('b')['endpoint'])['notification_path_reason']==='subscription_revoked'&&ManagerPushHealth::statusForManager($pdo,7)['subscription_count']===2);
+$lastSeen=ManagerPushConnectionService::connections(7,$tokenB)['connections'];$bView=array_values(array_filter($lastSeen,static fn(array $r): bool=>$r['id']===2))[0];
+mpCheck('safe row shows disabled current browser with its genuine last contact',$bView['current']&&$bView['status']==='revoked'&&$bView['last_activity_at']!==null&&$bView['browser']==='Firefox · Windows');
+$repeat=$mutate('revoke',['connection_id'=>2,'expected_revision'=>3]);
+mpCheck('idempotent repeat leaves disabled installation revision unchanged',$repeat['ok']&&$repeat['revision']===$revoke['revision']);
+foreach ([['subscription'=>$sub('b')],['subscription'=>$sub('e2')],['installation_token'=>str_repeat('d',64),'expected_revision'=>4,'subscription'=>$sub('e2')]] as $input) {
+    $bad=$mutate('subscribe',$input);mpCheck('legacy unversioned or forged save cannot revive B',!$bad['ok']&&ManagerPushConnectionService::current(7,$tokenB)['enabled']===false);
+}
+$recovered=ManagerPushConnectionService::operation(7,$receipt['id']);$foreignReceipt=ManagerPushConnectionService::operation(8,$receipt['id']);
+mpCheck('lost response reconciles the immutable own receipt through a read-only operation',$recovered['found']&&$recovered['operation']===$receipt&&$recovered['current_connection']['enabled']===false&&!$foreignReceipt['found']);
+$unknown=ManagerPushConnectionService::operation(7,str_repeat('f',64));mpCheck('unknown operation remains absent without a write or fabricated result',$unknown===['ok'=>true,'found'=>false]);
+foreach ([3,99999] as $foreignId) {$bad=$mutate('revoke',['connection_id'=>$foreignId,'expected_revision'=>1]);mpCheck('foreign or missing connection ID returns the same safe refusal',$bad['error']==='not_found'&&$bad['http_status']===404);}
+$renewed=$mutate('enable_intent',['installation_token'=>$tokenB,'expected_revision'=>4]);$newRevision=$renewed['revision'];
+$renewed=$mutate('subscribe',['installation_token'=>$tokenB,'expected_revision'=>$newRevision,'subscription'=>$sub('e2')]);
+mpCheck('a new explicit intent in originating installation enables only its new endpoint',$renewed['ok']&&count(ManagerPushConnectionService::activeSubscriptions($pdo,[7]))===3&&ManagerPushHealth::statusForSubscription($pdo,7,$sub('e2')['endpoint'])['notification_path_usable']);
+$beforeLate=$pdo->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll();
+foreach ([201,500,404,410] as $code) ManagerPushConnectionService::deliveryResult($pdo,$capturedB,$code,'private late provider error');
+mpCheck('late old success error 404 and 410 cannot annotate or delete a renewed row',$pdo->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll()===$beforeLate);
+$staleRevoke=$mutate('revoke',['connection_id'=>2,'expected_revision'=>3]);
+mpCheck('stale revoke cannot override a newer explicit re-enable',!$staleRevoke['ok']&&$staleRevoke['error']==='revision_conflict'&&ManagerPushConnectionService::current(7,$tokenB)['enabled']);
+$old=ManagerPushConnectionService::operation(7,$firstIntent['id']);
+mpCheck('old successful receipt stays immutable and carries current newer state',$old['operation']===$firstIntent&&$old['revision']===2&&$old['current_connection']['revision']===$newRevision);
+$changed=ManagerPushConnectionService::mutate(7,'enable_intent',['operation_id'=>$firstIntent['id'],'installation_token'=>$tokenB,'expected_revision'=>999]);
+mpCheck('forged reuse of a nonce cannot turn an old receipt into a new command',$changed['error']==='operation_conflict');
+$actual=array_values(array_filter(ManagerPushConnectionService::activeSubscriptions($pdo,[7]),static fn(array $r): bool=>(int)$r['installation_id']===2))[0];
+ManagerPushConnectionService::deliveryResult($pdo,$actual,410);
+mpCheck('a current provider expiry disables only its captured subscription',!ManagerPushConnectionService::isCurrent($pdo,$actual)&&count(ManagerPushConnectionService::activeSubscriptions($pdo,[7]))===2&&ManagerPushConnectionService::current(7,$tokenB)['enabled']);
+mpCheck('shared native endpoint on the second manager remains byte-identical',$pdo->query('SELECT * FROM manager_push_subscriptions WHERE manager_id=8 ORDER BY id')->fetchAll()===$foreign&&count(ManagerPushConnectionService::activeSubscriptions($pdo,[8]))===2);
+$before=$pdo->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll();
+$pdo->exec("CREATE TRIGGER fail_receipt BEFORE INSERT ON manager_push_operations BEGIN SELECT RAISE(ABORT,'synthetic receipt failure'); END");
+try {$mutate('revoke',['connection_id'=>1,'expected_revision'=>2]);mpCheck('receipt failure raises rather than losing atomicity',false);}catch(PDOException $error){mpCheck('receipt failure rolls back the entire revoke',$pdo->query('SELECT * FROM manager_push_installations ORDER BY id')->fetchAll()===$before);}
+$pdo->exec('DROP TRIGGER fail_receipt');
+mpCheck('all lifecycle work leaves manager identities shift and access unchanged',$pdo->query('SELECT * FROM managers ORDER BY id')->fetchAll()===$managers);
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
