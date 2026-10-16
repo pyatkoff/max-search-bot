@@ -10,7 +10,7 @@ concurrency:
   group: production-deploy
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 6c5b14066a655bdd68c852c19b725b28859b2fea
+  EXPECTED_PRODUCTION_SHA: bd995fb002e5dcac7a794b26d3bb777fef958962
 jobs:
   inspect:
     if: github.ref == 'refs/heads/test/max-reported-post-diagnostic-20261016'
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 6c5b14066a655bdd68c852c19b725b28859b2fea
+          ref: bd995fb002e5dcac7a794b26d3bb777fef958962
       - name: Verify authoritative release before read-only diagnostic
         env:
           GH_TOKEN: ${{ github.token }}
@@ -111,7 +111,7 @@ jobs:
             $out['subscription_read']['subscriptions'][]=['canonical_url'=>($su['url']??'')==='https://app.anytoour.ru/webhook.php','update_types'=>array_map($safe,array_slice((array)($su['update_types']??[]),0,32))];
            }
            if(extension_loaded('curl')&&defined('MAX_SEARCH_TOKEN')){
-            $raw='';$ch=curl_init('https://platform-api2.max.ru/messages?chat_id=-77309177991187&count=5');
+            $raw='';$ch=curl_init('https://platform-api2.max.ru/messages?chat_id=-77309177991187&count=100&from=1792159347999&to=1792159347000');
             curl_setopt_array($ch,MaxTlsConfig::strictCurlOptions()+[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>2,CURLOPT_TIMEOUT=>6,CURLOPT_HTTPHEADER=>['Authorization: '.MAX_SEARCH_TOKEN,'Accept: application/json'],CURLOPT_WRITEFUNCTION=>static function($h,string $b)use(&$raw):int{if(strlen($raw)+strlen($b)>2097152)return 0;$raw.=$b;return strlen($b);}]);
             $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$failed=$ok===false||curl_errno($ch)!==0;curl_close($ch);
             $d=$failed?null:json_decode($raw,true,64);
@@ -120,7 +120,7 @@ jobs:
              if(!is_array($m)||(string)($m['recipient']['chat_id']??'')!=='-77309177991187')continue;
              $ss=ChannelPostIncomingAdapter::maxSnapshot($m);
              $ts=$m['timestamp']??0;
-             $out['recent_provider_posts']['posts'][]=['published_utc'=>is_numeric($ts)?gmdate('Y-m-d H:i:s',(int)floor((float)$ts/1000)):'','registered'=>in_array((string)($m['body']['mid']??''),array_column($rows,'external_message_id'),true),'target_url_match'=>($m['url']??'')===$target,'url_available'=>is_string($m['url']??null)&&$m['url']!=='','sender_is_bot'=>($m['sender']['is_bot']??false)===true,'chat_type'=>$safe($m['recipient']['chat_type']??''),'snapshot_valid'=>is_array($ss),'capability_reason'=>$safe($ss['metadata']['capability_reason']??''),'attachment_types'=>$types((array)($m['body']['attachments']??[]))];
+             $out['recent_provider_posts']['posts'][]=['published_ms'=>(int)$ts,'published_utc'=>is_numeric($ts)?gmdate('Y-m-d H:i:s',(int)floor((float)$ts/1000)):'','registered'=>in_array((string)($m['body']['mid']??''),array_column($rows,'external_message_id'),true),'target_url_match'=>($m['url']??'')===$target,'url_available'=>is_string($m['url']??null)&&$m['url']!=='','sender_is_bot'=>($m['sender']['is_bot']??false)===true,'chat_type'=>$safe($m['recipient']['chat_type']??''),'snapshot_valid'=>is_array($ss),'capability_reason'=>$safe($ss['metadata']['capability_reason']??''),'attachment_types'=>$types((array)($m['body']['attachments']??[]))];
             }
            }
            $dir=rtrim((string)(getenv('MAX_SEARCH_WEBHOOK_LOG_DIR')?:sys_get_temp_dir().'/max-search-bot-webhook'),'/');
