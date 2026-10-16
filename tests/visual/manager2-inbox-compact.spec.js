@@ -260,7 +260,15 @@ for(const width of [390,430,768,1440])test(`incremental Inbox refresh preserves 
 
 test('incremental Inbox invalidates changed account filter and Moscow day while retaining fresh content',async({page})=>{
  await page.clock.install({time:new Date('2026-10-16T20:59:00Z')});const data=refreshRows().slice(0,2);data[0].last_message_at='2026-10-16 08:00:00';data[1].awaiting_first_reply=1;data[1].wait_age_seconds=181;
- const s=await setup(page,{state:stateFor(),rows:data});await settled(page,s);await expect(row(page).locator('.leadActivityTime')).toHaveText('11:00');
+ const s=await setup(page,{state:stateFor(),rows:data,holdSnapshot:true});
+ // Inbox deliberately opens before optional personal data. Do not mistake
+ // boot/network readiness for an unchanged personal projection at midnight.
+ await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false');
+ await expect(row(page).locator('.leadActivityTime')).toHaveText('11:00');await expect(row(page).locator('.pwRowMarkers')).toHaveCount(0);
+ await row(page).evaluate(el=>window.inboxBeforePersonalBaseline=el);
+ s.setHoldSnapshot(false);s.releaseSnapshot();await expect(row(page).locator('.pwMarkerLabel')).toHaveCount(2);await expect(row(page).locator('.pwMarkerPin')).toHaveCount(1);
+ expect(await page.evaluate(()=>WorkspaceV2Inbox.load())).toBe(true);await settled(page,s);await expect(row(page).locator('.leadActivityTime')).toHaveText('11:00');
+ console.log('INBOX_DAY_BASELINE '+JSON.stringify(await row(page).evaluate(el=>({personalLabels:el.querySelectorAll('.pwMarkerLabel').length,personalPin:!!el.querySelector('.pwMarkerPin'),latePersonalRowReplaced:el!==window.inboxBeforePersonalBaseline,booting:WorkspaceV2.S.booting}))));
  await row(page).evaluate(el=>window.retainedInboxRow=el);await page.clock.setSystemTime(new Date('2026-10-16T21:01:00Z'));await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
  await expect(row(page).locator('.leadActivityTime')).toHaveText('Вчера');expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(true);
  await row(page,12).evaluate(el=>window.retainedWaitRow=el);data[1].wait_age_seconds=195;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
