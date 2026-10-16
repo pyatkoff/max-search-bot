@@ -9,29 +9,32 @@ function harness(handler){
   let active=null;
   function element(id=''){
     const listeners=new Map(),attributes=new Map();
-    const node={id,value:'',innerMarkup:'',textContent:'',className:'',hidden:false,disabled:false,isConnected:true,open:false,children:[],dataset:{},parentElement:null,
+    const node={id,value:'',selectionStart:0,selectionEnd:0,selectionDirection:'none',maxLength:8000,innerMarkup:'',textContent:'',className:'',hidden:false,disabled:false,isConnected:true,open:false,children:[],dataset:{},parentElement:null,
       classList:{add(){},remove(){},toggle(){}},
       addEventListener(type,callback){listeners.set(type,callback)},emit(type,event={}){return listeners.get(type)?.(event)},
       setAttribute(key,value){attributes.set(key,String(value))},getAttribute:key=>attributes.get(key),
       focus(){active=node},showModal(){node.open=true},close(){node.open=false;node.emit('close')},remove(){node.isConnected=false},
+      setSelectionRange(start,end,direction='none'){node.selectionStart=start;node.selectionEnd=end;node.selectionDirection=direction},
+      setRangeText(text,start,end){node.value=node.value.slice(0,start)+text+node.value.slice(end);node.selectionStart=node.selectionEnd=start+text.length},
       querySelectorAll(selector){return selector==='[data-reply]'?node.children.filter(child=>child.dataset.reply):[]},querySelector(){return null},insertAdjacentHTML(where,html){node.innerMarkup+=html},
       insertBefore(child,before){child.parentElement=node;node.children.splice(Math.max(0,node.children.indexOf(before)),0,child);nodes.set(child.id,child)},replaceChildren(){node.children=[];node.innerMarkup=''},
       get innerHTML(){return node.innerMarkup},set innerHTML(html){
         node.innerMarkup=html;
         for(const match of html.matchAll(/id="([^"]+)"/g)){const child=element(match[1]);nodes.set(match[1],child)}
+        for(const match of html.matchAll(/<textarea[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/textarea>/g)){nodes.get(match[1]).value=match[2].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')}
       },
     };
     return node;
   }
   const trigger=element('quickRepliesOpen'),toolbar=element('quickReplies'),defaultReply=element('fixedDefault');defaultReply.dataset.reply='Стандартный ответ';trigger.parentElement=toolbar;toolbar.children=[trigger,defaultReply];
   nodes.set('quickRepliesOpen',trigger);nodes.set('quickReplies',toolbar);nodes.set('fixedDefault',defaultReply);nodes.set('replyText',element('replyText'));
-  const S={current:101,manager:{id:5,role:'manager',display_name:'Анна'},authExpired:false,authGeneration:1,detail:{conversation:{id:101,display_name:'Павел'}}};
+  const S={current:101,manager:{id:5,role:'manager',display_name:'Анна'},authExpired:false,authGeneration:1,openGeneration:1,detail:{conversation:{id:101,display_name:'Павел'}}};
   const W={S,$:id=>nodes.get(id)||null,esc:value=>String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'),
     request:async(endpoint,action,data)=>{calls.push({endpoint,action,data});return handler(action,data,calls)}
   };
   const document={createElement:()=>element(),body:{appendChild(node){nodes.set(node.id,node)}},get activeElement(){return active}};
   const window={WorkspaceV2:W,crypto:require('node:crypto').webcrypto,confirm:()=>true,
-    WorkspaceV2Conversation:{captureReplyContext:()=>({conversationId:S.current,managerId:S.manager.id,authGeneration:S.authGeneration,openGeneration:1}),insertQuickReply:()=>true}
+    WorkspaceV2Conversation:{captureReplyContext:()=>({conversationId:S.current,managerId:S.manager.id,authGeneration:S.authGeneration,openGeneration:S.openGeneration}),insertQuickReply:()=>true}
   };
   const context=vm.createContext({window,document,sessionStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)},Uint8Array,setTimeout,clearTimeout,console});
   vm.runInContext(source,context);
@@ -175,4 +178,61 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.match(reopen.nodes.get('quickRepliesSelected').innerHTML,/Изменённый ответ/);assert.doesNotMatch(reopen.nodes.get('quickRepliesSelected').innerHTML,/Приветствие/);
   let refreshedText='';reopen.window.WorkspaceV2Conversation.insertQuickReply=text=>{refreshedText=text;return true};reopen.api.close();toolbarClick(reopen,7);assert.equal(refreshedText,'','removed toolbar choice can no longer be inserted');toolbarClick(reopen,8);assert.equal(refreshedText,'Новый текст от другого устройства.');
   console.log('PASS explicit settings reopen sees updated/removed choices from another device without polling');
+
+  const trip={city:'Москва',country:'Турция',date:'29.02.2028',nights:'7-9',adults:2,children:0,budget:{max:250000,currency:'RUB',basis:'total'}};
+  const tripBody='Вылет {trip_city}, {trip_country}, {trip_date}, {trip_nights} ночей; {trip_adults} взрослых, {trip_children} детей; {trip_budget}.';
+  const tripReply={...reply,title:'Параметры поездки',body:tripBody,is_favorite:true};
+  const expected='Вылет Москва, Турция, 29.02.2028, 7-9 ночей; 2 взрослых, 0 детей; до '+new Intl.NumberFormat('ru-RU').format(250000)+' RUB за всех.';
+  const typed=harness(()=>({...list,replies:[tripReply]}));
+  assert.equal(typed.api.resolveText(tripBody,typed.api.tripValues(trip)),expected);
+  const perPerson=typed.api.tripValues({...trip,budget:{max:'125000.50',currency:'EUR',basis:'per_person'}}).trip_budget;
+  assert.equal(perPerson,'до '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(125000.5)+' EUR на человека');
+  for(const budget of [{max:10,basis:'total'},{max:10,currency:'RUB'},{max:10,currency:'rub',basis:'total'},{max:true,currency:'RUB',basis:'total'},{max:[250000],currency:'RUB',basis:'total'},{max:'1e5',currency:'RUB',basis:'total'},{max:10,currency:'RUB',basis:'unknown'},{max:Infinity,currency:'RUB',basis:'total'},{max:0,currency:'RUB',basis:'total'},{max:1.234,currency:'RUB',basis:'total'}])assert.equal(typed.api.tripValues({budget}).trip_budget,undefined);
+  for(const date of ['29.02.2027','31.04.2026','01.13.2026','01.01','завтра','2026-10-16','01.01.0000'])assert.equal(typed.api.tripValues({date}).trip_date,undefined);
+  for(const value of [null,false,'0',NaN,undefined,-1])assert.equal(typed.api.tripValues({children:value}).trip_children,undefined);
+  for(const nights of ['0','9-7','07','7-','7.5',7])assert.equal(typed.api.tripValues({nights}).trip_nights,undefined);
+  assert.equal(typed.api.tripValues({adults:0,city:42,country:{name:'Турция'}}).trip_adults,undefined);
+  await typed.api.open();select(typed);typed.nodes.get('qrPreview').value='{constructor} / {toString} / {__proto__}';typed.nodes.get('qrPreview').emit('input');
+  assert.equal(typed.nodes.get('qrPlaceholderStatus').textContent,'Замените подсказки в тексте: constructor, toString, __proto__');assert.equal(typed.nodes.get('qrInsert').disabled,true);
+  console.log('PASS typed trip values preserve calendar, ranges, zero children and explicit budget units without inference');
+
+  const tripPanel=harness(action=>action==='toolbar'?state([tripReply]):{...list,replies:[tripReply]});
+  tripPanel.S.detail={conversation:{id:101,display_name:'Внутренний псевдоним',original_display_name:'Павел'},lead:{ok:true,trip},trip_summary:'Старая Греция, 1990 год'};
+  let tripInserted=[];tripPanel.window.WorkspaceV2Conversation.insertQuickReply=(text,ctx)=>{tripInserted.push({text,ctx});return true};
+  tripPanel.api.configure();await tick();toolbarClick(tripPanel,7);assert.equal(tripInserted[0].text,expected);
+  const reads=tripPanel.calls.length;
+  tripPanel.S.detail.lead=null;toolbarClick(tripPanel,7);assert.equal(tripInserted.length,1);assert.equal(tripPanel.nodes.get('qrInsert').disabled,true);
+  const previewNode=tripPanel.nodes.get('qrPreview');previewNode.value='Моя правка | '+tripBody+' | конец';previewNode.emit('input');
+  previewNode.setSelectionRange(previewNode.value.length-5,previewNode.value.length,'backward');
+  tripPanel.S.detail.lead={ok:true,trip};assert.equal(previewNode.value,'Моя правка | '+tripBody+' | конец','late card never changes edited preview automatically');
+  tripPanel.nodes.get('qrFillKnown').onclick();assert.equal(previewNode.value,'Моя правка | '+expected+' | конец');
+  assert.equal(previewNode.selectionStart,previewNode.value.length-5);assert.equal(previewNode.selectionEnd,previewNode.value.length);assert.equal(previewNode.selectionDirection,'backward');
+  assert.equal(tripPanel.calls.length,reads,'explicit fill performs no extra HTTP, QR write or send');
+  tripPanel.S.detail.lead={ok:true,trip:{...trip,country:'Кипр'}};assert.equal(previewNode.value,'Моя правка | '+expected+' | конец','new known card values cannot replace already-resolved preview text');
+  assert.equal(tripPanel.nodes.get('qrInsert').onclick(),true);assert.equal(tripInserted.at(-1).text,previewNode.value);
+  assert.equal(tripPanel.values.size,0,'resolved client values are never saved as template/editor drafts');
+  await tripPanel.api.open();select(tripPanel);assert.equal(tripPanel.nodes.get('qrPreview').value,expected.replace('Турция','Кипр'),'fresh library selection uses the current-card projection');
+  const named={...tripReply,body:'{client_name} / {trip_country}'};const names=harness(()=>({...list,replies:[named]}));names.S.detail={conversation:{id:101,display_name:'Рабочий псевдоним',original_display_name:'Имя источника'},lead:{ok:true,trip}};await names.api.open();select(names);assert.equal(names.nodes.get('qrPreview').value,'Имя источника / Турция');
+  console.log('PASS toolbar/library current-trip interpolation and explicit late-card fill preserve edited text and backward caret without requests');
+
+  for(const change of [h=>{h.S.current=102},h=>{h.S.authGeneration++},h=>{h.S.openGeneration++},h=>{h.S.manager={id:6}},h=>{h.S.authExpired=true},h=>{h.S.detail.conversation.id=102}]){
+    const fenced=harness(()=>({...list,replies:[tripReply]}));await fenced.api.open();select(fenced);
+    fenced.S.detail.lead={ok:true,trip};let calls=0;fenced.window.WorkspaceV2Conversation.insertQuickReply=()=>{calls++;return true};
+    change(fenced);const before=fenced.nodes.get('qrPreview').value;
+    assert.equal(fenced.nodes.get('qrFillKnown').onclick(),false);assert.equal(fenced.nodes.get('qrPreview').value,before);assert.equal(fenced.nodes.get('qrInsert').onclick(),false);assert.equal(calls,0);
+  }
+  for(const lead of [null,{ok:false,trip},{trip}]){
+    const failed=harness(()=>({...list,replies:[tripReply]}));failed.S.detail.lead=lead;await failed.api.open();select(failed);
+    assert.equal(failed.nodes.get('qrPreview').value,tripBody);assert.equal(failed.nodes.get('qrInsert').disabled,true);
+  }
+  console.log('PASS missing/failed card and navigation/account/auth/reopen fences cannot resolve or insert another conversation trip');
+
+  const template=harness(action=>action==='create'?{ok:false,error:'network_error'}:{...list,replies:[tripReply]});await template.api.open();enterEditor(template,'Параметры',tripBody);
+  template.nodes.get('qrTripVariable').value='trip_children';const body=template.nodes.get('qrBody');body.setSelectionRange(0,0);template.nodes.get('qrAddTripVariable').onclick();
+  assert.equal(body.value,'{trip_children}'+tripBody);assert.equal(body.selectionStart,'{trip_children}'.length);
+  template.nodes.get('qrEditor').emit('submit',{preventDefault(){}});await tick();
+  assert.equal(template.calls.find(call=>call.action==='create').data.body,'{trip_children}'+tripBody);
+  assert.equal(JSON.parse(template.values.get('workspaceV2.quickReplyDraft.5')).editor.body,'{trip_children}'+tripBody);
+  assert.equal(template.nodes.get('qrFillKnown')?.disabled??true,true);assert.equal(template.nodes.get('qrSave').disabled,true);
+  console.log('PASS compact trip-variable control saves only reusable tokens and retains exact unknown-save template draft');
 })().catch(error=>{console.error(error);process.exitCode=1});

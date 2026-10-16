@@ -10,25 +10,68 @@ let lastError='',listFailed=false;
 let toolbarRows=[],toolbarVersion='',toolbarLimit=100,toolbarReady=false,toolbarError='',toolbarLoading=null,toolbarTicket=0,toolbarNode=null;
 let toolbarFocus=null;
 let emojiState=null;
+const tripLabels={trip_city:'Город вылета',trip_country:'Направление',trip_date:'Дата вылета',trip_nights:'Ночи',trip_adults:'Взрослые',trip_children:'Дети',trip_budget:'Бюджет'};
+const variableKeys=['manager_name','client_name',...Object.keys(tripLabels)];
 
 function identity(){return !S.authExpired?Number(S.manager?.id||0):0}
 function authenticated(){return owner>0&&identity()===owner&&Number(S.authGeneration||0)===ownerGeneration}
 function contextValid(ctx=replyContext){
   const now=window.WorkspaceV2Conversation?.captureReplyContext?.();
-  return !!ctx&&!!now&&['conversationId','managerId','authGeneration','openGeneration'].every(key=>Number(ctx[key])===Number(now[key]));
+  return !S.authExpired&&!!ctx&&!!now&&Number(ctx.conversationId)>0&&Number(S.detail?.conversation?.id)===Number(ctx.conversationId)&&['conversationId','managerId','authGeneration','openGeneration'].every(key=>Number(ctx[key])===Number(now[key]));
 }
 function placeholders(text){return Array.from(String(text||'').matchAll(/\{\{([^{}\n]+)\}\}|\{([^{}\n]+)\}/g),match=>match[1]||match[2]);}
 function resolveText(text,values={}){
   return String(text||'').replace(/\{\{([^{}\n]+)\}\}|\{([^{}\n]+)\}/g,(token,a,b)=>{
     const key=String(a||b).trim(),value=values[key];
-    return ['manager_name','client_name'].includes(key)&&typeof value==='string'&&value.trim()?value:token;
+    return variableKeys.includes(key)&&typeof value==='string'&&value.trim()?value:token;
   });
+}
+// Display the existing protected card snapshot, never parse the historical
+// message summary or infer missing units, dates or party composition.
+function tripValues(trip){
+  if(!trip||typeof trip!=='object'||Array.isArray(trip))return {};
+  const values={},label=value=>typeof value==='string'&&value.trim()&&!/[\x00-\x1f\x7f]/.test(value)?value.trim():'';
+  for(const key of ['city','country']){const value=label(trip[key]);if(value)values['trip_'+key]=value}
+  if(typeof trip.date==='string'){
+    const match=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trip.date);
+    if(match){const day=Number(match[1]),month=Number(match[2]),year=Number(match[3]),leap=year%4===0&&(year%100!==0||year%400===0);
+      if(year>0&&month>=1&&month<=12&&day>=1&&day<=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31][month-1])values.trip_date=trip.date;
+    }
+  }
+  if(typeof trip.nights==='string'){
+    const match=/^([1-9]\d*)(?:-([1-9]\d*))?$/.exec(trip.nights);
+    if(match&&Number.isSafeInteger(Number(match[1]))&&(!match[2]||(Number.isSafeInteger(Number(match[2]))&&Number(match[2])>=Number(match[1]))))values.trip_nights=trip.nights;
+  }
+  for(const key of ['adults','children'])if(Number.isSafeInteger(trip[key])&&trip[key]>=(key==='adults'?1:0))values['trip_'+key]=String(trip[key]);
+  const budget=trip.budget,raw=budget?.max;
+  const canonical=typeof raw==='number'||(typeof raw==='string'&&/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(raw));
+  const amount=canonical?Number(raw):NaN;
+  if(Number.isFinite(amount)&&amount>0&&amount<=90071992547409&&Math.round(amount*100)/100===amount&&typeof budget?.currency==='string'&&/^[A-Z]{3}$/.test(budget.currency)&&['total','per_person'].includes(budget.basis)){
+    values.trip_budget='до '+new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(amount)+' '+budget.currency+(budget.basis==='total'?' за всех':' на человека');
+  }
+  return values;
 }
 function knownValues(ctx=replyContext){
   const conversation=S.detail?.conversation||{};
   // A shared internal alias is for colleagues, never a salutation to the client.
   const client=String(Object.prototype.hasOwnProperty.call(conversation,'original_display_name')?conversation.original_display_name||'':conversation.display_name||'').trim();
-  return {manager_name:String(S.manager?.display_name||S.manager?.login||'').trim(),client_name:contextValid(ctx)&&Number(conversation.id)===Number(ctx?.conversationId)&&client!=='Турист'?client:''};
+  const current=authenticated()&&contextValid(ctx)&&Number(conversation.id)===Number(ctx?.conversationId);
+  return {manager_name:String(S.manager?.display_name||S.manager?.login||'').trim(),client_name:current&&client!=='Турист'?client:'',...(current&&S.detail?.lead?.ok===true?tripValues(S.detail.lead.trip):{})};
+}
+function fillKnown(){
+  const input=$('qrPreview');
+  if(!authenticated()||mutationBusy||pending||!selected||!contextValid()||!input?.isConnected||!dialog?.open)return false;
+  const original=input.value,start=input.selectionStart,end=input.selectionEnd,direction=input.selectionDirection;
+  const values=knownValues(),replacements=[];
+  // Map selection boundaries through replaced tokens without resetting the
+  // textarea/editor or any text the manager has already changed.
+  const next=original.replace(/\{\{([^{}\n]+)\}\}|\{([^{}\n]+)\}/g,(token,a,b,offset)=>{
+    const value=resolveText(token,values);if(value!==token)replacements.push({offset,length:token.length,nextLength:value.length});return value;
+  });
+  const position=value=>{let delta=0;for(const item of replacements){if(value>=item.offset+item.length)delta+=item.nextLength-item.length;else if(value>item.offset)return item.offset+delta+Math.min(value-item.offset,item.nextLength);else break}return value+delta};
+  preview=next;input.value=next;updateInsertion();input.focus({preventScroll:true});
+  input.setSelectionRange?.(position(start),position(end),direction);
+  setStatus(placeholders(next).length?'Неизвестные подсказки остались в тексте. Заполните их перед вставкой.':'Известные параметры подставлены. Проверьте текст.',placeholders(next).length?'warn':'');return true;
 }
 function draftKey(){return authenticated()?storagePrefix+owner:''}
 function persist(){
@@ -122,7 +165,7 @@ function clickToolbar(id){
   if(placeholders(text).length){
     ensureDialog();returnFocus=$('replyText');selected=reply;replyContext=ctx;preview=text;lastError='';
     if(!dialog.open)dialog.showModal();renderCategories();renderList();renderDetail();updateBusy();
-    setStatus('Замените неизвестное имя или подсказку перед вставкой.','warn');$('qrPreview')?.focus();return false;
+    setStatus('Проверьте неизвестные параметры и замените подсказки перед вставкой.','warn');$('qrPreview')?.focus();return false;
   }
   return window.WorkspaceV2Conversation?.insertQuickReply?.(text,ctx)||false;
 }
@@ -308,7 +351,8 @@ function editorMarkup(){
     <datalist id="qrCategorySuggestions">${categories.map(value=>`<option value="${attr(value)}"></option>`).join('')}</datalist>
     <label class="qrBodyLabel" for="qrBody">Текст ответа<textarea id="qrBody" rows="8" maxlength="8000" required placeholder="Напишите готовый текст…">${esc(draft.body)}</textarea></label>${emojiMarkup()}
     <div class="qrVariables"><span>Подставить имя:</span><button type="button" data-qr-variable="manager_name">Менеджера</button><button type="button" data-qr-variable="client_name">Клиента</button></div>
-    <p id="qrVisibilityNote" class="qrHint"></p><p class="qrHint">Перед вставкой можно изменить текст. Если имя неизвестно, потребуется заменить подсказку.</p>
+    <div class="qrTripVariables"><label for="qrTripVariable">Параметр поездки<select id="qrTripVariable">${Object.entries(tripLabels).map(([key,label])=>`<option value="${key}">${label}</option>`).join('')}</select></label><button id="qrAddTripVariable" class="qrButton" type="button">Добавить подсказку</button></div>
+    <p id="qrVisibilityNote" class="qrHint"></p><p class="qrHint">Имена и параметры подставятся при выборе ответа, только если они известны. Перед вставкой проверьте текст. Неизвестные подсказки потребуется заполнить.</p>
     ${lastError?`<div class="qrInlineError" role="alert">${esc(lastError)}</div>`:''}
     <div class="qrEditorActions"><button id="qrSave" class="qrButton qrPrimary" type="submit">Сохранить ответ</button><button id="qrCancelEdit" class="qrButton" type="button">Отмена</button>${draft.conflict?'<button id="qrReloadConflict" class="qrButton" type="button">Открыть актуальную версию</button>':''}</div></form>`;
 }
@@ -327,6 +371,13 @@ function renderDetail(){
       const input=$('qrBody'),start=input.selectionStart,end=input.selectionEnd,token='{'+button.dataset.qrVariable+'}';
       input.setRangeText(token,start,end,'end');persistFields();input.focus();
     });
+    $('qrAddTripVariable').onclick=()=>{
+      if(mutationBusy||pending||!authenticated()||!editor)return;
+      const key=$('qrTripVariable').value;if(!Object.hasOwn(tripLabels,key))return;
+      const input=$('qrBody'),token='{'+key+'}';
+      if(input.maxLength>0&&input.value.length-(input.selectionEnd-input.selectionStart)+token.length>input.maxLength){setStatus('В тексте ответа не больше '+input.maxLength+' символов. Сократите текст или замените выделенный фрагмент.','warn');return}
+      input.setRangeText(token,input.selectionStart,input.selectionEnd,'end');persistFields();input.focus();
+    };
     if($('qrReloadConflict'))$('qrReloadConflict').onclick=()=>{
       const current=editor.conflict;if(!current)return;
       if(!window.confirm('Открыть актуальную версию? Несохранённый текст этого шаблона будет заменён.'))return;
@@ -337,10 +388,10 @@ function renderDetail(){
   if(!selected){node.innerHTML='<div class="qrWelcome"><div class="qrWelcomeIcon" aria-hidden="true">↗</div><h3>Меньше повторного набора</h3><p>Выберите ответ слева или создайте свой. Текст появится здесь для проверки перед вставкой.</p><span>Отправка клиенту — отдельное действие.</span></div>';return}
   node.innerHTML=`<div class="qrDetailTop"><div><span class="qrBadge">${selected.scope==='shared'?'Общий ответ':'Мой ответ'}</span><h3>${esc(selected.title)}</h3>${selected.category?`<p>${esc(selected.category)}</p>`:''}</div><button id="qrFavorite" class="qrButton qrPanelToggle" type="button" aria-label="${selected.is_favorite?'Убрать с панели':'Добавить на панель'}" aria-pressed="${!!selected.is_favorite}">${selected.is_favorite?'Убрать с панели':'Добавить на панель'}</button></div>
     <div class="qrTools">${selected.can_edit?'<button id="qrEdit" class="qrButton" type="button">Изменить</button>':'<span class="qrHint">Общий ответ редактирует администратор</span>'}<button id="qrCopy" class="qrButton" type="button">Копировать в мои</button>${selected.can_edit?'<button id="qrDelete" class="qrButton qrDanger" type="button">Удалить ответ</button>':''}</div>
-    <label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label>${emojiMarkup()}<div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
+    <label class="qrPreviewLabel" for="qrPreview">Текст для вставки<textarea id="qrPreview" rows="8">${esc(preview)}</textarea></label>${emojiMarkup()}<div class="qrKnownParameters"><button id="qrFillKnown" class="qrButton" type="button">Подставить известное</button><span class="qrHint">Только оставшиеся подсказки из текущей карточки. Ваши правки сохранятся.</span></div><div id="qrPlaceholderStatus" class="qrPlaceholderStatus" role="status"></div>
     <div class="qrInsertFooter"><button id="qrInsert" class="qrButton qrPrimary" type="button">Вставить в ответ</button><p>Добавим текст в текущий черновик. Вложения сохранятся.</p></div>`;
   $('qrPreview').addEventListener('input',()=>{preview=$('qrPreview').value;updateInsertion()});
-  $('qrInsert').onclick=insert;$('qrFavorite').onclick=()=>mutate('favorite',{id:selected.id,is_favorite:!selected.is_favorite,...(toolbarReady?{toolbar_version:toolbarVersion}:{})});
+  $('qrFillKnown').onclick=fillKnown;$('qrInsert').onclick=insert;$('qrFavorite').onclick=()=>mutate('favorite',{id:selected.id,is_favorite:!selected.is_favorite,...(toolbarReady?{toolbar_version:toolbarVersion}:{})});
   $('qrCopy').onclick=()=>mutate('copy',{id:selected.id});
   if($('qrEdit'))$('qrEdit').onclick=()=>beginEditor(selected);
   if($('qrDelete'))$('qrDelete').onclick=()=>{
@@ -353,16 +404,19 @@ function updateVisibility(){
 }
 function updateInsertion(){
   const button=$('qrInsert'),note=$('qrPlaceholderStatus');if(!button||!note)return;
-  const unresolved=placeholders(preview),valid=contextValid();
+  const unresolved=placeholders(preview),valid=authenticated()&&contextValid();
+  const fill=$('qrFillKnown');if(fill)fill.disabled=mutationBusy||!!pending||!valid||!unresolved.some(key=>variableKeys.includes(key.trim()));
   button.disabled=mutationBusy||!!pending||!valid||!preview.trim()||unresolved.length>0;
   note.className='qrPlaceholderStatus'+(unresolved.length||!valid?' warn':'');
-  note.textContent=!valid?'Выберите ответ заново в текущем диалоге, чтобы вставить текст.':unresolved.length?'Замените подсказки в тексте: '+Array.from(new Set(unresolved)).join(', '):'Текст можно изменить здесь и после вставки.';
+  const nameLabels={manager_name:'Имя менеджера',client_name:'Имя клиента'};
+  const label=key=>Object.hasOwn(tripLabels,key.trim())?tripLabels[key.trim()]:Object.hasOwn(nameLabels,key.trim())?nameLabels[key.trim()]:key;
+  note.textContent=!valid?'Выберите ответ заново в текущем диалоге, чтобы вставить текст.':unresolved.length?'Замените подсказки в тексте: '+Array.from(new Set(unresolved.map(label))).join(', '):'Текст можно изменить здесь и после вставки.';
 }
 function updateBusy(){
   const disabled=mutationBusy||!!pending;
   ['qrCreate','qrFavorite','qrCopy','qrEdit','qrDelete','qrSave','qrCancelEdit','qrReloadConflict','qrEmojiToggle'].forEach(id=>{const node=$(id);if(node)node.disabled=disabled});
   $('qrEmojiPicker')?.querySelectorAll('[data-qr-emoji]').forEach(node=>{node.disabled=disabled});if(disabled)closeQuickReplyEmojis();
-  if(editor&&$('qrEditor'))$('qrEditor').querySelectorAll('input,textarea,select,[data-qr-variable]').forEach(node=>{node.disabled=disabled||(node.id==='qrEditScope'&&!!editor.id)});
+  if(editor&&$('qrEditor'))$('qrEditor').querySelectorAll('input,textarea,select,[data-qr-variable],#qrAddTripVariable').forEach(node=>{node.disabled=disabled||(node.id==='qrEditScope'&&!!editor.id)});
   if($('qrSave'))$('qrSave').textContent=mutationBusy?'Сохраняем…':'Сохранить ответ';
   renderPending();updateInsertion();renderToolbar();if(query.scope==='toolbar')renderList();
 }
@@ -486,5 +540,5 @@ function bind(){
   trigger.textContent='Настроить ответы';trigger.title='Выбрать и расположить быстрые ответы · Ctrl+Alt+Q';
   trigger.onclick=()=>open({panel:true});trigger.setAttribute('aria-haspopup','dialog');trigger.setAttribute('aria-controls','quickRepliesDialog');bound=true;renderToolbar();
 }
-window.WorkspaceV2QuickReplies={bind,configure,open,close,resetSession,resolveText,placeholders};
+window.WorkspaceV2QuickReplies={bind,configure,open,close,resetSession,resolveText,placeholders,tripValues};
 })();
