@@ -69,6 +69,7 @@ async function setup(page,{role='manager',savedTabs=false,longPreview=false}={})
         return reply({...snapshot(),conversations,bounded_count:conversations.length,has_more:false,limited:false,count_scope:'loaded_visible',limit:200});
       }
     }
+    if(url.pathname==='/manager/push.php'&&data.action==='connections')return reply({ok:true,connections:[],truncated:false});
     if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     unexpected.push(method+' '+url.pathname+' '+data.action);
@@ -159,7 +160,8 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await page.locator('#m2NotificationsClose').click();
     await expect(page.locator('#m2NotificationButton')).toBeFocused();
     await settle(fixture);
-    expect(fixture.calls.length).toBe(initial);
+    expect(fixture.calls.slice(initial)).toHaveLength(1);
+    expect(fixture.calls[initial]).toMatchObject({path:'/manager/push.php',action:'connections',expected_manager_id:7});
     await page.setViewportSize({width,height:420});
     expect((await page.locator('.inboxHead').boundingBox()).height).toBeLessThanOrEqual(170);
     expect((await page.locator('#inboxList').boundingBox()).height).toBeGreaterThanOrEqual(180);

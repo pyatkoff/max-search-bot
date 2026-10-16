@@ -335,7 +335,7 @@
     $('conversationTitle').addEventListener('click',e=>openClientCard(e.currentTarget));
     document.querySelectorAll('[data-m2-nav]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.m2Nav)));
     const dialog=$('m2Notifications');
-    $('m2NotificationButton').onclick=()=>{notificationOpener=document.activeElement;dialog.showModal()};
+    $('m2NotificationButton').onclick=()=>{notificationOpener=document.activeElement;dialog.showModal();window.WorkspaceV2Notifications?.openConnections($('m2NotificationSlot'))};
     $('m2NotificationsClose').onclick=()=>dialog.close();dialog.addEventListener('close',()=>notificationOpener?.focus({preventScroll:true}));
     dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()});
     if(health){const update=()=>{const kind=health.classList.contains('ok')?'healthy':health.classList.contains('critical')?'error':health.classList.contains('warn')?'warn':'';const dot=document.querySelector('.m2NotificationDot');dot.className='m2NotificationDot'+(kind?' '+kind:'');$('m2NotificationButton').title=health.textContent.trim();syncNavigation()};new MutationObserver(update).observe(health,{attributes:true,childList:true,subtree:true});update()}

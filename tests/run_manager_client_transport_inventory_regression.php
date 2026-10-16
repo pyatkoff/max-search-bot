@@ -20,7 +20,6 @@ $expected=[
     'manager/assets/workspace-v2-media.js',
     'manager/assets/workspace-v2-notifications.js',
     'manager/assets/workspace-v2.js',
-    'manager/sw.js',
 ];
 sort($expected);
 
@@ -37,9 +36,9 @@ transportCheck('every Manager browser fetch owner is explicitly inventoried',$fe
 transportCheck('shared admin transport owns ordinary JSON request failures',strpos($client,"endpoint='api.php'")!==false&&strpos($client,"error:'network_error'")!==false&&strpos($client,"error:'invalid_response'")!==false);
 transportCheck('Workspace core owns auth recovery and generic JSON transports only',strpos($core,'showAuthRecovery')!==false&&strpos($core,"request('api.php'")!==false&&strpos($core,"request('pipeline-api.php'")!==false&&strpos($core,"fetch('api.php'")!==false&&strpos($core,"fetch('media-upload.php'")===false&&strpos($core,"fetch('push.php")===false&&strpos($core,"fetch('push-status.php")===false);
 transportCheck('multipart media upload remains a focused transport owner',strpos($media,'new FormData()')!==false&&strpos($media,"fetch('media-upload.php'")!==false&&strpos($media,"'Content-Type':'application/json'")===false);
-transportCheck('notification transport retains push-specific timeouts and auth recovery',strpos($notifications,"setupRequest({},'push-status.php'")!==false&&strpos($notifications,"'push_status_timeout'")!==false&&strpos($notifications,"setupRequest(keyRequest,'push.php?action=key'")!==false&&strpos($notifications,"setupRequest(job,'push.php'")!==false&&strpos($notifications,'withTimeout(')!==false&&strpos($notifications,'handleUnauthorized(')!==false);
+transportCheck('notification transport retains push-specific timeouts and auth recovery',strpos($notifications,"setupRequest({},'push-status.php'")!==false&&strpos($notifications,"'push_status_timeout'")!==false&&strpos($notifications,"setupRequest(keyRequest,'push.php?action=key'")!==false&&strpos($notifications,"command(job.session,'subscribe'")!==false&&strpos($notifications,'withTimeout(')!==false&&strpos($notifications,'handleUnauthorized(')!==false);
 transportCheck('standalone setup delegates activation to the canonical notifications owner',strpos($standalone,'assets/workspace-v2-notifications.js?v=')!==false&&strpos($standalone,'data-enable-push')!==false&&strpos($standalone,'ManagerHttp::csrf(true)')!==false&&strpos($standalone,'pushManager.subscribe')===false&&strpos($standalone,'fetch(')===false);
-transportCheck('worker retains passive lifecycle sync for existing subscriptions',strpos($worker,"self.addEventListener('activate'")!==false&&strpos($worker,'syncExistingPushSubscription')!==false&&strpos($worker,"pushResponse('push.php")!==false&&strpos($worker,'pushManager.subscribe')===false&&strpos($worker,'sub.unsubscribe()')===false);
+transportCheck('worker lifecycle and notifications never recreate or persist a subscription',strpos($worker,"self.addEventListener('activate'")!==false&&strpos($worker,'function syncPushSubscription(){return Promise.resolve(false);}')!==false&&strpos($worker,'fetch(')===false&&strpos($worker,'pushManager.subscribe')===false&&strpos($worker,'sub.unsubscribe()')===false);
 
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed?1:0);

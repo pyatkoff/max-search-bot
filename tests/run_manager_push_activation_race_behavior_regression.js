@@ -2,6 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
+const {lifecycle}=require('./fixtures/manager_push_browser_fixture');
 const pageSource=fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-notifications.js'),'utf8');
 const workerSource=fs.readFileSync(path.join(__dirname,'../manager/sw.js'),'utf8');
 const secret='PRIVATE_PUSH_ENDPOINT_OR_ERROR';
@@ -13,6 +14,7 @@ function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
 function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
+  const protocol=lifecycle(1);
   const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,lookup:0,readyReads:0,currentChecks:0,currentHealthy:false,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
@@ -23,16 +25,18 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
   },async showNotification(title){if(title==='AnyTour')state.confirmations++;else state.shown++;}};
   const healthy=()=>({is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1});
   const status=()=>state.saves||state.otherDeviceHealthy?healthy():{is_working:true,notification_path_usable:false,notification_path_reason:unhealthy?'subscription_unhealthy':'no_subscription'};
-  const current=()=>({notification_path_usable:state.saves>0||state.currentHealthy,notification_path_reason:state.saves||state.currentHealthy?'healthy_subscription':unhealthy?'subscription_unhealthy':'no_subscription'});
+  const current=()=>!protocol.current().enabled?{notification_path_usable:false,notification_path_reason:'subscription_revoked'}:({notification_path_usable:state.saves>0||state.currentHealthy,notification_path_reason:state.saves||state.currentHealthy?'healthy_subscription':unhealthy?'subscription_unhealthy':'no_subscription'});
   const fetch=async(url,options)=>{
     const isCurrent=url==='push-status.php'&&options?.method==='POST';
     if(isCurrent){state.currentChecks++;const body=JSON.parse(options.body);assert.equal(body.csrf,state.expectedCsrf);assert.equal(body.endpoint,state.sub?.toJSON().endpoint);}
     const override=url==='push-status.php'&&statusRequest?await statusRequest(options):url==='push.php?action=key'&&keyRequest?await keyRequest():null;
     if(override)return override;
-    if(url!=='push-status.php'&&options?.method==='POST'){state.saveAttempts++;if(saveRequest)await saveRequest(options,state);}
+    const body=options?.method==='POST'?JSON.parse(options.body):null;
+    if(['enable_intent','operation'].includes(body?.action)){const data=protocol.reply(body);return{ok:data.ok!==false,status:data.ok===false?409:200,json:async()=>data};}
+    if(url!=='push-status.php'&&options?.method==='POST'){state.saveAttempts++;if(saveRequest){const override=await saveRequest(options,state);if(override)return override;}}
     return{ok:true,status:200,async json(){
-      if(url==='push-status.php')return{ok:true,push_status:status(),...(isCurrent?{current_subscription:current()}:{})};
-      if(options?.method==='POST'){state.saves++;assert.equal(JSON.parse(options.body).csrf,state.expectedCsrf);return{ok:true,push_status:healthy(),current_subscription:current()};}
+      if(url==='push-status.php')return{ok:true,push_status:status(),...(isCurrent?{current_subscription:current(),current_connection:protocol.current()}:{})};
+      if(options?.method==='POST'){const result=protocol.reply(body);if(result.ok)state.saves++;assert.equal(body.csrf,state.expectedCsrf);return{...result,...(result.ok?{push_status:healthy(),current_subscription:current()}:{} )};}
       return{ok:true,public_key:Buffer.from(state.serverKey).toString('base64'),csrf:'synthetic'};
     }};
   };
@@ -45,14 +49,14 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
     const navigator={serviceWorker:{async getRegistration(url){state.lookup++;assert.equal(url,'https://app.anytoour.ru/manager/');return registration;},async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
-    const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,URL,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
+    const context={document,navigator,localStorage:protocol.localStorage,crypto:protocol.crypto,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,URL,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
     return{api:context.window.WorkspaceV2Notifications,root,auth};
   }
   const events={};
   vm.runInNewContext(workerSource,{navigator:lockManager?{locks:lockManager}:{},self:{registration,clients:{async claim(){},async matchAll(){return[];}},addEventListener(type,callback){events[type]=callback;}},fetch,atob,Uint8Array,AbortController,importScripts(){},WorkspaceSoundLedger:{supported(){return false;}},setTimeout:timer,clearTimeout:cancelTimer},{filename:'sw.js'});
   async function worker(type,data){let promise;events[type]({data,waitUntil(value){promise=value;}});await promise;}
-  return{state,page,worker,async settleWorker(){await Promise.all(workerJobs);}};
+  return{state,page,worker,protocol,async settleWorker(){await Promise.all(workerJobs);}};
 }
 async function lateNativeOutcomeCases(){
   const failures=[];
@@ -75,7 +79,7 @@ async function lateNativeOutcomeCases(){
   assert.equal(await page.api.enable(page.root),false);page.auth.manager.id=2;page.auth.authGeneration++;page.auth.csrf='new-account';page.root.innerHTML='Current account';
   native.resolve(subscription());await turn();await turn();
   assert.equal(env.state.saves,0);assert.equal(env.state.confirmations,0);assert.equal(page.root.innerHTML,'Current account');
-  const denied=deferred(),expired=environment({subscribe:()=>denied.promise,deadlineMs:5,saveRequest(){throw new Error('push_session_expired');}}),expiredPage=expired.page();
+  const denied=deferred(),expired=environment({subscribe:()=>denied.promise,deadlineMs:5,saveRequest(){return{status:401,ok:false,json:async()=>({ok:false})};}}),expiredPage=expired.page();
   assert.equal(await expiredPage.api.enable(expiredPage.root),false);denied.resolve(subscription());await turn();await turn();
   assert.equal(expired.state.auth,1);assert.equal(expired.state.saves,0);assert.equal(expired.state.confirmations,0);assert.match(expiredPage.root.innerHTML,/Войдите в кабинет/);assert.ok(!expiredPage.root.innerHTML.includes('TIMEOUT'));
   console.log('PASS  native settlement after UI timeout respects account changes and canonical expired-session recovery');
@@ -167,12 +171,12 @@ async function run(){
     await passive.worker('activate');await passive.worker('message',{type:'SYNC_PUSH'});await passive.worker('message',{type:'SHOW_NOTIFICATION',title:'Synthetic push'});
     assert.equal(passive.state.subscribes,0);assert.equal(passive.state.unsubscribes,0);assert.equal(passive.state.saves,0);assert.equal(passive.state.shown,1);
   }
-  const synced=environment({initial:subscription()});await synced.worker('activate');assert.equal(synced.state.saves,0);await synced.worker('message',{type:'SYNC_PUSH'});assert.equal(synced.state.saves,1);assert.equal(synced.state.subscribes,0);assert.equal(synced.state.unsubscribes,0);
+  const synced=environment({initial:subscription()});await synced.worker('activate');assert.equal(synced.state.saves,0);await synced.worker('message',{type:'SYNC_PUSH'});assert.equal(synced.state.saves,0);assert.equal(synced.state.subscribes,0);assert.equal(synced.state.unsubscribes,0);
   const reused=environment({initial:subscription()}),healthyPage=reused.page();assert.equal(await healthyPage.api.enable(healthyPage.root),true);assert.equal(reused.state.subscribes,0);assert.equal(reused.state.unsubscribes,0);
   const stale=environment({initial:subscription(new Uint8Array([2]))}),stalePage=stale.page();assert.equal(await stalePage.api.enable(stalePage.root),true);assert.equal(stale.state.unsubscribes,1);assert.equal(stale.state.subscribes,1);
-  console.log('PASS  automatic worker paths stay passive; compatible sync and page VAPID repair survive');
-  const startup=environment({initial:subscription(),lockManager:locks()}),startupPage=startup.page();await startupPage.api.init();await startup.settleWorker();assert.equal(startup.state.saves,1);assert.equal(startup.state.subscribes,0);assert.equal(startup.state.unsubscribes,0);
-  console.log('PASS  page initialization passively rebinds an existing subscription after activation');
+  console.log('PASS  automatic worker paths stay passive; all worker sync stays read-only and page VAPID repair survives');
+  const startup=environment({initial:subscription(),lockManager:locks()}),startupPage=startup.page();await startupPage.api.init();await startup.settleWorker();assert.equal(startup.state.saves,0);assert.equal(startup.state.subscribes,0);assert.equal(startup.state.unsubscribes,0);
+  console.log('PASS  page initialization never rebinds a subscription without captured installation intent');
 
   const late=deferred(),timed=environment({subscribe:()=>late.promise,deadlineMs:5}),timedPage=timed.page();
   assert.equal(await timedPage.api.enable(timedPage.root),false);assert.match(timedPage.root.innerHTML,/TIMEOUT/);
@@ -198,10 +202,10 @@ async function run(){
   console.log('PASS  late unsubscribe remains protected and changed VAPID key cannot inherit old-key success');
 
   const cancelled=environment({lockManager:locks(),deadlineMs:5,saveRequest:async(options,state)=>{if(state.saveAttempts===1)await new Promise((resolve,reject)=>options.signal.addEventListener('abort',()=>{state.aborts++;reject(abort());},{once:true}));}}),cancelPage=cancelled.page();
-  assert.equal(await cancelPage.api.enable(cancelPage.root),false);await new Promise(resolve=>setTimeout(resolve,10));assert.equal(cancelled.state.aborts,1);assert.equal(await cancelPage.api.enable(cancelPage.root),true);assert.equal(cancelled.state.subscribes,1);assert.equal(cancelled.state.saveAttempts,2);assert.equal(cancelled.state.saves,1);
+  assert.equal(await cancelPage.api.enable(cancelPage.root),false);await new Promise(resolve=>setTimeout(resolve,10));assert.equal(cancelled.state.aborts,1);assert.match(cancelPage.root.innerHTML,/Результат ещё не подтверждён/);assert.equal(await cancelPage.api.enable(cancelPage.root),false);assert.equal(cancelled.state.subscribes,1);assert.equal(cancelled.state.saveAttempts,1);assert.equal(cancelled.state.saves,0);
   const ready=environment({unrelatedReady:true}),readyPage=ready.page();assert.equal(await readyPage.api.enable(readyPage.root),true);assert.equal(ready.state.readyReads,0);assert.equal(ready.state.saves,1);
   const outside=environment({outsideScope:true}),outsidePage=outside.page();assert.equal(await outsidePage.api.enable(outsidePage.root),true);assert.equal(outside.state.readyReads,0);assert.equal(outside.state.subscribes,1);assert.equal(outside.state.saves,1);
-  console.log('PASS  bounded HTTP abort releases origin lock and canonical registered worker is used without global ready');
+  console.log('PASS  bounded HTTP abort leaves UNKNOWN without a blind write retry; canonical registered worker is used without global ready');
 
   for(const accountChanged of [false,true]){
     const lateAuth=deferred(),authEnv=environment({subscribe:()=>lateAuth.promise}),authPage=authEnv.page();const authEnable=authPage.api.enable(authPage.root);await turn();
@@ -221,7 +225,31 @@ async function run(){
   const persistent=environment({subscribe:async()=>{throw abort('Registration failed - push service error');}}),failurePage=persistent.page();assert.equal(await failurePage.api.enable(failurePage.root),false);assert.equal(persistent.state.subscribes,2);assert.equal(persistent.state.maxActive,1);assert.equal(persistent.state.saves,0);assert.equal(persistent.state.confirmations,0);assert.match(failurePage.root.innerHTML,/AbortError/);assert.ok(!failurePage.root.innerHTML.includes(secret));
   const denied=environment({subscribe:async()=>{throw new DOMException(secret,'NotAllowedError');}}),deniedPage=denied.page();assert.equal(await deniedPage.api.enable(deniedPage.root),false);assert.equal(denied.state.subscribes,1);assert.equal(denied.state.saves,0);
   const before=persistent.state.subscribes;persistent.state.otherDeviceHealthy=true;await failurePage.api.refresh();assert.equal(persistent.state.subscribes,before);assert.match(failurePage.root.innerHTML,/AbortError\/PUSH_SERVICE/);assert.ok(!failurePage.root.innerHTML.includes('Уведомления включены'));
-  const beforeIdentity=denied.state.subscribes;deniedPage.auth.manager.id=2;deniedPage.auth.authGeneration++;deniedPage.auth.csrf='new-account';denied.state.expectedCsrf=deniedPage.auth.csrf;await deniedPage.api.refresh();await turn();assert.ok(denied.state.subscribes>beforeIdentity);await turn();
+  const beforeIdentity=denied.state.subscribes;deniedPage.auth.manager.id=2;deniedPage.auth.authGeneration++;deniedPage.auth.csrf='new-account';denied.state.expectedCsrf=deniedPage.auth.csrf;await deniedPage.api.refresh();await turn();assert.equal(denied.state.subscribes,beforeIdentity);await deniedPage.api.enable(deniedPage.root);assert.equal(denied.state.subscribes,beforeIdentity+1);await turn();
+  const heldBeforeIntent=deferred(),beforeIntent=environment({keyRequest:()=>heldBeforeIntent.promise}),beforePage=beforeIntent.page();
+  const oldClick=beforePage.api.enable(beforePage.root);await turn();beforeIntent.protocol.reply({action:'revoke',operation_id:'e'.repeat(64)});heldBeforeIntent.resolve();
+  assert.equal(await oldClick,false);assert.equal(beforeIntent.state.subscribes,0);assert.equal(beforeIntent.state.saves,0);assert.match(beforePage.root.innerHTML,/Уведомления отключены/);
+  assert.equal(await beforePage.api.enable(beforePage.root),true);assert.equal(beforeIntent.state.subscribes,1);assert.equal(beforeIntent.state.saves,1);assert.equal(beforeIntent.protocol.current().revision,3);
+  console.log('PASS  a click waiting before intent cannot adopt a newer remote revoke; only the next explicit click renews it');
+  const e2=deferred(),revoked=environment({subscribe:()=>e2.promise,deadlineMs:5}),revokedPage=revoked.page();
+  assert.equal(await revokedPage.api.enable(revokedPage.root),false);revoked.protocol.reply({action:'revoke',operation_id:'f'.repeat(64)});
+  const lateE2Subscription=subscription();lateE2Subscription.toJSON=()=>({endpoint:'https://push.example.test/private-new-e2',keys:{p256dh:'new-key',auth:'new-auth'}});e2.resolve(lateE2Subscription);await turn();await turn();
+  assert.equal(revoked.state.saves,0);assert.equal(revoked.state.unsubscribes,0);assert.equal(revoked.state.confirmations,0);assert.match(revokedPage.root.innerHTML,/Уведомления отключены/);
+  await revokedPage.api.refresh();await turn();assert.equal(revoked.state.subscribes,1);assert.equal(revoked.state.saves,0);assert.equal(revoked.protocol.current().enabled,false);
+  console.log('PASS  a late native E2 cannot save or show success after its installation was remotely revoked');
+  const savedAck=deferred();let capturedAck;
+  const lateAck=environment({saveRequest:async(options,state)=>{capturedAck=lateAck.protocol.reply(JSON.parse(options.body));state.saves++;await savedAck.promise;return{ok:true,status:200,json:async()=>({...capturedAck,push_status:{notification_path_usable:true},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})};}}),lateAckPage=lateAck.page();
+  const awaitingAck=lateAckPage.api.enable(lateAckPage.root);await turn();lateAck.protocol.reply({action:'revoke',operation_id:'d'.repeat(64)});await lateAckPage.api.refresh();savedAck.resolve();
+  assert.equal(await awaitingAck,false);assert.equal(lateAck.state.saves,1);assert.equal(lateAck.protocol.current().enabled,false);assert.equal(lateAck.state.confirmations,0);assert.match(lateAckPage.root.innerHTML,/Уведомления отключены/);
+  console.log('PASS  a late saved response cannot override a newer already observed revocation');
+  const lostCommit=environment({saveRequest(options,state){lostCommit.protocol.reply(JSON.parse(options.body));state.saves++;throw new TypeError('synthetic lost committed response');}}),lostPage=lostCommit.page();
+  assert.equal(await lostPage.api.enable(lostPage.root),false);assert.match(lostPage.root.innerHTML,/Результат ещё не подтверждён/);lostCommit.protocol.reply({action:'revoke',operation_id:'c'.repeat(64)});
+  const reopened=lostCommit.page();assert.equal(await reopened.api.enable(reopened.root),true);assert.equal(lostCommit.state.saveAttempts,1);assert.equal(lostCommit.state.subscribes,1);assert.equal(lostCommit.state.confirmations,0);assert.match(reopened.root.innerHTML,/Уведомления отключены/);assert.equal(lostCommit.protocol.current().enabled,false);
+  console.log('PASS  reloaded UNKNOWN setup reads its own receipt and current revocation without another native or save command');
+  const lostRejected=environment({saveRequest(options){lostRejected.protocol.reply({action:'revoke',operation_id:'b'.repeat(64)});lostRejected.protocol.reply(JSON.parse(options.body));throw new TypeError('synthetic lost rejected response');}}),rejectedPage=lostRejected.page();
+  assert.equal(await rejectedPage.api.enable(rejectedPage.root),false);assert.match(rejectedPage.root.innerHTML,/Результат ещё не подтверждён/);const rejectedReload=lostRejected.page();
+  assert.equal(await rejectedReload.api.enable(rejectedReload.root),true);assert.match(rejectedReload.root.innerHTML,/Уведомления отключены/);assert.equal(lostRejected.state.saveAttempts,1);assert.equal(lostRejected.state.saves,0);assert.equal(lostRejected.protocol.current().enabled,false);
+  console.log('PASS  a definitive HTTP 409 receipt reconciles a lost rejection without keeping UNKNOWN or retrying');
   console.log('PASS  only native AbortError gets bounded sequential recovery; persistent failures stay truthful');
 }
 run().catch(error=>{console.error('FAIL  '+error.stack);process.exitCode=1;});

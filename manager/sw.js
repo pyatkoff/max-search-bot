@@ -2,48 +2,12 @@ importScripts('assets/workspace-v2-sound-ledger.js');
 
 self.addEventListener('install',event=>{self.skipWaiting();});
 // Activation must finish without waiting on the subscription lock or push service.
-// Page activation owns creation/repair; message sync only persists existing keys.
+// The authenticated page owns all versioned subscription persistence.
 self.addEventListener('activate',event=>{event.waitUntil(self.clients.claim());});
 
-function b64ToUint8(base64String){
-  const padding='='.repeat((4-base64String.length%4)%4);
-  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
-  const raw=atob(base64);
-  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
-}
-
-function sameBytes(left,right){
-  if(!left||!right)return false;
-  const a=new Uint8Array(left),b=new Uint8Array(right);
-  if(a.length!==b.length)return false;
-  for(let i=0;i<a.length;i++){if(a[i]!==b[i])return false;}
-  return true;
-}
-
-async function pushResponse(url,options={}){
-  const controller=typeof AbortController==='function'?new AbortController():null;
-  let timer;
-  const pending=(async()=>{const response=await fetch(url,controller?{...options,signal:controller.signal}:options);return{response,data:await response.json()};})();
-  try{return await Promise.race([pending,new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('push_sync_timeout'));},10000);})]);}
-  finally{clearTimeout(timer);}
-}
-
-async function syncExistingPushSubscription(){
-  const {response:keyResp,data:keyJson}=await pushResponse('push.php?action=key',{credentials:'same-origin',cache:'no-store'});
-  if(!keyResp.ok)throw new Error('push_key_http_'+keyResp.status);
-  if(!keyJson.ok||!keyJson.public_key||!keyJson.csrf)throw new Error('push_key_missing');
-  const key=b64ToUint8(keyJson.public_key);
-  const sub=await self.registration.pushManager.getSubscription();
-  if(!sub||!sub.options?.applicationServerKey||!sameBytes(sub.options.applicationServerKey,key))return false;
-  const {response:save,data:saved}=await pushResponse('push.php',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action:'subscribe',csrf:keyJson.csrf,subscription:sub.toJSON()})});
-  if(!save.ok)throw new Error('push_save_http_'+save.status);
-  if(!saved.ok)throw new Error('push_save_failed');
-  return true;
-}
-
-function syncPushSubscription(){
-  return navigator.locks?.request?navigator.locks.request('anytour-manager-push-subscription',syncExistingPushSubscription):syncExistingPushSubscription();
-}
+// Old worker messages remain harmless. Only the authenticated page can capture
+// a browser installation's current intent; a worker must never revive an endpoint.
+function syncPushSubscription(){return Promise.resolve(false);}
 
 async function show(data){
   const title=data.title||'AnyTour — новое сообщение';

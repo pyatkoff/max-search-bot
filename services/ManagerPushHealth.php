@@ -58,10 +58,11 @@ class ManagerPushHealth
             if (!$table) return $entry;
 
             $q = $pdo->prepare("SELECT COUNT(*) AS subscription_count,
-                SUM(CASE WHEN last_error_at IS NULL OR (last_success_at IS NOT NULL AND last_success_at>=last_error_at) THEN 1 ELSE 0 END) AS healthy_subscription_count,
-                MAX(last_success_at) AS last_success_at,
-                MAX(last_error_at) AS last_error_at
-                FROM manager_push_subscriptions WHERE manager_id=?");
+                SUM(CASE WHEN s.last_error_at IS NULL OR (s.last_success_at IS NOT NULL AND s.last_success_at>=s.last_error_at) THEN 1 ELSE 0 END) AS healthy_subscription_count,
+                MAX(s.last_success_at) AS last_success_at,
+                MAX(s.last_error_at) AS last_error_at
+                FROM manager_push_subscriptions s JOIN manager_push_installations i ON i.id=s.installation_id AND i.manager_id=s.manager_id
+                WHERE s.manager_id=? AND s.is_active=1 AND i.enabled=1 AND s.intent_revision=i.revision");
             $q->execute([$managerId]);
             $stats = $q->fetch() ?: [];
             $entry['subscription_count'] = (int)($stats['subscription_count'] ?? 0);
@@ -69,7 +70,7 @@ class ManagerPushHealth
             $entry['last_success_at'] = $stats['last_success_at'] ?? null;
             $entry['last_error_at'] = $stats['last_error_at'] ?? null;
 
-            $q = $pdo->prepare("SELECT last_error FROM manager_push_subscriptions WHERE manager_id=? AND last_error IS NOT NULL ORDER BY last_error_at DESC,id DESC LIMIT 1");
+            $q = $pdo->prepare("SELECT s.last_error FROM manager_push_subscriptions s JOIN manager_push_installations i ON i.id=s.installation_id AND i.manager_id=s.manager_id WHERE s.manager_id=? AND s.is_active=1 AND i.enabled=1 AND s.intent_revision=i.revision AND s.last_error IS NOT NULL ORDER BY s.last_error_at DESC,s.id DESC LIMIT 1");
             $q->execute([$managerId]);
             $lastError = $q->fetchColumn();
             $entry['last_error'] = $lastError === false ? null : (string)$lastError;
@@ -117,11 +118,15 @@ class ManagerPushHealth
             $endpoint = trim($endpoint);
             if ($endpoint === '') return $status;
 
-            $q = $pdo->prepare("SELECT CASE WHEN last_error_at IS NULL OR (last_success_at IS NOT NULL AND last_success_at>=last_error_at) THEN 1 ELSE 0 END AS notification_path_usable
-                FROM manager_push_subscriptions WHERE manager_id=? AND endpoint_hash=? LIMIT 1");
+            $q = $pdo->prepare("SELECT i.enabled,s.is_active,s.intent_revision,i.revision,
+                CASE WHEN s.last_error_at IS NULL OR (s.last_success_at IS NOT NULL AND s.last_success_at>=s.last_error_at) THEN 1 ELSE 0 END AS notification_path_usable
+                FROM manager_push_subscriptions s JOIN manager_push_installations i ON i.id=s.installation_id AND i.manager_id=s.manager_id WHERE s.manager_id=? AND s.endpoint_hash=? LIMIT 1");
             $q->execute([$managerId, hash('sha256', $endpoint)]);
             $subscription = $q->fetch();
             if (!$subscription) return $status;
+            if (!(bool)$subscription['enabled']) {$status['notification_path_reason']='subscription_revoked';return $status;}
+            if ((int)$subscription['intent_revision']!==(int)$subscription['revision']) return $status;
+            if (!(bool)$subscription['is_active']) {$status['notification_path_reason']='subscription_unhealthy';return $status;}
 
             $status['notification_path_usable'] = (bool)($subscription['notification_path_usable'] ?? false);
             $status['notification_path_reason'] = $status['notification_path_usable'] ? 'healthy_subscription' : 'subscription_unhealthy';

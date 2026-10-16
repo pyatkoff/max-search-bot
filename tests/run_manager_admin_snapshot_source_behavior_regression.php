@@ -21,7 +21,8 @@ CREATE TABLE manager_projects(manager_id INTEGER NOT NULL REFERENCES managers(id
 CREATE TABLE manager_groups(id INTEGER PRIMARY KEY,project_id INTEGER NOT NULL REFERENCES projects(id),group_key TEXT NOT NULL,display_name TEXT NOT NULL,is_active INTEGER NOT NULL DEFAULT 1,UNIQUE(project_id,group_key));
 CREATE TABLE manager_group_members(group_id INTEGER NOT NULL REFERENCES manager_groups(id),manager_id INTEGER NOT NULL REFERENCES managers(id),PRIMARY KEY(group_id,manager_id));
 CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,project_id INTEGER NOT NULL REFERENCES projects(id),source_key TEXT NOT NULL,display_name TEXT NOT NULL,channel TEXT,primary_group_id INTEGER REFERENCES manager_groups(id),fallback_mode TEXT NOT NULL DEFAULT 'immediate',fallback_group_id INTEGER REFERENCES manager_groups(id),fallback_after_minutes INTEGER NOT NULL DEFAULT 0,is_active INTEGER NOT NULL DEFAULT 1,UNIQUE(project_id,source_key));
-CREATE TABLE manager_push_subscriptions(id INTEGER PRIMARY KEY,manager_id INTEGER NOT NULL REFERENCES managers(id),last_success_at TEXT,last_error_at TEXT,last_error TEXT);
+CREATE TABLE manager_push_installations(id INTEGER PRIMARY KEY,manager_id INTEGER NOT NULL,revision INTEGER NOT NULL DEFAULT 1,enabled INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE manager_push_subscriptions(id INTEGER PRIMARY KEY,manager_id INTEGER NOT NULL REFERENCES managers(id),last_success_at TEXT,last_error_at TEXT,last_error TEXT,installation_id INTEGER,intent_revision INTEGER NOT NULL DEFAULT 1,is_active INTEGER NOT NULL DEFAULT 1);
 CREATE TABLE admin_audit_log(id INTEGER PRIMARY KEY,actor_manager_id INTEGER REFERENCES managers(id),action TEXT,entity_type TEXT,entity_id TEXT,project_key TEXT,before_json TEXT,after_json TEXT,created_at TEXT);
 ATTACH DATABASE ':memory:' AS information_schema;
 CREATE TABLE information_schema.tables(table_schema TEXT,table_name TEXT);
@@ -32,7 +33,9 @@ INSERT INTO manager_projects VALUES(5,1),(5,2),(5,3),(5,4),(7,1),(8,1),(9,2),(10
 INSERT INTO manager_groups VALUES(101,1,'primary','Primary group',1),(102,1,'fallback','Fallback group',1),(201,2,'other','Beta group',1);
 INSERT INTO manager_group_members VALUES(101,7),(102,8),(201,9),(101,10);
 INSERT INTO conversation_sources VALUES(11,1,'shared','Zeta','max',101,'delayed',102,5,1),(12,2,'shared','Alpha','telegram',201,'none',NULL,0,1),(13,1,'inactive','Alpha',NULL,NULL,'none',NULL,0,0),(14,3,'historical','Hidden','max',NULL,'none',NULL,0,1),(15,1,'immediate','Alpha','website',101,'immediate',102,0,1);
-INSERT INTO manager_push_subscriptions VALUES(1,7,'2026-10-14 00:00:00',NULL,NULL),(2,8,NULL,'2026-10-14 00:00:00','provider failed');
+INSERT INTO manager_push_subscriptions(id,manager_id,last_success_at,last_error_at,last_error) VALUES(1,7,'2026-10-14 00:00:00',NULL,NULL),(2,8,NULL,'2026-10-14 00:00:00','provider failed');
+INSERT INTO manager_push_installations(id,manager_id) SELECT id,manager_id FROM manager_push_subscriptions;
+UPDATE manager_push_subscriptions SET installation_id=id;
 INSERT INTO admin_audit_log VALUES(1,5,'source_updated','source','11','anytour','{\"secret\":\"before-only\"}','{\"secret\":\"after-only\"}','2026-10-14 00:00:00');");
 
 // Initialize the existing read-only contract once so the test does not invoke
@@ -49,7 +52,7 @@ function snapshotCheck(string $name,$actual,$expected):void{
 }
 function directoryRows(PDO $pdo):array{
     $out=[];
-    foreach(['projects','managers','manager_projects','manager_groups','manager_group_members','conversation_sources','manager_push_subscriptions','admin_audit_log'] as $table)$out[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll();
+    foreach(['projects','managers','manager_projects','manager_groups','manager_group_members','conversation_sources','manager_push_subscriptions','manager_push_installations','admin_audit_log'] as $table)$out[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY rowid')->fetchAll();
     return $out;
 }
 function routingChecks():array{

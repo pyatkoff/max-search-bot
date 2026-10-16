@@ -1,12 +1,14 @@
 const {test,expect}=require('@playwright/test');
 const {execFileSync}=require('node:child_process');
 const fs=require('node:fs');
+const {lifecycle}=require('../fixtures/manager_push_browser_fixture');
 const path=require('node:path');
 const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
 async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null}={}){
+  const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false;
   const manager={id:7,role,display_name:'Мария',is_working:true};
@@ -79,14 +81,16 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     if(url.pathname==='/manager/push-status.php'){
       const result={ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'}};
       if(req.method()==='POST'){
-        expect(data).toEqual({csrf:'synthetic-csrf',endpoint:'https://example.invalid/synthetic-push'});
+        expect(data.csrf).toBe('synthetic-csrf');if(data.endpoint)expect(data.endpoint).toBe('https://example.invalid/synthetic-push');result.current_connection=pushProtocol.current();
         result.current_subscription={notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'};
       }
       return reply(result);
     }
     if(url.pathname==='/manager/push.php'){
+      if(data.action==='connections')return reply({ok:true,connections:[],truncated:false});
+      if(data.action==='enable_intent')return reply(pushProtocol.reply(data));
       if(url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
-      if(data.action==='subscribe'){expect(data.csrf).toBe('synthetic-csrf');expect(data.subscription.endpoint).toBe('https://example.invalid/synthetic-push');subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})}
+      if(data.action==='subscribe'){expect(data.csrf).toBe('synthetic-csrf');expect(data.subscription.endpoint).toBe('https://example.invalid/synthetic-push');subscribed=true;return reply({...pushProtocol.reply(data),push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})}
     }
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
