@@ -6,10 +6,10 @@ require_once __DIR__ . '/DiagnosticLogger.php';
 
 class ShadowDialogueService
 {
-    public static function run($chatId, string $message, array $oldState): array
+    public static function run($chatId, string $message, array $oldState, bool $writeLog = true): array
     {
         $extracted = TouristExtractorV2::extract($message, $oldState);
-        return self::evaluate($chatId, $message, $oldState, $extracted, true);
+        return self::evaluate($chatId, $message, $oldState, $extracted, $writeLog);
     }
 
     public static function evaluate($chatId, string $message, array $oldState, array $extracted, bool $writeLog = false): array
@@ -32,19 +32,23 @@ class ShadowDialogueService
             'decision'=>$decision,
         ];
 
-        if ($writeLog) {
-            DiagnosticLogger::log('dialogue_v2_shadow', 'message_evaluated', [
-                'message'=>$message,
-                'old_state'=>$oldState,
-                'extracted'=>$result['extracted'],
-                'new_state'=>$newState,
-                'rule_action'=>$decision['action'] ?? null,
-                'missing'=>$decision['missing'] ?? [],
-                'next_field'=>$decision['next_field'] ?? null,
-                'reason'=>$decision['reason'] ?? null,
-            ], $chatId);
-        }
+        if ($writeLog) self::logResult($chatId, $message, $result);
         return $result;
+    }
+
+    public static function logResult($chatId, string $message, array $result): bool
+    {
+        $decision = is_array($result['decision'] ?? null) ? $result['decision'] : [];
+        return DiagnosticLogger::log('dialogue_v2_shadow', 'message_evaluated', [
+            'message'=>$message,
+            'old_state'=>is_array($result['old_state'] ?? null) ? $result['old_state'] : [],
+            'extracted'=>is_array($result['extracted'] ?? null) ? $result['extracted'] : [],
+            'new_state'=>is_array($result['new_state'] ?? null) ? $result['new_state'] : [],
+            'rule_action'=>$decision['action'] ?? null,
+            'missing'=>$decision['missing'] ?? [],
+            'next_field'=>$decision['next_field'] ?? null,
+            'reason'=>$decision['reason'] ?? null,
+        ], $chatId);
     }
 
     private static function resolveDirectoryIds(array $changes): array
