@@ -313,7 +313,7 @@ async function open(id,options={}){
   // never holds the authorized transcript or composer behind a slow card request.
   // Card editors need catalog options; the transcript and composer do not.
   const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
-  let d;try{d=await (options.signal?api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext}):api('detail',{conversation_id:target}))}catch(e){d=null}
+  let d;try{if(options.signal)d=await api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext});else d=await api('detail',{conversation_id:target})}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
