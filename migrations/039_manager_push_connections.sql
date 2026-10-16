@@ -22,11 +22,46 @@ CREATE TABLE IF NOT EXISTS manager_push_operations (
     PRIMARY KEY (manager_id,operation_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE manager_push_subscriptions
-    ADD COLUMN IF NOT EXISTS installation_id BIGINT UNSIGNED NULL,
-    ADD COLUMN IF NOT EXISTS intent_revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
-    ADD COLUMN IF NOT EXISTS revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
-    ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1;
+-- Match migration031: metadata guards support MySQL and safe partial retries.
+SET @push_column_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_push_subscriptions' AND COLUMN_NAME='installation_id'
+);
+SET @push_column_sql = IF(@push_column_exists=0,
+    'ALTER TABLE manager_push_subscriptions ADD COLUMN installation_id BIGINT UNSIGNED NULL', 'DO 0');
+PREPARE push_column_stmt FROM @push_column_sql;
+EXECUTE push_column_stmt;
+DEALLOCATE PREPARE push_column_stmt;
+
+SET @push_column_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_push_subscriptions' AND COLUMN_NAME='intent_revision'
+);
+SET @push_column_sql = IF(@push_column_exists=0,
+    'ALTER TABLE manager_push_subscriptions ADD COLUMN intent_revision BIGINT UNSIGNED NOT NULL DEFAULT 1', 'DO 0');
+PREPARE push_column_stmt FROM @push_column_sql;
+EXECUTE push_column_stmt;
+DEALLOCATE PREPARE push_column_stmt;
+
+SET @push_column_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_push_subscriptions' AND COLUMN_NAME='revision'
+);
+SET @push_column_sql = IF(@push_column_exists=0,
+    'ALTER TABLE manager_push_subscriptions ADD COLUMN revision BIGINT UNSIGNED NOT NULL DEFAULT 1', 'DO 0');
+PREPARE push_column_stmt FROM @push_column_sql;
+EXECUTE push_column_stmt;
+DEALLOCATE PREPARE push_column_stmt;
+
+SET @push_column_exists = (
+    SELECT COUNT(*) FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_push_subscriptions' AND COLUMN_NAME='is_active'
+);
+SET @push_column_sql = IF(@push_column_exists=0,
+    'ALTER TABLE manager_push_subscriptions ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1', 'DO 0');
+PREPARE push_column_stmt FROM @push_column_sql;
+EXECUTE push_column_stmt;
+DEALLOCATE PREPARE push_column_stmt;
 
 -- Retry-safe adoption preserves every legacy endpoint and its delivery history.
 INSERT IGNORE INTO manager_push_installations (id,manager_id,token_hash,revision,enabled,user_agent,last_seen_at,created_at,updated_at)
