@@ -121,6 +121,7 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     await expect(page.locator('#leadSearch')).not.toBeVisible();
     await expect(page.locator('#pwOpen')).not.toBeVisible();
     for(const id of ['m2InboxSearchToggle','filtersToggle','m2WorkspaceSettings','m2PinnedToggle'])await expect(page.locator('#m2InboxTools #'+id)).toBeVisible();
+    await expect(page.locator('#m2TabPicker,.m2TabPickerChevron,#m2PinnedSelection')).toHaveCount(0);await expect(page.locator('#inboxList [data-pw-pin]')).toHaveCount(0);
     const filterHitbox=await page.locator('#filtersToggle').evaluate(element=>{
       const box=element.getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
       return {textFont:getComputedStyle(element).fontSize,iconFont:getComputedStyle(element,'::before').fontSize,width:box.width,hit:hit===element||element.contains(hit)};
@@ -174,13 +175,13 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
       await page.setViewportSize({width,height});
       const geometry=await item.evaluate(element=>{
         const title=element.querySelector('.leadTitle').getBoundingClientRect(),time=element.querySelector('.leadActivityTime').getBoundingClientRect(),identity=element.querySelector('.leadIdentity').getBoundingClientRect(),preview=element.querySelector('.leadPreview'),box=preview.getBoundingClientRect(),lineHeight=parseFloat(getComputedStyle(preview).lineHeight);
-        const row=element.getBoundingClientRect(),rowHeight=row.height,pin=element.querySelector('[data-pw-pin]'),pinBox=pin.getBoundingClientRect(),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta'),channel=element.querySelector('.m2ChannelBadge').getBoundingClientRect(),unread=element.querySelector('.unreadBadge').getBoundingClientRect();
-        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130,channelBeforeName:channel.right<=title.left,unreadUpperRight:unread.top>=title.top&&unread.top<box.top+lineHeight&&Math.abs(unread.right-time.right)<=1&&parseFloat(getComputedStyle(preview).paddingRight)>=unread.width+4,pinTarget:pinBox.width>=44&&pinBox.height>=44},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,pinHeight:pin?.getBoundingClientRect().height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
+        const rowHeight=element.getBoundingClientRect().height,openBox=element.querySelector('.m2RowOpen').getBoundingClientRect(),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta'),channel=element.querySelector('.m2ChannelBadge').getBoundingClientRect(),unread=element.querySelector('.unreadBadge').getBoundingClientRect();
+        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130,channelBeforeName:channel.right<=title.left,unreadUpperRight:unread.top>=title.top&&unread.top<box.top+lineHeight&&Math.abs(unread.right-time.right)<=1&&parseFloat(getComputedStyle(preview).paddingRight)>=unread.width+4,openTarget:openBox.width>=44&&openBox.height>=44,noFavoriteActions:element.querySelectorAll('[data-pw-pin]').length===0},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,openHeight:openBox.height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
       });
       await testInfo.attach('compact-inbox-'+width+'x'+height,{body:await item.screenshot(),contentType:'image/png'});
-      await expect(item.locator(':scope > .pwDirectPinControl [data-pw-pin="11"]')).toBeVisible();
-      await expect(item.locator('[data-pw-pin="11"]')).toHaveAttribute('aria-pressed','true');
-      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true,channelBeforeName:true,unreadUpperRight:true,pinTarget:true});await fitsViewport(page);
+      await expect(item.locator('[data-pw-pin],.pwDirectPinControl')).toHaveCount(0);
+      expect(await page.evaluate(()=>WorkspaceV2PersonalWorkspace.enhanceRows([{id:11}])[0].personal_pinned)).toBe(true);
+      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true,channelBeforeName:true,unreadUpperRight:true,openTarget:true,noFavoriteActions:true});await fitsViewport(page);
     }
     clean(fixture);
   });
@@ -253,23 +254,25 @@ for(const role of ['manager','admin'])test('Messenger ownership is compact and r
   clean(fixture);
 });
 
-test('Messenger saved tabs remain usable and pinned proxy keeps canonical selection after rerender',async({page})=>{
+test('Messenger saved tabs and upper favorites navigation keep canonical selection without duplication',async({page})=>{
   await page.setViewportSize({width:390,height:900});const fixture=await setup(page,{savedTabs:true});
-  const tab=page.locator('#pwLane [data-pw-selection="tab:5"]'),pin=page.locator('#m2PinnedToggle');
-  await expect(tab).toBeVisible();await expect(tab).toHaveText('MAX — ждут ответа');
+  const tab=page.locator('#pwLane [data-pw-selection="tab:5"]'),favorites=page.locator('#m2PinnedToggle');
+  await expect(tab).toBeVisible();await expect(tab).toHaveText('MAX — ждут ответа');await expect(favorites).toBeVisible();await expect(page.locator('#pwLane [data-pw-selection="pinned"]')).not.toBeVisible();
+  await expect(page.locator('#m2TabPicker,.m2TabPickerChevron,#m2PinnedSelection')).toHaveCount(0);
   await tab.click();await expect(tab).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);
   expect(fixture.calls.filter(call=>call.path==='/manager/personal-workspace-api.php'&&call.action==='list').at(-1)).toMatchObject({selection:'tab:5'});
-  await pin.press('Enter');await expect(pin).toHaveAttribute('aria-pressed','true');
+  await favorites.press('Enter');await expect(favorites).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await settle(fixture);
   expect(fixture.calls.filter(call=>call.path==='/manager/personal-workspace-api.php'&&call.action==='list').at(-1)).toMatchObject({selection:'pinned'});
-  await pin.press('Enter');await expect(pin).toHaveAttribute('aria-pressed','false');
+  await favorites.press('Enter');await expect(favorites).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   expect(fixture.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list').at(-1)).toMatchObject({queue:'all'});
-  await pin.press('Enter');await expect(pin).toHaveAttribute('aria-pressed','true');
+  await favorites.press('Enter');await expect(favorites).toHaveAttribute('aria-pressed','true');
   await page.evaluate(()=>WorkspaceV2PersonalWorkspace.rendered());
-  await expect(pin).toBeVisible();await expect(pin).toHaveAttribute('aria-pressed','true');
-  await expect(page.locator('#m2InboxTools #m2PinnedToggle')).toHaveCount(1);
+  await expect(favorites).toBeVisible();await expect(favorites).toHaveAttribute('aria-pressed','true');await expect(page.locator('#pwLane [data-pw-selection="pinned"]')).not.toBeVisible();
+  await expect(page.locator('#inboxList [data-pw-pin],#inboxList .pwDirectPinControl')).toHaveCount(0);
+  await openConversation(page);await expect(page.locator('#conversationTitle + .m2HeaderPin #m2ConversationPin')).toHaveAttribute('aria-pressed','true');await page.locator('#mobileBack').click();
   await page.locator('#m2WorkspaceSettings').click();await expect(page.locator('#pwDialog')).toBeVisible();
   await expect(page.locator('[data-pw-edit-tab="5"]')).toBeVisible();await expect(page.locator('[data-pw-delete-tab="5"]')).toBeVisible();
   await page.locator('#pwClose').click();await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();

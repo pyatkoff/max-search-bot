@@ -139,7 +139,7 @@
       if(secondary.childNodes.length)identity?.appendChild(secondary);
       if(!el.querySelector('.leadSignals')?.childNodes.length)el.querySelector('.leadSignals')?.remove();
       el.querySelectorAll('.leadSource:not(.leadActivityTime),.leadTrip,.leadContextRow,.leadActionRow').forEach(node=>node.remove());
-      // Native sibling actions keep pin activation independent of opening/read policy.
+      // A native open button keeps avatar viewing separate from opening/read policy.
       const openLead=el.onclick,avatar=el.querySelector('.leadAvatar'),open=document.createElement('button');open.type='button';open.className='m2RowOpen';
       avatar?.remove();
       open.setAttribute('aria-label','Открыть диалог '+(c.display_name||'Турист')+' · '+signal.label);
@@ -147,7 +147,6 @@
       while(el.firstChild)open.appendChild(el.firstChild);
       el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
       open.onclick=openLead;if(avatar)el.appendChild(avatar);el.appendChild(open);
-      const pin=window.WorkspaceV2PersonalWorkspace?.createPinControl?.(Number(c.id),{className:'m2RowPin'});if(pin){if(name)pin.querySelector('[data-pw-pin]')?.setAttribute('aria-describedby',name.id);el.appendChild(pin)}
     });
     syncPersonalChrome($('pwLane'));
   }
@@ -155,7 +154,7 @@
     const id=Number(S.current||0),context=[S.manager?.id,S.authGeneration,id,!S.authExpired].join(':'),host=document.querySelector('.conversationTitleRow');
     if(!host)return;
     if(context!==headerPinContext){$('m2ConversationPin')?.closest('.pwDirectPinControl')?.remove();headerPinContext=context}
-    if(id&&S.manager&&!S.authExpired&&!$('m2ConversationPin')){const pin=window.WorkspaceV2PersonalWorkspace?.createPinControl?.(id,{id:'m2ConversationPin',className:'m2HeaderPin',currentOnly:true});if(pin){pin.querySelector('[data-pw-pin]')?.setAttribute('aria-describedby','conversationTitle');host.appendChild(pin)}}
+    if(id&&S.manager&&!S.authExpired&&!$('m2ConversationPin')){const pin=window.WorkspaceV2PersonalWorkspace?.createPinControl?.(id,{id:'m2ConversationPin',className:'m2HeaderPin',currentOnly:true});if(pin){pin.querySelector('[data-pw-pin]')?.setAttribute('aria-describedby','m2ClientName');$('conversationTitle').after(pin)}}
   }
   function revealTab(button){
     const bar=$('m2TabRow');if(!bar||!button?.getBoundingClientRect)return;
@@ -165,16 +164,12 @@
   function syncPersonalChrome(lane=$('pwLane'),{rendered=false}={}){
     const head=document.querySelector('.inboxHead'),queues=document.querySelector('.queueTabs');if(!head||!queues)return;
     let navigator=$('m2TabNavigator');
-    if(!navigator){navigator=document.createElement('div');navigator.id='m2TabNavigator';navigator.className='m2TabNavigator';const bar=document.createElement('div');bar.id='m2TabRow';bar.className='m2TabRow';bar.setAttribute('aria-label','Очереди и личные вкладки');bar.addEventListener('focusin',e=>revealTab(e.target));navigator.appendChild(bar);const picker=document.createElement('select');picker.id='m2TabPicker';picker.className='m2TabPicker';picker.setAttribute('aria-label','Все очереди и личные вкладки');picker.onchange=()=>{const value=picker.value;if(value.startsWith('queue:')){const queue=value.slice(6);if(queue==='closed')void navigate('archive');else{if(section==='tasks')section='dialogues';void window.WorkspaceV2Inbox?.setQueue(queue,{reload:true})}}else void window.WorkspaceV2PersonalWorkspace?.selectSelection(value)};navigator.appendChild(picker);queues.before(navigator);const scope=document.createElement('div');scope.id='m2SelectionScope';scope.className='m2SelectionScope';navigator.after(scope)}
+    if(!navigator){navigator=document.createElement('div');navigator.id='m2TabNavigator';navigator.className='m2TabNavigator';const bar=document.createElement('div');bar.id='m2TabRow';bar.className='m2TabRow';bar.setAttribute('role','group');bar.setAttribute('aria-label','Очереди и личные вкладки');bar.addEventListener('focusin',e=>revealTab(e.target));navigator.appendChild(bar);queues.before(navigator);const scope=document.createElement('div');scope.id='m2SelectionScope';scope.className='m2SelectionScope';navigator.after(scope)}
     const bar=$('m2TabRow'),scope=$('m2SelectionScope');if(queues.parentElement!==bar)bar.appendChild(queues);if(lane&&lane.parentElement!==bar)bar.appendChild(lane);
     const hints=lane?[...lane.querySelectorAll('.pwScopeHint')]:[];if(rendered||hints.length)scope.replaceChildren(...hints);
-    const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.()||'',info=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.();
+    const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.()||'';
     queues.querySelectorAll('button[data-q]').forEach(button=>button.classList.toggle('active',!personal&&button.dataset.q===S.queue));
-    let pinned=$('m2PinnedSelection');if(!pinned){pinned=document.createElement('span');pinned.id='m2PinnedSelection';pinned.className='m2PinnedSelection';pinned.textContent='Избранное';pinned.setAttribute('role','status');bar.appendChild(pinned)}pinned.hidden=info?.kind!=='pinned';
-    const choices=[['queue:waiting','Новые'],['queue:mine','Мои'],['queue:all','Все'],['queue:closed','Архив'],...(lane?[...lane.querySelectorAll('[data-pw-selection]')].map(b=>[b.dataset.pwSelection,b.dataset.pwSelection==='pinned'?'Избранное':b.textContent]):[])],picker=$('m2TabPicker'),signature=JSON.stringify(choices);
-    if(picker.dataset.options!==signature){picker.replaceChildren(...choices.map(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;return option}));picker.dataset.options=signature}
-    picker.value=personal||'queue:'+S.queue;picker.disabled=!S.manager||S.authExpired;
-    const selected=personal||'queue:'+S.queue;if(lastTabSelection!==selected){lastTabSelection=selected;revealTab(personal==='pinned'?pinned:bar.querySelector(personal?`[data-pw-selection="${personal}"]`:`[data-q="${S.queue}"]`))}
+    const selected=personal||'queue:'+S.queue;if(lastTabSelection!==selected){lastTabSelection=selected;revealTab(bar.querySelector(personal?`[data-pw-selection="${personal}"]`:`[data-q="${S.queue}"]`))}
     syncHeaderPin();
   }
   function clientCardIsOpen(){return window.WorkspaceV2Mobile?.isMobile()?window.WorkspaceV2Mobile.getScreen()==='lead':$('workspaceRoot')?.classList.contains('m2ClientCardOpen')}
