@@ -9,12 +9,17 @@ on:
       - 'tests/visual/**'
       - '.github/workflows/workspace-v2-visual-qa.yml'
       - 'tools/verify_manager2_visual_evidence.js'
+      - 'tools/manager2_visual_inventory.js'
+      - 'tools/manager2_visual_reuse.js'
+      - 'tools/manager2_visual_artifact.py'
       - 'tests/run_manager2_visual_gate_regression.js'
+      - 'tests/run_manager2_visual_selection_regression.js'
       - 'tests/run_workspace_v2_visual_qa_contract_regression.php'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 # Only superseded read-only PR runs may be cancelled. Manual evidence runs have
 # unique groups, and this workflow never groups with deployment workflows.
@@ -23,7 +28,89 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  selection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      donor-run: ${{ steps.donor.outputs.run }}
+      donor-name: ${{ steps.donor.outputs.name }}
+      donor-id: ${{ steps.donor.outputs.id }}
+      donor-digest: ${{ steps.donor.outputs.digest }}
+    env:
+      QA_TESTED_SHA: ${{ github.sha }}
+      QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QA_RUN_ID: ${{ github.run_id }}
+      QA_RUN_ATTEMPT: ${{ github.run_attempt }}
+      QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+    steps:
+      - name: Checkout full ancestry for same-PR donor validation
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Locate immutable successful same-PR full evidence
+        id: donor
+        continue-on-error: true
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const {owner,repo} = context.repo;
+            const pr = context.payload.pull_request;
+            const runs = await github.rest.actions.listWorkflowRuns({owner,repo,
+              workflow_id:'workspace-v2-visual-qa.yml',event:'pull_request',status:'success',per_page:20});
+            for (const run of runs.data.workflow_runs) {
+              if (run.id >= context.runId || run.status !== 'completed' || run.conclusion !== 'success' ||
+                  run.path !== '.github/workflows/workspace-v2-visual-qa.yml' ||
+                  run.head_repository?.full_name !== context.payload.repository.full_name ||
+                  run.head_branch !== pr.head.ref || !run.pull_requests.some(item=>item.number===pr.number)) continue;
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({owner,repo,run_id:run.id,per_page:100});
+              const artifact = artifacts.data.artifacts.find(item=>!item.expired &&
+                /^workspace-v2-visual-[a-f0-9]{40}$/.test(item.name) && /^sha256:[a-f0-9]{64}$/.test(item.digest||'') &&
+                artifacts.data.artifacts.some(marker=>!marker.expired&&marker.name==='workspace-v2-full-index-'+item.name.slice('workspace-v2-visual-'.length)));
+              if (!artifact) continue;
+              const metadata={repository:context.payload.repository.full_name,prNumber:String(pr.number),
+                workflow:run.path,runId:String(run.id),runAttempt:String(run.run_attempt),
+                status:run.status,conclusion:run.conclusion,event:run.event,headSha:run.head_sha,
+                testedSha:artifact.name.slice('workspace-v2-visual-'.length),
+                artifactId:String(artifact.id),artifactName:artifact.name,artifactDigest:artifact.digest};
+              fs.writeFileSync('donor-meta.json',JSON.stringify(metadata,null,2)+'\n');
+              core.setOutput('run',String(run.id));core.setOutput('name',artifact.name);
+              core.setOutput('id',String(artifact.id));core.setOutput('digest',artifact.digest);
+              break;
+            }
+      - name: Read candidate donor without making it release evidence
+        if: steps.donor.outputs.run != ''
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          DONOR_ARTIFACT_ID: ${{ steps.donor.outputs.id }}
+          DONOR_ARTIFACT_DIGEST: ${{ steps.donor.outputs.digest }}
+        with:
+          script: |
+            const fs=require('node:fs'),cp=require('node:child_process');
+            const response=await github.rest.actions.downloadArtifact({...context.repo,
+              artifact_id:Number(process.env.DONOR_ARTIFACT_ID),archive_format:'zip'});
+            fs.writeFileSync('baseline.zip',Buffer.from(response.data));
+            cp.execFileSync('python3',['tools/manager2_visual_artifact.py','baseline.zip','baseline',process.env.DONOR_ARTIFACT_DIGEST],{stdio:'inherit'});
+      - name: Plan fail-closed full or audited spec-only coverage
+        id: plan
+        run: node tools/manager2_visual_reuse.js plan
+      - name: Publish exact current selection plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager2-visual-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: selection-plan.json
+          if-no-files-found: error
+          retention-days: 14
+
   browser-tests:
+    needs: selection
     runs-on: ubuntu-latest
     # Engines run on isolated runners. Preserve workers=1 within each engine
     # because the fixtures share ports and output names inside their own job.
@@ -32,6 +119,12 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
+    env:
+      QA_TESTED_SHA: ${{ github.sha }}
+      QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QA_RUN_ID: ${{ github.run_id }}
+      QA_RUN_ATTEMPT: ${{ github.run_attempt }}
+      QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,6 +161,34 @@ jobs:
           npx playwright install-deps "$QA_BROWSER"
           npx playwright install "$QA_BROWSER"
 
+      - name: Read exact current selection plan
+        uses: actions/download-artifact@v4
+        with:
+          name: manager2-visual-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .
+      - name: Read immutable donor in separate namespace
+        if: needs.selection.outputs.mode == 'affected'
+        uses: actions/github-script@v7
+        env:
+          DONOR_ARTIFACT_ID: ${{ needs.selection.outputs.donor-id }}
+          DONOR_ARTIFACT_DIGEST: ${{ needs.selection.outputs.donor-digest }}
+        with:
+          script: |
+            const fs=require('node:fs'),cp=require('node:child_process');
+            const response=await github.rest.actions.downloadArtifact({...context.repo,
+              artifact_id:Number(process.env.DONOR_ARTIFACT_ID),archive_format:'zip'});
+            fs.writeFileSync('baseline.zip',Buffer.from(response.data));
+            cp.execFileSync('python3',['tools/manager2_visual_artifact.py','baseline.zip','baseline',process.env.DONOR_ARTIFACT_DIGEST],{stdio:'inherit'});
+      - name: Require valid donor or full coverage on the actual browser runner
+        id: coverage
+        env:
+          QA_BROWSER: ${{ matrix.browser }}
+        run: node tools/manager2_visual_reuse.js prepare
+      - name: Collect every current case before executing the selected coverage
+        env:
+          QA_BROWSER: ${{ matrix.browser }}
+        run: node tools/manager2_visual_reuse.js inventory
+
       - name: Start static server
         shell: bash
         run: |
@@ -87,15 +208,26 @@ jobs:
       - name: Verify daily avatar HTTP cache
         env:
           QA_BROWSER: ${{ matrix.browser }}
-        run: npx playwright test tests/visual/manager-avatar-cache.spec.js --browser="$QA_BROWSER" --reporter=line --workers=1
+          PLAYWRIGHT_JSON_OUTPUT_NAME: visual-reports/cache.json
+        run: npx playwright test tests/visual/manager-avatar-cache.spec.js --browser="$QA_BROWSER" --reporter=line,json --workers=1
 
       - name: Assert responsive layout contracts
-        if: matrix.browser == 'chromium'
-        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/manager-browser-push-state.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js tests/visual/manager2-messenger-layout.spec.js tests/visual/manager2-inbox-compact.spec.js tests/visual/manager-admin-load.spec.js tests/visual/manager-admin-workspace.spec.js tests/visual/manager-quick-replies.spec.js tests/visual/manager-personal-workspace.spec.js tests/visual/manager-manual-groups.spec.js tests/visual/manager-internal-notes.spec.js tests/visual/manager-customer-name.spec.js tests/visual/manager2-customer-avatar.spec.js tests/visual/manager-media-compose.spec.js tests/visual/manager-handoff-cancellation.spec.js tests/visual/manager-handoff-cancellation-shell.spec.js tests/visual/manager-transcript-history.spec.js --reporter=line --workers=1
+        if: matrix.browser == 'chromium' && steps.coverage.outputs.mode == 'full'
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: visual-reports/main.json
+        run: npx playwright test tests/visual/workspace-v2-layout.spec.js tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/manager-browser-push-state.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js tests/visual/manager2-messenger-layout.spec.js tests/visual/manager2-inbox-compact.spec.js tests/visual/manager-admin-load.spec.js tests/visual/manager-admin-workspace.spec.js tests/visual/manager-quick-replies.spec.js tests/visual/manager-personal-workspace.spec.js tests/visual/manager-manual-groups.spec.js tests/visual/manager-internal-notes.spec.js tests/visual/manager-customer-name.spec.js tests/visual/manager2-customer-avatar.spec.js tests/visual/manager-media-compose.spec.js tests/visual/manager-handoff-cancellation.spec.js tests/visual/manager-handoff-cancellation-shell.spec.js tests/visual/manager-transcript-history.spec.js --browser=chromium --reporter=line,json --workers=1
 
       - name: Check send feedback in WebKit
-        if: matrix.browser == 'webkit'
-        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/manager-browser-push-state.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js tests/visual/manager2-messenger-layout.spec.js tests/visual/manager2-inbox-compact.spec.js tests/visual/manager-admin-load.spec.js tests/visual/manager-admin-workspace.spec.js tests/visual/manager-quick-replies.spec.js tests/visual/manager-personal-workspace.spec.js tests/visual/manager-manual-groups.spec.js tests/visual/manager-internal-notes.spec.js tests/visual/manager-customer-name.spec.js tests/visual/manager2-customer-avatar.spec.js tests/visual/manager-media-compose.spec.js tests/visual/manager-handoff-cancellation.spec.js tests/visual/manager-handoff-cancellation-shell.spec.js tests/visual/manager-transcript-history.spec.js --browser=webkit --reporter=line --workers=1
+        if: matrix.browser == 'webkit' && steps.coverage.outputs.mode == 'full'
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: visual-reports/main.json
+        run: npx playwright test tests/visual/workspace-send-feedback.spec.js tests/visual/workspace-notification-diagnostics.spec.js tests/visual/manager-browser-push-state.spec.js tests/visual/workspace-emoji-picker.spec.js tests/visual/workspace-timezone.spec.js tests/visual/workspace-conversation-scroll.spec.js tests/visual/manager2-workspace.spec.js tests/visual/manager2-messenger-layout.spec.js tests/visual/manager2-inbox-compact.spec.js tests/visual/manager-admin-load.spec.js tests/visual/manager-admin-workspace.spec.js tests/visual/manager-quick-replies.spec.js tests/visual/manager-personal-workspace.spec.js tests/visual/manager-manual-groups.spec.js tests/visual/manager-internal-notes.spec.js tests/visual/manager-customer-name.spec.js tests/visual/manager2-customer-avatar.spec.js tests/visual/manager-media-compose.spec.js tests/visual/manager-handoff-cancellation.spec.js tests/visual/manager-handoff-cancellation-shell.spec.js tests/visual/manager-transcript-history.spec.js --browser=webkit --reporter=line,json --workers=1
+      - name: Execute changed leaf specs and existing working-screen checks
+        if: steps.coverage.outputs.mode == 'affected'
+        env:
+          QA_BROWSER: ${{ matrix.browser }}
+        run: node tools/manager2_visual_reuse.js run-selected
+
       - name: Capture responsive screenshots
         if: matrix.browser == 'chromium'
         shell: bash
@@ -151,18 +283,7 @@ jobs:
           QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           QA_RUN_ID: ${{ github.run_id }}
           QA_RUN_ATTEMPT: ${{ github.run_attempt }}
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-          const browser = process.env.QA_BROWSER;
-          fs.writeFileSync('visual-receipt.json', JSON.stringify({
-            mode: 'full', browser, testedSha: process.env.QA_TESTED_SHA,
-            headSha: process.env.QA_HEAD_SHA, runId: process.env.QA_RUN_ID,
-            runAttempt: process.env.QA_RUN_ATTEMPT,
-            specCount: browser === 'chromium' ? 22 : 21,
-            captureCount: browser === 'chromium' ? 34 : 0, completed: true
-          }, null, 2) + '\n');
-          NODE
+        run: node tools/manager2_visual_reuse.js record
 
       - name: Upload visual evidence
         if: always()
@@ -172,6 +293,8 @@ jobs:
           overwrite: true
           path: |
             visual-receipt.json
+            visual-reports/*.json
+            donor/**
             visual-artifacts/*.png
             send-feedback-artifacts/*.png
             notification-diagnostic-artifacts/*.png
@@ -180,6 +303,7 @@ jobs:
             timezone-artifacts/*.png
             manager2-artifacts/*.png
             manager-media-artifacts/*.png
+            report-attachment-artifacts/*.png
             test-results/**/error-context.md
           if-no-files-found: error
           retention-days: 14
@@ -316,6 +440,7 @@ jobs:
           name: workspace-v2-visual-${{ github.sha }}-webkit
           path: evidence/webkit
       - name: Validate full evidence and all required browser jobs
+        id: verify
         if: always()
         env:
           QA_TESTED_SHA: ${{ github.sha }}
@@ -325,6 +450,7 @@ jobs:
           QA_FIREFOX_NOTIFICATIONS_RESULT: ${{ needs.firefox-notifications.result }}
           QA_RUN_ID: ${{ github.run_id }}
           QA_RUN_ATTEMPT: ${{ github.run_attempt }}
+          QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
         run: node tools/verify_manager2_visual_evidence.js evidence "$QA_TESTED_SHA" "$QA_HEAD_SHA" "$QA_BROWSER_RESULT" "$QA_FIREFOX_HISTORY_RESULT" "$QA_FIREFOX_NOTIFICATIONS_RESULT" "$QA_RUN_ID" "$QA_RUN_ATTEMPT"
       # The canonical artifact now contains chromium/ and webkit/ directories;
       # original per-engine evidence directories remain intact below each one.
@@ -334,5 +460,14 @@ jobs:
           name: workspace-v2-visual-${{ github.sha }}
           overwrite: true
           path: evidence/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Index only fully executed evidence for future same-PR leaf fixes
+        if: steps.verify.outputs.mode == 'full'
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-v2-full-index-${{ github.sha }}
+          overwrite: true
+          path: evidence/visual-evidence.json
           if-no-files-found: error
           retention-days: 14

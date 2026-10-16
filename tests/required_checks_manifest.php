@@ -11,6 +11,7 @@ return [
         'php tests/run_architecture_inventory_regression.php',
         'php tests/run_workspace_v2_visual_qa_contract_regression.php',
         'node tests/run_manager2_visual_gate_regression.js',
+        'node tests/run_manager2_visual_selection_regression.js',
         'php tests/run_manager_http_smoke_contract_regression.php',
         'php tests/run_v2_architecture_regression.php',
         'php tests/run_v2_action_layer_regression.php',
