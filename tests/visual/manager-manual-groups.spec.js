@@ -18,7 +18,24 @@ async function bounded(page){expect(await page.evaluate(()=>document.documentEle
 async function capture(page,browser,width,name){const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(dir,`manual-groups-${browser}-${width}-${name}.png`)})}
 async function select(page,id=10){await inbox(page);await page.locator(`[data-pw-selection="tab:${id}"]`).click()}
 async function drafts(page){return page.evaluate(()=>({text:document.getElementById('replyText').value,media:document.getElementById('mediaSelection').textContent,scroll:document.getElementById('messages').scrollTop,conversation:WorkspaceV2.S.current,manager:WorkspaceV2.S.detail.conversation.manager_id,status:WorkspaceV2.S.detail.conversation.status}))}
-async function readEarlier(page){const messages=page.locator('#messages');await messages.hover();await page.mouse.wheel(0,-1200);await expect.poll(()=>messages.evaluate(node=>node.scrollHeight-node.clientHeight-node.scrollTop)).toBeGreaterThan(50);await messages.evaluate(node=>node.scrollTop=140);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))))}
+async function readEarlier(page){
+ const messages=page.locator('#messages');
+ // Composer/file layout may still resize the pane after its network settles.
+ // Start at the settled latest edge, then prove the real wheel reached the
+ // history owner. Distance alone can be nonzero before that gesture is adopted.
+ await expect.poll(()=>page.evaluate(()=>({following:WorkspaceV2Jump.isFollowingLatest(),atLatest:WorkspaceV2Jump.distanceFromLatest()<=2}))).toEqual({following:true,atLatest:true});
+ await messages.hover();await page.mouse.wheel(0,-1200);
+ await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+ await expect.poll(()=>messages.evaluate(node=>node.scrollHeight-node.clientHeight-node.scrollTop)).toBeGreaterThan(50);
+ await messages.evaluate(node=>node.scrollTop=140);
+ // Retain the exact position assertion after two actual animation frames,
+ // rather than letting a still-pending native scroll become the test baseline.
+ await expect.poll(()=>page.evaluate(()=>new Promise(resolve=>{
+  const box=document.getElementById('messages'),top=box.scrollTop;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>resolve({following:WorkspaceV2Jump.isFollowingLatest(),top:box.scrollTop,stable:box.scrollTop===top})));
+ }))).toEqual({following:false,top:140,stable:true});
+ console.log('MANUAL_GROUP_READING_READY '+JSON.stringify(await page.evaluate(()=>({width:innerWidth,following:WorkspaceV2Jump.isFollowingLatest(),scroll:document.getElementById('messages').scrollTop,distance:WorkspaceV2Jump.distanceFromLatest()}))));
+}
 
 for(const width of [390,430,768,1440])test(`manual group ${width}: one name creates a tab; two pointer/keyboard actions add or remove without replacing the conversation`,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const s=await setup(page);await settled(page,s);

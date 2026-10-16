@@ -65,7 +65,9 @@ const HARNESS_CI_EXEMPTIONS = Object.freeze([
 // Independently re-audited all 23 incoming #982/#983/#984 test/fixture deltas
 // since #980, plus the partition workflow text guard. No imports of either
 // leaf outside exempt synthetic selftests; no additional exemptions introduced.
-const reviewedHarnessDigest = 'ea8da5e53a1eaea10501e25185ef8b81cdc2b0d7a46feab5fee59a400ccdf73c';
+// Re-audited the manual-groups native reading-intent readiness helper separately:
+// imports and all post-action assertions unchanged; still the same 344 entries.
+const reviewedHarnessDigest = '58ae391278994592e88daada5e812bb7d2e7d73fdb64e1cc601cd404bc97281d';
 const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,PART_COUNT,PART_ZERO,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
   firefoxHistory:{spec:'tests/visual/manager-transcript-history.spec.js',grep:'older transport'},
   firefoxNotifications:['tests/visual/workspace-notification-diagnostics.spec.js','tests/visual/manager-browser-push-state.spec.js']});
