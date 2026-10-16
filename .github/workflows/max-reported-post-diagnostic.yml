@@ -89,6 +89,50 @@ jobs:
             }
             $out['publications'][]=$item;
            }
+           require_once $root.'/services/ChannelPostRuntime.php';
+           $identity=ChannelPostRuntime::identity('max');
+           $out['runtime_identity_configured']=is_array($identity);
+           $out['channel_matches_runtime']=is_array($identity)&&is_array($channel)&&$identity['bot_key']===$channel['bot_key'];
+           $out['shadow_mode']=defined('MAX_SEARCH_MAX_SHADOW_MODE')&&MAX_SEARCH_MAX_SHADOW_MODE===true;
+           if(is_array($channel)) {
+            $pdo->exec('START TRANSACTION READ ONLY');
+            try {
+             $q=$pdo->prepare('SELECT s.is_active,s.handling_mode,p.project_key,p.is_active AS project_active FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE s.id=? AND p.id=? LIMIT 1');
+             $q->execute([(int)$channel['source_id'],(int)$channel['project_id']]);$sr=$q->fetch();
+             $out['source_active']=is_array($sr)&&!empty($sr['is_active']);
+             $out['source_manager_handling']=is_array($sr)&&in_array($sr['handling_mode'],['manager','ask'],true);
+             $out['project_active']=is_array($sr)&&!empty($sr['project_active']);
+             $out['project_matches_runtime']=is_array($sr)&&is_array($identity)&&$identity['project_key']===$sr['project_key'];
+            }finally{if($pdo->inTransaction())$pdo->rollBack();}
+           }
+           $sub=ChannelPostApiTransport::webhookRequest('max','GET','/subscriptions',[],null);
+           $out['subscription_read']=['http'=>(int)($sub['http']??0),'transport_error'=>!empty($sub['transport_error']),'subscriptions'=>[]];
+           foreach(array_slice((array)($sub['data']['subscriptions']??[]),0,5) as $su){
+            $out['subscription_read']['subscriptions'][]=['canonical_url'=>($su['url']??'')==='https://app.anytoour.ru/webhook.php','update_types'=>array_map($safe,array_slice((array)($su['update_types']??[]),0,32))];
+           }
+           if(extension_loaded('curl')&&defined('MAX_SEARCH_TOKEN')){
+            $raw='';$ch=curl_init('https://platform-api2.max.ru/messages?chat_id=-77309177991187&count=5');
+            curl_setopt_array($ch,MaxTlsConfig::strictCurlOptions()+[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>2,CURLOPT_TIMEOUT=>6,CURLOPT_HTTPHEADER=>['Authorization: '.MAX_SEARCH_TOKEN,'Accept: application/json'],CURLOPT_WRITEFUNCTION=>static function($h,string $b)use(&$raw):int{if(strlen($raw)+strlen($b)>2097152)return 0;$raw.=$b;return strlen($b);}]);
+            $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$failed=$ok===false||curl_errno($ch)!==0;curl_close($ch);
+            $d=$failed?null:json_decode($raw,true,64);
+            $out['recent_provider_posts']=['http'=>$http,'transport_error'=>$failed,'posts'=>[]];
+            foreach(array_slice((array)($d['messages']??[]),0,5)as $m){
+             if(!is_array($m)||(string)($m['recipient']['chat_id']??'')!=='-77309177991187')continue;
+             $ss=ChannelPostIncomingAdapter::maxSnapshot($m);
+             $ts=$m['timestamp']??0;
+             $out['recent_provider_posts']['posts'][]=['published_utc'=>is_numeric($ts)?gmdate('Y-m-d H:i:s',(int)floor((float)$ts/1000)):'','registered'=>in_array((string)($m['body']['mid']??''),array_column($rows,'external_message_id'),true),'target_url_match'=>($m['url']??'')===$target,'url_available'=>is_string($m['url']??null)&&$m['url']!=='','sender_is_bot'=>($m['sender']['is_bot']??false)===true,'chat_type'=>$safe($m['recipient']['chat_type']??''),'snapshot_valid'=>is_array($ss),'capability_reason'=>$safe($ss['metadata']['capability_reason']??''),'attachment_types'=>$types((array)($m['body']['attachments']??[]))];
+            }
+           }
+           $dir=rtrim((string)(getenv('MAX_SEARCH_WEBHOOK_LOG_DIR')?:sys_get_temp_dir().'/max-search-bot-webhook'),'/');
+           $file=$dir.'/webhook_input.log';$real=realpath($file);$realRoot=realpath($root);
+           $out['webhook_event_log']=['available'=>false,'events'=>[]];
+           if($real!==false&&$realRoot!==false&&!str_starts_with($real,$realRoot.'/')&&!is_link($file)&&is_file($file)&&filesize($file)<=1048576){
+            $txt=file_get_contents($file);$ev=[];
+            foreach(explode("\n",(string)$txt) as $line){
+             if(preg_match('/\A(16\.10\.2026 [0-9:]{8})--- (LIVE|SHADOW)_UPDATE_RECEIVED type=([a-z_]{1,64})\z/',$line,$mm))$ev[]=['server_time'=>$mm[1],'mode'=>strtolower($mm[2]),'type'=>$mm[3]];
+            }
+            $out['webhook_event_log']=['available'=>true,'today_event_count'=>count($ev),'events'=>array_slice($ev,-20)];
+           }
            $out['ok']=true;
           } catch(Throwable $ignored) {$out['error']='read_only_diagnostic_unavailable';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
