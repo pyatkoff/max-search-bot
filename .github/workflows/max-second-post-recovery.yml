@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 9f12084475da6f513cb8619bbfb37aed1b8ab52d
-  RECOVERY_MODE: preview
-  EXPECTED_CONTENT_HASH: ''
+  RECOVERY_MODE: apply
+  EXPECTED_CONTENT_HASH: '46b7a7d53651c5779ae426c3d92d1a38cb69eefb7f343f1304b8f303fb52798a'
 jobs:
   recover:
     if: github.ref == 'refs/heads/test/max-second-post-recovery-20261016'
