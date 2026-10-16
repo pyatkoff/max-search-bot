@@ -7,7 +7,7 @@ const readSource=relative=>fs.readFileSync(path.join(sourceRoot,relative));
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 // Actual PHP and source assets. All data and mutations below are isolated fixture
 // responses. No production traffic or customer messages are permitted.
-async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
+async function setup(page,{role='manager',holdList=false,listError=false,holdCard=false,cardDelay=0,cardError=false,tripData=null,unknownCreate=false,conflictUpdate=false,unknownReorder=false,rejectedReorder=false,conflictReorder=false,holdToolbar=false,toolbarError=false,holdFavorite=false,unknownFavorite=false,conflictFavorite=false,unknownDelete=false,selectedIds=[2],messages=null}={}){
  const calls=[],unexpected=[],errors=[],heldLists=[],heldCards=[],heldToolbars=[],heldFavorites=[],receipts=new Map(),panels=new Map([[7,[...selectedIds]],[8,[]]]),panelVersions=new Map([[7,1],[8,1]]);
  const requestIds=new WeakMap(),requestTrace=[],errorDiagnostics=[];let requestSequence=0,documentGeneration=0;
  const trace=(kind,data={})=>{requestTrace.push({kind,at:Date.now(),documentGeneration,...data});if(requestTrace.length>120)requestTrace.shift()};
@@ -29,6 +29,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
  const toolbar=(id=manager.id)=>({ok:true,replies:selected(id).map(key=>replies.find(r=>r.id===key)).filter(r=>available(r,id)).map(r=>view(r,id)),version:String(panelVersions.get(id)||1).padStart(64,'0'),max_replies:100});
  const bump=id=>panelVersions.set(id,(panelVersions.get(id)||1)+1);
  const snapshot=result=>JSON.parse(JSON.stringify(result));
+ const trips=new Map([11,12].map(id=>[id,snapshot(tripData?.[id]??{city:'Москва',country:'Турция',adults:2,budget:{max:250000,currency:'RUB',basis:'total'}})]));
  const conv=id=>({id,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
  const msgs=()=>messages||Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?manager.id:null,text:i===34?'Посмотрите варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Обсуждаем отели у моря и даты.',created_at:'2026-10-13 12:00:00'}));
  page.on('pageerror',e=>{errors.push(e.message);errorDiagnostics.push({message:e.message,stack:e.stack||'',at:Date.now(),documentGeneration,recentRequests:requestTrace.slice(-40)});if(errorDiagnostics.length>8)errorDiagnostics.shift()});
@@ -66,7 +67,8 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
    if(d.action==='detail'){
     if(holdCard)await new Promise(resolve=>heldCards.push(resolve));
     if(cardDelay)await new Promise(resolve=>setTimeout(resolve,cardDelay));
-    return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2,budget:{max:250000,currency:'RUB',basis:'total'}},contact:{},source:{},handoff:{}});
+    if(cardError)return reply({ok:false,error:'unavailable'},500);
+    return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:snapshot(trips.get(Number(d.conversation_id))||{}),contact:{},source:{},handoff:{}});
    }
   }
   if(url.pathname==='/manager/quick-replies-api.php'){
@@ -114,7 +116,7 @@ async function setup(page,{role='manager',holdList=false,listError=false,holdCar
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
+ return {calls,unexpected,errors,errorDiagnostics,requestTrace,trace,replies,toolbar,setTrip:(id,trip)=>trips.set(id,snapshot(trip)),setHoldCard:v=>{holdCard=v},setCardError:v=>{cardError=v},setPanel:(ids,id=manager.id)=>{panels.set(id,[...ids]);bump(id)},releaseList:()=>heldLists.shift()?.(),releaseCard:()=>heldCards.shift()?.(),releaseToolbar:()=>heldToolbars.shift()?.(),releaseFavorite:()=>heldFavorites.shift()?.(),switchManager:m=>{manager=m},setListError:v=>{listError=v},setHoldList:v=>{holdList=v},setHoldToolbar:v=>{holdToolbar=v},setToolbarError:v=>{toolbarError=v}};
 }
 async function reloadFixture(page,s){s.trace('before_reload');await page.reload();s.trace('after_reload')}
 async function openLead(page,id=11){
@@ -139,6 +141,10 @@ async function bounded(page){expect(await page.evaluate(()=>document.documentEle
 function clean(s){if(s.errors.length)console.log('QUICK_REPLY_PAGEERROR_DIAGNOSTICS '+JSON.stringify({errors:s.errorDiagnostics,recentRequests:s.requestTrace}));expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(c=>c.action==='send')).toEqual([])}
 async function panelIds(page){return page.locator('[data-qr-toolbar-id]').evaluateAll(nodes=>nodes.map(node=>Number(node.dataset.qrToolbarId)))}
 async function expectPanel(page,ids){await expect.poll(()=>panelIds(page)).toEqual(ids)}
+const knownTrip={city:'Москва',country:'Турция',date:'29.02.2028',nights:'7-9',adults:2,children:0,budget:{max:250000,currency:'RUB',basis:'total'}};
+const tripKeys=['trip_city','trip_country','trip_date','trip_nights','trip_adults','trip_children','trip_budget'];
+const tripTemplate=tripKeys.map(key=>'{'+key+'}').join(' | ');
+const tripExpected='Москва | Турция | 29.02.2028 | 7-9 | 2 | 0 | до '+new Intl.NumberFormat('ru-RU').format(250000)+' RUB за всех';
 async function chooseForPanel(page,id){await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="'+id+'"]').click();await page.locator('#qrFavorite').click()}
 async function assertToolbarLayout(page){
  await bounded(page);
@@ -341,6 +347,65 @@ for(const width of [390,430,768,1440])test.describe('Response cycle '+width,()=>
   await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');await expect(page.locator('#replyText')).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
   expect(s.calls.filter(c=>c.action==='detail'&&c.path==='/manager/api.php')).toHaveLength(3);expect(s.calls.filter(c=>c.action==='list'&&c.path==='/manager/pipeline-api.php')).toHaveLength(1);console.log('Fixture transcript visible while card held: '+width+'px '+elapsed+'ms; no production SLA claim.');clean(s);
  });
+});
+
+for(const width of [390,430,768,1440])test('trip template create, current-card preview and direct insert preserve draft/file '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});
+ const s=await setup(page,{tripData:{11:knownTrip,12:{city:'Казань',country:'Египет',children:1}},messages:[{id:1,sender_type:'ai',text:'Старая сводка: Греция, 01.01.2000, 999 USD',created_at:'2026-10-13 12:00:00'}]});
+ await openLead(page);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
+ await page.locator('#replyText').fill('Исходный черновик');await page.locator('#replyFile').setInputFiles({name:'trip-notes.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected trip file')});
+ const attachment=await page.locator('#mediaSelection').textContent();
+ await page.evaluate(()=>{window.tripMessage=document.querySelector('#messages .msg');window.tripMedia=document.querySelector('.mediaSelectedItem')});
+ await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мои параметры поездки');
+ const body=page.locator('#qrBody');await body.fill('');
+ await page.setViewportSize({width,height:420});await body.scrollIntoViewIfNeeded();await capture(page,browserName,width,'trip-editor-empty');
+ for(let index=0;index<tripKeys.length;index++){
+  await page.locator('#qrTripVariable').selectOption(tripKeys[index]);await page.locator('#qrAddTripVariable').click();
+  if(index<tripKeys.length-1)await body.pressSequentially(' | ');
+ }
+ await expect(body).toHaveValue(tripTemplate);await expect(body).toBeFocused();
+ await page.locator('#qrAddTripVariable').scrollIntoViewIfNeeded();await expect(page.locator('#qrAddTripVariable')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'trip-editor-parameters');
+ await page.locator('#qrSave').click();await expect.poll(()=>s.replies.some(r=>r.title==='Мои параметры поездки')).toBe(true);
+ const created=s.replies.find(r=>r.title==='Мои параметры поездки');expect(created.body).toBe(tripTemplate);
+ await expect(page.locator('#qrPreview')).toHaveValue(tripExpected);await expect(page.locator('#qrInsert')).toBeEnabled();await expect(page.locator('#qrFillKnown')).toBeDisabled();
+ await page.locator('#qrFavorite').click();await expectPanel(page,[2,created.id]);
+ // Favorite confirmation starts its normal independent library read. Complete
+ // that semantic boundary and capture before measuring insertion, not while
+ // unrelated library/render work is still in flight.
+ await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
+ const preview=page.locator('#qrPreview');await preview.fill('Проверено: '+tripExpected);
+ await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'trip-preview');
+ const before=s.calls.length;
+ await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ expect(await page.evaluate(()=>({message:document.querySelector('#messages .msg')===window.tripMessage,media:document.querySelector('.mediaSelectedItem')===window.tripMedia}))).toEqual({message:true,media:true});
+ expect(s.calls.length).toBe(before);expect(s.replies.find(r=>r.id===created.id).body).toBe(tripTemplate);
+ await page.locator('.conversationHead').click({position:{x:1,y:1}});const beforeDirect=s.calls.length;await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
+ await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected+'\n'+tripExpected);expect(s.calls.length).toBe(beforeDirect);
+ await page.setViewportSize({width,height:900});await openLead(page,12);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
+ await page.locator('.conversationHead').click({position:{x:1,y:1}});await page.locator('[data-qr-toolbar-id="'+created.id+'"]').click();
+ await expect(page.locator('#qrPreview')).toHaveValue('Казань | Египет | {trip_date} | {trip_nights} | {trip_adults} | 1 | {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();
+ await page.locator('#qrClose').click();await openLead(page,11);await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected+'\n'+tripExpected);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ expect(s.calls.filter(c=>c.path==='/manager/quick-replies-api.php'&&c.action==='create')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='send')).toHaveLength(0);clean(s);
+});
+
+test('late or changed card fills only unresolved trip tokens explicitly, without changing preview edits or sending',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:420});const s=await setup(page,{holdCard:true,tripData:{11:knownTrip}});s.replies[2].body='План: '+tripTemplate;
+ await openLead(page);await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Текст до подстановки');
+ await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});const attachment=await page.locator('#mediaSelection').textContent();
+ await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
+ const preview=page.locator('#qrPreview');await expect(preview).toHaveValue('План: '+tripTemplate);await expect(page.locator('#qrInsert')).toBeDisabled();
+ await preview.fill('Моя правка: '+tripTemplate+' | конец');s.releaseCard();s.setHoldCard(false);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
+ await expect(preview).toHaveValue('Моя правка: '+tripTemplate+' | конец');await preview.evaluate(node=>node.setSelectionRange(node.value.length-5,node.value.length,'backward'));
+ const before=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('Моя правка: '+tripExpected+' | конец');await expect(preview).toBeFocused();
+ expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([('Моя правка: '+tripExpected+' | конец').length-5,('Моя правка: '+tripExpected+' | конец').length,'backward']);expect(s.calls.length).toBe(before);
+ await preview.fill('Свой город / {trip_country} / {trip_budget}');s.setTrip(11,{...knownTrip,country:'Кипр',budget:{max:100,currency:'USD',basis:'per_person'}});await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());
+ await expect(preview).toHaveValue('Свой город / {trip_country} / {trip_budget}');const afterRead=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('Свой город / Кипр / до 100 USD на человека');expect(s.calls.length).toBe(afterRead);
+ await page.locator('#qrInsert').scrollIntoViewIfNeeded();await bounded(page);await capture(page,browserName,390,'trip-explicit-fill-short');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Текст до подстановки\nСвой город / Кипр / до 100 USD на человека');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrCreate')).toBeEnabled();
+ s.replies[2].body='{trip_date} / {trip_children} / {trip_budget}';s.setTrip(11,{date:'31.02.2026',children:0,budget:{max:100,currency:'USD'}});await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
+ await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();const invalidBefore=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');expect(s.calls.length).toBe(invalidBefore);
+ await preview.fill('Проверенные вручную данные');await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true,mobileHistory:'none'}));await openLibrary(page);await expect(page.locator('#qrInsert')).toBeDisabled();
+ clean(s);
 });
 
 test('quick replies failure/loading/empty states, persistent editor and account isolation',async({page})=>{
