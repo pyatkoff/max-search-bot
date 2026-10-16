@@ -109,9 +109,33 @@ Develop related layout/navigation changes together on an isolated `m2-preview/**
 
 When the package is stable, open its PR. The full `Workspace V2 visual QA` workflow still runs on every qualifying PR update, including draft PRs. A preview-smoke result cannot satisfy the full `screenshots` gate. Any shared or unknown dependency requires the full release check before merge; do not use a green preview as publication authority. Keep confirmed urgent defects separate from a larger UI package. A relevant edit after acceptance requires evidence for the new version.
 
-The full workflow runs 22 Chromium specs and 21 WebKit specs, including the compact Inbox/favorites suite in both engines, daily avatar-cache checks in both engines, 26 Chromium CLI captures plus 8 layout captures, and the separate Firefox history/notification checks. Chromium and WebKit use isolated parallel jobs with one worker each. Pinned npm/browser download caches include OS/architecture, Node22, Playwright1.55.0 and engine; system dependencies are installed even on a cache hit. Only superseded read-only runs for the same PR or preview branch are cancelled; manual runs and production workflows are outside those groups.
+The full workflow runs the existing 22 Chromium and 21 WebKit main specs, including the compact Inbox/favorites suite in both engines, plus daily avatar-cache checks in both engines, 26 Chromium CLI captures plus 8 layout captures, and the separate Firefox history/notification checks. Each engine's main specs are divided into two explicit whole-spec partitions on isolated runners, still with one worker per runner. Pinned npm/browser download caches include OS/architecture, Node22, Playwright1.55.0 and engine; system dependencies are installed even on a cache hit. Only superseded read-only runs for the same PR or preview branch are cancelled; manual runs and production workflows are outside those groups.
 
 The stable `screenshots` aggregate requires every browser job to succeed and verifies both engine artifacts, complete receipts and exact tested/head SHA. Failure, cancellation, skip or missing evidence fails the gate. The canonical artifact remains `workspace-v2-visual-<tested-sha>` with `chromium/` and `webkit/` subdirectories and `visual-evidence.json`; equal filenames from different engines cannot overwrite one another. Receipts identify run/attempt and actual capture inventory. An already successful engine from the same run and exact version can be reused when only failed jobs are rerun. These are execution changes, with no product assertions removed and no change to the normal main/deploy verification.
+
+### Full-suite execution partitions
+
+Partitioning changes execution placement, not test selection or product behavior.
+Every current main spec belongs to exactly one partition per engine; cache runs
+once per engine, while Chromium partition zero alone owns the original layout and
+CLI capture inventory. Fixtures retain their own local server, profiles, output
+directories and `workers=1`. No test is split across runners or removed.
+
+Part artifacts retain separate namespaces and receipts for their actual browser
+executor, assigned specs, exact source/head/run/attempt, executed case identities
+and PNG hashes. The existing `browser-tests (chromium)` and `browser-tests (webkit)`
+checks assemble their respective proofs only after all required children succeed;
+the stable `screenshots` check still requires both engines and both Firefox jobs.
+Assembly is not described as browser execution. Missing, failed, skipped,
+cancelled, duplicated or retargeted parts, overlapping or missing cases, changed
+source and conflicting or altered screenshots cannot become successful evidence.
+
+The final canonical artifact preserves the original per-part proof as well as the
+complete engine case union. Reuse remains limited to the independently audited
+spec-only scope below; a partitioned full donor must itself pass the complete
+partition proof. Product/shared/unknown changes still run FULL. Installations,
+runner queues, assembly and publication remain part of elapsed release time;
+partitioning is not a twelve-minute SLA or a product/browser-latency claim.
 
 ### Conservative spec-only follow-up
 

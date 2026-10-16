@@ -20,7 +20,7 @@ assert.equal([...inventorySource.matchAll(pinDeclaration)].length,1);
 const fixturePin=crypto.createHash('sha256').update(JSON.stringify([])).digest('hex');
 const fixtureModule=new Module(inventoryFile,module);fixtureModule.filename=inventoryFile;fixtureModule.paths=module.paths;
 fixtureModule._compile(inventorySource.replace(pinDeclaration,"const reviewedHarnessDigest = '"+fixturePin+"';"),inventoryFile);
-const {SCHEMA,TOOLCHAIN,LEAF_SPECS,reviewedHarnessDigest,mainSpecs,allSpecs,alwaysSpecs,sourceManifest,assertCleanSource,assertSafeEnvironment,classifyChanges,collectCases}=fixtureModule.exports;
+const {SCHEMA,TOOLCHAIN,LEAF_SPECS,reviewedHarnessDigest,PART_COUNT,partitionSpecs,mainSpecs,allSpecs,alwaysSpecs,sourceManifest,assertCleanSource,assertSafeEnvironment,classifyChanges,collectCases}=fixtureModule.exports;
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'manager2-visual-selection-'));
 const cleanRoot=fs.mkdtempSync(path.join(os.tmpdir(),'manager2-visual-clean-source-'));
 const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
@@ -56,6 +56,20 @@ try {
     assert.equal(baseline.entries.length,3);assert.equal(baseline.leaves[spec].mode,'100644');
     assert.equal(baseline.harnessDigest,reviewedHarnessDigest);
     assert.match(baseline.commonDigest,/^[a-f0-9]{64}$/);assert.equal(sourceManifest(root,original).commonDigest,baseline.commonDigest);
+  });
+  check('whole-spec partitions preserve every main spec exactly once with layout owned by zero',()=>{
+    assert.equal(PART_COUNT,2);
+    for(const browser of ['chromium','webkit']) {
+      const parts=Array.from({length:PART_COUNT},(_,part)=>partitionSpecs(browser,part));
+      const union=parts.flat();assert.equal(new Set(union).size,union.length);
+      assert.deepEqual([...union].sort(),[...mainSpecs(browser)].sort());
+      assert(parts.every(part=>part.length>0));
+      assert(!union.includes('tests/visual/manager-avatar-cache.spec.js'));
+      for(const invalid of [-1,2,'0',null,0.5])assert.throws(()=>partitionSpecs(browser,invalid),/Invalid browser partition/);
+    }
+    assert(partitionSpecs('chromium',0).includes('tests/visual/workspace-v2-layout.spec.js'));
+    assert(!partitionSpecs('chromium',1).includes('tests/visual/workspace-v2-layout.spec.js'));
+    assert.throws(()=>partitionSpecs('firefox',0));
   });
   check('production uses a fixed non-configurable reviewed harness pin',()=>{
     assert.match(productionInventory.reviewedHarnessDigest,/^[a-f0-9]{64}$/);

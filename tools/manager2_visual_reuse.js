@@ -23,7 +23,7 @@ const save = (file, value) => {
 };
 function check(condition, message) { if (!condition) throw new Error(message); }
 function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
-function compactReports(root) {
+function compactReports(root, names=['cache','main']) {
   // Preserve PNG attachments as hashed files rather than base64-duplicating
   // tens of megabytes inside JSON. Test identities/results/errors stay intact.
   const known=new Map(files(root).map(file=>[file.sha256,file.path]));
@@ -48,7 +48,7 @@ function compactReports(root) {
     }
     for (const child of suite.suites||[]) visit(child);
   }
-  for (const name of ['cache','main']) {
+  for (const name of names) {
     const file=path.join(root,'visual-reports',name+'.json'), report=json(file);
     for (const suite of report.suites||[]) visit(suite);
     save(file,report);
@@ -105,9 +105,24 @@ function exactCases(actual, expected, label) {
   const keys=actual.map(c=>c.key).sort(), wanted=expected.map(c=>c.key).sort();
   check(new Set(keys).size===keys.length && same(keys,wanted), label+' has missing, duplicate or unexpected cases');
 }
+function validatePNGAttachments(report,artifacts) {
+  const available=new Map(artifacts.map(file=>[file.path,file.sha256]));
+  function visit(suite) {
+    for(const spec of suite.specs||[])for(const test of spec.tests||[])for(const result of test.results||[])for(const attachment of result.attachments||[]) {
+      if(attachment.contentType!=='image/png')continue;
+      check(attachment.body===undefined&&typeof attachment.evidencePath==='string'&&/^[a-f0-9]{64}$/.test(attachment.sha256||'')&&available.get(attachment.evidencePath)===attachment.sha256,'PNG attachment lacks matching owned screenshot evidence');
+    }
+    for(const child of suite.suites||[])visit(child);
+  }
+  for(const suite of report.suites||[])visit(suite);
+}
 function basicReceipt(root, browser, expectedProvenance) {
   const receipt=json(path.join(root,'visual-receipt.json'));
   check(receipt.schema===inventory.SCHEMA && receipt.completed===true && receipt.browser===browser, 'Missing complete schema-2 browser evidence');
+  if (receipt.inputs?.entries?.some(entry=>entry.path==='tools/manager2_visual_shards.js')) {
+    check(receipt.partitionProtocol==='manager2-partition-v1', 'Partition-enabled source requires its original partition provenance');
+  }
+  if (!receipt.partitionProtocol) check(!receipt.executionRole&&!receipt.partitionCount&&!receipt.partitionDigest&&!fs.existsSync(path.join(root,'partition-proof')), 'Partition evidence cannot downgrade to an unsplit receipt');
   for (const [key,value] of Object.entries(expectedProvenance)) {
     if (key!=='execution') check(same(receipt[key],value), 'Browser receipt provenance mismatch: '+key);
   }
@@ -116,6 +131,7 @@ function basicReceipt(root, browser, expectedProvenance) {
   check(same(receipt.toolchain,inventory.TOOLCHAIN), 'Browser toolchain mismatch');
   const expected=reports(root,browser,true), fresh=reports(root,browser);
   const actualFiles=files(root);
+  for(const name of ['cache','main'])validatePNGAttachments(json(path.join(root,'visual-reports',name+'.json')),actualFiles);
   check(actualFiles.length>0&&same(actualFiles,receipt.files), 'Missing, changed or unrecorded screenshot evidence');
   const captureFiles=actualFiles.filter(file=>file.path.startsWith('visual-artifacts/'));
   check(captureFiles.length===(browser==='chromium'?34:0), 'Current capture inventory is incomplete');
@@ -129,8 +145,11 @@ function verifiedFullDonor(root, browser, meta, p) {
   const origin={testedSha:meta.testedSha,headSha:meta.headSha,runId:String(meta.runId),runAttempt:String(meta.runAttempt),
     repository:meta.repository,prNumber:meta.prNumber,workflow:WORKFLOW};
   const result=basicReceipt(root,browser,origin);
-  check(same(result.receipt.execution,p.execution), 'Donor runner/Node environment differs');
   check(result.receipt.mode==='full'&&!result.receipt.donor, 'Composite or partial donors are not supported');
+  if (result.receipt.partitionProtocol) {
+    const validated=require('./manager2_visual_shards.js').verifyPartitionedEvidence({root,browser,p:origin});
+    check(validated.parts.every(part=>same(part.execution,p.execution)), 'Donor runner/Node environment differs');
+  } else check(same(result.receipt.execution,p.execution), 'Donor runner/Node environment differs');
   exactCases(result.fresh,result.expected,'Donor full execution');
   check(same(result.receipt.cases,result.fresh.map(c=>({...c,origin:'fresh'})).sort((a,b)=>a.key.localeCompare(b.key))), 'Donor case provenance is incomplete');
   return result;
@@ -164,7 +183,7 @@ function validatePlan(plan,p,root) {
   if (plan.mode==='affected') validateDonor(plan.donor,p);
   return plan;
 }
-function buildReceipt({root,browser,plan,p,donorRoot}) {
+function buildReceipt({root,browser,plan,p,donorRoot,donorExecution=p.execution}) {
   check(['chromium','webkit'].includes(browser), 'Unknown browser');
   const expected=reports(root,browser,true), fresh=reports(root,browser);
   const selected=[...selectedSpecs(browser,plan),'tests/visual/manager-avatar-cache.spec.js'];
@@ -172,7 +191,9 @@ function buildReceipt({root,browser,plan,p,donorRoot}) {
   exactCases(fresh,selectedExpected,'Fresh selected execution');
   let cases=fresh.map(c=>({...c,origin:'fresh'}));
   if (plan.mode==='affected') {
-    const prior=verifiedFullDonor(donorRoot,browser,plan.donor,p);
+    // A partition assembler is not a browser executor. Its caller supplies the
+    // validated common current browser-part environment for donor compatibility.
+    const prior=verifiedFullDonor(donorRoot,browser,plan.donor,{...p,execution:donorExecution});
     const selection=inventory.classifyChanges(prior.receipt.inputs,plan.inputs);
     check(selection.mode==='affected'&&same(selection.changedSpecs,plan.changedSpecs), 'Donor dependency closure differs from the selection plan');
     const reusable=prior.fresh.filter(c=>!selected.includes(c.spec));
@@ -190,6 +211,9 @@ function buildReceipt({root,browser,plan,p,donorRoot}) {
     freshDigest:hash(JSON.stringify(fresh)),cases,files:artifacts};
 }
 function verifyBrowserEvidence({root,browser,p,sourceRoot}) {
+  if (json(path.join(root,'visual-receipt.json')).partitionProtocol) {
+    return require('./manager2_visual_shards.js').verifyPartitionedEvidence({root,browser,p,sourceRoot}).receipt;
+  }
   const current=basicReceipt(root,browser,p);
   const receipt=current.receipt;
   check(sourceRoot&&same(receipt.inputs,inventory.sourceManifest(sourceRoot,p.testedSha)), 'Receipt inputs do not match the current checked-out source');
@@ -249,4 +273,4 @@ if (require.main===module) {
     }
   } catch (error) { process.stderr.write(error.stack+'\n'); process.exitCode=1; }
 }
-module.exports={OUTPUT_DIRS,hash,files,compactReports,provenance,validateDonor,selectedSpecs,exactCases,planReuse,validatePlan,buildReceipt,verifyBrowserEvidence,verifiedFullDonor};
+module.exports={OUTPUT_DIRS,hash,files,compactReports,provenance,validateDonor,selectedSpecs,exactCases,validatePNGAttachments,reports,basicReceipt,runPlaywright,planReuse,validatePlan,buildReceipt,verifyBrowserEvidence,verifiedFullDonor};

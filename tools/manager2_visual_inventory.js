@@ -28,6 +28,19 @@ function mainSpecs(browser) {
   return browser === 'chromium' ? ['tests/visual/workspace-v2-layout.spec.js', ...MAIN] : [...MAIN];
 }
 function allSpecs(browser) { return [CACHE_SPEC, ...mainSpecs(browser)]; }
+// Whole-spec, reviewed output ownership: part zero also owns all layout/CLI
+// captures and the daily-cache spec. Never split a spec's shared fixtures.
+const PART_ZERO = Object.freeze([
+  'workspace-v2-layout','workspace-notification-diagnostics','manager-browser-push-state',
+  'workspace-timezone','workspace-conversation-scroll','manager2-workspace',
+  'manager2-inbox-compact','manager-admin-load','manager-personal-workspace',
+  'manager-customer-name','manager-media-compose',
+].map(name=>'tests/visual/'+name+'.spec.js'));
+const PART_COUNT = 2;
+function partitionSpecs(browser, part) {
+  if (!Number.isInteger(part)||part<0||part>=PART_COUNT) throw new Error('Invalid browser partition');
+  return mainSpecs(browser).filter(spec=>PART_ZERO.includes(spec)===(part===0));
+}
 function alwaysSpecs(browser) {
   mainSpecs(browser);
   return browser === 'chromium'
@@ -35,7 +48,8 @@ function alwaysSpecs(browser) {
     : ['tests/visual/manager2-workspace.spec.js'];
 }
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-// Independently reviewed tests/** tree at 81778c7efc46fcd86bb75e405e52ae9b33ac27be,
+// Independently reviewed tests/** tree at 04a35786e2f2521d9e06eebc721fef4cc85dec66
+// plus this CI-only PHP wiring guard (344 non-exempt entries),
 // excluding the two leaves and only the finite CI-only selftest/manifest files
 // below. Fixtures imported from tests/fixtures or future tests subdirectories
 // are covered too. Merely running a new full donor after a
@@ -48,10 +62,11 @@ const HARNESS_CI_EXEMPTIONS = Object.freeze([
   'tests/run_manager2_visual_gate_regression.js',
   'tests/required_checks_manifest.php',
 ]);
-// Re-audited #980's new PHP-only channel reconciliation coverage and fixture
-// deltas: no import of either leaf and no visual dependency/command change.
-const reviewedHarnessDigest = '7ac229194548b5f803b1de65d48a7eb9d165a74f8505580baf43447ee11670c1';
-const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
+// Independently re-audited all 23 incoming #982/#983/#984 test/fixture deltas
+// since #980, plus the partition workflow text guard. No imports of either
+// leaf outside exempt synthetic selftests; no additional exemptions introduced.
+const reviewedHarnessDigest = 'ea8da5e53a1eaea10501e25185ef8b81cdc2b0d7a46feab5fee59a400ccdf73c';
+const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,PART_COUNT,PART_ZERO,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
   firefoxHistory:{spec:'tests/visual/manager-transcript-history.spec.js',grep:'older transport'},
   firefoxNotifications:['tests/visual/workspace-notification-diagnostics.spec.js','tests/visual/manager-browser-push-state.spec.js']});
 const comparePaths = (a,b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
@@ -172,4 +187,4 @@ function collectCases(report,{browser,expectedFiles,listing=false}={}) {
   return cases.sort((a,b)=>a.key<b.key?-1:a.key>b.key?1:0);
 }
 
-module.exports={SCHEMA,TOOLCHAIN,LEAF_SPECS,reviewedHarnessDigest,mainSpecs,allSpecs,alwaysSpecs,sourceManifest,assertCleanSource,assertSafeEnvironment,classifyChanges,collectCases};
+module.exports={SCHEMA,TOOLCHAIN,LEAF_SPECS,reviewedHarnessDigest,PART_COUNT,partitionSpecs,mainSpecs,allSpecs,alwaysSpecs,sourceManifest,assertCleanSource,assertSafeEnvironment,validManifest,classifyChanges,collectCases};
