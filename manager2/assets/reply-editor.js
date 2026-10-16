@@ -49,8 +49,9 @@
   // This presentation owns Manager2 sizing. The original cabinet retains its
   // canonical sizing path; there is no second draft, textarea or submit owner.
   function resize(){
+    const transcript=window.WorkspaceV2Jump,position=transcript?.capture();
     fitViewport();
-    if(view){sizeDialog();reply.style.height='';return true}
+    if(view){sizeDialog();reply.style.height='';transcript?.restore(position,{preserveScroll:true});return true}
     if(form.classList.contains('hidden'))return true;
     const style=getComputedStyle(reply),line=parseFloat(style.lineHeight)||22;
     const padding=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),border=parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
@@ -63,6 +64,10 @@
     const maximum=Math.max(minimum,Math.min(line*(innerWidth<=740?6:8)+padding+border,room));
     reply.style.height=Math.ceil(Math.max(minimum,Math.min(desired,maximum)))+'px';
     reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
+    // Measuring at zero temporarily enlarges the transcript and can clamp its
+    // native scrollTop even if the final height is unchanged. Restore its
+    // canonical following/reading intent before the next frame.
+    transcript?.restore(position,{preserveScroll:true});
     return true;
   }
   function schedule(){if(!scheduled)scheduled=requestAnimationFrame(()=>{scheduled=0;resize()})}

@@ -461,6 +461,8 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   await reply.fill(editorText);
   await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
   const grown=await editorGeometry(page);
+  const latest=await page.evaluate(()=>{const box=document.querySelector('#messages'),gap=()=>box.scrollHeight-box.clientHeight-box.scrollTop;WorkspaceV2Jump.scrollToLatest();const before=gap();WorkspaceV2ReplyEditor.resize();return {before,after:gap()}});
+  expect(latest.before).toBeLessThanOrEqual(2);expect(latest.after).toBeLessThanOrEqual(2);
   expect(grown.lines).toBeGreaterThanOrEqual(viewport.height>540?5.9:2);
   expect(grown.width).toBeGreaterThan(viewport.width<740?viewport.width-50:500);
   await page.locator('#replyFile').setInputFiles({name:'Длинное название выбранного файла для клиента.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
