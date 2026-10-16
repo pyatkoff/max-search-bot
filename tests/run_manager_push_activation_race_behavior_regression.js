@@ -7,12 +7,13 @@ const workerSource=fs.readFileSync(path.join(__dirname,'../manager/sw.js'),'utf8
 const secret='PRIVATE_PUSH_ENDPOINT_OR_ERROR';
 const key=new Uint8Array([1]);
 const turn=()=>new Promise(resolve=>setImmediate(resolve));
+async function boundedFixture(promise){let deadline;try{return await Promise.race([promise,new Promise((_,reject)=>{deadline=setTimeout(()=>reject(new Error('expected native/membership fixture operation never started')),1000);})]);}finally{clearTimeout(deadline);}}
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no});return{promise,resolve,reject};}
 function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
 function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
-  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,readyReads:0,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
+  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,lookup:0,readyReads:0,currentChecks:0,currentHealthy:false,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
   const workerJobs=[];
@@ -22,17 +23,29 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
   },async showNotification(title){if(title==='AnyTour')state.confirmations++;else state.shown++;}};
   const healthy=()=>({is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1});
   const status=()=>state.saves||state.otherDeviceHealthy?healthy():{is_working:true,notification_path_usable:false,notification_path_reason:unhealthy?'subscription_unhealthy':'no_subscription'};
-  const fetch=async(url,options)=>{const override=url==='push-status.php'&&statusRequest?await statusRequest():url==='push.php?action=key'&&keyRequest?await keyRequest():null;if(override)return override;if(options?.method==='POST'){state.saveAttempts++;if(saveRequest)await saveRequest(options,state);}return{ok:true,status:200,async json(){if(url==='push-status.php')return{ok:true,push_status:status()};if(options?.method==='POST'){state.saves++;assert.equal(JSON.parse(options.body).csrf,state.expectedCsrf);return{ok:true,push_status:healthy()};}return{ok:true,public_key:Buffer.from(state.serverKey).toString('base64'),csrf:'synthetic'};}};};
+  const current=()=>({notification_path_usable:state.saves>0||state.currentHealthy,notification_path_reason:state.saves||state.currentHealthy?'healthy_subscription':unhealthy?'subscription_unhealthy':'no_subscription'});
+  const fetch=async(url,options)=>{
+    const isCurrent=url==='push-status.php'&&options?.method==='POST';
+    if(isCurrent){state.currentChecks++;const body=JSON.parse(options.body);assert.equal(body.csrf,state.expectedCsrf);assert.equal(body.endpoint,state.sub?.toJSON().endpoint);}
+    const override=url==='push-status.php'&&statusRequest?await statusRequest(options):url==='push.php?action=key'&&keyRequest?await keyRequest():null;
+    if(override)return override;
+    if(url!=='push-status.php'&&options?.method==='POST'){state.saveAttempts++;if(saveRequest)await saveRequest(options,state);}
+    return{ok:true,status:200,async json(){
+      if(url==='push-status.php')return{ok:true,push_status:status(),...(isCurrent?{current_subscription:current()}:{})};
+      if(options?.method==='POST'){state.saves++;assert.equal(JSON.parse(options.body).csrf,state.expectedCsrf);return{ok:true,push_status:healthy(),current_subscription:current()};}
+      return{ok:true,public_key:Buffer.from(state.serverKey).toString('base64'),csrf:'synthetic'};
+    }};
+  };
   const timer=(callback,delay)=>{if(deadlines&&delay>=10000){const timer={callback,delay,cancelled:false};deadlines.push(timer);return timer;}return delay===500?0:setTimeout(callback,delay>=10000?deadlineMs:delay===250?0:delay);};
   const cancelTimer=timer=>{if(deadlines&&deadlines.includes(timer))timer.cancelled=true;else clearTimeout(timer);};
   const atob=value=>Buffer.from(value,'base64').toString('binary');
   function page(){
     const root={innerHTML:'',className:''};
-    const document={readyState:'loading',addEventListener(){},getElementById(){return root},createElement(){return{set textContent(value){this.value=String(value??'');},get innerHTML(){return this.value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}};}};
+    const document={readyState:'loading',baseURI:'https://app.anytoour.ru/manager/',addEventListener(){},getElementById(){return root},createElement(){return{set textContent(value){this.value=String(value??'');},get innerHTML(){return this.value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}};}};
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
-    const navigator={serviceWorker:{async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
+    const navigator={serviceWorker:{async getRegistration(url){state.lookup++;assert.equal(url,'https://app.anytoour.ru/manager/');return registration;},async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
-    const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
+    const context={document,navigator,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,URL,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
     return{api:context.window.WorkspaceV2Notifications,root,auth};
   }
@@ -72,7 +85,22 @@ async function lateNativeOutcomeCases(){
   assert.match(newerPage.root.innerHTML,/TypeError/);assert.ok(!newerPage.root.innerHTML.includes('Уведомления включены'));assert.equal(newer.state.subscribes,1);assert.equal(newer.state.saves,1);assert.equal(newer.state.confirmations,0);
   console.log('PASS  late results from an older UI attempt cannot replace a newer explicit diagnosis');
 }
+async function browserInspectionRaceCases(){
+  const older=deferred(),env=environment({initial:subscription(),readSubscription:async(count,state)=>count===1?older.promise:state.sub}),page=env.page();env.state.otherDeviceHealthy=true;env.state.currentHealthy=true;
+  const first=page.api.refresh();await turn();await page.api.refresh();assert.match(page.root.innerHTML,/Уведомления включены/);const currentHtml=page.root.innerHTML;
+  older.resolve(null);await first;await turn();assert.equal(page.root.innerHTML,currentHtml);assert.equal(env.state.subscribes,0);assert.equal(env.state.unsubscribes,0);assert.equal(env.state.saves,0);assert.equal(env.state.permissions,0);
+
+  const oldNative=deferred(),activation=environment({readSubscription:async(count,state)=>count===1?oldNative.promise:state.sub}),activePage=activation.page();activation.state.otherDeviceHealthy=true;
+  const checking=activePage.api.refresh();await turn();assert.equal(await activePage.api.enable(activePage.root),true);assert.match(activePage.root.innerHTML,/Уведомления включены/);const activatedHtml=activePage.root.innerHTML;
+  oldNative.resolve(null);await checking;await turn();assert.equal(activePage.root.innerHTML,activatedHtml);assert.equal(activation.state.subscribes,1);assert.equal(activation.state.saves,1);assert.equal(activation.state.confirmations,1);assert.equal(activation.state.permissions,0);
+
+  const membership=deferred(),entered=deferred(),authEnv=environment({initial:subscription(),statusRequest:options=>{if(options?.method==='POST'){entered.resolve();return membership.promise;}}}),authPage=authEnv.page();authEnv.state.otherDeviceHealthy=true;authEnv.state.currentHealthy=true;
+  const protectedRead=authPage.api.refresh();await boundedFixture(entered.promise);authPage.auth.manager.id=2;authPage.auth.authGeneration++;authPage.auth.csrf='new-current-account';authPage.root.innerHTML='Current account';
+  membership.resolve({ok:false,status:401,json:async()=>({ok:false})});await protectedRead;await turn();assert.equal(authPage.root.innerHTML,'Current account');assert.equal(authEnv.state.auth,0);assert.equal(authEnv.state.subscribes,0);assert.equal(authEnv.state.saves,0);
+  console.log('PASS  stale native and membership reads cannot replace newer refresh, activation or account results');
+}
 async function run(){
+  await browserInspectionRaceCases();
   await lateNativeOutcomeCases();
   // Reload can start granted-permission recovery before the visible Enable click.
   // That click must observe this attempt, with feedback now rather than a queued retry.

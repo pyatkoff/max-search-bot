@@ -174,6 +174,8 @@ return [
         'php tests/run_manager_delivery_panel_regression.php',
         'php tests/run_manager_response_health_regression.php',
         'php tests/run_manager_push_health_regression.php',
+        'php tests/run_manager_push_subscription_status_behavior_regression.php',
+        'php tests/run_manager_push_subscription_http_regression.php',
         'php tests/run_manager_client_transport_inventory_regression.php',
         'php tests/run_manager_push_multisub_regression.php',
         'php tests/run_manager_operational_signals_regression.php',

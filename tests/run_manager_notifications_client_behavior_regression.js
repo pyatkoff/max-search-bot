@@ -1,3 +1,4 @@
+const assert = require('node:assert/strict');
 const fs = require('fs');
 const vm = require('vm');
 
@@ -6,6 +7,7 @@ const listeners = {};
 const root = { className: '', innerHTML: '' };
 const document = {
   readyState: 'loading',
+  baseURI: 'https://app.anytoour.ru/manager/',
   addEventListener(type, callback) { listeners[type] = callback; },
   getElementById(id) { return id === 'notificationStatus' ? root : null; },
   createElement() {
@@ -21,73 +23,157 @@ const document = {
 const context = {
   document,
   navigator: {},
-  window: { WorkspaceV2: { S: { csrf: 'test' } } },
+  window: { WorkspaceV2: { S: { csrf: 'test', manager: { id: 7 }, authGeneration: 0 } } },
   console: { warn() {} },
   setTimeout,
   clearTimeout,
   Uint8Array,
+  URL,
 };
 
 vm.runInNewContext(source, context, { filename: 'workspace-v2-notifications.js' });
 
 const secretMarker = 'PRIVATE_ENDPOINT_TOKEN_DO_NOT_DISPLAY';
-function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, keyBody = null, confirmationRequest = null, clock = null } = {}) {
+function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, keyBody = null, confirmationRequest = null, clock = null, browser = null } = {}) {
   const localRoot = { className: '', innerHTML: '' };
-  const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, auth: 0 };
+  const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, currentStatus: 0, lookup: 0, auth: 0 };
   const keySignals = [];
-  let userGesture = false, permissionDuringGesture = false;
+  let userGesture = false, permissionDuringGesture = false, nativeSubscription=browser?.subscription??null;
   const step = name => { calls[name]++; if (failAt === name) throw failure; };
   const healthy = { is_working: working, notification_path_usable: true, notification_path_reason: 'healthy_subscription', healthy_subscription_count: 1 };
   const subscription = { toJSON() { return { endpoint: `https://push.example.test/${secretMarker}`, keys: { p256dh: secretMarker, auth: secretMarker } }; } };
   const staleSubscription = { ...subscription, options: { applicationServerKey: new Uint8Array([2]) }, async unsubscribe() { step('repair'); return true; } };
+  if(nativeSubscription&&!nativeSubscription.unsubscribe)nativeSubscription.unsubscribe=async()=>{step('repair');nativeSubscription=null;return true;};
   const registration = {
     scope: 'https://app.anytoour.ru/manager/',
     get active() { if (failAt === 'ready') { calls.ready++; throw failure; } return { state: 'activated' }; },
     pushManager: {
-      async getSubscription() { step('read'); return failAt === 'repair' ? staleSubscription : null; },
-      async subscribe() { step('subscribe'); return subscription; },
+      async getSubscription() { step('read'); if(browser?.read)return browser.read();if(failAt==='repair')nativeSubscription=staleSubscription;return nativeSubscription; },
+      async subscribe() { step('subscribe'); nativeSubscription=browser?.subscribe?await browser.subscribe():subscription;return nativeSubscription; },
     },
     showNotification() { step('confirmation'); return confirmationRequest ? confirmationRequest() : Promise.resolve(); },
   };
   const serviceWorker = {
+    async getRegistration(url) { calls.lookup++;assert.equal(url,'https://app.anytoour.ru/manager/');return browser?.lookup?browser.lookup(registration):registration; },
     async register() { step('register'); return registration; },
     get ready() { step('ready'); return outsideScope ? new Promise(() => {}) : Promise.resolve(registration); },
     addEventListener() {},
   };
-  const notification = { permission, requestPermission() { permissionDuringGesture = userGesture; step('permission'); return permissionRequest ? permissionRequest() : Promise.resolve(permissionResult); } };
+  const notification = { permission, requestPermission() { permissionDuringGesture = userGesture; step('permission'); const request=permissionRequest?permissionRequest():Promise.resolve(permissionResult);return Promise.resolve(request).then(result=>{notification.permission=result;return result;}); } };
   const localDocument = { ...document, addEventListener() {}, getElementById(id) { return id === 'notificationStatus' ? localRoot : null; } };
   const localContext = {
     document: localDocument,
     navigator: { serviceWorker },
-    window: { WorkspaceV2: { S: { csrf: secretMarker }, showAuthRecovery() { calls.auth++; } }, PushManager: function(){}, Notification: notification },
+    window: { WorkspaceV2: { S: { csrf: secretMarker, manager: { id: 7 }, authGeneration: 0 }, showAuthRecovery() { calls.auth++; } }, PushManager: function(){}, Notification: notification },
     Notification: notification,
     async fetch(url, options) {
       if (url === 'push-status.php') {
-        calls.status++;
-        return { ok: true, status: 200, async json() { return { ok: true, push_status: { is_working: working, notification_path_usable: false, notification_path_reason: healthReason } }; } };
+        const current=options?.method==='POST';calls[current?'currentStatus':'status']++;
+        if(current){const body=JSON.parse(options.body);assert.equal(body.csrf,localContext.window.WorkspaceV2.S.csrf);assert.equal(body.endpoint,nativeSubscription?.toJSON().endpoint);}
+        if(browser?.statusRequest){const override=await browser.statusRequest(options);if(override)return override;}
+        return { ok: true, status: 200, async json() { return { ok: true, push_status: browser?.accountHealthy||(current&&!browser)?healthy:{ is_working: working, notification_path_usable: false, notification_path_reason: healthReason },...(current?{current_subscription:{notification_path_usable:browser?browser.currentHealthy===true:true,notification_path_reason:!browser||browser.currentHealthy?'healthy_subscription':browser.currentReason||'no_subscription'}}:{}) }; } };
       }
       const name = options?.method === 'POST' ? 'save' : 'key';
       if (!(failAt === name && httpStatus)) step(name); else calls[name]++;
       const status = failAt === name && httpStatus ? httpStatus : 200;
       if (name === 'key') keySignals.push(options?.signal);
-      return { ok: status === 200, status, async json() { if (name === 'key' && keyBody) return keyBody(calls.key); return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ok: true, push_status: healthy } : { ok: false, error: secretMarker }; } };
+      if(name==='save'&&browser?.saveRequest)await browser.saveRequest(options);
+      if(name==='save'&&status===200&&browser)browser.currentHealthy=true;
+      return { ok: status === 200, status, async json() { if (name === 'key' && keyBody) return keyBody(calls.key); return status === 200 ? name === 'key' ? { ok: true, public_key: 'AQ' } : { ok: true, push_status: healthy,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'} } : { ok: false, error: secretMarker }; } };
     },
     atob: value => Buffer.from(value, 'base64').toString('binary'),
     console: { warn() {} },
     setTimeout(callback, delay) { if (clock) return clock.setTimeout(callback, delay); return delay === 500 ? 0 : setTimeout(callback, outsideScope && delay >= 10000 ? 10 : delay); },
     clearTimeout(id) { if (clock) clock.clearTimeout(id); else clearTimeout(id); },
     Uint8Array,
+    URL,
     AbortController,
   };
   vm.runInNewContext(source, localContext, { filename: 'workspace-v2-notifications.js' });
   return {
-    root: localRoot, calls, keySignals,
+    root: localRoot, calls, keySignals, subscription, registration, notification, context:localContext,
     api: localContext.window.WorkspaceV2Notifications,
     async enable() { userGesture = true; const result = this.api.enable(localRoot); userGesture = false; return result; },
     clearFailure() { failAt = ''; },
     changeSession() { localContext.window.WorkspaceV2.S.csrf = 'different-session'; },
     permissionDuringGesture() { return permissionDuringGesture; },
   };
+}
+
+async function currentBrowserCases(){
+  const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return{promise,resolve,reject};};
+  const drain=async()=>{for(let i=0;i<40;i++)await Promise.resolve();await new Promise(setImmediate);};
+  const local=()=>({toJSON(){return{endpoint:`https://push.example.test/${secretMarker}`,keys:{p256dh:secretMarker,auth:secretMarker}};}});
+  const notGreen=h=>{assert.ok(!h.root.className.split(/\s+/).includes('ok'));assert.ok(!h.root.innerHTML.includes('Уведомления включены'));assert.match(h.root.innerHTML,/data-enable-push/);assert.ok(!h.root.innerHTML.includes(secretMarker));};
+  const noPrompt=h=>{assert.equal(h.calls.permission,0);assert.equal(h.calls.confirmation,0);};
+  const failures=[];
+  async function check(label,run){let deadline;try{await Promise.race([run(),new Promise((_,reject)=>{deadline=setTimeout(()=>reject(new Error('expected fixture operation never started or settled')),1000);})]);console.log('PASS  '+label);}catch(error){failures.push(label+': '+error.message);console.error('FAIL  '+label+': '+error.message);}finally{clearTimeout(deadline);}}
+  await check('initial ownerless refresh performs no native or protected reads and authenticated refresh resumes normally',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true,subscription:local(),currentHealthy:true}}),auth=h.context.window.WorkspaceV2.S;
+    for(const state of [{manager:null,csrf:'',authExpired:false},{manager:{id:7},csrf:'',authExpired:false},{manager:{id:7},csrf:secretMarker,authExpired:true}]){
+      Object.assign(auth,state);await h.api.refresh();await drain();assert.equal(h.calls.status,0);assert.equal(h.calls.currentStatus,0);assert.equal(h.calls.lookup,0);assert.equal(h.calls.read,0);assert.equal(h.calls.auth,0);assert.ok(!h.root.className.split(/\s+/).includes('ok'));noPrompt(h);
+    }
+    Object.assign(auth,{manager:{id:7},csrf:secretMarker,authExpired:false,authGeneration:1});await h.api.refresh();await drain();assert.equal(h.calls.status,1);assert.equal(h.calls.currentStatus,1);assert.match(h.root.innerHTML,/Уведомления включены/);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);
+  });
+  for(const accountHealthy of [false,true])for(const permission of ['default','denied'])await check(`current browser ${permission} stays actionable with account healthy=${accountHealthy}`,async()=>{
+    const h=activationHarness({permission,browser:{accountHealthy}});await h.api.refresh();await drain();notGreen(h);noPrompt(h);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);assert.equal(h.calls.currentStatus,0);assert.equal(h.calls.register,0);
+  });
+  await check('another healthy device cannot hide a missing granted-browser subscription or prompt in background',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true}});
+    await h.api.refresh();await drain();notGreen(h);noPrompt(h);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);assert.equal(h.calls.currentStatus,0);
+    await h.api.refresh();await drain();assert.equal(h.calls.subscribe,0);notGreen(h);
+    assert.equal(await h.enable(),true);assert.equal(h.calls.subscribe,1);assert.equal(h.calls.save,1);assert.equal(h.calls.permission,0);assert.equal(h.calls.confirmation,1);assert.match(h.root.innerHTML,/Уведомления включены/);
+  });
+  await check('account with no healthy subscription retains exactly one silent granted-permission recovery',async()=>{
+    const native=deferred(),h=activationHarness({healthReason:'no_subscription',browser:{accountHealthy:false,subscribe:()=>native.promise}});
+    await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.subscribe,1);noPrompt(h);await h.api.refresh();await drain();assert.equal(h.calls.subscribe,1);
+    native.resolve(h.subscription);await drain();assert.equal(h.calls.save,1);assert.match(h.root.innerHTML,/Уведомления включены/);noPrompt(h);
+  });
+  await check('a native subscription is green only after protected current-endpoint membership is healthy',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true,subscription:local(),currentHealthy:true}});await h.api.refresh();await drain();
+    assert.match(h.root.innerHTML,/Уведомления включены/);assert.ok(h.root.className.split(/\s+/).includes('ok'));assert.ok(!h.root.innerHTML.includes('data-enable-push'));assert.equal(h.calls.lookup,1);assert.equal(h.calls.currentStatus,1);assert.equal(h.calls.read,2);assert.equal(h.calls.register,0);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.repair,0);assert.equal(h.calls.save,0);noPrompt(h);assert.ok(!h.root.innerHTML.includes(secretMarker));
+  });
+  await check('ancestor registration cannot stand in for the canonical manager worker',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true,subscription:local(),currentHealthy:true}});h.registration.scope='https://app.anytoour.ru/';await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.lookup,1);assert.equal(h.calls.read,0);assert.equal(h.calls.currentStatus,0);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);noPrompt(h);
+  });
+  await check('an endpoint changed while membership proof is pending cannot inherit the old endpoint healthy result',async()=>{
+    const proof=deferred(),entered=deferred();let actual=local();
+    const h=activationHarness({browser:{accountHealthy:true,subscription:actual,currentHealthy:true,read:()=>actual,statusRequest:async options=>{if(options?.method==='POST'){entered.resolve();await proof.promise;}}}}),refresh=h.api.refresh();
+    await entered.promise;actual={toJSON(){return{endpoint:`https://push.example.test/${secretMarker}/new`,keys:{p256dh:'new',auth:'new'}};}};proof.resolve();await refresh;await drain();notGreen(h);assert.equal(h.calls.read,2);assert.equal(h.calls.currentStatus,1);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.repair,0);assert.equal(h.calls.save,0);noPrompt(h);
+  });
+  for(const currentReason of ['no_subscription','subscription_unhealthy'])await check(`aggregate health cannot mask current endpoint ${currentReason}`,async()=>{
+    const browser={accountHealthy:true,subscription:local(),currentHealthy:false,currentReason};const h=activationHarness({browser});
+    await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.currentStatus,1);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.repair,0);assert.equal(h.calls.save,0);noPrompt(h);
+    assert.equal(await h.enable(),true);assert.equal(h.calls.save,1);assert.equal(h.calls.subscribe,currentReason==='subscription_unhealthy'?1:0);assert.equal(h.calls.repair,currentReason==='subscription_unhealthy'?1:0);assert.ok(h.calls.currentStatus>=2);assert.equal(h.calls.permission,0);
+  });
+  await check('click before any probe uses fresh endpoint proof and UNKNOWN cannot delete or replace native subscription',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true,subscription:local(),currentHealthy:false,currentReason:'health_check_failed'}});
+    assert.equal(await h.enable(),false);assert.equal(h.calls.currentStatus,1);assert.equal(h.calls.read,1);assert.equal(h.calls.repair,0);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);assert.equal(h.calls.permission,0);assert.equal(h.calls.confirmation,0);notGreen(h);
+  });
+  await check('aggregate-only subscribe response cannot claim current browser setup success',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true}}),fetch=h.context.fetch;
+    h.context.fetch=async(url,options)=>{const response=await fetch(url,options);if(url==='push.php'&&options?.method==='POST')return{...response,async json(){const body=await response.json();delete body.current_subscription;return body;}};return response;};
+    assert.equal(await h.enable(),false);assert.equal(h.calls.subscribe,1);assert.equal(h.calls.save,1);assert.equal(h.calls.confirmation,0);notGreen(h);
+  });
+  for(const accountHealthy of [false,true])await check(`UNKNOWN local read is not absence or recovery with account healthy=${accountHealthy}`,async()=>{
+    const h=activationHarness({browser:{accountHealthy,read:async()=>{throw new DOMException(secretMarker,'InvalidStateError');}}});await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.repair,0);assert.equal(h.calls.save,0);assert.equal(h.calls.currentStatus,0);noPrompt(h);
+  });
+  await check('unavailable native support cannot inherit another device healthy status',async()=>{
+    const h=activationHarness({browser:{accountHealthy:true}});delete h.context.window.PushManager;await h.api.refresh();await drain();notGreen(h);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);assert.equal(h.calls.currentStatus,0);noPrompt(h);
+  });
+  await check('a timed-out native read stays UNKNOWN and a late completion cannot repaint it',async()=>{
+    const native=deferred(),timers=new Map();let timerId=0;
+    const clock={setTimeout(fn,delay){const id=++timerId;timers.set(id,{fn,delay});return id;},clearTimeout(id){timers.delete(id);}};
+    const h=activationHarness({clock,browser:{accountHealthy:true,read:()=>native.promise}}),refresh=h.api.refresh();await drain();
+    assert.ok(timers.size>0,'native inspection has no bounded deadline');for(const [id,timer]of [...timers]){timers.delete(id);assert.ok(timer.delay<=15000);timer.fn();}
+    await refresh;await drain();notGreen(h);const html=h.root.innerHTML;native.resolve(local());await drain();assert.equal(h.root.innerHTML,html);assert.equal(h.calls.currentStatus,0);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);noPrompt(h);
+  });
+  await check('old local inspection cannot render or bind an endpoint after account/session replacement',async()=>{
+    const native=deferred();const h=activationHarness({browser:{accountHealthy:true,read:()=>native.promise}}),refresh=h.api.refresh();await drain();
+    h.context.window.WorkspaceV2.S.manager.id=8;h.context.window.WorkspaceV2.S.authGeneration++;h.changeSession();h.root.innerHTML='Current account';native.resolve(local());await refresh;await drain();
+    assert.equal(h.root.innerHTML,'Current account');assert.equal(h.calls.auth,0);assert.equal(h.calls.currentStatus,0);assert.equal(h.calls.subscribe,0);assert.equal(h.calls.save,0);noPrompt(h);
+  });
+  if(failures.length)throw new Error('Current-browser regressions: '+failures.join('; '));
 }
 
 async function activationDiagnosticCases() {
@@ -173,7 +259,7 @@ async function registrationLifecycleCases() {
     };
     const localContext = {
       ...context, document: { ...document, addEventListener() {} }, navigator: { serviceWorker },
-      window: { WorkspaceV2: { S: { csrf: 'synthetic' } } },
+      window: { WorkspaceV2: { S: { csrf: 'synthetic', manager: { id: 7 }, authGeneration: 0 } } },
       setTimeout(callback) { timers.set(++timerId, callback); return timerId; }, clearTimeout(id) { timers.delete(id); },
     };
     vm.runInNewContext(source, localContext, { filename: 'workspace-v2-notifications.js' });
@@ -350,7 +436,7 @@ async function run() {
   if (!root.innerHTML.includes('Этот браузер не поддерживает уведомления')) {
     throw new Error('unsupported browser reason is not visible after the click');
   }
-  if (!root.innerHTML.includes('не внутри Telegram или MAX')) {
+  if (!root.innerHTML.includes('Telegram или MAX') || !/(?:не внутри|вне) Telegram или MAX/.test(root.innerHTML)) {
     throw new Error('unsupported browser recovery guidance is not visible');
   }
   if (!root.innerHTML.includes('Повторить')) {
@@ -386,13 +472,13 @@ async function run() {
   };
   const responses = [
     { ok: true, status: 200, async json() { return { ok: true, public_key: 'AQ' }; } },
-    { ok: true, status: 200, async json() { return { ok: true, push_status: { is_working: true, notification_path_usable: false, notification_path_reason: 'subscription_unhealthy' } }; } },
+    { ok: true, status: 200, async json() { return { ok: true, push_status: { is_working: true, notification_path_usable: false, notification_path_reason: 'subscription_unhealthy' },current_subscription:{notification_path_usable:false,notification_path_reason:'subscription_unhealthy'} }; } },
   ];
   const Notification = { permission: 'granted', async requestPermission() { return 'granted'; } };
   const savedContext = {
     document: savedDocument,
     navigator: { serviceWorker },
-    window: { WorkspaceV2: { S: { csrf: 'test' } }, PushManager: function(){}, Notification },
+    window: { WorkspaceV2: { S: { csrf: 'test', manager: { id: 7 }, authGeneration: 0 } }, PushManager: function(){}, Notification },
     Notification,
     fetch: async () => responses.shift(),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
@@ -400,6 +486,7 @@ async function run() {
     setTimeout,
     clearTimeout,
     Uint8Array,
+    URL,
   };
   vm.runInNewContext(source, savedContext, { filename: 'workspace-v2-notifications.js' });
   savedListeners.click({ preventDefault() {}, target: { closest() { return {}; } } });
@@ -415,6 +502,7 @@ async function run() {
   await pendingPermissionCases();
   await pendingSetupCases();
   await registrationLifecycleCases();
+  await currentBrowserCases();
 }
 
 run().catch(error => {

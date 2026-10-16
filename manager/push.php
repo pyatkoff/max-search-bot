@@ -22,16 +22,19 @@ try{
     }
     if($action==='subscribe'){
         ManagerHttp::requireCsrf($data);
+        $subscription=(array)($data['subscription']??[]);
         $ok=ManagerPushService::saveSubscription(
             $managerId,
-            (array)($data['subscription']??[]),
+            $subscription,
             (string)($_SERVER['HTTP_USER_AGENT']??'')
         );
         if(!$ok){
             ManagerHttp::respond(['ok'=>false],409);
         }
-        $pushStatus=ManagerPushHealth::statusForManager(ConversationDb::connection(),$managerId);
-        ManagerHttp::respond(['ok'=>true,'push_status'=>$pushStatus]);
+        $pdo=ConversationDb::connection();
+        $pushStatus=ManagerPushHealth::statusForManager($pdo,$managerId);
+        $currentSubscription=ManagerPushHealth::statusForSubscription($pdo,$managerId,(string)($subscription['endpoint']??''));
+        ManagerHttp::respond(['ok'=>true,'push_status'=>$pushStatus,'current_subscription'=>$currentSubscription]);
     }
     ManagerHttp::respond(['ok'=>false,'error'=>'unknown_action'],400);
 }catch(Throwable $e){

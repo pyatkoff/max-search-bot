@@ -32,13 +32,14 @@ async function setup(page,options={}){
  const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 10:00:00'}));
  const snapshot=id=>({ok:true,...clone(account(id))});
  page.on('request',r=>pending.add(r));page.on('requestfinished',r=>pending.delete(r));page.on('requestfailed',r=>pending.delete(r));page.on('pageerror',e=>errors.push(e.message));
- await page.addInitScript(()=>{
+ await page.addInitScript(skipPushStubs=>{
   window.personalFixtureTiming={};
   const observer=new MutationObserver(()=>{if(!window.personalFixtureTiming.inboxMs&&document.querySelector('#inboxList .leadItem'))window.personalFixtureTiming.inboxMs=performance.now()});observer.observe(document,{subtree:true,childList:true});
+  if(skipPushStubs)return;
   const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};
   Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});
   function N(){}N.permission='default';Object.defineProperty(window,'Notification',{configurable:true,value:N});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
- });
+ },!!options.skipPushStubs);
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method(),reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
@@ -113,6 +114,7 @@ async function setup(page,options={}){
   if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
+ if(options.beforeNavigate)await options.beforeNavigate(page);
  await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(rows().length);
  return {calls,unexpected,errors,pending,accounts,snapshot,account,setWriteResult:v=>writeResult=v,setSnapshotError:v=>snapshotError=v,setHoldSnapshot:v=>holdSnapshot=v,setHoldWrite:v=>holdWrite=v,setHoldList:v=>holdList=v,setListError:v=>listError=v,releaseSnapshot:()=>heldSnapshots.shift()?.(),releaseWrite:()=>heldWrites.shift()?.(),releaseList:()=>heldLists.shift()?.(),switchManager:m=>manager=m};
 }
