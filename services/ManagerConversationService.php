@@ -262,23 +262,48 @@ class ManagerConversationService
 
     public static function take(int $conversationId,int $managerId): bool
     {
+        return self::takeResult($conversationId,$managerId)['ok'];
+    }
+
+    /** Explicit UNKNOWN check: current technical state, not an operation receipt. */
+    public static function lifecycleState(int $conversationId,int $managerId): ?array
+    {
+        if($conversationId<=0||$managerId<=0)return null;
+        $row=self::accessibleConversation($conversationId,$managerId);
+        return $row?['id'=>(int)$row['id'],'status'=>(string)$row['status'],'manager_id'=>$row['manager_id']!==null?(int)$row['manager_id']:null]:null;
+    }
+
+    private static function lifecycleRefusal(string $reason): array
+    {
+        $messages=[
+            'unavailable'=>'Диалог недоступен. Возможно, изменились права доступа. Обновите список диалогов.',
+            'closed'=>'Диалог уже закрыт. Переоткройте его, чтобы продолжить общение.',
+            'owned_elsewhere'=>'Диалог уже назначен другому менеджеру. Обновите список диалогов.',
+            'not_owned'=>'Диалог больше не закреплён за вами. Обновите список диалогов.',
+            'state_changed'=>'Состояние диалога изменилось. Обновите диалог перед следующим действием.',
+        ];
+        return ['ok'=>false,'error'=>$reason,'error_message'=>$messages[$reason]];
+    }
+
+    public static function takeResult(int $conversationId,int $managerId): array
+    {
         $pdo=ConversationDb::connection();
         $pdo->beginTransaction();
         try{
             $row=self::accessibleConversation($conversationId,$managerId,true);
             if(!$row||(string)$row['status']==='closed'||(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId)){
                 $pdo->rollBack();
-                return false;
+                return self::lifecycleRefusal(!$row?'unavailable':((string)$row['status']==='closed'?'closed':'owned_elsewhere'));
             }
             if((string)$row['status']==='manager' && (int)($row['manager_id']??0)===$managerId){
                 $pdo->commit();
-                return true;
+                return ['ok'=>true];
             }
             $pdo->prepare('UPDATE conversations SET status=?,manager_id=? WHERE id=?')->execute(['manager',$managerId,$conversationId]);
             $pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'manual']);
             ConversationControlService::event($conversationId,'manager_taken','manager',$managerId);
             $pdo->commit();
-            return true;
+            return ['ok'=>true];
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
     }
 
@@ -303,14 +328,34 @@ class ManagerConversationService
 
     public static function release(int $conversationId,int $managerId): bool
     {
-        $pdo=ConversationDb::connection();$row=self::accessibleConversation($conversationId,$managerId);if(!$row||(int)($row['manager_id']??0)!==$managerId||(string)$row['status']!=='manager')return false;$chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?')->execute(['ai',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'manager_released','manager',$managerId);return true;
+        return self::releaseResult($conversationId,$managerId)['ok'];
+    }
+    public static function releaseResult(int $conversationId,int $managerId): array
+    {
+        $pdo=ConversationDb::connection();$row=self::accessibleConversation($conversationId,$managerId);
+        if(!$row)return self::lifecycleRefusal('unavailable');
+        if((int)($row['manager_id']??0)!==$managerId)return self::lifecycleRefusal('not_owned');
+        if((string)$row['status']!=='manager')return self::lifecycleRefusal('state_changed');
+        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?')->execute(['ai',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'manager_released','manager',$managerId);return ['ok'=>true];
     }
     public static function close(int $conversationId,int $managerId): bool
     {
-        $pdo=ConversationDb::connection();$row=self::accessibleConversation($conversationId,$managerId);if(!$row||(string)$row['status']==='closed'||(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId))return false;$chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=?')->execute(['closed',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::deleteAllStatus($chatId);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId);return true;
+        return self::closeResult($conversationId,$managerId)['ok'];
+    }
+    public static function closeResult(int $conversationId,int $managerId): array
+    {
+        $pdo=ConversationDb::connection();$row=self::accessibleConversation($conversationId,$managerId);
+        if(!$row)return self::lifecycleRefusal('unavailable');
+        if((string)$row['status']==='closed')return self::lifecycleRefusal('closed');
+        if(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId)return self::lifecycleRefusal('owned_elsewhere');
+        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=?')->execute(['closed',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::deleteAllStatus($chatId);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId);return ['ok'=>true];
     }
     public static function reopen(int $conversationId,int $managerId): bool
     {
-        $pdo=ConversationDb::connection();$pdo->beginTransaction();try{$row=self::accessibleConversation($conversationId,$managerId,true);if(!$row||(string)$row['status']!=='closed'){$pdo->rollBack();return false;}$pdo->prepare('UPDATE conversations SET status=?,manager_id=?,closed_at=NULL WHERE id=?')->execute(['manager',$managerId,$conversationId]);$pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'reopen']);ConversationControlService::event($conversationId,'conversation_reopened','manager',$managerId);$pdo->commit();return true;}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
+        return self::reopenResult($conversationId,$managerId)['ok'];
+    }
+    public static function reopenResult(int $conversationId,int $managerId): array
+    {
+        $pdo=ConversationDb::connection();$pdo->beginTransaction();try{$row=self::accessibleConversation($conversationId,$managerId,true);if(!$row||(string)$row['status']!=='closed'){$pdo->rollBack();return self::lifecycleRefusal(!$row?'unavailable':'state_changed');}$pdo->prepare('UPDATE conversations SET status=?,manager_id=?,closed_at=NULL WHERE id=?')->execute(['manager',$managerId,$conversationId]);$pdo->prepare('INSERT INTO manager_assignments (conversation_id,manager_id,assignment_type) VALUES (?,?,?)')->execute([$conversationId,$managerId,'reopen']);ConversationControlService::event($conversationId,'conversation_reopened','manager',$managerId);$pdo->commit();return ['ok'=>true];}catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw$e;}
     }
 }
