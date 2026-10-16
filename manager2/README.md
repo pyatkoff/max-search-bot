@@ -210,3 +210,12 @@ actions. Browser coverage uses the real PHP shell with synthetic API data and
 390/430/768/1440 widths, short height, native abort, focus, Back and retained draft/
 file/history. Physical-device behavior and natural customer outcomes are separate
 evidence, not inferred from these fixtures.
+
+
+### Reply field and expanded editor
+
+The main reply field grows from two lines to eight on a sufficiently tall desktop, with a smaller bounded height on narrow or short screens. Manager2's focused `reply-editor.js` owns this sizing; the textarea no longer inherits the zero flex basis or competing height caps that suppressed canonical auto-growth. The original cabinet keeps its current sizing path. The field uses the full composer width, with its existing media/emoji/send controls below it.
+
+“Развернуть” presents the same canonical form and `#replyText` inside a labelled native dialog, showing the current recipient. It never copies the draft or File queue. Collapse, Escape and browser Back retain native selection/direction, text, attached files and focus; the existing mobile overlay owner removes the same history entry. A context/auth/access change closes the presentation before another recipient can use it. The current Conversation, Media and submit owners retain all authorization, IME, in-flight, partial and unknown-outcome behavior. Layout performs no additional HTTP, SQL or persistence.
+
+Actual-PHP-shell synthetic checks cover the four baseline widths, short420 layout, text/File/selection identity, account recovery and loss of access, resize, canonical insertion/emoji/IME/send and partial unknown media delivery. Emulated visible-area checks do not establish physical iPhone keyboard or natural manager use.

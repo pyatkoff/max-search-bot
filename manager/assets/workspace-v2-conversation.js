@@ -41,7 +41,7 @@ function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight?'Подождите…':'Отправляем…'):'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight?'Подождите…':'Отправляем…'):'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
 function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
 function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -57,7 +57,7 @@ function sendFailureNotice(failure,fallback=''){
   return 'Отправка не подтверждена. Проверьте переписку перед повторной попыткой, чтобы не отправить сообщение дважды.';
 }
 function renderDeliveryFailure(failure,fallback=''){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,fallback);el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
-function autoGrow(){const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
+function autoGrow(){if(window.WorkspaceV2ReplyEditor?.resize())return;const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
 function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
 function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
@@ -107,7 +107,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){window.WorkspaceV2ReplyEditor?.close(false);window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();

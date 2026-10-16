@@ -222,5 +222,37 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 @media(max-height:540px){.manager2 .conversationHead{padding-top:6px;padding-bottom:6px}}
 .manager2 .conversationTitleRow .brand{flex:0 1 auto}
 .manager2 .conversationTitleRow{overflow:visible}
+
+/* One full-width canonical draft; Manager2 ReplyEditor owns its height. */
+.manager2 #composer .composerSurface{grid-template-columns:minmax(0,1fr)!important;gap:5px}
+.manager2 #composer .composerMain{min-height:0}
+.manager2 #replyText{flex:none;min-height:0;max-height:none;resize:none}
+.manager2 #composer .composerActions{width:100%;justify-content:flex-end}
+.manager2 .m2ReplyExpand{margin-right:auto;align-self:center;min-height:36px;padding:0 8px;border:0;background:transparent;color:#4e6548;font:inherit;font-size:12px;cursor:pointer}
+.manager2 .m2ReplyExpand:disabled{opacity:.5;cursor:default}
+.manager2 .m2ReplyExpand:focus-visible,.manager2 #m2ReplyCollapse:focus-visible{outline:2px solid #477351;outline-offset:2px}
+.manager2 .conversationZone.m2ReplyViewport{top:var(--m2-reply-visible-top)!important;bottom:auto!important;height:var(--m2-reply-visible-height)!important;max-height:var(--m2-reply-visible-height)!important}
+.manager2 .m2ReplyViewport>#composer{max-height:calc(var(--m2-reply-visible-height) - 60px);overflow:auto!important}
+.manager2 .m2ReplyViewport>#composer .mediaSelection{max-height:var(--m2-reply-visible-media);overflow-y:auto}
+.manager2 .m2ReplyEditor{position:fixed;inset:auto;top:var(--m2-editor-top,24px);left:50%;transform:translateX(-50%);margin:0;padding:0;width:min(960px,calc(100vw - 32px));max-width:none;height:var(--m2-editor-height,calc(100dvh - 48px));max-height:none;border:1px solid #dfe6d7;border-radius:14px;background:#fff;color:#354e36;overflow:hidden;box-shadow:0 18px 70px #203b3933}
+.manager2 .m2ReplyEditor[open]{display:flex;flex-direction:column}
+.manager2 .m2ReplyEditor::backdrop{background:#203b3966}
+.manager2 .m2ReplyEditorHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #e0e7da;flex:0 0 auto;min-width:0}
+.manager2 .m2ReplyEditorHead>div{min-width:0}
+.manager2 .m2ReplyEditorHead h2{font-size:17px;margin:0 0 4px}
+.manager2 .m2ReplyEditorHead p{font-size:13px;margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.manager2 #m2ReplyCollapse{min-height:40px;padding:0 12px;border:1px solid #dfe6d7;border-radius:8px;background:#f7f9f4;color:#425d40;font:inherit;font-size:13px;cursor:pointer;flex-shrink:0}
+.manager2 .m2ReplyEditorBody{display:flex;flex:1;min-height:0;overflow:hidden}
+.manager2 .m2ReplyEditor #composer{display:flex!important;flex:1;flex-direction:column;min-height:0;border:0;overflow:auto!important;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.manager2 .m2ReplyEditor .quickReplies,.manager2 .m2ReplyEditor .emojiPicker{flex:0 0 auto}
+.manager2 .m2ReplyEditor #composer .composerSurface{display:flex!important;flex:1;flex-direction:column;min-height:0;overflow:visible!important}
+.manager2 .m2ReplyEditor #composer .composerMain{display:flex;flex:1;flex-direction:column;width:100%;min-height:80px}
+.manager2 .m2ReplyEditor #replyText{flex:1;min-height:64px;line-height:1.6;font-size:16px;padding:12px}
+.manager2 .m2ReplyEditor .mediaSelection{flex:0 0 auto;max-height:var(--m2-editor-media-height,120px);overflow-y:auto}
+.manager2 .m2ReplyEditor .replyStatus{flex:0 0 auto;overflow-wrap:anywhere}
+.manager2 .m2ReplyEditor .composerActions{flex:0 0 auto;min-height:44px}
+.manager2 .m2ReplyEditor .m2ReplyExpand{visibility:hidden;pointer-events:none}
+.manager2 .m2ReplyEditor .composerHint{flex:0 0 auto;order:2}
+@media(max-width:740px){.manager2 .m2ReplyEditor{width:calc(100vw - 16px);border-radius:10px}.manager2 .m2ReplyEditorHead{padding:10px 12px}.manager2 .m2ReplyEditorHead h2{font-size:15px}.manager2 .m2ReplyEditorHead p{font-size:12px}.manager2 .m2ReplyExpand{min-height:44px}}
 .manager2.pwCompact #inboxList .leadItem{padding-top:6px;padding-bottom:6px}
 .manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2;max-height:2.8em}
