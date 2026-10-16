@@ -354,8 +354,10 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
  const s=await setup(page,{tripData:{11:knownTrip,12:{city:'Казань',country:'Египет',children:1}},messages:[{id:1,sender_type:'ai',text:'Старая сводка: Греция, 01.01.2000, 999 USD',created_at:'2026-10-13 12:00:00'}]});
  await openLead(page);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
  await page.locator('#replyText').fill('Исходный черновик');await page.locator('#replyFile').setInputFiles({name:'trip-notes.txt',mimeType:'text/plain',buffer:Buffer.from('Keep selected trip file')});
+ await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('trip-notes.txt');
  const attachment=await page.locator('#mediaSelection').textContent();
  await page.evaluate(()=>{window.tripMessage=document.querySelector('#messages .msg');window.tripMedia=document.querySelector('.mediaSelectedItem')});
+ expect(await page.evaluate(()=>({message:!!window.tripMessage,media:!!window.tripMedia}))).toEqual({message:true,media:true});
  await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('#qrCreate').click();await page.locator('#qrTitle').fill('Мои параметры поездки');
  const body=page.locator('#qrBody');await body.fill('');
  await page.setViewportSize({width,height:420});await body.scrollIntoViewIfNeeded();await capture(page,browserName,width,'trip-editor-empty');
@@ -391,7 +393,7 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
 test('late or changed card fills only unresolved trip tokens explicitly, without changing preview edits or sending',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:420});const s=await setup(page,{holdCard:true,tripData:{11:knownTrip}});s.replies[2].body='План: '+tripTemplate;
  await openLead(page);await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Текст до подстановки');
- await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});const attachment=await page.locator('#mediaSelection').textContent();
+ await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('keep')});await expect(page.locator('#mediaSelection .mediaSelectedItem')).toHaveCount(1);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');const attachment=await page.locator('#mediaSelection').textContent();
  await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  const preview=page.locator('#qrPreview');await expect(preview).toHaveValue('План: '+tripTemplate);await expect(page.locator('#qrInsert')).toBeDisabled();
  await preview.fill('Моя правка: '+tripTemplate+' | конец');s.releaseCard();s.setHoldCard(false);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
