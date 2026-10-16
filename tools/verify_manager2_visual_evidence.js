@@ -3,6 +3,8 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const {provenance,verifyBrowserEvidence} = require('./manager2_visual_reuse.js');
+const {allSpecs} = require('./manager2_visual_inventory.js');
 
 function pngCount(directory) {
   if (!fs.existsSync(directory)) return 0;
@@ -13,7 +15,7 @@ function pngCount(directory) {
   }, 0);
 }
 
-function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt}) {
+function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt, prNumber, repository, sourceRoot=process.cwd(), env=process.env, requireModern=false}) {
   if (!Array.isArray(results) || results.length !== 3 || results.some(result => result !== 'success')) {
     throw new Error('Every browser and Firefox job must succeed; missing/skipped/cancelled is not release evidence');
   }
@@ -25,7 +27,10 @@ function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt}) 
   for (const [browser, specCount, captureCount] of [['chromium',22,34], ['webkit',21,0]]) {
     const directory = path.join(root, browser);
     const receipt = JSON.parse(fs.readFileSync(path.join(directory, 'visual-receipt.json'), 'utf8'));
-    const expected = {mode:'full', browser, testedSha, headSha, specCount, captureCount, completed:true};
+    const modern=receipt.schema===2;
+    if (requireModern&&!modern) throw new Error('Current release requires exact schema-2 case and artifact proof');
+    const expected = {browser, testedSha, headSha, specCount:modern?allSpecs(browser).length:specCount, captureCount, completed:true};
+    if (!modern) expected.mode='full';
     for (const [key, value] of Object.entries(expected)) {
       if (receipt[key] !== value) throw new Error(browser + ' has incomplete or mismatched ' + key);
     }
@@ -39,6 +44,13 @@ function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt}) 
     if (pngCount(path.join(directory, 'visual-artifacts')) !== captureCount || pngCount(directory) === 0) {
       throw new Error(browser + ' screenshots are missing or incomplete');
     }
+    if (modern) {
+      const p=provenance({...env,GITHUB_REPOSITORY:repository||env.GITHUB_REPOSITORY,
+        QA_PR_NUMBER:prNumber??env.QA_PR_NUMBER??'',QA_TESTED_SHA:testedSha,QA_HEAD_SHA:headSha,
+        QA_RUN_ID:String(runId),QA_RUN_ATTEMPT:String(receipt.runAttempt)});
+      verifyBrowserEvidence({root:directory,browser,p,sourceRoot});
+      if (receipt.mode!=='full'&&receipt.mode!=='affected') throw new Error('Unrecognized coverage mode');
+    }
     receipts.push(receipt);
   }
   return {testedSha, headSha, runId:String(runId), runAttempt:String(runAttempt), results, receipts};
@@ -47,8 +59,10 @@ function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt}) 
 if (require.main === module) {
   try {
     const [root, testedSha, headSha, browserResult, historyResult, notificationResult, runId, runAttempt] = process.argv.slice(2);
-    const evidence = verifyEvidence({root, testedSha, headSha, results:[browserResult, historyResult, notificationResult], runId, runAttempt});
+    const evidence = verifyEvidence({root, testedSha, headSha, results:[browserResult, historyResult, notificationResult], runId, runAttempt, requireModern:true});
     fs.writeFileSync(path.join(root, 'visual-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
+    if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT,'mode='+
+      (evidence.receipts.every(receipt=>receipt.mode==='full')?'full':'affected')+'\n');
     process.stdout.write('Full browser evidence verified for ' + testedSha + '\n');
   } catch (error) {
     process.stderr.write(error.message + '\n');

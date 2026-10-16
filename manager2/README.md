@@ -108,3 +108,48 @@ When the package is stable, open its PR. The full `Workspace V2 visual QA` workf
 The full workflow runs 22 Chromium specs and 21 WebKit specs, including the compact Inbox/favorites suite in both engines, daily avatar-cache checks in both engines, 26 Chromium CLI captures plus 8 layout captures, and the separate Firefox history/notification checks. Chromium and WebKit use isolated parallel jobs with one worker each. Pinned npm/browser download caches include OS/architecture, Node22, Playwright1.55.0 and engine; system dependencies are installed even on a cache hit. Only superseded read-only runs for the same PR or preview branch are cancelled; manual runs and production workflows are outside those groups.
 
 The stable `screenshots` aggregate requires every browser job to succeed and verifies both engine artifacts, complete receipts and exact tested/head SHA. Failure, cancellation, skip or missing evidence fails the gate. The canonical artifact remains `workspace-v2-visual-<tested-sha>` with `chromium/` and `webkit/` subdirectories and `visual-evidence.json`; equal filenames from different engines cannot overwrite one another. Receipts identify run/attempt and actual capture inventory. An already successful engine from the same run and exact version can be reused when only failed jobs are rerun. These are execution changes, with no product assertions removed and no change to the normal main/deploy verification.
+
+### Conservative spec-only follow-up
+
+Schema-2 receipts collect exact Playwright case identities and actual outcomes,
+including the separately executed daily-cache spec: 23 Chromium / 22 WebKit
+specs in total, not only the 22 / 21 specs in the longer commands. The gate
+compares fresh execution with the current collected case inventory, checks each
+PNG's digest and validates the actual clean source tree. Firefox checks stay
+fresh and required. No test, assertion, browser or production gate is removed.
+
+The first affected-selection scope is intentionally limited to modifications of
+the two independently audited leaf specs `manager2-inbox-compact.spec.js` and
+`manager2-messenger-layout.spec.js`. A same-PR, same-repository, ancestor **full
+successful** run of the current receipt schema is required. Product/CSS, shared
+fixture/helper, configuration, workflow, inventory, added/deleted/renamed files,
+unknown changes or missing proof select FULL. Thus this first implementation
+does not promise faster ordinary UI changes or a bound on the entire release.
+
+All tracked files outside those two leaves must match the donor. A fixed audited
+test-harness digest additionally prevents a later helper from importing a leaf
+and silently making it shared, even after another successful full run. Changes
+to that harness need an explicit independence re-audit and versioned pin update.
+Only the two CI selftests and required-runner manifest are exempt from this
+harness pin; they are still covered by the full shared-source comparison.
+Source-root, history-baseline and browser/report overrides are rejected.
+
+For eligible changes both engines rerun the changed specs, the existing full
+Manager2 workspace checks, daily-cache checks and current responsive captures;
+Firefox continues unchanged. Unchanged cases may come only from the validated
+full donor. Current and donor reports/screenshots remain separate, and the
+receipt records their original run, attempt, source and immutable artifact
+identity instead of relabelling old screenshots as new captures. Their union
+must exactly match the current case list: no missing, duplicate, skipped,
+failed, flaky or expected-failure cases are accepted. Composite donors are not
+reused, and a small full-only index lets later iterations find the original
+successful full proof rather than alternating full/affected runs.
+
+Donor ZIPs are downloaded by immutable artifact ID, checked against the API's
+SHA-256 digest and extracted with bounded path/symlink/duplicate protection.
+Unavailable or unprovable donors during planning fall back to FULL; invalid
+execution evidence fails the release gate. A changed browser runner identity
+also selects FULL before execution. Initial adoption changes the workflow and
+therefore necessarily runs FULL. No benchmark dispatch or production operation
+is needed, and no measured speedup is claimed until a genuine eligible edit
+uses the new path.
