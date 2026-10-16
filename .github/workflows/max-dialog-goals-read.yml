@@ -1,0 +1,68 @@
+name: Read complete Metrika dialogue goal inventory
+on:
+  push:
+    branches: [test/max-dialog-goals-read-20261016-1109]
+    paths: [.github/workflows/max-dialog-goals-read.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  initialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Prepare existing canonical deployment identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Read full existing goal names and event conditions using GET only
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "0270ee46981ce21c5b3e7104f398bc476957549b"; php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          function goalMetadata(array $goal,int $depth=0):array{
+            if($depth>3)throw new RuntimeException('goal_depth');
+            $out=['id'=>(string)($goal['id']??''),'name'=>(string)($goal['name']??''),'type'=>(string)($goal['type']??'')];
+            $out['new_channel_goal']=in_array($out['id'],['672223595','672223596','672223597'],true);
+            $out['conditions']=[];
+            foreach((array)($goal['conditions']??[]) as $condition){
+              if(!is_array($condition))continue;
+              $c=['type'=>(string)($condition['type']??'')];
+              if(($goal['type']??'')==='action')$c['event_identifier']=(string)($condition['url']??'');
+              $out['conditions'][]=$c;
+            }
+            if(isset($goal['steps'])){
+              $out['steps']=[];
+              foreach((array)$goal['steps'] as $step)if(is_array($step))$out['steps'][]=goalMetadata($step,$depth+1);
+            }
+            return $out;
+          }
+          try{
+            require 'config.php';
+            $counter=(string)METRIKA_COUNTER_ID;if($counter!=='98615635')throw new RuntimeException('counter');
+            $body='';$tooLarge=false;
+            $ch=curl_init('https://api-metrika.yandex.net/management/v1/counter/'.$counter.'/goals');
+            curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_HTTPHEADER=>['Authorization: OAuth '.(string)METRIKA_OAUTH_TOKEN,'Accept: application/json'],CURLOPT_WRITEFUNCTION=>static function($curl,string $chunk)use(&$body,&$tooLarge):int{if(strlen($body)+strlen($chunk)>1048576){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);}]);
+            $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$errno=curl_errno($ch);$ssl=(int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT);curl_close($ch);
+            $d=!$tooLarge?json_decode($body,true):null;
+            if($ok===false||$http!==200||$errno!==0||$ssl!==0||!is_array($d['goals']??null))throw new RuntimeException('goal_list_failed');
+            $goals=$d['goals'];$metadata=[];
+            foreach($goals as $goal)if(is_array($goal))$metadata[]=goalMetadata($goal);
+            usort($metadata,static fn(array $a,array $b):int=>((int)$a['id'])<=>((int)$b['id']));
+            echo json_encode(['ok'=>true,'captured_at_utc'=>gmdate('c'),'counter_id'=>$counter,'http'=>$http,'ssl_verify'=>$ssl,'goal_count'=>count($goals),'goals'=>$metadata,'goal_writes'=>0,'conversion_requests'=>0],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
+          }catch(Throwable $ignored){echo "{\"ok\":false,\"reason\":\"goal_inventory_read_failed\",\"goal_writes\":0,\"conversion_requests\":0}\n";exit(1);}
+          PHP
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
