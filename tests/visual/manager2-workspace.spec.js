@@ -450,14 +450,19 @@ async function editorReady(page){
 async function editorGeometry(page){
   return page.locator('#replyText').evaluate(el=>{
     const css=getComputedStyle(el),rect=el.getBoundingClientRect();
-    return {height:rect.height,width:rect.width,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom))/parseFloat(css.lineHeight)};
+    return {height:rect.height,width:rect.width,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-parseFloat(css.borderTopWidth)-parseFloat(css.borderBottomWidth))/parseFloat(css.lineHeight)};
   });
 }
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
 test('Manager2 reply editor grows and preserves its native draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const s=await setup(page,{replyAudio:viewport.width===1440});await openLead(page);await editorReady(page);
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
+  const empty=await editorGeometry(page);await reply.focus();const focused=await editorGeometry(page);
   await reply.fill('Здравствуйте!');const short=await editorGeometry(page);
+  console.log(JSON.stringify({replyMinimum:browserName,width:viewport.width,height:viewport.height,empty,focused,short}));
+  expect(empty.lines).toBeLessThanOrEqual(1.1);expect(focused.height).toBe(empty.height);expect(short.lines).toBeLessThanOrEqual(1.1);
+  await reply.fill('Первая строка\nВторая строка');expect((await editorGeometry(page)).height).toBeGreaterThan(short.height+10);
+  await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-empty-'+viewport.height);
   await reply.fill(editorText);
   await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
   const grown=await editorGeometry(page);
@@ -528,6 +533,13 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
     await expect.poll(()=>page.evaluate(()=>{const p=editorNativeProof,a=document.querySelector('#messages audio');return a===p.audio&&!a.paused&&a.currentTime>p.audioTime})).toBe(true);
     await expect.poll(()=>page.evaluate(()=>{const p=editorNativeProof,box=document.querySelector('#messages');return Math.abs(p.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top-p.anchorOffset)})).toBeLessThanOrEqual(2);
   }
+  await reply.fill('Короткий ответ');await reply.evaluate(el=>el.setSelectionRange(3,7,'backward'));
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();
+  await expect(reply).toBeFocused();await expect(reply).toHaveValue('Короткий ответ');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
+  expect(await reply.evaluate(el=>[el.selectionStart,el.selectionEnd,el.selectionDirection])).toEqual([3,7,'backward']);
+  expect(await page.evaluate(()=>document.querySelector('#mediaSelection .mediaSelectedItem')===editorNativeProof.preview)).toBe(true);
+  await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-file-'+viewport.height);
+  expect(s.calls).toHaveLength(requests);expect(s.sends).toEqual([]);
   await noOverflow(page);
 });
 }
@@ -545,6 +557,7 @@ test('Manager2 reply editor follows canonical client and account recovery bounda
   await expect(page.locator('#managerAuthRecovery')).toBeVisible();
   await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
   await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toContainText('Anna.txt');
+  expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
   await page.locator('#m2ReplyExpand').click();
   s.setConversation(11,{manager_id:8,manager_name:'Другой менеджер'});
   await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true}));await expect(dialog).not.toBeVisible();
@@ -587,7 +600,7 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
   expect(sends).toHaveLength(2);release();await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Более новый сохранённый черновик');
   await expect(dialog).not.toBeVisible();mode='success';await page.locator('#m2ReplyExpand').click();await reply.press('Control+Enter');
   await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();await expect(dialog).not.toBeVisible();
-  expect(sends).toHaveLength(3);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(2.1);
+  expect(sends).toHaveLength(3);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{

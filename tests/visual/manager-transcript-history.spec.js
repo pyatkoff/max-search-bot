@@ -4,11 +4,15 @@ const baseline=process.env.M2_HISTORY_BASELINE==='1',assetRoot=baseline?path.res
 const shell=baseline?fs.readFileSync(path.join(assetRoot,'shell.html'),'utf8'):execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 function wav(){const pcm=Buffer.alloc(8000*2*30),header=Buffer.alloc(44);header.write('RIFF');header.writeUInt32LE(pcm.length+36,4);header.write('WAVEfmt ',8);header.writeUInt32LE(16,16);header.writeUInt16LE(1,20);header.writeUInt16LE(1,22);header.writeUInt32LE(8000,24);header.writeUInt32LE(16000,28);header.writeUInt16LE(2,32);header.writeUInt16LE(16,34);header.write('data',36);header.writeUInt32LE(pcm.length,40);return Buffer.concat([header,pcm])}
 const syntheticAudio=wav();
+// Generated silent 20s VP8 color fixture (96x64, 5fps); no provider/customer media.
+const syntheticVideo=Buffer.from('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loEAyADRAQABEBAAGAAYWC/0AAiFKACjloEBkADRAQABEBAAGAAYWC/0AAiFKACjloECWADRAQABEBAAGAAYWC/0AAiFKACjloEDIADRAQABEBAAGAAYWC/0AAiFKACjloED6ADRAQABEBAAGAAYWC/0AAiFKACjloEEsADRAQABEBAAGAAYWC/0AAiFKACjloEFeADRAQABEBAAGAAYWC/0AAiFKACjloEGQADRAQABEBAAGAAYWC/0AAiFKACjloEHCADRAQABEBAAGAAYWC/0AAiFKACjloEH0ADRAQABEBAUYABhYL/QACIUoACjloEImADRAQABEBAAGAAYWC/0AAiFKACjloEJYADRAQABEBAAGAAYWC/0AAiFKACjloEKKADRAQABEBAAGAAYWC/0AAiFKACjloEK8ADRAQABEBAAGAAYWC/0AAiFKACjloELuADRAQABEBAAGAAYWC/0AAiFKACjloEMgADRAQABEBAAGAAYWC/0AAiFKACjloENSADRAQABEBAAGAAYWC/0AAiFKACjloEOEADRAQABEBAAGAAYWC/0AAiFKACjloEO2ADRAQABEBAAGAAYWC/0AAiFKACjloEPoADRAQABEBAAGAAYWC/0AAiFKACjloEQaADRAQABEBAUYABhYL/QACIUoACjloERMADRAQABEBAAGAAYWC/0AAiFKACjloER+ADRAQABEBAAGAAYWC/0AAiFKACjloESwADRAQABEBAAGAAYWC/0AAiFKACjloETiADRAQABEBAAGAAYWC/0AAiFKAAfQ7Z1QhTngjzwo5aBAAAA0QEAARAQABgAGFgv9AAIhSgAo5aBAMgA0QEAARAQABgAGFgv9AAIhSgAo5aBAZAA0QEAARAQABgAGFgv9AAIhSgAo5aBAlgA0QEAARAQABgAGFgv9AAIhSgAo5aBAyAA0QEAARAQABgAGFgv9AAIhSgAo5aBA+gA0QEAARAQABgAGFgv9AAIhSgAo5aBBLAA0QEAARAQFGAAYWC/0AAiFKAAo5aBBXgA0QEAARAQABgAGFgv9AAIhSgAo5aBBkAA0QEAARAQABgAGFgv9AAIhSgAo5aBBwgA0QEAARAQABgAGFgv9AAIhSgAo5aBB9AA0QEAARAQABgAGFgv9AAIhSgAo5aBCJgA0QEAARAQABgAGFgv9AAIhSgAo5aBCWAA0QEAARAQABgAGFgv9AAIhSgAo5aBCigA0QEAARAQABgAGFgv9AAIhSgAo5aBCvAA0QEAARAQABgAGFgv9AAIhSgAo5aBC7gA0QEAARAQABgAGFgv9AAIhSgAo5aBDIAA0QEAARAQABgAGFgv9AAIhSgAo5aBDUgA0QEAARAQFGAAYWC/0AAiFKAAo5aBDhAA0QEAARAQABgAGFgv9AAIhSgAo5aBDtgA0QEAARAQABgAGFgv9AAIhSgAo5aBD6AA0QEAARAQABgAGFgv9AAIhSgAo5aBEGgA0QEAARAQABgAGFgv9AAIhSgAHFO7a5G7j7OBALeK94EB8YIBn/CBAw==','base64');
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false}={}){
  const state={calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
+ state.mediaRequests=[];state.mediaFailure='';
+ if(httpMedia)state.documents[11].forEach(m=>{if(m.id===1||m.id%20===0)m.attachments=[{type:'audio',name:'Аудио '+m.id,url:origin+'/synthetic-demand/'+m.id+'.wav'},{type:'video',name:'Видео '+m.id,url:origin+'/synthetic-demand/'+m.id+'.webm'}]});
  const conversation=id=>({id,customer_id:100+id,manager_id:state.accountId,manager_name:'Синтетический менеджер',status:'manager',channel:'max',source_id:1,source_name:'Синтетический проект',display_name:id===11?'Синтетический клиент А':'Синтетический клиент Б'});
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
  const lead=id=>({ok:true,can_edit_pipeline:true,pipeline:{stage,stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция'},contact:{phone:''},source:{project_label:'Синтетический проект',channel:'max'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
@@ -19,6 +23,15 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  // WebKit exposes local media/emoji object-URL reads to routing. Permit only
  // this fixture's same-origin blobs; external requests remain blocked below.
  if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
+ if(httpMedia&&url.origin===origin&&method==='GET'&&/^\/synthetic-demand\/\d+\.(wav|webm)$/.test(url.pathname)){
+  const bytes=url.pathname.endsWith('.wav')?syntheticAudio:syntheticVideo,range=req.headers()['range'];
+  let body=bytes,status=state.mediaFailure===url.pathname?404:200;
+  const headers={'Content-Type':url.pathname.endsWith('.wav')?'audio/wav':'video/webm','Accept-Ranges':'bytes'};
+  if(status===404)body=Buffer.alloc(0);
+  else if(range){const match=/^bytes=(\d+)-(\d*)$/.exec(range);if(!match)return block('invalid-media-range');const first=Number(match[1]),last=Math.min(bytes.length-1,match[2]?Number(match[2]):bytes.length-1);if(first>last||first>=bytes.length){status=416;body=Buffer.alloc(0);headers['Content-Range']='bytes */'+bytes.length}else{status=206;body=bytes.subarray(first,last+1);headers['Content-Range']='bytes '+first+'-'+last+'/'+bytes.length}}
+  headers['Content-Length']=String(body.length);state.mediaRequests.push({path:url.pathname,range:range||'',status,offeredBytes:body.length});
+  return route.fulfill({status,headers,body});
+ }
  if(url.origin!==origin)return block();if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});if(method==='GET'&&url.pathname==='/synthetic-history.wav')return route.fulfill({contentType:'audio/wav',body:syntheticAudio});
  if(method==='GET'&&(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/'))){const p=path.resolve(assetRoot,'.'+url.pathname);if(!p.startsWith(assetRoot+path.sep)||!fs.existsSync(p))return block('asset');return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(p)})}
  // Optional portraits remain absent for these exact synthetic clients.
@@ -60,12 +73,63 @@ async function screenshot(page,browser,width,part){const dir=path.join(root,'man
 for(const width of[390,430,768,1440])test.describe('Stable transcript '+width,()=>{
  test.use({viewport:{width,height:844}});
  test('appending retains selection and a playing audio node',async({page,browserName})=>{
-  const state=await setup(page,{total:35,media:true});await open(page);await expect(page.locator('#messages audio')).toHaveCount(1);await page.locator('#messages audio').evaluate(async a=>{await new Promise(r=>a.readyState>=1?r():a.addEventListener('loadedmetadata',r,{once:true}));await a.play();a.currentTime=5;await new Promise(r=>a.seeking?a.addEventListener('seeked',r,{once:true}):r());window.syntheticPlayingAudio=a;window.syntheticAudioTime=a.currentTime});await page.locator('#messages [data-scroll-message-key="33"] .msgBody').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);window.syntheticSelectedText=s.toString()});await screenshot(page,browserName,width,'unchanged-selection');state.documents[11].push({id:36,sender_type:'customer',text:'Новое синтетическое сообщение после начала аудио',created_at:'2026-10-14 08:01:00'});await refresh(page);await expect(page.locator('#messages')).toContainText('Новое синтетическое сообщение после начала аудио');const retained=await page.evaluate(()=>({selection:getSelection().toString()===window.syntheticSelectedText,audio:document.querySelector('#messages audio')===window.syntheticPlayingAudio,playing:!document.querySelector('#messages audio').paused,time:document.querySelector('#messages audio').currentTime>=window.syntheticAudioTime-.05}));expect(retained).toEqual({selection:true,audio:true,playing:true,time:true});await screenshot(page,browserName,width,'retained-selection');clean(state);
+  const state=await setup(page,{total:35,media:true});await open(page);await expect(page.locator('#messages audio')).toHaveCount(1);await page.locator('#messages audio').evaluate(async a=>{await a.play();await new Promise(r=>a.readyState>=1?r():a.addEventListener('loadedmetadata',r,{once:true}));a.currentTime=5;await new Promise(r=>a.seeking?a.addEventListener('seeked',r,{once:true}):r());window.syntheticPlayingAudio=a;window.syntheticAudioTime=a.currentTime});await page.locator('#messages [data-scroll-message-key="33"] .msgBody').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);window.syntheticSelectedText=s.toString()});await screenshot(page,browserName,width,'unchanged-selection');state.documents[11].push({id:36,sender_type:'customer',text:'Новое синтетическое сообщение после начала аудио',created_at:'2026-10-14 08:01:00'});await refresh(page);await expect(page.locator('#messages')).toContainText('Новое синтетическое сообщение после начала аудио');const retained=await page.evaluate(()=>({selection:getSelection().toString()===window.syntheticSelectedText,audio:document.querySelector('#messages audio')===window.syntheticPlayingAudio,playing:!document.querySelector('#messages audio').paused,time:document.querySelector('#messages audio').currentTime>=window.syntheticAudioTime-.05}));expect(retained).toEqual({selection:true,audio:true,playing:true,time:true});await screenshot(page,browserName,width,'retained-selection');clean(state);
  });
 });
 
 // The old automatic read deliberately stays pending across real shell navigation.
 const refreshDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).length;
+// Cold native media requests, not a timing benchmark: all traffic stays in this
+// actual-shell fixture, with real WAV/VP8 decoding and byte-range responses.
+for(const width of [390,1440])test('history media waits for explicit playback '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const state=await setup(page,{total:205,httpMedia:true});await open(page);
+ await expect(page.locator('#messages audio')).toHaveCount(10);await expect(page.locator('#messages video')).toHaveCount(10);
+ await expect(page.locator('#replyText')).toBeEnabled();
+ // Native resource selection runs asynchronously after DOM insertion. Settle its
+ // actual network lifecycle before counting requests; this is not a latency SLA.
+ await page.waitForLoadState('networkidle');
+ console.log(JSON.stringify({mediaDemand:browserName,width,phase:'cold-open',requests:state.mediaRequests.length,unique:new Set(state.mediaRequests.map(r=>r.path)).size,offeredBytes:state.mediaRequests.reduce((n,r)=>n+r.offeredBytes,0)}));
+ expect(state.mediaRequests).toEqual([]);
+ await page.locator('#messages [data-scroll-message-key="200"]').scrollIntoViewIfNeeded();await page.waitForLoadState('networkidle');expect(state.mediaRequests).toEqual([]);await screenshot(page,browserName,width,'media-cold');
+ await page.locator('#replyText').fill('Черновик во время прослушивания');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic only')});
+ const audio=page.locator('#messages [data-scroll-message-key="200"] audio'),video=page.locator('#messages [data-scroll-message-key="200"] video');
+ // A native WebKit video outside the clipped transcript may suspend frame
+ // progression while remaining unpaused. Play the chosen visible control;
+ // don't confuse that browser optimization with lost playback on refresh.
+ await readTop(page);
+ for(const [kind,node,suffix] of [['audio',audio,'wav'],['video',video,'webm']]){
+  await node.scrollIntoViewIfNeeded();
+  await node.evaluate(async el=>{el.muted=true;el.fixtureEvents=[];for(const type of ['play','playing','pause','waiting','stalled','error'])el.addEventListener(type,()=>el.fixtureEvents.push({type,time:el.currentTime,paused:el.paused,ready:el.readyState}));await el.play()});
+  await node.scrollIntoViewIfNeeded();await settled(page);
+  try{await expect.poll(()=>node.evaluate(el=>el.currentTime)).toBeGreaterThan(.1)}catch(error){console.log(JSON.stringify({mediaNativeFailure:kind,browserName,width,state:await node.evaluate(el=>({time:el.currentTime,paused:el.paused,ready:el.readyState,network:el.networkState,box:el.getBoundingClientRect().toJSON(),viewport:innerHeight,hidden:document.hidden,events:el.fixtureEvents}))}));throw error}
+  expect(state.mediaRequests.some(r=>r.path==='/synthetic-demand/200.'+suffix)).toBe(true);
+  await node.evaluate((el,kind)=>{window['demandPlaying'+kind]=el;window['demandTime'+kind]=el.currentTime},kind);
+ }
+ expect(new Set(state.mediaRequests.map(r=>r.path))).toEqual(new Set(['/synthetic-demand/200.wav','/synthetic-demand/200.webm']));
+ await page.locator('#messages [data-scroll-message-key="200"]').scrollIntoViewIfNeeded();await screenshot(page,browserName,width,'media-explicit-play');
+ state.documents[11].push({id:206,sender_type:'customer',text:'Новое сообщение при воспроизведении'});await refresh(page);
+ await expect(page.locator('#messages [data-scroll-message-key="206"]')).toHaveCount(1);
+ await readTop(page);expect(await page.locator('#messages').evaluate(el=>el.scrollTop)).toBe(0);
+ const before=await anchor(page);await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#messages [data-scroll-message-key="1"]')).toHaveCount(1);await settled(page);await sameAnchor(page,before);
+ await expect(page.locator('#messages audio')).toHaveCount(11);await expect(page.locator('#messages video')).toHaveCount(11);await page.waitForLoadState('networkidle');
+ expect(new Set(state.mediaRequests.map(r=>r.path))).toEqual(new Set(['/synthetic-demand/200.wav','/synthetic-demand/200.webm']));
+ for(const [kind,node] of [['audio',audio],['video',video]])expect(await node.evaluate((el,kind)=>el===window['demandPlaying'+kind]&&!el.paused&&el.currentTime>=window['demandTime'+kind],kind)).toBe(true);
+ await expect(page.locator('#replyText')).toHaveValue('Черновик во время прослушивания');await expect(page.locator('#mediaSelection')).toContainText('retained.txt');
+ await page.locator('#messages [data-scroll-message-key="1"]').scrollIntoViewIfNeeded();await screenshot(page,browserName,width,'media-older-retained');
+ expect(state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&c.before_id)).toHaveLength(1);clean(state);
+});
+test('history media keeps explicit native error fallback without loading other files',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:420});const state=await setup(page,{total:205,httpMedia:true});await open(page);await page.waitForLoadState('networkidle');expect(state.mediaRequests).toEqual([]);
+ for(const [kind,suffix,label] of [['audio','wav','Аудио 200'],['video','webm','Видео 200']]){
+  state.mediaFailure='/synthetic-demand/200.'+suffix;const node=page.locator('#messages [data-scroll-message-key="200"] '+kind);
+  await node.evaluate(async el=>{el.muted=true;try{await el.play()}catch(e){if(!['NotSupportedError','AbortError'].includes(e.name))throw e}});
+  const link=page.locator('#messages [data-scroll-message-key="200"] a').filter({hasText:'Не удалось загрузить: '+label});
+  await expect(link).toHaveAttribute('href',origin+state.mediaFailure);await expect(link).toHaveAttribute('target','_blank');
+  expect(state.mediaRequests.filter(r=>r.path===state.mediaFailure).every(r=>r.status===404)).toBe(true);
+ }
+ expect(new Set(state.mediaRequests.map(r=>r.path))).toEqual(new Set(['/synthetic-demand/200.wav','/synthetic-demand/200.webm']));
+ await page.locator('#messages [data-scroll-message-key="200"] a').last().scrollIntoViewIfNeeded();await screenshot(page,browserName,390,'media-explicit-failure');clean(state);
+});
 const refreshLists=state=>state.calls.filter(c=>c.action==='list').length;
 async function focusRefresh(page){await page.evaluate(()=>window.dispatchEvent(new Event('focus')))}
 async function holdAutomatic(page,state){

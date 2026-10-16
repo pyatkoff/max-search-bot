@@ -56,7 +56,7 @@
     const style=getComputedStyle(reply),line=parseFloat(style.lineHeight)||22;
     const padding=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),border=parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
     const height=Math.min(window.visualViewport?.height||innerHeight,zone.getBoundingClientRect().height||innerHeight);
-    const minimum=line*(height>540?2:1)+padding+border;
+    const minimum=line+padding+border;
     const saved=selection();reply.style.height='0px';
     const desired=reply.scrollHeight+border;
     const head=zone.querySelector('.conversationHead').getBoundingClientRect().height;

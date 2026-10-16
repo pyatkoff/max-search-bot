@@ -185,8 +185,8 @@ function renderAttachments(root,items){
       n.src=url;preview.appendChild(n);wrap.appendChild(preview);
       const open=photoLink(url,a.name,'Открыть фото');open.textContent='Открыть фото';wrap.appendChild(open);return;
     }
-    if(a.type==='video'&&url){n=document.createElement('video');n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}
-    else if(a.type==='audio'&&url){n=document.createElement('audio');n.src=url;n.controls=true;mediaFallback(n,a,url,'Аудио')}
+    if(a.type==='video'&&url){n=document.createElement('video');n.preload='none';n.src=url;n.controls=true;mediaFallback(n,a,url,'Видео')}
+    else if(a.type==='audio'&&url){n=document.createElement('audio');n.preload='none';n.src=url;n.controls=true;mediaFallback(n,a,url,'Аудио')}
     else{n=document.createElement('a');n.textContent='📎 '+(a.name||'Вложение');if(url){n.href=url;n.target='_blank';n.rel='noopener'}}
     wrap.appendChild(n);
   });root.appendChild(wrap);
