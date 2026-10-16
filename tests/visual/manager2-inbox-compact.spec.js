@@ -4,7 +4,9 @@ const {setup,root,emptyState}=require('./fixtures/personal-workspace');
 
 // The real PHP entry point, canonical Inbox/PersonalWorkspace owners and source
 // assets run here. Only account data and HTTP receipts are synthetic and local.
-const pin=(page,id=11)=>page.locator(`#inboxList button[data-pw-pin="${id}"]`);
+const pin=(page,id=11)=>page.locator(`#m2ConversationPin[data-pw-pin="${id}"]`);
+const pinControl=page=>page.locator('.m2HeaderPin');
+async function openConversation(page,id=11){await row(page,id).locator('.m2RowOpen').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?longName:'Синтетический клиент '+(id-11));await expect(pin(page,id)).toBeVisible()}
 const row=(page,id=11)=>page.locator(`#inboxList .leadItem[data-conversation-id="${id}"]`);
 const personal=s=>s.calls.filter(c=>c.path==='/manager/personal-workspace-api.php');
 const writes=s=>personal(s).filter(c=>!['snapshot','list','operation'].includes(c.action));
@@ -42,13 +44,21 @@ async function capture(page,browserName,profile,height,testInfo){
  await testInfo.attach(name,{body:image,contentType:'image/png'});
 }
 async function geometry(page){return page.evaluate(()=>{
- const item=document.querySelector('#inboxList .leadItem'),preview=item.querySelector('.leadPreview'),list=document.querySelector('#inboxList'),head=document.querySelector('.inboxHead'),star=item.querySelector('[data-pw-pin]'),meta=item.querySelector('.m2ChatMeta');
- const r=el=>el.getBoundingClientRect(),box=r(item),p=r(preview),s=r(star),m=meta&&r(meta),line=parseFloat(getComputedStyle(preview).lineHeight),hit=document.elementFromPoint(s.x+s.width/2,s.y+s.height/2);
- return {inboxWidth:r(document.querySelector('.inboxZone')).width,headerHeight:r(head).height,listHeight:r(list).height,rowHeight:box.height,previewHeight:p.height,lineHeight:line,
-  starWidth:s.width,starHeight:s.height,starHit:hit===star||star.contains(hit),overflow:document.documentElement.scrollWidth-innerWidth,
-  contained:s.left>=box.left&&s.right<=box.right+1&&s.top>=box.top&&s.bottom<=box.bottom+1&&p.right<=box.right+1&&(!m||m.right<=box.right+1),
+ const item=document.querySelector('#inboxList .leadItem'),preview=item.querySelector('.leadPreview'),list=document.querySelector('#inboxList'),head=document.querySelector('.inboxHead'),meta=item.querySelector('.m2ChatMeta');
+ const r=el=>el.getBoundingClientRect(),box=r(item),p=r(preview),m=meta&&r(meta),line=parseFloat(getComputedStyle(preview).lineHeight),paddingRight=parseFloat(getComputedStyle(item).paddingRight);
+ return {inboxWidth:r(document.querySelector('.inboxZone')).width,headerHeight:r(head).height,listHeight:r(list).height,rowHeight:box.height,previewHeight:p.height,previewWidth:p.width,lineHeight:line,
+  previewRightGap:box.right-paddingRight-p.right,overflow:document.documentElement.scrollWidth-innerWidth,
+  contained:p.right<=box.right+1&&p.left>=box.left&&(!m||m.right<=box.right+1),
   counters:[...document.querySelectorAll('.queueTabs button[data-q] .queueCount')].map(el=>{const b=r(el),parent=r(el.closest('button'));return b.left>=parent.left-1&&b.right<=parent.right+1&&b.top>=parent.top-1&&b.bottom<=parent.bottom+1}),
   signals:[...item.querySelectorAll('.m2ChannelBadge,.leadReplyStatus,.unreadBadge,.leadActivityTime')].map(el=>{const b=r(el);return {name:el.className,visible:b.width>0&&b.height>0&&b.left>=box.left&&b.right<=box.right+1}})};
+})}
+async function noInboxStars(page){
+ await expect(page.locator('#inboxList [data-pw-pin]')).toHaveCount(0);
+ for(const marker of await page.locator('#inboxList .pwMarkerPin').all())await expect(marker).not.toBeVisible();
+}
+async function headerGeometry(page){return pin(page).evaluate(el=>{
+ const box=el.getBoundingClientRect(),name=document.querySelector('#conversationTitle').getBoundingClientRect(),hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2),style=getComputedStyle(el);
+ return {width:box.width,height:box.height,fontSize:parseFloat(style.fontSize),hit:hit===el||el.contains(hit),sameLine:Math.abs((box.top+box.height/2)-(name.top+name.height/2))<=6,nearName:box.left>=name.right-1&&box.left-name.right<=16};
 })}
 const profiles=[
  {width:390,font:'normal',density:'comfortable',groups:0},{width:390,font:'normal',density:'compact',groups:1},
@@ -60,10 +70,9 @@ const profiles=[
 for(const profile of profiles)test(`compact Inbox same data ${profile.width} ${profile.font} ${profile.density} ${profile.groups} groups`,async({page,browserName},testInfo)=>{
  await page.setViewportSize({width:profile.width,height:900});const s=await setup(page,{state:stateFor(profile),rows:rows()});await settled(page,s);
  for(const height of [900,420]){
-  await page.setViewportSize({width:profile.width,height});await expect(pin(page)).toHaveAttribute('aria-pressed','true');
+  await page.setViewportSize({width:profile.width,height});await noInboxStars(page);await expect(page.locator('#m2ConversationPin')).toHaveCount(0);
   const g=await geometry(page);console.log('INBOX_COMPACT '+JSON.stringify({...profile,height,...g}));
-  expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);expect(g.starHit).toBe(true);
-  expect(g.starWidth).toBeGreaterThanOrEqual(44);expect(g.starHeight).toBeGreaterThanOrEqual(44);
+  expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);expect(Math.abs(g.previewRightGap),'Message preview must reclaim the former star column').toBeLessThanOrEqual(1);
   expect(g.previewHeight).toBeGreaterThan(g.lineHeight*1.5);expect(g.previewHeight).toBeLessThanOrEqual(g.lineHeight*2+1);
   expect(g.counters).toHaveLength(2);expect(g.counters.every(Boolean),'Queue counters must stay inside their native button').toBe(true);
   expect(g.signals).toHaveLength(4);expect(g.signals.every(signal=>signal.visible)).toBe(true);
@@ -89,31 +98,32 @@ for(const width of [390,1440])test(`compact Inbox admin keeps channel owner urge
  await capture(page,browserName,profile,420,testInfo);clean(s);
 });
 
-for(const width of [390,1440])test(`direct favorite pointer Enter Space never opens or reads a dialogue ${width}`,async({page})=>{
+for(const width of [390,1440])test(`header favorite pointer Enter Space adds no conversation or read request ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});const s=await setup(page,{state:stateFor({pinned:false}),rows:rows()});await settled(page,s);
- const before=s.calls.length;
+ await noInboxStars(page);await openConversation(page);await settled(page,s);const before=s.calls.length;
+ const g=await headerGeometry(page);expect(g.width).toBeGreaterThanOrEqual(44);expect(g.height).toBeGreaterThanOrEqual(44);expect(g.hit&&g.sameLine&&g.nearName).toBe(true);
  for(const [activate,pressed]of[['click',true],['Enter',false],['Space',true]]){
-  const star=pin(page);await expect(star).toBeVisible();await expect(star).toHaveAccessibleDescription(longName);if(activate==='click')await star.click();else{await star.focus();await star.press(activate)}
+  const star=pin(page);await expect(star).toBeVisible();await expect(star).toHaveAccessibleDescription(new RegExp(longName));if(activate==='click')await star.click();else{await star.focus();await star.press(activate)}
   await expect(pin(page)).toHaveAttribute('aria-pressed',String(pressed));await expect(pin(page)).toBeFocused();
-  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);
+  expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);await noInboxStars(page);
  }
  await settled(page,s);expect(writes(s)).toHaveLength(3);expect(writes(s).map(c=>c.enabled)).toEqual([true,false,true]);
  expect(new Set(writes(s).map(c=>c.operation_id)).size).toBe(3);expect(s.calls.slice(before).filter(c=>c.action==='detail'||/read|seen/.test(c.action||''))).toEqual([]);
  await expect(row(page)).toHaveAttribute('role','listitem');await expect(row(page).locator('.m2RowOpen')).toHaveJSProperty('tagName','BUTTON');
- expect(await row(page).locator('.m2RowOpen button').count()).toBe(0);await expect(row(page).locator('.unreadBadge')).toHaveText('999');clean(s);
+ expect(await row(page).locator('.m2RowOpen button').count()).toBe(0);clean(s);
 });
 
-test('direct favorite unknown receipt is visible and checked once without repeating the write',async({page})=>{
- const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),writeResult:'unknown'});await settled(page,s);await pin(page).click();
- const control=row(page).locator('.pwDirectPinControl');await expect(control.locator('.pwDirectPinStatus')).toBeVisible();await expect(control).toContainText(/неизвест|подтверд|уточн/i);
+test('header favorite unknown receipt is visible and checked once without repeating the write',async({page})=>{
+ const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),writeResult:'unknown'});await settled(page,s);await openConversation(page);await pin(page).click();
+ const control=pinControl(page);await expect(control.locator('.pwDirectPinStatus')).toBeVisible();await expect(control).toContainText(/неизвест|подтверд|уточн/i);
  await expect(pin(page)).toHaveAttribute('aria-pressed','false');await expect(pin(page)).toHaveAttribute('aria-disabled','true');expect(writes(s)).toHaveLength(1);
  await control.locator('[data-pw-pin-recovery="11"]').click();await expect(pin(page)).toHaveAttribute('aria-pressed','true');await expect(pin(page)).toBeFocused();
  expect(writes(s)).toHaveLength(1);expect(personal(s).filter(c=>c.action==='operation')).toHaveLength(1);expect(s.account(7).state.pins).toEqual([11]);clean(s);
 });
 
-test('direct favorite rejection stays truthful and requires an explicit retry',async({page})=>{
- const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),writeResult:'rejected'});await settled(page,s);await pin(page).click();
- const control=row(page).locator('.pwDirectPinControl');await expect(control.locator('.pwDirectPinStatus')).toBeVisible();await expect(control).toContainText(/доступ|Не удалось/);
+test('header favorite rejection stays truthful and requires an explicit retry',async({page})=>{
+ const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),writeResult:'rejected'});await settled(page,s);await openConversation(page);await pin(page).click();
+ const control=pinControl(page);await expect(control.locator('.pwDirectPinStatus')).toBeVisible();await expect(control).toContainText(/доступ|Не удалось/);
  await expect(pin(page)).toHaveAttribute('aria-pressed','false');expect(writes(s)).toHaveLength(1);expect(s.account(7).state.pins).toEqual([]);
  s.setWriteResult('success');await control.locator('[data-pw-pin-recovery="11"]').click();await expect(pin(page)).toHaveAttribute('aria-pressed','true');expect(writes(s)).toHaveLength(2);clean(s);
 });
@@ -123,18 +133,18 @@ async function recoverAccount(page,s,id){
  await page.locator('#managerAuthLogin').fill('synthetic-account');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();
 }
 test('late favorite receipt cannot leak old account state into the next account',async({page})=>{
- const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),holdWrite:true});await settled(page,s);await pin(page).click();await expect.poll(()=>writes(s).length).toBe(1);
- s.account(8).state=emptyState();s.setHoldWrite(false);await recoverAccount(page,s,8);s.releaseWrite();await settled(page,s);
+ const s=await setup(page,{state:stateFor({pinned:false}),rows:rows(),holdWrite:true});await settled(page,s);await openConversation(page);await pin(page).click();await expect.poll(()=>writes(s).length).toBe(1);
+ s.account(8).state=emptyState();s.setHoldWrite(false);await recoverAccount(page,s,8);s.releaseWrite();await settled(page,s);await openConversation(page);
  await expect(pin(page)).toHaveAttribute('aria-pressed','false');expect(s.account(7).state.pins).toEqual([11]);expect(s.account(8).state.pins).toEqual([]);expect(writes(s)).toHaveLength(1);
- await expect(row(page).locator('.pwDirectPinStatus')).not.toBeVisible();clean(s);
+ await expect(pinControl(page).locator('.pwDirectPinStatus')).not.toBeVisible();await noInboxStars(page);clean(s);
 });
 
 test('favorite remains unavailable until its account snapshot is confirmed',async({page})=>{
- const s=await setup(page,{state:stateFor(),rows:rows(),holdSnapshot:true});await expect(pin(page)).toBeDisabled();await expect(pin(page)).toHaveAttribute('aria-pressed','mixed');expect(writes(s)).toHaveLength(0);
+ const s=await setup(page,{state:stateFor(),rows:rows(),holdSnapshot:true});await openConversation(page);await expect(pin(page)).toBeDisabled();await expect(pin(page)).toHaveAttribute('aria-pressed','mixed');expect(writes(s)).toHaveLength(0);
  s.setHoldSnapshot(false);s.releaseSnapshot();await settled(page,s);await expect(pin(page)).toBeEnabled();await expect(pin(page)).toHaveAttribute('aria-pressed','true');clean(s);
 });
 
-async function activeDestinations(page){return page.locator('.m2TabRow .queueTabs button[data-q].active,.m2TabRow [data-pw-selection][aria-pressed="true"],#m2PinnedToggle[aria-pressed="true"],[data-m2-nav="archive"].active').evaluateAll(nodes=>nodes.filter(node=>node.getClientRects().length).map(node=>node.dataset.q||node.dataset.pwSelection||node.dataset.m2Nav||node.id))}
+async function activeDestinations(page){return page.locator('.m2TabRow .queueTabs button[data-q].active,.m2TabRow [data-pw-selection][aria-pressed="true"],#m2PinnedToggle[aria-pressed="true"],[data-m2-nav="archive"].active').evaluateAll(nodes=>nodes.filter(node=>node.getClientRects().length).map(node=>node.id==='m2PinnedToggle'?'pinned':node.dataset.q||node.dataset.pwSelection||node.dataset.m2Nav||node.id))}
 function silentWav(){const samples=80000,b=Buffer.alloc(44+samples*2);b.write('RIFF',0);b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(8000,24);b.writeUInt32LE(16000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(samples*2,40);return b}
 for(const width of [390,1440])test(`unified queues groups favorites archive preserve reply file and audio ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});const state=stateFor({groups:6});const wav=silentWav(),messages=[{id:1,sender_type:'customer',text:'Синтетическое аудио',created_at:'2026-10-16 08:00:00',attachments:[{type:'audio',name:'synthetic.wav',url:'data:audio/wav;base64,'+wav.toString('base64')}]}];
@@ -147,18 +157,25 @@ for(const width of [390,1440])test(`unified queues groups favorites archive pres
  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
  const choose=async(selector,active)=>{const before=listCalls(s).length;await page.locator(selector).click();await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual([active])};
  const beforeTasks=listCalls(s).length;await page.locator('[data-m2-nav="tasks"]').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeTasks+1);await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','tasks');
- const beforePicker=listCalls(s).length;await page.locator('#m2TabPicker').selectOption('queue:all');await settled(page,s);expect(listCalls(s)).toHaveLength(beforePicker+1);await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');expect(await activeDestinations(page)).toEqual(['all']);
+ const beforeQueue=listCalls(s).length;await page.locator('.m2TabRow [data-q="all"]').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeQueue+1);await expect(page.locator('.inboxHead .brand')).toHaveText('Диалоги');await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');expect(await activeDestinations(page)).toEqual(['all']);
  await choose('.m2TabRow [data-pw-selection="tab:10"]','tab:10');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
- await expect(row(page,18)).toContainText(/закрыт/i);await choose('#m2PinnedToggle','m2PinnedToggle');await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);
+ await expect(row(page,18)).toContainText(/закрыт/i);const beforeFavorites=listCalls(s).length;await page.locator('#m2PinnedToggle').click();await settled(page,s);expect(listCalls(s)).toHaveLength(beforeFavorites+1);expect(await activeDestinations(page)).toEqual(['pinned']);await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);
  await choose('[data-m2-nav="archive"]','archive');await expect(row(page,18)).toBeVisible();await choose('.m2TabRow [data-q="mine"]','mine');
  await row(page).locator('.m2RowOpen').click();await expect(page.locator('#replyText')).toHaveValue('Ответ с сохранённым файлом и аудио');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  expect(await audio.evaluate(el=>el===window.compactAudioIdentity&&!el.paused&&el.currentTime>=window.compactAudioTime)).toBe(true);await audio.evaluate(el=>el.pause());expect(writes(s)).toHaveLength(1);clean(s);
 });
 
-test('removing the last favorite returns focus to the visible favorite destination',async({page})=>{
- await page.setViewportSize({width:390,height:420});const s=await setup(page,{state:stateFor(),rows:rows()});await settled(page,s);await page.locator('#m2PinnedToggle').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);
- await pin(page).press('Enter');await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);await expect(page.locator('#m2PinnedToggle')).toBeFocused();expect(await activeDestinations(page)).toEqual(['m2PinnedToggle']);
- expect(writes(s)).toHaveLength(1);expect(writes(s)[0]).toMatchObject({action:'pin',conversation_id:11,enabled:false});clean(s);
+test('removing the last favorite keeps the open conversation and header focus',async({page})=>{
+ await page.setViewportSize({width:390,height:420});const s=await setup(page,{state:stateFor(),rows:rows()});await settled(page,s);await page.locator('#m2PinnedToggle').click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await openConversation(page);
+ await pin(page).press('Enter');await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);await expect(pin(page)).toBeFocused();await expect(pin(page)).toHaveAttribute('aria-pressed','false');expect(await activeDestinations(page)).toEqual(['pinned']);
+ await expect(page.locator('#conversationTitle')).toHaveText(longName);await noInboxStars(page);expect(writes(s)).toHaveLength(1);expect(writes(s)[0]).toMatchObject({action:'pin',conversation_id:11,enabled:false});
+ // A separate device removes the repinned item while the mobile Inbox's native
+ // opener has focus. Its empty refreshed list must return focus to the visible
+ // favorite navigation button, rather than an off-screen conversation.
+ await pin(page).click();await expect(page.locator('#inboxList .leadItem')).toHaveCount(1);await settled(page,s);await page.locator('#mobileBack').click();
+ const opener=row(page).locator('.m2RowOpen');await opener.focus();await expect(opener).toBeFocused();const account=s.account(7);account.state.pins=[];account.version++;
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);
+ const destination=page.locator('#m2PinnedToggle');await expect(destination).toBeFocused();await expect(destination).toBeInViewport();await expect(page.locator('#m2ConversationPin')).not.toBeInViewport();await noInboxStars(page);expect(writes(s)).toHaveLength(2);clean(s);
 });
 
 // The retained synthetic portrait is also used by the canonical avatar suites.
@@ -184,4 +201,36 @@ test('Alt+J still activates the canonical next attention conversation once',asyn
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11]);
  await page.locator('#conversationTitle').focus();await page.keyboard.press('Alt+j');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 1');await settled(page,s);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').map(c=>c.conversation_id)).toEqual([11,12]);expect(writes(s)).toHaveLength(0);clean(s);
+});
+
+test('one favorite entry and the full horizontal strip retain scrolling and keyboard access',async({page})=>{
+ await page.setViewportSize({width:390,height:900});const s=await setup(page,{state:stateFor({groups:6}),rows:rows(),filterQueues:true});await settled(page,s);
+ const expected=['waiting','mine','all',...Array.from({length:6},(_,i)=>'tab:'+(10+i))];
+ for(const width of [390,1440]){
+  await page.setViewportSize({width,height:900});await noInboxStars(page);
+  await expect(page.locator('#m2TabNavigator select,#m2TabPicker,.m2TabPickerControl,.m2TabPickerChevron,#m2PinnedSelection')).toHaveCount(0);
+  await expect(page.locator('.m2TabRow [data-pw-selection="pinned"]')).not.toBeVisible();await expect(page.locator('#m2PinnedToggle')).toHaveCount(1);await expect(page.locator('#m2PinnedToggle')).toBeVisible();
+  const strip=page.locator('#m2TabRow');
+  const g=await strip.evaluate(el=>{const box=el.getBoundingClientRect(),parent=el.parentElement.getBoundingClientRect(),style=getComputedStyle(el);return {fullWidth:Math.abs(box.right-parent.right)<=1&&Math.abs(box.left-parent.left)<=1,scrollable:el.scrollWidth>el.clientWidth,overflow:style.overflowX,touchAction:style.touchAction}});
+  expect(g.fullWidth,'The former square must leave no reserved strip column').toBe(true);expect(g.scrollable).toBe(true);expect(g.overflow).toBe('auto');expect(g.touchAction).not.toBe('none');
+  // Trusted horizontal wheel input exercises the browser's own scrolling; no
+  // application state or scrollLeft setter is used to reveal the final group.
+  await page.locator('.m2TabRow [data-q="waiting"]').focus();const beforeScroll=await strip.evaluate(el=>el.scrollLeft),box=await strip.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.wheel(2000,0);
+  await expect.poll(()=>strip.evaluate(el=>el.scrollLeft)).toBeGreaterThan(beforeScroll+20);
+  const last=page.locator('.m2TabRow [data-pw-selection="tab:15"]');await expect(last).toBeInViewport();let before=listCalls(s).length;await last.click();await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual(['tab:15']);
+  // The single existing favorite entry remains in the toolbar. Normal Tab
+  // reaches it; there is no second visible favorite entry in the strip.
+  await page.locator('#m2InboxSearchToggle').focus();for(let i=0;i<8&&!await page.locator('#m2PinnedToggle').evaluate(el=>document.activeElement===el);i++)await page.keyboard.press('Tab');await expect(page.locator('#m2PinnedToggle')).toBeFocused();before=listCalls(s).length;await page.keyboard.press('Enter');await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual(['pinned']);
+  // Follow the actual Tab order through every native destination. The real
+  // focusin owner reveals clipped buttons, and each Enter performs one read.
+  await page.locator('#m2WorkspaceSettings').focus();const seen=new Set();
+  for(let i=0;i<40&&seen.size<expected.length;i++){
+   await page.keyboard.press('Tab');const key=await page.evaluate(()=>{const el=document.activeElement;return el?.closest('.m2TabRow')?(el.dataset.q||el.dataset.pwSelection||''):''});
+   if(!expected.includes(key)||seen.has(key))continue;
+   const focused=page.locator(key.startsWith('tab:')||key==='pinned'?`.m2TabRow [data-pw-selection="${key}"]`:`.m2TabRow [data-q="${key}"]`);await expect(focused).toBeFocused();await expect(focused).toBeInViewport();
+   before=listCalls(s).length;await page.keyboard.press('Enter');await settled(page,s);expect(listCalls(s)).toHaveLength(before+1);expect(await activeDestinations(page)).toEqual([key]);seen.add(key);
+  }
+  expect([...seen].sort()).toEqual([...expected].sort());await noInboxStars(page);
+ }
+ expect(writes(s)).toHaveLength(0);clean(s);
 });
