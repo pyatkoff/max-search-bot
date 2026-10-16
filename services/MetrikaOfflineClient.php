@@ -7,12 +7,16 @@ require_once __DIR__.'/MaxChannelConversionOutbox.php';
 /** Existing counter/token, new ClientId CSV transport. No raw API logging. */
 final class MetrikaOfflineClient
 {
-    // Separate exact JS identifiers for channel ClientID uploads. Existing
-    // canonical stage keys and legacy YCLID goal identifiers stay unchanged.
+    // Historical wire identifiers remain valid for receipt recovery only.
     public const CHANNEL_GOALS=[
         'max_bot_activity_start'=>['target'=>'max_channel_activity_start','name'=>'MAX канал: начало общения'],
         'max_manager_reply'=>['target'=>'max_channel_manager_reply','name'=>'MAX канал: ответ менеджера'],
         'max_customer_reply_after_manager'=>['target'=>'max_channel_customer_reply_after_manager','name'=>'MAX канал: клиент ответил менеджеру'],
+    ];
+    public const SHARED_GOALS=[
+        'max_bot_activity_start'=>['id'=>'611089509','target'=>'max_bot_activity_start','name'=>'max_bot_activity_start'],
+        'max_manager_request'=>['id'=>'600725752','target'=>'max_manager_request','name'=>'max_manager_request'],
+        'max_customer_reply_after_manager'=>['id'=>'605075686','target'=>'max_customer_reply_after_manager','name'=>'max_customer_reply_after_manager'],
     ];
     private string $counter;
     private string $token;
@@ -31,16 +35,21 @@ final class MetrikaOfflineClient
     public static function csv(array $event,int $now): string
     {
         if(!MaxTrackerLookupProtocol::id($event['client_id']??null,40)
-            ||!in_array($event['target']??'',MaxChannelConversionOutbox::TARGETS,true)
+            ||!in_array($event['target']??'',MaxChannelConversionOutbox::HISTORICAL_TARGETS,true)
             ||!is_numeric($event['event_unix']??null)||(int)$event['event_unix']<=0||(int)$event['event_unix']>$now
             ||(int)$event['event_unix']<$now-21*86400)throw new InvalidArgumentException('invalid_conversion_event');
+        $allowed=[];
+        if(isset(self::CHANNEL_GOALS[$event['target']]))$allowed[]=self::CHANNEL_GOALS[$event['target']]['target'];
+        if(isset(self::SHARED_GOALS[$event['target']]))$allowed[]=self::SHARED_GOALS[$event['target']]['target'];
+        if(!in_array($event['transport_target']??null,$allowed,true))throw new InvalidArgumentException('invalid_conversion_target');
         $f=fopen('php://temp','w+');fputcsv($f,['ClientId','Target','DateTime']);
-        fputcsv($f,[$event['client_id'],self::CHANNEL_GOALS[$event['target']]['target'],(string)$event['event_unix']]);rewind($f);$csv=stream_get_contents($f);fclose($f);return $csv;
+        fputcsv($f,[$event['client_id'],$event['transport_target'],(string)$event['event_unix']]);rewind($f);$csv=stream_get_contents($f);fclose($f);return $csv;
     }
 
     public function upload(array $event,int $now): array
     {
         if(($event['counter_id']??null)!==$this->counter)throw new InvalidArgumentException('wrong_conversion_counter');
+        if(!isset(self::SHARED_GOALS[$event['target']??''])||($event['transport_target']??null)!==self::SHARED_GOALS[$event['target']]['target'])throw new InvalidArgumentException('retired_conversion_target');
         $csv=self::csv($event,$now);$result=$this->request('POST','offline_conversions/upload?type=BASIC&comment='.rawurlencode(self::comment($event)),$csv);
         $error=(int)($result['error']??0);$http=(int)($result['http']??0);
         if($error!==0)return ['outcome'=>in_array($error,[5,6,7],true)?'retry':'unknown','reason'=>in_array($error,[5,6,7],true)?'transport_not_sent':'upload_outcome_unknown'];
@@ -90,41 +99,70 @@ final class MetrikaOfflineClient
     {
         try{
             $goals=$this->readGoals();
-            foreach(self::CHANNEL_GOALS as $definition)if(count($this->exactGoals($goals,$definition['target']))!==1)return false;
+            $selected=$this->selectedGoals($goals);
+            foreach(self::SHARED_GOALS as $target=>$definition){
+                $matches=$this->exactGoals($goals,$target);
+                if(count($matches)!==1||(string)$matches[0]['id']!==$definition['id'])return false;
+                if(($selected[$target]['conditions'][0]['type']??null)!=='exact')return false;
+            }
             return true;
         }catch(Throwable $ignored){return false;}
     }
 
-    /** Explicit operator provisioning only. Never edits or deletes any goal. */
-    public function provisionChannelGoals(bool $apply=false): array
+    /** Explicit owner-selected existing IDs only: no creation, deletion or renaming. */
+    public function configureSharedGoals(bool $apply=false): array
     {
         if($this->counter!=='98615635')throw new RuntimeException('wrong_goal_counter');
-        $before=$this->readGoals();$receipts=[];$missing=[];
-        foreach(self::CHANNEL_GOALS as $definition){
-            $matches=$this->exactGoals($before,$definition['target']);
-            if(count($matches)>1)throw new RuntimeException('ambiguous_channel_goal');
-            if(count($matches)===1){$receipts[$definition['target']]=['id'=>(string)$matches[0]['id'],'created'=>false];continue;}
-            foreach($before as $existing){
-                if(($existing['name']??'')===$definition['name'])throw new RuntimeException('conflicting_channel_goal');
-                foreach((array)($existing['conditions']??[]) as $condition)if(($condition['url']??'')===$definition['target'])throw new RuntimeException('conflicting_channel_goal');
-            }
-            $receipts[$definition['target']]=['id'=>null,'created'=>false];$missing[]=$definition;
+        $before=$this->readGoals();$selected=$this->selectedGoals($before);$receipts=[];$changed=[];
+        foreach(self::SHARED_GOALS as $target=>$definition){
+            $goal=$selected[$target];$needsUpdate=$goal['conditions'][0]['type']!=='exact';
+            $receipts[$target]=['id'=>$definition['id'],'ready'=>!$needsUpdate,'updated'=>false];
         }
-        foreach($apply?$missing:[] as $definition){
-            $r=$this->request('POST','goals',null,['goal'=>['name'=>$definition['name'],'type'=>'action','conditions'=>[['type'=>'exact','url'=>$definition['target']]]]]);
-            if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)throw new RuntimeException('goal_creation_requires_readback');
-            $data=$this->decode($r);$matches=$this->exactGoals(isset($data['goal'])?[$data['goal']]:[],$definition['target']);
-            if(count($matches)!==1)throw new RuntimeException('goal_creation_requires_readback');
-            $receipts[$definition['target']]=['id'=>(string)$matches[0]['id'],'created'=>true];
+        foreach($apply?self::SHARED_GOALS:[] as $target=>$definition){
+            $goal=$selected[$target];if($goal['conditions'][0]['type']==='exact')continue;
+            // Check the exact ID again before editing; a concurrent operator change
+            // must never be overwritten with this earlier snapshot.
+            $fresh=$this->selectedGoals($this->readGoals())[$target];
+            if($this->goalSemantics($fresh)!==$this->goalSemantics($goal))throw new RuntimeException('existing_goal_changed');
+            $replacement=$goal;$replacement['conditions']=[['type'=>'exact','url'=>$target]];
+            $payload=[];foreach(['id','name','type','default_price','is_favorite','status','flag','conditions'] as $key)if(array_key_exists($key,$replacement))$payload[$key]=$replacement[$key];
+            $r=$this->request('PUT','goal/'.$definition['id'],null,['goal'=>$payload]);
+            if((int)($r['error']??0)!==0||(int)($r['http']??0)!==200)throw new RuntimeException('goal_update_requires_readback');
+            $data=$this->decode($r);$actual=$data['goal']??null;
+            if(!is_array($actual)||$this->goalSemantics($actual)!==$this->goalSemantics($replacement))throw new RuntimeException('goal_update_requires_readback');
+            $changed[$definition['id']]=$replacement;
+            $receipts[$target]=['id'=>$definition['id'],'ready'=>true,'updated'=>true];
         }
         if($apply){
-            // Real API readback also proves that every prior goal still has its
-            // original name/type/conditions. A concurrent change stops rollout.
-            $after=$this->readGoals();$byId=[];foreach($after as $g)$byId[(string)($g['id']??'')]=$g;
-            foreach($before as $g){$id=(string)($g['id']??'');if(!isset($byId[$id])||$this->goalSemantics($g)!==$this->goalSemantics($byId[$id]))throw new RuntimeException('existing_goal_changed');}
-            foreach(self::CHANNEL_GOALS as $definition)if(count($this->exactGoals($after,$definition['target']))!==1)throw new RuntimeException('goal_creation_requires_readback');
+            $after=$this->readGoals();$byId=[];foreach($after as $goal)$byId[(string)($goal['id']??'')]=$goal;
+            if(count($after)!==count($before))throw new RuntimeException('existing_goal_changed');
+            foreach($before as $goal){
+                $id=(string)($goal['id']??'');$expected=$changed[$id]??$goal;
+                if(!isset($byId[$id])||$this->goalSemantics($expected)!==$this->goalSemantics($byId[$id]))throw new RuntimeException('existing_goal_changed');
+            }
+            foreach(self::SHARED_GOALS as $target=>$definition){
+                $matches=$this->exactGoals($after,$target);
+                if(count($matches)!==1||(string)$matches[0]['id']!==$definition['id'])throw new RuntimeException('goal_update_requires_readback');
+            }
         }
-        return ['goals'=>$receipts,'existing_goals_checked'=>count($before),'existing_goals_unchanged'=>$apply,'conversion_requests'=>0];
+        return ['goals'=>$receipts,'existing_goals_checked'=>count($before),'only_selected_conditions_changed'=>$apply,'goal_writes'=>count($changed),'conversion_requests'=>0];
+    }
+
+    private function selectedGoals(array $goals): array
+    {
+        $selected=[];
+        foreach(self::SHARED_GOALS as $target=>$definition){
+            $matches=array_values(array_filter($goals,static fn($goal)=>is_array($goal)&&(string)($goal['id']??'')===$definition['id']));
+            if(count($matches)!==1)throw new RuntimeException('selected_goal_missing');
+            $goal=$matches[0];$conditions=$goal['conditions']??null;
+            if(($goal['type']??'')!=='action'||!is_string($goal['name']??null)||!is_array($conditions)||count($conditions)!==1
+                ||!in_array($conditions[0]['type']??null,['contain','exact'],true)||($conditions[0]['url']??null)!==$target)throw new RuntimeException('selected_goal_conflict');
+            foreach($goals as $other)if((string)($other['id']??'')!==$definition['id']){
+                foreach((array)($other['conditions']??[]) as $condition)if(($condition['url']??null)===$target)throw new RuntimeException('ambiguous_shared_goal');
+            }
+            $selected[$target]=$goal;
+        }
+        return $selected;
     }
 
     private function readGoals(): array
@@ -149,7 +187,7 @@ final class MetrikaOfflineClient
     private function goalSemantics(array $goal): string
     {
         $normalize=static function($value)use(&$normalize){if(is_array($value)){if(!array_is_list($value))ksort($value);foreach($value as &$v)$v=$normalize($v);unset($v);}return $value;};
-        return json_encode($normalize(['name'=>$goal['name']??null,'type'=>$goal['type']??null,'conditions'=>$goal['conditions']??null]),JSON_THROW_ON_ERROR);
+        return json_encode($normalize(array_intersect_key($goal,array_fill_keys(['id','name','type','conditions','default_price','is_favorite','status','flag','goal_source','steps'],true))),JSON_THROW_ON_ERROR);
     }
 
     private function decode(array $response): array
@@ -170,8 +208,8 @@ final class MetrikaOfflineClient
                 CURLOPT_WRITEFUNCTION=>static function($ch,string $chunk)use(&$body,&$tooLarge):int{
                     if(strlen($body)+strlen($chunk)>1048576){$tooLarge=true;return 0;}$body.=$chunk;return strlen($chunk);
                 }];
-            if($method==='POST'&&$json!==null){
-                $options[CURLOPT_POST]=true;$options[CURLOPT_POSTFIELDS]=json_encode($json,JSON_THROW_ON_ERROR);
+            if(in_array($method,['POST','PUT'],true)&&$json!==null){
+                $options[CURLOPT_CUSTOMREQUEST]=$method;$options[CURLOPT_POSTFIELDS]=json_encode($json,JSON_THROW_ON_ERROR);
                 $options[CURLOPT_HTTPHEADER][]='Content-Type: application/json';
             }elseif($method==='POST'){
                 $temp=tempnam(MaxTrackerLookupConfig::csvDirectory(),'conversion-');if($temp===false)throw new RuntimeException('private_csv_unavailable');
@@ -183,3 +221,4 @@ final class MetrikaOfflineClient
         }finally{if($ch!==null&&$ch!==false)curl_close($ch);if(is_string($temp)&&is_file($temp))unlink($temp);}
     }
 }
+

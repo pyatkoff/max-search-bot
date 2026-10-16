@@ -13,26 +13,26 @@ function maxAttributionFixture(): PDO
     foreach([
         'projects (id INTEGER PRIMARY KEY,project_key VARCHAR(64))',
         'customer_channels (id INTEGER PRIMARY KEY,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20))',
-        'conversations (id INTEGER PRIMARY KEY,customer_channel_id INTEGER,project_key VARCHAR(64),channel VARCHAR(16),external_chat_id VARCHAR(20),is_test INTEGER,status VARCHAR(16),source_id INTEGER DEFAULT 1,started_at DATETIME DEFAULT NULL)',
+        'conversations (id INTEGER PRIMARY KEY,customer_channel_id INTEGER,project_key VARCHAR(64),channel VARCHAR(16),external_chat_id VARCHAR(20),is_test INTEGER,status VARCHAR(16),source_id INTEGER DEFAULT 1,started_at DATETIME DEFAULT NULL,manager_id INTEGER DEFAULT NULL)',
         'conversation_sources (id INTEGER PRIMARY KEY,project_id INTEGER,channel VARCHAR(16),handling_mode VARCHAR(16))',
         'post_channels (id INTEGER PRIMARY KEY,project_id INTEGER,platform VARCHAR(16),bot_key VARCHAR(191))',
         'post_publications (id INTEGER PRIMARY KEY,post_channel_id INTEGER)',
         'post_entries (id INTEGER PRIMARY KEY,conversation_id INTEGER,publication_id INTEGER,created_at DATETIME)',
         'messages (id INTEGER PRIMARY KEY,conversation_id INTEGER,channel VARCHAR(16),direction VARCHAR(16),sender_type VARCHAR(16),created_at DATETIME,metadata_json TEXT)',
-        'conversation_events (id '.$pk.',conversation_id INTEGER,event_type VARCHAR(80),actor_type VARCHAR(16),payload_json TEXT)',
+        'conversation_events (id '.$pk.',conversation_id INTEGER,event_type VARCHAR(80),actor_type VARCHAR(16),actor_id INTEGER,payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
     ] as $ddl)$p->exec('CREATE TABLE '.$ddl);
-    if(!$sqlite){$p->exec(file_get_contents(dirname(__DIR__,2).'/migrations/037_max_channel_conversion_outbox.sql'));}
+    if(!$sqlite){$p->exec(file_get_contents(dirname(__DIR__,2).'/migrations/037_max_channel_conversion_outbox.sql'));$p->exec(file_get_contents(dirname(__DIR__,2).'/migrations/038_max_channel_shared_goals.sql'));}
     else{
-        $p->exec('CREATE TABLE max_channel_attribution_settings (project_key TEXT PRIMARY KEY,mode TEXT,counter_id TEXT,activated_at_unix INTEGER,message_cursor INTEGER DEFAULT 0)');
-        $p->exec("INSERT INTO max_channel_attribution_settings VALUES ('anytour','off','98615635',NULL,0)");
-        $p->exec('CREATE TABLE max_channel_conversion_outbox (id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT \'pending\',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT \'\',UNIQUE(project_key,conversation_id,target))');
+        $p->exec("CREATE TABLE max_channel_attribution_settings (project_key TEXT PRIMARY KEY,mode TEXT,counter_id TEXT,activated_at_unix INTEGER,message_cursor INTEGER DEFAULT 0,goal_set TEXT DEFAULT 'channel',shared_goals_activated_at_unix INTEGER,shared_goals_event_id INTEGER DEFAULT 0,request_event_cursor INTEGER DEFAULT 0)");
+        $p->exec("INSERT INTO max_channel_attribution_settings(project_key,mode,counter_id,activated_at_unix,message_cursor) VALUES ('anytour','off','98615635',NULL,0)");
+        $p->exec('CREATE TABLE max_channel_conversion_outbox (id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT \'pending\',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT \'\',UNIQUE(project_key,conversation_id,target))');
     }
     $p->exec("INSERT INTO projects VALUES(1,'anytour'),(2,'other')");
     $p->exec("INSERT INTO customer_channels VALUES(1,'anytour','max','1234567890123456789'),(2,'anytour','telegram','1234567890123456789'),(3,'other','max','1234567890123456789')");
     $p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status) VALUES(1,1,'anytour','max','-1234567890123456789',0,'waiting_manager'),(2,2,'anytour','telegram','-1234567890123456789',0,'waiting_manager'),(3,3,'other','max','-1234567890123456789',0,'waiting_manager'),(4,1,'anytour','max','-1234567890123456789',1,'waiting_manager'),(5,1,'anytour','max','-1234567890123456788',0,'waiting_manager'),(6,1,'anytour','max','-1234567890123456789',0,'waiting_manager')");
     $p->exec("INSERT INTO conversation_sources VALUES(1,1,'max','bot'),(2,1,'max','manager'),(3,2,'max','manager')");
     $p->exec("UPDATE conversations SET started_at='2026-10-15 10:00:00'");
-    $p->exec("INSERT INTO conversations VALUES(7,1,'anytour','max','-1234567890123456789',0,'waiting_manager',2,'2026-10-15 10:00:00')");
+    $p->exec("INSERT INTO conversations(id,customer_channel_id,project_key,channel,external_chat_id,is_test,status,source_id,started_at) VALUES(7,1,'anytour','max','-1234567890123456789',0,'waiting_manager',2,'2026-10-15 10:00:00')");
     $p->exec("INSERT INTO post_channels VALUES(1,1,'max','id9704048781_1_bot'),(2,1,'max','other_bot'),(3,2,'max','id9704048781_1_bot')");
     $p->exec('INSERT INTO post_publications VALUES(1,1),(2,2),(3,3)');
     foreach([1,2,3,4,5] as $id)$p->prepare('INSERT INTO post_entries VALUES(?,?,1,?)')->execute([$id,$id,'2026-10-15 10:00:00']);
@@ -52,3 +52,4 @@ function maxAttributionFixture(): PDO
     foreach($messages as [$id,$direction,$sender,$time,$type])$p->prepare('INSERT INTO messages VALUES(?,1,\'max\',?,?,?,?)')->execute([$id,$direction,$sender,'2026-10-15 '.$time,json_encode(['type'=>$type])]);
     return $p;
 }
+
