@@ -120,6 +120,7 @@ return [
     ],
     'manager' => [
         'php tests/run_channel_post_registry_regression.php',
+        'php tests/run_channel_post_reconciliation_regression.php',
         'php tests/run_channel_post_max_album_recovery_regression.php',
         'php tests/run_channel_post_automation_regression.php',
         'php tests/run_channel_post_telegram_album_regression.php',

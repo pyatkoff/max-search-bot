@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ChannelPostReconciliationState.php';
 require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
 require_once __DIR__ . '/ChannelPostMemberDeliveryService.php';
 require_once __DIR__ . '/../integrations/ChannelPostIncomingAdapter.php';
@@ -66,7 +67,9 @@ final class ChannelPostRegistryService
                 if ($expectedVersion !== 0) throw new InvalidArgumentException('channel_configuration_conflict');
                 $this->execute('INSERT INTO post_channels (project_id,source_id,platform,bot_key,canonical_bot_username,channel_id,display_name,bot_url,button_text,is_enabled,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', [(int)$source['project_id'], (int)$source['id'], $platform, $bot, $username, $channelId, $displayName, $botUrl, $button, $enabled, $now, $now]);
             }
-            return $this->channel($project, $platform, $bot, $channelId, false) ?? throw new RuntimeException('channel_configuration_unavailable');
+            $configured = $this->channel($project, $platform, $bot, $channelId, false) ?? throw new RuntimeException('channel_configuration_unavailable');
+            if ($platform === 'max') (new ChannelPostReconciliationState($this->pdo))->configured((int)$configured['id'], !empty($existing['is_enabled']), $enabled === 1, (int)floor(microtime(true)*1000));
+            return $configured;
         });
     }
 
@@ -119,6 +122,27 @@ final class ChannelPostRegistryService
     /** Upsert identity, append changed content, preserve immutable previous snapshots. */
     public function registerPublication(string $projectKey, string $platform, string $botKey, string $channelId, string $messageId, array $snapshot): ?array
     {
+        return $this->registerObservation($projectKey,$platform,$botKey,$channelId,$messageId,$snapshot);
+    }
+
+    /** Provider reads are explicitly distinct from authenticated webhook events. */
+    public function registerProviderObservation(string $projectKey, string $botKey, array $channel, array $message, int $notBeforeMs): ?array
+    {
+        $stamp=$message['timestamp']??null;
+        $mid=$message['body']['mid']??null;
+        if ((!is_int($stamp)&&!is_string($stamp))||!preg_match('/\A[1-9][0-9]{0,15}\z/',(string)$stamp)||(int)$stamp<$notBeforeMs
+            ||!is_string($mid)||!preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$mid)
+            ||($message['recipient']['chat_type']??'')!=='channel'||(string)($message['recipient']['chat_id']??'')!==(string)$channel['channel_id']) return null;
+        $snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
+        if (!$snapshot) return null;
+        $snapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+        $snapshot['metadata']['source_revision_ms']=(string)$stamp;
+        $snapshot['metadata']['observation_kind']='provider_read';
+        return $this->registerObservation($projectKey,'max',$botKey,(string)$channel['channel_id'],$mid,$snapshot,(int)$channel['config_version']);
+    }
+
+    private function registerObservation(string $projectKey, string $platform, string $botKey, string $channelId, string $messageId, array $snapshot, ?int $providerConfigVersion=null): ?array
+    {
         $messageId = self::identity($messageId, 191);
         $suppliedHash = (string)($snapshot['content_hash'] ?? '');
         if ($suppliedHash !== '' && !preg_match('/\A[a-f0-9]{64}\z/D', $suppliedHash)) throw new InvalidArgumentException('invalid_post_content_hash');
@@ -128,16 +152,22 @@ final class ChannelPostRegistryService
         // Transport adapters hash stable photo IDs and exclude our own button,
         // expiring CDN URLs, access tokens and platform edit timestamps.
         $hash = $suppliedHash !== '' ? $suppliedHash : hash('sha256', self::json(self::canonicalArray($fingerprint)));
-        return $this->transaction(function () use ($projectKey, $platform, $botKey, $channelId, $messageId, $snapshot, $hash): ?array {
+        return $this->transaction(function () use ($projectKey, $platform, $botKey, $channelId, $messageId, $snapshot, $hash, $providerConfigVersion): ?array {
             // Locking reads see current MySQL state even under REPEATABLE READ.
             // The publication and its configured source commit in the same scope.
             $channel = $this->channel($projectKey, $platform, $botKey, $channelId, true, true);
-            if (!$channel) return null;
+            if (!$channel || ($providerConfigVersion !== null && (int)$channel['config_version'] !== $providerConfigVersion)) return null;
             $publication = $this->fetch('SELECT * FROM post_publications WHERE post_channel_id=? AND external_message_id=?' . $this->lock(), [(int)$channel['id'], $messageId]);
             if (!$publication) {
                 $token = 'p_' . rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
                 $this->execute('INSERT INTO post_publications (post_channel_id,source_id,external_message_id,start_payload,created_at) VALUES (?,?,?,?,?)', [(int)$channel['id'], (int)$channel['source_id'], $messageId, $token, self::now()]);
                 $publication = ['id' => (int)$this->pdo->lastInsertId(), 'current_version_id' => null];
+            }
+            $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
+            if ($providerConfigVersion !== null) {
+                if ($previous && (!hash_equals((string)$previous['content_hash'],$hash) || $previous['state'] !== 'sent'
+                    || ChannelPostIncomingAdapter::containsOnlyButton($snapshot,rtrim((string)$channel['bot_url'],'/').'?start='.rawurlencode((string)$publication['start_payload']),(string)$channel['button_text']))) return $this->publication((int)$publication['id']);
+                $snapshot['metadata']['source_event_id']='provider-read:'.hash('sha256',$messageId.'|'.$hash.'|'.($previous['id']??'new'));
             }
             $sourceEvent = (string)($snapshot['metadata']['source_event_id'] ?? '');
             $sourceEventKey = $sourceEvent !== '' ? hash('sha256', $sourceEvent) : null;
@@ -149,7 +179,6 @@ final class ChannelPostRegistryService
                     return $result;
                 }
             }
-            $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
             $album = $platform === 'telegram' && str_starts_with($messageId, 'group:') && ChannelPostTelegramAlbum::isAlbum($snapshot);
             $albumOperation = ['state' => 'pending', 'write_attempts' => 0, 'receipt' => [], 'reason' => ''];
             if ($album) {
@@ -165,7 +194,7 @@ final class ChannelPostRegistryService
                 $hash = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', (string)$channel['bot_url']);
                 if ($previous) $albumOperation = ChannelPostTelegramAlbum::successorOperation($previous + ['snapshot' => $priorSnapshot], $snapshot, (bool)$merged['anchor_event']);
             }
-            if ($previous && !$album) {
+            if ($previous && !$album && $providerConfigVersion === null) {
                 $priorSnapshot = json_decode((string)$previous['snapshot_json'], true) ?: [];
                 $incomingTime = self::revisionTime($snapshot);
                 $priorTime = self::revisionTime($priorSnapshot);
@@ -215,7 +244,7 @@ final class ChannelPostRegistryService
             $incomingSequence = $platform === 'telegram' ? self::telegramSequence($snapshot) : null;
             $clockTime = (int)($publication['observed_revision_ms'] ?? 0);
             $clockSequence = $platform === 'telegram' ? self::validSequence($publication['telegram_sequence'] ?? null) : null;
-            if ($incomingTime > 0 && ($incomingTime > $clockTime || ($incomingTime === $clockTime && $incomingSequence !== null && ($clockSequence === null || self::compareSequence($incomingSequence, $clockSequence) > 0)))) {
+            if (($providerConfigVersion === null || !$previous) && $incomingTime > 0 && ($incomingTime > $clockTime || ($incomingTime === $clockTime && $incomingSequence !== null && ($clockSequence === null || self::compareSequence($incomingSequence, $clockSequence) > 0)))) {
                 $this->execute('UPDATE post_publications SET observed_revision_ms=?,telegram_sequence=? WHERE id=?', [$incomingTime, $incomingSequence, (int)$publication['id']]);
             }
             $result = $this->publication((int)$publication['id']);
@@ -250,11 +279,11 @@ final class ChannelPostRegistryService
     }
 
     /** The lease protects work, while write_attempts protects against ambiguous retry. */
-    public function pendingPublications(string $projectKey, string $platform, string $botKey, int $limit = 5): array
+    public function pendingPublications(string $projectKey, string $platform, string $botKey, int $limit = 5, bool $expireLeases = true): array
     {
         $limit = max(1, min(25, $limit));
         $cutoff = gmdate('Y-m-d H:i:s', time() - self::LEASE_SECONDS);
-        $this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason='claim_expired',updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=?) AND state IN ('claimed','write_started') AND claimed_at<?", [self::now(), $projectKey, $platform, $botKey, $cutoff]);
+        if($expireLeases)$this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason='claim_expired',updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=?) AND state IN ('claimed','write_started') AND claimed_at<?", [self::now(), $projectKey, $platform, $botKey, $cutoff]);
         $query = $this->pdo->prepare("SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id JOIN conversation_sources s ON s.id=pp.source_id AND s.id=pc.source_id AND s.project_id=pc.project_id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.is_enabled=1 AND p.is_active=1 AND s.is_active=1 AND s.channel=pc.platform AND s.handling_mode IN ('manager','ask') AND v.state IN ('pending','unknown') ORDER BY CASE WHEN v.state='pending' THEN 0 ELSE 1 END ASC,v.id ASC LIMIT " . $limit);
         $query->execute([$projectKey, $platform, $botKey]);
         $rows = [];

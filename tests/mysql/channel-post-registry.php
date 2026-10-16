@@ -25,7 +25,7 @@ $pdo->exec("CREATE TABLE conversations (id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
 $pdo->exec("CREATE TABLE conversation_events (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,conversation_id BIGINT UNSIGNED NOT NULL,event_type VARCHAR(64) NOT NULL,actor_type VARCHAR(32),payload_json LONGTEXT,created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (conversation_id) REFERENCES conversations(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 $runner = new MigrationRunner(dirname(__DIR__, 2) . '/migrations', $pdo);
 $splitter = new ReflectionMethod(MigrationRunner::class, 'splitStatements');
-foreach (['033_channel_post_context.sql', '036_channel_post_member_delivery.sql'] as $migrationFile) {
+foreach (['033_channel_post_context.sql', '036_channel_post_member_delivery.sql', '040_channel_post_reconciliation.sql'] as $migrationFile) {
     $migration = (string)file_get_contents(dirname(__DIR__, 2) . '/migrations/' . $migrationFile);
     foreach ($splitter->invoke($runner, $migration) as $statement) $pdo->exec($statement);
 }
@@ -47,8 +47,8 @@ function nativePostConstraint(callable $operation): bool
     try { $operation(); } catch (PDOException $error) { return (string)$error->getCode() === '23000'; }
     return false;
 }
-nativePostCheck('actual forward migration creates all private channel tables on native MySQL', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('post_channels','post_publications','post_versions','post_observations','post_entries','post_member_deliveries')")->fetchColumn() === 6);
-nativePostCheck('all migrated tables use InnoDB with real foreign keys', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name LIKE 'post_%' AND engine='InnoDB'")->fetchColumn() === 6 && (int)$pdo->query("SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema=DATABASE() AND table_name LIKE 'post_%'")->fetchColumn() === 11);
+nativePostCheck('actual forward migration creates all private channel tables on native MySQL', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('post_channels','post_publications','post_versions','post_observations','post_entries','post_member_deliveries','post_channel_reconciliation')")->fetchColumn() === 7);
+nativePostCheck('all migrated tables use InnoDB with real foreign keys', (int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name LIKE 'post_%' AND engine='InnoDB'")->fetchColumn() === 7 && (int)$pdo->query("SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema=DATABASE() AND table_name LIKE 'post_%'")->fetchColumn() === 12);
 $pdo->exec("INSERT INTO projects VALUES (1,'anytour','AnyTour',1),(2,'foreign','Foreign',1)");
 $pdo->exec("INSERT INTO conversation_sources VALUES (11,1,'max_anytour_msk1','Москва','max',1,'manager'),(12,1,'tg_anytour_msk','ТГ Москва','telegram',1,'ask'),(13,1,'max_other','Другой','max',1,'manager'),(14,1,'max_ai','ИИ','max',1,'ai'),(21,2,'max_anytour_msk1','Чужой','max',1,'manager')");
 $pdo->exec("INSERT INTO conversations (id,project_key,channel,status,manager_id,source_id,external_chat_id) VALUES (100,'anytour','max','manager',77,11,'501'),(101,'anytour','telegram','waiting_manager',NULL,12,'502'),(102,'anytour','max','waiting_manager',NULL,11,'503'),(200,'foreign','max','ai',NULL,21,'504')");
@@ -168,5 +168,32 @@ $nativeAlbumRegister($nativeAlbumSnapshot('903',902));
 nativePostCheck('native next member never resets an ambiguous cleanup to writable', $otherRegistry->memberDelivery()->claim($nativeAlbum['publication_id']) === null && $registry->publication($nativeAlbum['publication_id'])['state']==='unknown');
 $nativeAlbumRegister($nativeAlbumSnapshot('902',903));
 nativePostCheck('native clean exact-member event resolves the group without another edit', $registry->publication($nativeAlbum['publication_id'])['state']==='sent' && !$nativeMembers->finish($nativeClear,'unknown','late',[]));
+
+// Actual rollout seed/retry and independent-connection discovery fences.
+$pdo->exec('DELETE FROM post_channel_reconciliation');
+$rollout=(string)file_get_contents(dirname(__DIR__,2).'/migrations/040_channel_post_reconciliation.sql');
+foreach($splitter->invoke($runner,$rollout)as $statement)$pdo->exec($statement);
+$seed=$pdo->query('SELECT * FROM post_channel_reconciliation')->fetch();
+nativePostCheck('actual040 rollout seeds only already-enabled MAX channels from the rollout time', $seed!==false && (int)$pdo->query('SELECT COUNT(*) FROM post_channel_reconciliation')->fetchColumn()===1 && (int)$seed['enabled_since_ms']>=(int)floor(microtime(true)*1000)-10000 && $seed['completed_through_ms']===$seed['enabled_since_ms']);
+$pdo->exec('UPDATE post_channel_reconciliation SET completed_through_ms=completed_through_ms+1111');
+$progress=$pdo->query('SELECT completed_through_ms FROM post_channel_reconciliation')->fetchColumn();
+foreach($splitter->invoke($runner,$rollout)as $statement)$pdo->exec($statement);
+nativePostCheck('actual040 retry preserves existing discovery progress', $pdo->query('SELECT completed_through_ms FROM post_channel_reconciliation')->fetchColumn()===$progress);
+$state=new ChannelPostReconciliationState($pdo);$otherState=new ChannelPostReconciliationState($secondPdo);$scanNow=(int)floor(microtime(true)*1000)+20000;
+$readBefore=$pdo->query('SELECT * FROM post_channel_reconciliation')->fetchAll();$state->claim('anytour','id9704048781_1_bot',$scanNow,false);
+nativePostCheck('native discovery preview is a read-only query', $readBefore===$pdo->query('SELECT * FROM post_channel_reconciliation')->fetchAll());
+$lease=$state->claim('anytour','id9704048781_1_bot',$scanNow);
+nativePostCheck('native independent connection cannot acquire a reserved discovery page', $lease!==null&&$otherState->claim('anytour','id9704048781_1_bot',$scanNow)===null);
+$currentChannel=$registry->channel('anytour','max','id9704048781_1_bot','-80095447388179');
+$registry->configureChannel($configuration+['is_enabled'=>true,'expected_version'=>(int)$currentChannel['config_version']]);
+nativePostCheck('native configuration revision invalidates the old discovery finish receipt', !$otherState->finish($lease,null));
+$currentChannel=$registry->channel('anytour','max','id9704048781_1_bot','-80095447388179');
+$provider=(require dirname(__DIR__).'/fixtures/channel_post_automation.php')['max'];$provider['timestamp']=$scanNow;$provider['body']['mid']='mid.native.discovered';
+$discovered=$registry->registerProviderObservation('anytour','id9704048781_1_bot',$currentChannel,$provider,(int)$seed['enabled_since_ms']);
+$otherDiscovered=$otherRegistry->registerProviderObservation('anytour','id9704048781_1_bot',$currentChannel,$provider,(int)$seed['enabled_since_ms']);
+nativePostCheck('native competing provider reads create one publication and one immutable version', $discovered!==null&&$otherDiscovered['publication_id']===$discovered['publication_id']&&$otherDiscovered['version_id']===$discovered['version_id']);
+$write=$registry->claimPublication($discovered['publication_id'],$discovered['version_id']);$registry->markExternalWriteStarted($discovered['publication_id'],$discovered['version_id'],$write['claim_token']);$registry->finishPublication($discovered['publication_id'],$discovered['version_id'],$write['claim_token'],'unknown');
+$stillUnknown=$otherRegistry->registerProviderObservation('anytour','id9704048781_1_bot',$currentChannel,$provider,(int)$seed['enabled_since_ms']);
+nativePostCheck('native provider discovery never resets an ambiguous provider write', $stillUnknown['state']==='unknown'&&$stillUnknown['version_id']===$discovered['version_id']&&$stillUnknown['write_attempts']===1);
 
 echo 'NATIVE CHANNEL POST MYSQL OK (' . $passed . " checks)\n";

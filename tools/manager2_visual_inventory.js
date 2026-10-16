@@ -35,7 +35,7 @@ function alwaysSpecs(browser) {
     : ['tests/visual/manager2-workspace.spec.js'];
 }
 const hash = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
-// Independently reviewed tests/** tree at bd995fb002e5dcac7a794b26d3bb777fef958962,
+// Independently reviewed tests/** tree at 81778c7efc46fcd86bb75e405e52ae9b33ac27be,
 // excluding the two leaves and only the finite CI-only selftest/manifest files
 // below. Fixtures imported from tests/fixtures or future tests subdirectories
 // are covered too. Merely running a new full donor after a
@@ -48,7 +48,9 @@ const HARNESS_CI_EXEMPTIONS = Object.freeze([
   'tests/run_manager2_visual_gate_regression.js',
   'tests/required_checks_manifest.php',
 ]);
-const reviewedHarnessDigest = 'e61c35f51cd1a11d59edff418ba3f566393e3226a229e65afb77d8bbe1440269';
+// Re-audited #980's new PHP-only channel reconciliation coverage and fixture
+// deltas: no import of either leaf and no visual dependency/command change.
+const reviewedHarnessDigest = '7ac229194548b5f803b1de65d48a7eb9d165a74f8505580baf43447ee11670c1';
 const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
   firefoxHistory:{spec:'tests/visual/manager-transcript-history.spec.js',grep:'older transport'},
   firefoxNotifications:['tests/visual/workspace-notification-diagnostics.spec.js','tests/visual/manager-browser-push-state.spec.js']});
