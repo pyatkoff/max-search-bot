@@ -204,7 +204,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .leadTitle{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .manager2 .m2ChannelBadge{flex:0 0 auto;font-size:9px;line-height:15px;padding:0 3px}
 .manager2 .leadTitleLine .leadActivityTime{flex:0 0 auto;margin-left:auto;font-size:11px;white-space:nowrap}
-.manager2 .leadPreview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:2px 0 0;line-height:1.4;max-height:2.8em;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
+.manager2 .leadPreview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;margin:2px 0 0;line-height:1.4;max-height:4.2em;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
 .manager2 .leadPrimary:has(>.unreadBadge) .leadPreview{padding-right:30px}
 .manager2 .leadPrimary>.unreadBadge{position:absolute;right:0;top:24px;min-width:18px;box-sizing:border-box;margin:0;max-width:30px}
 .manager2 .m2ChatMeta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0;margin-top:3px;line-height:1.4}
@@ -223,4 +223,4 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .conversationTitleRow .brand{flex:0 1 auto}
 .manager2 .conversationTitleRow{overflow:visible}
 .manager2.pwCompact #inboxList .leadItem{padding-top:6px;padding-bottom:6px}
-.manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2}
+.manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2;max-height:2.8em}

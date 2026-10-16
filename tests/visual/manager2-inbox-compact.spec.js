@@ -17,7 +17,7 @@ function rows(){return Array.from({length:8},(_,i)=>({
  manager_name:i===1?null:i===2?'Елизавета Александрова — очень длинное имя менеджера':'Мария',
  status:i===7?'closed':i===1?'waiting_manager':'manager',channel:['max','telegram','website'][i%3],source_id:1,
  display_name:i===0?longName:'Синтетический клиент '+i,original_display_name:'Синтетический клиент '+i,
- project_label:'AnyTour',origin_label:'Тестовый источник',last_text:'Здравствуйте! Хотим подобрать семейный отдых у моря. Нужен удобный пляж, хороший отель и перелёт без пересадок. Подскажите, пожалуйста, какие варианты есть на наши даты и какой получится бюджет за всех.',
+ project_label:'AnyTour',origin_label:'Тестовый источник',last_text:i===6?'Спасибо!':'Здравствуйте! Хотим подобрать семейный отдых у моря. Нужен удобный пляж, хороший отель и перелёт без пересадок. Подскажите, пожалуйста, какие варианты есть на наши даты и какой получится бюджет за всех.',
  last_sender_type:'customer',last_message_at:'2026-10-16 08:00:00',unread_count:i===0?999:i===3?12:0,
  awaiting_manager_reply:i===0?1:0,awaiting_first_reply:i===1?1:0,wait_age_seconds:i===1?360:0,lead_outcome:'open'
 }))}
@@ -32,10 +32,11 @@ function stateFor({font='normal',density='comfortable',groups=0,pinned=true}={})
  return state;
 }
 async function settled(page,s){await expect.poll(()=>s.pending.size).toBe(0);await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','false')}
-function clean(s){
+function clean(s,{settingsWrites=0}={}){
  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
  expect(s.calls.filter(c=>['send','send_media','set_working','set_stage','set_outcome','create_task','update_task','close'].includes(c.action))).toEqual([]);
- expect(writes(s).every(c=>c.action==='pin')).toBe(true);
+ expect(writes(s).filter(c=>c.action==='settings')).toHaveLength(settingsWrites);
+ expect(writes(s).every(c=>c.action==='pin'||settingsWrites>0&&c.action==='settings')).toBe(true);
 }
 async function capture(page,browserName,profile,height,testInfo){
  const name=`inbox-compact-${browserName}-${profile.width}x${height}-${profile.font}-${profile.density}-groups${profile.groups}${profile.role?'-'+profile.role:''}`;
@@ -52,6 +53,10 @@ async function geometry(page){return page.evaluate(()=>{
   counters:[...document.querySelectorAll('.queueTabs button[data-q] .queueCount')].map(el=>{const b=r(el),parent=r(el.closest('button'));return b.left>=parent.left-1&&b.right<=parent.right+1&&b.top>=parent.top-1&&b.bottom<=parent.bottom+1}),
   signals:[...item.querySelectorAll('.m2ChannelBadge,.leadReplyStatus,.unreadBadge,.leadActivityTime')].map(el=>{const b=r(el);return {name:el.className,visible:b.width>0&&b.height>0&&b.left>=box.left&&b.right<=box.right+1}})};
 })}
+async function shortPreview(page){
+ const g=await row(page,17).locator('.leadPreview').evaluate(el=>({height:el.getBoundingClientRect().height,line:parseFloat(getComputedStyle(el).lineHeight)}));
+ expect(Math.abs(g.height-g.line),'A short message must not reserve empty preview lines').toBeLessThanOrEqual(1);
+}
 async function noInboxStars(page){
  await expect(page.locator('#inboxList [data-pw-pin]')).toHaveCount(0);
  for(const marker of await page.locator('#inboxList .pwMarkerPin').all())await expect(marker).not.toBeVisible();
@@ -70,19 +75,30 @@ const profiles=[
 for(const profile of profiles)test(`compact Inbox same data ${profile.width} ${profile.font} ${profile.density} ${profile.groups} groups`,async({page,browserName},testInfo)=>{
  await page.setViewportSize({width:profile.width,height:900});const s=await setup(page,{state:stateFor(profile),rows:rows()});await settled(page,s);
  for(const height of [900,420]){
-  await page.setViewportSize({width:profile.width,height});await noInboxStars(page);await expect(page.locator('#m2ConversationPin')).toHaveCount(0);
+  await page.setViewportSize({width:profile.width,height});await noInboxStars(page);await expect(page.locator('#m2ConversationPin')).toHaveCount(0);await shortPreview(page);
   const g=await geometry(page);console.log('INBOX_COMPACT '+JSON.stringify({...profile,height,...g}));
   expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);expect(Math.abs(g.previewRightGap),'Message preview must reclaim the former star column').toBeLessThanOrEqual(1);
-  expect(g.previewHeight).toBeGreaterThan(g.lineHeight*1.5);expect(g.previewHeight).toBeLessThanOrEqual(g.lineHeight*2+1);
+  const lines=profile.density==='compact'?2:3;
+  expect(g.previewHeight).toBeGreaterThan(g.lineHeight*(lines-0.5));expect(g.previewHeight).toBeLessThanOrEqual(g.lineHeight*lines+1);
   expect(g.counters).toHaveLength(2);expect(g.counters.every(Boolean),'Queue counters must stay inside their native button').toBe(true);
   expect(g.signals).toHaveLength(4);expect(g.signals.every(signal=>signal.visible)).toBe(true);
   expect(g.headerHeight).toBeLessThanOrEqual(132);expect(g.listHeight).toBeGreaterThanOrEqual(height===420?220:650);
-  expect(g.rowHeight).toBeLessThanOrEqual(profile.font==='large'?138:128);
+  expect(g.rowHeight).toBeLessThanOrEqual((profile.font==='large'?138:128)+(lines-2)*g.lineHeight);
   if(profile.width===1440)expect(g.inboxWidth).toBe(306);
   await expect(row(page).locator('.unreadBadge')).toHaveText('999');await expect(row(page).locator('.m2RowOpen')).toHaveAccessibleName(new RegExp(longName));
   await capture(page,browserName,profile,height,testInfo);
  }
- expect(listCalls(s)).toHaveLength(1);expect(writes(s)).toHaveLength(0);clean(s);
+ expect(listCalls(s)).toHaveLength(1);expect(writes(s)).toHaveLength(0);
+ let settingsWrites=0;
+ if(profile.font==='large'&&(profile.density==='comfortable'||profile.width===768)){
+  const original=profile.density,other=original==='compact'?'comfortable':'compact';
+  for(const density of [other,original]){
+   await page.locator('#m2WorkspaceSettings').click();await expect(page.locator('#pwDialog')).toBeVisible();await page.locator('#pwDensity').selectOption(density);await page.locator('#pwSettingsSave').click();await expect(page.locator('#pwDialog')).toHaveAttribute('aria-busy','false');await page.locator('#pwClose').click();await settled(page,s);await shortPreview(page);
+   const lines=density==='compact'?2:3,g=await geometry(page);expect(g.previewHeight).toBeGreaterThan(g.lineHeight*(lines-0.5));expect(g.previewHeight).toBeLessThanOrEqual(g.lineHeight*lines+1);await expect(page.locator('#m2WorkspaceSettings')).toBeFocused();settingsWrites++;
+   expect(writes(s)).toHaveLength(settingsWrites);expect(writes(s).at(-1)).toMatchObject({action:'settings',settings:{density,font:profile.font}});expect(s.calls.filter(c=>c.action==='detail'||/read|seen/.test(c.action||''))).toEqual([]);
+  }
+ }
+ clean(s,{settingsWrites});
 });
 
 for(const width of [390,1440])test(`compact Inbox admin keeps channel owner urgency and unread readable ${width}`,async({page,browserName},testInfo)=>{
