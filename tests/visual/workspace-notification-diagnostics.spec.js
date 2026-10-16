@@ -15,11 +15,12 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
   });
   await page.goto(origin+'/tests/visual/workspace-v2-fixture.html');
   await page.evaluate(({working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending,nativeDeadline})=>{
+    const base=document.createElement('base');base.href='/manager/';document.head.prepend(base);
     document.querySelector('.notificationHealth').id='notificationStatus';
     window.fixturePushCalls=[];
     window.fixturePushStatus={is_working:working,notification_path_usable:false,notification_path_reason:'no_subscription'};
-    window.WorkspaceV2={S:{csrf:'synthetic'}};
-    const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=resolve;});return Promise.resolve('granted');}};
+    window.WorkspaceV2={S:{csrf:'synthetic',manager:{id:7},authGeneration:1}};
+    const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=result=>{notification.permission=result;resolve(result);};});notification.permission='granted';return Promise.resolve('granted');}};
     if(permissionPending||keyBodyPending||nativeDeadline){
       const schedule=window.setTimeout.bind(window),cancel=window.clearTimeout.bind(window);
       window.setTimeout=(callback,delay,...args)=>{const id=schedule(callback,delay,...args);const expire=()=>{cancel(id);callback(...args);};if(nativeDeadline&&delay===15000)window.fixtureExpireSubscription=expire;if(permissionPending&&delay===15000)window.fixtureExpirePermission=expire;if(keyBodyPending&&delay===10000)window.fixtureExpireKey=expire;return id;};
@@ -33,13 +34,13 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
       async subscribe(){fixturePushCalls.push('subscribe');if(backgroundPending&&!window.fixtureFinishPush)return new Promise((resolve,reject)=>{window.fixtureFinishPush=outcome=>{if(outcome==='success'){registered=true;resolve(subscription);}else reject(new DOMException('Registration failed - could not connect to push server','AbortError'));};});registered=recoverAfterAbort;throw new DOMException(recoverAfterAbort?'PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY':'Registration failed - could not connect to push server','AbortError');},
     },async showNotification(){fixturePushCalls.push('confirmation');if(!recoverAfterAbort&&!registered)throw new Error('Unexpected confirmation');if(confirmationPending)return new Promise((resolve,reject)=>{window.fixtureRejectConfirmation=()=>reject(new Error('PRIVATE_ENDPOINT_OR_KEY_NOT_FOR_DISPLAY'));});}};
     Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{
-      ready:Promise.resolve(registration),async register(){fixturePushCalls.push('register');return registration;},addEventListener(){},
+      ready:Promise.resolve(registration),async getRegistration(){fixturePushCalls.push('lookup');return registration;},async register(){fixturePushCalls.push('register');return registration;},addEventListener(){},
     }});
     window.fetch=async(url,options)=>{
       fixturePushCalls.push(String(url));
-      if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};
+      if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,...(options?.method==='POST'?{current_subscription:{notification_path_usable:registered,notification_path_reason:registered?'healthy_subscription':'no_subscription'}}:{})})};
       if(url==='push.php?action=key'){window.fixtureKeySignal=options?.signal;return {ok:true,status:200,json:async()=>{if(keyBodyPending&&!window.fixtureFinishKey)return new Promise(resolve=>{window.fixtureFinishKey=()=>resolve({ok:true,public_key:'AQ'});});return {ok:true,public_key:'AQ'};}};}
-      if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus})};}
+      if(url==='push.php'&&(recoverAfterAbort||registered)){fixturePushStatus={is_working:working,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1};return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})};}
       throw new Error('Unexpected request');
     };
   },{working,recoverAfterAbort,backgroundPending,permissionPending,keyBodyPending,confirmationPending,nativeDeadline});

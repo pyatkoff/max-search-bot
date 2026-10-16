@@ -22,7 +22,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     window.fixtureWorkers=[];
     let subscription=null;
     const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>subscription,subscribe:async options=>{subscription={options,endpoint:'https://example.invalid/synthetic-push',toJSON:()=>({endpoint:'https://example.invalid/synthetic-push',keys:{p256dh:'synthetic',auth:'synthetic'}})};return subscription}},showNotification:async()=>{}};
-    Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
+    Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{getRegistration:async url=>{if(new URL(url,document.baseURI).href!==reg.scope)throw new Error('Noncanonical registration read');return reg},register:async(url,options)=>{fixtureWorkers.push({url:new URL(url,document.baseURI).pathname,scope:new URL(options.scope,document.baseURI).pathname});return reg},ready:Promise.resolve(reg),addEventListener(){}}});
     function FakeNotification(){}FakeNotification.permission='default';FakeNotification.requestPermission=async()=>{FakeNotification.permission='granted';return 'granted'};
     Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
   },savedFilters);
@@ -76,10 +76,17 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='update_task'){Object.assign(tasks.find(t=>t.id===data.task_id),{title:data.title,due_at_utc:data.due_at});return reply({ok:true})}
       if(['set_stage','set_tags','set_outcome'].includes(data.action))return reply({ok:true});
     }
-    if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'}});
+    if(url.pathname==='/manager/push-status.php'){
+      const result={ok:true,push_status:{is_working:manager.is_working,notification_path_usable:subscribed,healthy_subscription_count:subscribed?1:0,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'}};
+      if(req.method()==='POST'){
+        expect(data).toEqual({csrf:'synthetic-csrf',endpoint:'https://example.invalid/synthetic-push'});
+        result.current_subscription={notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'};
+      }
+      return reply(result);
+    }
     if(url.pathname==='/manager/push.php'){
       if(url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
-      if(data.action==='subscribe'){subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'}})}
+      if(data.action==='subscribe'){expect(data.csrf).toBe('synthetic-csrf');expect(data.subscription.endpoint).toBe('https://example.invalid/synthetic-push');subscribed=true;return reply({ok:true,push_status:{is_working:manager.is_working,notification_path_usable:true,healthy_subscription_count:1,notification_path_reason:'healthy_subscription'},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}})}
     }
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     unexpected.push(req.method()+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);

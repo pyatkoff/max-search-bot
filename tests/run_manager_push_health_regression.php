@@ -45,10 +45,10 @@ $readsShift=strpos($panel,"hasOwnProperty.call(status,'is_working')")!==false&&s
 $separatesReachability=strpos($panel,"usable=!!status?.notification_path_usable")!==false&&strpos($panel,"workingWithoutPush=working===true&&!usable")!==false&&strpos($panel,"root.className='notificationHealth '+(usable?'ok':workingWithoutPush?'critical':'warn')")!==false;
 $honestUnknown=strpos($panel,"working===null?'Статус смены неизвестен':working?'Смена включена':'Вне смены'")!==false&&strpos($panel,"notification_path_reason:'health_check_failed',is_working:false")===false&&strpos($panel,"notification_path_reason:'session_expired',is_working:false")===false;
 mphCheck('Manager workspace keeps shift and push reachability independent',$readsShift&&$separatesReachability&&$honestUnknown);
-mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'data-enable-push')!==false && strpos($panel,"setupRequest(keyRequest,'push.php?action=key'")!==false && strpos($panel,"setupRequest(job,'push.php',{method:'POST'")!==false && strpos($panel,"workingWithoutPush?'Включить':'Настроить'")!==false && strpos($panel,'href="push-enable.php"')===false);
+mphCheck('Manager workspace offers explicit push repair path',strpos($panel,'data-enable-push')!==false && strpos($panel,"setupRequest(keyRequest,'push.php?action=key'")!==false && strpos($panel,"setupRequest(job,'push.php',{method:'POST'")!==false && strpos($panel,"Включить на этом устройстве")!==false && strpos($panel,'href="push-enable.php"')===false);
 $healthyLabel=strpos($panel,"healthy_subscription:'Уведомления включены'")!==false;
 $healthyPath=strpos($panel,"usable=!!status?.notification_path_usable")!==false;
-$criticalOverride=strpos($panel,"label=setupFailure?reasonText(reason):workingWithoutPush?'Смена без уведомлений':reasonText(reason)")!==false;
+$criticalOverride=strpos($panel,"Смена без уведомлений на этом устройстве")!==false&&strpos($panel,"local=account.current_subscription||browserStatus")!==false&&strpos($panel,"!saved.current_subscription?.notification_path_usable")!==false;
 mphCheck('Manager workspace only claims notifications enabled for healthy server path',$healthyLabel&&$healthyPath&&$criticalOverride);
 
 // Exercise the real standalone entrypoint in a fresh PHP process: the auth

@@ -87,6 +87,51 @@ class ManagerPushHealth
         }
     }
 
+    /** Read one browser subscription without exposing its endpoint or key material. */
+    public static function statusForSubscription(PDO $pdo, int $managerId, string $endpoint): array
+    {
+        $status = [
+            'notification_path_usable' => false,
+            'notification_path_reason' => 'no_subscription',
+        ];
+
+        try {
+            $table = self::tableExists($pdo, 'manager_push_subscriptions');
+            if (!self::tableExists($pdo, 'managers')) {
+                $status['notification_path_reason'] = 'managers_table_missing';
+                return $status;
+            }
+
+            $q = $pdo->prepare('SELECT is_active FROM managers WHERE id=? LIMIT 1');
+            $q->execute([$managerId]);
+            $manager = $q->fetch();
+            if (!$manager || !(int)($manager['is_active'] ?? 0)) {
+                $status['notification_path_reason'] = 'manager_inactive';
+                return $status;
+            }
+            if (!$table) {
+                $status['notification_path_reason'] = 'subscription_table_missing';
+                return $status;
+            }
+
+            $endpoint = trim($endpoint);
+            if ($endpoint === '') return $status;
+
+            $q = $pdo->prepare("SELECT CASE WHEN last_error_at IS NULL OR (last_success_at IS NOT NULL AND last_success_at>=last_error_at) THEN 1 ELSE 0 END AS notification_path_usable
+                FROM manager_push_subscriptions WHERE manager_id=? AND endpoint_hash=? LIMIT 1");
+            $q->execute([$managerId, hash('sha256', $endpoint)]);
+            $subscription = $q->fetch();
+            if (!$subscription) return $status;
+
+            $status['notification_path_usable'] = (bool)($subscription['notification_path_usable'] ?? false);
+            $status['notification_path_reason'] = $status['notification_path_usable'] ? 'healthy_subscription' : 'subscription_unhealthy';
+            return $status;
+        } catch (Throwable $e) {
+            $status['notification_path_reason'] = 'health_check_failed';
+            return $status;
+        }
+    }
+
     private static function unavailableManagerStatus(int $managerId, bool $working, string $reason, ?string $error=null): array
     {
         return [

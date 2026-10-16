@@ -252,18 +252,25 @@ test('storage failure is reported and testing while off never opts in',async({pa
 // A canonical /manager worker can serve push/audio at /manager2 without ever
 // controlling that page; <base> does not widen its scope or settle global ready.
 async function outsideScopeManager2(page){
-  const calls={key:0,save:0,feed:0},unexpected=[];
+  const calls={key:0,save:0,feed:0},unexpected=[];let subscribed=false;
   const fixture=fs.readFileSync(require('node:path').join(__dirname,'workspace-v2-fixture.html'),'utf8').replace('<head>','<head><base href="/manager/">');
   await page.route('**/*',route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.origin!==base){unexpected.push(request.url());return route.abort();}
     if(url.pathname==='/manager2/')return route.fulfill({contentType:'text/html',body:fixture});
     const reply=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
-    if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,notification_path_reason:'manager_inactive'}});
+    if(url.pathname==='/manager/push-status.php'){
+      const result={ok:true,push_status:{is_working:true,notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'manager_inactive',healthy_subscription_count:subscribed?1:0}};
+      if(request.method()==='POST'){
+        expect(request.postDataJSON()).toEqual({csrf:'synthetic-csrf',endpoint:'https://push.example.invalid/synthetic'});
+        result.current_subscription={notification_path_usable:subscribed,notification_path_reason:subscribed?'healthy_subscription':'no_subscription'};
+      }
+      return reply(result);
+    }
     if(url.pathname==='/manager/push.php'&&url.searchParams.get('action')==='key'){calls.key++;return reply({ok:true,public_key:'AQ',csrf:'synthetic-csrf'});}
     if(url.pathname==='/manager/push.php'&&request.method()==='POST'){
-      const body=request.postDataJSON();expect(body.action).toBe('subscribe');expect(body.csrf).toBe('synthetic-csrf');calls.save++;
-      return reply({ok:true,push_status:{is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1}});
+      const body=request.postDataJSON();expect(body.action).toBe('subscribe');expect(body.csrf).toBe('synthetic-csrf');expect(body.subscription.endpoint).toBe('https://push.example.invalid/synthetic');calls.save++;subscribed=true;
+      return reply({ok:true,push_status:{is_working:true,notification_path_usable:true,notification_path_reason:'healthy_subscription',healthy_subscription_count:1},current_subscription:{notification_path_usable:true,notification_path_reason:'healthy_subscription'}});
     }
     if(url.pathname==='/manager/notification-events.php'){calls.feed++;return reply({ok:true,manager_id:7,cursor:100,events:[],has_more:false});}
     if(url.pathname.endsWith('.php')){unexpected.push(request.method()+' '+url.pathname);return route.abort();}
@@ -280,7 +287,7 @@ async function outsideScopeManager2(page){
     Object.defineProperty(Notification,'permission',{configurable:true,get:()=> 'granted'});
     if(!window.PushManager)window.PushManager=function(){};
     window.nativePushCalls={read:0,subscribe:0};let subscription=null;
-    const manager={async getSubscription(){nativePushCalls.read++;return subscription;},async subscribe(options){nativePushCalls.subscribe++;subscription={options,toJSON(){return{endpoint:'https://push.example.invalid/synthetic',keys:{p256dh:'synthetic',auth:'synthetic'}};}};return subscription;}};
+    const manager={async getSubscription(){nativePushCalls.read++;return subscription;},async subscribe(options){nativePushCalls.subscribe++;subscription={endpoint:'https://push.example.invalid/synthetic',options,toJSON(){return{endpoint:this.endpoint,keys:{p256dh:'synthetic',auth:'synthetic'}};}};return subscription;}};
     Object.defineProperty(ServiceWorkerRegistration.prototype,'pushManager',{configurable:true,get:()=>manager});
   });
   await page.addScriptTag({url:base+'/manager/assets/workspace-v2.js'});

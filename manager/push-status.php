@@ -9,5 +9,18 @@ ManagerHttp::startJson();
 ManagerHttp::requireManager();
 $managerId=ManagerHttp::managerId();
 
-$status=ManagerPushHealth::statusForManager(ConversationDb::connection(),$managerId);
-ManagerHttp::respond(['ok'=>true,'push_status'=>$status]);
+$endpoint=null;
+if(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
+    $data=ManagerHttp::body();
+    ManagerHttp::requireCsrf($data);
+    if(!is_string($data['endpoint']??null)||trim($data['endpoint'])===''){
+        ManagerHttp::respond(['ok'=>false,'error'=>'invalid_endpoint'],422);
+    }
+    $endpoint=trim($data['endpoint']);
+}
+
+$pdo=ConversationDb::connection();
+$status=ManagerPushHealth::statusForManager($pdo,$managerId);
+$response=['ok'=>true,'push_status'=>$status];
+if($endpoint!==null)$response['current_subscription']=ManagerPushHealth::statusForSubscription($pdo,$managerId,$endpoint);
+ManagerHttp::respond($response);
