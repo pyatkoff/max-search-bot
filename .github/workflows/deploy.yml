@@ -158,7 +158,9 @@ jobs:
             after="$(mktemp)"
             crontab -l >"$before"
             cp "$before" "$after"
-            sed -i -E "/# max-search-bot channel post recovery/d;/channel_post_worker\\.php.*--platform=max.*--reconcile/d" "$after"
+            sed -i "/^# max-search-bot channel post recovery$/d" "$after"
+            grep -F -v "$root/tools/channel_post_worker.php --platform=max --run --reconcile" "$after" >"$after.filtered" || [[ "$?" == "1" ]]
+            mv "$after.filtered" "$after"
             {
               echo "# max-search-bot channel post recovery"
               echo "* * * * * flock -n /tmp/max-search-channel-post-cron.lock /usr/bin/php $root/tools/channel_post_worker.php --platform=max --run --reconcile >/dev/null 2>&1"
