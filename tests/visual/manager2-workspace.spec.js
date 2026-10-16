@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false}={}){
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false;
@@ -16,6 +16,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
+  if(replyAudio)messages[0].attachments=[{type:'audio',name:'Тестовое аудио',url:replyEditorAudio()}];
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
   const rows=()=>[11,12].map((id,i)=>({...conversation(id),can_edit_pipeline:!otherOwner,project_label:'AnyTour',origin_label:'TG · реклама',trip_summary:'Москва → Турция · 2 взрослых и ребёнок · 7–9 ночей',lead_stage:stages[1],lead_outcome:'open',unread_count:i?0:2,last_text:'Ждём варианты у моря',last_sender_type:'customer',last_message_at:'2026-10-13 12:00:00',next_task_id:21,next_task_title:tasks.find(t=>t.status==='open')?.title||'',next_task_due_state:'today',operational_task_due_state:'overdue',next_task_due_at_utc:'2026-10-14 07:00:00',next_task_pinned:1,contact_phone:'+7 999 123-45-67'}));
@@ -431,4 +432,187 @@ test('Manager2 lifecycle late completion respects desktop navigation and mobile 
   await page.setViewportSize({width:430,height:900});const s=await setup(page);await openLead(page,12);await page.locator('#replyText').fill('Сохранённый ответ второму клиенту');await page.locator('#replyFile').setInputFiles({name:'B.txt',mimeType:'text/plain',buffer:Buffer.from('B fixture')});await openLead(page,11);
   let release;const held=new Promise(resolve=>{release=resolve});s.setLifecycleHandler(()=>held);await lifecycleAction(page,'Закрыть обращение');await expect.poll(()=>lifecycleMutations(s).length).toBe(1);
   await page.locator('#mobileBack').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox');await openLead(page,12);release({body:{ok:true}});await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Сохранённый ответ второму клиенту');await expect(page.locator('#mediaSelection')).toContainText('B.txt');await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');await expect(lifecycleNotice(page)).toHaveCount(0);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+const editorText=Array.from({length:12},(_,i)=>'Абзац '+(i+1)+'. Подобрали отдых у моря, уточните удобное время вылета.').join('\n');
+function replyEditorAudio(){
+  const size=8000*8,wav=Buffer.alloc(44+size,128);
+  wav.write('RIFF');wav.writeUInt32LE(36+size,4);wav.write('WAVEfmt ',8);wav.writeUInt32LE(16,16);
+  wav.writeUInt16LE(1,20);wav.writeUInt16LE(1,22);wav.writeUInt32LE(8000,24);wav.writeUInt32LE(8000,28);
+  wav.writeUInt16LE(1,32);wav.writeUInt16LE(8,34);wav.write('data',36);wav.writeUInt32LE(size,40);
+  return 'data:audio/wav;base64,'+wav.toString('base64');
+}
+async function editorReady(page){
+  await expect(page.locator('#replyText')).toBeEnabled();
+  await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead)).toBe(true);
+  await expect(page.locator('.qrToolbarEmpty')).toHaveText('Добавьте свои быстрые ответы');
+}
+async function editorGeometry(page){
+  return page.locator('#replyText').evaluate(el=>{
+    const css=getComputedStyle(el),rect=el.getBoundingClientRect();
+    return {height:rect.height,width:rect.width,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom))/parseFloat(css.lineHeight)};
+  });
+}
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
+test('Manager2 reply editor grows and preserves its native draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const s=await setup(page,{replyAudio:viewport.width===1440});await openLead(page);await editorReady(page);
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
+  await reply.fill('Здравствуйте!');const short=await editorGeometry(page);
+  await reply.fill(editorText);
+  await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
+  const grown=await editorGeometry(page);
+  const latest=await page.evaluate(()=>{const box=document.querySelector('#messages'),gap=()=>box.scrollHeight-box.clientHeight-box.scrollTop;WorkspaceV2Jump.scrollToLatest();const before=gap();WorkspaceV2ReplyEditor.resize();return {before,after:gap()}});
+  expect(latest.before).toBeLessThanOrEqual(2);expect(latest.after).toBeLessThanOrEqual(2);
+  expect(grown.lines).toBeGreaterThanOrEqual(viewport.height>540?5.9:2);
+  expect(grown.width).toBeGreaterThan(viewport.width<740?viewport.width-50:500);
+  await page.locator('#replyFile').setInputFiles({name:'Длинное название выбранного файла для клиента.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await page.locator('#mediaSelection .mediaSelectedItem').waitFor();
+  if(viewport.width===1440){
+    await page.locator('#messages audio').evaluate(async audio=>{audio.muted=true;audio.loop=true;await audio.play()});
+    await page.locator('#messages').evaluate(el=>{el.dispatchEvent(new WheelEvent('wheel',{deltaY:-300}));el.scrollTop=100;el.dispatchEvent(new Event('scroll'))});
+    await expect(page.locator('#jumpToLatest')).toBeVisible();
+  }
+  await reply.evaluate(el=>{
+    el.focus({preventScroll:true});el.setSelectionRange(14,58,'backward');
+    window.editorNativeProof={form:document.querySelector('#composer'),reply:el,file:document.querySelector('#replyFile'),preview:document.querySelector('#mediaSelection .mediaSelectedItem'),message:document.querySelector('#messages .msg'),start:el.selectionStart,end:el.selectionEnd,direction:el.selectionDirection};
+    const proof=window.editorNativeProof,box=document.querySelector('#messages');
+    proof.audio=box.querySelector('audio');proof.audioTime=proof.audio?.currentTime;
+    proof.anchor=[...box.children].find(row=>row.getBoundingClientRect().bottom>box.getBoundingClientRect().top+1);
+    proof.anchorOffset=proof.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top;
+  });
+  await capture(page,browserName,viewport.width,'reply-inline-'+viewport.height);
+  const requests=s.calls.length,historySize=await page.evaluate(()=>history.length);
+  if(viewport.width===390&&viewport.height===900){
+    // Reduced visual area without resizing the layout viewport, as with a soft
+    // keyboard. This is geometry emulation, not physical iPhone evidence.
+    await page.evaluate(()=>{Object.defineProperty(visualViewport,'height',{configurable:true,value:360});visualViewport.dispatchEvent(new Event('resize'))});
+    await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
+    await page.locator('#m2ReplyExpand').scrollIntoViewIfNeeded();
+    expect(await page.locator('#m2ReplyExpand').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
+  }
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();
+  await expect(page.locator('#m2ReplyExpand')).toHaveAttribute('aria-expanded','true');
+  if(viewport.width===390&&viewport.height===900){
+    await page.locator('#sendReply').scrollIntoViewIfNeeded();
+    expect(await page.locator('#sendReply').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
+    expect(await page.locator('#m2ReplyCollapse').evaluate(el=>el.getBoundingClientRect().bottom)).toBeLessThanOrEqual(360);
+    await page.evaluate(()=>{delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'))});
+    await expect.poll(()=>dialog.evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(700);
+    await reply.focus();
+  }
+  await expect(page.locator('#m2ReplyEditorRecipient')).toHaveText('Анна Морозова · TELEGRAM');
+  await expect(reply).toBeFocused();await expect(reply).toHaveValue(editorText);
+  expect(await page.evaluate(()=>history.length)).toBe(historySize+1);
+  const expanded=await editorGeometry(page);expect(expanded.height).toBeGreaterThan(grown.height);
+  const intact=()=>page.evaluate(()=>{
+    const p=window.editorNativeProof,r=document.querySelector('#replyText');
+    return {same:r===p.reply&&document.querySelector('#composer')===p.form&&document.querySelector('#replyFile')===p.file&&document.querySelector('#mediaSelection .mediaSelectedItem')===p.preview&&document.querySelector('#messages .msg')===p.message,selection:[r.selectionStart,r.selectionEnd,r.selectionDirection],expected:[p.start,p.end,p.direction]};
+  });
+  const opened=await intact();expect(opened.same).toBe(true);expect(opened.selection).toEqual(opened.expected);
+  const accessible=await page.evaluate(()=>['replyText','sendReply','m2ReplyCollapse','mediaSelection'].every(id=>{
+    const r=document.getElementById(id).getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1;
+  }));expect(accessible).toBe(true);
+  await capture(page,browserName,viewport.width,'reply-expanded-'+viewport.height);
+  await page.locator('#m2ReplyCollapse').click();await expect(dialog).not.toBeVisible();await expect(reply).toBeFocused();
+  await expect(page.locator('#m2ReplyExpand')).toHaveAttribute('aria-expanded','false');
+  let returned=await intact();expect(returned.same).toBe(true);expect(returned.selection).toEqual(returned.expected);
+  await expect.poll(()=>page.evaluate(()=>!!history.state?.workspaceV2Overlay)).toBe(false);
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>!!history.state?.workspaceV2Overlay)).toBe(false);
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();await page.goBack();await expect(dialog).not.toBeVisible();
+  await expect(reply).toHaveValue(editorText);returned=await intact();expect(returned.same).toBe(true);expect(returned.selection).toEqual(returned.expected);
+  if(viewport.width<=1100)await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');
+  expect(await page.evaluate(()=>history.length)).toBe(historySize+1);
+  expect(s.calls).toHaveLength(requests);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  if(viewport.width===1440){
+    await expect.poll(()=>page.evaluate(()=>{const p=editorNativeProof,a=document.querySelector('#messages audio');return a===p.audio&&!a.paused&&a.currentTime>p.audioTime})).toBe(true);
+    await expect.poll(()=>page.evaluate(()=>{const p=editorNativeProof,box=document.querySelector('#messages');return Math.abs(p.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top-p.anchorOffset)})).toBeLessThanOrEqual(2);
+  }
+  await noOverflow(page);
+});
+}
+test('Manager2 reply editor follows canonical client and account recovery boundaries',async({page})=>{
+  await page.setViewportSize({width:430,height:900});const s=await setup(page);await openLead(page);await editorReady(page);
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
+  await reply.fill('Черновик Анны');await page.locator('#replyFile').setInputFiles({name:'Anna.txt',mimeType:'text/plain',buffer:Buffer.from('Anna fixture')});
+  await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible();
+  await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(dialog).not.toBeVisible();await expect(reply).toBeEnabled();
+  await reply.fill('Черновик Алексея');await page.locator('#replyFile').setInputFiles({name:'Alex.txt',mimeType:'text/plain',buffer:Buffer.from('Alex fixture')});
+  await page.locator('#m2ReplyExpand').click();await expect(page.locator('#m2ReplyEditorRecipient')).toContainText('Алексей Иванов');
+  await page.evaluate(()=>WorkspaceV2Conversation.open(11));await expect(dialog).not.toBeVisible();await expect(reply).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toContainText('Anna.txt');
+  await page.locator('#m2ReplyExpand').click();await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(dialog).not.toBeVisible();
+  await expect(page.locator('#m2ReplyEditorRecipient')).toHaveText('');
+  await expect(page.locator('#managerAuthRecovery')).toBeVisible();
+  await page.locator('#managerAuthLogin').fill('synthetic-login');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+  await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Черновик Анны');await expect(page.locator('#mediaSelection')).toContainText('Anna.txt');
+  await page.locator('#m2ReplyExpand').click();
+  s.setConversation(11,{manager_id:8,manager_name:'Другой менеджер'});
+  await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true}));await expect(dialog).not.toBeVisible();
+  await expect(page.locator('#composer')).not.toBeVisible();await expect(reply).toHaveValue('');
+  expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send semantics',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});const s=await setup(page);await openLead(page);await editorReady(page);
+  let mode='unknown',release;const sends=[];
+  await page.route('**/manager/api.php',async route=>{
+    const data=route.request().postDataJSON();if(data.action!=='send')return route.fallback();
+    expect(data.csrf).toBe('synthetic-csrf');expect(data.conversation_id).toBe(11);sends.push(data);
+    if(mode==='unknown')return route.abort('failed');
+    if(mode==='held')await new Promise(resolve=>{release=resolve});
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true})});
+  });
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
+  await reply.fill('Редактируемый ответ');await page.locator('#m2ReplyExpand').click();
+  await page.locator('#emojiToggle').click();await page.locator('#emojiPicker [data-emoji="😊"]').click();
+  const canned={id:4,title:'Дополнение',body:'Дополнение из быстрого ответа',category:'Подбор',scope:'shared',version:1,is_favorite:true,can_edit:false};
+  await page.route('**/manager/quick-replies-api.php',route=>{
+    const data=route.request().postDataJSON();
+    if(!['toolbar','list'].includes(data.action))return route.fallback();
+    expect(data.csrf).toBe('synthetic-csrf');
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,replies:[canned],categories:['Подбор'],version:'1'.repeat(64),max_replies:100,has_more:false})});
+  });
+  await page.locator('#quickRepliesOpen').click();await expect(page.locator('#quickRepliesDialog')).toBeVisible();
+  await page.locator('#qrList [data-qr-select="4"]').click();await expect(page.locator('#qrPreview')).toHaveValue(canned.body);
+  await page.locator('#qrInsert').click();await expect(page.locator('#quickRepliesDialog')).not.toBeVisible();await expect(dialog).toBeVisible();
+  const text=await reply.inputValue();expect(text).toContain('😊');expect(text).toContain('Дополнение из быстрого ответа');
+  await reply.evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,isComposing:true,bubbles:true})));
+  expect(sends).toHaveLength(0);
+  await reply.press('Control+Enter');await expect(page.locator('#replyStatus')).toContainText('не подтверждена');await expect(reply).toHaveValue(text);
+  expect(sends).toHaveLength(1);await expect(dialog).toBeVisible();
+  await page.setViewportSize({width:768,height:420});await page.locator('#m2ReplyCollapse').click();await page.locator('#m2ReplyExpand').click();
+  expect(sends).toHaveLength(1);await expect(reply).toHaveValue(text);
+  mode='held';await reply.press('Control+Enter');await expect.poll(()=>sends.length).toBe(2);await expect(reply).toBeDisabled();
+  await reply.evaluate(el=>{el.value='Более новый сохранённый черновик';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}))});
+  expect(sends).toHaveLength(2);release();await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Более новый сохранённый черновик');
+  await expect(dialog).not.toBeVisible();mode='success';await page.locator('#m2ReplyExpand').click();await reply.press('Control+Enter');
+  await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();await expect(dialog).not.toBeVisible();
+  expect(sends).toHaveLength(3);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(2.1);
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{
+  await page.setViewportSize({width:390,height:420});const s=await setup(page);await openLead(page);await editorReady(page);
+  await page.evaluate(()=>{
+    window.editorFiles=[];window.editorUploads=[];
+    document.querySelector('#replyFile').addEventListener('change',event=>{window.editorFiles=[...event.target.files]},true);
+    const append=FormData.prototype.append;FormData.prototype.append=function(name,value,...rest){if(name==='file')window.editorUploads.push(value);return append.call(this,name,value,...rest)};
+  });
+  let uploads=0;
+  await page.route('**/manager/media-upload.php',route=>{
+    uploads++;if(uploads===2)return route.abort('failed');
+    expect(route.request().postData()).toContain('Подпись к первому файлу');
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true})});
+  });
+  const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
+  await reply.fill('Подпись к первому файлу');
+  await page.locator('#replyFile').setInputFiles([{name:'first.txt',mimeType:'text/plain',buffer:Buffer.from('First synthetic file')},{name:'second.txt',mimeType:'text/plain',buffer:Buffer.from('Second synthetic file')}]);
+  await page.locator('#m2ReplyExpand').click();await page.locator('#m2ReplyCollapse').click();expect(uploads).toBe(0);
+  await page.locator('#m2ReplyExpand').click();await page.locator('#sendReply').click();
+  await expect(page.locator('#mediaSelection')).toContainText('second.txt');await expect(page.locator('#mediaSelection')).not.toContainText('first.txt');
+  await expect(page.locator('#mediaSelection')).toContainText('Исход неизвестен');await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();
+  expect(await page.evaluate(()=>editorUploads.length===2&&editorUploads.every((file,i)=>file===editorFiles[i]))).toBe(true);
+  await expect(dialog).not.toBeVisible();await page.locator('#m2ReplyExpand').click();await page.locator('#sendReply').click();
+  await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(uploads).toBe(2);
+  await expect(page.locator('#mediaSelection')).toContainText('second.txt');
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
