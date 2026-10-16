@@ -107,26 +107,32 @@
     const markers=node?.querySelector('.pwRowMarkers'),identity=node?.querySelector('.leadIdentity');
     if(markers&&identity)identity.appendChild(markers);
   }
-  function enhanceInbox(rows){
+  let inboxActivityDay='';
+  function refreshInboxActivity(el,c,now){
+    const line=el.querySelector('.leadTitleLine');
+    const activity=el.querySelector('.leadActivityTime'),formatted=formatInboxActivity(c.last_message_at||c.started_at||'',now);
+    if(activity){if(formatted){activity.textContent=formatted.text;activity.title='Последняя активность: '+formatted.exact;activity.setAttribute('aria-label',activity.title);if(activity.parentElement!==line)line?.appendChild(activity)}else activity.remove()}
+  }
+  function enhanceInbox(rows,{changedNodes}={}){
     const searchToggle=$('m2InboxSearchToggle'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow');
     if(searchToggle&&search&&searchRow){
       if(!initialInboxSearchSynced){initialInboxSearchSynced=true;searchRow.hidden=!String(search.value||'').trim();searchToggle.setAttribute('aria-expanded',searchRow.hidden?'false':'true')}
       searchToggle.classList.toggle('isActive',!!String(search.value||'').trim());
     }
-    const byId=new Map(rows.map(row=>[Number(row.id),row])),now=new Date();
+    const byId=new Map(rows.map(row=>[Number(row.id),row])),now=new Date(),day=window.ManagerTime?.wallDate(now)?.toISOString().slice(0,10)||'',activityChanged=day!==inboxActivityDay;inboxActivityDay=day;
     // Render from the authorized canonical list; this hook only compacts its nodes.
     document.querySelectorAll('#inboxList .taskQueueSection').forEach(el=>{
       if(section!=='tasks')el.remove();
     });
     document.querySelectorAll('#inboxList .leadItem').forEach(el=>{
       const c=byId.get(Number(el.dataset.conversationId));if(!c)return;
+      if(changedNodes&&!changedNodes.has(el)){if(activityChanged)refreshInboxActivity(el,c,now);return;}
       const signal=ownershipSignal(c),line=el.querySelector('.leadTitleLine'),identity=el.querySelector('.leadIdentity'),primary=el.querySelector('.leadPrimary');
       const name=el.querySelector('.leadTitle');if(name){name.textContent=c.display_name||'Турист';name.id='m2LeadTitle-'+Number(c.id)}
       const channelKey=String(c.channel||''),channel={max:'MAX',telegram:'TG',website:'Сайт'}[channelKey]||'Другой';
       const badge=document.createElement('span');badge.className='m2ChannelBadge '+(Object.hasOwn({max:1,telegram:1,website:1},channelKey)?channelKey:'other');badge.textContent=channel;badge.title='Канал клиента: '+(channelKey==='telegram'?'Telegram':channel);line?.prepend(badge);
       const mark=document.createElement('span');mark.className='m2OwnershipMark '+signal.kind;mark.title=signal.label;mark.setAttribute('role','img');mark.setAttribute('aria-label',signal.label);line?.appendChild(mark);
-      const activity=el.querySelector('.leadActivityTime'),formatted=formatInboxActivity(c.last_message_at||c.started_at||'',now);
-      if(activity){if(formatted){activity.textContent=formatted.text;activity.title='Последняя активность: '+formatted.exact;activity.setAttribute('aria-label',activity.title);line?.appendChild(activity)}else activity.remove()}
+      refreshInboxActivity(el,c,now);
       const preview=el.querySelector('.leadPreview');if(preview&&identity)identity.appendChild(preview);
       const secondary=document.createElement('div');secondary.className='m2ChatMeta';
       if(S.manager?.role==='admin'&&String(c.manager_name||'').trim()){

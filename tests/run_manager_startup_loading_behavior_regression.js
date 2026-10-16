@@ -17,7 +17,7 @@ function withRows(h){
   h.setHook((url,r)=>r.action==='list'?response({ok:true,conversations:liveRows()}):null);
 }
 function renderedIds(h){
-  return h.ids.get('inboxList').children.flatMap(node=>node.children||[]).filter(node=>node.dataset.conversationId).map(node=>Number(node.dataset.conversationId));
+  return h.ids.get('inboxList').querySelectorAll('.leadItem').map(node=>Number(node.dataset.conversationId));
 }
 
 for(const action of ['catalog','filter_options'])for(const mobile of [false,true])test(action+' never settling does not block Inbox or an authorized reply, mobile='+mobile,async()=>{

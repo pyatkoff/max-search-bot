@@ -28,10 +28,10 @@ class Element {
   get id() { return this._id || ''; }
   set className(value) { this._className = value; }
   get className() { return this._className; }
-  set textContent(value) { this._text = String(value); this.children = []; }
+  set textContent(value) { this.replaceChildren(); this._text = String(value); }
   get textContent() { return this._text; }
   set innerHTML(value) {
-    this._html = String(value); this.children = [];
+    this._html = String(value); this.replaceChildren();
     // Expose dynamically inserted controls by their real id, and preserve classes.
     // HTML semantics and any app state are not implemented by this harness.
     for (const match of this._html.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/g)) {
@@ -42,15 +42,42 @@ class Element {
   }
   get innerHTML() { return this._html || this._text; }
   get childNodes() { return this.children; }
-  appendChild(child) { this.children.push(child); child.parentElement = this; return child; }
-  replaceChildren(...children) { this.children = children; this._text = ''; }
+  get parentNode() { return this.parentElement || null; }
+  get firstChild() { return this.children[0] || null; }
+  get nextSibling() { return this.parentNode?.children[this.parentNode.children.indexOf(this)+1] || null; }
+  get isConnected() { return this===body || !!this._harnessRoot || !!this.parentNode?.isConnected; }
+  appendChild(child) { return this.insertBefore(child,null); }
+  insertBefore(child,before) {
+    if(child===before)return child;
+    if(child.tagName==='FRAGMENT'){for(const node of [...child.children])this.insertBefore(node,before);return child;}
+    if(before && before.parentNode!==this)throw new Error('Reference node is not a child');
+    child.remove();const index=before?this.children.indexOf(before):this.children.length;
+    this.children.splice(index,0,child);child.parentElement=this;return child;
+  }
+  remove() { this._harnessRoot=false;if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;} }
+  replaceChildren(...children) { for(const node of [...this.children])node.remove();this._text='';for(const node of children)this.appendChild(node); }
+  matches(selector) {
+    const tag=selector.match(/^[a-z]+/i)?.[0],id=selector.match(/#([\w-]+)/)?.[1];
+    if(tag && this.tagName!==tag.toUpperCase() || id && this.id!==id)return false;
+    if([...selector.matchAll(/\.([\w-]+)/g)].some(m=>!this.classList.contains(m[1])))return false;
+    return [...selector.matchAll(/\[([\w-]+)(?:="([^"]*)")?\]/g)].every(([,name,value])=>{
+      const actual=name.startsWith('data-')?this.dataset[name.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]:this[name];
+      return actual!==undefined&&(value===undefined||String(actual)===value);
+    });
+  }
+  querySelectorAll(selector) {
+    const [first,...rest]=selector.trim().split(/\s+/),found=[];
+    for(const child of this.children){if(child.matches(first))found.push(...(rest.length?child.querySelectorAll(rest.join(' ')):[child]));found.push(...child.querySelectorAll(selector));}
+    return [...new Set(found)];
+  }
+  querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
   setAttribute(name, value) { this[name] = value; }
   removeAttribute(name) { delete this[name]; }
   addEventListener(name, handler) { (this.handlers[name] ||= []).push(handler); }
   async dispatch(name) { for (const fn of this.handlers[name] || []) await fn({preventDefault(){}}); }
   focus() {}
 }
-function add(id, tag = 'div', className = '') { const el = new Element(tag); el.id = id; el.className = className; return el; }
+function add(id, tag = 'div', className = '') { const el = new Element(tag); el.id = id; el.className = className; el._harnessRoot=true;return el; }
 const body = new Element('body'),documentEvents=new Map(),timers=[];
 const document = {
   body,visibilityState:'visible',addEventListener:(name,fn)=>documentEvents.set(name,fn),querySelector:()=>null,
@@ -58,7 +85,10 @@ const document = {
   createElement: tag => new Element(tag),
   createDocumentFragment: () => new Element('fragment'),
   createTextNode: text => { const el = new Element('text'); el.textContent = text; return el; },
-  querySelectorAll: selector => selector === '#conversationActions button' ? ids.get('conversationActions').children : [],
+  querySelectorAll: selector => {
+    if(selector==='#conversationActions button')return ids.get('conversationActions').children;
+    const match=selector.match(/^#([\w-]+) (.+)$/);return match?ids.get(match[1])?.querySelectorAll(match[2])||[]:[];
+  },
 };
 ['inboxList','adminLink','managerName','conversationLoadStatus','conversationRefreshStatus','conversationActions',
  'conversationTitle','conversationAvatar','conversationState','conversationMeta',

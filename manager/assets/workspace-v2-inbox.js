@@ -54,7 +54,7 @@ function selectionScope(request=false){const workspace=window.WorkspaceV2Persona
 function getLoadedSelectionStatus(){return S.authExpired?'unavailable':loadedSelection?.scope===selectionScope()?'ready':selectionStatus==='loading'?'loading':'unavailable'}
 function getLoadedSelection(){return !S.authExpired&&loadedSelection?.scope===selectionScope()?loadedSelection.rows.map(row=>({...row})):[]}
 function markActive(id=S.current){const key=Number(id||0);document.querySelectorAll('#inboxList .leadItem').forEach(el=>{const active=Number(el.dataset.conversationId)===key;el.classList.toggle('active',active);[el,el.querySelector('.m2RowOpen')].filter(Boolean).forEach(node=>{if(active)node.setAttribute('aria-current','true');else node.removeAttribute('aria-current')})});window.WorkspaceV2PersonalWorkspace?.conversationChanged(key)}
-function markRead(id=S.current){const key=Number(id||0);if(!key)return;document.querySelectorAll('#inboxList .leadItem').forEach(el=>{if(Number(el.dataset.conversationId)!==key)return;el.querySelector('.unreadBadge')?.remove()})}
+function markRead(id=S.current){const key=Number(id||0);if(!key)return;document.querySelectorAll('#inboxList .leadItem').forEach(el=>{if(Number(el.dataset.conversationId)!==key)return;const badge=el.querySelector('.unreadBadge');if(!badge)return;const view=rowViews.get(el);if(view)view.signature=null;badge.remove()})}
 function refreshSelectionScope(){
  const info=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.(),show=info?.kind==='group'||info?.kind==='unavailable';let node=$('pwGroupListScope');
  if(!show){if(node){node.hidden=true;node.replaceChildren()}return}
@@ -64,7 +64,111 @@ function refreshSelectionScope(){
  text.textContent=info.kind==='unavailable'?'Группа больше недоступна. Выберите другую группу или обычную очередь.':scope.length?'Условия группы: '+scope.join(' · '):'Группа «'+info.name+'» · открытые и закрытые доступные диалоги';node.appendChild(text);
  if(info.kind==='group'&&scope.length){const button=document.createElement('button');button.type='button';button.textContent='Сбросить фильтры';button.onclick=()=>window.WorkspaceV2Filters?.clear?.();node.appendChild(button)}
 }
-function renderList(rows,{preserveScroll=true}={}){rows=window.WorkspaceV2PersonalWorkspace?.enhanceRows(rows)||rows;const personalInfo=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.();refreshSelectionScope();const box=$('inboxList'),focused=document.activeElement,focusedRow=focused?.closest('#inboxList .leadItem'),focusId=Number(focusedRow?.dataset.conversationId||0),focusAction=focused?.matches('[data-pw-pin-recovery]')?'[data-pw-pin-recovery]':focused?.matches('[data-pw-pin]')?'[data-pw-pin]':focused?.matches('.customerAvatarOpen')?'.customerAvatarOpen':'.m2RowOpen',focusIndex=focusedRow?[...box.querySelectorAll('.leadItem')].indexOf(focusedRow):-1,scrollTop=box.scrollTop,avatarNodes=window.WorkspaceV2CustomerAvatar?new Map([...box.querySelectorAll('.leadItem[data-conversation-id]')].map(row=>[Number(row.dataset.conversationId),row.querySelector('.leadAvatar')])):new Map();const frag=document.createDocumentFragment(),showTaskSections=S.queue==='mine'&&!String(S.leadTaskFilter||'').trim(),taskSectionCounts={};if(showTaskSections)rows.forEach(c=>{const key=taskSectionMeta(c).key;taskSectionCounts[key]=Number(taskSectionCounts[key]||0)+1});let lastTaskSection='';if(!rows.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Диалогов по выбранным условиям нет';if(personalInfo?.kind==='unavailable')empty.textContent='Группа больше недоступна. Диалоги остаются в обычных очередях.';else if(personalInfo?.kind==='group')empty.textContent=(window.WorkspaceV2Filters?.describeScope?.()||[]).length?'Нет доступных диалогов группы по текущим условиям.':'В группе пока нет доступных диалогов. Откройте диалог и выберите «В группу».';frag.appendChild(empty)}else rows.forEach(c=>{if(showTaskSections){const section=taskSectionMeta(c);if(section.key!==lastTaskSection){const header=document.createElement('div');header.className=`taskQueueSection ${section.key}`;header.setAttribute('role','heading');header.setAttribute('aria-level','3');header.textContent=`${section.label} · ${Number(taskSectionCounts[section.key]||0)}`;frag.appendChild(header);lastTaskSection=section.key}}const el=document.createElement('div');const needsReply=S.queue==='mine'&&Number(c.awaiting_manager_reply||0)===1,waiting=Number(c.awaiting_first_reply||0)===1,urgency=waitUrgency(waiting,c.wait_age_seconds);el.dataset.conversationId=String(c.id);el.className='leadItem'+(needsReply?' needsReply':'')+(Number(c.id)===S.current?' active':'')+(urgency==='warn'?' waitWarn':urgency==='urgent'?' waitUrgent':'');const name=c.display_name||'Турист',project=String(c.project_label||c.project_name||'').trim(),leadStage=c.lead_stage?.display_name||'',outcome=c.lead_outcome||'open',sale=saleSummary(c),unread=Number(c.unread_count||0),activity=formatLastActivity(c.last_message_at||c.started_at||''),taskTitle=String(c.next_task_title||''),taskDue=formatTaskDue(c.next_task_due_at_utc),taskPinned=Number(c.next_task_pinned||0)===1||c.next_task_pinned===true,taskOverdue=Number(c.next_task_overdue||0)===1||c.next_task_overdue===true,taskDueState=String(c.next_task_due_state||''),taskMissing=!taskTitle&&outcome==='open',taskClass=(taskPinned?' pinned':'')+(taskOverdue?' overdue':taskDueState==='today'?' today':''),taskIcon=taskPinned?'📌':taskOverdue?'⏰':taskDueState==='today'?'●':'✓',taskUrgencyAttention=hiddenTaskUrgencyChip(c),source=originText(c)||statusText(c.status),waitText=waiting?formatWait(c.wait_age_seconds):'',preview=messagePreview(c.last_text||'Нет последнего сообщения',c.last_sender_type,c.last_preview_text),outcomeChip=outcome==='won'||outcome==='lost'?`<span class="leadOutcomeCompact ${esc(outcome)}"${sale?` title="Продажа: ${esc(sale)}"`:''}>${esc(outcomeText(outcome))}${sale?` · ${esc(sale)}`:''}</span>`:'';el.setAttribute('role','button');el.tabIndex=0;el.setAttribute('aria-label',`Открыть диалог ${name}`);if(Number(c.id)===Number(S.current||0))el.setAttribute('aria-current','true');el.innerHTML=`<div class="leadPrimary"><div class="leadAvatar" aria-hidden="true">${esc(initials(name))}</div><div class="leadIdentity"><div class="leadTitleLine"><span class="leadTitle">${esc(name)}${project?` · ${esc(project)}`:''}</span></div><div class="leadSource">${esc(source||'')}</div></div><div class="leadSignals">${activity?`<span class="leadSource leadActivityTime" title="Последняя активность">${esc(activity)}</span>`:''}${unread?`<span class="unreadBadge">${unread}</span>`:''}</div></div>${needsReply?'<div class="leadReplyStatus">Ждёт ответа</div>':''}${personalInfo?.kind==='group'&&c.status==='closed'?'<div class="pwGroupClosed">Диалог закрыт</div>':''}${contactOwnerSignals(c)}${c.trip_summary?`<div class="leadTrip">${esc(c.trip_summary)}</div>`:''}<div class="leadPreview">${esc(preview)}</div><div class="leadActionRow">${leadStage?`<span class="leadStageCompact">${esc(leadStage)}</span>`:''}${outcomeChip}${taskTitle?`<span class="leadTaskCompact${taskClass}" title="${esc(taskPinned?'В приоритете'+(taskDue?' · '+taskDue:''):taskDue)}">${taskIcon} ${esc(taskTitle)}</span>`:taskMissing?'<span class="leadTaskCompact" title="Следующее действие не назначено">＋ Без задачи</span>':''}${taskUrgencyAttention}${waiting?`<span class="leadWaitCompact ${esc(urgency)}">${urgency==='urgent'?'Срочно · ':urgency==='warn'?'Скоро · ':''}${esc(waitText)}</span>`:''}</div>`;const openLead=()=>window.WorkspaceV2Conversation?.open(c.id,{preserveAttachment:true});el.onclick=openLead;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLead()}};const avatar=avatarNodes.get(Number(c.id));if(avatar){window.WorkspaceV2CustomerAvatar?.setInitials(avatar,initials(name));el.querySelector('.leadAvatar').replaceWith(avatar)}frag.appendChild(el)});box.replaceChildren(frag);if(preserveScroll)box.scrollTop=scrollTop;window.Manager2Presentation?.enhanceInbox(rows);window.WorkspaceV2CustomerAvatar?.enhanceInbox(rows);window.WorkspaceV2PersonalWorkspace?.rendered();if(focusId&&(!focused.isConnected||document.activeElement===document.body)){const next=box.querySelector(`.leadItem[data-conversation-id="${focusId}"]`),remaining=[...box.querySelectorAll('.leadItem')],fallback=remaining[Math.min(focusIndex,remaining.length-1)],target=(next||fallback)?.querySelector(focusAction)||$('m2PinnedToggle');target?.focus({preventScroll:true})}}
+function createListRow(c,personalInfo,avatar){const el=document.createElement('div');const needsReply=S.queue==='mine'&&Number(c.awaiting_manager_reply||0)===1,waiting=Number(c.awaiting_first_reply||0)===1,urgency=waitUrgency(waiting,c.wait_age_seconds);el.dataset.conversationId=String(c.id);el.className='leadItem'+(needsReply?' needsReply':'')+(Number(c.id)===S.current?' active':'')+(urgency==='warn'?' waitWarn':urgency==='urgent'?' waitUrgent':'');const name=c.display_name||'Турист',project=String(c.project_label||c.project_name||'').trim(),leadStage=c.lead_stage?.display_name||'',outcome=c.lead_outcome||'open',sale=saleSummary(c),unread=Number(c.unread_count||0),activity=formatLastActivity(c.last_message_at||c.started_at||''),taskTitle=String(c.next_task_title||''),taskDue=formatTaskDue(c.next_task_due_at_utc),taskPinned=Number(c.next_task_pinned||0)===1||c.next_task_pinned===true,taskOverdue=Number(c.next_task_overdue||0)===1||c.next_task_overdue===true,taskDueState=String(c.next_task_due_state||''),taskMissing=!taskTitle&&outcome==='open',taskClass=(taskPinned?' pinned':'')+(taskOverdue?' overdue':taskDueState==='today'?' today':''),taskIcon=taskPinned?'📌':taskOverdue?'⏰':taskDueState==='today'?'●':'✓',taskUrgencyAttention=hiddenTaskUrgencyChip(c),source=originText(c)||statusText(c.status),waitText=waiting?formatWait(c.wait_age_seconds):'',preview=messagePreview(c.last_text||'Нет последнего сообщения',c.last_sender_type,c.last_preview_text),outcomeChip=outcome==='won'||outcome==='lost'?`<span class="leadOutcomeCompact ${esc(outcome)}"${sale?` title="Продажа: ${esc(sale)}"`:''}>${esc(outcomeText(outcome))}${sale?` · ${esc(sale)}`:''}</span>`:'';el.setAttribute('role','button');el.tabIndex=0;el.setAttribute('aria-label',`Открыть диалог ${name}`);if(Number(c.id)===Number(S.current||0))el.setAttribute('aria-current','true');el.innerHTML=`<div class="leadPrimary"><div class="leadAvatar" aria-hidden="true">${esc(initials(name))}</div><div class="leadIdentity"><div class="leadTitleLine"><span class="leadTitle">${esc(name)}${project?` · ${esc(project)}`:''}</span></div><div class="leadSource">${esc(source||'')}</div></div><div class="leadSignals">${activity?`<span class="leadSource leadActivityTime" title="Последняя активность">${esc(activity)}</span>`:''}${unread?`<span class="unreadBadge">${unread}</span>`:''}</div></div>${needsReply?'<div class="leadReplyStatus">Ждёт ответа</div>':''}${personalInfo?.kind==='group'&&c.status==='closed'?'<div class="pwGroupClosed">Диалог закрыт</div>':''}${contactOwnerSignals(c)}${c.trip_summary?`<div class="leadTrip">${esc(c.trip_summary)}</div>`:''}<div class="leadPreview">${esc(preview)}</div><div class="leadActionRow">${leadStage?`<span class="leadStageCompact">${esc(leadStage)}</span>`:''}${outcomeChip}${taskTitle?`<span class="leadTaskCompact${taskClass}" title="${esc(taskPinned?'В приоритете'+(taskDue?' · '+taskDue:''):taskDue)}">${taskIcon} ${esc(taskTitle)}</span>`:taskMissing?'<span class="leadTaskCompact" title="Следующее действие не назначено">＋ Без задачи</span>':''}${taskUrgencyAttention}${waiting?`<span class="leadWaitCompact ${esc(urgency)}">${urgency==='urgent'?'Срочно · ':urgency==='warn'?'Скоро · ':''}${esc(waitText)}</span>`:''}</div>`;const openLead=()=>window.WorkspaceV2Conversation?.open(c.id,{preserveAttachment:true});el.onclick=openLead;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLead()}};if(avatar){window.WorkspaceV2CustomerAvatar?.setInitials(avatar,initials(name));el.querySelector('.leadAvatar').replaceWith(avatar)}return el;}
+// Metadata is owned by live DOM nodes; removed/account-cleared rows are not retained.
+const rowViews=new WeakMap();
+function rowSignature(c){
+ // SQL projects elapsed seconds even after the first reply. Only a visible
+ // waiting badge consumes that clock, at the existing minute/urgency precision.
+ const waiting=Number(c.awaiting_first_reply||0)===1;
+ return JSON.stringify({...c,wait_age_seconds:waiting?[formatWait(c.wait_age_seconds),waitUrgency(true,c.wait_age_seconds)]:null});
+}
+function syncRowActive(el,id=S.current){
+ const active=Number(el.dataset.conversationId)===Number(id||0);el.classList.toggle('active',active);
+ [el,el.querySelector('.m2RowOpen')].filter(Boolean).forEach(node=>{if(active)node.setAttribute('aria-current','true');else node.removeAttribute('aria-current');});
+}
+function captureListSelection(box){
+ const selection=window.getSelection?.();
+ if(!selection?.rangeCount||!box.contains(selection.anchorNode)||!box.contains(selection.focusNode))return null;
+ return {anchor:selection.anchorNode,anchorOffset:selection.anchorOffset,focus:selection.focusNode,focusOffset:selection.focusOffset,
+   anchorText:selection.anchorNode.textContent,focusText:selection.focusNode.textContent};
+}
+function restoreListSelection(box,saved){
+ if(!saved)return;
+ const {anchor,anchorOffset,focus,focusOffset}=saved,selection=window.getSelection?.();
+ // Never transfer a selection from replaced/edited rows to other content.
+ if(!selection||!anchor.isConnected||!focus.isConnected||!box.contains(anchor)||!box.contains(focus)||
+   anchor.textContent!==saved.anchorText||focus.textContent!==saved.focusText)return;
+ const size=node=>node.nodeType===3?node.nodeValue.length:node.childNodes.length;
+ if(anchorOffset>size(anchor)||focusOffset>size(focus))return;
+ if(selection.anchorNode!==anchor||selection.anchorOffset!==anchorOffset||selection.focusNode!==focus||selection.focusOffset!==focusOffset)
+   selection.setBaseAndExtent(anchor,anchorOffset,focus,focusOffset);
+}
+function reconcileListNodes(box,nodes){
+ let cursor=box.firstChild;
+ for(const node of nodes){
+   if(node===cursor)cursor=cursor.nextSibling;
+   else if(node.parentNode===box&&typeof box.moveBefore==='function')box.moveBefore(node,cursor);
+   else box.insertBefore(node,cursor);
+ }
+ while(cursor){const next=cursor.nextSibling;cursor.remove();cursor=next;}
+}
+function renderList(rows,{preserveScroll=true}={}){
+ rows=window.WorkspaceV2PersonalWorkspace?.enhanceRows(rows)||rows;
+ const personalInfo=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.();refreshSelectionScope();
+ const box=$('inboxList'),existingRows=[...box.querySelectorAll('.leadItem[data-conversation-id]')],
+   existing=new Map(existingRows.map(node=>[node.dataset.conversationId,node])),
+   scope=JSON.stringify([selectionScope(),S.manager?.role,!!S.authExpired,personalInfo?.kind||'']),
+   account=JSON.stringify([S.authGeneration,Number(S.manager?.id||0)]),
+   focused=document.activeElement,focusedRow=focused?.closest('#inboxList .leadItem'),
+   focusId=focusedRow?.dataset.conversationId,focusIndex=existingRows.indexOf(focusedRow),
+   focusAction=focused===focusedRow?'self':focused?.matches('[data-pw-pin-recovery]')?'[data-pw-pin-recovery]':
+     focused?.matches('[data-pw-pin]')?'[data-pw-pin]':focused?.matches('.customerAvatarOpen')?'.customerAvatarOpen':
+     focused?.matches('.leadIdentity[role="button"]')?'.leadIdentity[role="button"]':'.m2RowOpen',
+   scrollTop=box.scrollTop,selection=captureListSelection(box);
+ let anchor=null,anchorTop=0;
+ if(preserveScroll&&scrollTop>2){
+   const top=box.getBoundingClientRect().top;
+   anchor=existingRows.find(node=>node.getBoundingClientRect().bottom>top+1)||null;
+   if(anchor)anchorTop=anchor.getBoundingClientRect().top;
+ }
+ const nodes=[],changedNodes=new Set(),claimed=new Set(),showTaskSections=S.queue==='mine'&&!String(S.leadTaskFilter||'').trim(),counts={};
+ if(showTaskSections)rows.forEach(c=>{const key=taskSectionMeta(c).key;counts[key]=(counts[key]||0)+1;});
+ let lastSection='';
+ if(!rows.length){
+   const empty=document.createElement('div');empty.className='empty';empty.textContent='Диалогов по выбранным условиям нет';
+   if(personalInfo?.kind==='unavailable')empty.textContent='Группа больше недоступна. Диалоги остаются в обычных очередях.';
+   else if(personalInfo?.kind==='group')empty.textContent=(window.WorkspaceV2Filters?.describeScope?.()||[]).length?
+     'Нет доступных диалогов группы по текущим условиям.':'В группе пока нет доступных диалогов. Откройте диалог и выберите «В группу».';
+   const previous=box.querySelector('.empty');nodes.push(previous&&previous.textContent===empty.textContent?previous:empty);
+ }
+ for(const c of rows){
+   if(showTaskSections){
+     const section=taskSectionMeta(c);
+     if(section.key!==lastSection){
+       const header=document.createElement('div');header.className='taskQueueSection '+section.key;
+       header.setAttribute('role','heading');header.setAttribute('aria-level','3');header.textContent=section.label+' · '+Number(counts[section.key]||0);
+       nodes.push(header);lastSection=section.key;
+     }
+   }
+   const key=String(c.id),previous=claimed.has(key)?null:existing.get(key),record=previous&&rowViews.get(previous),
+     signature=rowSignature(c),avatarKey=JSON.stringify([account,key,c.customer_id,c.channel]);
+   let node;
+   if(record?.scope===scope&&record.signature===signature)node=previous;
+   else{
+     const avatar=record?.avatarKey===avatarKey?previous.querySelector('.leadAvatar'):null;
+     node=createListRow(c,personalInfo,avatar);rowViews.set(node,{scope,signature,avatarKey});changedNodes.add(node);
+   }
+   syncRowActive(node);nodes.push(node);claimed.add(key);
+ }
+ reconcileListNodes(box,nodes);
+ window.Manager2Presentation?.enhanceInbox(rows,{changedNodes});
+ // Keep avatar cleanup/expiry/access fences and observers on the complete fresh list.
+ window.WorkspaceV2CustomerAvatar?.enhanceInbox(rows);
+ window.WorkspaceV2PersonalWorkspace?.rendered({changedNodes});
+ if(preserveScroll){
+   box.scrollTop=scrollTop;
+   const currentAnchor=anchor?.isConnected?anchor:nodes.find(node=>node.dataset.conversationId===anchor?.dataset.conversationId&&anchor);
+   if(currentAnchor?.parentNode===box)box.scrollTop+=currentAnchor.getBoundingClientRect().top-anchorTop;
+ }else box.scrollTop=0;
+ if(focusId&&(!focused.isConnected||document.activeElement===document.body)){
+   const remaining=[...box.querySelectorAll('.leadItem')],next=remaining.find(node=>node.dataset.conversationId===focusId)||remaining[Math.min(focusIndex,remaining.length-1)],
+     target=(focusAction==='self'?next:next?.querySelector(focusAction))||$('m2PinnedToggle');
+   target?.focus({preventScroll:true});
+ }
+ restoreListSelection(box,selection);
+}
+
 async function load(options={}){window.WorkspaceV2PersonalWorkspace?.prepareInitialSelection();refreshSelectionScope();const seq=++loadSeq,scope=currentRefreshScope();scope.pendingLoads++;const selectedScope=selectionScope(true);loadedSelection=null;selectionStatus='loading';setInboxBusy(true);try{const rows=await fetchRows();if(seq!==loadSeq)return false;if(selectedScope!==selectionScope(true)||S.authExpired)return false;loadedSelection={scope:selectionScope(),rows};selectionStatus='ready';setLoadStatus();setDataStale(false);if(S.viewMode==='kanban')window.WorkspaceV2Kanban?.render(rows);else renderList(rows,options);refreshQueueCounts();return true}catch(e){if(seq!==loadSeq)return false;selectionStatus='unavailable';const hasData=hasRenderedData();setDataStale(hasData);if(!S.authExpired){setLoadStatus(hasData?'Не удалось обновить список диалогов. Показаны последние загруженные данные.':'Не удалось загрузить список диалогов. Проверьте соединение и попробуйте ещё раз.','error',true);if(!hasData&&S.viewMode!=='kanban'){$('inboxList').innerHTML='<div class="empty"><strong>Список временно недоступен</strong><br>Проверьте соединение и нажмите «Повторить».</div>'}}return false}finally{scope.pendingLoads--;if(seq===loadSeq)setInboxBusy(false)}}
 window.WorkspaceV2Inbox={bind,refreshSelectionScope,setQueue,load,fetchRows,getLoadedSelection,getLoadedSelectionStatus,renderList,markActive,markRead,autoRefresh,startAutoRefresh,refreshQueueCounts,renderQueueCount,waitUrgency,formatTaskDue,formatLastActivity,formatSaleAmount,formatSaleDate,saleSummary,hiddenTaskUrgency,hiddenTaskUrgencyChip,taskSectionMeta,initials,originText,contactOwnerSignals,messagePreview,setLoadStatus};
 })();

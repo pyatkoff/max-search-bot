@@ -39,7 +39,7 @@ function clean(s,{settingsWrites=0}={}){
  expect(writes(s).every(c=>c.action==='pin'||settingsWrites>0&&c.action==='settings')).toBe(true);
 }
 async function capture(page,browserName,profile,height,testInfo){
- const name=`inbox-compact-${browserName}-${profile.width}x${height}-${profile.font}-${profile.density}-groups${profile.groups}${profile.role?'-'+profile.role:''}`;
+ const name=`inbox-compact-${browserName}-${profile.width}x${height}-${profile.font}-${profile.density}-groups${profile.groups}${profile.role?'-'+profile.role:''}${profile.captureSuffix?'-'+profile.captureSuffix:''}`;
  const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
  const image=await page.screenshot({animations:'disabled',path:path.join(dir,name+'.png')});
  await testInfo.attach(name,{body:image,contentType:'image/png'});
@@ -199,6 +199,87 @@ test('removing the last favorite keeps the open conversation and header focus',a
 
 // The retained synthetic portrait is also used by the canonical avatar suites.
 const portrait=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAABM0lEQVR4nO2YzQ3CMAxGU8S4nDpIT+zABszAWBy4IIHAP89xovg7VpX9vdhp42y3x73NrFO2Aa8KIFsFkK0CyFYBZOscFPc4rp8P9/2CJ9rwo8RX6+9iMeAW+ute+I5cJIDcGciAAWg9UQwMgM0NwjD9ZxQA8CykvwhVgWwVQLYKIFsAgOdw5j/YVQVaa9aFRM7VWAW0bqipgGwhuSdwpoH3gMQZO5HxI+VLE8/EnVWf0WyF3Av9GFPwbUDuAdV4RZEwAObJ0I/hBUBuFjwYrk1M3e144tgB2BtCczQjAOveE9MCEOHeHFkNEOfeFn/6P7EOIHr5DVkUAH3ca3Mt1kIDSgrQs39UGZepwLASAfTvH3neNSowsgogWwWQrQLIlggg4laZyrtGBUaWFKB/FwkzPgFzBmYhb17hEQAAAABJRU5ErkJggg==','base64');
+function refreshRows(){return Array.from({length:200},(_,i)=>({...rows()[0],id:11+i,customer_id:101+i,display_name:'Синтетический клиент '+i,original_display_name:'Синтетический клиент '+i,channel:i?'website':'telegram',unread_count:i===0?3:0,awaiting_manager_reply:0}))}
+for(const width of [390,430,768,1440])test(`incremental Inbox refresh preserves selection focus anchors and reply ${width}`,async({page,browserName},testInfo)=>{
+ await page.setViewportSize({width,height:420});const data=refreshRows(),s=await setup(page,{state:stateFor(),rows:data,avatarImage:portrait});await settled(page,s);
+ await expect(row(page).locator('.customerAvatarOpen')).toBeVisible();
+ await page.evaluate(()=>{
+  const box=document.getElementById('inboxList'),nodes=[...box.querySelectorAll('.leadItem')],item=nodes[15],button=item.querySelector('.m2RowOpen'),text=item.querySelector('.leadPreview').firstChild;
+  box.scrollTop=item.offsetTop-box.offsetTop-20;button.focus({preventScroll:true});
+  window.inboxRefreshProof={nodes,button,text,avatar:nodes[0].querySelector('.leadAvatar'),markers:nodes[0].querySelector('.pwRowMarkers'),top:item.getBoundingClientRect().top,blur:0};
+  button.addEventListener('blur',()=>inboxRefreshProof.blur++);getSelection().setBaseAndExtent(text,24,text,2);
+ });
+ // Canonical SQL advances this counter even for already-answered chats. It is
+ // not displayed there and must not turn every real poll into a full rebuild.
+ data.forEach(r=>r.wait_age_seconds=Number(r.wait_age_seconds||0)+15);
+ const before=listCalls(s).length;await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ expect(listCalls(s)).toHaveLength(before+1);
+ expect(await page.evaluate(()=>{
+  const p=inboxRefreshProof,nodes=[...document.querySelectorAll('#inboxList .leadItem')],sel=getSelection();
+  return {same:nodes.filter((n,i)=>n===p.nodes[i]).length,focus:document.activeElement===p.button,blur:p.blur,selection:[sel.anchorNode===p.text,sel.anchorOffset,sel.focusNode===p.text,sel.focusOffset],avatar:nodes[0].querySelector('.leadAvatar')===p.avatar,markers:nodes[0].querySelector('.pwRowMarkers')===p.markers,anchor:Math.abs(p.nodes[15].getBoundingClientRect().top-p.top)<1};
+ })).toEqual({same:200,focus:true,blur:0,selection:[true,24,true,2],avatar:true,markers:true,anchor:true});
+ // A new arrival above the reader, removal elsewhere and one real text/unread
+ // update must not rebuild the other rows or shift the visible reading anchor.
+ data[199]={...data[199],last_text:'Новое сообщение с обновлённым непрочитанным',unread_count:7};data.splice(150,1);data.unshift({...data[1],id:999,customer_id:999,display_name:'Новый диалог'});
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ await expect(row(page,210).locator('.leadPreview')).toHaveText(data.at(-1).last_text);await expect(row(page,210).locator('.unreadBadge')).toHaveText('7');await expect(row(page,161)).toHaveCount(0);
+ expect(await page.evaluate(()=>{
+  const p=inboxRefreshProof,sel=getSelection();return {focus:document.activeElement===p.button,selection:[sel.anchorNode===p.text,sel.anchorOffset,sel.focusNode===p.text,sel.focusOffset],anchor:Math.abs(p.nodes[15].getBoundingClientRect().top-p.top)<1,same:document.querySelector('[data-conversation-id="26"]')===p.nodes[15]};
+ })).toEqual({focus:true,selection:[true,24,true,2],anchor:true,same:true});
+ // Move the selected/focused row itself (including engines without moveBefore).
+ const selected=data.splice(data.findIndex(r=>r.id===26),1)[0];data.splice(20,0,selected);
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ expect(await page.evaluate(()=>({focus:document.activeElement===inboxRefreshProof.button,text:getSelection().toString(),backwards:getSelection().anchorOffset>getSelection().focusOffset}))).toEqual({focus:true,text:data[20].last_text.slice(2,24),backwards:true});
+ // Already-read refreshes must not invalidate an otherwise unchanged row.
+ await page.evaluate(()=>WorkspaceV2Inbox.markRead(26));await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ expect(await row(page,26).evaluate(el=>el===inboxRefreshProof.nodes[15])).toBe(true);
+ // The first visible row may itself change while a new arrival inserts above.
+ const anchor=await page.evaluate(()=>{const box=document.getElementById('inboxList'),top=box.getBoundingClientRect().top,el=[...box.querySelectorAll('.leadItem')].find(n=>n.getBoundingClientRect().bottom>top+1);return {id:Number(el.dataset.conversationId),top:el.getBoundingClientRect().top}});
+ const anchorRow=data.find(r=>r.id===anchor.id);anchorRow.last_text+=' — обновлено';data.unshift({...data[1],id:998,customer_id:998,display_name:'Ещё один диалог'});
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ expect(Math.abs(await row(page,anchor.id).evaluate(el=>el.getBoundingClientRect().top)-anchor.top)).toBeLessThan(1);
+ data.shift();
+ await expect(page.locator('#inboxList .m2RowOpen')).toHaveCount(201);await expect(page.locator('#inboxList .m2RowOpen button')).toHaveCount(0);
+ // A local read removes the badge immediately; a later authoritative projection
+ // can restore a nonzero count, rather than reusing the locally modified row.
+ await page.evaluate(()=>WorkspaceV2Inbox.markRead(210));await expect(row(page,210).locator('.unreadBadge')).toHaveCount(0);
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(row(page,210).locator('.unreadBadge')).toHaveText('7');
+ await row(page,26).locator('.m2RowOpen').click();await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Черновик не отправлять');
+ await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Never sent')});
+ await page.locator('#replyText').evaluate(el=>{el.setSelectionRange(3,9);window.inboxReplyIdentity={el,file:document.getElementById('replyFile').files[0],message:document.querySelector('#messages .msg')}});
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
+ await expect(page.locator('#replyText')).toHaveValue('Черновик не отправлять');expect(await page.locator('#replyText').evaluate(el=>el===inboxReplyIdentity.el&&el.selectionStart===3&&el.selectionEnd===9&&document.getElementById('replyFile').files[0]===inboxReplyIdentity.file&&document.querySelector('#messages .msg')===inboxReplyIdentity.message)).toBe(true);
+ if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+ // Deleting the focused row gives the adjacent native opener keyboard focus.
+ await row(page,26).locator('.m2RowOpen').focus();data.splice(data.findIndex(r=>r.id===26),1);
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(row(page,26)).toHaveCount(0);
+ expect(await page.evaluate(()=>document.activeElement.matches('#inboxList .m2RowOpen'))).toBe(true);
+ await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'refresh-reconciled'},420,testInfo);
+ expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1);expect(writes(s)).toHaveLength(0);clean(s);
+});
+
+test('incremental Inbox invalidates changed account filter and Moscow day while retaining fresh content',async({page})=>{
+ await page.clock.install({time:new Date('2026-10-16T20:59:00Z')});const data=refreshRows().slice(0,2);data[0].last_message_at='2026-10-16 08:00:00';data[1].awaiting_first_reply=1;data[1].wait_age_seconds=181;
+ const s=await setup(page,{state:stateFor(),rows:data});await settled(page,s);await expect(row(page).locator('.leadActivityTime')).toHaveText('11:00');
+ await row(page).evaluate(el=>window.retainedInboxRow=el);await page.clock.setSystemTime(new Date('2026-10-16T21:01:00Z'));await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
+ await expect(row(page).locator('.leadActivityTime')).toHaveText('Вчера');expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(true);
+ await row(page,12).evaluate(el=>window.retainedWaitRow=el);data[1].wait_age_seconds=195;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
+ expect(await row(page,12).evaluate(el=>el===retainedWaitRow)).toBe(true);await expect(row(page,12).locator('.leadWaitCompact')).toContainText('3 мин');
+ data[1].wait_age_seconds=240;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(row(page,12).locator('.leadWaitCompact')).toContainText('4 мин');expect(await row(page,12).evaluate(el=>el===retainedWaitRow)).toBe(false);
+ await page.evaluate(()=>{WorkspaceV2.S.leadSearch='Синтетический';return WorkspaceV2Inbox.load()});await settled(page,s);expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(false);
+ await row(page).evaluate(el=>window.retainedInboxRow=el);s.account(8).state=emptyState();await recoverAccount(page,s,8);await settled(page,s);
+ expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(false);await expect(row(page).locator('.pwRowMarkers')).toHaveCount(0);expect(writes(s)).toHaveLength(0);clean(s);
+});
+
+test('personal Inbox refresh retains marker selection and truthful stale loading empty recovery',async({page})=>{
+ const data=refreshRows().slice(0,2),s=await setup(page,{state:stateFor(),rows:data});await settled(page,s);await page.locator('#m2PinnedToggle').click();await settled(page,s);
+ await row(page).locator('.pwMarkerLabel').first().evaluate(el=>{window.personalMarker=el;getSelection().setBaseAndExtent(el.firstChild,8,el.firstChild,1)});
+ await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);expect(await row(page).locator('.pwMarkerLabel').first().evaluate(el=>el===personalMarker&&getSelection().toString()===el.textContent.slice(1,8))).toBe(true);
+ s.setHoldList(true);const loading=page.evaluate(()=>WorkspaceV2Inbox.load());await expect(page.locator('#inboxList')).toHaveAttribute('aria-busy','true');await expect(row(page)).toHaveCount(1);s.setHoldList(false);s.releaseList();await loading;await settled(page,s);
+ s.setListError(true);await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(page.locator('#inboxList')).toHaveAttribute('data-stale','true');await expect(row(page)).toHaveCount(1);await expect(page.locator('#inboxLoadStatus')).toContainText('Не удалось обновить');
+ s.setListError(false);s.account(7).state.pins=[];s.account(7).version++;await page.locator('#inboxLoadStatus button').click();await settled(page,s);await expect(page.locator('#inboxList .leadItem')).toHaveCount(0);await expect(page.locator('#inboxList .empty')).toBeVisible();await expect(page.locator('#inboxList')).not.toHaveAttribute('data-stale','true');
+ expect(writes(s)).toHaveLength(0);clean(s);
+});
 test('loaded client photo stays independent from native conversation and favorite controls',async({page})=>{
  await page.setViewportSize({width:390,height:900});const s=await setup(page,{state:stateFor(),rows:rows(),avatarImage:portrait});await settled(page,s);
  for(const width of [390,1440]){
