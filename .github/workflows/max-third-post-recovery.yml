@@ -1,0 +1,122 @@
+name: Recover third reported MAX channel post
+on:
+  push:
+    branches: [test/max-third-post-recovery-20261016]
+    paths: [.github/workflows/max-third-post-recovery.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 9f12084475da6f513cb8619bbfb37aed1b8ab52d
+  RECOVERY_MODE: preview
+  EXPECTED_CONTENT_HASH: ''
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/test/max-third-post-recovery-20261016'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9f12084475da6f513cb8619bbfb37aed1b8ab52d
+      - name: Verify authoritative reviewed production source before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          php -l tools/recover_max_channel_post.php
+          current=$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)
+          test "$current" = "$EXPECTED_PRODUCTION_SHA"
+          release=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=50" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$release" = success
+      - name: Prepare established SSH key
+        env:
+          RECOVERY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/recovery_key"
+          raw="$RECOVERY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || exit 2
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Preview exactly the owner-reported post without writes
+        env:
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/recover_max_channel_post.php --expected-sha=$EXPECTED_PRODUCTION_SHA --channel-id=-68765999669267 --published-ms=1792160175466" > "$RUNNER_TEMP/post-preview.json"
+          python3 - <<'PY'
+          import json, os, re
+          with open(os.environ['RUNNER_TEMP']+'/post-preview.json') as f: d=json.load(f)
+          print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['state']=='preview' and d['image_count']==1
+          assert d['database_writes']==0 and d['provider_writes']==0
+          assert d['published_ms']==1792160175466 and re.fullmatch('[a-f0-9]{64}',d['content_hash'])
+          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          if os.environ['RECOVERY_MODE']=='apply':
+              assert d['content_hash']==os.environ['EXPECTED_CONTENT_HASH']
+          PY
+      - name: Read automatic worker installation and recent cursor health
+        env:
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "crontab -l" > "$RUNNER_TEMP/crontab-private"
+          python3 - <<'PY'
+          import os
+          text=open(os.environ['RUNNER_TEMP']+'/crontab-private').read()
+          target='/var/www/anytoour/data/www/app.anytoour.ru/tools/channel_post_worker.php --platform=max --run --reconcile'
+          count=sum(target in line and not line.lstrip().startswith('#') for line in text.splitlines())
+          print('CHANNEL_POST_CRON_COUNT='+str(count))
+          assert count==1
+          PY
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "cd /var/www/anytoour/data/www/app.anytoour.ru; php" <<'PHP'
+          <?php
+          require getcwd().'/config.php';
+          require getcwd().'/services/ConversationDb.php';
+          $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
+          $q=$pdo->prepare("SELECT r.last_checked_at,r.error_reason,r.scan_until_ms FROM post_channel_reconciliation r JOIN post_channels c ON c.id=r.post_channel_id WHERE c.platform='max' AND c.channel_id=? LIMIT 1");
+          $q->execute(['-68765999669267']);$r=$q->fetch();$pdo->rollBack();
+          echo json_encode(['cursor_found'=>is_array($r),'last_checked_utc'=>$r['last_checked_at']??null,'error_reason'=>$r['error_reason']??null,'unfinished_window'=>isset($r['scan_until_ms'])]),PHP_EOL;
+          PHP
+      - name: Apply once with the reviewed fingerprint and durable write fence
+        if: env.RECOVERY_MODE == 'apply'
+        env:
+          RECOVERY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          RECOVERY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=0
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/recovery_key" "$RECOVERY_USER@$RECOVERY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php tools/recover_max_channel_post.php --expected-sha=$EXPECTED_PRODUCTION_SHA --channel-id=-68765999669267 --published-ms=1792160175466 --content-hash=$EXPECTED_CONTENT_HASH --apply" > "$RUNNER_TEMP/post-apply.json" || status=$?
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['RUNNER_TEMP']+'/post-apply.json') as f: d=json.load(f)
+          print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['state']=='sent' and d['image_count']==1
+          assert d['content_hash']==os.environ['EXPECTED_CONTENT_HASH']
+          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          if not d.get('already_present'):
+              r=d['receipt']
+              assert r['write_attempts']==1 and r['button_verified'] is True and r['content_preserved'] is True
+          PY
+          exit "$status"
+      - name: Remove ephemeral files
+        if: always()
+        run: rm -f "$RUNNER_TEMP/recovery_key" "$RUNNER_TEMP/post-preview.json" "$RUNNER_TEMP/post-apply.json" "$RUNNER_TEMP/crontab-private"
