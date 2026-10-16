@@ -137,7 +137,8 @@ for(const width of [390,430,768,1440])for(const height of [844,420])test('older 
  const current=await holdOlderWithKeyboard(page,state);
  // Establish the same reading anchor across engines without depending on native
  // wheel-delta clamping. The HTTP response still uses core request() auth handling.
- await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.olderPlayingAudio=audio;window.olderAudioTime=audio.currentTime});
+ // Native muted playback keeps this check independent of headless audio hardware.
+ await page.locator('#messages audio').evaluate(async audio=>{audio.muted=true;await audio.play();window.olderPlayingAudio=audio;window.olderAudioTime=audio.currentTime});
  await readTop(page);await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);
  const before=await anchor(page);await page.locator('#replyText').focus();await page.locator('#replyText').evaluate(el=>el.setSelectionRange(2,9));
  const history=await page.evaluate(()=>WorkspaceV2History.getState()),count=state.calls.length;
