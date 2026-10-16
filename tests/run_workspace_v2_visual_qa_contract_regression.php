@@ -3,6 +3,7 @@
 declare(strict_types=1);
 $root=dirname(__DIR__);
 $workflow=(string)@file_get_contents($root.'/.github/workflows/workspace-v2-visual-qa.yml');
+$previewWorkflow=(string)@file_get_contents($root.'/.github/workflows/manager2-preview.yml');
 $fixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-fixture.html');
 $layoutSpec=(string)@file_get_contents($root.'/tests/visual/workspace-v2-layout.spec.js');
 $kanbanFixture=(string)@file_get_contents($root.'/tests/visual/workspace-v2-kanban-fixture.html');
@@ -13,6 +14,9 @@ $adminFixture=(string)@file_get_contents($root.'/tests/visual/admin-audit-fixtur
 $passed=0;$failed=0;
 function vqCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 vqCheck('visual workflow exists',$workflow!=='');
+vqCheck('release gate requires both engines and Firefox evidence',strpos($workflow,'needs: [browser-tests, firefox-history, firefox-notifications]')!==false&&strpos($workflow,'tools/verify_manager2_visual_evidence.js evidence')!==false&&strpos($workflow,'path: evidence/chromium')!==false&&strpos($workflow,'path: evidence/webkit')!==false);
+vqCheck('preview uses separate non-release check on test branches',strpos($previewWorkflow,"branches: ['m2-preview/**']")!==false&&strpos($previewWorkflow,'preview-smoke:')!==false&&strpos($previewWorkflow,'  screenshots:')===false&&strpos($previewWorkflow,'compact header keeps native tools|actual shell boots, preserves canonical paths')!==false);
+vqCheck('preview has read-only permissions and local synthetic server',strpos($previewWorkflow,'contents: read')!==false&&strpos($previewWorkflow,'127.0.0.1:4173')!==false&&strpos($previewWorkflow,'app.anytoour.ru')===false&&strpos($previewWorkflow,'secrets.')===false);
 vqCheck('visual fixture exists',$fixture!=='');
 vqCheck('layout assertion spec exists',$layoutSpec!=='');
 vqCheck('kanban visual fixture exists',$kanbanFixture!=='');
