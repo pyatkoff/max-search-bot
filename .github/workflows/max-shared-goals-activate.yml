@@ -1,0 +1,76 @@
+name: Activate owner-selected existing MAX dialogue goals
+on:
+  push:
+    branches: [test/max-shared-goals-activate-20261016]
+    paths: [.github/workflows/max-shared-goals-activate.yml]
+permissions:
+  contents: read
+concurrency:
+  group: max-attribution-control
+  cancel-in-progress: false
+jobs:
+  initialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Prepare existing canonical deployment identity
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$KEY_VALUE"; key="$RUNNER_TEMP/key"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key"; else printf '%s' "$raw" | base64 --decode > "$key"; fi
+          chmod 600 "$key"; ssh-keygen -y -f "$key" >/dev/null
+      - name: Apply only the three existing goal conditions and explicitly switch the funnel
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new "$SSH_USER@$HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = "47549781cc1bb4a4d775235a013d8379768d78d1"; flock -w 55 /tmp/max-search-metrika-cron.lock php -d display_errors=0 -d log_errors=0' <<'PHP'
+          <?php
+          ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);
+          function control(string $action):array{
+            $process=proc_open([PHP_BINARY,'tools/max_channel_attribution.php',$action],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+            if(!is_resource($process))throw new RuntimeException('control_unavailable');
+            fclose($pipes[0]);$out=stream_get_contents($pipes[1],16384);fclose($pipes[1]);$err=stream_get_contents($pipes[2],16384);fclose($pipes[2]);$exit=proc_close($process);
+            $result=json_decode($out,true);
+            if($exit!==0||!is_array($result)||empty($result['ok']))throw new RuntimeException('control_'.$action.'_failed');
+            echo json_encode(['step'=>$action,'result'=>$result],JSON_UNESCAPED_SLASHES)."\n";return $result;
+          }
+          function protectedRows(PDO $p):array{
+            $q=$p->query("SELECT id,project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,client_id,tracker_record_id,tracker_observed_unix,state,next_attempt_unix,claim_token,claimed_at_unix,attempts,upload_id,upload_status,last_error FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND (attempts>0 OR upload_id IS NOT NULL OR state IN ('accepted','unknown','uploading','processed','unmatched','failed')) ORDER BY id LIMIT 10001");
+            $rows=$q->fetchAll(PDO::FETCH_ASSOC);if(count($rows)>10000)throw new RuntimeException('snapshot_bound');return $rows;
+          }
+          try{
+            require 'config.php';require 'services/MaxChannelConversionWorker.php';
+            if((string)METRIKA_COUNTER_ID!=='98615635')throw new RuntimeException('counter');
+            $p=ConversationDb::connection();$s=MaxChannelConversionOutbox::settings($p);
+            if(!$s||$s['goal_set']!=='channel'||(int)$s['shared_goals_activated_at_unix']!==0)throw new RuntimeException('already_switched_or_unavailable');
+            $originalActivation=$s['activated_at_unix'];$originalCursor=$s['message_cursor'];$protected=protectedRows($p);
+            $beforeHash=hash('sha256',json_encode($protected,JSON_THROW_ON_ERROR));
+            control('collect');
+            $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN);
+            $plan=$api->configureSharedGoals(false);
+            echo json_encode(['step'=>'goal_plan','result'=>$plan],JSON_UNESCAPED_SLASHES)."\n";
+            $goals=$api->configureSharedGoals(true);
+            echo json_encode(['step'=>'selected_goal_configuration','result'=>$goals],JSON_UNESCAPED_SLASHES)."\n";
+            control('shared');
+            $after=MaxChannelConversionOutbox::settings($p);
+            $afterHash=hash('sha256',json_encode(protectedRows($p),JSON_THROW_ON_ERROR));
+            if($beforeHash!==$afterHash||$after['activated_at_unix']!==$originalActivation||$after['message_cursor']!==$originalCursor||!$api->goalsReady())throw new RuntimeException('preservation_or_goal_verification_failed');
+            echo json_encode(['step'=>'preservation','protected_receipts_and_attempts'=>count($protected),'unchanged'=>true,'original_activation_unchanged'=>true,'message_cursor_unchanged'=>true,'conversion_requests'=>0])."\n";
+            control('send');
+            $s=MaxChannelConversionOutbox::settings($p);
+            $groups=$p->query("SELECT target,transport_target,state,COUNT(*) AS events FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' GROUP BY target,transport_target,state ORDER BY target,transport_target,state")->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['ok'=>true,'captured_at_utc'=>gmdate('c'),'mode'=>$s['mode'],'goal_set'=>$s['goal_set'],'shared_goals_activated_at_unix'=>$s['shared_goals_activated_at_unix'],'only_selected_conditions_changed'=>$goals['only_selected_conditions_changed'],'goal_writes'=>$goals['goal_writes'],'preserved_attempts_and_receipts'=>count($protected),'queue'=>$groups,'conversion_requests'=>0],JSON_UNESCAPED_SLASHES)."\n";
+          }catch(Throwable $e){
+            $allowed=['already_switched_or_unavailable','selected_goal_missing','selected_goal_conflict','ambiguous_shared_goal','goal_update_requires_readback','existing_goal_changed','goals_read_failed','preservation_or_goal_verification_failed','control_collect_failed','control_shared_failed','control_send_failed'];
+            echo json_encode(['ok'=>false,'reason'=>in_array($e->getMessage(),$allowed,true)?$e->getMessage():'activation_failed_requires_readback','conversion_requests'=>0])."\n";exit(1);
+          }
+          PHP
+      - name: Remove temporary SSH credential
+        if: always()
+        run: python3 -c 'import os; p=os.path.join(os.environ["RUNNER_TEMP"],"key"); os.path.exists(p) and os.unlink(p)'
+
