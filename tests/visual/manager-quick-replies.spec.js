@@ -145,6 +145,13 @@ const knownTrip={city:'Москва',country:'Турция',date:'29.02.2028',ni
 const tripKeys=['trip_city','trip_country','trip_date','trip_nights','trip_adults','trip_children','trip_budget'];
 const tripTemplate=tripKeys.map(key=>'{'+key+'}').join(' | ');
 const tripExpected='Москва | Турция | 29.02.2028 | 7-9 | 2 | 0 | до '+new Intl.NumberFormat('ru-RU').format(250000)+' RUB за всех';
+async function assertTripPreviewFlow(page){
+ const boxes=await page.evaluate(()=>['#qrPreview','.qrDetail>.qrEmojiTools','.qrKnownParameters','#qrPlaceholderStatus'].map(selector=>{const node=document.querySelector(selector),rect=node.getBoundingClientRect();return {top:rect.top,bottom:rect.bottom}}));
+ // A scrollable short detail must keep its textarea and subsequent controls
+ // in document flow instead of shrinking the label around an overflowing input.
+ for(const box of boxes)expect(box.bottom).toBeGreaterThan(box.top);
+ for(let index=1;index<boxes.length;index++)expect(boxes[index-1].bottom).toBeLessThanOrEqual(boxes[index].top+1);
+}
 async function chooseForPanel(page,id){await page.locator('[data-qr-scope="all"]').click();await page.locator('[data-qr-select="'+id+'"]').click();await page.locator('#qrFavorite').click()}
 async function assertToolbarLayout(page){
  await bounded(page);
@@ -376,7 +383,7 @@ for(const width of [390,430,768,1440])test('trip template create, current-card p
  // unrelated library/render work is still in flight.
  await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
  const preview=page.locator('#qrPreview');await preview.fill('Проверено: '+tripExpected);
- await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await bounded(page);await capture(page,browserName,width,'trip-preview');
+ await page.locator('#qrInsert').scrollIntoViewIfNeeded();await expect(page.locator('#qrInsert')).toBeInViewport();await bounded(page);await assertTripPreviewFlow(page);await capture(page,browserName,width,'trip-preview');
  const before=s.calls.length;
  await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Исходный черновик\nПроверено: '+tripExpected);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  expect(await page.evaluate(()=>({message:document.querySelector('#messages .msg')===window.tripMessage,media:document.querySelector('.mediaSelectedItem')===window.tripMedia}))).toEqual({message:true,media:true});
@@ -402,7 +409,7 @@ test('late or changed card fills only unresolved trip tokens explicitly, without
  expect(await preview.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([('Моя правка: '+tripExpected+' | конец').length-5,('Моя правка: '+tripExpected+' | конец').length,'backward']);expect(s.calls.length).toBe(before);
  await preview.fill('Свой город / {trip_country} / {trip_budget}');s.setTrip(11,{...knownTrip,country:'Кипр',budget:{max:100,currency:'USD',basis:'per_person'}});await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());
  await expect(preview).toHaveValue('Свой город / {trip_country} / {trip_budget}');const afterRead=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('Свой город / Кипр / до 100 USD на человека');expect(s.calls.length).toBe(afterRead);
- await page.locator('#qrInsert').scrollIntoViewIfNeeded();await bounded(page);await capture(page,browserName,390,'trip-explicit-fill-short');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Текст до подстановки\nСвой город / Кипр / до 100 USD на человека');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ await page.locator('#qrInsert').scrollIntoViewIfNeeded();await bounded(page);await assertTripPreviewFlow(page);await capture(page,browserName,390,'trip-explicit-fill-short');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue('Текст до подстановки\nСвой город / Кипр / до 100 USD на человека');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrCreate')).toBeEnabled();
  s.replies[2].body='{trip_date} / {trip_children} / {trip_budget}';s.setTrip(11,{date:'31.02.2026',children:0,budget:{max:100,currency:'USD'}});await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();const invalidBefore=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');expect(s.calls.length).toBe(invalidBefore);
@@ -417,6 +424,7 @@ test('late or changed card fills only unresolved trip tokens explicitly, without
  // not a disabled insertion control for a reply that is no longer selected.
  await page.locator('#quickRepliesOpen').click();await expect(page.locator('[data-qr-scope="toolbar"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#quickRepliesSelected')).toHaveAttribute('aria-busy','false');await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
  await expect(page.locator('.qrWelcome')).toBeVisible();await expect(page.locator('#qrInsert')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue(retainedDraft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead?.ok)).toBe(true);
  await page.locator('[data-qr-scope="all"]').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
  await page.locator('[data-qr-select="3"]').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();
  await preview.fill('Проверенные вручную данные');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue(retainedDraft+'\nПроверенные вручную данные');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
