@@ -13,7 +13,7 @@ class ManagerHandoffContextService
     {
         $state = TripStateService::fromLegacyAiContext($aiContext);
         $summary = trim(ManagerSummaryService::build($state));
-        $note = self::latestMeaningfulCustomerNote($messages);
+        $note = self::latestMeaningfulCustomerNote($messages, (string)($handoffContext['created_at'] ?? ''));
         $transcript = self::customerTranscript($messages);
 
         if ($note !== '') {
@@ -138,13 +138,20 @@ class ManagerHandoffContextService
         return false;
     }
 
-    private static function latestMeaningfulCustomerNote(array $messages): string
+    private static function latestMeaningfulCustomerNote(array $messages, string $handoffCreatedAt = ''): string
     {
+        $handoffAt = self::parseMessageTime($handoffCreatedAt);
+
         for ($i = count($messages) - 1; $i >= 0; $i--) {
             $message = $messages[$i] ?? [];
             if ((string)($message['direction'] ?? '') !== 'inbound'
                 || (string)($message['sender_type'] ?? '') !== 'customer') {
                 continue;
+            }
+
+            if ($handoffAt !== null) {
+                $messageAt = self::parseMessageTime((string)($message['created_at'] ?? ''));
+                if ($messageAt === null || $messageAt <= $handoffAt) continue;
             }
 
             $text = trim((string)($message['text'] ?? ''));
@@ -165,6 +172,18 @@ class ManagerHandoffContextService
             return preg_replace('/\s+/u', ' ', $text) ?: $text;
         }
         return '';
+    }
+
+    private static function parseMessageTime(string $value): ?int
+    {
+        $value = trim($value);
+        if ($value === '') return null;
+
+        try {
+            return (new DateTimeImmutable($value))->getTimestamp();
+        } catch (Throwable $ignored) {
+            return null;
+        }
     }
 
     private static function isExplicitNoteRetraction(string $text): bool

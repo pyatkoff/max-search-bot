@@ -31,6 +31,27 @@ $corrected=ManagerHandoffContextService::build($context,$correctedMessages,[]);
 mhjCheck('newer short correction prevents stale long note from being relabeled as current addition',strpos($corrected,'Дополнение туриста: Нужен спокойный отель, без шумных вечеринок')===false,true);
 mhjCheck('newer short correction remains visible in customer transcript',strpos($corrected,'• Нет, неважно')!==false,true);
 
+$handoffAt='2026-09-24 10:05:00';
+$preHandoffMessages=[
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Нужен спокойный отель, без шумных вечеринок','created_at'=>'2026-09-24 10:00:00'],
+];
+$preHandoff=ManagerHandoffContextService::build($context,$preHandoffMessages,['created_at'=>$handoffAt]);
+mhjCheck('pre-handoff request is not mislabeled as a later tourist addition',strpos($preHandoff,'Дополнение туриста:')===false,true);
+mhjCheck('pre-handoff wording remains visible in verbatim transcript',strpos($preHandoff,'• Нужен спокойный отель, без шумных вечеринок')!==false,true);
+
+$postHandoffMessages=[
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'Нужен спокойный отель, без шумных вечеринок','created_at'=>'2026-09-24 10:00:00'],
+    ['direction'=>'inbound','sender_type'=>'customer','text'=>'После просмотра важен тихий корпус','created_at'=>'2026-09-24 10:06:00'],
+];
+$postHandoff=ManagerHandoffContextService::build($context,$postHandoffMessages,['created_at'=>$handoffAt]);
+mhjCheck('post-handoff customer clarification is highlighted as an addition',strpos($postHandoff,'Дополнение туриста: После просмотра важен тихий корпус')!==false,true);
+
+$postHandoffRetracted=$postHandoffMessages;
+$postHandoffRetracted[]=['direction'=>'inbound','sender_type'=>'customer','text'=>'Нет, неважно','created_at'=>'2026-09-24 10:07:00'];
+$postRetraction=ManagerHandoffContextService::build($context,$postHandoffRetracted,['created_at'=>$handoffAt]);
+mhjCheck('post-handoff retraction suppresses the older highlighted addition',strpos($postRetraction,'Дополнение туриста: После просмотра важен тихий корпус')===false,true);
+mhjCheck('post-handoff retraction stays visible in transcript',strpos($postRetraction,'• Нет, неважно')!==false,true);
+
 $after=ManagerHandoffContextService::build($context,$messages,['from_tours'=>true]);
 mhjCheck('post-results handoff is explicit',strpos($after,'Показано/реакция: запрос менеджера сделан после экрана с турами')!==false,true);
 mhjCheck('post-results handoff keeps exact viewed variant unknown',strpos($after,'конкретный просмотр, выбор или реакция не зафиксированы')!==false,true);
