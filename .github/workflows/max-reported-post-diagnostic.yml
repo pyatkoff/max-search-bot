@@ -157,7 +157,11 @@ jobs:
               $status=(int)$mm[3];$counts[(string)$status]=($counts[(string)$status]??0)+1;$events[]=['server_time'=>$mm[1],'method'=>$mm[2],'status'=>$status];
              }
             }
-            $out['access_log_summaries'][]=['name'=>basename($access),'tail_bytes'=>strlen((string)$tail),'today_webhook_counts_by_status'=>$counts,'last_webhook_events'=>array_slice($events,-20)];
+             $times=[];
+            foreach(explode("\n",(string)$tail)as $line){
+             if(preg_match('~\[(16/Oct/2026:[0-9:]{8} [+-][0-9]{4})\]~',$line,$tm))$times[]=$tm[1];
+            }
+            $out['access_log_summaries'][]=['name'=>basename($access),'modified_utc'=>gmdate('c',(int)($stat['mtime']??0)),'tail_bytes'=>strlen((string)$tail),'first_access_in_tail'=>$times[0]??null,'last_access_in_tail'=>$times?end($times):null,'today_webhook_counts_by_status'=>$counts,'last_webhook_events'=>array_slice($events,-20)];
            }
            $out['ok']=true;
           } catch(Throwable $ignored) {$out['error']='read_only_diagnostic_unavailable';}
