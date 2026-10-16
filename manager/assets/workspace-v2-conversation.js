@@ -313,7 +313,7 @@ async function open(id,options={}){
   // never holds the authorized transcript or composer behind a slow card request.
   // Card editors need catalog options; the transcript and composer do not.
   const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
-  let d;try{d=await api('detail',{conversation_id:target},options.signal?{signal:options.signal,isCurrent:validContext}:undefined)}catch(e){d=null}
+  let d;try{d=await (options.signal?api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext}):api('detail',{conversation_id:target}))}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
@@ -323,7 +323,7 @@ async function open(id,options={}){
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
-  accessLost=false;S.current=target;clearLifecycleIssue();S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
+  clearLifecycleIssue();accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
   window.WorkspaceV2Media?.configure(S.csrf,target);
   if(switching){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
   else if(!options.preserveAttachment)window.WorkspaceV2Media?.clear();
