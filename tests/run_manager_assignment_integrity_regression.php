@@ -11,7 +11,7 @@ $repairMigration=(string)file_get_contents(__DIR__.'/../migrations/026_repair_ac
 
 maiCheck('take locks conversation before mutation',strpos($service,"accessibleConversation(\$conversationId,\$managerId,true)")!==false);
 maiCheck('repeat take by same assigned manager is idempotent',strpos($service,"(string)\$row['status']==='manager' && (int)(\$row['manager_id']??0)===\$managerId")!==false);
-maiCheck('idempotent repeat exits before assignment insert',preg_match("/if\(\(string\)\\\$row\['status'\]===\'manager\'.*?return true;.*?INSERT INTO manager_assignments/s",$service)===1);
+maiCheck('idempotent result exits before assignment insert',preg_match("/if\(\(string\)\\\$row\['status'\]===\'manager\'.*?return \\['ok'=>true\\];.*?INSERT INTO manager_assignments/s",$service)===1);
 maiCheck('reassign serializes on canonical conversation row',preg_match('/function reassign.*?accessibleConversation\(\$conversationId,\$adminId,true\)/s',$service)===1);
 maiCheck('reassign releases prior active assignment before insert',preg_match('/UPDATE manager_assignments SET released_at=NOW\(\).*?INSERT INTO manager_assignments.*?admin_reassign/s',$service)===1);
 maiCheck('reopen serializes on canonical conversation row',preg_match('/function reopen.*?accessibleConversation\(\$conversationId,\$managerId,true\)/s',$service)===1);

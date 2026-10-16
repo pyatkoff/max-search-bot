@@ -11,9 +11,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false;
+  let lifecycleHandler=null,stateHandler=null;const conversationOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
-  const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
+  const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
   const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3===0?'manager':'customer',manager_id:i%3===0?7:null,text:i===34?'Посмотрите, пожалуйста, варианты у моря. Бюджет до 250 тысяч за всех.':'Сообщение '+(i+1)+'. Подбираем семейный отдых в Турции, обсуждаем отели и даты.',created_at:'2026-10-13 12:00:00'}));
   if(serviceEvents)messages.push({id:36,direction:'inbound',sender_type:'customer',text:'manager_after_tours',service_action:{type:'callback',label:'Клиент запросил менеджера после подбора туров',raw_payload:'manager_after_tours'},created_at:'2026-10-13 12:01:00'},{id:37,direction:'inbound',sender_type:'customer',text:'manager_after_tours',created_at:'2026-10-13 12:02:00'});
   const lead=id=>({ok:true,can_edit_pipeline:!otherOwner,pipeline:{stage:stages[1],stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:tasks.map(t=>({...t})),trip:{city:'Москва',country:'Турция',date:'24 октября',nights:'7–9',adults:2,children:1,child_ages:'8',meal:'all_inclusive',stars:'4,5',budget:{max:250000,currency:'RUB',basis:'total'}},contact:{phone:'+7 999 123-45-67'},source:{project_label:'AnyTour',origin_label:'TG · реклама',channel:'telegram'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
@@ -58,6 +59,12 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
       if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null});
+      if((['take','release','close','reopen'].includes(data.action)&&lifecycleHandler)||(data.action==='lifecycle_state'&&stateHandler)){
+        expect(data.csrf).toBe('synthetic-csrf');const result=await (data.action==='lifecycle_state'?stateHandler:lifecycleHandler)(data);
+        if(result.abort)return route.abort('failed').catch(()=>{});
+        if(result.raw!==undefined)return route.fulfill({status:result.status||200,contentType:'application/json',body:result.raw});
+        return reply(result.body,result.status||200);
+      }
       if(data.action==='send'){sends.push(data);messages.push({id:100+sends.length,sender_type:'manager',manager_id:7,text:data.text,created_at:'2026-10-13 12:01:00'});return reply({ok:true})}
       if(data.action==='set_working'){manager.is_working=data.working;return reply({ok:true,manager})}
     }
@@ -97,7 +104,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -370,4 +377,58 @@ for(const width of [390,1440])test('Manager2 admin settings remain accessible at
   await expect(page.locator('#adminLink')).toBeVisible();
   expect(await page.locator('#adminLink').evaluate(el=>new URL(el.getAttribute('href'),document.baseURI).pathname)).toBe('/manager2/admin.php');
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+const lifecycleMutations=s=>s.calls.filter(c=>c.path==='/manager/api.php'&&['take','release','close','reopen','send'].includes(c.action));
+const lifecycleNotice=page=>page.locator('#conversationLifecycleStatus');
+async function lifecycleAction(page,name){const button=page.getByRole('button',{name,exact:true});if(!await button.isVisible())await page.locator('#m2ConversationMenuToggle').click();await button.click()}
+async function lifecycleDraft(page){
+  await page.locator('#replyText').fill('Неотправленный ответ после отказа');
+  await page.locator('#replyFile').setInputFiles({name:'lifecycle-draft.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic fixture, never uploaded')});
+  await page.evaluate(()=>{window.lifecycleHeldFile=document.getElementById('replyFile').files[0];window.lifecycleHeldMessage=document.querySelector('#messages .msg');const reply=document.getElementById('replyText');reply.setSelectionRange(4,12)});
+  await page.locator('#messages').hover();await page.mouse.wheel(0,-1200);await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+}
+async function retainedLifecycleDraft(page){
+  await expect(page.locator('#replyText')).toHaveValue('Неотправленный ответ после отказа');await expect(page.locator('#mediaSelection')).toContainText('lifecycle-draft.txt');
+  expect(await page.evaluate(()=>({file:document.getElementById('replyFile').files[0]===window.lifecycleHeldFile,message:document.querySelector('#messages .msg')===window.lifecycleHeldMessage,start:document.getElementById('replyText').selectionStart,end:document.getElementById('replyText').selectionEnd}))).toEqual({file:true,message:true,start:4,end:12});
+}
+for(const width of [390,430,768,1440])test('Manager2 lifecycle refusal and UNKNOWN preserve reply at '+width+'x420',async({page,browserName})=>{
+  await page.setViewportSize({width,height:420});const s=await setup(page);await openLead(page);await lifecycleDraft(page);await capture(page,browserName,width,'lifecycle-before-action');
+  s.setLifecycleHandler(async()=>({body:{ok:false,error:'not_owned',error_message:'Серверная причина'}}));s.setStateHandler(async()=>({body:{ok:false,error:'synthetic_read_failed'},status:500}));
+  const reads=s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail').length;
+  await lifecycleAction(page,'Передать боту');
+  await expect(page.locator('#conversationLoadStatus')).not.toContainText('Передаём диалог');await capture(page,browserName,width,'lifecycle-refused');
+  await expect(lifecycleNotice(page)).toContainText('не назначен вам');await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#sendReply')).toBeDisabled();await retainedLifecycleDraft(page);
+  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(reads);expect(s.calls.some(c=>c.action==='lifecycle_state')).toBe(false);
+  await page.locator('#replyText').press('Control+Enter');expect(lifecycleMutations(s)).toHaveLength(1);
+  await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();await expect(lifecycleNotice(page)).toContainText('Не удалось проверить состояние');await expect(lifecycleNotice(page)).toContainText('не назначен вам');await retainedLifecycleDraft(page);
+  s.setStateHandler(async()=>({body:{ok:true,conversation_state:{id:11,status:'manager',manager_id:7}}}));await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();
+  await expect(lifecycleNotice(page)).toBeHidden();await expect(page.locator('#sendReply')).toBeEnabled();await retainedLifecycleDraft(page);expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(reads);
+  s.setLifecycleHandler(async()=>({body:{ok:false,error:'closed'},status:500}));await lifecycleAction(page,'Закрыть обращение');await expect(lifecycleNotice(page)).toContainText('Результат действия не подтверждён');await expect(lifecycleNotice(page)).not.toContainText('уже закрыт');await retainedLifecycleDraft(page);await capture(page,browserName,width,'lifecycle-unknown');await noOverflow(page);
+  const messageTop=await page.locator('#messages').evaluate(el=>el.scrollTop);await page.locator('#replyText').focus();
+  await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();await expect(lifecycleNotice(page)).toBeHidden();await retainedLifecycleDraft(page);expect(await page.locator('#messages').evaluate(el=>el.scrollTop)).toBe(messageTop);
+  await expect(page.locator('#conversationLoadStatus')).toContainText('не подтверждение предыдущего действия');await capture(page,browserName,width,'lifecycle-checked');await noOverflow(page);
+  expect(lifecycleMutations(s).map(c=>c.action)).toEqual(['release','close']);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 lifecycle take/reopen use canonical current state without optimistic ownership',async({page,browserName})=>{
+  await page.setViewportSize({width:430,height:900});const s=await setup(page);s.setConversation(11,{status:'waiting_manager',manager_id:null,manager_name:null});await openLead(page);
+  s.setLifecycleHandler(async()=>({body:{ok:false,error:'closed'}}));s.setStateHandler(async()=>({body:{ok:true,conversation_state:{id:11,status:'closed',manager_id:8}}}));
+  await page.getByRole('button',{name:'Взять',exact:true}).click();await expect(lifecycleNotice(page)).toContainText('уже закрыт');await expect(page.locator('#conversationState')).toContainText('Ждёт менеджера');
+  await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();await expect(page.locator('#conversationState')).toContainText('Диалог закрыт');await expect(page.locator('#composer')).toBeHidden();
+  s.setLifecycleHandler(async()=>{s.setConversation(11,{status:'manager',manager_id:7,manager_name:'Мария'});return{body:{ok:true}}});await page.getByRole('button',{name:'Переоткрыть',exact:true}).click();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#conversationLoadStatus')).toContainText('Диалог снова в работе');
+  await capture(page,browserName,430,'lifecycle-reopened');expect(lifecycleMutations(s).map(c=>c.action)).toEqual(['take','reopen']);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 lifecycle native abort and state-read timeout remain explicit without replay',async({page})=>{
+  await page.clock.install();await page.setViewportSize({width:390,height:420});const s=await setup(page);await openLead(page);await lifecycleDraft(page);
+  let release;const held=new Promise(resolve=>{release=resolve});s.setLifecycleHandler(()=>held);
+  await lifecycleAction(page,'Закрыть обращение');await expect.poll(()=>lifecycleMutations(s).length).toBe(1);await expect(page.locator('#replyText')).toBeDisabled();
+  await page.clock.fastForward(20001);await expect(lifecycleNotice(page)).toContainText('Результат действия не подтверждён');await expect(page.locator('#replyText')).toBeEnabled();await retainedLifecycleDraft(page);release({abort:true});
+  let releaseRead;const heldRead=new Promise(resolve=>{releaseRead=resolve});s.setStateHandler(()=>heldRead);await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();await expect.poll(()=>s.calls.filter(c=>c.action==='lifecycle_state').length).toBe(1);
+  await page.clock.fastForward(20001);await expect(lifecycleNotice(page)).toContainText('Не удалось проверить состояние');await expect(lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true})).toBeEnabled();await retainedLifecycleDraft(page);releaseRead({abort:true});
+  s.setStateHandler(async()=>({body:{ok:true,conversation_state:{id:11,status:'manager',manager_id:7}}}));await lifecycleNotice(page).getByRole('button',{name:'Проверить состояние',exact:true}).click();await expect(page.locator('#sendReply')).toBeEnabled();expect(lifecycleMutations(s)).toHaveLength(1);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 lifecycle late completion respects desktop navigation and mobile Back',async({page})=>{
+  await page.setViewportSize({width:430,height:900});const s=await setup(page);await openLead(page,12);await page.locator('#replyText').fill('Сохранённый ответ второму клиенту');await page.locator('#replyFile').setInputFiles({name:'B.txt',mimeType:'text/plain',buffer:Buffer.from('B fixture')});await openLead(page,11);
+  let release;const held=new Promise(resolve=>{release=resolve});s.setLifecycleHandler(()=>held);await lifecycleAction(page,'Закрыть обращение');await expect.poll(()=>lifecycleMutations(s).length).toBe(1);
+  await page.locator('#mobileBack').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox');await openLead(page,12);release({body:{ok:true}});await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Сохранённый ответ второму клиенту');await expect(page.locator('#mediaSelection')).toContainText('B.txt');await expect(page.locator('#conversationTitle')).toHaveText('Алексей Иванов');await expect(lifecycleNotice(page)).toHaveCount(0);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

@@ -1,5 +1,6 @@
 (function(){
 const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
+let lifecycleFlight=null,lifecycleIssue=null;
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
 let replySessionOwner=0,savedSelection=0;
 let photoViewer=null;
@@ -38,10 +39,11 @@ function ensureLoadStatus(){let el=$('conversationLoadStatus');if(el)return el;e
 function setLoadStatus(text='',kind=''){const el=ensureLoadStatus();if(!el)return;el.textContent=text;el.className='conversationLoadStatus'+(kind?' '+kind:'')+(text?'':' hidden')}
 function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&&text){el=document.createElement('div');el.id='conversationRefreshStatus';el.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',el)}if(!el)return;el.textContent=text;el.className='conversationLoadStatus error'+(text?'':' hidden')}
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render()}
+function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost;send.textContent=busy?'Отправляем…':'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
-function applyActionState(){document.querySelectorAll('#conversationActions button').forEach(b=>{b.disabled=busy||!!opening||accessLost})}
-function applyInteractionState(){applyComposerState();applyActionState()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight?'Подождите…':'Отправляем…'):'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker()}
+function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
+function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
 function sendFailureNotice(failure,fallback=''){
@@ -105,7 +107,7 @@ function bindEmojiPicker(){
   window.addEventListener('popstate',()=>closeEmojiPicker());
   window.addEventListener('pagehide',()=>closeEmojiPicker());
 }
-function suspendForAuthRecovery(){window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;setRefreshStatus();$('composer')?.classList.add('hidden')}
+function suspendForAuthRecovery(){window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);window.WorkspaceV2QuickReplies?.resetSession();window.WorkspaceV2ConversationSearch?.reset();closeEmojiPicker();closePhotoViewer(false);openSeq++;opening=0;refreshEpoch++;if(lifecycleFlight){lifecycleFlight=null;setBusy(false)}clearLifecycleIssue();setRefreshStatus();$('composer')?.classList.add('hidden')}
 function resetForIdentityChange(){
   suspendForAuthRecovery();accessLost=false;drafts.clear();savedSelection=0;replySessionOwner=0;removeReplySession();S.current=0;S.detail=null;
   const reply=$('replyText');if(reply)reply.value='';autoGrow();setReplyStatus();setLoadStatus();
@@ -259,7 +261,7 @@ function loseHistoryAccess(){W.HandoffCancellation?.render($('handoffCancellatio
 function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.resolve(false)}
 function renderHeader(c){const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
-function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
+function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&!lifecycleBlocked()&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
 async function refreshVisible(){
   if(!canRefreshVisible())return false;
   // A different confirmed context may proceed before an obsolete read settles.
@@ -311,7 +313,7 @@ async function open(id,options={}){
   // never holds the authorized transcript or composer behind a slow card request.
   // Card editors need catalog options; the transcript and composer do not.
   const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
-  let d;try{d=await api('detail',{conversation_id:target})}catch(e){d=null}
+  let d;try{if(options.signal)d=await api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext});else d=await api('detail',{conversation_id:target})}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
@@ -321,7 +323,7 @@ async function open(id,options={}){
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
-  accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
+  clearLifecycleIssue();accessLost=false;S.current=target;S.detail={...d,lead:null};S.detail.messages=window.WorkspaceV2History?.applyLatest(S.detail,{reset:!retainLoaded,retainLoaded})||d.messages||[];rememberSelection(target);setReplyStatus();setLoadStatus();
   window.WorkspaceV2Media?.configure(S.csrf,target);
   if(switching){if(window.WorkspaceV2Media?.restoreDraft)window.WorkspaceV2Media.restoreDraft(target);else window.WorkspaceV2Media?.clear()}
   else if(!options.preserveAttachment)window.WorkspaceV2Media?.clear();
@@ -361,28 +363,91 @@ async function nextWaiting(){
   return open(Number(next.id));
 }
 function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id&&(S.manager.role==='admin'||S.manager.is_working),suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть обращение','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';window.Manager2Presentation?.enhanceConversationActions(root);applyInteractionState();autoGrow()}
-function action(text,cl,fn){const b=document.createElement('button');b.className='actionBtn '+cl;b.type='button';b.textContent=text;b.disabled=busy||accessLost;b.onclick=fn;$('conversationActions').appendChild(b)}
+function action(text,cl,fn){const b=document.createElement('button');b.className='actionBtn '+cl;b.type='button';b.dataset.conversationLifecycle='1';b.textContent=text;b.disabled=busy||accessLost;b.onclick=fn;$('conversationActions').appendChild(b)}
 const lifecycleCopy={take:{loading:'Берём диалог…',success:'Диалог назначен вам',error:'Не удалось взять диалог'},release:{loading:'Передаём диалог боту…',success:'Диалог передан боту',error:'Не удалось передать диалог боту'},close:{loading:'Закрываем диалог…',success:'Диалог закрыт',error:'Не удалось закрыть диалог'},reopen:{loading:'Переоткрываем диалог…',success:'Диалог снова в работе',error:'Не удалось переоткрыть диалог'}};
+const lifecycleReasons={
+  unavailable:'Диалог недоступен или доступ к нему изменился. Проверьте состояние или выберите доступный диалог.',
+  closed:'Диалог уже закрыт. Проверьте состояние, затем при необходимости переоткройте его.',
+  owned_elsewhere:'Диалог уже назначен другому менеджеру. Проверьте состояние перед следующим действием.',
+  not_owned:'Диалог сейчас не назначен вам. Проверьте состояние перед следующим действием.',
+  state_changed:'Состояние диалога изменилось. Проверьте его перед следующим действием.',
+  not_working:'Вы не на смене. Включите смену в настройках, если готовы принимать диалоги, и проверьте состояние.',
+  csrf:'Запрос отклонён проверкой безопасности. Обновите кабинет перед действием; сначала сохраните текст и выбранные файлы.'
+};
+const lifecycleUnknown='Результат действия не подтверждён. Проверьте текущее состояние перед повтором: действие могло выполниться.';
+function clearLifecycleIssue(){lifecycleIssue=null;const box=$('conversationLifecycleStatus');if(box){box.replaceChildren();box.className='conversationLoadStatus lifecycleNotice hidden'}}
+function showLifecycleIssue(context,message,kind='unknown'){
+  lifecycleIssue={target:context.target,manager:context.manager,auth:context.auth,returnFocus:context.returnFocus,message,kind,checking:false,checkError:''};refreshEpoch++;setLoadStatus();renderLifecycleIssue();applyInteractionState();
+}
+function renderLifecycleIssue(){
+  if(!lifecycleBlocked())return;
+  let box=$('conversationLifecycleStatus');
+  if(!box){box=document.createElement('div');box.id='conversationLifecycleStatus';box.setAttribute('aria-live','polite');const head=$('conversationZone')?.querySelector('.conversationHead');head?.insertAdjacentElement('afterend',box)}
+  box.className='conversationLoadStatus lifecycleNotice '+(lifecycleIssue.kind==='confirmed'?'warning':'error');
+  let message=box.querySelector('span');if(!message){message=document.createElement('span');box.appendChild(message)}message.textContent=lifecycleIssue.message+(lifecycleIssue.checkError?' '+lifecycleIssue.checkError:'');
+  let check=box.querySelector('button');if(!check){check=document.createElement('button');check.type='button';check.className='actionBtn';check.onclick=checkLifecycleState;box.appendChild(check)}check.textContent=lifecycleIssue.checking?'Проверяем…':'Проверить состояние';check.disabled=lifecycleIssue.checking||!!opening;
+}
+async function checkLifecycleState(){
+  const issue=lifecycleIssue,generation=openSeq,restoreFocus=$('conversationLifecycleStatus')?.contains(document.activeElement);
+  if(!lifecycleBlocked()||issue.checking||busy||opening)return;
+  const read={},current=()=>lifecycleIssue===issue&&issue.read===read&&lifecycleBlocked()&&openSeq===generation&&!opening;
+  const controller=typeof AbortController==='function'?new AbortController():null,timer=controller?setTimeout(()=>controller.abort(),20000):0;
+  issue.read=read;issue.checking=true;issue.checkError='';renderLifecycleIssue();
+  try{
+    // This visibility-only read never marks messages read, sends or replays an action.
+    const result=await api('lifecycle_state',{conversation_id:issue.target},{isCurrent:current,signal:controller?.signal});
+    if(!current())return;
+    if(result?.ok===false&&result.error==='unavailable'&&[200,404].includes(result.http_status||200)){
+      clearLifecycleIssue();loseHistoryAccess();return;
+    }
+    const state=result?.conversation_state;
+    if(result?.ok!==true||Number(state?.id)!==issue.target||!['ai','waiting_manager','manager','closed'].includes(state?.status)||!(state.manager_id===null||Number.isSafeInteger(state.manager_id)&&state.manager_id>0))throw new Error('invalid_lifecycle_state');
+    const c=S.detail?.conversation;
+    if(Number(c?.id)!==issue.target)throw new Error('stale_lifecycle_state');
+    if(Number(c.manager_id)!==Number(state.manager_id))c.manager_name=Number(state.manager_id)===Number(S.manager.id)?S.manager.display_name||S.manager.login||'':null;
+    c.status=state.status;c.manager_id=state.manager_id;
+    // Use the same ownership policy as a fresh authorized transcript read.
+    if(c.status!=='manager'||Number(c.manager_id)!==Number(S.manager.id))clearCurrentReply(issue.target);
+    renderHeader(c);renderActions(c);clearLifecycleIssue();applyInteractionState();
+    setLoadStatus('Текущее состояние проверено: '+statusText(c.status)+'. Это не подтверждение предыдущего действия.','success');
+    if(restoreFocus&&(document.activeElement===document.body||!document.activeElement?.isConnected)){const next=$('conversationActions')?.querySelector('button')||(issue.returnFocus?.isConnected?issue.returnFocus:null);next?.focus({preventScroll:true})}
+  }catch(e){
+    if(current()){issue.checkError='Не удалось проверить состояние. Действие не повторялось.';issue.checking=false;renderLifecycleIssue()}
+  }finally{if(timer)clearTimeout(timer);if(lifecycleIssue===issue&&issue.read===read){issue.checking=false;if(lifecycleBlocked())renderLifecycleIssue();if(current()&&restoreFocus&&(document.activeElement===document.body||!document.activeElement?.isConnected))$('conversationLifecycleStatus')?.querySelector('button')?.focus({preventScroll:true})}}
+}
 async function change(a){
   if(busy)return;
   if(opening)return;
-  if(accessLost)return;
-  const target=Number(S.current||0),generation=openSeq,copy=lifecycleCopy[a]||{loading:'Сохраняем…',success:'Сохранено',error:'Не удалось сохранить'};
+  if(accessLost||S.authExpired||lifecycleBlocked())return;
+  const target=Number(S.current||0),generation=openSeq,copy=lifecycleCopy[a];
+  if(!copy)return;
   if(!target)return;
+  let feedbackGeneration=generation;
+  const opener=document.activeElement;
+  const flight={target,manager:Number(S.manager?.id),auth:S.authGeneration,opener,returnFocus:opener?.closest?.('details')?.querySelector('summary')||opener,fromActions:opener?.dataset?.conversationLifecycle==='1'},sameSession=()=>!S.authExpired&&S.authGeneration===flight.auth&&Number(S.manager?.id)===flight.manager,current=()=>sameSession()&&openSeq===generation&&Number(S.current)===target,feedbackCurrent=()=>sameSession()&&openSeq===feedbackGeneration&&Number(S.current)===target;
+  lifecycleFlight=flight;
   setBusy(true);setLoadStatus(copy.loading,'loading');
+  let confirmed=false;const controller=typeof AbortController==='function'?new AbortController():null,timer=controller?setTimeout(()=>controller.abort(),20000):0;
   try{
-    const j=await api(a,{conversation_id:target});
-    if(!j?.ok){if(!S.authExpired&&openSeq===generation)setLoadStatus(j?.error_message||copy.error,'error');return}
-    const stillCurrent=openSeq===generation&&Number(S.current)===target;
-    if(stillCurrent){const refreshed=await open(target,{preserveMessageScroll:true,mobileHistory:'none'});if(refreshed)setLoadStatus(copy.success,'success')}
-    await window.WorkspaceV2Inbox?.load({preserveScroll:true})
-  }catch(e){if(!S.authExpired&&openSeq===generation)setLoadStatus(copy.error,'error')}
-  finally{setBusy(false)}
+    const j=await api(a,{conversation_id:target},{signal:controller?.signal});
+    if(!sameSession())return;
+    if(j?.ok!==true){if(current())showLifecycleIssue(flight,j?.ok===false&&Number(j.http_status||200)<500&&lifecycleReasons[j.error]?lifecycleReasons[j.error]:lifecycleUnknown,j?.ok===false&&Number(j.http_status||200)<500&&lifecycleReasons[j.error]?'rejected':'unknown');return}
+    confirmed=true;
+    // Optional reads must never retain the write lock or release a newer operation.
+    if(lifecycleFlight===flight){lifecycleFlight=null;setBusy(false)}
+    if(current()){
+      const refreshing=open(target,{preserveMessageScroll:true,preserveHistory:true,preserveAttachment:true,mobileHistory:'none',signal:controller?.signal}),refreshGeneration=openSeq;feedbackGeneration=refreshGeneration;
+      const refreshed=await refreshing;
+      if(sameSession()&&openSeq===refreshGeneration&&Number(S.current)===target){if(refreshed)setLoadStatus(copy.success,'success');else showLifecycleIssue(flight,copy.success+'. Переписка пока не обновлена. Проверьте состояние перед следующим действием.','confirmed')}
+    }
+    if(sameSession())try{void Promise.resolve(window.WorkspaceV2Inbox?.load({preserveScroll:true})).catch(()=>{})}catch(e){}
+  }catch(e){if(feedbackCurrent())showLifecycleIssue(flight,confirmed?copy.success+'. Переписка пока не обновлена. Проверьте состояние перед следующим действием.':lifecycleUnknown,confirmed?'confirmed':'unknown')}
+  finally{if(timer)clearTimeout(timer);if(lifecycleFlight===flight){lifecycleFlight=null;setBusy(false)}if(feedbackCurrent()&&lifecycleBlocked()&&(document.activeElement===flight.opener||document.activeElement===document.body&&flight.fromActions))$('conversationLifecycleStatus')?.querySelector('button')?.focus({preventScroll:true})}
 }
 async function sendReply(){
   if(busy||deliverySuspended())return;
   if(opening)return;
-  if(accessLost||S.authExpired)return;
+  if(accessLost||S.authExpired||lifecycleBlocked())return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
   const manager=Number(S.manager?.id),authGeneration=S.authGeneration;

@@ -52,7 +52,7 @@ function hideAuthRecovery(){
 async function request(url,action,data={},options={}){
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data})});
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
   // A read owner can revoke an obsolete response before global auth handling.

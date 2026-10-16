@@ -92,7 +92,27 @@ test('delayed photos never hold transcript/composer or duplicate refreshed reque
 });
 
 test('200 client list fetches viewport photos only, at most two simultaneously, and reuses them after rerender',async({page})=>{
- await page.setViewportSize({width:390,height:900});const s=await setup(page,{rowCount:200,photoDelay:25});await expect.poll(()=>s.bytes).toBeGreaterThan(0);await page.waitForTimeout(400);const initial=s.photos.length;expect(initial).toBeGreaterThan(0);expect(initial).toBeLessThan(20);expect(s.maximumActive).toBeLessThanOrEqual(2);await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await page.waitForTimeout(100);expect(s.photos).toHaveLength(initial);await page.locator('#inboxList').evaluate(el=>el.scrollTop=el.scrollHeight);await expect.poll(()=>s.photos.length).toBeGreaterThan(initial);await page.waitForTimeout(400);expect(s.photos.length).toBeLessThan(40);expect(new Set(s.photos.map(p=>p.id)).size).toBe(s.photos.length);expect(s.calls.filter(c=>c.action==='list')).toHaveLength(2);console.log(JSON.stringify({fixture:'200 synthetic clients/390x900',metric:'lazy-photo-budget',httpInitial:initial,httpAfterBottom:s.photos.length,photoBytes:s.bytes,maxConcurrent:s.maximumActive,production:false}));clean(s);
+ // A fixed sleep after the first response does not mean all visible queued
+ // portraits have loaded. Wait for actual decoded visible images before
+ // measuring reuse; deliberately slow requests exercise more than one batch.
+ await page.setViewportSize({width:390,height:900});const s=await setup(page,{rowCount:200,photoDelay:120});
+ const visiblePortraits=()=>page.locator('#inboxList').evaluate(list=>{
+  const bounds=list.getBoundingClientRect(),top=Math.max(0,bounds.top),bottom=Math.min(innerHeight,bounds.bottom),left=Math.max(0,bounds.left),right=Math.min(innerWidth,bounds.right);
+  return [...list.querySelectorAll('.leadItem')].map(row=>{const avatar=row.querySelector('.leadAvatar'),rect=avatar.getBoundingClientRect(),image=avatar.querySelector('.customerAvatarImage');return {id:Number(row.dataset.conversationId),visible:Math.min(rect.bottom,bottom)>Math.max(rect.top,top)&&Math.min(rect.right,right)>Math.max(rect.left,left),loaded:!!(image?.complete&&image.naturalWidth===64)}}).filter(row=>row.visible);
+ });
+ const settledPortraits=async()=>{
+  await page.evaluate(()=>document.fonts.ready);
+  await expect.poll(async()=>{const rows=await visiblePortraits();return rows.length>0&&rows.every(row=>row.loaded)}).toBe(true);
+  return (await visiblePortraits()).map(row=>row.id);
+ };
+ const initialVisible=await settledPortraits(),initial=s.photos.length;
+ expect(initial).toBeGreaterThan(0);expect(initial).toBeLessThan(20);expect(s.photos.map(p=>p.id).sort((a,b)=>a-b)).toEqual(initialVisible.slice().sort((a,b)=>a-b));expect(s.maximumActive).toBeLessThanOrEqual(2);
+ await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));
+ expect(await settledPortraits()).toEqual(initialVisible);await page.waitForTimeout(100);expect((await visiblePortraits()).map(row=>row.id)).toEqual(initialVisible);expect(s.photos).toHaveLength(initial);
+ await page.locator('#inboxList').evaluate(el=>el.scrollTop=el.scrollHeight);
+ await settledPortraits();await expect.poll(()=>s.photos.length).toBeGreaterThan(initial);
+ expect(s.photos.length).toBeLessThan(40);expect(new Set(s.photos.map(p=>p.id)).size).toBe(s.photos.length);expect(s.maximumActive).toBeLessThanOrEqual(2);expect(s.calls.filter(c=>c.action==='list')).toHaveLength(2);
+ console.log(JSON.stringify({fixture:'200 synthetic clients/390x900/120ms photos',metric:'lazy-photo-budget',httpInitial:initial,httpAfterBottom:s.photos.length,photoBytes:s.bytes,maxConcurrent:s.maximumActive,production:false}));clean(s);
 });
 
 for(const status of [404,403,503])test('ACL '+status+' retains initials without provider URLs, repeated retries or auth leakage',async({page})=>{

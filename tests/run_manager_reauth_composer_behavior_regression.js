@@ -71,6 +71,7 @@ class Element {
     return [...new Set(found)];
   }
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
+  contains(node) { return node===this||this.children.some(child=>child.contains(node)); }
   setAttribute(name, value) { this[name] = value; }
   removeAttribute(name) { delete this[name]; }
   addEventListener(name, handler) { (this.handlers[name] ||= []).push(handler); }
@@ -87,7 +88,8 @@ const document = {
   createTextNode: text => { const el = new Element('text'); el.textContent = text; return el; },
   querySelectorAll: selector => {
     if(selector==='#conversationActions button')return ids.get('conversationActions').children;
-    const match=selector.match(/^#([\w-]+) (.+)$/);return match?ids.get(match[1])?.querySelectorAll(match[2])||[]:[];
+    const match=selector.match(/^#([\w-]+) (.+)$/);if(match)return ids.get(match[1])?.querySelectorAll(match[2])||[];
+    return [...new Set([...ids.values(),body].filter(node=>node.isConnected).flatMap(node=>[...(node.matches(selector)?[node]:[]),...node.querySelectorAll(selector)]))];
   },
 };
 ['inboxList','adminLink','managerName','conversationLoadStatus','conversationRefreshStatus','conversationActions',

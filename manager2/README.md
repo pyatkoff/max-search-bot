@@ -157,3 +157,30 @@ also selects FULL before execution. Initial adoption changes the workflow and
 therefore necessarily runs FULL. No benchmark dispatch or production operation
 is needed, and no measured speedup is claimed until a genuine eligible edit
 uses the new path.
+
+## Ordinary conversation actions and uncertain outcomes
+
+Take/release/close/reopen use structured results from the existing canonical
+conversation service; its bool callers remain compatible. Existing eligibility,
+ownership, off-shift take guard, admin exception, locks and provider/event order
+are unchanged. Known refusals have stable reasons; missing and inaccessible
+conversations remain indistinguishable. No extra query explains a refusal.
+
+A transport error, timeout, malformed/legacy response or server error is not a
+confirmed rejection: the action may already have happened. The inline notice
+keeps text/files editable, blocks another action/send and offers only an explicit
+current-state check. That protected visibility-only read never marks messages
+read or replays a mutation. It updates current technical state under the existing
+access/ownership clear policy; it is explicitly not a receipt of the old action.
+Both requests have a 20-second abort deadline, with no automatic retry. Late
+navigation/account results cannot paint or unlock a newer operation. A confirmed
+write stays confirmed if a later transcript/card/list refresh fails. Secondary
+reads do not retain the write lock. Canonical lifecycle buttons carry a semantic
+hook so busy/recovery guards survive presentation moving them into its menu.
+
+Acceptance uses isolated service/actual HTTP fixtures and a separate empty
+loopback MySQL database for concurrent-take/idempotency checks; never live client
+actions. Browser coverage uses the real PHP shell with synthetic API data and
+390/430/768/1440 widths, short height, native abort, focus, Back and retained draft/
+file/history. Physical-device behavior and natural customer outcomes are separate
+evidence, not inferred from these fixtures.

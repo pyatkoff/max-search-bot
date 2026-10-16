@@ -107,7 +107,7 @@ test('a pre-send refresh cannot erase the newer failed-send delivery state after
 
 test('a pre-lifecycle refresh is invalidated even when the lifecycle action fails',async()=>{
  const h=await setup(),pending=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?pending.promise:r.action==='close'?response({ok:false}):null);
- const refresh=h.C.refreshVisible();await flush();await h.ids.get('conversationActions').children.find(b=>b.textContent==='Закрыть обращение').onclick();pending.resolve(response({ok:true,conversation:{...h.conversation,status:'closed'},messages:[first]}));assert.equal(await refresh,false);assert.equal(h.W.S.detail.conversation.status,'manager');assert.equal(hidden(h),false);assert.match(h.ids.get('conversationLoadStatus').textContent,/Не удалось закрыть/);
+ const refresh=h.C.refreshVisible();await flush();await h.ids.get('conversationActions').children.find(b=>b.textContent==='Закрыть обращение').onclick();pending.resolve(response({ok:true,conversation:{...h.conversation,status:'closed'},messages:[first]}));assert.equal(await refresh,false);assert.equal(h.W.S.detail.conversation.status,'manager');assert.equal(hidden(h),false);assert.match(h.ids.get('conversationLifecycleStatus').children[0].textContent,/Результат действия не подтверждён/);assert.equal(h.ids.get('sendReply').disabled,true);
 });
 
 test('sending pauses new refresh requests without replaying the message',async()=>{

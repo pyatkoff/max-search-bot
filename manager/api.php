@@ -123,17 +123,25 @@ if($action==='detail'){
     out(['ok'=>true]+$d);
 }
 if($action==='take'){
-    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working'],409);
-    out(['ok'=>ManagerConversationService::take((int)($data['conversation_id']??0),(int)$m['id'])]);
+    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working','error_message'=>'Смена выключена. Начните смену, чтобы взять диалог.'],409);
+    out(ManagerConversationService::takeResult((int)($data['conversation_id']??0),(int)$m['id']));
 }
 if($action==='reassign_manager'){
     ManagerHttp::requireAdmin($m);
     $ok=ManagerConversationService::reassign((int)($data['conversation_id']??0),(int)$m['id'],(int)($data['manager_id']??0));
     out(['ok'=>$ok],$ok?200:409);
 }
-if($action==='release') out(['ok'=>ManagerConversationService::release((int)($data['conversation_id']??0),(int)$m['id'])]);
-if($action==='close') out(['ok'=>ManagerConversationService::close((int)($data['conversation_id']??0),(int)$m['id'])]);
-if($action==='reopen') out(['ok'=>ManagerConversationService::reopen((int)($data['conversation_id']??0),(int)$m['id'])]);
+if($action==='release') out(ManagerConversationService::releaseResult((int)($data['conversation_id']??0),(int)$m['id']));
+if($action==='close') out(ManagerConversationService::closeResult((int)($data['conversation_id']??0),(int)$m['id']));
+if($action==='reopen') out(ManagerConversationService::reopenResult((int)($data['conversation_id']??0),(int)$m['id']));
+if($action==='lifecycle_state'){
+    $id=$data['conversation_id']??0;
+    $valid=(is_int($id)||(is_string($id)&&preg_match('/^[1-9][0-9]*$/D',$id)))
+        &&filter_var($id,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])!==false;
+    $state=$valid?ManagerConversationService::lifecycleState((int)$id,(int)$m['id']):null;
+    if(!$state)out(['ok'=>false,'error'=>'unavailable','error_message'=>'Диалог недоступен. Возможно, изменились права доступа. Обновите список диалогов.'],404);
+    out(['ok'=>true,'conversation_state'=>$state]);
+}
 if($action==='send'){
     $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''));
     if($ok) out(['ok'=>true]);
