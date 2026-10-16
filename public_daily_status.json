@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-16T12:30:21+00:00",
+    "generated_at": "2026-10-16T12:32:47+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -40,7 +40,9 @@
         "flags": {
             "repeated_callback_input": 2,
             "excessive_turns": 1,
-            "manager_requested_no_reply": 1
+            "manager_requested_no_reply": 1,
+            "left_waiting_queue_without_manager_reply": 1,
+            "manager_taken_no_reply": 1
         },
         "calendar_day": {
             "conversations_started": 26,
