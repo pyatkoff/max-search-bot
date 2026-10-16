@@ -480,6 +480,7 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
     proof.anchor=[...box.children].find(row=>row.getBoundingClientRect().bottom>box.getBoundingClientRect().top+1);
     proof.anchorOffset=proof.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top;
   });
+  await capture(page,browserName,viewport.width,'reply-inline-'+viewport.height);
   const requests=s.calls.length,historySize=await page.evaluate(()=>history.length);
   if(viewport.width===390&&viewport.height===900){
     // Reduced visual area without resizing the layout viewport, as with a soft
