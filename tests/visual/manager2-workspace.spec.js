@@ -98,7 +98,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
 }
 async function openLead(page,id=11){
   if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();
-  await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();
+  await page.locator('#inboxList [data-conversation-id="'+id+'"] .m2RowOpen').click();
   await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Анна Морозова':'Алексей Иванов');
 }
 async function showCard(page){if(!await page.locator('#leadZone').isVisible()||await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='lead')){await page.locator('#mobileLeadBtn').click();if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()))await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','lead');else await expect(page.locator('#workspaceRoot')).toHaveClass(/m2ClientCardOpen/)}}
@@ -319,7 +319,7 @@ for(const width of [390,430,768,1440])test.describe('Manager2 '+width,()=>{
     const s=await setup(page);await openLead(page);await showCard(page);
     await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Черновик задачи');
     await page.locator('.m2TaskCreate>summary').click();await expect(page.locator('.m2TaskCreate')).toHaveAttribute('open');
-    await showChat(page);if(width<=1100)await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="12"]').click();
+    await showChat(page);if(width<=1100)await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').click();
     await expect(page.locator('#leadTaskTitle')).toBeVisible();await expect(page.locator('#leadTaskTitle')).toHaveValue('Черновик задачи');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
     await page.locator('.m2TaskCancel').click();await page.locator('.m2TaskCreate>summary').click();await page.locator('#leadTaskTitle').fill('Новая рабочая задача');await page.locator('#leadTaskDue').fill('2026-10-15T10:00');await page.locator('#leadTaskAdd').click();
     await expect.poll(()=>s.calls.filter(c=>c.action==='create_task').length).toBe(1);

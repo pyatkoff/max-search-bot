@@ -8,6 +8,7 @@
   let conversationMenu=null,conversationMenuActions=null,conversationMenuHistory=null;
   const conversationToolButtons=[];
   let initialInboxSearchSynced=false;
+  let lastTabSelection='',headerPinContext='';
   function disclosure(key,label,conversationId=Number(S.current||0)){
     const el=document.createElement('details');
     el.dataset.m2Disclosure=key;el.dataset.conversationId=String(conversationId);
@@ -103,9 +104,8 @@
     return {text,exact:time.format(date,{year:true})+':'+pad(wall.getUTCSeconds())+' '+time.label};
   }
   function enhanceInboxMarkers(node){
-    const markers=node?.querySelector('.pwRowMarkers'),meta=node?.querySelector('.m2ChatMeta');
-    if(!markers||!meta||markers.children.length!==1||!markers.firstElementChild.classList.contains('pwMarkerPin'))return;
-    meta.insertBefore(markers,meta.querySelector('.unreadBadge'));
+    const markers=node?.querySelector('.pwRowMarkers'),identity=node?.querySelector('.leadIdentity');
+    if(markers&&identity)identity.appendChild(markers);
   }
   function enhanceInbox(rows){
     const searchToggle=$('m2InboxSearchToggle'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow');
@@ -120,30 +120,66 @@
     });
     document.querySelectorAll('#inboxList .leadItem').forEach(el=>{
       const c=byId.get(Number(el.dataset.conversationId));if(!c)return;
-      const signal=ownershipSignal(c),line=el.querySelector('.leadTitleLine'),identity=el.querySelector('.leadIdentity');
-      const name=el.querySelector('.leadTitle');if(name)name.textContent=c.display_name||'Турист';
+      const signal=ownershipSignal(c),line=el.querySelector('.leadTitleLine'),identity=el.querySelector('.leadIdentity'),primary=el.querySelector('.leadPrimary');
+      const name=el.querySelector('.leadTitle');if(name){name.textContent=c.display_name||'Турист';name.id='m2LeadTitle-'+Number(c.id)}
+      const channelKey=String(c.channel||''),channel={max:'MAX',telegram:'TG',website:'Сайт'}[channelKey]||'Другой';
+      const badge=document.createElement('span');badge.className='m2ChannelBadge '+(Object.hasOwn({max:1,telegram:1,website:1},channelKey)?channelKey:'other');badge.textContent=channel;badge.title='Канал клиента: '+(channelKey==='telegram'?'Telegram':channel);line?.prepend(badge);
       const mark=document.createElement('span');mark.className='m2OwnershipMark '+signal.kind;mark.title=signal.label;mark.setAttribute('role','img');mark.setAttribute('aria-label',signal.label);line?.appendChild(mark);
       const activity=el.querySelector('.leadActivityTime'),formatted=formatInboxActivity(c.last_message_at||c.started_at||'',now);
       if(activity){if(formatted){activity.textContent=formatted.text;activity.title='Последняя активность: '+formatted.exact;activity.setAttribute('aria-label',activity.title);line?.appendChild(activity)}else activity.remove()}
       const preview=el.querySelector('.leadPreview');if(preview&&identity)identity.appendChild(preview);
       const secondary=document.createElement('div');secondary.className='m2ChatMeta';
-      const channel={max:'MAX',telegram:'TG',website:'Сайт'}[String(c.channel||'')];
-      if(channel){const badge=document.createElement('span');badge.className='m2ChannelBadge '+String(c.channel);badge.textContent=channel;badge.title='Канал клиента: '+(c.channel==='telegram'?'Telegram':channel);secondary.appendChild(badge)}
       if(S.manager?.role==='admin'&&String(c.manager_name||'').trim()){
         const manager=document.createElement('span');manager.className='m2ChatManager';manager.textContent=c.manager_name;manager.title='Ответственный менеджер';secondary.appendChild(manager);
       }
       const wait=el.querySelector('.leadWaitCompact');let reply=el.querySelector('.leadReplyStatus');
       if(!reply&&Number(c.awaiting_manager_reply||0)===1){reply=document.createElement('span');reply.className='leadReplyStatus';reply.textContent='Ждёт ответа'}
       if(reply)secondary.appendChild(reply);if(wait)secondary.appendChild(wait);
-      const unread=el.querySelector('.unreadBadge');if(unread)secondary.appendChild(unread);
+      const unread=el.querySelector('.unreadBadge');if(unread){unread.setAttribute('aria-label','Непрочитанных сообщений: '+Math.max(0,Number(c.unread_count)||0));primary?.appendChild(unread)}
       if(secondary.childNodes.length)identity?.appendChild(secondary);
       if(!el.querySelector('.leadSignals')?.childNodes.length)el.querySelector('.leadSignals')?.remove();
       el.querySelectorAll('.leadSource:not(.leadActivityTime),.leadTrip,.leadContextRow,.leadActionRow').forEach(node=>node.remove());
-      el.setAttribute('aria-label','Открыть диалог '+(c.display_name||'Турист')+' · '+signal.label);
+      // Native sibling actions keep pin activation independent of opening/read policy.
+      const openLead=el.onclick,avatar=el.querySelector('.leadAvatar'),open=document.createElement('button');open.type='button';open.className='m2RowOpen';
+      avatar?.remove();
+      open.setAttribute('aria-label','Открыть диалог '+(c.display_name||'Турист')+' · '+signal.label);
+      if(Number(c.id)===Number(S.current))open.setAttribute('aria-current','true');
+      while(el.firstChild)open.appendChild(el.firstChild);
+      el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
+      open.onclick=openLead;if(avatar)el.appendChild(avatar);el.appendChild(open);
+      const pin=window.WorkspaceV2PersonalWorkspace?.createPinControl?.(Number(c.id),{className:'m2RowPin'});if(pin){if(name)pin.querySelector('[data-pw-pin]')?.setAttribute('aria-describedby',name.id);el.appendChild(pin)}
     });
+    syncPersonalChrome($('pwLane'));
+  }
+  function syncHeaderPin(){
+    const id=Number(S.current||0),context=[S.manager?.id,S.authGeneration,id,!S.authExpired].join(':'),host=document.querySelector('.conversationTitleRow');
+    if(!host)return;
+    if(context!==headerPinContext){$('m2ConversationPin')?.closest('.pwDirectPinControl')?.remove();headerPinContext=context}
+    if(id&&S.manager&&!S.authExpired&&!$('m2ConversationPin')){const pin=window.WorkspaceV2PersonalWorkspace?.createPinControl?.(id,{id:'m2ConversationPin',className:'m2HeaderPin',currentOnly:true});if(pin){pin.querySelector('[data-pw-pin]')?.setAttribute('aria-describedby','conversationTitle');host.appendChild(pin)}}
+  }
+  function revealTab(button){
+    const bar=$('m2TabRow');if(!bar||!button?.getBoundingClientRect)return;
+    const b=bar.getBoundingClientRect(),t=button.getBoundingClientRect();
+    if(t.left<b.left)bar.scrollLeft-=b.left-t.left;else if(t.right>b.right)bar.scrollLeft+=t.right-b.right;
+  }
+  function syncPersonalChrome(lane=$('pwLane'),{rendered=false}={}){
+    const head=document.querySelector('.inboxHead'),queues=document.querySelector('.queueTabs');if(!head||!queues)return;
+    let navigator=$('m2TabNavigator');
+    if(!navigator){navigator=document.createElement('div');navigator.id='m2TabNavigator';navigator.className='m2TabNavigator';const bar=document.createElement('div');bar.id='m2TabRow';bar.className='m2TabRow';bar.setAttribute('aria-label','Очереди и личные вкладки');bar.addEventListener('focusin',e=>revealTab(e.target));navigator.appendChild(bar);const picker=document.createElement('select');picker.id='m2TabPicker';picker.className='m2TabPicker';picker.setAttribute('aria-label','Все очереди и личные вкладки');picker.onchange=()=>{const value=picker.value;if(value.startsWith('queue:')){const queue=value.slice(6);if(queue==='closed')void navigate('archive');else{if(section==='tasks')section='dialogues';void window.WorkspaceV2Inbox?.setQueue(queue,{reload:true})}}else void window.WorkspaceV2PersonalWorkspace?.selectSelection(value)};navigator.appendChild(picker);queues.before(navigator);const scope=document.createElement('div');scope.id='m2SelectionScope';scope.className='m2SelectionScope';navigator.after(scope)}
+    const bar=$('m2TabRow'),scope=$('m2SelectionScope');if(queues.parentElement!==bar)bar.appendChild(queues);if(lane&&lane.parentElement!==bar)bar.appendChild(lane);
+    const hints=lane?[...lane.querySelectorAll('.pwScopeHint')]:[];if(rendered||hints.length)scope.replaceChildren(...hints);
+    const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.()||'',info=window.WorkspaceV2PersonalWorkspace?.selectionInfo?.();
+    queues.querySelectorAll('button[data-q]').forEach(button=>button.classList.toggle('active',!personal&&button.dataset.q===S.queue));
+    let pinned=$('m2PinnedSelection');if(!pinned){pinned=document.createElement('span');pinned.id='m2PinnedSelection';pinned.className='m2PinnedSelection';pinned.textContent='Избранное';pinned.setAttribute('role','status');bar.appendChild(pinned)}pinned.hidden=info?.kind!=='pinned';
+    const choices=[['queue:waiting','Новые'],['queue:mine','Мои'],['queue:all','Все'],['queue:closed','Архив'],...(lane?[...lane.querySelectorAll('[data-pw-selection]')].map(b=>[b.dataset.pwSelection,b.dataset.pwSelection==='pinned'?'Избранное':b.textContent]):[])],picker=$('m2TabPicker'),signature=JSON.stringify(choices);
+    if(picker.dataset.options!==signature){picker.replaceChildren(...choices.map(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;return option}));picker.dataset.options=signature}
+    picker.value=personal||'queue:'+S.queue;picker.disabled=!S.manager||S.authExpired;
+    const selected=personal||'queue:'+S.queue;if(lastTabSelection!==selected){lastTabSelection=selected;revealTab(personal==='pinned'?pinned:bar.querySelector(personal?`[data-pw-selection="${personal}"]`:`[data-q="${S.queue}"]`))}
+    syncHeaderPin();
   }
   function clientCardIsOpen(){return window.WorkspaceV2Mobile?.isMobile()?window.WorkspaceV2Mobile.getScreen()==='lead':$('workspaceRoot')?.classList.contains('m2ClientCardOpen')}
   function syncClientCard(){
+    syncHeaderPin();
     const valid=!!S.manager&&!S.authExpired&&Number(S.current)>0;
     if((!valid||clientCardConversation&&clientCardConversation!==Number(S.current))&&$('workspaceRoot')?.classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');
     const expanded=valid&&!!clientCardIsOpen();
@@ -183,7 +219,7 @@
     // A nonempty hidden search keeps an explicit indicator; collapsing never clears a filter.
     const searchIndicator=()=>toggle.classList.toggle('isActive',!!String(search.value||'').trim());search.addEventListener('input',searchIndicator);searchIndicator();
     if(filters){filters.title='Фильтры диалогов';filters.setAttribute('aria-label','Фильтры диалогов');tools.appendChild(filters)}
-    const pinned=tool('m2PinnedToggle','Мои закреплённые диалоги','☆');pinned.setAttribute('aria-pressed','false');pinned.onclick=()=>{if(pinned.getAttribute('aria-pressed')==='true')void window.WorkspaceV2Inbox?.setQueue('all',{reload:true});else void window.WorkspaceV2PersonalWorkspace?.selectSelection('pinned')};
+    const pinned=tool('m2PinnedToggle','Избранное: мои диалоги','☆');pinned.setAttribute('aria-pressed','false');pinned.onclick=()=>{if(pinned.getAttribute('aria-pressed')==='true')void window.WorkspaceV2Inbox?.setQueue('all',{reload:true});else void window.WorkspaceV2PersonalWorkspace?.selectSelection('pinned')};
     const settings=tool('m2WorkspaceSettings','Мои вкладки: условия и настройки','⚙');settings.setAttribute('aria-haspopup','dialog');settings.setAttribute('aria-controls','pwDialog');settings.onclick=()=>void window.WorkspaceV2PersonalWorkspace?.open();
     const sync=()=>{
       const canonical=$('pwOpen'),selection=document.querySelector('#pwLane [data-pw-selection="pinned"]');
@@ -249,11 +285,13 @@
     });
   }
   function syncNavigation(){
-    if(S.viewMode==='kanban')section='sales';else if(S.queue==='closed')section='archive';else if(section==='sales'||section==='archive')section='dialogues';
+    const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.();
+    if(S.viewMode==='kanban')section='sales';else if(!personal&&S.queue==='closed')section='archive';else if(personal||section==='sales'||section==='archive')section='dialogues';
     document.querySelectorAll('[data-m2-nav]').forEach(b=>{const active=b.dataset.m2Nav===section;b.classList.toggle('active',active);b.disabled=!S.manager||S.authExpired;if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
     const title=document.querySelector('.inboxHead .brand');if(title)title.textContent={dialogues:'Диалоги',tasks:'Мой план работы',sales:'Продажи',archive:'Архив'}[section];
     const hint=$('m2SectionHint');if(hint){hint.textContent={tasks:'Мои диалоги с задачами и без них. Выберите срок или приоритет.',archive:'Закрытые диалоги. Результат продажи указан в карточке.'}[section]||'';hint.hidden=!hint.textContent}
     $('workspaceRoot').dataset.m2Section=section;
+    syncPersonalChrome();
   }
   async function navigate(next){
     if(!S.manager||S.authExpired||!['dialogues','tasks','sales','archive'].includes(next))return false;
@@ -276,6 +314,7 @@
   function updateClock(){const clock=$('m2Clock');if(clock){const now=new Date();clock.dateTime=now.toISOString();clock.textContent=new Intl.DateTimeFormat('ru-RU',{timeZone:'Europe/Moscow',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now)+' МСК'}}
   function init(){
     initConversationMenu();initInboxTools();
+    $('inboxList')?.setAttribute('role','list');
     window.WorkspaceV2PostContext?.init({endpoint:'/manager/post-context-api.php'});
     const manager=$('managerName'),shift=$('managerShiftBtn'),admin=$('adminLink'),health=$('notificationStatus');
     if(manager){$('m2Identity').appendChild(manager);manager.classList.remove('muted')}
@@ -317,6 +356,6 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
   init();
 })();

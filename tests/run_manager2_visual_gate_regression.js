@@ -10,7 +10,7 @@ const testedSha = 'a'.repeat(40), headSha = 'b'.repeat(40);
 const options = {root, testedSha, headSha, results:['success','success','success'], runId:'123', runAttempt:'1'};
 function reset() {
   fs.rmSync(root, {recursive:true, force:true});
-  for (const [browser, specCount, captureCount] of [['chromium',21,34], ['webkit',20,0]]) {
+  for (const [browser, specCount, captureCount] of [['chromium',22,34], ['webkit',21,0]]) {
     const directory = path.join(root, browser);
     fs.mkdirSync(path.join(directory, 'visual-artifacts'), {recursive:true});
     fs.writeFileSync(path.join(directory, 'visual-receipt.json'), JSON.stringify({mode:'full',browser,testedSha,headSha,runId:'123',runAttempt:'1',specCount,captureCount,completed:true}));
@@ -34,7 +34,7 @@ try {
   check('missing browser artifact fails',()=>{fs.rmSync(path.join(root,'webkit'),{recursive:true});assert.throws(()=>verifyEvidence(options));});
   check('incomplete screenshots fail',()=>{fs.unlinkSync(path.join(root,'chromium','visual-artifacts','0.png'));assert.throws(()=>verifyEvidence(options),/missing or incomplete/);});
   check('an empty browser evidence directory fails',()=>{fs.unlinkSync(path.join(root,'webkit','browser.png'));assert.throws(()=>verifyEvidence(options),/missing or incomplete/);});
-  for (const [key,value] of Object.entries({mode:'preview',browser:'chromium',testedSha:'c'.repeat(40),headSha:'c'.repeat(40),runId:'124',runAttempt:'2',specCount:19,completed:false})) {
+  for (const [key,value] of Object.entries({mode:'preview',browser:'chromium',testedSha:'c'.repeat(40),headSha:'c'.repeat(40),runId:'124',runAttempt:'2',specCount:20,completed:false})) {
     check('mismatched '+key+' fails',()=>{
       const file=path.join(root,'webkit','visual-receipt.json'), receipt=JSON.parse(fs.readFileSync(file,'utf8'));
       receipt[key]=value; fs.writeFileSync(file,JSON.stringify(receipt)); assert.throws(()=>verifyEvidence(options));

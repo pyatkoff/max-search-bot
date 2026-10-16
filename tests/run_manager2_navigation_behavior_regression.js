@@ -25,14 +25,18 @@ function harness(){
 }
 (async()=>{
   {
-    const h=harness(),moves=[],pin={classList:{contains:name=>name==='pwMarkerPin'}},markers={children:[pin],firstElementChild:pin},unread={},meta={insertBefore:(node,before)=>moves.push({node,before}),querySelector:()=>unread};
-    const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.m2ChatMeta'?meta:null};
+    const h=harness(),moves=[],pin={},markers={children:[pin]},identity={appendChild:node=>moves.push(node)};
+    const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.leadIdentity'?identity:null};
     h.presentation.enhanceInboxMarkers(node);
-    check('a lone personal pin shares metadata before the unread count',()=>assert.deepEqual(moves,[{node:markers,before:unread}]));
+    check('personal pin markers join the client identity beside the direct favorite control',()=>assert.deepEqual(moves,[markers]));
     markers.children=[pin,{}];h.presentation.enhanceInboxMarkers(node);
-    check('named personal labels keep their own marker row',()=>assert.equal(moves.length,1));
+    check('named personal labels retain their marker container inside the client identity',()=>assert.deepEqual(moves,[markers,markers]));
+    h.presentation.enhanceInboxMarkers({querySelector:selector=>selector==='.pwRowMarkers'?markers:null});
+    check('missing client identity does not create a synthetic marker row',()=>assert.equal(moves.length,2));
+    h.presentation.enhanceInboxMarkers({querySelector:selector=>selector==='.leadIdentity'?identity:null});
     h.presentation.enhanceInboxMarkers({querySelector:()=>null});
-    check('missing metadata or personal markers require no synthetic row',()=>assert.equal(moves.length,1));
+    h.presentation.enhanceInboxMarkers(null);
+    check('missing personal markers or row leave the client identity unchanged',()=>assert.equal(moves.length,2));
   }
   {
     const h=harness(),format=h.presentation.formatInboxActivity;
