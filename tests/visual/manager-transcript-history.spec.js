@@ -135,10 +135,10 @@ for(const width of [390,430,768,1440])for(const height of [844,420])test('older 
  const old=await holdOlderWithKeyboard(page,state);await open(page,12);
  const draft='Точный черновик клиента Б\nБез отправки';await page.locator('#replyText').fill(draft);await page.locator('#replyFile').setInputFiles({name:'older-client-b.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
  const current=await holdOlderWithKeyboard(page,state);
- // Use the real browser scroll and focus paths before releasing the obsolete
- // HTTP response. No API mock bypasses the core request() auth handling.
+ // Establish the same reading anchor across engines without depending on native
+ // wheel-delta clamping. The HTTP response still uses core request() auth handling.
  await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.olderPlayingAudio=audio;window.olderAudioTime=audio.currentTime});
- await page.locator('#messages').hover();await page.mouse.wheel(0,-100000);await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);await settled(page);
+ await readTop(page);await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);
  const before=await anchor(page);await page.locator('#replyText').focus();await page.locator('#replyText').evaluate(el=>el.setSelectionRange(2,9));
  const history=await page.evaluate(()=>WorkspaceV2History.getState()),count=state.calls.length;
  const response=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===401);old.resolve({body:{ok:false,error:'unauthorized'},status:401});await (await response).finished();await settled(page);
