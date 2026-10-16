@@ -9,6 +9,7 @@ $bootstrap= <<<'CODE'
 class ConversationDb { public static $pdo; public static function isConfigured(){return true;} public static function connection(){return self::$pdo;} }
 class ProjectConfig { public static function projectId(){return 'fixture';} }
 class ManagerPushService { public static $calls=0,$fail=false; public static function notifyConversation(...$args){self::$calls++;if(self::$fail)throw new RuntimeException('synthetic push failure');} }
+class MetrikaConversionGoalService { public static function managerRequest(int $conversationId): bool { return false; } }
 class ManagerAvailabilityService { public static $hours=true,$available=true; public static function withinWorkingHours($now=null){return self::$hours;} public static function anyWorkingForConversation($c){return self::$available;} }
 class ManagerRequestService { public static $fail=false; public static function sourceEntryMessageText($hours){return $hours?'entry day':'entry night';} public static function prepare(...$args){if(self::$fail)throw new RuntimeException('synthetic prepare failure');return ['back_callback'=>'back_check','online_text'=>'online','working_wait_text'=>'waiting','outside_hours_text'=>'next working period'];} }
 class DialogueView {}
@@ -27,7 +28,7 @@ class FixtureMessenger {
 }
 CODE;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
-foreach(['ConversationDb','ProjectConfig','ManagerPushService','ManagerAvailabilityService','ManagerRequestService','DialogueView','IntegrationRegistry'] as $name)file_put_contents($tmp.'/'.$name.'.php',"<?php require_once __DIR__.'/bootstrap.php';\n");
+foreach(['ConversationDb','ProjectConfig','ManagerPushService','MetrikaConversionGoalService','ManagerAvailabilityService','ManagerRequestService','DialogueView','IntegrationRegistry'] as $name)file_put_contents($tmp.'/'.$name.'.php',"<?php require_once __DIR__.'/bootstrap.php';\n");
 foreach(['ConversationControlService','ManagerHandoffDispatchService'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/'.$name.'.php');
 function queueCheck($actual,$expected,string $name):void{if($actual!==$expected)throw new RuntimeException($name.' expected='.json_encode($expected).' actual='.json_encode($actual));echo 'PASS '.$name.PHP_EOL;}
 try {
@@ -74,3 +75,4 @@ try {
 } finally {
  foreach(glob($tmp.'/*') as $file)unlink($file);rmdir($tmp);
 }
+
