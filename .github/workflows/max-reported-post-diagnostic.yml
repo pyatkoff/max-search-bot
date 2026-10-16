@@ -133,6 +133,32 @@ jobs:
             }
             $out['webhook_event_log']=['available'=>true,'today_event_count'=>count($ev),'events'=>array_slice($ev,-20)];
            }
+           $out['server_utc']=gmdate('c');
+           if($out['webhook_event_log']['available']??false){
+            $out['webhook_event_log']['modified_utc']=gmdate('c',(int)filemtime($file));
+            $all=[];
+            foreach(explode("\n",(string)$txt)as $line){
+             if(preg_match('/\A([0-9.]{10} [0-9:]{8})--- (LIVE|SHADOW)_UPDATE_RECEIVED type=([a-z_]{1,64})\z/',$line,$mm))$all[]=['server_time'=>$mm[1],'mode'=>strtolower($mm[2]),'type'=>$mm[3]];
+            }
+            $out['webhook_event_log']['last_events_any_date']=array_slice($all,-10);
+           }
+           foreach(array_slice((array)($sub['data']['subscriptions']??[]),0,5)as $i=>$su){
+            $out['subscription_read']['subscriptions'][$i]['secret_returned']=array_key_exists('secret',$su);
+            if(array_key_exists('secret',$su))$out['subscription_read']['subscriptions'][$i]['secret_matches_config']=defined('MAX_SEARCH_WEBHOOK_SECRET')&&is_string($su['secret'])&&hash_equals((string)MAX_SEARCH_WEBHOOK_SECRET,$su['secret']);
+           }
+           $out['access_log_summaries']=[];
+           $paths=array_unique(array_merge(glob('/var/www/anytoour/data/logs/app.anytoour.ru*log')?:[],glob('/var/www/httpd-logs/app.anytoour.ru*log')?:[]));
+           foreach(array_slice($paths,0,6)as $access){
+            if(!is_file($access)||!is_readable($access)||is_link($access))continue;
+            $fh=fopen($access,'rb');if(!$fh)continue;$stat=fstat($fh);$size=(int)($stat['size']??0);$offset=max(0,$size-1048576);fseek($fh,$offset);$tail=stream_get_contents($fh,1048576);fclose($fh);
+            $events=[];$counts=[];
+            foreach(explode("\n",(string)$tail)as $line){
+             if(preg_match('~\[(16/Oct/2026:[0-9:]{8} [+-][0-9]{4})\] "(GET|POST) /webhook\.php(?:\?[^" ]*)? HTTP/[0-9.]+" ([0-9]{3}) ~',$line,$mm)){
+              $status=(int)$mm[3];$counts[(string)$status]=($counts[(string)$status]??0)+1;$events[]=['server_time'=>$mm[1],'method'=>$mm[2],'status'=>$status];
+             }
+            }
+            $out['access_log_summaries'][]=['name'=>basename($access),'tail_bytes'=>strlen((string)$tail),'today_webhook_counts_by_status'=>$counts,'last_webhook_events'=>array_slice($events,-20)];
+           }
            $out['ok']=true;
           } catch(Throwable $ignored) {$out['error']='read_only_diagnostic_unavailable';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
