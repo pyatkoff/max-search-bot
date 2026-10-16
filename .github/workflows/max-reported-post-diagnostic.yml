@@ -1,0 +1,132 @@
+name: Reported MAX post read-only diagnostic
+on:
+  push:
+    branches: [test/max-reported-post-diagnostic-20261016]
+    paths: [.github/workflows/max-reported-post-diagnostic.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 6c5b14066a655bdd68c852c19b725b28859b2fea
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/test/max-reported-post-diagnostic-20261016'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 6c5b14066a655bdd68c852c19b725b28859b2fea
+      - name: Verify authoritative release before read-only diagnostic
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_PRODUCTION_SHA"
+          current=$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)
+          test "$current" = "$EXPECTED_PRODUCTION_SHA"
+          release=$(gh api "repos/pyatkoff/max-search-bot/actions/runs?head_sha=$EXPECTED_PRODUCTION_SHA&per_page=50" --jq '[.workflow_runs[] | select(.name=="Deploy production")] | max_by(.id) | .conclusion')
+          test "$release" = success
+      - name: Prepare fixed read-only diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/post-diagnostic.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');
+          $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0];
+          try {
+           $root=getcwd(); ob_start();
+           try { require $root.'/config.php'; } finally { ob_end_clean(); }
+           require_once $root.'/services/ConversationDb.php';
+           require_once $root.'/services/ChannelPostButtonTransport.php';
+           $pdo=ConversationDb::connection(); $pdo->exec('START TRANSACTION READ ONLY');
+           try {
+            $q=$pdo->prepare('SELECT * FROM post_channels WHERE platform=? AND channel_id=? LIMIT 1');
+            $q->execute(['max','-77309177991187']); $channel=$q->fetch(); $rows=[];
+            if(is_array($channel)) {
+             $q=$pdo->prepare('SELECT p.external_message_id,p.start_payload,p.created_at,v.version_number,v.state,v.attempt_count,v.write_attempts,v.error_reason,v.snapshot_json,v.receipt_json FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=? ORDER BY p.id DESC LIMIT 8');
+             $q->execute([(int)$channel['id']]); $rows=$q->fetchAll();
+            }
+           } finally { if($pdo->inTransaction()) $pdo->rollBack(); }
+           $safe=static fn($v):string=>is_string($v)&&preg_match('/\A[a-z0-9_]{0,96}\z/',$v)?$v:'redacted';
+           $types=static function(array $aa):array { $cc=[];foreach($aa as $a){$t=in_array($a['type']??'',['image','video','audio','file','sticker','inline_keyboard'],true)?$a['type']:'other';$cc[$t]=($cc[$t]??0)+1;}return $cc; };
+           $target='https://max.ru/c/-77309177991187/AaFFBXUFasA';
+           $out['channel_found']=is_array($channel); $out['channel_enabled']=is_array($channel)&&!empty($channel['is_enabled']);
+           $out['records_examined']=count($rows);
+           $out['channel_verification']=is_array($channel)?(new ChannelPostButtonTransport())->verifyChannel($channel):null;
+           $out['publications']=[];
+           foreach($rows as $rank=>$row) {
+            $s=json_decode((string)$row['snapshot_json'],true)?:[]; $rc=json_decode((string)$row['receipt_json'],true)?:[];
+            $item=['newest_rank'=>$rank+1,'created_utc'=>(string)$row['created_at'],'published_utc'=>(string)($s['published_at']??''),
+             'target_url_match'=>($s['post_url']??'')===$target||($s['raw_body']['url']??'')===$target,
+             'version_number'=>(int)$row['version_number'],'state'=>$safe($row['state']),'error_reason'=>$safe($row['error_reason']),
+             'attempt_count'=>(int)$row['attempt_count'],'write_attempts'=>(int)$row['write_attempts'],
+             'capability'=>$safe($s['metadata']['capability']??''),'capability_reason'=>$safe($s['metadata']['capability_reason']??''),
+             'attachment_types'=>$types((array)($s['attachments']??[])),
+             'receipt'=>['request_count'=>(int)($rc['request_count']??0),'write_attempts'=>(int)($rc['write_attempts']??0)]];
+            foreach(['button_verified','content_preserved'] as $k)if(isset($rc[$k]))$item['receipt'][$k]=$rc[$k]===true;
+            $item['receipt']['http_results']=array_map(static fn(array $r):array=>['operation'=>$safe($r['operation']??''),'http'=>(int)($r['http']??0),'transport_error'=>!empty($r['transport_error'])],array_slice((array)($rc['http_results']??[]),0,5));
+            $mid=(string)$row['external_message_id'];
+            if($rank<5&&preg_match('/\A[A-Za-z0-9_.-]{1,200}\z/',$mid)) {
+             $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$m=$r['data']??null;
+             $p=['http'=>(int)($r['http']??0),'transport_error'=>!empty($r['transport_error'])];
+             if(is_array($m)&&($m['body']['mid']??'')===$mid&&(string)($m['recipient']['chat_id']??'')==='-77309177991187') {
+              $cur=ChannelPostIncomingAdapter::maxSnapshot($m);$url=ChannelPostButtonTransport::buttonUrl(['start_payload'=>$row['start_payload'],'channel'=>$channel]);
+              $p['identity_verified']=true;$p['target_url_match']=($m['url']??'')===$target;
+              $p['url_available']=is_string($m['url']??null)&&$m['url']!=='';
+              $p['attachment_types']=$types((array)($m['body']['attachments']??[]));
+              $p['only_our_button']=is_array($cur)&&ChannelPostIncomingAdapter::containsOnlyButton($cur,$url,(string)$channel['button_text']);
+              $p['capability_reason']=$safe($cur['metadata']['capability_reason']??'');
+              $p['content_equals_snapshot']=is_array($cur)&&ChannelPostIncomingAdapter::contentFingerprint($cur)===ChannelPostIncomingAdapter::contentFingerprint($s);
+             } else {$p['identity_verified']=false;}
+             $item['provider']=$p;
+            }
+            $out['publications'][]=$item;
+           }
+           $out['ok']=true;
+          } catch(Throwable $ignored) {$out['error']='read_only_diagnostic_unavailable';}
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($out['ok']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/post-diagnostic.php"
+      - name: Prepare established SSH key
+        env:
+          DIAGNOSTIC_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/diagnostic_key"
+          raw="$DIAGNOSTIC_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || exit 2
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+      - name: Read fixed channel publication metadata and provider status
+        env:
+          DIAGNOSTIC_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DIAGNOSTIC_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new -i "$RUNNER_TEMP/diagnostic_key" "$DIAGNOSTIC_USER@$DIAGNOSTIC_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/post-diagnostic.php" > "$RUNNER_TEMP/post-diagnostic.json"
+          python3 - <<'PY'
+          import json, os
+          with open(os.environ['RUNNER_TEMP']+'/post-diagnostic.json') as f: d=json.load(f)
+          assert d['ok'] is True and d['mode']=='read_only'
+          assert d['database_writes']==0 and d['provider_writes']==0
+          print(json.dumps(d,sort_keys=True))
+          PY
+      - name: Remove ephemeral diagnostic files
+        if: always()
+        run: rm -f "$RUNNER_TEMP/diagnostic_key" "$RUNNER_TEMP/post-diagnostic.php" "$RUNNER_TEMP/post-diagnostic.json"
