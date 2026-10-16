@@ -83,7 +83,7 @@ async function setup(page,{role='manager',savedTabs=false,longPreview=false}={})
 }
 async function settle(fixture){await expect.poll(()=>fixture.pending.size).toBe(0)}
 async function openConversation(page){
-  await page.locator('#inboxList [data-conversation-id="11"]').click();
+  await page.locator('#inboxList [data-conversation-id="11"] .m2RowOpen').click();
   await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
   await expect(page.locator('#replyText')).toBeEnabled();
 }
@@ -168,18 +168,19 @@ for(const width of [390,430,768,1440])test.describe('Messenger layout '+width,()
     const fixture=await setup(page,{longPreview:true}),item=page.locator('#inboxList [data-conversation-id="11"]'),activity=item.locator('.leadActivityTime');
     const formatted=await page.evaluate(()=>Manager2Presentation.formatInboxActivity('2026-10-14 12:00:00'));
     await expect(activity).toHaveText(formatted.text);await expect(activity).toHaveAttribute('title','Последняя активность: '+formatted.exact);await expect(activity).toHaveAttribute('aria-label','Последняя активность: '+formatted.exact);
-    await expect(item.locator('.leadTitleLine .leadActivityTime')).toHaveCount(1);await expect(item.locator('.leadSignals')).toHaveCount(0);await expect(item.locator('.m2ChatMeta .unreadBadge')).toHaveText('2');
+    await expect(item.locator('.leadTitleLine .leadActivityTime')).toHaveCount(1);await expect(item.locator('.leadSignals')).toHaveCount(0);await expect(item.locator('.leadPrimary > .unreadBadge')).toHaveText('2');
+    await expect(item).toHaveAttribute('role','listitem');await expect(item).not.toHaveAttribute('tabindex');await expect(item.locator('.m2RowOpen')).toHaveJSProperty('tagName','BUTTON');await expect(item.locator('.m2RowOpen [data-pw-pin]')).toHaveCount(0);
     for(const height of [900,420]){
       await page.setViewportSize({width,height});
       const geometry=await item.evaluate(element=>{
         const title=element.querySelector('.leadTitle').getBoundingClientRect(),time=element.querySelector('.leadActivityTime').getBoundingClientRect(),identity=element.querySelector('.leadIdentity').getBoundingClientRect(),preview=element.querySelector('.leadPreview'),box=preview.getBoundingClientRect(),lineHeight=parseFloat(getComputedStyle(preview).lineHeight);
-        const rowHeight=element.getBoundingClientRect().height,pin=element.querySelector('.pwMarkerPin'),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta');
-        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,pinHeight:pin?.getBoundingClientRect().height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
+        const row=element.getBoundingClientRect(),rowHeight=row.height,pin=element.querySelector('[data-pw-pin]'),pinBox=pin.getBoundingClientRect(),markers=element.querySelector('.pwRowMarkers'),meta=element.querySelector('.m2ChatMeta'),channel=element.querySelector('.m2ChannelBadge').getBoundingClientRect(),unread=element.querySelector('.unreadBadge').getBoundingClientRect();
+        return {checks:{sameRow:Math.abs((title.top+title.height/2)-(time.top+time.height/2))<=2,noOverlap:title.right+4<=time.left,fullPreview:Math.abs(box.right-identity.right)<=1&&Math.abs(box.left-identity.left)<=1,twoLines:box.height>lineHeight*1.5&&box.height<=lineHeight*2+1,compact:rowHeight<=130,channelBeforeName:channel.right<=title.left,unreadUpperRight:unread.top>=title.top&&unread.top<box.top+lineHeight&&Math.abs(unread.right-time.right)<=1&&parseFloat(getComputedStyle(preview).paddingRight)>=unread.width+4,pinTarget:pinBox.width>=44&&pinBox.height>=44},metrics:{rowHeight,titleHeight:title.height,previewHeight:box.height,metaHeight:meta?.getBoundingClientRect().height,markersHeight:markers?.getBoundingClientRect().height,pinHeight:pin?.getBoundingClientRect().height,paddingTop:getComputedStyle(element).paddingTop,paddingBottom:getComputedStyle(element).paddingBottom}};
       });
       await testInfo.attach('compact-inbox-'+width+'x'+height,{body:await item.screenshot(),contentType:'image/png'});
-      await expect(item.locator('.m2ChatMeta .pwRowMarkers .pwMarkerPin')).toBeVisible();
-      await expect(item.locator('.pwMarkerPin')).toHaveText('Закреплён');
-      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true});await fitsViewport(page);
+      await expect(item.locator(':scope > .pwDirectPinControl [data-pw-pin="11"]')).toBeVisible();
+      await expect(item.locator('[data-pw-pin="11"]')).toHaveAttribute('aria-pressed','true');
+      expect(geometry.checks,JSON.stringify(geometry.metrics)).toEqual({sameRow:true,noOverlap:true,fullPreview:true,twoLines:true,compact:true,channelBeforeName:true,unreadUpperRight:true,pinTarget:true});await fitsViewport(page);
     }
     clean(fixture);
   });
@@ -284,7 +285,7 @@ test('Messenger client card follows viewport transitions and keeps expanded stat
   await page.setViewportSize({width:1440,height:900});await expect(page.locator('#leadZone')).not.toBeVisible();
   await expect(page.locator('#conversationTitle')).toHaveAttribute('aria-expanded','false');
   await page.setViewportSize({width:390,height:900});
-  await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');
+  await page.locator('#inboxList [data-conversation-id="11"] .m2RowOpen').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');
   await page.locator('#conversationTitle').click();await expect(page.locator('#conversationTitle')).toHaveAttribute('aria-expanded','true');
   await page.setViewportSize({width:1440,height:900});await expect(page.locator('#leadZone')).not.toBeVisible();
   await expect(page.locator('#conversationTitle')).toHaveAttribute('aria-expanded','false');clean(fixture);

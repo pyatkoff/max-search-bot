@@ -22,7 +22,7 @@ function verifyEvidence({root, testedSha, headSha, results, runId, runAttempt}) 
     throw new Error('Exact tested/head SHA and run provenance are required');
   }
   const receipts = [];
-  for (const [browser, specCount, captureCount] of [['chromium',21,34], ['webkit',20,0]]) {
+  for (const [browser, specCount, captureCount] of [['chromium',22,34], ['webkit',21,0]]) {
     const directory = path.join(root, browser);
     const receipt = JSON.parse(fs.readFileSync(path.join(directory, 'visual-receipt.json'), 'utf8'));
     const expected = {mode:'full', browser, testedSha, headSha, specCount, captureCount, completed:true};

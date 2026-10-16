@@ -179,3 +179,53 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .pwConversationGroups{margin-top:4px}
 .manager2 .pwConversationGroups button{background:#edf3e7;border-color:#d8e3ce;color:#4b6548}
 @media(max-width:740px){.manager2 .conversationHead .pwGroupOpen{padding:0 7px;min-height:40px;font-size:11px}.manager2 .pwConversationGroups button{font-size:10px;max-width:100px}.manager2 .pwControlRow{gap:4px}}
+
+/* One scrollable destination row; the native picker exposes every off-screen tab. */
+.manager2 .m2TabNavigator{display:grid;grid-template-columns:minmax(0,1fr) 36px;align-items:center;min-width:0;width:100%;border-bottom:1px solid #e7ece5}
+.manager2 .m2TabRow{display:flex;align-items:center;gap:0;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scroll-padding:3px}
+.manager2 .m2TabRow .queueTabs,.manager2 .m2TabRow .pwLane,.manager2 .m2TabRow .pwControlRow,.manager2 .m2TabRow .pwSelections{display:flex;flex:0 0 auto;width:auto;max-width:none;min-width:0;flex-wrap:nowrap;overflow:visible;gap:0;padding:0;margin:0;border:0}
+.manager2 .m2TabRow button[data-q],.manager2 .m2TabRow button[data-pw-selection]{flex:0 0 auto;min-width:44px;min-height:44px;padding:8px 9px;border:0;border-radius:0;background:transparent;color:#637457;font-size:13px;white-space:nowrap;box-shadow:none}
+.manager2 .m2TabRow button[data-q].active,.manager2 .m2TabRow button[data-pw-selection][aria-pressed=true]{color:#285b3e;background:transparent;box-shadow:inset 0 -2px 0 #427451;font-weight:700}
+.manager2 .m2TabRow .queueCount{position:static;margin:0 0 0 4px;vertical-align:middle}
+.manager2 .m2TabRow button[data-q=closed],.manager2 #pwNewGroup,.manager2 #pwOpen,.manager2 #pwLane [data-pw-selection=pinned]{display:none}
+.manager2 .m2TabPicker{width:36px;height:44px;min-height:44px;min-width:0;border:0;border-left:1px solid #e7ece5;border-radius:0;background:#f7f9f5;color:#486153;font-size:0;cursor:pointer;padding:0}
+.manager2 .m2TabPicker option{font-size:14px}
+.manager2 .m2PinnedSelection{display:flex;align-items:center;min-height:44px;padding:0 10px;color:#285b3e;box-shadow:inset 0 -2px 0 #427451;font-weight:700;white-space:nowrap}
+.manager2 .m2PinnedSelection[hidden]{display:none}
+.manager2 .m2SelectionScope:empty{display:none}
+.manager2 .m2SelectionScope .pwScopeHint{display:block;margin:0;padding:3px 0 5px;font-size:11px;line-height:1.4}
+.manager2 .workspace.kanbanMode .m2TabNavigator,.manager2 .workspace.kanbanMode .m2SelectionScope{grid-column:1}
+
+/* Separate native open/pin controls preserve keyboard and read-marker boundaries. */
+.manager2 #inboxList .leadItem{display:grid;grid-template-columns:36px minmax(0,1fr) 44px;gap:4px;align-items:start;padding:9px 8px 9px 12px;cursor:default}
+.manager2 .m2RowOpen{display:block;width:100%;min-width:0;min-height:44px;margin:0;padding:0;border:0;border-radius:3px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;box-shadow:none}
+.manager2 .m2RowOpen:hover{background:transparent}
+.manager2 .m2RowOpen:focus-visible{outline-offset:2px}
+.manager2 .m2RowPin{align-self:start;justify-self:end}
+.manager2 .leadPrimary{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:0;align-items:start;min-width:0}
+.manager2 .leadAvatar{width:36px;height:36px}
+.manager2 .leadIdentity{min-width:0}
+.manager2 .leadTitleLine{display:flex;flex-wrap:nowrap;align-items:center;gap:4px;min-width:0;min-height:20px}
+.manager2 .leadTitle{flex:0 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.manager2 .m2ChannelBadge{flex:0 0 auto;font-size:9px;line-height:15px;padding:0 3px}
+.manager2 .leadTitleLine .leadActivityTime{flex:0 0 auto;margin-left:auto;font-size:11px;white-space:nowrap}
+.manager2 .leadPreview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:2px 0 0;line-height:1.4;max-height:2.8em;white-space:normal;overflow:hidden;overflow-wrap:anywhere}
+.manager2 .leadPrimary:has(>.unreadBadge) .leadPreview{padding-right:30px}
+.manager2 .leadPrimary>.unreadBadge{position:absolute;right:0;top:24px;min-width:18px;box-sizing:border-box;margin:0;max-width:30px}
+.manager2 .m2ChatMeta{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0;margin-top:3px;line-height:1.4}
+.manager2 .m2ChatManager{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.manager2 .m2ChatMeta .leadReplyStatus,.manager2 .m2ChatMeta .leadWaitCompact{margin:0;line-height:1.4;max-width:100%}
+.manager2 .pwRowMarkers{display:flex;flex-wrap:nowrap;gap:4px;min-width:0;margin:3px 0 0;padding:0;overflow:hidden;line-height:1.4}
+.manager2 .pwRowMarkers .pwMarkerPin{display:none}
+.manager2 .pwRowMarkers .pwMarkerLabel{flex:0 1 auto;min-width:0;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.manager2 .pwRowMarkers .pwMarkerExtra{flex:0 0 auto;white-space:nowrap}
+.manager2 .pwRowMarkers:not(:has(.pwMarkerLabel,.pwMarkerExtra)){display:none}
+.manager2 .m2RowOpen>.pwGroupClosed{margin:3px 0 0}
+.manager2 .m2HeaderPin{flex:0 0 44px}
+.manager2 .conversationHead{padding-top:9px;padding-bottom:9px}
+@media(max-width:740px){.manager2 .conversationHead{padding-top:8px;padding-bottom:8px}}
+@media(max-height:540px){.manager2 .conversationHead{padding-top:6px;padding-bottom:6px}}
+.manager2 .conversationTitleRow .brand{flex:0 1 auto}
+.manager2 .conversationTitleRow{overflow:visible}
+.manager2.pwCompact #inboxList .leadItem{padding-top:6px;padding-bottom:6px}
+.manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2}

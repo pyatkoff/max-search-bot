@@ -23,13 +23,20 @@ function personalRows(rows,state,tab,selection,owner){
 async function setup(page,options={}){
  const sourceRoot=options.sourceRoot||root,shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
  const calls=[],unexpected=[],errors=[],heldSnapshots=[],heldWrites=[],heldLists=[],receipts=new Map(),accounts=options.accounts||new Map(),pending=new Set();
- let manager={id:7,role:'manager',display_name:'Мария',is_working:true},snapshotError=!!options.snapshotError,holdSnapshot=!!options.holdSnapshot,holdWrite=!!options.holdWrite,holdList=false,writeResult=options.writeResult||'success',listError=false,nextId=10;
+ let manager={id:7,role:'manager',display_name:'Мария',is_working:true,...options.manager},snapshotError=!!options.snapshotError,holdSnapshot=!!options.holdSnapshot,holdWrite=!!options.holdWrite,holdList=false,writeResult=options.writeResult||'success',listError=false,nextId=10,firstListLength=null;
  const account=id=>{if(!accounts.has(id))accounts.set(id,{version:1,state:clone(options.state||emptyState())});return accounts.get(id)};
  const defaultConversation=id=>({id,customer_id:id+90,manager_id:manager.id,manager_name:manager.display_name,status:'manager',channel:'telegram',source_id:1,display_name:id===11?'Анна Морозова':'Алексей Иванов',original_display_name:id===11?'Анна Морозова':'Алексей Иванов',working_name:null,customer_name_version:0,name_version:0});
  const conv=id=>({...defaultConversation(Number(id)),...(options.rows||options.personalRows||[]).find(row=>Number(row.id)===Number(id))});
  const visibleIds=new Set([11,12,...(options.rows||[]).map(row=>row.id),...(options.personalRows||[]).map(row=>row.id)]);
  const rows=()=>options.rows?clone(options.rows):[11,12].map(id=>({...conv(id),project_label:'AnyTour',origin_label:'TG · реклама',last_text:'Ждём варианты у моря',last_sender_type:'customer',unread_count:id===11?2:0,awaiting_manager_reply:1,lead_outcome:'open'}));
- const messages=Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 10:00:00'}));
+ const messages=options.messages?clone(options.messages):Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Сообщение '+(i+1)+'. Подбираем отдых у моря.',created_at:'2026-10-14 10:00:00'}));
+ const queuedRows=queue=>rows().filter(row=>{
+  if(manager.role!=='admin'&&row.manager_id&&Number(row.manager_id)!==Number(manager.id))return false;
+  if(queue==='closed')return row.status==='closed';
+  if(queue==='mine')return row.status==='manager'&&Number(row.manager_id)===Number(manager.id);
+  if(queue==='waiting')return row.status!=='closed'&&((row.status==='waiting_manager'&&!row.manager_id)||!!row.awaiting_first_reply);
+  return row.status!=='closed';
+ });
  const snapshot=id=>({ok:true,...clone(account(id))});
  page.on('request',r=>pending.add(r));page.on('requestfinished',r=>pending.delete(r));page.on('requestfailed',r=>pending.delete(r));page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(skipPushStubs=>{
@@ -43,6 +50,9 @@ async function setup(page,options={}){
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url()),method=req.method(),reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   const block=()=>{unexpected.push(method+' '+url.pathname);return route.abort()};
+  // WebKit routes native object-URL image reads. These bytes were already
+  // received from our protected local fixture; no external network is allowed.
+  if(url.protocol==='blob:'&&url.origin===origin)return route.continue();
   if(url.origin!==origin)return block();
   if(method==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
   if(method==='GET'&&url.pathname==='/favicon.ico')return route.fulfill({status:204,body:''});
@@ -55,7 +65,9 @@ async function setup(page,options={}){
    // The retained pre-capacity shell predates the account/channel avatar URL.
    // Only its explicit paired baseline may use that historical request shape.
    const legacy=options.legacyAvatar===true&&options.sourceRoot&&[...url.searchParams.keys()].join(',')==='conversation_id'&&conv(Number(url.searchParams.get('conversation_id'))).channel==='telegram';
-   if(!visibleIds.has(Number(url.searchParams.get('conversation_id')))||(!legacy&&([...url.searchParams.keys()].join(',')!=='conversation_id,account,channel'||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel)))return block();
+   const full=!!options.avatarImage&&url.searchParams.get('size')==='full'&&url.searchParams.get('photo')==='0',keys=full?'conversation_id,account,channel,size,photo':'conversation_id,account,channel';
+   if(!visibleIds.has(Number(url.searchParams.get('conversation_id')))||(!legacy&&([...url.searchParams.keys()].join(',')!==keys||url.searchParams.get('account')!==String(manager.id)||url.searchParams.get('channel')!==conv(Number(url.searchParams.get('conversation_id'))).channel)))return block();
+   if(options.avatarImage)return route.fulfill({contentType:'image/png',headers:{'Content-Length':String(options.avatarImage.length),'X-Avatar-Photo-Count':'1'},body:options.avatarImage});
    return route.fulfill({status:404,body:''});
   }
   if(method==='POST'&&d.csrf!=='fixture-csrf'&&!['me','login'].includes(d.action))throw new Error('Canonical CSRF missing: '+url.pathname+' '+d.action);
@@ -68,7 +80,7 @@ async function setup(page,options={}){
   if(url.pathname==='/manager/pipeline-api.php'){
    if(d.action==='catalog')return reply({ok:true,stages:[],tags:[],outcomes:{open:'В работе'},close_reasons:{}});
    if(d.action==='filter_options')return reply({ok:true,filters:{sources:clone(options.sources||[]),managers:[clone(manager)]}});
-   if(d.action==='list')return reply({ok:true,conversations:rows()});
+   if(d.action==='list'){const conversations=options.filterQueues?queuedRows(d.queue):rows();firstListLength??=conversations.length;return reply({ok:true,conversations})}
    if(d.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция',adults:2},contact:{},source:{},handoff:{}});
   }
   if(url.pathname==='/manager/quick-replies-api.php'&&d.action==='toolbar')return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
@@ -81,7 +93,7 @@ async function setup(page,options={}){
     const state=account(owner).state,tab=state.tabs.find(t=>'tab:'+t.id===d.selection);
     if(d.selection!=='pinned'&&!tab)return reply({...snapshot(owner),ok:false,error:'not_found'},404);
     const items=personalRows(clone(options.personalRows||rows()),state,tab,d.selection,owner).filter(row=>(!d.project_key||d.project_key==='*'||row.project_key===d.project_key)&&(!Number(d.source_id)||Number(row.source_id)===Number(d.source_id))&&(!d.search||[row.display_name,row.last_text].some(value=>String(value||'').toLocaleLowerCase().includes(String(d.search).toLocaleLowerCase()))));
-    const capturedError=listError,result={...snapshot(owner),conversations:items,bounded_count:items.length,has_more:!!options.limited,limited:!!options.limited,count_scope:'loaded_visible',limit:200};if(holdList)await new Promise(resolve=>heldLists.push(resolve));if(capturedError)return reply({ok:false,error:'list_failed'},500);return reply(result);
+    const capturedError=listError,result={...snapshot(owner),conversations:items,bounded_count:items.length,has_more:!!options.limited,limited:!!options.limited,count_scope:'loaded_visible',limit:200};firstListLength??=items.length;if(holdList)await new Promise(resolve=>heldLists.push(resolve));if(capturedError)return reply({ok:false,error:'list_failed'},500);return reply(result);
    }
    const allowed=['tab_save','tab_delete','tab_reorder','label_save','label_delete','label_membership','pin','settings','group_create','group_rename','group_delete','group_membership'];
    if(!allowed.includes(d.action))return block();
@@ -115,7 +127,9 @@ async function setup(page,options={}){
   unexpected.push(method+' '+url.pathname+' '+d.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
  });
  if(options.beforeNavigate)await options.beforeNavigate(page);
- await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(rows().length);
+ await page.goto(origin+'/manager2/index.php?qa=1');
+ if(options.filterQueues)await expect.poll(()=>firstListLength).not.toBeNull();
+ await expect(page.locator('#inboxList .leadItem')).toHaveCount(options.filterQueues?firstListLength:rows().length);
  return {calls,unexpected,errors,pending,accounts,snapshot,account,setWriteResult:v=>writeResult=v,setSnapshotError:v=>snapshotError=v,setHoldSnapshot:v=>holdSnapshot=v,setHoldWrite:v=>holdWrite=v,setHoldList:v=>holdList=v,setListError:v=>listError=v,releaseSnapshot:()=>heldSnapshots.shift()?.(),releaseWrite:()=>heldWrites.shift()?.(),releaseList:()=>heldLists.shift()?.(),switchManager:m=>manager=m};
 }
 module.exports={setup,root,origin,emptyState,personalRows};

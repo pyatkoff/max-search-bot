@@ -53,3 +53,19 @@
 #pwGroupPickerCreate{min-height:40px;width:100%;border-style:dashed}
 @media(max-width:500px){.pwDialog[data-pw-mode^="group-"]{width:calc(100vw - 16px)}.pwGroupChoice{padding:9px;gap:8px}.pwGroupChoice>button{min-height:44px}.pwCreateGroupTab{min-height:36px;font-size:12px}.conversationHead .pwGroupOpen{min-height:36px;white-space:nowrap}.pwConversationGroups{max-height:26px}.pwConversationGroups button{min-height:24px;max-width:130px}}
 @media(max-height:500px){.pwDialog[data-pw-mode^="group-"] .pwHeader{padding-bottom:4px}.pwDialog[data-pw-mode^="group-"] .pwScroll{padding-bottom:8px}.pwGroupChoices{margin:6px 0}.pwGroupChoice{padding:7px 9px}}
+
+/* Direct favorites render confirmed account state and canonical recovery. */
+.pwDirectPinControl{display:inline-flex;align-items:center;position:relative;flex:0 0 auto;vertical-align:middle}
+.pwDirectPin{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;min-width:44px;height:44px;min-height:44px;border:0;border-radius:8px;padding:0;background:transparent;color:#6b7f71;font:inherit;font-size:24px;line-height:1;cursor:pointer}
+.pwDirectPin[aria-pressed=true]{color:#9d721b}
+.pwDirectPin:hover{background:#edf3e9}
+.pwDirectPin[aria-disabled=true]{opacity:.5;cursor:default}
+.pwDirectPin[aria-busy=true]{color:#647a69}
+.pwDirectPin:focus-visible,.pwPinRecovery:focus-visible{outline:3px solid #b3925a;outline-offset:2px}
+.pwPinFeedback{position:absolute;right:0;top:calc(100% + 3px);z-index:12;display:grid;gap:5px;width:200px;max-width:calc(100vw - 32px);padding:8px;border:1px solid #d5e1cc;border-radius:8px;box-shadow:0 3px 12px #173e2420;background:#fff;color:#526747;text-align:left;white-space:normal}
+.pwDirectPinStatus{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.pwDirectPinStatus.error{color:#9c4933}
+.pwPinRecovery{justify-self:start;min-height:44px;border:1px solid #c5d6bb;border-radius:6px;background:#f5f8ef;color:#416337;font:inherit;font-size:11px;padding:5px 8px;white-space:normal;cursor:pointer}
+.pwPinRecovery[aria-disabled=true]{opacity:.5;cursor:default}
+.pwDirectPinControl [hidden]{display:none!important}
+.pwDirectPinControl[data-pw-pin-placement=above] .pwPinFeedback{top:auto;bottom:calc(100% + 3px)}

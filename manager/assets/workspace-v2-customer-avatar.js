@@ -11,7 +11,7 @@ function current(record){return record.epoch===epoch&&record.owner===account()&&
 function clearImage(node){
   node.querySelectorAll('.customerAvatarImage,.customerAvatarOpen').forEach(image=>image.remove());
   node.setAttribute('aria-hidden','true');
-  const row=node.closest('.leadItem');if(row?.dataset.avatarInteractive){row.setAttribute('role','button');row.tabIndex=0;delete row.dataset.avatarInteractive;const identity=row.querySelector('.leadIdentity');identity?.removeAttribute('role');identity?.removeAttribute('tabindex');identity?.removeAttribute('aria-label')}
+  const row=node.closest('.leadItem');if(row?.dataset.avatarInteractive){if(!row.querySelector('.m2RowOpen')){row.setAttribute('role','button');row.tabIndex=0}delete row.dataset.avatarInteractive;const identity=row.querySelector('.leadIdentity');identity?.removeAttribute('role');identity?.removeAttribute('tabindex');identity?.removeAttribute('aria-label')}
 }
 function setInitials(node,text){
   if(!node)return;
@@ -40,7 +40,7 @@ function conversationChanging(id){if(viewer&&Number(id)!==viewer.contextId)close
 function makeInteractive(node,record){
   node.removeAttribute('aria-hidden');
   const row=node.closest('.leadItem'),identity=row?.querySelector('.leadIdentity');
-  if(row&&identity){row.dataset.avatarInteractive='true';row.setAttribute('role','group');row.tabIndex=-1;identity.setAttribute('role','button');identity.tabIndex=0;identity.setAttribute('aria-label',row.getAttribute('aria-label')||'Открыть диалог')}
+  if(row&&identity&&!row.querySelector('.m2RowOpen')){row.dataset.avatarInteractive='true';row.setAttribute('role','group');row.tabIndex=-1;identity.setAttribute('role','button');identity.tabIndex=0;identity.setAttribute('aria-label',row.getAttribute('aria-label')||'Открыть диалог')}
   if(node.querySelector('.customerAvatarOpen'))return;
   const button=document.createElement('button');button.type='button';button.className='customerAvatarOpen';button.setAttribute('aria-label','Увеличить фото клиента');button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','customerAvatarDialog');button.title='Увеличить фото клиента';
   button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();openViewer(node,record,button)});
