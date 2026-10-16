@@ -39,7 +39,7 @@ function clean(s,{settingsWrites=0}={}){
  expect(writes(s).every(c=>c.action==='pin'||settingsWrites>0&&c.action==='settings')).toBe(true);
 }
 async function capture(page,browserName,profile,height,testInfo){
- const name=`inbox-compact-${browserName}-${profile.width}x${height}-${profile.font}-${profile.density}-groups${profile.groups}${profile.role?'-'+profile.role:''}`;
+ const name=`inbox-compact-${browserName}-${profile.width}x${height}-${profile.font}-${profile.density}-groups${profile.groups}${profile.role?'-'+profile.role:''}${profile.captureSuffix?'-'+profile.captureSuffix:''}`;
  const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});
  const image=await page.screenshot({animations:'disabled',path:path.join(dir,name+'.png')});
  await testInfo.attach(name,{body:image,contentType:'image/png'});
@@ -251,7 +251,7 @@ for(const width of [390,430,768,1440])test(`incremental Inbox refresh preserves 
  await row(page,26).locator('.m2RowOpen').focus();data.splice(data.findIndex(r=>r.id===26),1);
  await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);await expect(row(page,26)).toHaveCount(0);
  expect(await page.evaluate(()=>document.activeElement.matches('#inboxList .m2RowOpen'))).toBe(true);
- await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0},420,testInfo);
+ await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'refresh-reconciled'},420,testInfo);
  expect(s.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail')).toHaveLength(1);expect(writes(s)).toHaveLength(0);clean(s);
 });
 
