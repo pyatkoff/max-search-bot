@@ -45,7 +45,7 @@ class Element {
   get parentNode() { return this.parentElement || null; }
   get firstChild() { return this.children[0] || null; }
   get nextSibling() { return this.parentNode?.children[this.parentNode.children.indexOf(this)+1] || null; }
-  get isConnected() { return this===body || !!this.id && ids.get(this.id)===this || !!this.parentNode?.isConnected; }
+  get isConnected() { return this===body || !!this._harnessRoot || !!this.parentNode?.isConnected; }
   appendChild(child) { return this.insertBefore(child,null); }
   insertBefore(child,before) {
     if(child===before)return child;
@@ -54,7 +54,7 @@ class Element {
     child.remove();const index=before?this.children.indexOf(before):this.children.length;
     this.children.splice(index,0,child);child.parentElement=this;return child;
   }
-  remove() { if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;} }
+  remove() { this._harnessRoot=false;if(this.parentNode){const siblings=this.parentNode.children;siblings.splice(siblings.indexOf(this),1);this.parentElement=null;} }
   replaceChildren(...children) { for(const node of [...this.children])node.remove();this._text='';for(const node of children)this.appendChild(node); }
   matches(selector) {
     const tag=selector.match(/^[a-z]+/i)?.[0],id=selector.match(/#([\w-]+)/)?.[1];
@@ -77,7 +77,7 @@ class Element {
   async dispatch(name) { for (const fn of this.handlers[name] || []) await fn({preventDefault(){}}); }
   focus() {}
 }
-function add(id, tag = 'div', className = '') { const el = new Element(tag); el.id = id; el.className = className; return el; }
+function add(id, tag = 'div', className = '') { const el = new Element(tag); el.id = id; el.className = className; el._harnessRoot=true;return el; }
 const body = new Element('body'),documentEvents=new Map(),timers=[];
 const document = {
   body,visibilityState:'visible',addEventListener:(name,fn)=>documentEvents.set(name,fn),querySelector:()=>null,
