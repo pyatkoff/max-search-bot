@@ -209,6 +209,9 @@ for(const width of [390,430,768,1440])test(`incremental Inbox refresh preserves 
   window.inboxRefreshProof={nodes,button,text,avatar:nodes[0].querySelector('.leadAvatar'),markers:nodes[0].querySelector('.pwRowMarkers'),top:item.getBoundingClientRect().top,blur:0};
   button.addEventListener('blur',()=>inboxRefreshProof.blur++);getSelection().setBaseAndExtent(text,24,text,2);
  });
+ // Canonical SQL advances this counter even for already-answered chats. It is
+ // not displayed there and must not turn every real poll into a full rebuild.
+ data.forEach(r=>r.wait_age_seconds=Number(r.wait_age_seconds||0)+15);
  const before=listCalls(s).length;await page.evaluate(()=>WorkspaceV2Inbox.load({preserveScroll:true}));await settled(page,s);
  expect(listCalls(s)).toHaveLength(before+1);
  expect(await page.evaluate(()=>{
@@ -256,10 +259,13 @@ for(const width of [390,430,768,1440])test(`incremental Inbox refresh preserves 
 });
 
 test('incremental Inbox invalidates changed account filter and Moscow day while retaining fresh content',async({page})=>{
- await page.clock.install({time:new Date('2026-10-16T20:59:00Z')});const data=refreshRows().slice(0,2);data[0].last_message_at='2026-10-16 08:00:00';
+ await page.clock.install({time:new Date('2026-10-16T20:59:00Z')});const data=refreshRows().slice(0,2);data[0].last_message_at='2026-10-16 08:00:00';data[1].awaiting_first_reply=1;data[1].wait_age_seconds=181;
  const s=await setup(page,{state:stateFor(),rows:data});await settled(page,s);await expect(row(page).locator('.leadActivityTime')).toHaveText('11:00');
  await row(page).evaluate(el=>window.retainedInboxRow=el);await page.clock.setSystemTime(new Date('2026-10-16T21:01:00Z'));await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
  await expect(row(page).locator('.leadActivityTime')).toHaveText('Вчера');expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(true);
+ await row(page,12).evaluate(el=>window.retainedWaitRow=el);data[1].wait_age_seconds=195;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);
+ expect(await row(page,12).evaluate(el=>el===retainedWaitRow)).toBe(true);await expect(row(page,12).locator('.leadWaitCompact')).toContainText('3 мин');
+ data[1].wait_age_seconds=240;await page.evaluate(()=>WorkspaceV2Inbox.load());await settled(page,s);await expect(row(page,12).locator('.leadWaitCompact')).toContainText('4 мин');expect(await row(page,12).evaluate(el=>el===retainedWaitRow)).toBe(false);
  await page.evaluate(()=>{WorkspaceV2.S.leadSearch='Синтетический';return WorkspaceV2Inbox.load()});await settled(page,s);expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(false);
  await row(page).evaluate(el=>window.retainedInboxRow=el);s.account(8).state=emptyState();await recoverAccount(page,s,8);await settled(page,s);
  expect(await row(page).evaluate(el=>el===retainedInboxRow)).toBe(false);await expect(row(page).locator('.pwRowMarkers')).toHaveCount(0);expect(writes(s)).toHaveLength(0);clean(s);
