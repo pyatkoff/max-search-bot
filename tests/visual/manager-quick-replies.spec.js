@@ -406,7 +406,20 @@ test('late or changed card fills only unresolved trip tokens explicitly, without
  await page.locator('.conversationHead').click({position:{x:1,y:1}});await openLibrary(page);await page.locator('[data-qr-select="2"]').click();await expect(page.locator('#qrEdit')).toHaveCount(0);await expect(page.locator('#qrCreate')).toBeEnabled();
  s.replies[2].body='{trip_date} / {trip_children} / {trip_budget}';s.setTrip(11,{date:'31.02.2026',children:0,budget:{max:100,currency:'USD'}});await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData());await openLibrary(page);await page.locator('[data-qr-select="3"]').click();
  await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();const invalidBefore=s.calls.length;await page.locator('#qrFillKnown').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');expect(s.calls.length).toBe(invalidBefore);
- await preview.fill('Проверенные вручную данные');await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true,mobileHistory:'none'}));await openLibrary(page);await expect(page.locator('#qrInsert')).toBeDisabled();
+ await preview.fill('Проверенные вручную данные');await expect(page.locator('#qrInsert')).toBeEnabled();
+ await page.evaluate(()=>{window.tripStaleInsert=document.querySelector('#qrInsert').onclick;window.tripStaleContext=WorkspaceV2Conversation.captureReplyContext()});
+ const retainedDraft=await page.locator('#replyText').inputValue();
+ await page.locator('#qrClose').click();await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true,mobileHistory:'none'}));
+ await expect(preview).toHaveValue('Проверенные вручную данные');expect(await page.evaluate(()=>{const now=WorkspaceV2Conversation.captureReplyContext(),old=window.tripStaleContext;return {sameClient:now.conversationId===old.conversationId&&now.conversationId===11,sameAccount:now.managerId===old.managerId&&now.authGeneration===old.authGeneration,reopened:now.openGeneration>old.openGeneration}})).toEqual({sameClient:true,sameAccount:true,reopened:true});
+ expect(await page.evaluate(()=>window.tripStaleInsert())).toBe(false);await expect(page.locator('#replyText')).toHaveValue(retainedDraft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ // Opening settings visits My panel first. Its ordinary completed refresh
+ // clears a non-favorite selection, so the safe state is welcome/no insert,
+ // not a disabled insertion control for a reply that is no longer selected.
+ await page.locator('#quickRepliesOpen').click();await expect(page.locator('[data-qr-scope="toolbar"]')).toHaveAttribute('aria-pressed','true');await expect(page.locator('#quickRepliesSelected')).toHaveAttribute('aria-busy','false');await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
+ await expect(page.locator('.qrWelcome')).toBeVisible();await expect(page.locator('#qrInsert')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue(retainedDraft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+ await page.locator('[data-qr-scope="all"]').click();await expect(page.locator('#qrList')).toHaveAttribute('aria-busy','false');
+ await page.locator('[data-qr-select="3"]').click();await expect(preview).toHaveValue('{trip_date} / 0 / {trip_budget}');await expect(page.locator('#qrInsert')).toBeDisabled();
+ await preview.fill('Проверенные вручную данные');await page.locator('#qrInsert').click();await expect(page.locator('#replyText')).toHaveValue(retainedDraft+'\nПроверенные вручную данные');await expect(page.locator('#mediaSelection')).toHaveText(attachment);
  clean(s);
 });
 
