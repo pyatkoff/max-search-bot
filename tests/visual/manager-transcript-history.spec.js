@@ -121,6 +121,55 @@ for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic 
  await screenshot(page,browserName,width,'refresh-recovery-'+owner);clean(state);
 });
 
+const olderDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&Number(c.before_id)>0);
+async function holdOlderWithKeyboard(page,state){
+ const hold=deferred(),count=olderDetails(state).length;state.older.push(hold);
+ const button=await revealConversationTool(page,'conversationLoadOlder');await button.focus();await button.press('Enter');
+ await expect.poll(()=>olderDetails(state).length).toBe(count+1);await expect(button).toBeDisabled();
+ await page.evaluate(()=>{void WorkspaceV2Conversation.loadOlder();void WorkspaceV2Conversation.loadOlder()});
+ expect(olderDetails(state)).toHaveLength(count+1);return hold;
+}
+for(const width of [390,430,768,1440])for(const height of [844,420])test('older transport obsolete401 leaves the new client usable at '+width+'x'+height,async({page,browserName})=>{
+ await page.setViewportSize({width,height});const state=await setup(page,{media:true});state.documents[12]=messages(500,true);await open(page);
+ await page.locator('#replyText').fill('Черновик клиента А до загрузки истории');await page.locator('#replyFile').setInputFiles({name:'older-client-a.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic A')});
+ const old=await holdOlderWithKeyboard(page,state);await open(page,12);
+ const draft='Точный черновик клиента Б\nБез отправки';await page.locator('#replyText').fill(draft);await page.locator('#replyFile').setInputFiles({name:'older-client-b.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
+ const current=await holdOlderWithKeyboard(page,state);
+ // Use the real browser scroll and focus paths before releasing the obsolete
+ // HTTP response. No API mock bypasses the core request() auth handling.
+ await page.locator('#messages audio').evaluate(async audio=>{await audio.play();window.olderPlayingAudio=audio;window.olderAudioTime=audio.currentTime});
+ await page.locator('#messages').hover();await page.mouse.wheel(0,-100000);await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);await settled(page);
+ const before=await anchor(page);await page.locator('#replyText').focus();await page.locator('#replyText').evaluate(el=>el.setSelectionRange(2,9));
+ const history=await page.evaluate(()=>WorkspaceV2History.getState()),count=state.calls.length;
+ const response=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===401);old.resolve({body:{ok:false,error:'unauthorized'},status:401});await (await response).finished();await settled(page);
+ await screenshot(page,browserName,width,'older401-context-'+height);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#replyText')).toBeEnabled();
+ expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(false);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');
+ expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);expect(state.calls).toHaveLength(count);expect(olderDetails(state)).toHaveLength(2);
+ await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toContainText('older-client-b.txt');await expect(page.locator('#replyText')).toBeFocused();
+ expect(await page.locator('#replyText').evaluate(el=>[el.selectionStart,el.selectionEnd])).toEqual([2,9]);await sameAnchor(page,before);
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.olderPlayingAudio&&!audio.paused&&audio.currentTime>=window.olderAudioTime-.05)).toBe(true);
+ current.resolve(state.snapshot({conversation_id:12,before_id:301}));await expect(page.locator('#messages .msg')).toHaveCount(400);await sameAnchor(page,before);await expect(page.locator('#replyText')).toBeFocused();
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.olderPlayingAudio&&!audio.paused)).toBe(true);await expect(page.locator('#conversationHistoryStatus')).toBeEmpty();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);const send=await page.locator('#sendReply').boundingBox();expect(send.y+send.height).toBeLessThanOrEqual(height+1);
+ await open(page,11);await expect(page.locator('#replyText')).toHaveValue('Черновик клиента А до загрузки истории');await expect(page.locator('#mediaSelection')).toContainText('older-client-a.txt');
+ await open(page,12);await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toContainText('older-client-b.txt');clean(state);
+});
+for(const width of [390,1440])for(const status of [403,404])test('older transport current'+status+' locks the inaccessible client at '+width+'x420',async({page})=>{
+ await page.setViewportSize({width,height:420});const state=await setup(page);await open(page);await page.locator('#replyText').fill('Приватный черновик при смене доступа');await page.locator('#replyFile').setInputFiles({name:'private-access.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic private')});
+ state.older.push({body:{ok:false,error:status===403?'forbidden':'not_found'},status});await useConversationTool(page,'conversationLoadOlder');
+ await expect(page.locator('#composer')).toBeHidden();await expect(page.locator('#conversationRefreshStatus')).toContainText('Доступ');await expect(page.locator('#managerAuthRecovery')).toBeHidden();
+ await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);expect(await page.evaluate(()=>WorkspaceV2History.getState().loaded)).toBe(0);
+ const count=olderDetails(state).length;expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(false);expect(olderDetails(state)).toHaveLength(count);clean(state);
+});
+for(const width of [390,1440])test('older transport current500 retains the transcript and permits one explicit retry at '+width+'x420',async({page})=>{
+ await page.setViewportSize({width,height:420});const state=await setup(page);await open(page);await readTop(page);const before=await anchor(page);
+ await page.locator('#replyText').fill('Черновик после ошибки истории');await page.locator('#replyFile').setInputFiles({name:'history-retry.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retry')});state.older.push({body:{ok:false,error:'synthetic_history_failure'},status:500});await useConversationTool(page,'conversationLoadOlder');
+ await expect(page.locator('#conversationHistoryStatus')).toContainText('Не удалось');await expect(page.locator('#conversationHistoryStatus')).toBeVisible();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#messages .msg')).toHaveCount(200);await sameAnchor(page,before);
+ await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Черновик после ошибки истории');await expect(page.locator('#mediaSelection')).toContainText('history-retry.txt');
+ const retry=await holdOlderWithKeyboard(page,state);expect(olderDetails(state)).toHaveLength(2);retry.resolve(state.snapshot({conversation_id:11,before_id:301}));await expect(page.locator('#messages .msg')).toHaveCount(400);await sameAnchor(page,before);await expect(page.locator('#conversationHistoryStatus')).toBeEmpty();clean(state);
+});
+
 for(const width of[390,430,768,1440])test.describe('History pagination '+width,()=>{
  test.use({viewport:{width,height:844}});
  test('explicit older pages preserve reading anchor, incoming messages and drafts without duplicate refresh rows',async({page,browserName})=>{
@@ -169,8 +218,8 @@ test.describe('History state boundaries',()=>{
  test('an old account response cannot reintroduce previous history or drafts after account recovery',async({page})=>{
   const state=await setup(page);await open(page);await page.locator('#replyText').fill('Синтетический приватный черновик аккаунта А');const hold=deferred();state.older.push(hold);await useConversationTool(page,'conversationLoadOlder');await page.evaluate(()=>WorkspaceV2.showAuthRecovery());state.accountId=8;await page.locator('#managerAuthLogin').fill('synthetic-account-b');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await open(page,12);await page.locator('#replyText').fill('Аккаунт Б');hold.resolve(state.snapshot({conversation_id:11,before_id:301}));await settled(page);await expect(page.locator('#messages .msg')).toHaveCount(3);await expect(page.locator('#replyText')).toHaveValue('Аккаунт Б');expect(await page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(8);clean(state);
  });
- test('expired auth during history load keeps same-owner draft and clears stale history controls until recovery',async({page})=>{
-  const state=await setup(page);await open(page);await page.locator('#replyText').fill('Синтетический черновик до истечения сессии');state.older.push({body:{ok:false,error:'unauthorized'},status:401});await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).toBeHidden();await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('Синтетический черновик до истечения сессии');await expect(page.locator('#messages .msg')).toHaveCount(200);clean(state);
+ test('older transport current401 keeps same-owner draft and recovers canonical auth',async({page})=>{
+  const state=await setup(page);await open(page);await page.locator('#replyText').fill('Синтетический черновик до истечения сессии');await page.locator('#replyFile').setInputFiles({name:'history-auth.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic auth recovery')});state.older.push({body:{ok:false,error:'unauthorized'},status:401});await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).toBeHidden();await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('Синтетический черновик до истечения сессии');await expect(page.locator('#mediaSelection')).toContainText('history-auth.txt');await expect(page.locator('#messages .msg')).toHaveCount(200);expect(olderDetails(state)).toHaveLength(1);clean(state);
  });
  test('permission loss while older page is pending locks composer and rejects late history',async({page})=>{
   const state=await setup(page);await open(page);await page.locator('#replyText').fill('Синтетический черновик при смене доступа');const hold=deferred();state.older.push(hold);await useConversationTool(page,'conversationLoadOlder');state.deny=true;await refresh(page);await expect(page.locator('#composer')).toBeHidden();await expect(page.locator('#conversationRefreshStatus')).toContainText('Доступ');const count=await page.locator('#messages .msg').count();hold.resolve(state.snapshot({conversation_id:11,before_id:301}));await settled(page);await expect(page.locator('#messages .msg')).toHaveCount(count);await expect(page.locator('#replyText')).toHaveValue('');clean(state);
