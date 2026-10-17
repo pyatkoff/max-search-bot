@@ -32,12 +32,50 @@ EXPECTED_SOURCE_BYTES = 53_715_353
 EXPECTED_PERSONAL_CHATS = 5_956
 MAX_SOURCE_BYTES = 64 * 1024 * 1024
 MAX_ENVELOPE_BYTES = 12 * 1024 * 1024
-PAYLOAD_BRANCH = "analysis/telegram-history-payload-20261017"
-PAYLOAD_REF = "refs/remotes/origin/telegram-history-payload"
+PAYLOAD_BRANCH = "analysis/telegram-history-payload-20261017-v2"
+PAYLOAD_REF = "refs/remotes/origin/telegram-history-payload-v2"
 PAYLOAD_PATH = "tools/telegram-history-envelope.json"
-RECIPIENT_BRANCH = "analysis/telegram-history-recipient-20261017"
+RECIPIENT_BRANCH = "analysis/telegram-history-recipient-20261017-v2"
 PRODUCTION_ROOT = "/var/www/anytoour/data/www/app.anytoour.ru"
 SSH_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA"
+RUNNER_PHASES = {"startup", "main_verified", "recipient_published", "source_authenticated",
+                 "key_validated", "remote_apply_submitted", "returned"}
+REMOTE_PHASES = {"scope", "source", "hash", "normalize", "project", "shared_account",
+                 "receipt", "start", "apply", "result_receipt"}
+runner_phase = "startup"
+
+
+def phase(value: str) -> None:
+    global runner_phase
+    if value not in RUNNER_PHASES:
+        raise ValueError("invalid phase")
+    runner_phase = value
+    print(json.dumps({"phase": value}, separators=(",", ":")), flush=True)
+
+
+def normalized_ssh_key(raw: str) -> bytes:
+    if "PRIVATE KEY" in raw:
+        value = raw.replace("\\n", "\n").replace("\r", "").encode()
+    else:
+        value = base64.b64decode("".join(raw.split()), validate=True)
+        value = value.replace(b"\r", b"")
+    if not value.endswith(b"\n"):
+        value += b"\n"
+    return value
+
+
+def public_remote_failure(output: bytes) -> dict | None:
+    if not output or len(output) > 1024:
+        return None
+    try:
+        value = json.loads(output)
+        if not isinstance(value, dict) or set(value) != {"ok", "phase", "apply_started"}:
+            return None
+        if value["ok"] is not False or value["phase"] not in REMOTE_PHASES or type(value["apply_started"]) is not bool:
+            return None
+        return value
+    except (ValueError, TypeError):
+        return None
 
 
 def command(args: list[str], *, timeout: int = 30, input_bytes: bytes | None = None) -> bytes:
@@ -156,14 +194,11 @@ def relay(source: bytes, directory: Path) -> dict:
     user = os.environ.get("DEPLOY_USER", "")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9.-]*", host) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]*", user):
         raise ValueError("invalid transport target")
-    raw_key = os.environ.get("DEPLOY_SSH_KEY_VALUE", "")
-    if "PRIVATE KEY" in raw_key:
-        key_bytes = raw_key.replace("\\n", "\n").replace("\r", "").encode()
-    else:
-        key_bytes = base64.b64decode(raw_key, validate=True)
+    key_bytes = normalized_ssh_key(os.environ.get("DEPLOY_SSH_KEY_VALUE", ""))
     private_write(directory / "ssh-key", key_bytes)
     private_write(directory / "known_hosts", (host + " " + SSH_HOST_KEY + "\n").encode())
     command(["ssh-keygen", "-y", "-f", str(directory / "ssh-key")])
+    phase("key_validated")
     helper = Path("tools/telegram_history_import_remote.php").read_bytes()
     if not helper.startswith(b"<?php\n") or len(helper) > 65_536:
         raise ValueError("wrong remote helper")
@@ -192,7 +227,16 @@ def relay(source: bytes, directory: Path) -> dict:
            "-o", "LogLevel=ERROR", user + "@" + host, remote]
     # Before launching the sole apply attempt, write a local receipt. No retry path.
     private_write(directory / "apply-started", b"one attempt; inspect unknown outcomes\n")
-    output = command(ssh, input_bytes=source, timeout=300)
+    phase("remote_apply_submitted")
+    result = subprocess.run(ssh, input=source, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            timeout=300, check=False)
+    if result.returncode:
+        failure = public_remote_failure(result.stdout)
+        if failure is not None:
+            print(json.dumps(failure, separators=(",", ":")), flush=True)
+        raise ValueError("private remote operation failed")
+    output = result.stdout
+    phase("returned")
     main_matches()
     return public_result(output)
 
@@ -202,6 +246,7 @@ def main() -> int:
         if os.environ.get("GITHUB_REPOSITORY") != "pyatkoff/max-search-bot" or os.environ.get("GITHUB_REF") != "refs/heads/analysis/telegram-history-import-20261017":
             raise ValueError("wrong workflow scope")
         main_matches()
+        phase("main_verified")
         os.umask(0o077)
         with tempfile.TemporaryDirectory(prefix="tg-history-private-", dir=os.environ.get("RUNNER_TEMP")) as temporary:
             directory = Path(temporary)
@@ -212,11 +257,14 @@ def main() -> int:
                                                           serialization.PublicFormat.SubjectPublicKeyInfo)
             print(public.decode("ascii"), end="", flush=True)
             publish_recipient(public)
+            phase("recipient_published")
             source = receive_payload(private_key)
+            phase("source_authenticated")
             result = relay(source, directory)
             print(json.dumps(result, separators=(",", ":")), flush=True)
         return 0
     except Exception:
+        print(json.dumps({"ok": False, "phase": runner_phase}, separators=(",", ":")), flush=True)
         print("Private history import did not complete; inspect existing receipts before another attempt.", file=sys.stderr)
         return 1
 
