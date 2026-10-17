@@ -205,4 +205,131 @@ test('mobile same-current Forward remembers selection again and other-account hi
   const other=createHarness({storage:saved,mobile:true,managerId:8,sessionHistory:h.history});await other.start({open:false});assert.equal(other.W.S.current,0);assert.equal(other.window.WorkspaceV2Mobile.getScreen(),'inbox');assert.equal(other.calls.some(r=>r.action==='detail'),false);
 });
 
+async function pendingMobileBack(){
+  const h=createHarness({storage:storage(),mobile:true});await h.start();await h.draft('Synthetic A draft');
+  await h.C.open(102);await h.draft('Synthetic B draft');
+  const file={name:'synthetic-B.txt'};h.setFile(file);
+  const delayed=deferred(),requested=deferred();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===101?(requested.resolve(),delayed.promise):null);
+  const back=h.history.back();await requested.promise;
+  return {h,file,delayed,back};
+}
+function settleMobileBack(delayed,outcome,h){
+  delayed.resolve(outcome==='network'?Promise.reject(new Error('Synthetic navigation outage')):
+    response(outcome===200?{ok:true,conversation:h.conversation,messages:[]}:{ok:false,error:'synthetic'},outcome));
+}
+for(const outcome of [200,401,403,404,500,'network'])test('superseded mobile Back '+outcome+' cannot reopen a client or authentication after Back to inbox',async()=>{
+  const {h,file,delayed,back}=await pendingMobileBack();
+  await h.history.back();await tick();
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'inbox');assert.equal(h.C.getSavedSelection(),0);
+  const calls=h.calls.length,generation=h.W.S.authGeneration;
+  settleMobileBack(delayed,outcome,h);await back;await tick();
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'inbox');assert.equal(h.W.S.current,102);
+  assert.equal(h.C.getSavedSelection(),0);assert.equal(h.history.index,0);assert.equal(h.history.entries.length,3);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.authGeneration,generation);
+  assert.equal(h.ids.get('replyText').value,'Synthetic B draft');assert.equal(h.getFile(),file);
+  assert.equal(h.calls.length,calls);assertNoMutations(h);
+});
+for(const outcome of [200,401,403,404,500,'network'])test('superseded mobile Back '+outcome+' leaves a subsequently opened client and its saved selection intact',async()=>{
+  const {h,delayed,back}=await pendingMobileBack();await h.history.back();
+  await h.C.open(103);await h.draft('Synthetic current C draft');
+  const file={name:'synthetic-C.txt'};h.setFile(file);const calls=h.calls.length,entries=JSON.stringify(h.history.entries);
+  settleMobileBack(delayed,outcome,h);await back;await tick();
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');assert.equal(h.W.S.current,103);
+  assert.equal(h.C.getSavedSelection(),103);assert.equal(JSON.stringify(h.history.entries),entries);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('replyText').disabled,false);
+  assert.equal(h.ids.get('replyText').value,'Synthetic current C draft');assert.equal(h.getFile(),file);
+  assert.equal(h.calls.length,calls);assertNoMutations(h);
+});
+test('Forward to the retained current client releases controls before an obsolete Back read settles',async()=>{
+  const {h,file,delayed,back}=await pendingMobileBack();await h.history.back();
+  const forward=h.history.forward();await tick();await h.history.forward();await tick();
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');assert.equal(h.W.S.current,102);
+  assert.equal(h.C.getSavedSelection(),102);assert.equal(h.ids.get('replyText').disabled,false);
+  assert.equal(h.ids.get('replyText').value,'Synthetic B draft');assert.equal(h.getFile(),file);
+  const calls=h.calls.length;
+  settleMobileBack(delayed,401,h);await Promise.all([back,forward]);await tick();
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');
+  assert.equal(h.W.S.current,102);assert.equal(h.C.getSavedSelection(),102);assert.equal(h.history.index,2);
+  assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.calls.length,calls);assertNoMutations(h);
+});
+test('an obsolete Back finally cannot finish a newer pending history transition',async()=>{
+  const {h,delayed,back}=await pendingMobileBack(),next=deferred(),requested=deferred();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===103?(requested.resolve(),next.promise):null);
+  const newer=h.window.WorkspaceV2Mobile.restore({workspaceV2:true,manager_id:7,screen:'conversation',conversation_id:103});
+  await requested.promise;settleMobileBack(delayed,200,h);await back;await tick();
+  assert.equal(h.W.S.current,102);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');
+  assert.equal(h.ids.get('replyText').disabled,true);
+  next.resolve(response({ok:true,conversation:{...h.conversation,id:103},messages:[]}));await newer;
+  assert.equal(h.W.S.current,103);assert.equal(h.C.getSavedSelection(),103);
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');assert.equal(h.ids.get('replyText').disabled,false);assertNoMutations(h);
+});
+test('an ordinary pending open also revokes an older mobile restore continuation before commit',async()=>{
+  const {h,delayed,back}=await pendingMobileBack(),next=deferred(),requested=deferred();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===103?(requested.resolve(),next.promise):null);
+  const newer=h.C.open(103);await requested.promise;settleMobileBack(delayed,500,h);await back;await tick();
+  assert.equal(h.W.S.current,102);assert.equal(h.C.getSavedSelection(),102);
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');assert.equal(h.ids.get('replyText').disabled,true);
+  next.resolve(response({ok:true,conversation:{...h.conversation,id:103},messages:[]}));assert.equal(await newer,true);
+  assert.equal(h.C.getSavedSelection(),103);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');
+  assert.equal(h.history.state.conversation_id,103);assertNoMutations(h);
+});
+for(const outcome of [200,401])test('old-account mobile Back '+outcome+' cannot hide a recovered account client',async()=>{
+  const {h,delayed,back}=await pendingMobileBack();h.W.showAuthRecovery();
+  h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});await h.login();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===103?
+    response({ok:true,conversation:{...h.conversation,id:103,manager_id:8},messages:[]}):null);
+  await h.C.open(103);await h.draft('Synthetic account 8 draft');const file={name:'synthetic-account8.txt'};h.setFile(file);
+  settleMobileBack(delayed,outcome,h);await back;await tick();
+  assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,103);
+  assert.equal(h.C.getSavedSelection(),103);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'conversation');
+  assert.equal(h.ids.get('replyText').value,'Synthetic account 8 draft');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+test('a dirty task keeps its revealed client card when it refuses a history transition',async()=>{
+  const {h}=await seeded({mobile:true});await h.C.open(102);const calls=h.calls.length;
+  h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft(){h.window.WorkspaceV2Mobile.showLead();return true}};
+  await h.history.back();
+  assert.equal(h.W.S.current,102);assert.equal(h.C.getSavedSelection(),102);
+  assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'lead');assert.equal(h.calls.length,calls);assertNoMutations(h);
+});
+test('a current mobile history read still owns real 401 recovery',async()=>{
+  const {h,delayed,back}=await pendingMobileBack();settleMobileBack(delayed,401,h);await back;await tick();
+  assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);
+  assert.equal(h.ids.get('replyText').value,'Synthetic B draft');assertNoMutations(h);
+});
+test('cancelling a mobile open leaves a real in-flight send locked and never repeats it',async()=>{
+  const h=createHarness({mobile:true});await h.start();await h.draft('Synthetic pending send');
+  const sent=deferred(),read=deferred(),sendingStarted=deferred(),readingStarted=deferred();
+  h.setHook((url,r)=>r.action==='send'?(sendingStarted.resolve(),sent.promise):
+    url==='api.php'&&r.action==='detail'&&r.conversation_id===102?(readingStarted.resolve(),read.promise):null);
+  const sending=h.C.sendReply();await sendingStarted.promise;
+  const opening=h.C.open(102);await readingStarted.promise;h.window.WorkspaceV2Mobile.showInbox({historyMode:'none'});
+  assert.equal(h.ids.get('replyText').disabled,true);assert.equal(h.ids.get('sendReply').disabled,true);
+  read.resolve(response({ok:true,conversation:{...h.conversation,id:102},messages:[]}));assert.equal(await opening,false);
+  assert.equal(h.ids.get('replyText').disabled,true);assert.equal(h.W.S.current,101);
+  sent.resolve(response({ok:false},500));await sending;
+  assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.ids.get('replyText').value,'Synthetic pending send');
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'inbox');
+});
+test('cancelled mobile restoration retains loaded history and permits explicit paging before the old 401 settles',async()=>{
+  const {createHistoryHarness}=require('./run_manager_history_transport_behavior_regression');
+  const h=createHistoryHarness({mobile:true}),rows=(first,last)=>Array.from({length:last-first+1},(_,i)=>({id:first+i,sender_type:'customer',text:'Synthetic '+(first+i)}));
+  h.installFetch(r=>response(h.older(102,rows(201,400))),id=>h.latest(id,rows(401,600)));
+  await h.start();await h.C.open(102);await h.H.loadOlder();assert.equal(h.H.getState().loaded,400);
+  await h.draft('Synthetic loaded-history draft');const file={name:'synthetic-loaded.txt'};h.setFile(file);
+  const old=deferred(),requested=deferred();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===101?(requested.resolve(),old.promise):
+    url==='api.php'&&r.action==='detail'&&r.before_id?response(h.older(102,rows(1,200),false)):null);
+  const back=h.history.back();await requested.promise;await h.history.back();
+  await h.window.WorkspaceV2Mobile.restore({workspaceV2:true,manager_id:7,screen:'conversation',conversation_id:102});
+  assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.H.getState().loaded,400);
+  assert.equal(h.H.getState().before_id,201);assert.equal(await h.H.loadOlder(),true);assert.equal(h.H.getState().loaded,600);
+  const current=h.W.S.detail,marks=h.readMarks.length,calls=h.calls.length;
+  old.resolve(response({ok:false},401));await back;await tick();
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.detail,current);assert.equal(h.C.getSavedSelection(),102);
+  assert.equal(h.H.getState().has_more,false);assert.equal(h.H.getState().loaded,600);
+  assert.equal(h.readMarks.length,marks);assert.equal(h.calls.length,calls);
+  assert.equal(h.ids.get('replyText').value,'Synthetic loaded-history draft');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
 (async()=>{let failed=0;for(const item of cases){try{await item.run();console.log('PASS '+item.name)}catch(e){failed++;console.error('FAIL '+item.name+'\n'+e.stack)}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0})();
