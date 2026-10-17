@@ -17,6 +17,17 @@ class NightsParser
         $normalized = str_replace(['–', '—'], '-', $normalized);
         $normalized = trim(preg_replace('/[.!?,]+$/u', '', $normalized));
 
+        // A tourist may correct an already stated duration in one turn. Resolve
+        // only a narrow explicit "не <old>, а <new>" form, and only when both
+        // sides are valid nights values under this same canonical parser. This
+        // prevents the rejected value from becoming current while avoiding a
+        // broad prose extractor inside the deterministic nights boundary.
+        if (preg_match('/^не\s+(.+?)\s*,?\s+а\s+(.+)$/ui', $normalized, $m)) {
+            $rejected = self::parse(trim((string)$m[1]));
+            if ($rejected === '') return '';
+            return self::parse(trim((string)$m[2]));
+        }
+
         if (preg_match('/^(?:на\s+)?недел(?:я|ю|ьку)$/ui', $normalized)) {
             return '7';
         }
