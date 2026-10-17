@@ -231,6 +231,11 @@ final class ManagerAiDraftEval
                     throw new RuntimeException('invalid_context');
                 }
             }
+            // Evaluation-process override only; no production config write.
+            if (defined('MANAGER_AI_DRAFT_REASONING') && MANAGER_AI_DRAFT_REASONING!=='medium') {
+                throw new RuntimeException('requested_profile_mismatch');
+            }
+            if (!defined('MANAGER_AI_DRAFT_REASONING')) define('MANAGER_AI_DRAFT_REASONING','medium');
             $requestShape = ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),[]);
             $requestedProfile = self::requestedProfile($requestShape);
             self::write([
@@ -280,7 +285,7 @@ final class ManagerAiDraftEval
     private static function requestedProfile(array $request): array
     {
         if (($request['model']??null)!=='gpt-6.1-sol' || !is_array($request['reasoning']??null)
-            || ($request['reasoning']['effort']??null)!=='low' || ($request['service_tier']??null)!=='fast') {
+            || ($request['reasoning']['effort']??null)!=='medium' || ($request['service_tier']??null)!=='fast') {
             throw new RuntimeException('requested_profile_mismatch');
         }
         // The requested profile is distinct from allowlisted response metadata.

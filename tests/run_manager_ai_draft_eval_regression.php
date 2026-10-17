@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // Synthetic transport tests only: no production config, provider or database.
 define('MANAGER_AI_DRAFT_EVAL_LIBRARY_ONLY', true);
+define('MANAGER_AI_DRAFT_REASONING', 'medium');
 require_once dirname(__DIR__).'/tools/manager_ai_draft_eval.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 
@@ -153,12 +154,12 @@ evalCheck('profile and monotonic-duration contract has its own output schema',
     ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v4');
 $actualRequest=ManagerDraftClient::requestBody('synthetic instructions',[]);
 evalCheck('header profile is derived from the actual isolated client request projection',
-    evalCall('requestedProfile',$actualRequest)===['model'=>'gpt-6.1-sol','reasoning_effort'=>'low','service_tier'=>'fast']
+    evalCall('requestedProfile',$actualRequest)===['model'=>'gpt-6.1-sol','reasoning_effort'=>'medium','service_tier'=>'fast']
     && $actualRequest['service_tier']==='fast');
 foreach ([
     'other model'=>['model'=>'gpt-5.6-luna','reasoning'=>['effort'=>'low']],
     'implicit reasoning'=>['model'=>'gpt-6.1-sol'],
-    'other effort'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'medium']],
+    'other effort'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low']],
     'ultrafast tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'ultrafast'],
     'premium tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'priority'],
     'omitted tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low']],

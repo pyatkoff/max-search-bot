@@ -285,7 +285,7 @@ jobs:
                   footer=rows[-1] if rows and isinstance(rows[-1],dict) and rows[-1].get('type')=='footer' else {}
                   valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v4' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0 and header.get('max_provider_calls')==30 and header.get('max_provider_calls_per_case')==1
                   valid=valid and isinstance(header.get('model'),str) and re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',header['model']) is not None
-                  valid=valid and header.get('requested_profile')=={'model':'gpt-6.1-sol','reasoning_effort':'low','service_tier':'fast'} and header.get('model')=='gpt-6.1-sol' and header.get('duration_clock')=='server_monotonic_hrtime'
+                  valid=valid and header.get('requested_profile')=={'model':'gpt-6.1-sol','reasoning_effort':'medium','service_tier':'fast'} and header.get('model')=='gpt-6.1-sol' and header.get('duration_clock')=='server_monotonic_hrtime'
                   for field in ['task_token','production_sha','source_bundle_sha256']:
                       valid=valid and header.get(field)==task[field]
                   valid=valid and header.get('output_recipient_sha256')==hashlib.sha256(task['output_recipient'].encode()).hexdigest()
