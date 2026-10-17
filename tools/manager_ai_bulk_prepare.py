@@ -33,7 +33,11 @@ def main():
     assert study['source']['archive_sha256']==source_hash
     reviewed={x['case_id'] for x in register['reviews']}
     prior={x['source_alias'] for x in study['sample_freeze']['case_membership']}
-    excluded=reviewed|prior;assert reviewed and prior
+    prior_bulk={alias for batch in register.get('mass_evaluation',{}).get('batches',[])
+        if batch.get('source_sha256')==source_hash and batch.get('status')=='complete'
+        for alias in batch['source_aliases']}
+    assert all(re.fullmatch(r'TG[0-9]{4,}',alias) for alias in prior_bulk)
+    excluded=reviewed|prior|prior_bulk;assert reviewed and prior
     pools=collections.defaultdict(list)
     for position,chat in enumerate(data['chats']['list'],1):
         alias=f'TG{position:04d}'
@@ -116,7 +120,8 @@ def main():
     assert not {x['source_alias'] for x in membership}&excluded
     manifest={'schema':'manager_ai_bulk_sample_v1','seed':ARGS.seed,'source_sha256':source_hash,
         'source_library_file_id':register.get('source_library_file_id'),'cases':500,'development':400,'holdout':100,
-        'excluded_reviewed_histories':len(reviewed),'excluded_prior_fixed_model_histories':len(prior),'excluded_union':len(excluded),
+        'excluded_reviewed_histories':len(reviewed),'excluded_prior_fixed_model_histories':len(prior),
+        'excluded_prior_bulk_histories':len(prior_bulk),'excluded_union':len(excluded),
         'development_sha256':digest(encoded(outputs['development'])),'holdout_sha256':digest(encoded(outputs['holdout'])),
         'groups':dict(collections.Counter(x['group'] for x in membership)),
         'automatic_reference_labels':False,'future_messages_in_context':False,'model_calls':0,

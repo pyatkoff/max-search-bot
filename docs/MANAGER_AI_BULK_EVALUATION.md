@@ -10,6 +10,10 @@ match, excludes identified reviewed/evaluated histories, freezes 400 development
 and 100 reserved histories, and projects past-only bounded contexts. Late-edited
 messages are excluded. Shared-account OUT direction is not individual authorship.
 Outputs must be private and outside a checkout/document root.
+Completed automatic batches are recorded separately from manual reviews in the
+register's `mass_evaluation.batches`, with their exact source hash and aliases.
+The next preparation excludes those same-export histories as well; this does not
+inflate manual semantic-review coverage.
 
 ```sh
 python3 tools/manager_ai_bulk_prepare.py \
