@@ -28,6 +28,12 @@ function evalContext(): array
     return ['conversation_id'=>17,'as_of_message_id'=>103,'history_incomplete'=>false,
         'messages'=>[['id'=>103,'sender_type'=>'customer','text'=>'Нужен тур из Самары, на двоих.']]];
 }
+function evalModelResult(): array
+{
+    return ['ok'=>true,'should_draft'=>true,'draft'=>'На какой период рассматриваете поездку?',
+        'next_action'=>'clarify','reason'=>'Нужно уточнить период поездки.','checks'=>[],
+        'evidence_message_ids'=>[103],'history_incomplete'=>false];
+}
 function evalInput(array $options, array $lease): array
 {
     $cases=[];
@@ -140,6 +146,120 @@ evalCheck('every synthetic case passes the real draft context validator',
 $invalidContext=evalContext(); $invalidContext['messages'][0]['id']=104;
 evalCheck('future-message context is refused before a provider is relevant',
     isset($normalize->invoke(null,$invalidContext)['error']));
+
+// Exercise the evaluator's actual shared path, including the deterministic
+// service policy. Synthetic transports never call ManagerDraftClient.
+evalCheck('changed provider-count contract has its own output schema',
+    ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v2');
+$modelTransportCalls=0;
+$modelRecord=evalCall('runCase',['case_id'=>'model_ok','context'=>evalContext()],1,
+    static function(string $instructions,array $payload) use (&$modelTransportCalls): array {
+        ++$modelTransportCalls; return evalModelResult();
+    });
+evalCheck('model case counts exactly one synthetic transport invocation',
+    $modelTransportCalls===1 && $modelRecord['provider_calls']===1
+    && $modelRecord['result_origin']==='model' && $modelRecord['result']===evalModelResult()
+    && $modelRecord['case_id']==='model_ok' && $modelRecord['index']===1
+    && is_int($modelRecord['elapsed_ms']) && $modelRecord['elapsed_ms']>=0);
+$errorTransportCalls=0;
+$errorRecord=evalCall('runCase',['case_id'=>'model_error','context'=>evalContext()],2,
+    static function(string $instructions,array $payload) use (&$errorTransportCalls): array {
+        ++$errorTransportCalls; return ['_error'=>'provider_timeout'];
+    });
+evalCheck('provider failure still counts as a model attempt',
+    $errorTransportCalls===1 && $errorRecord['provider_calls']===1
+    && $errorRecord['result_origin']==='model'
+    && $errorRecord['result']===['ok'=>false,'error'=>'provider_timeout']);
+$officeContext=evalContext(); $officeContext['messages'][0]['text']='Где у вас офис?';
+$policyTransportCalls=0;
+$policyRecord=evalCall('runCase',['case_id'=>'policy_check','context'=>$officeContext],3,
+    static function(string $instructions,array $payload) use (&$policyTransportCalls): array {
+        ++$policyTransportCalls; throw new RuntimeException('synthetic_transport_must_not_be_reached');
+    });
+evalCheck('company-fact policy returns a valid result without entering transport',
+    $policyTransportCalls===0 && $policyRecord['provider_calls']===0
+    && $policyRecord['result_origin']==='policy' && $policyRecord['result']['ok']===true
+    && $policyRecord['result']['should_draft']===false && $policyRecord['result']['draft']===null
+    && $policyRecord['result']['next_action']==='check_offer'
+    && evalCall('summarize',[$policyRecord])['provider_successful_cases']===0);
+$normalizedOffice=$normalize->invoke(null,$officeContext);
+evalCheck('policy result satisfies the actual draft-result contract',
+    (new ReflectionMethod(ManagerAiDraftService::class,'validResult'))->invoke(null,$policyRecord['result'],$normalizedOffice));
+$summary=evalCall('summarize',[$modelRecord,$errorRecord,$policyRecord]);
+evalCheck('mixed results separate successful model outputs from policy answers',
+    $summary['processed_cases']===3 && $summary['provider_attempts']===2
+    && $summary['policy_cases']===1 && $summary['model_cases']===2
+    && $summary['successful_cases']===2 && $summary['provider_successful_cases']===1
+    && $summary['policy_successful_cases']===1 && is_object($summary['errors'])
+    && (array)$summary['errors']===['provider_timeout'=>1]);
+$records=[];
+for ($i=0;$i<30;$i++) {
+    $record=$i<10?$policyRecord:($i<25?$modelRecord:$errorRecord);
+    $record['case_id']='mixed_'.$i; $record['index']=$i+1; $records[]=$record;
+}
+$fullSummary=evalCall('summarize',$records);
+evalCheck('30 processed cases do not imply 30 model calls or 30 model successes',
+    $fullSummary['processed_cases']===30 && $fullSummary['provider_attempts']===20
+    && $fullSummary['policy_cases']===10 && $fullSummary['model_cases']===20
+    && $fullSummary['successful_cases']===25 && $fullSummary['policy_successful_cases']===10
+    && $fullSummary['provider_successful_cases']===15 && (array)$fullSummary['errors']===['provider_timeout'=>5]);
+$allPolicy=evalCall('summarize',array_fill(0,30,$policyRecord));
+evalCheck('a fully deterministic batch has zero provider attempts and zero model successes',
+    $allPolicy['processed_cases']===30 && $allPolicy['provider_attempts']===0
+    && $allPolicy['policy_cases']===30 && $allPolicy['model_cases']===0
+    && $allPolicy['successful_cases']===30 && $allPolicy['policy_successful_cases']===30
+    && $allPolicy['provider_successful_cases']===0 && json_encode($allPolicy['errors'])==='{}');
+foreach (['boolean'=>true,'string'=>'1','negative'=>-1,'second call'=>2] as $name=>$badCount) {
+    $badRecord=$modelRecord; $badRecord['provider_calls']=$badCount;
+    evalCheck('summary rejects '.$name.' provider count',
+        evalRejects(static fn()=>evalCall('summarize',[$badRecord])));
+}
+$badRecord=$policyRecord; $badRecord['result_origin']='model';
+evalCheck('summary rejects a zero-call answer mislabeled as model output',
+    evalRejects(static fn()=>evalCall('summarize',[$badRecord])));
+$badRecord=$errorRecord; $badRecord['result']['error']='unsafe_error_with_private_details';
+evalCheck('summary rejects arbitrary error strings',evalRejects(static fn()=>evalCall('summarize',[$badRecord])));
+evalCheck('summary refuses more than the 30-case spending boundary',
+    evalRejects(static fn()=>evalCall('summarize',array_fill(0,31,$modelRecord))));
+$invalidCalls=0;
+$invalidRecord=evalCall('runCase',['case_id'=>'invalid_context','context'=>$invalidContext],1,
+    static function(string $instructions,array $payload) use (&$invalidCalls): array {
+        ++$invalidCalls; return evalModelResult();
+    });
+evalCheck('invalid context cannot spend a provider call or masquerade as a completed policy case',
+    $invalidCalls===0 && $invalidRecord['provider_calls']===0
+    && $invalidRecord['result']===['ok'=>false,'error'=>'invalid_context']
+    && evalRejects(static fn()=>evalCall('summarize',[$invalidRecord])));
+
+// Isolate a future retrying service double in a child process. This exercises
+// the real helper's spending guard before the second transport invocation.
+$retryProbe=<<<'PHP'
+define('MANAGER_AI_DRAFT_EVAL_LIBRARY_ONLY',true);
+final class ManagerAiDraftService {
+    public static function generate(array $context,?callable $provider=null): array {
+        $first=$provider('',[]);
+        try { $provider('',[]); } catch (RuntimeException $ignored) { $GLOBALS['retry_blocked']=true; }
+        return $first;
+    }
+}
+require $argv[1];
+$calls=0;$GLOBALS['retry_blocked']=false;
+$record=(new ReflectionMethod(ManagerAiDraftEval::class,'runCase'))->invoke(null,
+    ['case_id'=>'synthetic_retry','context'=>[]],1,
+    static function(string $instructions,array $payload)use(&$calls):array {++$calls;return ['ok'=>true];});
+echo json_encode(['calls'=>$calls,'recorded_calls'=>$record['provider_calls'],'blocked'=>$GLOBALS['retry_blocked']]);
+PHP;
+$retryPipes=[];
+$retryProcess=proc_open([PHP_BINARY,'-d','display_errors=0','-d','log_errors=0','-r',$retryProbe,
+    dirname(__DIR__).'/tools/manager_ai_draft_eval.php'],
+    [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$retryPipes,sys_get_temp_dir());
+if (!is_resource($retryProcess)) throw new RuntimeException('synthetic_retry_fixture_failed');
+fclose($retryPipes[0]);
+$retryOut=stream_get_contents($retryPipes[1]); fclose($retryPipes[1]);
+$retryError=stream_get_contents($retryPipes[2]); fclose($retryPipes[2]);
+$retryExit=proc_close($retryProcess);
+evalCheck('future retries are blocked before a second transport can spend a call',
+    $retryExit===0 && $retryError==='' && json_decode($retryOut,true)===['calls'=>1,'recorded_calls'=>1,'blocked'=>true]);
 
 // All filesystem fixtures use fresh random tokens, never existing task paths.
 $directory=evalCall('directory',$token);

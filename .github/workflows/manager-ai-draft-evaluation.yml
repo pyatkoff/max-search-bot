@@ -279,7 +279,7 @@ jobs:
                   execution=json.loads(execution_path.read_text()) if execution_path.is_file() else {'remote_ok':False,'deployed_ok':False,'main_ok':False}
                   header=rows[0] if rows and isinstance(rows[0],dict) else {}
                   footer=rows[-1] if rows and isinstance(rows[-1],dict) and rows[-1].get('type')=='footer' else {}
-                  valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v1' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0
+                  valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v2' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0 and header.get('max_provider_calls')==30 and header.get('max_provider_calls_per_case')==1
                   valid=valid and isinstance(header.get('model'),str) and re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',header['model']) is not None
                   for field in ['task_token','production_sha','source_bundle_sha256']:
                       valid=valid and header.get(field)==task[field]
@@ -287,10 +287,15 @@ jobs:
                   cipher=base64.b64decode(task['ciphertext_base64'],validate=True)
                   valid=valid and header.get('ciphertext_sha256')==hashlib.sha256(cipher).hexdigest()
                   ids=set();success=0;errors=collections.Counter()
+                  attempts=0;policy_cases=0;model_cases=0;policy_success=0;provider_success=0
                   safe_errors={'provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large','invalid_ai_response'}
                   case_rows=rows[1:-1] if footer else rows[1:]
                   for index,row in enumerate(case_rows,1):
-                      if not isinstance(row,dict) or row.get('type')!='case' or row.get('index')!=index or not isinstance(row.get('case_id'),str) or row['case_id'] in ids or not re.fullmatch('[A-Za-z0-9_-]{1,80}',row['case_id']):
+                      if not isinstance(row,dict) or set(row)!={'type','index','case_id','elapsed_ms','provider_calls','result_origin','result'} or row.get('type')!='case' or row.get('index')!=index or not isinstance(row.get('case_id'),str) or row['case_id'] in ids or not re.fullmatch('[A-Za-z0-9_-]{1,80}',row['case_id']):
+                          valid=False
+                          break
+                      calls=row['provider_calls']
+                      if type(calls) is not int or calls not in (0,1) or row['result_origin']!=('policy' if calls==0 else 'model'):
                           valid=False
                           break
                       result=row.get('result')
@@ -303,14 +308,20 @@ jobs:
                               valid=False
                               break
                           success+=1
+                          if calls==0: policy_success+=1
+                          else: provider_success+=1
                       else:
                           code=result.get('error')
                           if set(result)!={'ok','error'} or result.get('ok') is not False or code not in safe_errors:
                               valid=False
                               break
                           errors[code]+=1
+                      attempts+=calls
+                      if calls==0: policy_cases+=1
+                      else: model_cases+=1
                       ids.add(row['case_id'])
-                  complete=valid and len(rows)==32 and len(ids)==30 and footer.get('complete') is True and footer.get('expected_cases')==30 and footer.get('exported_cases')==30 and footer.get('provider_attempts')==30 and footer.get('successful_cases')==success and footer.get('errors')==dict(errors) and all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok'])
+                  count_fields=['expected_cases','exported_cases','processed_cases','provider_attempts','policy_cases','model_cases','policy_successful_cases','provider_successful_cases','successful_cases']
+                  complete=valid and len(rows)==32 and len(ids)==30 and footer.get('complete') is True and all(type(footer.get(k)) is int for k in count_fields) and footer.get('expected_cases')==30 and footer.get('exported_cases')==30 and footer.get('processed_cases')==30 and footer.get('provider_attempts')==attempts and 0<=attempts<=30 and footer.get('policy_cases')==policy_cases and footer.get('model_cases')==model_cases and footer.get('policy_successful_cases')==policy_success and footer.get('provider_successful_cases')==provider_success and footer.get('successful_cases')==success and footer.get('errors')==dict(errors) and all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok'])
                   now=dt.datetime.now(dt.timezone.utc)
                   for field,row in [('generated_at',header),('finished_at',footer)]:
                       try:
@@ -318,10 +329,10 @@ jobs:
                           complete=complete and -60<=(now-stamp).total_seconds()<=3600
                       except Exception: complete=False
                   recipient=pyrage.x25519.Recipient.from_str(task['output_recipient'])
-                  envelope={'schema':'manager_ai_draft_eval_envelope_v1','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_bundle_sha256':task['source_bundle_sha256'],'recipient':str(recipient),'plaintext_sha256':hashlib.sha256(data).hexdigest(),'plaintext_bytes':len(data),'complete':complete,'execution':execution}
+                  envelope={'schema':'manager_ai_draft_eval_envelope_v2','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_bundle_sha256':task['source_bundle_sha256'],'recipient':str(recipient),'plaintext_sha256':hashlib.sha256(data).hexdigest(),'plaintext_bytes':len(data),'complete':complete,'execution':execution}
                   encrypted=pyrage.encrypt(json.dumps(envelope,separators=(',',':')).encode()+b'\n'+data,[recipient])
                   (private/'result.age').write_bytes(encrypted)
-                  manifest={'schema':'manager_ai_draft_eval_manifest_v1','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_commit':os.environ['GITHUB_SHA'],'source_bundle_sha256':task['source_bundle_sha256'],'ciphertext_sha256':hashlib.sha256(encrypted).hexdigest(),'ciphertext_bytes':len(encrypted),'complete':complete,'expected_cases':30,'completed_cases':len(ids),'provider_attempts':footer.get('provider_attempts') if complete else None,'successful_cases':success,'errors':dict(errors),'execution':execution,'output_status':'complete' if complete else 'partial'}
+                  manifest={'schema':'manager_ai_draft_eval_manifest_v2','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_commit':os.environ['GITHUB_SHA'],'source_bundle_sha256':task['source_bundle_sha256'],'ciphertext_sha256':hashlib.sha256(encrypted).hexdigest(),'ciphertext_bytes':len(encrypted),'complete':complete,'expected_cases':30,'completed_cases':len(ids),'processed_cases':len(ids),'provider_attempts':attempts if complete else None,'provider_attempts_recorded':attempts,'policy_cases':policy_cases,'model_cases':model_cases,'successful_cases':success,'policy_successful_cases':policy_success,'provider_successful_cases':provider_success,'errors':dict(errors),'execution':execution,'output_status':'complete' if complete else 'partial'}
                   (private/'manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n')
                   with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('ready=true\n')
               elif phase=='cleanup':

@@ -71,7 +71,7 @@ test('a recommendation without a draft has no insertion or validation request',a
   await h.insert();assert.equal(h.aiCalls().length,1);assert.equal(h.ids.get('replyText').value,'Свой ответ');assertNoMutations(h);
 });
 test('server action enums and unavailable/stale errors have readable labels',async()=>{
-  for(const [action,label]of Object.entries({clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить предложение',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'})){
+  for(const [action,label]of Object.entries({clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'})){
     const h=await harness(()=>response(generated({next_action:action,should_draft:false,draft:null})));await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftPanel').children[2].querySelector('.aiDraftAction').textContent,label);assertNoMutations(h);
   }
   for(const [error,label]of [['context_stale','Переписка изменилась'],['provider_not_configured','AI сейчас недоступен']]){

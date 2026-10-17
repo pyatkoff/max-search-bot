@@ -12,7 +12,7 @@ declare(strict_types=1);
 final class ManagerAiDraftEval
 {
     public const INPUT_SCHEMA = 'manager_ai_draft_eval_input_v1';
-    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v1';
+    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v2';
     public const CASES = 30;
     public const TTL = 3600;
     public const MAX_CIPHERTEXT_BYTES = 65536;
@@ -241,32 +241,20 @@ final class ManagerAiDraftEval
                 'input_sha256'=>$inputDigest,'ciphertext_sha256'=>hash('sha256',$sealed),
                 'generated_at'=>gmdate('Y-m-d\TH:i:s\Z'),'expected_cases'=>self::CASES,
                 'provider'=>'ManagerDraftClient::requestJson','retries'=>0,
+                'max_provider_calls'=>self::CASES,'max_provider_calls_per_case'=>1,
                 'model'=>$configuredModel,
             ]);
-            $attempts = 0;
-            $successes = 0;
-            $errors = [];
+            $records = [];
             foreach ($cases as $index=>$case) {
-                $started = hrtime(true);
-                $result = ManagerAiDraftService::generate($case['context'],
-                    static function(string $instructions, array $payload) use (&$attempts): array {
-                        ++$attempts;
-                        // This is the real production client, never a fixture.
-                        return ManagerDraftClient::requestJson($instructions,$payload);
-                    });
-                if (!empty($result['ok'])) ++$successes;
-                else {
-                    $code = (string)($result['error']??'invalid_ai_response');
-                    $errors[$code] = ($errors[$code]??0)+1;
-                }
-                self::write(['type'=>'case','index'=>$index+1,'case_id'=>$case['case_id'],
-                    'elapsed_ms'=>(int)round((hrtime(true)-$started)/1000000),'result'=>$result]);
+                $record = self::runCase($case,$index+1,[ManagerDraftClient::class,'requestJson']);
+                $records[] = $record;
+                self::write($record);
             }
-            if ($attempts!==self::CASES) throw new RuntimeException('attempt_count_mismatch');
+            $summary = self::summarize($records);
+            if ($summary['processed_cases']!==self::CASES) throw new RuntimeException('case_count_mismatch');
             self::verifyProduction($options['production-sha']);
             self::write(['type'=>'footer','complete'=>true,'finished_at'=>gmdate('Y-m-d\TH:i:s\Z'),
-                'expected_cases'=>self::CASES,'exported_cases'=>count($cases),
-                'provider_attempts'=>$attempts,'successful_cases'=>$successes,'errors'=>(object)$errors]);
+                'expected_cases'=>self::CASES,'exported_cases'=>count($cases)] + $summary);
         } finally {
             if (is_string($keypair) && $keypair !== '') sodium_memzero($keypair);
             if (is_string($plain) && $plain !== '') sodium_memzero($plain);
@@ -278,6 +266,55 @@ final class ManagerAiDraftEval
                 fclose($handle);
             }
         }
+    }
+
+    /** Actual service path shared by evaluation and isolated synthetic tests. */
+    private static function runCase(array $case, int $index, callable $transport): array
+    {
+        $started = hrtime(true);
+        $calls = 0;
+        $result = ManagerAiDraftService::generate($case['context'],
+            static function(string $instructions, array $payload) use (&$calls,$transport): array {
+                // Enforce the budget before entering the real transport. A
+                // future service retry must not silently spend another call.
+                if ($calls>=1) throw new RuntimeException('provider_budget_exceeded');
+                ++$calls;
+                return $transport($instructions,$payload);
+            });
+        return ['type'=>'case','index'=>$index,'case_id'=>$case['case_id'],
+            'provider_calls'=>$calls,'result_origin'=>$calls===0?'policy':'model',
+            'elapsed_ms'=>(int)round((hrtime(true)-$started)/1000000),'result'=>$result];
+    }
+
+    /** Never count a zero-call policy answer as a successful model response. */
+    private static function summarize(array $records): array
+    {
+        if (count($records)>self::CASES) throw new RuntimeException('case_count_mismatch');
+        $summary = ['processed_cases'=>count($records),'provider_attempts'=>0,
+            'policy_cases'=>0,'model_cases'=>0,'successful_cases'=>0,
+            'policy_successful_cases'=>0,'provider_successful_cases'=>0];
+        $errors = [];
+        $safeErrors = ['provider_unavailable','provider_not_configured','provider_refused',
+            'provider_incomplete','provider_timeout','provider_response_too_large','invalid_ai_response'];
+        foreach ($records as $record) {
+            $calls = $record['provider_calls']??null;
+            if (!is_int($calls) || !in_array($calls,[0,1],true)
+                || ($record['result_origin']??'')!==($calls===0?'policy':'model')
+                || !is_array($record['result']??null)) throw new RuntimeException('case_count_mismatch');
+            $summary['provider_attempts'] += $calls;
+            ++$summary[$calls===0?'policy_cases':'model_cases'];
+            if (($record['result']['ok']??null)===true) {
+                ++$summary['successful_cases'];
+                ++$summary[$calls===0?'policy_successful_cases':'provider_successful_cases'];
+            } else {
+                $code = $record['result']['error']??null;
+                if (($record['result']['ok']??null)!==false || !is_string($code)
+                    || !in_array($code,$safeErrors,true)) throw new RuntimeException('invalid_case_result');
+                $errors[$code] = ($errors[$code]??0)+1;
+            }
+        }
+        $summary['errors'] = (object)$errors;
+        return $summary;
     }
 
     private static function validateLease($lease, array $options): void
