@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__,2).'/services/ManagerCompanyKnowledge.php';
+
 /** Synthetic dependencies for the actual ai-draft.php HTTP boundary only. */
 function managerAiHttpFixtureDirectory(): string
 {
@@ -73,6 +75,7 @@ final class ManagerAiDraftContextService
         if ($state['context_error'] !== '') return ['ok'=>false,'error'=>$state['context_error']];
         return [
             'ok'=>true,'revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
+            'company_knowledge'=>ManagerCompanyKnowledge::forProject('anytour', new DateTimeImmutable('2026-10-18T00:00:00Z')),
             'context'=>['conversation_id'=>$conversationId,'as_of_message_id'=>$state['latest_message_id'],
                 'history_incomplete'=>false,'media_unread'=>false,
                 'messages'=>[['id'=>$state['latest_message_id'],'sender_type'=>'customer','text'=>'Нужен отдых на море.']]],
@@ -82,11 +85,12 @@ final class ManagerAiDraftContextService
 
 final class ManagerAiDraftService
 {
-    public static function generate(array $context): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null): array
     {
         $state = managerAiHttpFixtureState();
         managerAiHttpFixtureEvent('provider', ['session_closed'=>session_status() !== PHP_SESSION_ACTIVE,
-            'conversation_id'=>$context['conversation_id'],'as_of_message_id'=>$context['as_of_message_id']]);
+            'conversation_id'=>$context['conversation_id'],'as_of_message_id'=>$context['as_of_message_id'],
+            'knowledge_ids'=>array_column($knowledge?->facts() ?? [], 'id')]);
         if ($state['provider_mode'] === 'throw') {
             throw new RuntimeException('SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE');
         }

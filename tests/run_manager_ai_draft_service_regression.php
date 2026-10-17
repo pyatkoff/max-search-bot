@@ -72,6 +72,77 @@ draftCheck('caller cannot populate the empty verified company base',$captured[1]
     && !str_contains(json_encode($captured),'COMPANY_FACT_CANARY'));
 draftCheck('context has no mutation',$context===$beforeGeneration && $original===draftContext());
 
+// The service accepts knowledge only through the server-owned immutable snapshot,
+// never through a field supplied in the transcript/request context.
+$knowledgeNow = new DateTimeImmutable('2026-10-18T00:00:00Z');
+$knowledge = ManagerCompanyKnowledge::forProject('anytour', $knowledgeNow);
+$knowledgePayload = [];
+$knowledgeResult = ManagerAiDraftService::generate($context, static function(string $instructions, array $payload) use (&$knowledgePayload): array {
+    $knowledgePayload = $payload; return draftResult();
+}, $knowledge);
+draftCheck('server knowledge supplies only the two sourced identity facts', $knowledgeResult === draftResult()
+    && array_column($knowledgePayload['verified_company_facts'], 'id') === ['anytour.public_name','anytour.search_site']
+    && !str_contains(json_encode($knowledgePayload), 'COMPANY_FACT_CANARY'));
+draftCheck('knowledge snapshot is immutable to returned-array edits', (static function() use ($knowledge): bool {
+    $facts = $knowledge->facts(); $facts[0]['text'] = 'MUTATED';
+    return $knowledge->facts()[0]['text'] !== 'MUTATED';
+})());
+foreach (['anex','unknown','ANYTOUR','', '../anytour'] as $project) {
+    draftCheck('no company facts leak to a different or ambiguous project '.json_encode($project),
+        ManagerCompanyKnowledge::forProject($project, $knowledgeNow)->facts() === []);
+}
+$catalog = json_decode((string)file_get_contents(dirname(__DIR__).'/knowledge/company.json'), true, 16, JSON_THROW_ON_ERROR);
+$selectKnowledge = new ReflectionMethod(ManagerCompanyKnowledge::class, 'select');
+$sourceHash = hash_file('sha256', dirname(__DIR__).'/project.php');
+$select = static fn($data, string $time = '2026-10-18T00:00:00Z', string $hash = '') =>
+    $selectKnowledge->invoke(null, $data, 'anytour', new DateTimeImmutable($time), $hash ?: $sourceHash);
+$single = $catalog; $single['facts'] = [$catalog['facts'][0]];
+$extra = $single; $extra['facts'][0]['source']['private_notes'] = 'PRIVATE_SOURCE_CANARY';
+draftCheck('source projection excludes arbitrary catalog metadata', !str_contains(json_encode($select($extra)->facts()), 'PRIVATE_SOURCE_CANARY'));
+foreach (['candidate','rejected','withdrawn','expired'] as $status) {
+    $bad = $single; $bad['facts'][0]['status'] = $status;
+    draftCheck('unapproved status withheld: '.$status, $select($bad)->facts() === []);
+}
+foreach (['approval','source','reviewed_at','expires_at','topic','text','id'] as $field) {
+    $bad = $single; unset($bad['facts'][0][$field]);
+    draftCheck('fact without '.$field.' withheld', $select($bad)->facts() === []);
+}
+$bad = $single; $bad['facts'][0]['source']['path'] = '/tmp/untrusted.php';
+draftCheck('catalog cannot select an arbitrary source path', $select($bad)->facts() === []);
+$bad = $single; $bad['facts'][0]['source']['field'] = 'payment.account';
+draftCheck('unsupported commercial source field is withheld', $select($bad)->facts() === []);
+$bad = $single; $bad['facts'][0]['source']['sha256'] = str_repeat('0',64);
+draftCheck('changed source withdraws previously approved facts', $select($bad)->facts() === []
+    && $select($single, '2026-10-18T00:00:00Z', str_repeat('1',64))->facts() === []);
+foreach (['2026-02-30T00:00:00Z', '2026-10-18', 'tomorrow', '2026-10-18T00:00:00+02:00'] as $date) {
+    $bad = $single; $bad['facts'][0]['reviewed_at'] = $date;
+    draftCheck('malformed review timestamp withheld: '.$date, $select($bad)->facts() === []);
+}
+draftCheck('facts are withheld before review and at the exact expiry boundary',
+    $select($single, '2026-10-17T21:59:59Z')->facts() === []
+    && count($select($single, '2026-10-17T22:00:00Z')->facts()) === 1
+    && count($select($single, '2027-01-17T21:59:59Z')->facts()) === 1
+    && $select($single, '2027-01-17T22:00:00Z')->facts() === []);
+$bad = $single; $bad['facts'][] = $bad['facts'][0];
+draftCheck('ambiguous duplicate fact IDs fail closed', $select($bad)->facts() === []);
+foreach ([null, [], ['schema_version'=>2], array_replace($catalog, ['facts'=>array_fill(0,51,$single['facts'][0])])] as $bad) {
+    draftCheck('malformed or oversized catalog fails closed', $select($bad)->facts() === []);
+}
+$revision = $select($single)->revision();
+$bad = $single; $bad['version'] = '2026-10-18.2';
+draftCheck('knowledge version changes invalidate revision without changing fact text', $select($bad)->revision() !== $revision);
+$bad = $single; $bad['facts'][0]['approval'] .= ' Re-reviewed.';
+draftCheck('approval changes invalidate revision without changing fact text', $select($bad)->revision() !== $revision);
+draftCheck('expiry invalidates revision without changing source or messages',
+    $select($single, '2027-01-17T22:00:00Z')->revision() !== $revision);
+draftCheck('unchanged knowledge is stable across ordinary captures', $select($single, '2026-10-19T00:00:00Z')->revision() === $revision);
+$officeKnowledge = draftContext(); $officeKnowledge['messages'][2]['text'] = 'Где ваш офис?'; $officeKnowledgeCalled = false;
+$officeKnowledgeResult = ManagerAiDraftService::generate($officeKnowledge, static function() use (&$officeKnowledgeCalled): array {
+    $officeKnowledgeCalled = true; return draftResult();
+}, $knowledge);
+draftCheck('identity knowledge does not bypass the unknown office gate', !$officeKnowledgeCalled
+    && $officeKnowledgeResult['should_draft'] === false && $officeKnowledgeResult['next_action'] === 'check_offer');
+
 $no=draftResult();$no['should_draft']=false;$no['draft']=null;$no['next_action']='no_contact';
 $no['reason']='Менеджер уже обещал проверить варианты, нового вопроса нет.';
 $managerLast=draftContext();$managerLast['messages'][2]['sender_type']='manager';$managerLast['messages'][2]['text']='Проверю варианты.';
@@ -338,7 +409,7 @@ draftCheck('instructions cover consent, waiting, thanks and incomplete data',str
 draftCheck('instructions preserve scoped alternatives, hard requirements and open questions',str_contains($prompt,'Не объединяй разные бюджеты')
     && str_contains($prompt,'Обязательное требование нельзя') && str_contains($prompt,'Дополнительные города')
     && str_contains($prompt,'ещё не отвеченных явных вопросов') && str_contains($prompt,'только по реальной реплике sender_type=manager'));
-draftCheck('instructions prohibit company inference and unsupported internal premises',str_contains($prompt,'verified_company_facts — пустая')
+draftCheck('instructions prohibit company inference and unsupported internal premises',str_contains($prompt,'verified_company_facts — утверждённые факты только текущего проекта')
     && str_contains($prompt,'не разрешает неподтверждённое утверждение в draft')
     && str_contains($prompt,'reason и checks подчиняются тем же требованиям фактичности'));
 $service=(string)file_get_contents(dirname(__DIR__).'/services/ManagerAiDraftService.php');

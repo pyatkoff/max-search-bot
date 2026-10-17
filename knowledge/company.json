@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "version": "2026-10-18.1",
+  "facts": [
+    {
+      "id": "anytour.public_name",
+      "project_key": "anytour",
+      "status": "approved",
+      "topic": "identity",
+      "text": "Название проекта — AnyTour.",
+      "reviewed_at": "2026-10-17T22:00:00Z",
+      "expires_at": "2027-01-17T22:00:00Z",
+      "source": {"path": "project.php", "field": "brand.name", "sha256": "2e7dd4327620fbbbbe77f3190a1914bcbd5a4c4f4a9f310c6cc3e69e110bb37e"},
+      "approval": "Versioned project identity from the existing production configuration."
+    },
+    {
+      "id": "anytour.search_site",
+      "project_key": "anytour",
+      "status": "approved",
+      "topic": "website",
+      "text": "Сайт поиска туров проекта AnyTour — anytoour.ru.",
+      "reviewed_at": "2026-10-17T22:00:00Z",
+      "expires_at": "2027-01-17T22:00:00Z",
+      "source": {"path": "project.php", "field": "search.base_domain", "sha256": "2e7dd4327620fbbbbe77f3190a1914bcbd5a4c4f4a9f310c6cc3e69e110bb37e"},
+      "approval": "Versioned customer-facing search destination."
+    }
+  ]
+}

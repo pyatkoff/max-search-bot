@@ -7,6 +7,7 @@ require_once __DIR__.'/ManagerAuthService.php';
 require_once __DIR__.'/ManagerDeliveryStateService.php';
 require_once __DIR__.'/ProjectAccessService.php';
 require_once __DIR__.'/CallbackGeneration.php';
+require_once __DIR__.'/ManagerCompanyKnowledge.php';
 
 /** A bounded, read-only input snapshot. It neither generates nor sends a reply. */
 final class ManagerAiDraftContextService
@@ -119,15 +120,16 @@ final class ManagerAiDraftContextService
                 'messages'=>$messages, 'history_incomplete'=>$incomplete,
                 'media_unread'=>in_array(true, array_column($messages, 'media_unread'), true),
                 'selections_link_unread'=>in_array(true, array_column($messages, 'selections_link_unread'), true)];
+            $knowledge = ManagerCompanyKnowledge::forProject((string)$conversation['project_key']);
             $revision = hash('sha256', json_encode([
                 'schema'=>'manager_ai_draft_context_v1', 'actor'=>$actor,
                 'role'=>(string)($manager['role'] ?? ''),
                 'conversation'=>array_intersect_key($conversation, array_flip(['id','project_key','source_id','channel','status','manager_id'])),
-                'source'=>$source, 'context'=>$context,
+                'source'=>$source, 'context'=>$context, 'company_knowledge'=>$knowledge->revision(),
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
             $pdo->commit();
             $started = false;
-            return ['ok'=>true, 'context'=>$context, 'revision'=>$revision,
+            return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'company_knowledge'=>$knowledge,
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];
         } catch (Throwable $ignored) {
             // No SQL, source text, identity, metadata or provider payload in logs.

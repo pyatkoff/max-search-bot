@@ -62,7 +62,7 @@ try {
     // Do not hold the manager's session or a database snapshot while waiting
     // for the model: Inbox, logout and reassignment must remain independent.
     session_write_close();
-    $proposal = ManagerAiDraftService::generate($before['context']);
+    $proposal = ManagerAiDraftService::generate($before['context'], null, $before['company_knowledge'] ?? null);
 
     // Reload the same session without writing it. A logout/account/CSRF change
     // while the model was running invalidates the entire response.
