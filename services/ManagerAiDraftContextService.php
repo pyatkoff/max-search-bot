@@ -8,6 +8,8 @@ require_once __DIR__.'/ManagerDeliveryStateService.php';
 require_once __DIR__.'/ProjectAccessService.php';
 require_once __DIR__.'/CallbackGeneration.php';
 require_once __DIR__.'/ManagerCompanyKnowledge.php';
+require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ManagerSelectionLinks.php';
 
 /** A bounded, read-only input snapshot. It neither generates nor sends a reply. */
 final class ManagerAiDraftContextService
@@ -67,6 +69,7 @@ final class ManagerAiDraftContextService
             $latest = $ids ? $ids[count($ids)-1] : 0;
             $projected = [];
             $source = [];
+            $selectionSources = [];
             $metadataIncomplete = false;
             foreach ($rows as $row) {
                 $id = (int)$row['id'];
@@ -80,6 +83,7 @@ final class ManagerAiDraftContextService
                 if (!in_array($type, ['message','callback','start','bot_started'], true)) $type = 'unknown';
                 $sender = (string)($row['sender_type'] ?? '');
                 if (!in_array($sender, ['customer','manager','ai','system'], true)) $sender = 'system';
+                if ($type === 'message') $selectionSources[$id] = ManagerSelectionLinks::inMessage($text, $id, $sender, (string)($row['created_at'] ?? ''));
                 $linkUnread = false;
                 $linksRedacted = false;
                 if ($type === 'callback') $text = self::callbackText($text);
@@ -116,6 +120,10 @@ final class ManagerAiDraftContextService
                 $remaining -= $length;
             }
             $messages = array_reverse($messages);
+            $selectionLinks = [];
+            foreach ($messages as $message) if (empty($message['text_truncated'])) {
+                array_push($selectionLinks, ...($selectionSources[$message['id']] ?? []));
+            }
             $context = ['conversation_id'=>$conversationId, 'as_of_message_id'=>$latest,
                 'messages'=>$messages, 'history_incomplete'=>$incomplete,
                 'media_unread'=>in_array(true, array_column($messages, 'media_unread'), true),
@@ -125,11 +133,12 @@ final class ManagerAiDraftContextService
                 'schema'=>'manager_ai_draft_context_v1', 'actor'=>$actor,
                 'role'=>(string)($manager['role'] ?? ''),
                 'conversation'=>array_intersect_key($conversation, array_flip(['id','project_key','source_id','channel','status','manager_id'])),
-                'source'=>$source, 'context'=>$context, 'company_knowledge'=>$knowledge->revision(),
+                'source'=>$source, 'context'=>$context, 'company_knowledge'=>$knowledge->revision(), 'selection_context_schema'=>1,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
             $pdo->commit();
             $started = false;
             return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'company_knowledge'=>$knowledge,
+                'selection_sources'=>array_slice($selectionLinks, 0, 41),
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];
         } catch (Throwable $ignored) {
             // No SQL, source text, identity, metadata or provider payload in logs.
@@ -159,31 +168,7 @@ final class ManagerAiDraftContextService
 
     private static function safeText(string $text, bool &$selectionUnread, bool &$linksRedacted): string
     {
-        $text = preg_replace_callback('~https?://[^\s<>"\x27]+~iu', static function (array $match) use (&$selectionUnread, &$linksRedacted): string {
-            $linksRedacted = true;
-            if (preg_match('~\Ahttps?://(?:www\.)?qui-quo\.ru(?:[/:?#]|\z)~i', $match[0])) {
-                $selectionUnread = true;
-                return '[ссылка на подборку не прочитана]';
-            }
-            return '[ссылка не прочитана]';
-        }, $text) ?? $text;
-        $text = preg_replace('/[A-Z0-9.!#$%&\x27*+\/=\?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9.-]*[A-Z0-9])?\.[A-Z]{2,}/iu', '[email скрыт]', $text) ?? $text;
-        // A leading + identifies an international number. Bare 11-digit RU
-        // numbers are hidden only outside an explicitly monetary expression;
-        // shorter prices and ordinary separated calendar dates stay untouched.
-        $input = $text;
-        $text = preg_replace_callback('/(?<![\pL\pN])(?:\+?[78][ -]?(?:\([0-9]{3}\)|[0-9]{3})[ -]?[0-9]{3}[ -]?[0-9]{2}[ -]?[0-9]{2}|\+(?:[0-9][ ()-]*){9,14}[0-9])(?![\pL\pN])/u', static function (array $match) use ($input): string {
-            [$value, $offset] = $match[0];
-            $digits = preg_replace('/\D/', '', $value) ?? '';
-            $count = strlen($digits);
-            $before = substr($input, 0, $offset);
-            $after = substr($input, $offset + strlen($value));
-            $money = preg_match('/(?:бюджет|стоимость|цена|цену|сумма|сумму|доплата|доплату|итого|до)\s*[:=]?\s*\z/iu', $before)
-                || preg_match('/\A\s*(?:₽|руб|RUB|USD|EUR|доллар|евро)/iu', $after);
-            if ($money) return $value;
-            return $count === 11 || ($value[0] === '+' && $count >= 10 && $count <= 15) ? '[телефон скрыт]' : $value;
-        }, $text, -1, $count, PREG_OFFSET_CAPTURE) ?? $text;
-        return $text;
+        return ManagerAiTextRedactor::redact($text, $selectionUnread, $linksRedacted);
     }
 
     private static function length(string $text): int

@@ -121,6 +121,7 @@ return [
     ],
     'manager' => [
         'php tests/run_manager_ai_draft_context_regression.php',
+        'php tests/run_manager_selection_regression.php',
         'php tests/run_manager_ai_draft_service_regression.php',
         'php tests/run_manager_ai_draft_endpoint_regression.php',
         'node tests/run_manager_ai_draft_behavior_regression.js',
