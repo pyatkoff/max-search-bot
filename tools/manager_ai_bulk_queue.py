@@ -67,6 +67,11 @@ class Queue:
         with self.db:
             rows=[self.db.execute('SELECT state,input_json FROM jobs WHERE fingerprint=?',(key,)).fetchone() for key in keys]
             if any(not row or row[0]!='pending' for row in rows):raise ValueError('queue_replay_forbidden')
+            stages={self.db.execute('SELECT stage FROM jobs WHERE fingerprint=?',(key,)).fetchone()[0] for key in keys}
+            if len(stages)!=1:raise ValueError('mixed_stage_reservation')
+            stage=next(iter(stages))
+            spent=self.db.execute('SELECT COUNT(*) FROM jobs WHERE stage=? AND task_token IS NOT NULL',(stage,)).fetchone()[0]
+            if spent+len(keys)>1060:raise ValueError('study_attempt_budget_exceeded')
             for key in keys:self.db.execute('UPDATE jobs SET state=\'submitted\',task_token=? WHERE fingerprint=?',(token,key))
         return [json.loads(row[1]) for row in rows]
 
