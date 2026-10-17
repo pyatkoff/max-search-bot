@@ -39,7 +39,7 @@ final class TelegramArchiveBotRuntime
         $account = (string)$registered['account_id'];
         $row = $registry->account($project, $bot, $account);
         if (!$row || !(bool)$row['approved']) return ['state'=>'account_not_approved','stored'=>0];
-        $capture = ['enabled'=>true,'bot_key'=>$bot,'accounts'=>[$account=>['manager_id'=>(string)$row['manager_id']]]];
+        $capture = ['enabled'=>true,'bot_key'=>$bot,'accounts'=>[$account=>['manager_id'=>$row['manager_id'] === null ? null : (string)$row['manager_id']]]];
         return TelegramBusinessArchiveRuntime::receive($update, $capture, $archive, $config['secret'],
             static fn(string $id) => $registry->capturePermission($project, $bot, $id, $connection));
     }

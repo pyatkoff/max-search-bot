@@ -29,8 +29,13 @@ try {
         elseif ($action === 'inspect') $setup->inspect();
         elseif ($action === 'approve' || $action === 'disable') {
             $id = TelegramDialogueNormalizer::id($data['account_id'] ?? null);
-            $managerId = $action === 'approve' ? (int)TelegramDialogueNormalizer::id($data['manager_id'] ?? null) : null;
-            $registry->approve($project, TelegramArchiveBotConfig::USERNAME, $id, $managerId);
+            $managerId = null;
+            if ($action === 'approve') {
+                $type = $data['account_type'] ?? 'manager';
+                if (!in_array($type, ['manager','shared'], true) || ($type === 'shared' && isset($data['manager_id']))) throw new RuntimeException('archive_account_type_required');
+                if ($type === 'manager') $managerId = (int)TelegramDialogueNormalizer::id($data['manager_id'] ?? null);
+            }
+            $registry->setCapture($project, TelegramArchiveBotConfig::USERNAME, $id, $action === 'approve', $managerId);
         } else ManagerHttp::respond(['ok'=>false,'error'=>'unsupported_action'],400);
     }
     ManagerHttp::respond(['ok'=>true,'bot'=>$store->publicStatus(),
@@ -46,6 +51,7 @@ try {
         'webhook_requires_readback'=>'Результат настройки требует проверки. Нажмите «Проверить подключение»; повторная отправка настройки остановлена.',
         'telegram_unavailable'=>'Telegram сейчас не ответил. Проверьте подключение позже.',
         'archive_manager_not_allowed'=>'Выберите действующего менеджера этого проекта.',
+        'archive_account_type_required'=>'Выберите общий аккаунт или конкретного менеджера.',
         'archive_account_not_found'=>'Аккаунт больше не найден. Обновите список.',
         'archive_account_disconnected'=>'Сначала подключите бота в настройках этого Telegram-аккаунта.',
         'invalid_telegram_identity'=>'Проверьте выбранный аккаунт и менеджера.',

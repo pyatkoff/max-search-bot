@@ -16,12 +16,13 @@ try {
     if ($authorized) $csrf = ManagerHttp::csrf(true);
 } catch (Throwable $error) { http_response_code(503); }
 session_write_close();
+$scriptVersion = (string)(@filemtime(__DIR__.'/assets/telegram-archive.js') ?: 1);
 function telegramArchiveHtml(string $value): string { return htmlspecialchars($value, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8'); }
 ?><!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Telegram-диалоги · AnyTour</title><link rel="stylesheet" href="assets/telegram-archive.css"></head>
 <body data-csrf="<?=telegramArchiveHtml($csrf)?>">
 <main class="archiveSetup">
-<header class="pageHead"><a class="back" href="/manager2/">← Кабинет менеджера</a><p class="eyebrow">AnyTour · рабочие переписки</p><h1>Telegram-диалоги</h1><p class="intro">Подключите рабочего бота, затем выберите аккаунты менеджеров для сбора переписок.</p></header>
+<header class="pageHead"><a class="back" href="/manager2/">← Кабинет менеджера</a><p class="eyebrow">AnyTour · рабочие переписки</p><h1>Telegram-диалоги</h1><p class="intro">Подключите рабочего бота, затем выберите рабочие аккаунты для сбора переписок.</p></header>
 <?php if (!$authorized): ?>
 <section class="panel"><h2>Нужен вход администратора</h2><p>Откройте кабинет под администратором проекта, затем вернитесь на эту страницу.</p><a class="button" href="/manager2/">Открыть кабинет</a></section>
 <?php else: ?>
@@ -33,12 +34,12 @@ function telegramArchiveHtml(string $value): string { return htmlspecialchars($v
 </section>
 <section class="panel" aria-labelledby="connectHeading"><div class="sectionHead"><span class="step">2</span><div><h2 id="connectHeading">Добавить в рабочий аккаунт</h2><p>Настройки Telegram → Telegram для бизнеса → Чат-боты</p></div></div>
 <p>Выберите <strong>@<?=telegramArchiveHtml(TelegramArchiveBotConfig::USERNAME)?></strong> и разрешите доступ к рабочим личным чатам. Исключите личную переписку.</p>
-<p class="hint">После подключения аккаунт появится ниже. Сбор сообщений начнётся после выбора менеджера и нажатия «Включить сбор».</p>
+<p class="hint">После подключения аккаунт появится ниже. Выберите «Общий аккаунт» или конкретного менеджера и нажмите «Включить сбор».</p>
 </section>
-<section class="panel" aria-labelledby="accountsHeading"><div class="sectionHead"><span class="step">3</span><div><h2 id="accountsHeading">Аккаунты менеджеров</h2><p>Для каждого аккаунта включается свой доступ</p></div><button id="refreshAccounts" class="textButton" type="button">Обновить</button></div>
+<section class="panel" aria-labelledby="accountsHeading"><div class="sectionHead"><span class="step">3</span><div><h2 id="accountsHeading">Рабочие аккаунты</h2><p>Общие аккаунты и аккаунты отдельных менеджеров</p></div><button id="refreshAccounts" class="textButton" type="button">Обновить</button></div>
 <div id="accounts" aria-live="polite"><p class="empty">Загружаем список…</p></div>
 </section>
 <p class="footnote">Старую историю можно добавить из JSON-экспорта Telegram Desktop. Новые сообщения и изменения будут поступать через подключённого бота.</p>
-<script src="assets/manager-http-client.js" defer></script><script src="assets/telegram-archive.js" defer></script>
+<script src="assets/manager-http-client.js" defer></script><script src="assets/telegram-archive.js?v=<?=telegramArchiveHtml($scriptVersion)?>" defer></script>
 <?php endif; ?>
 </main></body></html>
