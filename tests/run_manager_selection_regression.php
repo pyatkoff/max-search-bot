@@ -90,6 +90,12 @@ $requested=[];$recent=ManagerSelectionSnapshot::read($manyInput,static function(
 selectionCheck('only two latest distinct sources fetched once',$requested===['https://qui-quo.ru/BBBB-0002','https://qui-quo.ru/BBBB-0003'] && $recent->completeMessageIds()===[] && $recent->forContext($before['context'])['selection_coverage']['links_omitted']===2);
 $manyInput['selection_sources']=array_fill(0,41,$before['selection_sources'][0]);$limited=ManagerSelectionSnapshot::read($manyInput,$transport);
 selectionCheck('source cap remains explicit and cannot mark omitted evidence read',$limited->completeMessageIds()===[] && $limited->forContext($before['context'])['selection_coverage']['source_limit_reached']);
+$overflow=$before;$overflow['selection_sources']=[];$text='';
+for($i=1;$i<=45;$i++){ $url='https://qui-quo.ru/CCCC-'.str_pad((string)$i,4,'0',STR_PAD_LEFT);$overflow['selection_sources'][]=['message_id'=>2,'sender_type'=>'manager','url'=>$url];$text.=$url.' '; }
+$requested=[];ManagerSelectionSnapshot::read($overflow,static function($urls)use(&$requested,$transport){$requested=$urls;return $transport($urls);});
+selectionCheck('overflow still reads the actual latest two URLs',$requested===['https://qui-quo.ru/CCCC-0044','https://qui-quo.ru/CCCC-0045']);
+$last=ManagerSelectionLinks::inMessage($text,2,'manager','');
+selectionCheck('per-message source cap keeps newest references and a limit signal',count($last)===41 && $last[0]['url']==='https://qui-quo.ru/CCCC-0005' && end($last)['url']==='https://qui-quo.ru/CCCC-0045');
 foreach ([['message_id'=>999,'sender_type'=>'manager','url'=>'https://qui-quo.ru/AAAA-0001'],['message_id'=>2,'sender_type'=>'customer','url'=>'https://qui-quo.ru/AAAA-0001'],['message_id'=>2,'sender_type'=>'manager','url'=>'https://evil.test/AAAA-0001']] as $source) {
     $bad=$before;$bad['selection_sources']=[$source];$fetches=0;
     ManagerSelectionSnapshot::read($bad,static function() use (&$fetches){$fetches++;return [];});selectionCheck('unbound/future/foreign URL cannot authorize a fetch',$fetches===0);

@@ -138,7 +138,7 @@ final class ManagerAiDraftContextService
             $pdo->commit();
             $started = false;
             return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'company_knowledge'=>$knowledge,
-                'selection_sources'=>array_slice($selectionLinks, 0, 41),
+                'selection_sources'=>array_slice($selectionLinks, -41),
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];
         } catch (Throwable $ignored) {
             // No SQL, source text, identity, metadata or provider payload in logs.

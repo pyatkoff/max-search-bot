@@ -15,7 +15,7 @@ final class ManagerSelectionLinks
             if (!preg_match('~\Ahttps?://(?:www\.)?qui-quo\.ru(?:[/:?#]|\z)~i', $raw)) continue;
             $out[] = ['message_id'=>$messageId, 'sender_type'=>$sender, 'sent_at'=>$sentAt,
                 'url'=>self::canonical($raw)];
-            if (count($out) === 41) break;
+            if (count($out) > 41) array_shift($out);
         }
         return $out;
     }

@@ -17,7 +17,7 @@ final class ManagerSelectionSnapshot
         $sourceLimitReached = count($authorized['selection_sources'] ?? []) > 40;
         $binding = self::binding($context); $sources = []; $groups = [];
         $messages = array_column($context['messages'] ?? [], null, 'id');
-        foreach (array_slice($authorized['selection_sources'] ?? [], 0, 40) as $source) {
+        foreach (array_slice($authorized['selection_sources'] ?? [], -40) as $source) {
             if (!is_array($source) || !isset($messages[$source['message_id'] ?? 0])) continue;
             $message = $messages[$source['message_id']];
             if (($message['sender_type'] ?? '') !== ($source['sender_type'] ?? '') || !empty($message['text_truncated'])) continue;
