@@ -14,6 +14,15 @@ final class ManagerAiDraftEval
     public const INPUT_SCHEMA = 'manager_ai_draft_eval_input_v1';
     public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v4';
     public const CASES = 30;
+    private const CHECKLIST = <<<'CHECKLIST'
+Дополнительная проверка перед ответом (выполни мысленно, не показывай туристу):
+1. Составь актуальную версию запроса: отдельные семьи и номера, даты вылета и жёсткие границы возвращения, ночи/дни, бюджет с единицей «на человека/на семью». Изменяй только явно изменённое. Неоднозначное оставь неизвестным.
+2. Выдели текущий вопрос туриста и прежние ещё не закрытые вопросы. Ответь по существу; не спрашивай уже сообщённое. Если необходимы уточнения, выбери одно, которое сильнее всего продвинет запрос.
+3. Отдели известное из текста от того, что менеджеру надо проверить. Проверь свою draft, reason и checks на выдуманные цены, правила, свойства, согласие, выполненные действия и обещания.
+4. Проверь полезность исходящего текста: туристу не нужны сообщения о внутренних ограничениях AI, «в переписке не видно» или «нет подтверждения». Если без проверки пока нечего содержательно ответить, вынеси конкретную проверку менеджеру в checks и не создавай пустой draft. Уже ожидающему обещанное не отправляй повторное обещание.
+5. Прочитай draft как турист: кратко, по-человечески, с понятным вопросом или полезным ответом. Никаких новых фактов и действий ради убедительности.
+CHECKLIST;
+
     public const TTL = 3600;
     public const MAX_CIPHERTEXT_BYTES = 65536;
     public const MAX_PLAINTEXT_BYTES = 2097152;
@@ -231,11 +240,6 @@ final class ManagerAiDraftEval
                     throw new RuntimeException('invalid_context');
                 }
             }
-            // Evaluation-process override only; no production config write.
-            if (defined('MANAGER_AI_DRAFT_REASONING') && MANAGER_AI_DRAFT_REASONING!=='medium') {
-                throw new RuntimeException('requested_profile_mismatch');
-            }
-            if (!defined('MANAGER_AI_DRAFT_REASONING')) define('MANAGER_AI_DRAFT_REASONING','medium');
             $requestShape = ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),[]);
             $requestedProfile = self::requestedProfile($requestShape);
             self::write([
@@ -285,7 +289,7 @@ final class ManagerAiDraftEval
     private static function requestedProfile(array $request): array
     {
         if (($request['model']??null)!=='gpt-6.1-sol' || !is_array($request['reasoning']??null)
-            || ($request['reasoning']['effort']??null)!=='medium' || ($request['service_tier']??null)!=='fast') {
+            || ($request['reasoning']['effort']??null)!=='low' || ($request['service_tier']??null)!=='fast') {
             throw new RuntimeException('requested_profile_mismatch');
         }
         // The requested profile is distinct from allowlisted response metadata.
@@ -306,6 +310,7 @@ final class ManagerAiDraftEval
                 // future service retry must not silently spend another call.
                 if ($calls>=1) throw new RuntimeException('provider_budget_exceeded');
                 ++$calls;
+                $instructions .= "\n\n".self::CHECKLIST;
                 return $transport($instructions,$payload,
                     static function(array $observed) use (&$metadata,&$observations): void {
                         ++$observations;
