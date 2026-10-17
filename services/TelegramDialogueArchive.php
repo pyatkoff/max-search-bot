@@ -69,13 +69,18 @@ final class TelegramDialogueArchive
     }
 
     /** The connection lock fences concurrent disconnects before archive writes. */
-    public function receive(string $project, string $bot, string $connection, array $records, ?string $manager = null): array
+    public function receive(string $project, string $bot, string $connection, array $records, ?string $manager = null, ?callable $captureGuard = null): array
     {
-        return $this->transaction(function () use ($project, $bot, $connection, $records, $manager): array {
+        return $this->transaction(function () use ($project, $bot, $connection, $records, $manager, $captureGuard): array {
             $row = $this->query('SELECT account_id,is_enabled FROM telegram_dialogue_connections WHERE project_key=? AND bot_key=? AND connection_id=?'.$this->lock(),
                 [self::key($project), self::key($bot, 96), TelegramDialogueNormalizer::connectionId($connection)])->fetch(PDO::FETCH_ASSOC);
             if (!$row) throw new RuntimeException('unknown_business_connection');
             if (!(bool)$row['is_enabled']) return ['state'=>'disconnected', 'stored'=>0];
+            if ($captureGuard !== null) {
+                $permission = $captureGuard((string)$row['account_id']);
+                if (!is_array($permission)) return ['state'=>'account_not_approved', 'stored'=>0];
+                $manager = TelegramDialogueNormalizer::id($permission['manager_id'] ?? null);
+            }
             $stored = 0;
             foreach ($records as $record) {
                 if ($record['account_id'] !== (string)$row['account_id']) throw new RuntimeException('business_message_account_conflict');
