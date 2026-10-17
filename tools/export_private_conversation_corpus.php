@@ -33,7 +33,6 @@ final class PrivateConversationCorpus
     private array $statistics = [];
     private bool $transactionStarted = false;
     private bool $headerWritten = false;
-    private ?bool $oldBuffered = null;
 
     public function __construct(PDO $pdo, string $scope, callable $write)
     {
@@ -114,7 +113,8 @@ final class PrivateConversationCorpus
         if ($this->pdo->inTransaction()) throw new PrivateConversationCorpusFailure('transaction_already_active');
         if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
             $attribute=constant('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY');
-            $this->oldBuffered=(bool)$this->pdo->getAttribute($attribute);
+            // This one-shot collector owns a fresh connection. PDO MySQL allows
+            // setting this driver option, but does not support reading it back.
             $this->pdo->setAttribute($attribute,false);
         }
         $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -298,7 +298,6 @@ final class PrivateConversationCorpus
     {
         if ($this->transactionStarted && $this->pdo->inTransaction()) $this->pdo->rollBack();
         $this->transactionStarted=false;
-        if ($this->oldBuffered!==null) $this->pdo->setAttribute(constant('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY'),$this->oldBuffered);
     }
 
     public function run(string $sha): bool

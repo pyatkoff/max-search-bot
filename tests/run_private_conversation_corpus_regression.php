@@ -21,7 +21,7 @@ final class CorpusTestStatement extends PDOStatement {
 final class CorpusTestPdo extends PDO {
     public array $data; public array $commands=[]; public bool $active=false; public ?string $mismatch=null; public bool $badEngine=false;
     public function __construct(array $data) { $this->data=$data; }
-    public function getAttribute(int $attribute): mixed { return $attribute===PDO::ATTR_DRIVER_NAME?'mysql':true; }
+    public function getAttribute(int $attribute): mixed { if ($attribute===PDO::ATTR_DRIVER_NAME) return 'mysql'; throw new PDOException('unsupported synthetic attribute read'); }
     public function setAttribute(int $attribute,mixed $value): bool { return true; }
     public function inTransaction(): bool { return $this->active; }
     public function exec(string $statement): int|false {
@@ -128,6 +128,15 @@ if ($nativeDsn!=='') {
         $user=getenv('PRIVATE_CORPUS_MYSQL_USER')?:'root'; $pass=getenv('PRIVATE_CORPUS_MYSQL_PASSWORD')?:'';
         $native=new PDO($nativeDsn,$user,$pass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
         if (!preg_match('/^private_corpus_test_[A-Za-z0-9_]+$/D',(string)$native->query('SELECT DATABASE()')->fetchColumn())) throw new RuntimeException('unsafe actual fixture database');
+        // Test-only diagnostic: identify unsupported attribute reads without
+        // exposing exception messages, connection configuration or credentials.
+        if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
+            try { $native->getAttribute(constant('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')); }
+            catch (PDOException $e) {
+                $state=preg_match('/^[A-Z0-9]{5}$/D',(string)$e->getCode())?(string)$e->getCode():'unknown';
+                echo 'INFO native buffered-query attribute read unsupported; SQLSTATE='.$state."\n";
+            }
+        }
         $writer=new PDO($nativeDsn,$user,$pass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
         $schema=[
             'CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(64)) ENGINE=InnoDB',
