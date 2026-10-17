@@ -67,7 +67,10 @@ async function capture(page,browserName,viewport){const directory=path.join(root
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI preview and explicit insert retain the native draft, File and controls '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page);expect(state.aiCalls()).toEqual([]);
   const reply=page.locator('#replyText'),text='  Уже набранный ответ\nс сохранёнными пробелами  ';
-  await reply.fill(text);await page.locator('#replyFile').setInputFiles({name:'synthetic-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  // WebKit fill changes the first leading U+0020 before any AI action on this
+  // surface. Seed exact text through the canonical native input handler.
+  await reply.evaluate((node,value)=>{node.value=value;node.dispatchEvent(new Event('input',{bubbles:true}))},text);
+  await page.locator('#replyFile').setInputFiles({name:'synthetic-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.evaluate(node=>{node.focus();node.setSelectionRange(2,12,'backward');window.aiNativeProof={reply:node,form:document.querySelector('#composer'),file:document.querySelector('#replyFile'),preview:document.querySelector('#mediaSelection .mediaSelectedItem')}});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   await expect.poll(()=>page.locator('#composer').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
@@ -77,6 +80,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
     return Math.abs(node.getBoundingClientRect().left-surface.getBoundingClientRect().left-parseFloat(css.borderLeftWidth)-parseFloat(css.paddingLeft));
   })).toBeLessThanOrEqual(1);
   const actionBoxes=await page.locator('#composer .composerActions').boundingBox();
+  await expect(reply).toHaveValue(text);
   await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftPanel')).toBeFocused();
   await expect(page.locator('.aiDraftAction')).toHaveText('Уточнить запрос');await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('synthetic-plan.txt');
   expect(state.aiCalls()).toHaveLength(1);expect(state.aiCalls()[0]).toMatchObject({action:'generate',conversation_id:11,latest_message_id:35});

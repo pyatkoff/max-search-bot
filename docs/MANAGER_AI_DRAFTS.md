@@ -46,6 +46,14 @@ are not bundled or silently loaded. Future knowledge retrieval must require
 approval provenance for company/team facts and scope personal knowledge to its
 actual author; current conversation ownership is not authorship.
 
+The provider payload always receives an empty `verified_company_facts` list in
+this slice. A narrow deterministic check of the latest real customer question
+about the agency's office/address or a personal visit returns manager checks
+without a customer draft or provider call. Prior dialogue claims do not bypass
+this boundary. Questions about a hotel's or a consulate's address remain ordinary
+conversation analysis. Evaluation records distinguish policy results from actual
+model calls.
+
 Model output separates the customer draft from the reason and manager checks.
 It can decline a new message after a stop, purchase, thanks without a new
 question, or a pending promise to check options. It must not invent prices,

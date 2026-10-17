@@ -68,7 +68,7 @@
   }
   function renderResult(result){
     clearBody();
-    const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить предложение',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
+    const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
     const rawAction=readable(result.next_action),action=actions[rawAction]||rawAction,reason=readable(result.reason);
     if(result.should_draft){addText('p','aiDraftText',result.draft);insert.hidden=false}
     if(action)addText('p','aiDraftAction',action);
