@@ -73,7 +73,7 @@ aiLogCheck('production smoke verifies external path and private modes',
 aiLogCheck('deploy verifies public AI log paths are denied',
     str_contains($deploy, 'for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log')
     && str_contains($deploy, '403|404')
-    && str_contains($deploy, 'Public AI log containment failed')
+    && str_contains($deploy, 'Public runtime log containment failed')
 );
 
 echo "\n--------------------------\n";

@@ -129,6 +129,14 @@ Raw AI debug/error logs use `AiRuntimeLogger` and default to the external mode-0
 
 Sensitive customer content should remain bounded and redacted; never expose secrets/config values in snapshots.
 
+Structured events have a single canonical path from `DiagnosticLogger::filePath()` in the dedicated `max-search-bot-private-logs` directory beside the checkout. This shared external default avoids CLI/PHP-FPM temporary-directory differences; the directory is mode 0700 and files are mode 0600. The writer and all diagnostic readers use it, with no fallback to the public application path. Event JSON, sanitization and append retention remain unchanged.
+
+`tools/structured_runtime_log_smoke.php` contains the old public filename immediately after source sync, before migrations or unrelated checks. It retains the legacy inode in a unique private archive, then atomically replaces its public name with an empty mode-000 permission fence. Already-open old writers continue into the private inode; later old-code opens cannot recreate the public log. The tool seeds a missing private active log from that history and preserves an already-existing active log. Historical archives are retained privately; they must never be published or deleted as routine cleanup. Repeated containment is idempotent. Do not remove the public permission fence or restore an old public writer during rollback.
+
+Containment must pass private-write, path, inode and permission checks and an anonymous HTTP 403/404 probe. The final smoke repeats the local fence check and public probe. A symlink, unexpected nonempty/recreated fence, unsafe directory, failed preservation or any other HTTP result fails deployment. These checks establish the observed serving boundary; they cannot revoke copies already obtained before containment.
+
+Manager setup observations are available in the normal capture as `manager.push_setup`: fixed error/native-call categories, bounded timings and coarse browser state from at most 50 sampled push events. They are client-reported context, not trusted proof of provider cause or successful delivery. The summary excludes account identity, raw messages, endpoints, key material and full user-agent strings; raw push events remain private. No extra capture schedule is introduced.
+
 ## Live conversation evidence
 
 Use `tools/live_session_snapshot.php` and published live-session diagnostics for bounded recent conversation analysis. Prefer exact transcript evidence over aggregate flags before modifying dialogue behavior.

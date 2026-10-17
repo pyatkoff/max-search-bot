@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/AiRuntimeLogger.php';
 require_once __DIR__ . '/WebhookRuntimeLogger.php';
+require_once __DIR__ . '/DiagnosticLogger.php';
 
 class ProjectHealth
 {
@@ -148,7 +149,7 @@ class ProjectHealth
             'funnel.csv' => $baseDir . '/funnel.csv',
             'metrika_events.log' => $baseDir . '/metrika_events.log',
             'metrika_offline_queue.csv' => $baseDir . '/metrika_offline_queue.csv',
-            'structured_events.log' => $baseDir . '/structured_events.log',
+            'structured_events.log' => DiagnosticLogger::filePath(),
         ];
         $out = [];
         foreach ($files as $name => $path) {

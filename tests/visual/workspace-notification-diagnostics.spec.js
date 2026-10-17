@@ -18,6 +18,7 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     const base=document.createElement('base');base.href='/manager/';document.head.prepend(base);
     document.querySelector('.notificationHealth').id='notificationStatus';
     window.fixturePushCalls=[];
+    window.fixtureSetupDiagnostics=[];
     window.fixturePushStatus={is_working:working,notification_path_usable:false,notification_path_reason:'no_subscription'};
     window.WorkspaceV2={S:{csrf:'synthetic',manager:{id:7},authGeneration:1}};
     const notification={permission:backgroundPending?'granted':'default',requestPermission(){fixturePushCalls.push('permission');if(permissionPending)return new Promise(resolve=>{window.fixtureFinishPermission=result=>{notification.permission=result;resolve(result);};});notification.permission='granted';return Promise.resolve('granted');}};
@@ -41,6 +42,7 @@ async function setup(page,working,{recoverAfterAbort=false,backgroundPending=fal
     }});
     window.fetch=async(url,options)=>{
       const body=options?.method==='POST'?JSON.parse(options.body):null;
+      if(url==='push.php?action=setup_diagnostic'){fixturePushCalls.push('push.php#setup_diagnostic');fixtureSetupDiagnostics.push(body.diagnostic);return{ok:true,status:200,json:async()=>({ok:true,accepted:true})};}
       fixturePushCalls.push(body?.action==='enable_intent'?'push.php#enable_intent':String(url));
       if(body?.action==='enable_intent'){revision++;return{ok:true,status:200,json:async()=>receipt(body)};}
       if(url==='push-status.php')return {ok:true,status:200,json:async()=>({ok:true,push_status:fixturePushStatus,...(options?.method==='POST'?{current_subscription:{notification_path_usable:registered,notification_path_reason:registered?'healthy_subscription':'no_subscription'},current_connection:current()}:{})})};
@@ -72,6 +74,10 @@ for(const width of [390,430,768,1440])for(const working of [false,true])test.des
     await expect(page.locator('#notificationStatus')).not.toContainText('Уведомления включены');
     expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='subscribe').length)).toBe(2);
     expect(await page.evaluate(()=>fixturePushCalls.filter(call=>call==='push.php').length)).toBe(0);
+    const reports=await page.evaluate(()=>fixtureSetupDiagnostics);
+    expect(reports).toHaveLength(1);
+    expect(reports[0].trace.map(row=>[row.call,row.outcome])).toEqual([['subscribe','AbortError/PUSH_NETWORK'],['recovery_read','none'],['retry_subscribe','AbortError/PUSH_NETWORK']]);
+    expect(JSON.stringify(reports)).not.toMatch(/PRIVATE_ENDPOINT|Registration failed|https?:/);
     const box=await diagnostic.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width+1);
     const size=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:innerWidth}));expect(size.scroll).toBeLessThanOrEqual(size.width+1);
     fs.mkdirSync('notification-diagnostic-artifacts',{recursive:true});
