@@ -8,8 +8,17 @@ on:
       - 'services/TelegramDialogue*.php'
       - 'handlers/TelegramWebhookHandler.php'
       - 'migrations/041_telegram_dialogue_archive.sql'
+      - 'migrations/042_telegram_archive_accounts.sql'
+      - 'telegram_archive_webhook.php'
+      - 'manager/telegram-archive*.php'
+      - 'manager/assets/telegram-archive.*'
       - 'tools/telegram_dialogue_archive.php'
+      - 'tools/telegram_archive_bot_status.php'
       - 'tests/run_telegram_dialogue_archive_regression.php'
+      - 'tests/telegram_archive*.php'
+      - 'tests/fixtures/TelegramArchive*.php'
+      - 'tests/fixtures/telegram_archive*.php'
+      - 'tests/run_telegram_archive_setup_browser_regression.js'
       - '.github/workflows/telegram-dialogue-archive.yml'
 
 permissions:
@@ -34,9 +43,42 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, pdo_mysql
+          extensions: mbstring, pdo_mysql, pdo_sqlite
           coverage: none
       - name: Exercise canonical migration and real MySQL archive transactions
         env:
           TELEGRAM_ARCHIVE_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=telegram_archive_test;charset=utf8mb4
         run: php tests/run_telegram_dialogue_archive_regression.php
+
+  setup-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite
+          coverage: none
+      - name: Install pinned browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Exercise real protected setup page at four widths
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: node tests/run_telegram_archive_setup_browser_regression.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telegram-archive-setup-${{ matrix.browser }}-${{ github.sha }}
+          path: telegram-archive-visual-artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7

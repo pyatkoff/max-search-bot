@@ -7,7 +7,7 @@ require_once __DIR__.'/ProjectConfig.php';
 /** Explicit opt-in capture only; business events never enter self-service dialogue. */
 final class TelegramBusinessArchiveRuntime
 {
-    public static function receive(array $update, ?array $config = null, ?TelegramDialogueArchive $archive = null): array
+    public static function receive(array $update, ?array $config = null, ?TelegramDialogueArchive $archive = null, ?string $expectedSecret = null, ?callable $captureGuard = null): array
     {
         if (!TelegramDialogueNormalizer::isBusinessUpdate($update)) return ['state'=>'unrecognized'];
         if ($config === null) {
@@ -16,7 +16,7 @@ final class TelegramBusinessArchiveRuntime
         }
         if (!is_array($config) || (array_key_exists('enabled', $config) && !is_bool($config['enabled']))) throw new RuntimeException('invalid_business_archive_config');
         if (($config['enabled'] ?? false) !== true) return ['state'=>'disabled'];
-        $secret = defined('TELEGRAM_WEBHOOK_SECRET') ? (string)TELEGRAM_WEBHOOK_SECRET : '';
+        $secret = $expectedSecret ?? (defined('TELEGRAM_WEBHOOK_SECRET') ? (string)TELEGRAM_WEBHOOK_SECRET : '');
         $provided = (string)($_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? '');
         if ($secret === '' || !hash_equals($secret, $provided)) throw new RuntimeException('business_webhook_auth_required');
         $types = array_values(array_filter(TelegramDialogueNormalizer::UPDATE_TYPES, static fn(string $type): bool => array_key_exists($type, $update)));
@@ -54,6 +54,6 @@ final class TelegramBusinessArchiveRuntime
             if (($data['chat']['type'] ?? '') !== 'private' || !is_array($data['message_ids'] ?? null) || count($data['message_ids']) > 10000) throw new InvalidArgumentException('invalid_business_deletion');
             foreach ($data['message_ids'] as $id) $records[] = TelegramDialogueNormalizer::tombstone($account, $chat, TelegramDialogueNormalizer::id($id), $connection, $sequence);
         } else $records[] = TelegramDialogueNormalizer::businessMessage($data, $account, $connection, $sequence);
-        return $archive->receive($project, $bot, $connection, $records, $manager);
+        return $archive->receive($project, $bot, $connection, $records, $manager, $captureGuard);
     }
 }
