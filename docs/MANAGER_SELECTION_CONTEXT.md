@@ -34,10 +34,13 @@ page failure leaves the existing unread fallback instead of failing generation.
 
 Two transfers run concurrently with a 500ms connect/1400ms transfer timeout and a
 1600ms multi-loop deadline; system DNS resolution precedes that transfer deadline.
-Each decompressed page is capped at 1 MiB, parse depth64/nodes20000, and12 returned
+Each decompressed page is capped at 1 MiB, parse depth64/nodes20000/delimiters20000, and12 returned
 variants per page. Additional model data is capped near12k Unicode characters;
 omitted/truncated sources and variants remain explicit. These limits are not a
-measured browser latency SLA. No response body or URL is logged or cached.
+measured browser latency SLA. The client's existing196608-byte request cap remains
+unchanged: if observations cannot fit beside the original transcript/instructions,
+the original unread projection is used, with an omission marker where it fits.
+No response body or URL is logged or cached.
 
 ## Meaning of the observation
 

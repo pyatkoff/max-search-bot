@@ -48,7 +48,7 @@ selectionCheck('legacy card without variant wrapper retained',ManagerSelectionPa
 $many=ManagerSelectionPageParser::parse(str_repeat(selectionHtml(),20));
 selectionCheck('offer cap explicit without silent count loss',count($many['offers'])===12 && $many['offer_count']===20 && $many['truncated']);
 selectionCheck('oversized field explicitly truncated',ManagerSelectionPageParser::parse(selectionHtml(str_repeat('я',300)))['truncated']);
-foreach ([str_repeat('x',1048577),"bad\xFF",str_repeat('<div>',70).selectionHtml().str_repeat('</div>',70)] as $html) selectionCheck('invalid/oversized/deep page safely unread',ManagerSelectionPageParser::parse($html)['state']==='unread');
+foreach ([str_repeat('x',1048577),"bad\xFF",str_repeat('<div>',70).selectionHtml().str_repeat('</div>',70),str_repeat('<',20001)] as $html) selectionCheck('invalid/oversized/deep/token-heavy page safely unread',ManagerSelectionPageParser::parse($html)['state']==='unread');
 selectionCheck('unavailable notice does not establish its cause',ManagerSelectionPageParser::parse('<p>Подборка недоступна</p>')['state']==='unavailable');
 
 $before=selectionInput(); $snapshot=ManagerSelectionSnapshot::read($before,$transport); $data=$snapshot->forContext($before['context']);
@@ -96,4 +96,9 @@ foreach ([['message_id'=>999,'sender_type'=>'manager','url'=>'https://qui-quo.ru
 }
 $big=ManagerSelectionSnapshot::read($manyInput,static function($urls){$out=[];foreach($urls as $u)$out[$u]=['status'=>200,'type'=>'text/html','html'=>str_repeat(selectionHtml(str_repeat('я',175)),20)];return $out;});
 selectionCheck('extra payload bounded and truncation remains visible',preg_match_all('/./us',json_encode($big->forContext($before['context']),JSON_UNESCAPED_UNICODE))<=12500 && $big->completeMessageIds()===[]);
+$huge=selectionInput();$huge['context']['messages'][0]['text']=str_repeat('😀',39800);
+$hugePage=ManagerSelectionSnapshot::read($huge,static function($urls){$out=[];foreach($urls as $u)$out[$u]=['status'=>200,'type'=>'text/html','html'=>str_repeat(selectionHtml(str_repeat('😀',175)),12)];return $out;});
+$seen=[];ManagerAiDraftService::generate($huge['context'],static function($i,$p) use (&$seen){$seen=$p;return selectionResult();},null,static fn()=>$hugePage);
+selectionCheck('near-cap Unicode history uses unread fallback instead of an oversized request',!isset($seen['selection_snapshots']) && $seen['selections_link_unread'] && ($seen['selection_coverage']['payload_omitted']??false)
+    && strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),$seen),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES);
 echo 'Manager selection: '.$checks.' checks passed'.PHP_EOL;

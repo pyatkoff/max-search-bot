@@ -58,6 +58,7 @@ final class ManagerSelectionPageParser
     {
         $html = preg_replace('~<(script|style|svg|template|noscript|textarea)\b[^>]*>.*?</\1\s*>~is', '', $html);
         if (!is_string($html)) return false;
+        if (substr_count($html,'<') > 20000) return false;
         $pattern = '~<!--.*?-->|<![^>]*>|</?[a-zA-Z][a-zA-Z0-9:-]*(?:"[^"]*"|\x27[^\x27]*\x27|[^\x27">])*>|[^<]+|<~s';
         if (preg_match_all($pattern, $html, $tokens) === false) return false;
         $this->nodes = [['tag'=>'root','class'=>[], 'children'=>[], 'hidden'=>false]]; $stack = [0];

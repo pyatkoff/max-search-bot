@@ -22,6 +22,7 @@ final class ManagerAiDraftService
         $normalized['verified_company_facts'] = $knowledge?->facts() ?? [];
         $companyCheck = self::companyFactPreflight($normalized);
         if ($companyCheck !== null) return $companyCheck;
+        $withoutSelections = $normalized;
         if ($selectionReader !== null && $normalized['selections_link_unread']) {
             try { $selection = $selectionReader(); } catch (Throwable $ignored) { $selection = null; }
             if ($selection instanceof ManagerSelectionSnapshot) {
@@ -40,6 +41,17 @@ final class ManagerAiDraftService
                 }
                 unset($row);
                 $normalized['selections_link_unread'] = !$complete || !$allFlags || $unread;
+                // Keep the existing transport envelope cap. A large original
+                // transcript must not start failing merely because a page read fit.
+                try {
+                    $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                    if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) {
+                        $normalized = $withoutSelections;
+                        $normalized['selection_coverage'] = ['payload_omitted'=>true];
+                        $bytes = json_encode(ManagerDraftClient::requestBody(self::instructions(),$normalized),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                        if (strlen($bytes)>ManagerDraftClient::MAX_REQUEST_BYTES) $normalized = $withoutSelections;
+                    }
+                } catch (Throwable $ignored) { $normalized = $withoutSelections; }
             }
         }
         $provider = $provider ?? [ManagerDraftClient::class,'requestJson'];
