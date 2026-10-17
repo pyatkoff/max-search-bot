@@ -225,7 +225,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 
 /* One full-width canonical draft; Manager2 ReplyEditor owns its height. */
 .manager2 #composer{--m2-reply-size-delay:90ms;--m2-reply-width-delay:0ms;--m2-reply-motion:160ms cubic-bezier(.2,.7,.25,1)}
-.manager2 #composer .composerSurface{display:block;position:relative;gap:5px;min-height:calc(var(--m2-reply-actions-height,44px) + var(--m2-reply-surface-y,12px))}
+.manager2 #composer .composerSurface{display:block!important;position:relative;gap:5px;min-height:calc(var(--m2-reply-actions-height,44px) + var(--m2-reply-surface-y,12px))}
 .manager2 #composer .composerMain{display:block;min-height:0;width:calc(100% - var(--m2-reply-actions-width,230px) - var(--m2-reply-gap,5px))!important;padding-bottom:0}
 .manager2 #replyText{flex:none;min-height:0;max-height:none;resize:none}
 .manager2 #composer .composerActions{position:absolute;right:var(--m2-reply-surface-right,6px);bottom:var(--m2-reply-surface-bottom,6px);width:var(--m2-reply-actions-width,230px);justify-content:flex-end}

@@ -469,7 +469,19 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   console.log(JSON.stringify({replyMinimum:browserName,width:viewport.width,height:viewport.height,empty,focused,short}));
   expect(empty.lines).toBeLessThanOrEqual(1.1);expect(focused.height).toBe(empty.height);expect(short.lines).toBeLessThanOrEqual(1.1);
   await reply.fill('Первая строка\nВторая строка');expect((await editorGeometry(page)).height).toBeGreaterThan(short.height+10);
+  await reply.fill('');await editorGeometry(page);
+  // Cross the native compact text edge by one glyph, without a newline. This
+  // catches inherited grid/width rules that make the live field narrower than
+  // its text measure and would hide the newly wrapped line inside one row.
+  const wrappingText=await reply.evaluate(el=>{
+    const css=getComputedStyle(el),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');ctx.font=css.font;
+    const available=el.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
+    return 'i'.repeat(Math.ceil(available/ctx.measureText('i').width)+1);
+  });
+  await reply.fill(wrappingText);const wrapped=await editorGeometry(page);
+  await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);expect(wrapped.width).toBeGreaterThan(empty.width+80);
   await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-empty-'+viewport.height);
+  await expect(page.locator('#composer')).not.toHaveClass(/m2ReplyMultiline/);
   await reply.fill(editorText);
   await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
   const grown=await editorGeometry(page);
