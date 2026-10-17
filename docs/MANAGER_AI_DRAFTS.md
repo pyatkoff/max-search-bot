@@ -13,6 +13,8 @@ manager action. Nothing is generated on startup, polling or conversation open.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.
 - `ManagerCompanyKnowledge`: immutable approved company snapshot, versioned source
   and expiry checks; see [company knowledge](COMPANY_KNOWLEDGE.md).
+- `ManagerSelectionSnapshot`: bounded on-click observation of supported selection
+  links, source-message binding and explicit unknowns; see [selection context](MANAGER_SELECTION_CONTEXT.md).
 - `ai/ManagerDraftClient.php`: fixed OpenAI Responses endpoint, existing
   `OPENAI_API_KEY`, feature-specific model/reasoning/tier, strict JSON schema, `store:false`, no tools,
   no redirects, bounded response and a 20-second timeout. No automatic retries.
@@ -68,7 +70,9 @@ Each context contains at most 120 recent messages and 40,000 Unicode characters.
 Older history, truncated text and unread attachments/selection links are explicit.
 The model receives only the projected conversation: external identities, raw
 metadata, media URLs, phone numbers and email addresses are excluded/redacted.
-Names and other personal content can still occur in message text; the payload
+Selection observations add at most about 12,000 Unicode characters through a
+server-only reader outside DB/session locks. Raw page URLs/HTML do not reach the
+provider, and `validate` never refetches them. Names and other personal content can still occur in message text; the payload
 is private and must not be logged or committed.
 
 The source fingerprint includes edits in place and ownership/status, not only
@@ -125,8 +129,9 @@ It can decline a new message after a stop, purchase, thanks without a new
 question, or a pending promise to check options. It must not invent prices,
 availability, policy, hotel properties, payment details or completed actions.
 Schema/evidence validation cannot prove factual correctness: the manager reviews
-every draft. Links and attachments are not opened; historical offers are not
-presented as current availability.
+every draft. Only supported selection links may be read on explicit generation;
+attachments/other links stay unread. Current page observations are not send-time
+versions and historical offers are not presented as current availability.
 
 `no_contact` is advice about the proposed message, not a status change or a
 permanent prohibition. This slice does not implement timed follow-up scoring,

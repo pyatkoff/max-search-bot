@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__,2).'/services/ManagerCompanyKnowledge.php';
+require_once dirname(__DIR__,2).'/services/ManagerSelectionSnapshot.php';
 
 /** Synthetic dependencies for the actual ai-draft.php HTTP boundary only. */
 function managerAiHttpFixtureDirectory(): string
@@ -85,12 +86,14 @@ final class ManagerAiDraftContextService
 
 final class ManagerAiDraftService
 {
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null): array
     {
         $state = managerAiHttpFixtureState();
+        $selection = $selectionReader ? $selectionReader()->forContext($context) : null;
         managerAiHttpFixtureEvent('provider', ['session_closed'=>session_status() !== PHP_SESSION_ACTIVE,
             'conversation_id'=>$context['conversation_id'],'as_of_message_id'=>$context['as_of_message_id'],
-            'knowledge_ids'=>array_column($knowledge?->facts() ?? [], 'id')]);
+            'knowledge_ids'=>array_column($knowledge?->facts() ?? [], 'id'),
+            'selection_reader_received'=>$selectionReader!==null, 'selection_count'=>count($selection['selection_snapshots']??[])]);
         if ($state['provider_mode'] === 'throw') {
             throw new RuntimeException('SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE');
         }
