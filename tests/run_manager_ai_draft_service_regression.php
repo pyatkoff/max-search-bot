@@ -36,6 +36,22 @@ function draftEnvelope(array $result): string
         'content'=>[['type'=>'output_text','text'=>json_encode($result,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]]]]],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
 }
 
+/** Constants cannot be redefined in-process. These children only build request arrays, never call a provider. */
+function draftProfileFixture(array $constants): array
+{
+    $code='require '.var_export(dirname(__DIR__).'/ai/ManagerDraftClient.php',true).';';
+    foreach ($constants as $name=>$value) $code.='define('.var_export($name,true).','.var_export($value,true).');';
+    $code.='try {echo json_encode(["body"=>ManagerDraftClient::requestBody("Synthetic profile test",[])],JSON_THROW_ON_ERROR);}'
+        .'catch (Throwable $ignored) {echo "{\"rejected\":true}";}';
+    $process=proc_open([PHP_BINARY,'-r',$code],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    if (!is_resource($process)) return [];
+    fclose($pipes[0]);$output=stream_get_contents($pipes[1]);fclose($pipes[1]);
+    $error=stream_get_contents($pipes[2]);fclose($pipes[2]);$status=proc_close($process);
+    if ($status!==0 || $error!=='') return [];
+    $decoded=json_decode($output,true);
+    return is_array($decoded)?$decoded:[];
+}
+
 $context=draftContext();$original=$context;$calls=0;$captured=[];
 $context['manager_id']=999;$context['private_metadata']='PRIVATE_METADATA_CANARY';
 $context['verified_company_facts']=['unapproved'=>'COMPANY_FACT_CANARY'];
@@ -177,6 +193,40 @@ $schema=ManagerAiDraftService::responseSchema();
 draftCheck('strict schema rejects unknown fields and requires every result field',$schema['additionalProperties']===false
     && $schema['required']===array_keys($schema['properties']) && count($schema['required'])===8);
 $body=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),draftContext());
+draftCheck('manager drafts default to GPT-6.1 Sol with explicit low reasoning',
+    $body['model']==='gpt-6.1-sol' && $body['reasoning']===['effort'=>'low'] && $body['service_tier']==='fast');
+$isolated=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model']);
+draftCheck('legacy bot model cannot alter the manager draft profile',
+    ($isolated['body']['model']??null)==='gpt-6.1-sol' && ($isolated['body']['reasoning']??null)===['effort'=>'low']
+    && ($isolated['body']['service_tier']??null)==='fast');
+$overridden=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model','MANAGER_AI_DRAFT_MODEL'=>'synthetic-manager-model',
+    'MANAGER_AI_DRAFT_REASONING'=>'high','MANAGER_AI_DRAFT_SERVICE_TIER'=>'default']);
+draftCheck('feature-specific model reasoning and tier overrides stay isolated',
+    ($overridden['body']['model']??null)==='synthetic-manager-model' && ($overridden['body']['reasoning']??null)===['effort'=>'high']
+    && ($overridden['body']['service_tier']??null)==='default');
+foreach (['low','medium','high','xhigh','max'] as $effort) {
+    $configured=draftProfileFixture(['MANAGER_AI_DRAFT_REASONING'=>$effort]);
+    draftCheck('accepts supported manager reasoning '.$effort,($configured['body']['reasoning']??null)===['effort'=>$effort]);
+}
+foreach (['none','minimal','unknown','',null,[],false] as $effort) {
+    draftCheck('rejects unsupported or malformed manager reasoning '.get_debug_type($effort).(is_string($effort)?':'.$effort:''),
+        draftProfileFixture(['MANAGER_AI_DRAFT_REASONING'=>$effort])===['rejected'=>true]);
+}
+foreach (['','unsafe model',null,[],123] as $model) {
+    draftCheck('rejects malformed feature model '.get_debug_type($model),
+        draftProfileFixture(['MANAGER_AI_DRAFT_MODEL'=>$model])===['rejected'=>true]);
+}
+foreach (['default','fast','priority'] as $tier) {
+    $configured=draftProfileFixture(['MANAGER_AI_DRAFT_SERVICE_TIER'=>$tier]);
+    draftCheck('accepts explicit manager service tier '.$tier,($configured['body']['service_tier']??null)===$tier);
+}
+foreach (['auto','ultrafast','flex','scale','unknown','',null,[],false,123] as $tier) {
+    draftCheck('rejects unsupported or malformed manager tier '.get_debug_type($tier).(is_string($tier)?':'.$tier:''),
+        draftProfileFixture(['MANAGER_AI_DRAFT_SERVICE_TIER'=>$tier])===['rejected'=>true]);
+}
+draftCheck('reasoning requests add no unsupported sampling parameters',
+    !array_key_exists('temperature',$body) && !array_key_exists('top_p',$body)
+    && !array_key_exists('top_logprobs',$body));
 draftCheck('transport is stateless and uses strict structured output',$body['store']===false && $body['text']['format']['strict']===true
     && $body['text']['format']['type']==='json_schema' && $body['text']['format']['schema']===$schema);
 draftCheck('request enables no tools or linked provider conversation',!isset($body['tools']) && !isset($body['previous_response_id']) && !isset($body['conversation'])
@@ -203,6 +253,84 @@ draftCheck('markdown is not repaired into a structured answer',ManagerDraftClien
 draftCheck('response byte cap rejects oversized input',ManagerDraftClient::parseResponse(str_repeat('x',ManagerDraftClient::MAX_RESPONSE_BYTES+1),200)===['_error'=>'provider_response_too_large']);
 $envelope=json_decode(draftEnvelope(draftResult()),true);$envelope['output'][0]['content'][0]['text']=str_repeat('x',24577);
 draftCheck('generated text has a separate byte cap',ManagerDraftClient::parseResponse(json_encode($envelope),200)===['_error'=>'provider_response_too_large']);
+
+$envelope=json_decode(draftEnvelope(draftResult()),true);
+$envelope['model']='gpt-6.1-sol-synthetic';$envelope['service_tier']='priority';
+$envelope['id']='PRIVATE_RESPONSE_ID_CANARY';$envelope['instructions']='PRIVATE_INSTRUCTION_CANARY';
+$envelope['metadata']=['customer_text'=>'PRIVATE_METADATA_CANARY'];
+$envelope['usage']=['input_tokens'=>40,'output_tokens'=>10,'total_tokens'=>50,
+    'input_tokens_details'=>['cached_tokens'=>6,'private'=>'PRIVATE_CACHE_CANARY'],
+    'output_tokens_details'=>['reasoning_tokens'=>3,'private'=>'PRIVATE_REASONING_CANARY'],
+    'private'=>'PRIVATE_USAGE_CANARY'];
+$observed=[];$observer=static function(array $metadata) use (&$observed):void {$observed[]=$metadata;};
+$decoded=ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+$expectedMetadata=['model'=>'gpt-6.1-sol-synthetic','service_tier'=>'priority','usage'=>[
+    'input_tokens'=>40,'output_tokens'=>10,'total_tokens'=>50,
+    'input_tokens_details'=>['cached_tokens'=>6],'output_tokens_details'=>['reasoning_tokens'=>3]]];
+draftCheck('optional observer sees one bounded metadata projection and leaves result unchanged',
+    $decoded===draftResult() && $observed===[$expectedMetadata]);
+draftCheck('metadata excludes provider content identity and unknown nested fields',
+    !str_contains(json_encode($observed),'CANARY') && !str_contains(json_encode($observed),draftResult()['draft']));
+$withoutMetadata=[];
+ManagerDraftClient::parseResponse(draftEnvelope(draftResult()),200,static function(array $metadata) use (&$withoutMetadata):void {$withoutMetadata=$metadata;});
+draftCheck('absent metadata remains unknown rather than inferred from requested profile',
+    $withoutMetadata===['model'=>null,'service_tier'=>null,'usage'=>[]]);
+foreach (['default','fast','priority','ultrafast','flex','scale'] as $tier) {
+    $envelope['service_tier']=$tier;$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('records allowlisted actual served tier '.$tier,($observed[0]['service_tier']??null)===$tier);
+}
+foreach (['auto','PRIVATE_TIER_CANARY',[],false,123] as $tier) {
+    $envelope['service_tier']=$tier;$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('unrecognized served tier is unknown '.get_debug_type($tier),count($observed)===1 && $observed[0]['service_tier']===null);
+}
+foreach ([str_repeat('x',129),'PRIVATE MODEL CANARY',"private\nmodel",[],false,123] as $model) {
+    $envelope['model']=$model;$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('malformed model metadata is unknown '.get_debug_type($model),count($observed)===1 && $observed[0]['model']===null);
+}
+$envelope['model']='gpt-6.1-sol';$envelope['service_tier']='default';
+foreach ([0,10000000] as $tokens) {
+    $envelope['usage']=['input_tokens'=>$tokens,'output_tokens_details'=>['reasoning_tokens'=>$tokens]];$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('metadata preserves integer token boundary '.$tokens,($observed[0]['usage']??null)===[
+        'input_tokens'=>$tokens,'output_tokens_details'=>['reasoning_tokens'=>$tokens]]);
+}
+foreach ([-1,10000001,1.5,'12',false,[],null] as $tokens) {
+    $envelope['usage']=['input_tokens'=>$tokens,'output_tokens'=>0,
+        'input_tokens_details'=>['cached_tokens'=>$tokens],'output_tokens_details'=>['reasoning_tokens'=>$tokens]];$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('invalid token counts are omitted without coercion '.get_debug_type($tokens),
+        ($observed[0]['usage']??null)===['output_tokens'=>0]);
+}
+foreach (['PRIVATE_USAGE_CANARY',false,12,[],[['input_tokens'=>12]]] as $usage) {
+    $envelope['usage']=$usage;$observed=[];
+    ManagerDraftClient::parseResponse(json_encode($envelope),200,$observer);
+    draftCheck('malformed usage does not escape metadata '.get_debug_type($usage),($observed[0]['usage']??null)===[]);
+}
+$envelope=json_decode(draftEnvelope(draftResult()),true);
+$rejectedEnvelopes=['HTTP error'=>[json_encode($envelope),429],'malformed body'=>['PRIVATE_BAD_JSON_CANARY',200]];
+$badEnvelope=$envelope;$badEnvelope['status']='incomplete';$rejectedEnvelopes['incomplete response']=[json_encode($badEnvelope),200];
+$badEnvelope=$envelope;$badEnvelope['error']=['message'=>'PRIVATE_ERROR_CANARY'];$rejectedEnvelopes['provider error']=[json_encode($badEnvelope),200];
+$badEnvelope=$envelope;$badEnvelope['output'][0]['content']=[['type'=>'refusal','refusal'=>'PRIVATE_REFUSAL_CANARY']];
+$rejectedEnvelopes['refusal']=[json_encode($badEnvelope),200];
+$badEnvelope=$envelope;$badEnvelope['output'][0]['content'][0]['text']='PRIVATE_INVALID_RESULT_CANARY';
+$rejectedEnvelopes['malformed generated JSON']=[json_encode($badEnvelope),200];
+$badEnvelope=$envelope;$badEnvelope['output'][0]['content'][0]['text']='[]';
+$rejectedEnvelopes['list generated result']=[json_encode($badEnvelope),200];
+foreach ($rejectedEnvelopes as $name=>[$bytes,$status]) {
+    $observed=[];$result=ManagerDraftClient::parseResponse($bytes,$status,$observer);
+    draftCheck('metadata observer is not called on '.$name,$observed===[] && isset($result['_error']));
+}
+draftCheck('observer exceptions cannot alter a completed response',
+    ManagerDraftClient::parseResponse(draftEnvelope(draftResult()),200,static function():void {throw new RuntimeException('PRIVATE_OBSERVER_CANARY');})===draftResult());
+$observed=[];
+$serviceResult=ManagerAiDraftService::generate(draftContext(),static function(string $instructions,array $payload) use ($observer):array {
+    return ManagerDraftClient::parseResponse(draftEnvelope(draftResult()),200,$observer);
+});
+draftCheck('metadata observer never expands the eight-field manager result',$serviceResult===draftResult()
+    && count($serviceResult)===8 && count($observed)===1);
 
 $prompt=ManagerAiDraftService::instructions();
 draftCheck('instructions cover consent, waiting, thanks and incomplete data',str_contains($prompt,'тур уже куплен') && str_contains($prompt,'благодарности')
