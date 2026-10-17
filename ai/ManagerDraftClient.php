@@ -10,7 +10,7 @@ final class ManagerDraftClient
     private const MAX_REQUEST_BYTES = 196608;
     private const ENDPOINT = 'https://api.openai.com/v1/responses';
 
-    public static function requestJson(string $instructions,array $payload): array
+    public static function requestJson(string $instructions,array $payload,?callable $metadataObserver=null): array
     {
         if (!defined('OPENAI_API_KEY') || !is_string(OPENAI_API_KEY) || trim(OPENAI_API_KEY)===''
             || OPENAI_API_KEY==='PASTE_OPENAI_API_KEY_HERE' || strlen(OPENAI_API_KEY)>4096
@@ -40,7 +40,7 @@ final class ManagerDraftClient
             if ($oversized) return ['_error'=>'provider_response_too_large'];
             if ($errno===CURLE_OPERATION_TIMEDOUT) return ['_error'=>'provider_timeout'];
             if ($success===false || $errno!==0) return ['_error'=>'provider_unavailable'];
-            return self::parseResponse($bytes,$status);
+            return self::parseResponse($bytes,$status,$metadataObserver);
         } catch (Throwable $ignored) {return ['_error'=>'provider_unavailable'];}
     }
 
@@ -49,13 +49,17 @@ final class ManagerDraftClient
     {
         $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.1-sol';
         $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'low';
+        $tier=defined('MANAGER_AI_DRAFT_SERVICE_TIER') ? MANAGER_AI_DRAFT_SERVICE_TIER : 'fast';
         if (!is_string($model) || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)!==1) {
             throw new InvalidArgumentException('invalid_draft_model');
         }
         if (!is_string($effort) || !in_array($effort,['low','medium','high','xhigh','max'],true)) {
             throw new InvalidArgumentException('invalid_draft_reasoning');
         }
-        return ['model'=>$model,'reasoning'=>['effort'=>$effort],'store'=>false,'max_output_tokens'=>2200,
+        if (!is_string($tier) || !in_array($tier,['default','fast','priority'],true)) {
+            throw new InvalidArgumentException('invalid_draft_service_tier');
+        }
+        return ['model'=>$model,'reasoning'=>['effort'=>$effort],'service_tier'=>$tier,'store'=>false,'max_output_tokens'=>2200,
             'input'=>[
                 ['role'=>'developer','content'=>[['type'=>'input_text','text'=>$instructions]]],
                 ['role'=>'user','content'=>[['type'=>'input_text','text'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]]],
@@ -75,7 +79,7 @@ final class ManagerDraftClient
     }
 
     /** Decode only a completed assistant JSON response. Never return provider bodies or exception messages. */
-    public static function parseResponse(string $bytes,int $httpStatus): array
+    public static function parseResponse(string $bytes,int $httpStatus,?callable $metadataObserver=null): array
     {
         if (strlen($bytes)>self::MAX_RESPONSE_BYTES) return ['_error'=>'provider_response_too_large'];
         if ($httpStatus<200 || $httpStatus>=300) return ['_error'=>'provider_unavailable'];
@@ -101,6 +105,31 @@ final class ManagerDraftClient
         }
         try {$result=json_decode($text,true,16,JSON_THROW_ON_ERROR);}
         catch (Throwable $ignored) {return ['_error'=>'provider_unavailable'];}
-        return is_array($result) && !array_is_list($result) ? $result : ['_error'=>'provider_unavailable'];
+        if (!is_array($result) || array_is_list($result)) return ['_error'=>'provider_unavailable'];
+        if ($metadataObserver!==null) {
+            try {$metadataObserver(self::responseMetadata($response));}
+            catch (Throwable $ignored) { /* Optional evaluation must not alter a draft or expose errors. */ }
+        }
+        return $result;
+    }
+
+    /** Bounded technical metadata only. No response IDs, content, raw bodies or logging. */
+    private static function responseMetadata(array $response): array
+    {
+        $model=$response['model']??null;$tier=$response['service_tier']??null;
+        $metadata=['model'=>is_string($model) && preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)===1 ? $model : null,
+            'service_tier'=>is_string($tier) && in_array($tier,['default','fast','priority','ultrafast','flex','scale'],true) ? $tier : null,
+            'usage'=>[]];
+        $usage=$response['usage']??null;
+        if (!is_array($usage) || array_is_list($usage)) return $metadata;
+        foreach (['input_tokens','output_tokens','total_tokens'] as $field) {
+            $value=$usage[$field]??null;
+            if (is_int($value) && $value>=0 && $value<=10000000) $metadata['usage'][$field]=$value;
+        }
+        foreach (['input_tokens_details'=>'cached_tokens','output_tokens_details'=>'reasoning_tokens'] as $section=>$field) {
+            $value=is_array($usage[$section]??null) ? ($usage[$section][$field]??null) : null;
+            if (is_int($value) && $value>=0 && $value<=10000000) $metadata['usage'][$section]=[$field=>$value];
+        }
+        return $metadata;
     }
 }

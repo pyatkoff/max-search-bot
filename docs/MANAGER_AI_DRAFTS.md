@@ -12,25 +12,49 @@ manager action. Nothing is generated on startup, polling or conversation open.
   and strict reply ownership; short read-only snapshots; revision fingerprint.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.
 - `ai/ManagerDraftClient.php`: fixed OpenAI Responses endpoint, existing
-  `OPENAI_API_KEY`, feature-specific model/reasoning, strict JSON schema, `store:false`, no tools,
+  `OPENAI_API_KEY`, feature-specific model/reasoning/tier, strict JSON schema, `store:false`, no tools,
   no redirects, bounded response and a 20-second timeout. No automatic retries.
 - `workspace-v2-ai-draft.js`: preview, stale-result fencing and explicit insertion
   through `WorkspaceV2Conversation.insertQuickReply`; no new send implementation.
 
 The draft profile defaults to `gpt-6.1-sol` with explicit
-`reasoning: {effort: "low"}`. Optional `MANAGER_AI_DRAFT_MODEL` and
-`MANAGER_AI_DRAFT_REASONING` constants affect this feature only; the bot's
+`reasoning: {effort: "low"}` and `service_tier: "fast"`. Optional
+`MANAGER_AI_DRAFT_MODEL`, `MANAGER_AI_DRAFT_REASONING` and
+`MANAGER_AI_DRAFT_SERVICE_TIER` constants affect this feature only; the bot's
 `OPENAI_MODEL` is neither read nor changed by the draft client. Supported draft
 efforts are `low`, `medium`, `high`, `xhigh` and `max`; `none`, `minimal` and
-malformed values fail closed. No runtime config change is included in this slice.
+malformed values fail closed. The tier override allows only `default`, `fast`
+and its alias `priority`; `auto`, `ultrafast`, other tiers and malformed values
+fail closed. No runtime config change is included in this slice.
 
 [Official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
 confirms these efforts. With reasoning enabled, the
 [GPT-6.1 Sol migration guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6.1-sol)
-excludes sampling parameters such as `temperature`; none are sent. No premium
-service tier is selected. Existing timeout/token/byte limits remain in force;
-compare quality and elapsed time on private representative cases before claiming
-a speed improvement. Synthetic profile regressions do not call the provider.
+excludes sampling parameters such as `temperature`; none are sent.
+[Fast mode](https://developers.openai.com/api/docs/guides/fast-mode)
+uses `service_tier: "fast"` (or `priority`) and is
+[priced at twice Standard token rates](https://developers.openai.com/api/docs/pricing)
+for this model. Actual service can fall back to Standard; requested tier does
+not prove the served tier or a specific latency. Omitting `service_tier` means
+`auto`, which follows the project's setting; explicitly selecting `default`
+requests Standard. The draft client selects Fast explicitly without changing
+the bot or project settings. Existing timeout/token/byte limits remain in force;
+compare quality, actual served tier and elapsed time on private representative
+cases before claiming a speed improvement. Synthetic regressions do not call
+the provider.
+
+For isolated evaluation, `requestJson()` and the pure `parseResponse()` accept
+an optional third callable. After a completed assistant JSON object is decoded,
+it receives only the provider's bounded model name, allowlisted served tier and
+nonnegative integer token counts (up to 10,000,000). Missing or invalid model/tier
+remain `null`; invalid usage fields are omitted, never inferred from the request.
+Only input/output/total tokens, cached input tokens and reasoning output tokens
+are projected. No response IDs, instructions, content, raw body or arbitrary
+metadata reach this observer. It is not invoked on errors, refusals or incomplete
+responses; observer exceptions do not change the result. No observer is installed
+in the manager endpoint, and this client does not log or persist the metadata.
+The eight-field manager result remains unchanged; its schema and evidence checks
+still run separately after decoding.
 
 The normal project initializer has a legacy UPSERT. This endpoint invokes
 `ProjectAccessService::initializeReadOnly()` before auth instead. Draft generation
