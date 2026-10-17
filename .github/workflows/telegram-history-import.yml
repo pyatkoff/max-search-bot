@@ -1,0 +1,43 @@
+name: One-use private Telegram history import
+
+on:
+  push:
+    branches: [analysis/telegram-history-import-20261017]
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      EXPECTED_SHA: d5cbb401002f851fc327584bf67b7f5ffd0b20df
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify fixed source and current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/analysis/telegram-history-import-20261017'
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          php -l tools/telegram_history_import_remote.php
+          /usr/bin/python3 -m py_compile tools/telegram_history_import_runner.py
+      - name: Verify existing cryptography runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 -c 'from cryptography.hazmat.primitives.ciphers.aead import AESGCM; from cryptography.hazmat.primitives.asymmetric import rsa'
+      - name: Receive one encrypted upload and import privately
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          /usr/bin/python3 tools/telegram_history_import_runner.py
