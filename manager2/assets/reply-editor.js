@@ -66,7 +66,8 @@
     const saved=selection(),surfaceStyle=getComputedStyle(surface),actionStyle=getComputedStyle(actions);
     const px=value=>parseFloat(value)||0,gap=px(surfaceStyle.columnGap)||5;
     const controls=[...actions.children].filter(el=>el.getBoundingClientRect().width>0);
-    const actionWidth=controls.reduce((sum,el)=>{const css=getComputedStyle(el);return sum+el.getBoundingClientRect().width+px(css.marginLeft)+px(css.marginRight)},0)+Math.max(0,controls.length-1)*px(actionStyle.columnGap);
+    // The expand button's auto margin is elastic space, not intrinsic width.
+    const actionWidth=controls.reduce((sum,el)=>sum+el.getBoundingClientRect().width,0)+Math.max(0,controls.length-1)*px(actionStyle.columnGap);
     const actionHeight=Math.max(0,...controls.map(el=>el.getBoundingClientRect().height));
     const left=px(surfaceStyle.paddingLeft),right=px(surfaceStyle.paddingRight),top=px(surfaceStyle.paddingTop),bottom=px(surfaceStyle.paddingBottom);
     const surfaceBorder=px(surfaceStyle.borderTopWidth)+px(surfaceStyle.borderBottomWidth),width=surface.clientWidth-left-right;
