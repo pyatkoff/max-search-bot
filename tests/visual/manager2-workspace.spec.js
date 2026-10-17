@@ -448,6 +448,11 @@ async function editorReady(page){
   await expect(page.locator('.qrToolbarEmpty')).toHaveText('Добавьте свои быстрые ответы');
 }
 async function editorGeometry(page){
+  // Read the settled layout, including intentional compact/full-width motion.
+  // Two rendering frames flush the canonical input/ResizeObserver scheduling;
+  // wait for actual transitions instead of a fixed animation timeout.
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect.poll(()=>page.locator('#composer').evaluate(el=>el.getAnimations({subtree:true}).filter(animation=>['height','width','padding-bottom'].includes(animation.transitionProperty)&&animation.playState==='running').length)).toBe(0);
   return page.locator('#replyText').evaluate(el=>{
     const css=getComputedStyle(el),rect=el.getBoundingClientRect();
     return {height:rect.height,width:rect.width,lines:(rect.height-parseFloat(css.paddingTop)-parseFloat(css.paddingBottom)-parseFloat(css.borderTopWidth)-parseFloat(css.borderBottomWidth))/parseFloat(css.lineHeight)};
@@ -458,14 +463,32 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   await page.setViewportSize(viewport);const s=await setup(page,{replyAudio:viewport.width===1440});await openLead(page);await editorReady(page);
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
   const empty=await editorGeometry(page);await reply.focus();const focused=await editorGeometry(page);
+  const compact=await page.evaluate(()=>{const text=document.querySelector('#replyText').getBoundingClientRect(),actions=document.querySelector('#composer .composerActions').getBoundingClientRect();return {textRight:text.right,actionsLeft:actions.left,overlapY:text.bottom>actions.top&&text.top<actions.bottom}});
+  expect(compact.textRight).toBeLessThanOrEqual(compact.actionsLeft+1);expect(compact.overlapY).toBe(true);
   await reply.fill('Здравствуйте!');const short=await editorGeometry(page);
   console.log(JSON.stringify({replyMinimum:browserName,width:viewport.width,height:viewport.height,empty,focused,short}));
   expect(empty.lines).toBeLessThanOrEqual(1.1);expect(focused.height).toBe(empty.height);expect(short.lines).toBeLessThanOrEqual(1.1);
   await reply.fill('Первая строка\nВторая строка');expect((await editorGeometry(page)).height).toBeGreaterThan(short.height+10);
+  await reply.fill('');await editorGeometry(page);
+  // Cross the native compact text edge by one glyph, without a newline. This
+  // catches inherited grid/width rules that make the live field narrower than
+  // its text measure and would hide the newly wrapped line inside one row.
+  const wrappingText=await reply.evaluate(el=>{
+    const css=getComputedStyle(el),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');ctx.font=css.font;
+    const available=el.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
+    return 'i'.repeat(Math.ceil(available/ctx.measureText('i').width)+1);
+  });
+  await reply.fill(wrappingText);const wrapped=await editorGeometry(page);
+  await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);expect(wrapped.width).toBeGreaterThan(empty.width+80);
   await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-empty-'+viewport.height);
+  expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeLessThanOrEqual(1);
+  await expect(page.locator('#composer')).not.toHaveClass(/m2ReplyMultiline/);
   await reply.fill(editorText);
   await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
   const grown=await editorGeometry(page);
+  await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);
+  const multiline=await page.evaluate(()=>{const text=document.querySelector('#replyText').getBoundingClientRect(),actions=document.querySelector('#composer .composerActions').getBoundingClientRect(),surface=document.querySelector('#composer .composerSurface').getBoundingClientRect();return {textBottom:text.bottom,actionsTop:actions.top,textWidth:text.width,surfaceWidth:surface.width}});
+  expect(multiline.actionsTop).toBeGreaterThanOrEqual(multiline.textBottom-1);expect(multiline.textWidth).toBeGreaterThan(multiline.surfaceWidth*.9);expect(grown.lines).toBeLessThanOrEqual(12.1);
   const latest=await page.evaluate(()=>{const box=document.querySelector('#messages'),gap=()=>box.scrollHeight-box.clientHeight-box.scrollTop;WorkspaceV2Jump.scrollToLatest();const before=gap();WorkspaceV2ReplyEditor.resize();return {before,after:gap()}});
   expect(latest.before).toBeLessThanOrEqual(2);expect(latest.after).toBeLessThanOrEqual(2);
   expect(grown.lines).toBeGreaterThanOrEqual(viewport.height>540?5.9:2);
@@ -539,6 +562,10 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   expect(await reply.evaluate(el=>[el.selectionStart,el.selectionEnd,el.selectionDirection])).toEqual([3,7,'backward']);
   expect(await page.evaluate(()=>document.querySelector('#mediaSelection .mediaSelectedItem')===editorNativeProof.preview)).toBe(true);
   await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-file-'+viewport.height);
+  expect(s.calls).toHaveLength(requests);expect(s.sends).toEqual([]);
+  await page.emulateMedia({reducedMotion:'reduce'});await reply.fill(editorText);await editorGeometry(page);
+  expect(await reply.evaluate(el=>getComputedStyle(el).transitionDuration)).toBe('0s');
+  expect(await page.evaluate(()=>document.querySelector('#mediaSelection .mediaSelectedItem')===editorNativeProof.preview)).toBe(true);
   expect(s.calls).toHaveLength(requests);expect(s.sends).toEqual([]);
   await noOverflow(page);
 });
