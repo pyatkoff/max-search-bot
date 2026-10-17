@@ -1,0 +1,11 @@
+{
+  "schema": "manager_ai_bulk_task_v1",
+  "phase": "verify",
+  "task_token": "f2d6815eeddc5f07d625d797ec3082fe9339395167eaab1c",
+  "production_sha": "9ed2ab244a4b4e1a704ac0841dba53a3e4280da8",
+  "source_bundle_sha256": "25a8b9c3e96e44201dc6e2daaa82152d160df0aafbb5101c47bf652b5e99daf8",
+  "output_recipient": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA07Wfp4vzVTCGPSaKg89v\nLlOse8kLa7gpgC+kU4psJQTkrWvgoB2h/ZC4ceSLhkHG9IyPK0mbB0FDiD5CJ3se\n9IwZvaqMiGPjcoqqi2N+9jBCopKhV6UW7XseEfTF0chRaQLkSIUiBcgi902u7RbH\nQ93r7Lo+HPGsf5h2LooC2x4Ux6GzTfydANZaBPKgYmNWQLzyVrYdFpHlGSrMIb/s\nJj8EN5BSyV2dr6m0srdufSp+87ueojQryEv2xeWxoquybjIfcAGwRl0qnVC4tKC0\ne+yCdJSuyJF4mRgesbfaUB6bUppPmyxL/MlO0iNtm/evNNepvO+Gl9ydOLbkLm05\n5oy9403zMv54o+dUZFRXMLm/G/yEyXD4oN6jlp5DnSaZdKJcoHqrBNOK540NSYjC\n8zNm75oOy98IWBQahQQaKxqFF2NsHVH4NDmGM44Tfg0VbwPtfmMkq1wXQgrHSuXh\nFaZGYkc4FOwRFUDm0XI6iPEZgsIcxmRkk96Klw8sAyi/AgMBAAE=\n-----END PUBLIC KEY-----\n",
+  "case_count": 30,
+  "parallelism": 5,
+  "stage": "generate"
+}
