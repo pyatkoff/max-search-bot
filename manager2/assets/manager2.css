@@ -224,10 +224,19 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .conversationTitleRow{overflow:visible}
 
 /* One full-width canonical draft; Manager2 ReplyEditor owns its height. */
-.manager2 #composer .composerSurface{grid-template-columns:minmax(0,1fr)!important;gap:5px}
-.manager2 #composer .composerMain{min-height:0}
+.manager2 #composer{--m2-reply-size-delay:90ms;--m2-reply-width-delay:0ms;--m2-reply-motion:160ms cubic-bezier(.2,.7,.25,1)}
+.manager2 #composer .composerSurface{display:block;position:relative;gap:5px;min-height:calc(var(--m2-reply-actions-height,44px) + var(--m2-reply-surface-y,12px))}
+.manager2 #composer .composerMain{display:block;min-height:0;width:calc(100% - var(--m2-reply-actions-width,230px) - var(--m2-reply-gap,5px));padding-bottom:0}
 .manager2 #replyText{flex:none;min-height:0;max-height:none;resize:none}
-.manager2 #composer .composerActions{width:100%;justify-content:flex-end}
+.manager2 #composer .composerActions{position:absolute;right:var(--m2-reply-surface-right,6px);bottom:var(--m2-reply-surface-bottom,6px);width:var(--m2-reply-actions-width,230px);justify-content:flex-end}
+.manager2 #composer .composerActions>*{flex-shrink:0}
+.manager2 #composer.m2ReplyMultiline{--m2-reply-size-delay:0ms;--m2-reply-width-delay:80ms}
+.manager2 #composer.m2ReplyMultiline .composerMain{width:100%;padding-bottom:calc(var(--m2-reply-actions-height,44px) + var(--m2-reply-gap,5px))}
+.manager2 #composer.m2ReplyMultiline .composerActions{width:calc(100% - var(--m2-reply-surface-left,6px) - var(--m2-reply-surface-right,6px))}
+.manager2 #composer.m2ReplyAnimate .composerMain{transition:padding-bottom var(--m2-reply-motion) var(--m2-reply-size-delay),width 90ms ease var(--m2-reply-width-delay)}
+.manager2 #composer.m2ReplyAnimate .composerActions{transition:width 90ms ease var(--m2-reply-width-delay)}
+.manager2 #composer.m2ReplyAnimate #replyText{transition:height var(--m2-reply-motion) var(--m2-reply-size-delay)}
+.manager2 .m2ReplyMeasure{position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;box-sizing:border-box;white-space:pre-wrap;overflow-wrap:break-word;min-height:0;border:0}
 .manager2 .m2ReplyExpand{margin-right:auto;align-self:center;min-height:36px;padding:0 8px;border:0;background:transparent;color:#4e6548;font:inherit;font-size:12px;cursor:pointer}
 .manager2 .m2ReplyExpand:disabled{opacity:.5;cursor:default}
 .manager2 .m2ReplyExpand:focus-visible,.manager2 #m2ReplyCollapse:focus-visible{outline:2px solid #477351;outline-offset:2px}
@@ -247,13 +256,14 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 .m2ReplyEditor #composer{display:flex!important;flex:1;flex-direction:column;min-height:0;border:0;overflow:auto!important;padding-bottom:max(12px,env(safe-area-inset-bottom))}
 .manager2 .m2ReplyEditor .quickReplies,.manager2 .m2ReplyEditor .emojiPicker{flex:0 0 auto}
 .manager2 .m2ReplyEditor #composer .composerSurface{display:flex!important;flex:1;flex-direction:column;min-height:0;overflow:visible!important}
-.manager2 .m2ReplyEditor #composer .composerMain{display:flex;flex:1;flex-direction:column;width:100%;min-height:80px}
+.manager2 .m2ReplyEditor #composer .composerMain{display:flex;flex:1;flex-direction:column;width:100%;min-height:80px;padding-bottom:0}
 .manager2 .m2ReplyEditor #replyText{flex:1;min-height:64px;line-height:1.6;font-size:16px;padding:12px}
 .manager2 .m2ReplyEditor .mediaSelection{flex:0 0 auto;max-height:var(--m2-editor-media-height,120px);overflow-y:auto}
 .manager2 .m2ReplyEditor .replyStatus{flex:0 0 auto;overflow-wrap:anywhere}
-.manager2 .m2ReplyEditor .composerActions{flex:0 0 auto;min-height:44px}
+.manager2 .m2ReplyEditor #composer .composerActions{position:static;width:100%;flex:0 0 auto;min-height:44px}
 .manager2 .m2ReplyEditor .m2ReplyExpand{visibility:hidden;pointer-events:none}
 .manager2 .m2ReplyEditor .composerHint{flex:0 0 auto;order:2}
 @media(max-width:740px){.manager2 .m2ReplyEditor{width:calc(100vw - 16px);border-radius:10px}.manager2 .m2ReplyEditorHead{padding:10px 12px}.manager2 .m2ReplyEditorHead h2{font-size:15px}.manager2 .m2ReplyEditorHead p{font-size:12px}.manager2 .m2ReplyExpand{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.manager2 #composer.m2ReplyAnimate .composerMain,.manager2 #composer.m2ReplyAnimate .composerActions,.manager2 #composer.m2ReplyAnimate #replyText{transition:none}}
 .manager2.pwCompact #inboxList .leadItem{padding-top:6px;padding-bottom:6px}
 .manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2;max-height:2.8em}

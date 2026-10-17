@@ -3,7 +3,10 @@
   const {S,$}=window.WorkspaceV2;
   const form=$('composer'),reply=$('replyText'),zone=$('conversationZone');
   if(!form||!reply||!zone)return;
-  let view=null,scheduled=0;
+  let view=null,scheduled=0,sizingContext=null,motionFrame=0;
+  const surface=form.querySelector('.composerSurface'),main=form.querySelector('.composerMain'),actions=form.querySelector('.composerActions');
+  const measure=document.createElement('div');
+  measure.className='m2ReplyMeasure';measure.setAttribute('aria-hidden','true');form.appendChild(measure);
   const home=document.createComment('Canonical reply form position');
   form.before(home);
   const expand=document.createElement('button');
@@ -52,29 +55,59 @@
     const transcript=window.WorkspaceV2Jump,position=transcript?.capture();
     fitViewport();
     if(view){sizeDialog();reply.style.height='';transcript?.restore(position,{preserveScroll:true});return true}
-    if(form.classList.contains('hidden'))return true;
+    if(form.classList.contains('hidden')){form.classList.remove('m2ReplyAnimate');sizingContext=null;return true}
+    const current=context(),same=sizingContext&&Object.keys(current).every(key=>current[key]===sizingContext[key]);
+    if(!same)form.classList.remove('m2ReplyAnimate');
+    sizingContext=current;
     const style=getComputedStyle(reply),line=parseFloat(style.lineHeight)||22;
     const padding=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom),border=parseFloat(style.borderTopWidth)+parseFloat(style.borderBottomWidth);
     const height=Math.min(window.visualViewport?.height||innerHeight,zone.getBoundingClientRect().height||innerHeight);
     const minimum=line+padding+border;
-    const saved=selection();reply.style.height='0px';
-    const desired=reply.scrollHeight+border;
+    const saved=selection(),surfaceStyle=getComputedStyle(surface),actionStyle=getComputedStyle(actions);
+    const px=value=>parseFloat(value)||0,gap=px(surfaceStyle.columnGap)||5;
+    const controls=[...actions.children].filter(el=>el.getBoundingClientRect().width>0);
+    const actionWidth=controls.reduce((sum,el)=>{const css=getComputedStyle(el);return sum+el.getBoundingClientRect().width+px(css.marginLeft)+px(css.marginRight)},0)+Math.max(0,controls.length-1)*px(actionStyle.columnGap);
+    const actionHeight=Math.max(0,...controls.map(el=>el.getBoundingClientRect().height));
+    const left=px(surfaceStyle.paddingLeft),right=px(surfaceStyle.paddingRight),top=px(surfaceStyle.paddingTop),bottom=px(surfaceStyle.paddingBottom);
+    const surfaceBorder=px(surfaceStyle.borderTopWidth)+px(surfaceStyle.borderBottomWidth),width=surface.clientWidth-left-right;
+    form.style.setProperty('--m2-reply-actions-width',Math.ceil(actionWidth)+'px');
+    form.style.setProperty('--m2-reply-actions-height',actionHeight+'px');
+    form.style.setProperty('--m2-reply-surface-y',(top+bottom+surfaceBorder)+'px');
+    form.style.setProperty('--m2-reply-surface-left',left+'px');
+    form.style.setProperty('--m2-reply-surface-right',right+'px');
+    form.style.setProperty('--m2-reply-surface-bottom',bottom+'px');
+    form.style.setProperty('--m2-reply-gap',gap+'px');
+    // Measure plain text outside layout, never collapse the live textarea to
+    // zero. This preserves native selection and avoids clamping the transcript.
+    for(const key of ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordBreak','overflowWrap','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft'])measure.style[key]=style[key];
+    measure.textContent=reply.value+'\u200b';
+    measure.style.width=Math.max(40,width-actionWidth-gap)+'px';
+    const details=[...main.children].filter(el=>el!==reply);
+    const multiline=measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
+    form.classList.toggle('m2ReplyMultiline',multiline);
+    measure.style.width=Math.max(40,multiline?width:width-actionWidth-gap)+'px';
+    const desired=measure.scrollHeight+border;
     const head=zone.querySelector('.conversationHead').getBoundingClientRect().height;
-    const reserve=Math.min(160,height*.3),room=height-head-form.getBoundingClientRect().height-reserve;
-    const maximum=Math.max(minimum,Math.min(line*(innerWidth<=740?6:8)+padding+border,room));
+    const extras=details.reduce((sum,el)=>{const rect=el.getBoundingClientRect();if(!rect.height)return sum;const css=getComputedStyle(el);return sum+rect.height+px(css.marginTop)+px(css.marginBottom)},0);
+    const chrome=form.getBoundingClientRect().height-surface.getBoundingClientRect().height+top+bottom+surfaceBorder+extras+(multiline?actionHeight+gap:Math.max(0,actionHeight-minimum));
+    const reserve=Math.min(160,height*.3),room=height-head-chrome-reserve;
+    const proportion=Math.max(minimum+line*(height<=540?2:4),height*.38-chrome);
+    const rows=Math.max(1,Math.min(12,Math.floor((Math.min(room,proportion)-padding-border)/line)));
+    const maximum=rows*line+padding+border;
     reply.style.height=Math.ceil(Math.max(minimum,Math.min(desired,maximum)))+'px';
     reply.scrollTop=saved.top;reply.scrollLeft=saved.left;
-    // Measuring at zero temporarily enlarges the transcript and can clamp its
-    // native scrollTop even if the final height is unchanged. Restore its
-    // canonical following/reading intent before the next frame.
     transcript?.restore(position,{preserveScroll:true});
+    if(!same){
+      cancelAnimationFrame(motionFrame);
+      motionFrame=requestAnimationFrame(()=>{if(!view&&sameContext(current)&&!form.classList.contains('hidden'))form.classList.add('m2ReplyAnimate')});
+    }
     return true;
   }
   function schedule(){if(!scheduled)scheduled=requestAnimationFrame(()=>{scheduled=0;resize()})}
   function close(restoreFocus=true){
     const previous=view;if(!previous)return;
     const saved=selection(),current=sameContext(previous.context)&&!unavailable();
-    view=null;home.after(form);dialog.close();expand.setAttribute('aria-expanded','false');$('m2ReplyEditorRecipient').textContent='';
+    view=null;form.classList.remove('m2ReplyAnimate');sizingContext=null;home.after(form);dialog.close();expand.setAttribute('aria-expanded','false');$('m2ReplyEditorRecipient').textContent='';
     window.WorkspaceV2Mobile?.closeOverlay('reply-editor');
     // A desktop editor can become mobile while open. Return to its canonical
     // conversation screen rather than leaving the live draft offscreen.
@@ -86,11 +119,13 @@
     if(view&&(!sameContext(view.context)||unavailable()))close(false);
     expand.disabled=!!reply.disabled||!!unavailable();
     if(view)$('m2ReplyEditorRecipient').textContent=[S.detail.conversation.display_name||'Клиент',String(S.detail.conversation.channel||'').toUpperCase()].filter(Boolean).join(' · ');
+    if(!view)schedule();
   }
   function open(){
     if(view||reply.disabled||unavailable())return;
     if(window.WorkspaceV2Mobile?.openOverlay('reply-editor',()=>close())===false)return;
     const saved=selection();view={context:context()};
+    form.classList.remove('m2ReplyAnimate');
     dialog.querySelector('.m2ReplyEditorBody').appendChild(form);
     sync();sizeDialog();reply.style.height='';
     dialog.showModal();expand.setAttribute('aria-expanded','true');restoreSelection(saved,true);
