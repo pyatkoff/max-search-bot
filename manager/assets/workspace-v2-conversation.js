@@ -305,7 +305,7 @@ async function open(id,options={}){
   if(switching){closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
-  opening=seq;refreshEpoch++;if(!retainLoaded)window.WorkspaceV2History?.reset();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
+  opening=seq;refreshEpoch++;window.WorkspaceV2History?.invalidateReads();W.HandoffCancellation?.render($('handoffCancellation'),null);setRefreshStatus();applyInteractionState();
   if(switching&&previous)saveDraft(previous);
   setLoadStatus(switching?'Открываем диалог…':'Обновляем диалог…','loading');
   window.WorkspaceV2ConversationSearch?.setState('loading');
@@ -319,7 +319,9 @@ async function open(id,options={}){
   if(!d?.ok||Number(d.conversation?.id)!==target){
     if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
     if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
-    applyInteractionState();window.WorkspaceV2ConversationSearch?.setState('error');
+    const retained=previous&&!accessLost&&Number(S.current)===previous&&Number(S.detail?.conversation?.id)===previous;
+    if(retained&&!S.detail.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
+    applyInteractionState();window.WorkspaceV2History?.render();window.WorkspaceV2ConversationSearch?.setState(retained?'ready':'error');
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
