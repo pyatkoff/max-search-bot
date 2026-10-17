@@ -163,6 +163,8 @@ try {
     foreach (glob($private.'/.telegram-archive-*') as $file) unlink($file);
     rmdir($private);
 }
+require_once __DIR__.'/telegram_archive_setup_checks.php';
+runTelegramArchiveSetupChecks($pdo, $dsn);
 ProjectConfig::resetForTests(null);
 echo "TOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);

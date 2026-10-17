@@ -71,3 +71,21 @@ jobs:
             'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_start_smoke.php' > "$smoke_file"
           cat "$smoke_file"
           grep -Fq 'TELEGRAM START SMOKE: OK' "$smoke_file"
+
+      - name: Inspect dedicated archive status and protected entry points without writes
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$remote" \
+            'cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/telegram_archive_bot_status.php'
+          response="$RUNNER_TEMP/telegram-archive-anonymous.json"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' 'https://app.anytoour.ru/manager/telegram-archive-api.php')"
+          test "$status" = '401'
+          php -r '$j=json_decode(file_get_contents($argv[1]),true);exit(($j["ok"]??true)===false&&($j["error"]??"")==="unauthorized"?0:1);' "$response"
+          status="$(curl --silent --show-error --output "$response" --write-out '%{http_code}' 'https://app.anytoour.ru/telegram_archive_webhook.php')"
+          test "$status" = '405'
+          echo 'TELEGRAM ARCHIVE PROTECTED ENTRY POINTS: OK'
