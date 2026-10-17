@@ -31,9 +31,11 @@ jobs:
   evaluate:
     runs-on: ubuntu-latest
     timeout-minutes: 18
-    env:
-      PRIVATE_DIR: ${{ runner.temp }}/private-manager-ai-eval
     steps:
+      - name: Set private runtime directory
+        shell: bash
+        run: echo "PRIVATE_DIR=$RUNNER_TEMP/private-manager-ai-eval" >> "$GITHUB_ENV"
+
       - name: Checkout reviewed source
         uses: actions/checkout@v4
         with:
