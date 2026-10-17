@@ -246,6 +246,69 @@ test('pending protected request is discarded across account switch',async()=>{
   assert.equal(result.ok,false);assert.equal(result.error,'stale_session');
 });
 
+// A read response belongs to its navigation, including secondary card reads.
+// Exercise the real request/Conversation modules, not a copy of their guards.
+for(const owner of ['detail','card','refresh'])for(const status of [200,401,403,404,500])for(const signal of owner==='refresh'?[false]:[false,true])test('obsolete '+owner+' '+status+' with signal='+signal+' cannot expire the current reply',async()=>{
+  const h=createHarness();await h.start();
+  if(owner==='refresh')await h.C.open(102);
+  const old=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='detail'&&r.conversation_id===102&&url===(owner==='detail'?'api.php':'pipeline-api.php')?(entered.resolve(),old.promise):null);
+  const pending=owner==='refresh'?h.C.refreshLeadData():h.C.open(102,signal?{signal:new AbortController().signal}:{});
+  await entered.promise;if(owner==='card')assert.equal(await pending,true);
+  assert.equal(await h.C.open(103),true);await h.draft('Current reply stays editable');
+  const file={name:'current-only.txt'};h.setFile(file);const detail=h.W.S.detail,reads=h.calls.length;
+  old.resolve(response({ok:status===200,conversation:{...h.conversation,id:102},messages:[]},status));
+  if(owner!=='card')assert.equal(await pending,false);
+  await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,103);assert.equal(h.W.S.detail,detail);
+  assert.equal(hidden(h),false);assert.equal(h.ids.get('replyText').disabled,false);
+  assert.equal(h.ids.get('replyText').value,'Current reply stays editable');assert.equal(h.getFile(),file);
+  assert.equal(h.calls.length,reads);assertNoMutations(h);
+});
+for(const owner of ['detail','card','refresh'])test('obsolete '+owner+' 401 stays obsolete after A to B to A',async()=>{
+  const h=createHarness();await h.start();if(owner==='refresh')await h.C.open(102);
+  const old=deferred(),entered=deferred();let held=false;
+  h.setHook((url,r)=>{if(!held&&r.action==='detail'&&r.conversation_id===102&&url===(owner==='detail'?'api.php':'pipeline-api.php')){held=true;entered.resolve();return old.promise;}return null;});
+  const pending=owner==='refresh'?h.C.refreshLeadData():h.C.open(102);
+  await entered.promise;if(owner==='card')await pending;
+  await h.C.open(103);await h.C.open(102);await h.draft('New visit to the same client');
+  old.resolve(response({ok:false},401));if(owner!=='card')await pending;await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,102);assert.equal(hidden(h),false);
+  assert.equal(h.ids.get('replyText').value,'New visit to the same client');assertNoMutations(h);
+});
+test('obsolete initial detail settlement cannot unlock a newer pending navigation',async()=>{
+  const h=createHarness();await h.start();const old=deferred(),next=deferred(),oldEntered=deferred(),nextEntered=deferred();
+  h.setHook((url,r)=>{if(url!=='api.php'||r.action!=='detail')return null;if(r.conversation_id===102){oldEntered.resolve();return old.promise;}if(r.conversation_id===103){nextEntered.resolve();return next.promise;}return null;});
+  const first=h.C.open(102);await oldEntered.promise;const second=h.C.open(103);await nextEntered.promise;
+  old.resolve(response({ok:false},401));assert.equal(await first,false);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('replyText').disabled,true);
+  next.resolve(response({ok:true,conversation:{...h.conversation,id:103},messages:[]}));
+  assert.equal(await second,true);assert.equal(hidden(h),false);assert.equal(h.ids.get('replyText').disabled,false);assertNoMutations(h);
+});
+test('current secondary refresh 401 still requires canonical authentication',async()=>{
+  const h=createHarness();await h.start();await h.draft('Keep same-account recovery draft');
+  h.setHook((url,r)=>url==='pipeline-api.php'&&r.action==='detail'?response({ok:false},401):null);
+  assert.equal(await h.C.refreshLeadData(),false);assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);
+  assert.equal(h.ids.get('managerAuthRecovery').classList.contains('hidden'),false);assertNoMutations(h);
+});
+for(const status of [200,401,403,404,500])test('source-pinned Inbox refresh '+status+' retains successful completion without obsolete auth ownership',async()=>{
+  const h=createHarness();await h.start();const old=deferred(),entered=deferred();let inbox=0;
+  h.window.WorkspaceV2Inbox.load=async()=>{inbox++;return true};
+  h.setHook((url,r)=>url==='pipeline-api.php'&&r.action==='detail'&&r.conversation_id===101?(entered.resolve(),old.promise):null);
+  const pending=h.C.refreshLeadData({refreshInbox:true});await entered.promise;await h.C.open(102);await h.draft('Selected client reply');
+  old.resolve(response({ok:status===200,trip:{country:'Old source client'}},status));assert.equal(await pending,false);
+  assert.equal(inbox,status===200?1:0);assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,102);
+  assert.equal(hidden(h),false);assert.equal(h.ids.get('replyText').value,'Selected client reply');assertNoMutations(h);
+});
+for(const [method,action] of [['api','send'],['pipe','set_stage']])test('unowned '+action+' response retains global 401 handling after navigation',async()=>{
+  const h=createHarness();await h.start();const old=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action===action?(entered.resolve(),old.promise):null);
+  // Synthetic transport only: this tests the unchanged default request policy.
+  const pending=h.W[method](action,{conversation_id:101});const rejected=assert.rejects(pending,/unauthorized/);
+  await entered.promise;await h.C.open(102);old.resolve(response({ok:false},401));await rejected;
+  assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);
+});
+
 // Send requests below are handled by the in-memory fetch above; no network I/O.
 for(const result of ['network','invalid','unknown','temporary'])test('unconfirmed '+result+' preserves draft/file and does not resend',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic reply');const file={name:'fixture.png'};h.setFile(file);

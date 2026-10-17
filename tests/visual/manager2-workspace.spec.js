@@ -11,7 +11,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false;
-  let lifecycleHandler=null,stateHandler=null;const conversationOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null;const conversationOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
@@ -43,6 +43,9 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
     calls.push({path:url.pathname,...data});
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+    if(readHandler&&data.action==='detail'&&['/manager/api.php','/manager/pipeline-api.php'].includes(url.pathname)){
+      const result=await readHandler(url.pathname,data);if(result)return reply(result.body,result.status||200);
+    }
     if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'){
       if(!authenticated)return reply({ok:false,error:'unauthorized'},401);
       return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100});
@@ -105,7 +108,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -447,6 +450,78 @@ async function editorReady(page){
   await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.detail?.lead)).toBe(true);
   await expect(page.locator('.qrToolbarEmpty')).toHaveText('Добавьте свои быстрые ответы');
 }
+function holdConversationRead(state,owner,id){
+  let release,entered=false;const pending=new Promise(resolve=>{release=resolve});
+  const path=owner==='detail'?'/manager/api.php':'/manager/pipeline-api.php';
+  state.setReadHandler((url,data)=>{if(!entered&&url===path&&data.conversation_id===id){entered=true;return pending}return null});
+  return {entered:()=>entered,path,release:status=>release({status,body:{ok:false,error:status===401?'unauthorized':'synthetic_read_error'}})};
+}
+const conversationReads=state=>state.calls.filter(call=>call.action==='detail'&&['/manager/api.php','/manager/pipeline-api.php'].includes(call.path));
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])for(const owner of ['detail','card','refresh']){
+test(`Manager2 obsolete read owner ${owner} 401 preserves current reply ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const state=await setup(page,{replyAudio:true});
+  if(owner==='refresh')await openLead(page,11);
+  const old=holdConversationRead(state,owner,11);
+  if(owner==='refresh')await page.evaluate(()=>{void WorkspaceV2Conversation.refreshLeadData()});
+  else await page.locator('#inboxList [data-conversation-id="11"] .m2RowOpen').click();
+  await expect.poll(old.entered).toBe(true);
+  if(owner==='card')await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+  await openLead(page,12);await editorReady(page);
+  await page.locator('#replyText').fill('Ответ новому клиенту');
+  // Observe the real File handed to the native preview, after the canonical
+  // picker has cleared its input. An empty input is not File-identity proof.
+  await page.evaluate(()=>{const create=URL.createObjectURL;window.readOwnerFiles=[];URL.createObjectURL=function(file){const url=create.call(this,file);readOwnerFiles.push({file,url});return url}});
+  await page.locator('#replyFile').setInputFiles({name:'current-reply.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGOwbvr2HwAFYgKzn+LXXwAAAABJRU5ErkJggg==','base64')});
+  expect(await page.evaluate(()=>readOwnerFiles.length===1&&readOwnerFiles[0].file instanceof File)).toBe(true);
+  await expect.poll(()=>page.locator('#mediaSelection img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  await editorGeometry(page);
+  // Use the maintained history fixture's reading gesture and exact settled
+  // position; native wheel momentum is not part of the read-owner contract.
+  await page.locator('#messages').evaluate(box=>{box.dispatchEvent(new WheelEvent('wheel',{deltaY:-900,bubbles:true}));box.scrollTop=0});
+  await expect.poll(()=>page.locator('#messages').evaluate(el=>el.scrollTop)).toBe(0);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  await page.locator('#messages audio').evaluate(async audio=>{audio.muted=true;audio.loop=true;await audio.play()});
+  await page.locator('#replyText').evaluate(reply=>{
+    reply.focus({preventScroll:true});reply.setSelectionRange(4,12,'backward');
+    const box=document.querySelector('#messages'),anchor=[...box.children].find(row=>row.getBoundingClientRect().bottom>box.getBoundingClientRect().top+1);
+    window.readOwnerProof={reply,form:document.querySelector('#composer'),input:document.querySelector('#replyFile'),file:readOwnerFiles[0].file,url:readOwnerFiles[0].url,preview:document.querySelector('#mediaSelection .mediaSelectedItem'),anchor,offset:anchor.getBoundingClientRect().top-box.getBoundingClientRect().top,audio:box.querySelector('audio'),audioTime:box.querySelector('audio').currentTime,generation:WorkspaceV2.S.authGeneration};
+  });
+  const reads=conversationReads(state).length;
+  const response=page.waitForResponse(r=>new URL(r.url()).pathname===old.path&&r.status()===401);
+  old.release(401);await (await response).finished();
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  // A direct assertion makes the retained baseline fail on the actual false
+  // login; readiness/file/audio assertions below are never bypassed.
+  expect(await page.evaluate(()=>({expired:WorkspaceV2.S.authExpired,current:WorkspaceV2.S.current,generation:WorkspaceV2.S.authGeneration===readOwnerProof.generation}))).toEqual({expired:false,current:12,generation:true});
+  await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#composer')).toBeVisible();
+  await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#sendReply')).toBeEnabled();
+  await expect(page.locator('#replyText')).toHaveValue('Ответ новому клиенту');await expect(page.locator('#mediaSelection')).toContainText('current-reply.png');
+  const retained=await page.evaluate(()=>{const p=readOwnerProof,reply=document.querySelector('#replyText'),box=document.querySelector('#messages'),audio=box.querySelector('audio');return {reply:reply===p.reply,form:document.querySelector('#composer')===p.form,input:document.querySelector('#replyFile')===p.input,file:readOwnerFiles.length===1&&readOwnerFiles[0].file===p.file&&document.querySelector('#mediaSelection img')?.src===p.url,preview:document.querySelector('#mediaSelection .mediaSelectedItem')===p.preview,focus:document.activeElement===reply,selection:[reply.selectionStart,reply.selectionEnd,reply.selectionDirection],anchor:p.anchor.isConnected&&Math.abs(p.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top-p.offset)<=2,audio:audio===p.audio,playing:!audio.paused,progress:audio.currentTime>=p.audioTime-.05}});
+  expect(retained).toEqual({reply:true,form:true,input:true,file:true,preview:true,focus:true,selection:[4,12,'backward'],anchor:true,audio:true,playing:true,progress:true});
+  expect(conversationReads(state)).toHaveLength(reads);
+  await capture(page,browserName,viewport.width,`read-owner-${owner}-${viewport.height}`);await noOverflow(page);
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshLeadData())).toBe(true);
+  expect(conversationReads(state)).toHaveLength(reads+1);
+  await openLead(page,11);await openLead(page,12);
+  await expect(page.locator('#replyText')).toHaveValue('Ответ новому клиенту');await expect(page.locator('#mediaSelection')).toContainText('current-reply.png');
+  expect(state.sends).toEqual([]);expect(lifecycleMutations(state)).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+});
+}
+for(const owner of ['detail','card','refresh'])test(`Manager2 current read owner ${owner} 401 still requires same-account recovery`,async({page})=>{
+  await page.setViewportSize({width:390,height:420});const state=await setup(page);await openLead(page,11);await editorReady(page);
+  await page.locator('#replyText').fill('Сохранить при повторном входе');
+  await page.locator('#replyFile').setInputFiles({name:'recovery.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic recovery file')});
+  const current=holdConversationRead(state,owner,11);
+  await page.evaluate(owner=>{if(owner==='refresh')void WorkspaceV2Conversation.refreshLeadData();else void WorkspaceV2Conversation.open(11,{preserveAttachment:true})},owner);
+  await expect.poll(current.entered).toBe(true);current.release(401);
+  await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).not.toBeVisible();
+  expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);
+  state.setReadHandler(null);
+  await page.locator('#managerAuthLogin').fill('synthetic');await page.locator('#managerAuthPassword').fill('synthetic-only');await page.locator('#managerAuthSubmit').click();
+  await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(page.locator('#replyText')).toBeEnabled();
+  await expect(page.locator('#replyText')).toHaveValue('Сохранить при повторном входе');await expect(page.locator('#mediaSelection')).toContainText('recovery.txt');
+  expect(state.sends).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);
+});
 async function editorGeometry(page){
   // Read the settled layout, including intentional compact/full-width motion.
   // Two rendering frames flush the canonical input/ResizeObserver scheduling;

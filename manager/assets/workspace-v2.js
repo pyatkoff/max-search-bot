@@ -56,13 +56,13 @@ async function request(url,action,data={},options={}){
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
   // A read owner can revoke an obsolete response before global auth handling.
-  if(options.isCurrent&&!options.isCurrent())return{ok:false,error:'stale_context'};
+  if(options.isCurrent&&!options.isCurrent(r))return{ok:false,error:'stale_context'};
   if(r.status===401){showAuthRecovery();throw new Error('unauthorized')}
   if(!r.ok)return{...j,ok:false,http_status:r.status};
   return j;
 }
 const api=(action,data={},options)=>request('api.php',action,data,options);
-const pipe=(action,data={})=>request('pipeline-api.php',action,data);
+const pipe=(action,data={},options)=>request('pipeline-api.php',action,data,options);
 const notificationEvents=cursor=>request('notification-events.php','poll',{cursor});
 function statusText(s){return{ai:'С ботом',waiting_manager:'Ждёт менеджера',manager:'У менеджера',closed:'Диалог закрыт'}[s]||s||''}
 function outcomeText(s){return S.pipeline.outcomes[s]||{open:'В работе',won:'Продажа',lost:'Отказ'}[s]||'В работе'}
