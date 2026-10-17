@@ -218,7 +218,9 @@ for(const [width,height,outcome] of [[390,844,'500'],[430,844,'500'],[768,844,'5
   await screenshot(page,browserName,width,'failed-target-'+outcome+'-'+height);
   expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(true);await assertRetainedHistory(page,saved,600);
   expect(olderDetails(state)).toHaveLength(older+1);expect(olderDetails(state).at(-1).before_id).toBe(401);
-  await page.locator('#replyText').focus();await page.locator('#replyText').press('End');await page.locator('#replyText').press('!');await expect(page.locator('#replyText')).toHaveValue(saved.draft+'!');
+  // A real pointer action transfers native selection into the editor. WebKit's
+  // programmatic focus alone can leave the earlier message selection owning input.
+  await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await page.locator('#replyText').press('ControlOrMeta+End');await page.locator('#replyText').press('!');await expect(page.locator('#replyText')).toHaveValue(saved.draft+'!');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);clean(state);
  });
 }
