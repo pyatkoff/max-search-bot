@@ -158,6 +158,30 @@ if ($nativeDsn!=='') {
                 $query->execute(array_values($row));
             }
         }
+        // Native-only stage probe. It uses the exact collector helpers, then
+        // rolls back before the normal assertions. Never print SQL or exception
+        // text: only a fixed stage, exception class, SQLSTATE and driver number.
+        $probe=new PrivateConversationCorpus($native,'anytour',static function(string $line): void {});
+        $stage='begin';
+        try {
+            $begin=new ReflectionMethod(PrivateConversationCorpus::class,'begin'); $begin->setAccessible(true); $begin->invoke($probe);
+            $stage='definitions';
+            $getDefinitions=new ReflectionMethod(PrivateConversationCorpus::class,'definitions'); $getDefinitions->setAccessible(true);
+            $definitions=$getDefinitions->invoke($probe);
+            $one=new ReflectionMethod(PrivateConversationCorpus::class,'one'); $one->setAccessible(true);
+            foreach ($definitions as $kind=>$definition) {
+                $stage='manifest_'.$kind;
+                $one->invoke($probe,'SELECT COUNT(*) AS n,COALESCE(MAX('.$definition['id'].'),0) AS upper_id FROM '.$definition['table'].' WHERE '.$definition['where'],$definition['args']);
+            }
+            echo "INFO native collector preflight stages passed\n";
+        } catch (Throwable $e) {
+            $state=preg_match('/^[A-Z0-9]{5}$/D',(string)$e->getCode())?(string)$e->getCode():'none';
+            $driver=$e instanceof PDOException?(int)($e->errorInfo[1]??0):0;
+            $class=preg_match('/^[A-Za-z0-9_]+$/D',get_class($e))?get_class($e):'unknown';
+            echo 'INFO native collector preflight failure stage='.$stage.' class='.$class.' SQLSTATE='.$state.' driver='.$driver."\n";
+        } finally {
+            $restore=new ReflectionMethod(PrivateConversationCorpus::class,'restore'); $restore->setAccessible(true); $restore->invoke($probe);
+        }
         $lines=[]; $denied=false; $inserted=false;
         $collector=new PrivateConversationCorpus($native,'anytour',static function($line)use(&$lines,&$denied,&$inserted,$native,$writer){
             $lines[]=$line;
