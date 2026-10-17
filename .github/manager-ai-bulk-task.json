@@ -1,12 +1,12 @@
 {
-  "case_count": 41,
+  "case_count": 400,
   "output_recipient": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA07Wfp4vzVTCGPSaKg89v\nLlOse8kLa7gpgC+kU4psJQTkrWvgoB2h/ZC4ceSLhkHG9IyPK0mbB0FDiD5CJ3se\n9IwZvaqMiGPjcoqqi2N+9jBCopKhV6UW7XseEfTF0chRaQLkSIUiBcgi902u7RbH\nQ93r7Lo+HPGsf5h2LooC2x4Ux6GzTfydANZaBPKgYmNWQLzyVrYdFpHlGSrMIb/s\nJj8EN5BSyV2dr6m0srdufSp+87ueojQryEv2xeWxoquybjIfcAGwRl0qnVC4tKC0\ne+yCdJSuyJF4mRgesbfaUB6bUppPmyxL/MlO0iNtm/evNNepvO+Gl9ydOLbkLm05\n5oy9403zMv54o+dUZFRXMLm/G/yEyXD4oN6jlp5DnSaZdKJcoHqrBNOK540NSYjC\n8zNm75oOy98IWBQahQQaKxqFF2NsHVH4NDmGM44Tfg0VbwPtfmMkq1wXQgrHSuXh\nFaZGYkc4FOwRFUDm0XI6iPEZgsIcxmRkk96Klw8sAyi/AgMBAAE=\n-----END PUBLIC KEY-----\n",
   "parallelism": 5,
   "phase": "cleanup",
   "production_sha": "9ed2ab244a4b4e1a704ac0841dba53a3e4280da8",
   "schema": "manager_ai_bulk_task_v1",
   "source_bundle_sha256": "d6965595a4f61627729e4cbe6f2559569d1847fed5c037eb780655ef347fd8ff",
-  "stage": "grade",
-  "task_token": "785925685be195a526dd9c75db8dfaf980a8e0b9cdd9a90a",
+  "stage": "generate",
+  "task_token": "cca7074d5ade41bb4776a1847b0b459d47330c50e15d5aab",
   "ssh_host_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA"
 }
