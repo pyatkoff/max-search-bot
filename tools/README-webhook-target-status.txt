@@ -1,1 +1,0 @@
-Run php tools/webhook_target_status.php to print the effective Telegram/MAX webhook target URLs and hosts for the current deployment. This tool is read-only and does not call messenger APIs or expose tokens/secrets.
