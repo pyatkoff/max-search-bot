@@ -312,8 +312,8 @@ async function open(id,options={}){
   // Start both canonical reads once. The secondary card has its own completion and
   // never holds the authorized transcript or composer behind a slow card request.
   // Card editors need catalog options; the transcript and composer do not.
-  const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
-  let d;try{if(options.signal)d=await api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext});else d=await api('detail',{conversation_id:target})}catch(e){d=null}
+  const leadRequest=Promise.all([Promise.resolve().then(()=>pipe('detail',{conversation_id:target},{isCurrent:validContext})),W.whenCatalogReady?.()]).then(([lead])=>lead).catch(()=>null);
+  let d;try{d=await api('detail',{conversation_id:target},{signal:options.signal,isCurrent:validContext})}catch(e){d=null}
   if(opening===seq)opening=0;
   if(!validContext()||(options.restoreSession&&savedSelection!==target))return false;
   if(!d?.ok||Number(d.conversation?.id)!==target){
@@ -344,7 +344,9 @@ async function refreshLeadData({refreshInbox=false,conversationId=S.current}={})
   if(!target||S.authExpired)return false;
   const sameSession=()=>!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;
   const current=()=>!S.authExpired&&Number(S.current)===target&&Number(S.detail?.conversation?.id)===target&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration&&openSeq===generation;
-  let p;try{p=await pipe('detail',{conversation_id:target})}catch(e){p=null}
+  // A successful source edit still refreshes Inbox after navigation. Obsolete
+  // failed reads cannot own authentication or repaint the selected client.
+  let p;try{p=await pipe('detail',{conversation_id:target},{isCurrent:response=>current()||(refreshInbox&&sameSession()&&response.ok)})}catch(e){p=null}
   if(!sameSession())return false;
   const stillCurrent=current();
   if(!p?.ok){if(stillCurrent&&!S.detail?.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);return false}
