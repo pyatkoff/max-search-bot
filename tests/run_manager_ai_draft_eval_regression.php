@@ -150,16 +150,18 @@ evalCheck('future-message context is refused before a provider is relevant',
 // Exercise the evaluator's actual shared path, including the deterministic
 // service policy. Synthetic transports never call ManagerDraftClient.
 evalCheck('profile and monotonic-duration contract has its own output schema',
-    ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v3');
+    ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v4');
 $actualRequest=ManagerDraftClient::requestBody('synthetic instructions',[]);
 evalCheck('header profile is derived from the actual isolated client request projection',
-    evalCall('requestedProfile',$actualRequest)===['model'=>'gpt-6.1-sol','reasoning_effort'=>'low','service_tier'=>null]
-    && !array_key_exists('service_tier',$actualRequest));
+    evalCall('requestedProfile',$actualRequest)===['model'=>'gpt-6.1-sol','reasoning_effort'=>'low','service_tier'=>'fast']
+    && $actualRequest['service_tier']==='fast');
 foreach ([
     'other model'=>['model'=>'gpt-5.6-luna','reasoning'=>['effort'=>'low']],
     'implicit reasoning'=>['model'=>'gpt-6.1-sol'],
     'other effort'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'medium']],
+    'ultrafast tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'ultrafast'],
     'premium tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'priority'],
+    'omitted tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low']],
     'explicit null tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>null],
 ] as $name=>$request) {
     evalCheck('profile mismatch refuses '.$name.' before provider is relevant',
@@ -175,6 +177,41 @@ evalCheck('model case counts exactly one synthetic transport invocation',
     && $modelRecord['result_origin']==='model' && $modelRecord['result']===evalModelResult()
     && $modelRecord['case_id']==='model_ok' && $modelRecord['index']===1
     && is_int($modelRecord['elapsed_ms']) && $modelRecord['elapsed_ms']>=0);
+$observed=['model'=>'gpt-6.1-sol-2026-10-01','service_tier'=>'fast',
+    'usage'=>['input_tokens'=>41,'output_tokens'=>7,'total_tokens'=>48,
+        'input_tokens_details'=>['cached_tokens'=>12],'output_tokens_details'=>['reasoning_tokens'=>3]]];
+$metadataRecord=evalCall('runCase',['case_id'=>'model_metadata','context'=>evalContext()],1,
+    static function(string $instructions,array $payload,callable $observer) use ($observed): array {
+        $observer($observed); return evalModelResult();
+    });
+evalCheck('actual response metadata is captured once for the matching model case',
+    $metadataRecord['provider_calls']===1 && $metadataRecord['provider_metadata']===$observed);
+evalCheck('metadata is absent when no observer data was reported', $modelRecord['provider_metadata']===null);
+$repeatedRecord=evalCall('runCase',['case_id'=>'repeated_metadata','context'=>evalContext()],1,
+    static function(string $instructions,array $payload,callable $observer) use ($observed): array {
+        $observer($observed); $observer($observed); return evalModelResult();
+    });
+evalCheck('repeated metadata callbacks cannot imply a single trusted observation',
+    $repeatedRecord['provider_metadata']===null && $repeatedRecord['provider_calls']===1);
+$emptyObserved=['model'=>null,'service_tier'=>null,'usage'=>[]];
+$emptyNormalized=evalCall('providerMetadata',$emptyObserved);
+evalCheck('unknown metadata remains null and empty usage is encoded as an object',
+    $emptyNormalized['model']===null && $emptyNormalized['service_tier']===null
+    && json_encode($emptyNormalized['usage'])==='{}');
+foreach ([
+    'raw response id'=>array_merge($observed,['id'=>'not_allowed']),
+    'raw text'=>array_merge($observed,['text'=>'not_allowed']),
+    'model controls'=>array_merge($observed,['model'=>"gpt\nprivate"]),
+    'unbounded model'=>array_merge($observed,['model'=>str_repeat('m',129)]),
+    'unknown tier'=>array_merge($observed,['service_tier'=>'unknown_tier']),
+    'boolean tokens'=>array_merge($observed,['usage'=>['input_tokens'=>true]]),
+    'negative tokens'=>array_merge($observed,['usage'=>['input_tokens'=>-1]]),
+    'unbounded tokens'=>array_merge($observed,['usage'=>['input_tokens'=>10000001]]),
+    'unknown usage key'=>array_merge($observed,['usage'=>['customer_text'=>1]]),
+    'raw token details'=>array_merge($observed,['usage'=>['output_tokens_details'=>['reasoning_tokens'=>1,'raw'=>'not_allowed']]]),
+] as $name=>$badMetadata) {
+    evalCheck('metadata boundary rejects '.$name,evalCall('providerMetadata',$badMetadata)===null);
+}
 $errorTransportCalls=0;
 $errorRecord=evalCall('runCase',['case_id'=>'model_error','context'=>evalContext()],2,
     static function(string $instructions,array $payload) use (&$errorTransportCalls): array {
@@ -206,6 +243,20 @@ evalCheck('mixed results separate successful model outputs from policy answers',
     && $summary['successful_cases']===2 && $summary['provider_successful_cases']===1
     && $summary['policy_successful_cases']===1 && is_object($summary['errors'])
     && (array)$summary['errors']===['provider_timeout'=>1]);
+$metadataSummary=evalCall('summarize',[$metadataRecord,$modelRecord,$policyRecord]);
+evalCheck('metadata coverage and actual Fast count are separate from requested Fast profile',
+    $metadataSummary['provider_metadata_cases']===1 && $metadataSummary['actual_fast_cases']===1
+    && $metadataSummary['usage_observed_cases']===1 && $metadataSummary['model_cases']===2);
+$priorityRecord=$metadataRecord; $priorityRecord['provider_metadata']['service_tier']='priority';
+$defaultRecord=$metadataRecord; $defaultRecord['provider_metadata']['service_tier']='default';
+$aliasSummary=evalCall('summarize',[$metadataRecord,$priorityRecord,$defaultRecord]);
+evalCheck('served Fast includes its priority alias while preserving literal per-case tier',
+    $aliasSummary['actual_fast_cases']===2 && $aliasSummary['provider_metadata_cases']===3
+    && $priorityRecord['provider_metadata']['service_tier']==='priority'
+    && $defaultRecord['provider_metadata']['service_tier']==='default');
+$falsePolicyMetadata=$policyRecord; $falsePolicyMetadata['provider_metadata']=$observed;
+evalCheck('zero-call policy cannot claim provider metadata',
+    evalRejects(static fn()=>evalCall('summarize',[$falsePolicyMetadata])));
 $timedModel=$modelRecord; $timedModel['elapsed_ms']=125;
 $timedError=$errorRecord; $timedError['elapsed_ms']=250;
 $timedPolicy=$policyRecord; $timedPolicy['elapsed_ms']=2;

@@ -12,7 +12,7 @@ declare(strict_types=1);
 final class ManagerAiDraftEval
 {
     public const INPUT_SCHEMA = 'manager_ai_draft_eval_input_v1';
-    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v3';
+    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v4';
     public const CASES = 30;
     public const TTL = 3600;
     public const MAX_CIPHERTEXT_BYTES = 65536;
@@ -280,13 +280,13 @@ final class ManagerAiDraftEval
     private static function requestedProfile(array $request): array
     {
         if (($request['model']??null)!=='gpt-6.1-sol' || !is_array($request['reasoning']??null)
-            || ($request['reasoning']['effort']??null)!=='low' || array_key_exists('service_tier',$request)) {
+            || ($request['reasoning']['effort']??null)!=='low' || ($request['service_tier']??null)!=='fast') {
             throw new RuntimeException('requested_profile_mismatch');
         }
-        // No service_tier field was requested; no resolved provider tier or
-        // response-side model metadata is observed by this isolated client.
+        // The requested profile is distinct from allowlisted response metadata.
+        // A requested Fast tier never proves the tier that served a response.
         return ['model'=>$request['model'],'reasoning_effort'=>$request['reasoning']['effort'],
-            'service_tier'=>null];
+            'service_tier'=>$request['service_tier']];
     }
 
     /** Actual service path shared by evaluation and isolated synthetic tests. */
@@ -294,17 +294,49 @@ final class ManagerAiDraftEval
     {
         $started = hrtime(true);
         $calls = 0;
+        $metadata = null; $observations = 0;
         $result = ManagerAiDraftService::generate($case['context'],
-            static function(string $instructions, array $payload) use (&$calls,$transport): array {
+            static function(string $instructions, array $payload) use (&$calls,$transport,&$metadata,&$observations): array {
                 // Enforce the budget before entering the real transport. A
                 // future service retry must not silently spend another call.
                 if ($calls>=1) throw new RuntimeException('provider_budget_exceeded');
                 ++$calls;
-                return $transport($instructions,$payload);
+                return $transport($instructions,$payload,
+                    static function(array $observed) use (&$metadata,&$observations): void {
+                        ++$observations;
+                        $metadata = $observations===1 ? self::providerMetadata($observed) : null;
+                    });
             });
         return ['type'=>'case','index'=>$index,'case_id'=>$case['case_id'],
             'provider_calls'=>$calls,'result_origin'=>$calls===0?'policy':'model',
-            'elapsed_ms'=>(int)round((hrtime(true)-$started)/1000000),'result'=>$result];
+            'elapsed_ms'=>(int)round((hrtime(true)-$started)/1000000),
+            'provider_metadata'=>$metadata,'result'=>$result];
+    }
+
+    /** A second boundary prevents private provider fields entering JSONL. */
+    private static function providerMetadata(array $metadata): ?array
+    {
+        $keys=array_keys($metadata); sort($keys);
+        if ($keys!==['model','service_tier','usage']) return null;
+        $model=$metadata['model']; $tier=$metadata['service_tier']; $usage=$metadata['usage'];
+        if (($model!==null && (!is_string($model)
+                || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)!==1))
+            || ($tier!==null && (!is_string($tier)
+                || !in_array($tier,['default','fast','priority','ultrafast','flex','scale'],true)))
+            || !is_array($usage) || ($usage!==[] && array_is_list($usage))) return null;
+        $normalized=[];
+        foreach ($usage as $key=>$value) {
+            if (in_array($key,['input_tokens','output_tokens','total_tokens'],true)) {
+                if (!is_int($value) || $value<0 || $value>10000000) return null;
+                $normalized[$key]=$value;
+            } elseif (in_array($key,['input_tokens_details','output_tokens_details'],true)) {
+                $only=$key==='input_tokens_details'?'cached_tokens':'reasoning_tokens';
+                if (!is_array($value) || array_keys($value)!==[$only]
+                    || !is_int($value[$only]) || $value[$only]<0 || $value[$only]>10000000) return null;
+                $normalized[$key]=$value;
+            } else return null;
+        }
+        return ['model'=>$model,'service_tier'=>$tier,'usage'=>$normalized===[]?(object)[]:$normalized];
     }
 
     /** Never count a zero-call policy answer as a successful model response. */
@@ -314,6 +346,7 @@ final class ManagerAiDraftEval
         $summary = ['processed_cases'=>count($records),'provider_attempts'=>0,
             'policy_cases'=>0,'model_cases'=>0,'successful_cases'=>0,
             'policy_successful_cases'=>0,'provider_successful_cases'=>0,
+            'provider_metadata_cases'=>0,'actual_fast_cases'=>0,'usage_observed_cases'=>0,
             'case_elapsed_ms_sum'=>0,'provider_case_elapsed_ms_sum'=>0,'policy_case_elapsed_ms_sum'=>0];
         $errors = [];
         $safeErrors = ['provider_unavailable','provider_not_configured','provider_refused',
@@ -326,6 +359,17 @@ final class ManagerAiDraftEval
             $elapsed = $record['elapsed_ms']??null;
             if (!is_int($elapsed) || $elapsed<0 || $elapsed>self::MAX_DURATION_MS) {
                 throw new RuntimeException('duration_mismatch');
+            }
+            $metadata=$record['provider_metadata']??null;
+            if ($metadata!==null) {
+                if ($calls!==1 || !is_array($metadata)) throw new RuntimeException('invalid_provider_metadata');
+                $check=$metadata;
+                if (isset($check['usage']) && is_object($check['usage']) && get_object_vars($check['usage'])===[]) $check['usage']=[];
+                if (self::providerMetadata($check)===null) throw new RuntimeException('invalid_provider_metadata');
+                ++$summary['provider_metadata_cases'];
+                // Fast may be reported with its documented priority alias.
+                if (in_array($metadata['service_tier'],['fast','priority'],true)) ++$summary['actual_fast_cases'];
+                if ((array)$metadata['usage']!==[]) ++$summary['usage_observed_cases'];
             }
             $summary['provider_attempts'] += $calls;
             ++$summary[$calls===0?'policy_cases':'model_cases'];

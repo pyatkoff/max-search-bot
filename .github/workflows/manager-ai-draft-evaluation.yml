@@ -283,9 +283,9 @@ jobs:
                   execution=json.loads(execution_path.read_text()) if execution_path.is_file() else {'remote_ok':False,'deployed_ok':False,'main_ok':False}
                   header=rows[0] if rows and isinstance(rows[0],dict) else {}
                   footer=rows[-1] if rows and isinstance(rows[-1],dict) and rows[-1].get('type')=='footer' else {}
-                  valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v3' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0 and header.get('max_provider_calls')==30 and header.get('max_provider_calls_per_case')==1
+                  valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v4' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0 and header.get('max_provider_calls')==30 and header.get('max_provider_calls_per_case')==1
                   valid=valid and isinstance(header.get('model'),str) and re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',header['model']) is not None
-                  valid=valid and header.get('requested_profile')=={'model':'gpt-6.1-sol','reasoning_effort':'low','service_tier':None} and header.get('model')=='gpt-6.1-sol' and header.get('duration_clock')=='server_monotonic_hrtime'
+                  valid=valid and header.get('requested_profile')=={'model':'gpt-6.1-sol','reasoning_effort':'low','service_tier':'fast'} and header.get('model')=='gpt-6.1-sol' and header.get('duration_clock')=='server_monotonic_hrtime'
                   for field in ['task_token','production_sha','source_bundle_sha256']:
                       valid=valid and header.get(field)==task[field]
                   valid=valid and header.get('output_recipient_sha256')==hashlib.sha256(task['output_recipient'].encode()).hexdigest()
@@ -294,10 +294,26 @@ jobs:
                   ids=set();success=0;errors=collections.Counter()
                   attempts=0;policy_cases=0;model_cases=0;policy_success=0;provider_success=0
                   case_elapsed=0;provider_elapsed=0;policy_elapsed=0
+                  metadata_cases=0;actual_fast_cases=0;usage_cases=0
                   safe_errors={'provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large','invalid_ai_response'}
+                  def metadata_valid(value):
+                      if value is None: return True
+                      if not isinstance(value,dict) or set(value)!={'model','service_tier','usage'}: return False
+                      if value['model'] is not None and (not isinstance(value['model'],str) or re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',value['model']) is None): return False
+                      if value['service_tier'] is not None and value['service_tier'] not in ['default','fast','priority','ultrafast','flex','scale']: return False
+                      usage=value['usage']
+                      if not isinstance(usage,dict): return False
+                      for name,amount in usage.items():
+                          if name in ['input_tokens','output_tokens','total_tokens']:
+                              if type(amount) is not int or not 0<=amount<=10000000: return False
+                          elif name in ['input_tokens_details','output_tokens_details']:
+                              only='cached_tokens' if name=='input_tokens_details' else 'reasoning_tokens'
+                              if not isinstance(amount,dict) or set(amount)!={only} or type(amount[only]) is not int or not 0<=amount[only]<=10000000: return False
+                          else: return False
+                      return True
                   case_rows=rows[1:-1] if footer else rows[1:]
                   for index,row in enumerate(case_rows,1):
-                      if not isinstance(row,dict) or set(row)!={'type','index','case_id','elapsed_ms','provider_calls','result_origin','result'} or row.get('type')!='case' or row.get('index')!=index or not isinstance(row.get('case_id'),str) or row['case_id'] in ids or not re.fullmatch('[A-Za-z0-9_-]{1,80}',row['case_id']):
+                      if not isinstance(row,dict) or set(row)!={'type','index','case_id','elapsed_ms','provider_calls','result_origin','provider_metadata','result'} or row.get('type')!='case' or row.get('index')!=index or not isinstance(row.get('case_id'),str) or row['case_id'] in ids or not re.fullmatch('[A-Za-z0-9_-]{1,80}',row['case_id']):
                           valid=False
                           break
                       calls=row['provider_calls']
@@ -308,6 +324,14 @@ jobs:
                       if type(elapsed) is not int or not 0<=elapsed<=720000:
                           valid=False
                           break
+                      metadata=row['provider_metadata']
+                      if not metadata_valid(metadata) or (calls==0 and metadata is not None):
+                          valid=False
+                          break
+                      if metadata is not None:
+                          metadata_cases+=1
+                          if metadata['service_tier'] in ['fast','priority']: actual_fast_cases+=1
+                          if metadata['usage']: usage_cases+=1
                       result=row.get('result')
                       if not isinstance(result,dict):
                           valid=False
@@ -335,8 +359,8 @@ jobs:
                           model_cases+=1
                           provider_elapsed+=elapsed
                       ids.add(row['case_id'])
-                  count_fields=['expected_cases','exported_cases','processed_cases','provider_attempts','policy_cases','model_cases','policy_successful_cases','provider_successful_cases','successful_cases','duration_ms','case_elapsed_ms_sum','provider_case_elapsed_ms_sum','policy_case_elapsed_ms_sum']
-                  complete=valid and len(rows)==32 and len(ids)==30 and footer.get('complete') is True and all(type(footer.get(k)) is int for k in count_fields) and footer.get('expected_cases')==30 and footer.get('exported_cases')==30 and footer.get('processed_cases')==30 and footer.get('provider_attempts')==attempts and 0<=attempts<=30 and footer.get('policy_cases')==policy_cases and footer.get('model_cases')==model_cases and footer.get('policy_successful_cases')==policy_success and footer.get('provider_successful_cases')==provider_success and footer.get('successful_cases')==success and footer.get('errors')==dict(errors) and footer.get('case_elapsed_ms_sum')==case_elapsed and footer.get('provider_case_elapsed_ms_sum')==provider_elapsed and footer.get('policy_case_elapsed_ms_sum')==policy_elapsed and 0<=footer['duration_ms']<=720000 and footer['duration_ms']+30>=case_elapsed and all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok'])
+                  count_fields=['expected_cases','exported_cases','processed_cases','provider_attempts','policy_cases','model_cases','policy_successful_cases','provider_successful_cases','successful_cases','duration_ms','case_elapsed_ms_sum','provider_case_elapsed_ms_sum','policy_case_elapsed_ms_sum','provider_metadata_cases','actual_fast_cases','usage_observed_cases']
+                  complete=valid and len(rows)==32 and len(ids)==30 and footer.get('complete') is True and all(type(footer.get(k)) is int for k in count_fields) and footer.get('expected_cases')==30 and footer.get('exported_cases')==30 and footer.get('processed_cases')==30 and footer.get('provider_attempts')==attempts and 0<=attempts<=30 and footer.get('policy_cases')==policy_cases and footer.get('model_cases')==model_cases and footer.get('policy_successful_cases')==policy_success and footer.get('provider_successful_cases')==provider_success and footer.get('successful_cases')==success and footer.get('errors')==dict(errors) and footer.get('provider_metadata_cases')==metadata_cases and footer.get('actual_fast_cases')==actual_fast_cases and footer.get('usage_observed_cases')==usage_cases and footer.get('case_elapsed_ms_sum')==case_elapsed and footer.get('provider_case_elapsed_ms_sum')==provider_elapsed and footer.get('policy_case_elapsed_ms_sum')==policy_elapsed and 0<=footer['duration_ms']<=720000 and footer['duration_ms']+30>=case_elapsed and all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok'])
                   now=dt.datetime.now(dt.timezone.utc)
                   for field,row in [('generated_at',header),('finished_at',footer)]:
                       try:
@@ -344,10 +368,10 @@ jobs:
                           complete=complete and -60<=(now-stamp).total_seconds()<=3600
                       except Exception: complete=False
                   recipient=pyrage.x25519.Recipient.from_str(task['output_recipient'])
-                  envelope={'schema':'manager_ai_draft_eval_envelope_v3','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_bundle_sha256':task['source_bundle_sha256'],'recipient':str(recipient),'plaintext_sha256':hashlib.sha256(data).hexdigest(),'plaintext_bytes':len(data),'complete':complete,'execution':execution}
+                  envelope={'schema':'manager_ai_draft_eval_envelope_v4','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_bundle_sha256':task['source_bundle_sha256'],'recipient':str(recipient),'plaintext_sha256':hashlib.sha256(data).hexdigest(),'plaintext_bytes':len(data),'complete':complete,'execution':execution}
                   encrypted=pyrage.encrypt(json.dumps(envelope,separators=(',',':')).encode()+b'\n'+data,[recipient])
                   (private/'result.age').write_bytes(encrypted)
-                  manifest={'schema':'manager_ai_draft_eval_manifest_v3','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_commit':os.environ['GITHUB_SHA'],'source_bundle_sha256':task['source_bundle_sha256'],'ciphertext_sha256':hashlib.sha256(encrypted).hexdigest(),'ciphertext_bytes':len(encrypted),'complete':complete,'expected_cases':30,'completed_cases':len(ids),'processed_cases':len(ids),'provider_attempts':attempts if complete else None,'provider_attempts_recorded':attempts,'policy_cases':policy_cases,'model_cases':model_cases,'successful_cases':success,'policy_successful_cases':policy_success,'provider_successful_cases':provider_success,'duration_ms':footer['duration_ms'] if complete else None,'case_elapsed_ms_sum':case_elapsed,'provider_case_elapsed_ms_sum':provider_elapsed,'policy_case_elapsed_ms_sum':policy_elapsed,'errors':dict(errors),'execution':execution,'output_status':'complete' if complete else 'partial'}
+                  manifest={'schema':'manager_ai_draft_eval_manifest_v4','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_commit':os.environ['GITHUB_SHA'],'source_bundle_sha256':task['source_bundle_sha256'],'ciphertext_sha256':hashlib.sha256(encrypted).hexdigest(),'ciphertext_bytes':len(encrypted),'complete':complete,'expected_cases':30,'completed_cases':len(ids),'processed_cases':len(ids),'provider_attempts':attempts if complete else None,'provider_attempts_recorded':attempts,'policy_cases':policy_cases,'model_cases':model_cases,'successful_cases':success,'policy_successful_cases':policy_success,'provider_successful_cases':provider_success,'duration_ms':footer['duration_ms'] if complete else None,'case_elapsed_ms_sum':case_elapsed,'provider_case_elapsed_ms_sum':provider_elapsed,'policy_case_elapsed_ms_sum':policy_elapsed,'provider_metadata_cases':metadata_cases,'actual_fast_cases':actual_fast_cases,'usage_observed_cases':usage_cases,'errors':dict(errors),'execution':execution,'output_status':'complete' if complete else 'partial'}
                   (private/'manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n')
                   with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('ready=true\n')
               elif phase=='cleanup':
