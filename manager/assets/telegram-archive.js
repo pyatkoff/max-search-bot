@@ -44,19 +44,23 @@
             if (account.connected) {
                 var controls = node('div', 'accountActions');
                 var select = node('select');
-                select.setAttribute('aria-label', 'Менеджер для ' + (account.display_name || account.username || 'аккаунта'));
-                var placeholder = node('option', '', 'Выберите менеджера'); placeholder.value = ''; select.appendChild(placeholder);
+                select.setAttribute('aria-label', 'Привязка для ' + (account.display_name || account.username || 'аккаунта'));
+                var placeholder = node('option', '', 'Общий аккаунт или менеджер'); placeholder.value = ''; select.appendChild(placeholder);
+                var shared = node('option', '', 'Общий аккаунт'); shared.value = 'shared'; select.appendChild(shared);
                 data.managers.forEach(function (manager) {
                     var option = node('option', '', manager.display_name); option.value = String(manager.id); select.appendChild(option);
                 });
-                select.value = account.manager_id || '';
+                select.value = account.manager_id || (account.approved ? 'shared' : '');
                 controls.appendChild(select);
-                var approve = node('button', 'button', account.approved ? 'Сохранить менеджера' : 'Включить сбор'); approve.type = 'button';
+                var approve = node('button', 'button', account.approved ? 'Сохранить' : 'Включить сбор'); approve.type = 'button';
                 approve.addEventListener('click', function () {
-                    if (!select.value) { message('Выберите менеджера для этого аккаунта.', true); select.focus(); return; }
-                    perform({action: 'approve', account_id: account.account_id, manager_id: select.value}, 'Сбор для аккаунта включён.');
+                    if (!select.value) { message('Выберите общий аккаунт или конкретного менеджера.', true); select.focus(); return; }
+                    var choice = {action: 'approve', account_id: account.account_id, account_type: select.value === 'shared' ? 'shared' : 'manager'};
+                    if (select.value !== 'shared') choice.manager_id = select.value;
+                    perform(choice, 'Сбор для аккаунта включён.');
                 });
                 controls.appendChild(approve); card.appendChild(controls);
+                card.appendChild(node('p', 'accountHint', 'Для общего аккаунта подписи менеджеров сохраняются в тексте переписки.'));
                 if (account.approved) {
                     var disable = node('button', 'textButton', 'Остановить сбор'); disable.type = 'button';
                     disable.addEventListener('click', function () { perform({action: 'disable', account_id: account.account_id}, 'Сбор для аккаунта остановлен.'); });

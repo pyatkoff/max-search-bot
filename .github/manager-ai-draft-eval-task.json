@@ -1,1 +1,8 @@
-{"schema":"manager_ai_draft_eval_task_v1","phase":"cleanup","task_token":"5039c586ee7278d7dee3dc109eba61c2d99887676699a686","production_sha":"8e6aa41623cceba0a2e00d0285b271fe17f65d9c","source_bundle_sha256":"81cf00eb6db202fa2f539e78f58b84dd5b44cac13aa6686ba02962454b99efd3","output_recipient":"age1zcne4jw0le7ecz2ur4c2cs9q7ss3f5drsaxfaadgsu6eej969vtsgw2xfz","ssh_host_key":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA"}
+{
+  "schema": "manager_ai_draft_eval_task_v1",
+  "phase": "prepare",
+  "task_token": "9bd4c58fbadfec9035c5d1ccd148b8126689e2a0db16d4b6",
+  "production_sha": "d5cbb401002f851fc327584bf67b7f5ffd0b20df",
+  "source_bundle_sha256": "14c9bd8e2eac4dcd6dde72d72d2fec6b7b0c4af1a26a9b5975fadeb23a98ac1d",
+  "output_recipient": "age1eys9ha6mq36elesda07v8hh46kpmev4l3x3hupv0usmapzghrqksyayhez"
+}

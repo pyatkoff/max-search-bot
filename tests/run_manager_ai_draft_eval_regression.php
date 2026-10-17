@@ -149,8 +149,22 @@ evalCheck('future-message context is refused before a provider is relevant',
 
 // Exercise the evaluator's actual shared path, including the deterministic
 // service policy. Synthetic transports never call ManagerDraftClient.
-evalCheck('changed provider-count contract has its own output schema',
-    ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v2');
+evalCheck('profile and monotonic-duration contract has its own output schema',
+    ManagerAiDraftEval::OUTPUT_SCHEMA==='manager_ai_draft_eval_output_v3');
+$actualRequest=ManagerDraftClient::requestBody('synthetic instructions',[]);
+evalCheck('header profile is derived from the actual isolated client request projection',
+    evalCall('requestedProfile',$actualRequest)===['model'=>'gpt-6.1-sol','reasoning_effort'=>'low','service_tier'=>null]
+    && !array_key_exists('service_tier',$actualRequest));
+foreach ([
+    'other model'=>['model'=>'gpt-5.6-luna','reasoning'=>['effort'=>'low']],
+    'implicit reasoning'=>['model'=>'gpt-6.1-sol'],
+    'other effort'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'medium']],
+    'premium tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'priority'],
+    'explicit null tier'=>['model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>null],
+] as $name=>$request) {
+    evalCheck('profile mismatch refuses '.$name.' before provider is relevant',
+        evalRejects(static fn()=>evalCall('requestedProfile',$request)));
+}
 $modelTransportCalls=0;
 $modelRecord=evalCall('runCase',['case_id'=>'model_ok','context'=>evalContext()],1,
     static function(string $instructions,array $payload) use (&$modelTransportCalls): array {
@@ -192,6 +206,26 @@ evalCheck('mixed results separate successful model outputs from policy answers',
     && $summary['successful_cases']===2 && $summary['provider_successful_cases']===1
     && $summary['policy_successful_cases']===1 && is_object($summary['errors'])
     && (array)$summary['errors']===['provider_timeout'=>1]);
+$timedModel=$modelRecord; $timedModel['elapsed_ms']=125;
+$timedError=$errorRecord; $timedError['elapsed_ms']=250;
+$timedPolicy=$policyRecord; $timedPolicy['elapsed_ms']=2;
+$timedSummary=evalCall('summarize',[$timedModel,$timedError,$timedPolicy]);
+evalCheck('monotonic durations include failed provider attempts and separate zero-call policy',
+    $timedSummary['case_elapsed_ms_sum']===377
+    && $timedSummary['provider_case_elapsed_ms_sum']===375
+    && $timedSummary['policy_case_elapsed_ms_sum']===2);
+foreach (['boolean'=>true,'fraction'=>1.5,'string'=>'1','negative'=>-1,'over time budget'=>720001] as $name=>$badTime) {
+    $badRecord=$modelRecord; $badRecord['elapsed_ms']=$badTime;
+    evalCheck('summary rejects '.$name.' duration',
+        evalRejects(static fn()=>evalCall('summarize',[$badRecord])));
+}
+$clockRecord=evalCall('runCase',['case_id'=>'monotonic_clock','context'=>evalContext()],1,
+    static function(string $instructions,array $payload): array {
+        usleep(3000); return evalModelResult();
+    });
+evalCheck('per-case duration is measured around the actual service path with the server clock',
+    is_int($clockRecord['elapsed_ms']) && $clockRecord['elapsed_ms']>=1
+    && $clockRecord['elapsed_ms']<=ManagerAiDraftEval::MAX_DURATION_MS);
 $records=[];
 for ($i=0;$i<30;$i++) {
     $record=$i<10?$policyRecord:($i<25?$modelRecord:$errorRecord);

@@ -12,11 +12,12 @@ declare(strict_types=1);
 final class ManagerAiDraftEval
 {
     public const INPUT_SCHEMA = 'manager_ai_draft_eval_input_v1';
-    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v2';
+    public const OUTPUT_SCHEMA = 'manager_ai_draft_eval_output_v3';
     public const CASES = 30;
     public const TTL = 3600;
     public const MAX_CIPHERTEXT_BYTES = 65536;
     public const MAX_PLAINTEXT_BYTES = 2097152;
+    public const MAX_DURATION_MS = 720000;
     private const ROOT = '/var/www/anytoour/data/www/app.anytoour.ru';
     private const REPOSITORY = 'pyatkoff/max-search-bot';
     private const DIRECTORY_PREFIX = '/tmp/max-search-bot-manager-ai-eval-';
@@ -231,8 +232,7 @@ final class ManagerAiDraftEval
                 }
             }
             $requestShape = ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),[]);
-            $configuredModel = $requestShape['model']??null;
-            if (!is_string($configuredModel) || $configuredModel==='') throw new RuntimeException('invalid_model');
+            $requestedProfile = self::requestedProfile($requestShape);
             self::write([
                 'type'=>'header','schema'=>self::OUTPUT_SCHEMA,'repository'=>self::REPOSITORY,
                 'task_token'=>$options['task-token'],'production_sha'=>$options['production-sha'],
@@ -242,19 +242,27 @@ final class ManagerAiDraftEval
                 'generated_at'=>gmdate('Y-m-d\TH:i:s\Z'),'expected_cases'=>self::CASES,
                 'provider'=>'ManagerDraftClient::requestJson','retries'=>0,
                 'max_provider_calls'=>self::CASES,'max_provider_calls_per_case'=>1,
-                'model'=>$configuredModel,
+                'model'=>$requestedProfile['model'],'requested_profile'=>$requestedProfile,
+                'duration_clock'=>'server_monotonic_hrtime',
             ]);
             $records = [];
+            $batchStarted = hrtime(true);
             foreach ($cases as $index=>$case) {
                 $record = self::runCase($case,$index+1,[ManagerDraftClient::class,'requestJson']);
                 $records[] = $record;
                 self::write($record);
             }
+            $durationMs = (int)round((hrtime(true)-$batchStarted)/1000000);
             $summary = self::summarize($records);
             if ($summary['processed_cases']!==self::CASES) throw new RuntimeException('case_count_mismatch');
+            if ($durationMs<0 || $durationMs>self::MAX_DURATION_MS
+                || $durationMs+self::CASES<$summary['case_elapsed_ms_sum']) {
+                throw new RuntimeException('duration_mismatch');
+            }
             self::verifyProduction($options['production-sha']);
             self::write(['type'=>'footer','complete'=>true,'finished_at'=>gmdate('Y-m-d\TH:i:s\Z'),
-                'expected_cases'=>self::CASES,'exported_cases'=>count($cases)] + $summary);
+                'expected_cases'=>self::CASES,'exported_cases'=>count($cases),
+                'duration_ms'=>$durationMs] + $summary);
         } finally {
             if (is_string($keypair) && $keypair !== '') sodium_memzero($keypair);
             if (is_string($plain) && $plain !== '') sodium_memzero($plain);
@@ -266,6 +274,19 @@ final class ManagerAiDraftEval
                 fclose($handle);
             }
         }
+    }
+
+    /** Verify the actual request projection before spending any provider call. */
+    private static function requestedProfile(array $request): array
+    {
+        if (($request['model']??null)!=='gpt-6.1-sol' || !is_array($request['reasoning']??null)
+            || ($request['reasoning']['effort']??null)!=='low' || array_key_exists('service_tier',$request)) {
+            throw new RuntimeException('requested_profile_mismatch');
+        }
+        // No service_tier field was requested; no resolved provider tier or
+        // response-side model metadata is observed by this isolated client.
+        return ['model'=>$request['model'],'reasoning_effort'=>$request['reasoning']['effort'],
+            'service_tier'=>null];
     }
 
     /** Actual service path shared by evaluation and isolated synthetic tests. */
@@ -292,7 +313,8 @@ final class ManagerAiDraftEval
         if (count($records)>self::CASES) throw new RuntimeException('case_count_mismatch');
         $summary = ['processed_cases'=>count($records),'provider_attempts'=>0,
             'policy_cases'=>0,'model_cases'=>0,'successful_cases'=>0,
-            'policy_successful_cases'=>0,'provider_successful_cases'=>0];
+            'policy_successful_cases'=>0,'provider_successful_cases'=>0,
+            'case_elapsed_ms_sum'=>0,'provider_case_elapsed_ms_sum'=>0,'policy_case_elapsed_ms_sum'=>0];
         $errors = [];
         $safeErrors = ['provider_unavailable','provider_not_configured','provider_refused',
             'provider_incomplete','provider_timeout','provider_response_too_large','invalid_ai_response'];
@@ -301,8 +323,14 @@ final class ManagerAiDraftEval
             if (!is_int($calls) || !in_array($calls,[0,1],true)
                 || ($record['result_origin']??'')!==($calls===0?'policy':'model')
                 || !is_array($record['result']??null)) throw new RuntimeException('case_count_mismatch');
+            $elapsed = $record['elapsed_ms']??null;
+            if (!is_int($elapsed) || $elapsed<0 || $elapsed>self::MAX_DURATION_MS) {
+                throw new RuntimeException('duration_mismatch');
+            }
             $summary['provider_attempts'] += $calls;
             ++$summary[$calls===0?'policy_cases':'model_cases'];
+            $summary['case_elapsed_ms_sum'] += $elapsed;
+            $summary[$calls===0?'policy_case_elapsed_ms_sum':'provider_case_elapsed_ms_sum'] += $elapsed;
             if (($record['result']['ok']??null)===true) {
                 ++$summary['successful_cases'];
                 ++$summary[$calls===0?'policy_successful_cases':'provider_successful_cases'];

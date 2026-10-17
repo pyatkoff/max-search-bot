@@ -12,10 +12,25 @@ manager action. Nothing is generated on startup, polling or conversation open.
   and strict reply ownership; short read-only snapshots; revision fingerprint.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.
 - `ai/ManagerDraftClient.php`: fixed OpenAI Responses endpoint, existing
-  `OPENAI_API_KEY` / `OPENAI_MODEL`, strict JSON schema, `store:false`, no tools,
+  `OPENAI_API_KEY`, feature-specific model/reasoning, strict JSON schema, `store:false`, no tools,
   no redirects, bounded response and a 20-second timeout. No automatic retries.
 - `workspace-v2-ai-draft.js`: preview, stale-result fencing and explicit insertion
   through `WorkspaceV2Conversation.insertQuickReply`; no new send implementation.
+
+The draft profile defaults to `gpt-6.1-sol` with explicit
+`reasoning: {effort: "low"}`. Optional `MANAGER_AI_DRAFT_MODEL` and
+`MANAGER_AI_DRAFT_REASONING` constants affect this feature only; the bot's
+`OPENAI_MODEL` is neither read nor changed by the draft client. Supported draft
+efforts are `low`, `medium`, `high`, `xhigh` and `max`; `none`, `minimal` and
+malformed values fail closed. No runtime config change is included in this slice.
+
+[Official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
+confirms these efforts. With reasoning enabled, the
+[GPT-6.1 Sol migration guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6.1-sol)
+excludes sampling parameters such as `temperature`; none are sent. No premium
+service tier is selected. Existing timeout/token/byte limits remain in force;
+compare quality and elapsed time on private representative cases before claiming
+a speed improvement. Synthetic profile regressions do not call the provider.
 
 The normal project initializer has a legacy UPSERT. This endpoint invokes
 `ProjectAccessService::initializeReadOnly()` before auth instead. Draft generation

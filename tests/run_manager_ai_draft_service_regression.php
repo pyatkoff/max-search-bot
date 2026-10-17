@@ -36,6 +36,22 @@ function draftEnvelope(array $result): string
         'content'=>[['type'=>'output_text','text'=>json_encode($result,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]]]]],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
 }
 
+/** Constants cannot be redefined in-process. These children only build request arrays, never call a provider. */
+function draftProfileFixture(array $constants): array
+{
+    $code='require '.var_export(dirname(__DIR__).'/ai/ManagerDraftClient.php',true).';';
+    foreach ($constants as $name=>$value) $code.='define('.var_export($name,true).','.var_export($value,true).');';
+    $code.='try {echo json_encode(["body"=>ManagerDraftClient::requestBody("Synthetic profile test",[])],JSON_THROW_ON_ERROR);}'
+        .'catch (Throwable $ignored) {echo "{\"rejected\":true}";}';
+    $process=proc_open([PHP_BINARY,'-r',$code],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    if (!is_resource($process)) return [];
+    fclose($pipes[0]);$output=stream_get_contents($pipes[1]);fclose($pipes[1]);
+    $error=stream_get_contents($pipes[2]);fclose($pipes[2]);$status=proc_close($process);
+    if ($status!==0 || $error!=='') return [];
+    $decoded=json_decode($output,true);
+    return is_array($decoded)?$decoded:[];
+}
+
 $context=draftContext();$original=$context;$calls=0;$captured=[];
 $context['manager_id']=999;$context['private_metadata']='PRIVATE_METADATA_CANARY';
 $context['verified_company_facts']=['unapproved'=>'COMPANY_FACT_CANARY'];
@@ -177,6 +193,29 @@ $schema=ManagerAiDraftService::responseSchema();
 draftCheck('strict schema rejects unknown fields and requires every result field',$schema['additionalProperties']===false
     && $schema['required']===array_keys($schema['properties']) && count($schema['required'])===8);
 $body=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),draftContext());
+draftCheck('manager drafts default to GPT-6.1 Sol with explicit low reasoning',
+    $body['model']==='gpt-6.1-sol' && $body['reasoning']===['effort'=>'low']);
+$isolated=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model']);
+draftCheck('legacy bot model cannot alter the manager draft profile',
+    ($isolated['body']['model']??null)==='gpt-6.1-sol' && ($isolated['body']['reasoning']??null)===['effort'=>'low']);
+$overridden=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model','MANAGER_AI_DRAFT_MODEL'=>'synthetic-manager-model','MANAGER_AI_DRAFT_REASONING'=>'high']);
+draftCheck('feature-specific model and reasoning overrides stay isolated',
+    ($overridden['body']['model']??null)==='synthetic-manager-model' && ($overridden['body']['reasoning']??null)===['effort'=>'high']);
+foreach (['low','medium','high','xhigh','max'] as $effort) {
+    $configured=draftProfileFixture(['MANAGER_AI_DRAFT_REASONING'=>$effort]);
+    draftCheck('accepts supported manager reasoning '.$effort,($configured['body']['reasoning']??null)===['effort'=>$effort]);
+}
+foreach (['none','minimal','unknown','',null,[],false] as $effort) {
+    draftCheck('rejects unsupported or malformed manager reasoning '.get_debug_type($effort).(is_string($effort)?':'.$effort:''),
+        draftProfileFixture(['MANAGER_AI_DRAFT_REASONING'=>$effort])===['rejected'=>true]);
+}
+foreach (['','unsafe model',null,[],123] as $model) {
+    draftCheck('rejects malformed feature model '.get_debug_type($model),
+        draftProfileFixture(['MANAGER_AI_DRAFT_MODEL'=>$model])===['rejected'=>true]);
+}
+draftCheck('reasoning requests add no unsupported sampling or premium tier parameters',
+    !array_key_exists('temperature',$body) && !array_key_exists('top_p',$body)
+    && !array_key_exists('top_logprobs',$body) && !array_key_exists('service_tier',$body));
 draftCheck('transport is stateless and uses strict structured output',$body['store']===false && $body['text']['format']['strict']===true
     && $body['text']['format']['type']==='json_schema' && $body['text']['format']['schema']===$schema);
 draftCheck('request enables no tools or linked provider conversation',!isset($body['tools']) && !isset($body['previous_response_id']) && !isset($body['conversation'])
