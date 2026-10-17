@@ -85,6 +85,26 @@ are not bundled or silently loaded. Future knowledge retrieval must require
 approval provenance for company/team facts and scope personal knowledge to its
 actual author; current conversation ownership is not authorship.
 
+Archive-derived procedural learning is a versioned instruction change, not
+weight fine-tuning or automatic ingestion of historical replies. The draft
+instructions preserve the bot's existing whole-party budget default unless the
+customer explicitly gives a per-person amount; genuine ambiguity between
+families/rooms still needs clarification. They distinguish service type, room
+plans, actual travellers versus tariff labels, days versus nights and arrival
+deadlines. Forwarded posts do not establish the speaker's personal authorship,
+customer agreement or current offer facts.
+
+When a question depends on an already supplied attachment or selection, the
+manager should inspect it before asking the customer to repeat the same data.
+Unread old media must not block an unrelated answer. Neither the customer draft
+nor the internal reason may claim that unread media were inspected or contain a
+particular document. AI limitations stay in reason/checks, not in the manager's
+voice to the customer; a concrete check can be more useful than an empty promise.
+These procedures do not approve company facts, learn an individual manager's
+style or establish production accuracy. Validate changes on separate past-only
+histories with the same fixed model/profile, distinguishing helpful drafts from
+justified abstentions and policy-only results from actual provider calls.
+
 The provider payload always receives an empty `verified_company_facts` list in
 this slice. A narrow deterministic check of the latest real customer question
 about the agency's office/address or a personal visit returns manager checks
@@ -103,7 +123,7 @@ presented as current availability.
 
 `no_contact` is advice about the proposed message, not a status change or a
 permanent prohibition. This slice does not implement timed follow-up scoring,
-automatic tour selection, training, personal style learning or autonomous sends.
+automatic tour selection, weight fine-tuning, personal style learning or autonomous sends.
 
 ## Verification
 
