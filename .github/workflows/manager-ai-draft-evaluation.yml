@@ -1,0 +1,395 @@
+name: Private manager AI draft evaluation
+
+# A new workflow_dispatch file cannot run before it reaches the default branch.
+# The single allowlisted task branch supports review/evaluation before a merge.
+# Its task file contains public metadata and sealed ciphertext ONLY, never the
+# owner age identity, production credentials, plaintext fixtures or AI output.
+on:
+  push:
+    branches: ['analysis/manager-ai-draft-eval-20261017']
+    paths:
+      - '.github/manager-ai-draft-eval-task.json'
+      - '.github/workflows/manager-ai-draft-evaluation.yml'
+      - 'tools/manager_ai_draft_eval.php'
+      - 'ai/ManagerDraftClient.php'
+      - 'services/ManagerAiDraftService.php'
+  workflow_dispatch:
+    inputs:
+      task_json:
+        description: 'Public task metadata and sealed ciphertext only; same schema as the task JSON file'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-manager-ai-draft-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      PRIVATE_DIR: ${{ runner.temp }}/private-manager-ai-eval
+    steps:
+      - name: Checkout reviewed source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Validate public task, exact source bundle and current main before credentials
+        id: task
+        env:
+          DISPATCH_TASK: ${{ inputs.task_json }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/analysis/manager-ai-draft-eval-20261017'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          umask 077
+          mkdir -m 700 "$PRIVATE_DIR"
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, re, sys
+          def fail():
+              raise SystemExit('invalid_private_evaluation_task')
+          try:
+              if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
+                  raw = os.environ.get('DISPATCH_TASK', '')
+              else:
+                  with pathlib.Path('.github/manager-ai-draft-eval-task.json').open('rb') as stream:
+                      raw = stream.read(65537).decode('utf-8')
+              if len(raw.encode()) > 65536: fail()
+              task = json.loads(raw)
+              common = {'schema','phase','task_token','production_sha','source_bundle_sha256','output_recipient'}
+              if not isinstance(task, dict) or task.get('schema') != 'manager_ai_draft_eval_task_v1': fail()
+              phase = task.get('phase')
+              if phase not in ('prepare','evaluate','cleanup'): fail()
+              expected = common | ({'ciphertext_base64','ssh_host_key'} if phase == 'evaluate' else {'ssh_host_key'} if phase == 'cleanup' else set())
+              if set(task) != expected: fail()
+              for key, pattern in [('task_token',r'[0-9a-f]{48}'),('production_sha',r'[0-9a-f]{40}'),('source_bundle_sha256',r'[0-9a-f]{64}'),('output_recipient',r'age1[0-9a-z]{58}')]:
+                  if not isinstance(task.get(key),str) or not re.fullmatch(pattern,task[key]): fail()
+              sealed = task.get('ciphertext_base64','')
+              if phase in ('evaluate','cleanup'):
+                  hostkey=task['ssh_host_key']
+                  if not isinstance(hostkey,str) or len(hostkey)>2048 or not re.fullmatch(r'(?:ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256) [A-Za-z0-9+/]+={0,2}',hostkey): fail()
+                  base64.b64decode(hostkey.split()[1],validate=True)
+              if phase == 'evaluate':
+                  if not isinstance(sealed,str) or len(sealed)>65536 or not re.fullmatch(r'[A-Za-z0-9+/]+={0,2}',sealed): fail()
+                  decoded = base64.b64decode(sealed,validate=True)
+                  if not 48<len(decoded)<=65536: fail()
+              prefix = "<?php\ndeclare(strict_types=1);\ndefine('MANAGER_AI_DRAFT_EVAL_LIBRARY_ONLY', true);\n"
+              pieces = []
+              for filename in ['ai/ManagerDraftClient.php','services/ManagerAiDraftService.php','tools/manager_ai_draft_eval.php']:
+                  text = pathlib.Path(filename).read_text()
+                  if not text.startswith('<?php\n') or '\r' in text: fail()
+                  text = text[len('<?php\n'):]
+                  text, count = re.subn(r'^\s*declare\(strict_types=1\);\s*', '', text, count=1)
+                  if count != 1: fail()
+                  if filename == 'services/ManagerAiDraftService.php':
+                      text,count = re.subn(r"^require_once dirname\(__DIR__\)\.'/ai/ManagerDraftClient.php';\s*",'',text,count=1)
+                      if count != 1: fail()
+                  pieces.append(text+'\n')
+              bundle = (prefix+''.join(pieces)).encode()
+              if hashlib.sha256(bundle).hexdigest() != task['source_bundle_sha256']: fail()
+              private = pathlib.Path(os.environ['PRIVATE_DIR'])
+              # The input is already sealed ciphertext. It is never PHP source.
+              tail = "\nexit(ManagerAiDraftEval::main($_SERVER['argv']??[], '"+sealed+"'));\n"
+              (private/'remote.php').write_bytes(bundle+tail.encode())
+              (private/'cleanup.php').write_bytes(bundle+b"\nexit(ManagerAiDraftEval::main($_SERVER['argv']??[]));\n")
+              (private/'task.json').write_text(json.dumps(task,separators=(',',':')))
+              for path in private.iterdir(): path.chmod(0o600)
+              with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                  for key in ['phase','task_token','production_sha','source_bundle_sha256']:
+                      output.write(f'{key}={task[key]}\n')
+                  output.write('recipient_sha256='+hashlib.sha256(task['output_recipient'].encode()).hexdigest()+'\n')
+                  output.write('valid=true\n')
+          except SystemExit:
+              raise
+          except Exception:
+              fail()
+          PY
+          php -l "$PRIVATE_DIR/remote.php" >/dev/null
+          php -l "$PRIVATE_DIR/cleanup.php" >/dev/null
+
+      - name: Verify authoritative main before SSH credentials
+        env:
+          PRODUCTION_SHA: ${{ steps.task.outputs.production_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$PRODUCTION_SHA"
+
+      - name: Prepare pinned output encryption
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$PRIVATE_DIR/python"
+          "$PRIVATE_DIR/python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
+          "$PRIVATE_DIR/python/bin/python" - <<'PY'
+          import json, os, pathlib, pyrage
+          task=json.loads((pathlib.Path(os.environ['PRIVATE_DIR'])/'task.json').read_text())
+          try:
+              pyrage.x25519.Recipient.from_str(task['output_recipient'])
+          except Exception:
+              raise SystemExit('invalid_private_evaluation_recipient') from None
+          PY
+
+      - name: Prepare existing SSH identity privately
+        id: key
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$PRIVATE_DIR/ssh_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null 2>&1
+
+      - name: Run only the reviewed private CLI through SSH stdin
+        id: remote
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          PHASE: ${{ steps.task.outputs.phase }}
+          TASK_TOKEN: ${{ steps.task.outputs.task_token }}
+          PRODUCTION_SHA: ${{ steps.task.outputs.production_sha }}
+          BUNDLE_SHA256: ${{ steps.task.outputs.source_bundle_sha256 }}
+          RECIPIENT_SHA256: ${{ steps.task.outputs.recipient_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh_opts=(-i "$PRIVATE_DIR/ssh_key" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$PRIVATE_DIR/known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          if [ "$PHASE" != 'prepare' ]; then
+            # Host identity was independently proved via fixed-origin HTTPS in
+            # prepare, before any real fixture is sent to this pinned server.
+            python3 - <<'PY'
+          import json,os,pathlib
+          private=pathlib.Path(os.environ['PRIVATE_DIR'])
+          task=json.loads((private/'task.json').read_text())
+          host=os.environ['DEPLOY_HOST']
+          if not host or any(c.isspace() for c in host) or any(c in host for c in ',[]*?!\\'):
+              raise SystemExit('invalid_private_evaluation_host')
+          (private/'known_hosts').write_text(host+' '+task['ssh_host_key']+'\n')
+          (private/'known_hosts').chmod(0o600)
+          PY
+            ssh_opts=(-i "$PRIVATE_DIR/ssh_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$PRIVATE_DIR/known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          fi
+          deployed="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && git rev-parse HEAD" 2>/dev/null)"
+          test "$deployed" = "$PRODUCTION_SHA"
+          # The first prepare handshake can only produce PUBLIC proof bytes.
+          # Keep that exact host pinned for prepare and authenticate it via TLS.
+          ssh_opts=(-i "$PRIVATE_DIR/ssh_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$PRIVATE_DIR/known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          # No production source/config installation. stdout and stderr are
+          # private files, never streamed into Actions logs or public reports.
+          echo 'ran=true' >> "$GITHUB_OUTPUT"
+          remote_ok=true
+          timeout 720 ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin --phase='$PHASE' --task-token='$TASK_TOKEN' --production-sha='$PRODUCTION_SHA' --bundle-sha256='$BUNDLE_SHA256' --recipient-sha256='$RECIPIENT_SHA256'" \
+            < "$PRIVATE_DIR/remote.php" > "$PRIVATE_DIR/remote-output.jsonl" 2> "$PRIVATE_DIR/remote-stderr.txt" || remote_ok=false
+          chmod 600 "$PRIVATE_DIR/remote-output.jsonl" "$PRIVATE_DIR/remote-stderr.txt"
+          if [ "$PHASE" = 'prepare' ] && [ "$remote_ok" = true ]; then
+            proof_url="https://app.anytoour.ru/manager2/assets/ai-eval-proof-$TASK_TOKEN.json"
+            if ! curl --fail --silent --show-error --proto '=https' --tlsv1.2 --max-time 20 --connect-timeout 5 --max-filesize 8192 --noproxy '*' \
+              "$proof_url" > "$PRIVATE_DIR/https-proof.json" 2> "$PRIVATE_DIR/https-stderr.txt" \
+              || ! cmp -s "$PRIVATE_DIR/https-proof.json" "$PRIVATE_DIR/remote-output.jsonl"; then
+              remote_ok=false
+            else
+              # Exact TLS-origin bytes bind the nonce, public sodium key and
+              # accepted SSH host key; there is no private data in this proof.
+              touch "$PRIVATE_DIR/https-proof-verified"
+              ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
+                "rm -f '$root/manager2/assets/ai-eval-proof-$TASK_TOKEN.json'" >/dev/null 2>/dev/null || remote_ok=false
+            fi
+          fi
+          deployed_ok=false
+          deployed_after="$(ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && git rev-parse HEAD" 2>/dev/null || true)"
+          if [ "$deployed_after" = "$PRODUCTION_SHA" ]; then deployed_ok=true; fi
+          main_ok=false
+          if git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main && [ "$(git rev-parse refs/remotes/origin/main)" = "$PRODUCTION_SHA" ]; then main_ok=true; fi
+          printf '{"remote_ok":%s,"deployed_ok":%s,"main_ok":%s}\n' "$remote_ok" "$deployed_ok" "$main_ok" > "$PRIVATE_DIR/execution.json"
+          # Preserve completed private cases even when the process or final
+          # SHA check fails. The final gate stays red and never permits a retry.
+          if [ "$PHASE" != 'evaluate' ] && { [ "$remote_ok" != true ] || [ "$deployed_ok" != true ] || [ "$main_ok" != true ]; }; then exit 1; fi
+
+      - name: Validate public preparation or encrypt private evaluation output
+        id: encrypted
+        if: always() && steps.remote.outputs.ran == 'true'
+        env:
+          PHASE: ${{ steps.task.outputs.phase }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$PRIVATE_DIR/python/bin/python" - <<'PY'
+          import base64, collections, datetime as dt, hashlib, importlib.metadata, json, os, pathlib, re, sys
+          import pyrage
+          def fail(): raise SystemExit('invalid_private_evaluation_output')
+          try:
+              if importlib.metadata.version('pyrage')!='1.3.0': fail()
+              private=pathlib.Path(os.environ['PRIVATE_DIR'])
+              task=json.loads((private/'task.json').read_text())
+              with (private/'remote-output.jsonl').open('rb') as stream: data=stream.read(2097153)
+              if not data or len(data)>2097152: fail()
+              rows=[];parse_valid=data.endswith(b'\n') and b'\n\n' not in data
+              for line in data.splitlines():
+                  try: rows.append(json.loads(line))
+                  except Exception:
+                      parse_valid=False
+                      break
+              phase=os.environ['PHASE']
+              if phase=='prepare':
+                  if not parse_valid or len(rows)!=1: fail()
+                  execution=json.loads((private/'execution.json').read_text())
+                  if not all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok']): fail()
+                  row=rows[0]
+                  allowed={'type','ok','schema','repository','task_token','production_sha','source_bundle_sha256','output_recipient_sha256','lease_id','proof_nonce','created_at','expires_at','public_key','encryption','case_count'}
+                  if set(row)!=allowed or row['type']!='prepared' or row['ok'] is not True or row['schema']!='manager_ai_draft_eval_lease_v1' or row['repository']!='pyatkoff/max-search-bot' or row['case_count']!=30 or row['encryption']!='libsodium-sealed-box+gzip': fail()
+                  for field in ['task_token','production_sha','source_bundle_sha256']:
+                      if row[field]!=task[field]: fail()
+                  if row['output_recipient_sha256']!=hashlib.sha256(task['output_recipient'].encode()).hexdigest(): fail()
+                  if not re.fullmatch('[0-9a-f]{32}',row['lease_id']) or len(base64.b64decode(row['public_key'],validate=True))!=32: fail()
+                  if not re.fullmatch('[0-9a-f]{64}',row['proof_nonce']) or not (private/'https-proof-verified').is_file(): fail()
+                  hosts=[line.split() for line in (private/'known_hosts').read_text().splitlines() if line and not line.startswith('#')]
+                  if len(hosts)!=1 or len(hosts[0])!=3 or hosts[0][1] not in {'ssh-ed25519','ssh-rsa','ecdsa-sha2-nistp256'}: fail()
+                  row['ssh_host_key']=' '.join(hosts[0][1:])
+                  created=dt.datetime.fromisoformat(row['created_at'].replace('Z','+00:00'))
+                  expires=dt.datetime.fromisoformat(row['expires_at'].replace('Z','+00:00'))
+                  age=(dt.datetime.now(dt.timezone.utc)-created).total_seconds()
+                  if not -60<=age<=300 or (expires-created).total_seconds()!=3600: fail()
+                  row['source_commit']=os.environ['GITHUB_SHA']
+                  (private/'prepared.json').write_text(json.dumps(row,separators=(',',':'))+'\n')
+              elif phase=='evaluate':
+                  execution_path=private/'execution.json'
+                  execution=json.loads(execution_path.read_text()) if execution_path.is_file() else {'remote_ok':False,'deployed_ok':False,'main_ok':False}
+                  header=rows[0] if rows and isinstance(rows[0],dict) else {}
+                  footer=rows[-1] if rows and isinstance(rows[-1],dict) and rows[-1].get('type')=='footer' else {}
+                  valid=parse_valid and header.get('type')=='header' and header.get('schema')=='manager_ai_draft_eval_output_v1' and header.get('repository')=='pyatkoff/max-search-bot' and header.get('expected_cases')==30 and header.get('provider')=='ManagerDraftClient::requestJson' and header.get('retries')==0
+                  valid=valid and isinstance(header.get('model'),str) and re.fullmatch('[A-Za-z0-9][A-Za-z0-9._:-]{0,127}',header['model']) is not None
+                  for field in ['task_token','production_sha','source_bundle_sha256']:
+                      valid=valid and header.get(field)==task[field]
+                  valid=valid and header.get('output_recipient_sha256')==hashlib.sha256(task['output_recipient'].encode()).hexdigest()
+                  cipher=base64.b64decode(task['ciphertext_base64'],validate=True)
+                  valid=valid and header.get('ciphertext_sha256')==hashlib.sha256(cipher).hexdigest()
+                  ids=set();success=0;errors=collections.Counter()
+                  safe_errors={'provider_unavailable','provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large','invalid_ai_response'}
+                  case_rows=rows[1:-1] if footer else rows[1:]
+                  for index,row in enumerate(case_rows,1):
+                      if not isinstance(row,dict) or row.get('type')!='case' or row.get('index')!=index or not isinstance(row.get('case_id'),str) or row['case_id'] in ids or not re.fullmatch('[A-Za-z0-9_-]{1,80}',row['case_id']):
+                          valid=False
+                          break
+                      result=row.get('result')
+                      if not isinstance(result,dict):
+                          valid=False
+                          break
+                      if result.get('ok') is True:
+                          expected={'ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'}
+                          if set(result)!=expected:
+                              valid=False
+                              break
+                          success+=1
+                      else:
+                          code=result.get('error')
+                          if set(result)!={'ok','error'} or result.get('ok') is not False or code not in safe_errors:
+                              valid=False
+                              break
+                          errors[code]+=1
+                      ids.add(row['case_id'])
+                  complete=valid and len(rows)==32 and len(ids)==30 and footer.get('complete') is True and footer.get('expected_cases')==30 and footer.get('exported_cases')==30 and footer.get('provider_attempts')==30 and footer.get('successful_cases')==success and footer.get('errors')==dict(errors) and all(execution.get(k) is True for k in ['remote_ok','deployed_ok','main_ok'])
+                  now=dt.datetime.now(dt.timezone.utc)
+                  for field,row in [('generated_at',header),('finished_at',footer)]:
+                      try:
+                          stamp=dt.datetime.fromisoformat(row[field].replace('Z','+00:00'))
+                          complete=complete and -60<=(now-stamp).total_seconds()<=3600
+                      except Exception: complete=False
+                  recipient=pyrage.x25519.Recipient.from_str(task['output_recipient'])
+                  envelope={'schema':'manager_ai_draft_eval_envelope_v1','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_bundle_sha256':task['source_bundle_sha256'],'recipient':str(recipient),'plaintext_sha256':hashlib.sha256(data).hexdigest(),'plaintext_bytes':len(data),'complete':complete,'execution':execution}
+                  encrypted=pyrage.encrypt(json.dumps(envelope,separators=(',',':')).encode()+b'\n'+data,[recipient])
+                  (private/'result.age').write_bytes(encrypted)
+                  manifest={'schema':'manager_ai_draft_eval_manifest_v1','repository':'pyatkoff/max-search-bot','production_sha':task['production_sha'],'source_commit':os.environ['GITHUB_SHA'],'source_bundle_sha256':task['source_bundle_sha256'],'ciphertext_sha256':hashlib.sha256(encrypted).hexdigest(),'ciphertext_bytes':len(encrypted),'complete':complete,'expected_cases':30,'completed_cases':len(ids),'provider_attempts':footer.get('provider_attempts') if complete else None,'successful_cases':success,'errors':dict(errors),'execution':execution,'output_status':'complete' if complete else 'partial'}
+                  (private/'manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n')
+                  with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('ready=true\n')
+              elif phase=='cleanup':
+                  if not parse_valid or rows!=[{'type':'cleanup','ok':True}]: fail()
+              else: fail()
+              for path in private.iterdir():
+                  if path.is_file(): path.chmod(0o600)
+          except SystemExit:
+              raise
+          except Exception:
+              fail()
+          PY
+
+      - name: Upload public ephemeral recipient
+        id: prepared_artifact
+        if: steps.task.outputs.phase == 'prepare'
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-ai-eval-public-recipient-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/private-manager-ai-eval/prepared.json
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Upload encrypted private evaluation only
+        if: always() && steps.encrypted.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-ai-eval-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/private-manager-ai-eval/result.age
+            ${{ runner.temp }}/private-manager-ai-eval/manifest.json
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Require a complete evaluation after preserving encrypted evidence
+        if: always() && steps.task.outputs.phase == 'evaluate' && steps.remote.outputs.ran == 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          try:
+              path=pathlib.Path(os.environ['PRIVATE_DIR'])/'manifest.json'
+              if json.loads(path.read_text()).get('complete') is not True:
+                  raise ValueError()
+          except Exception:
+              raise SystemExit('private_evaluation_incomplete_no_retry') from None
+          PY
+
+      - name: Remove remote key after evaluation or a failed preparation
+        if: always() && steps.task.outputs.valid == 'true' && steps.key.outcome == 'success' && (steps.task.outputs.phase != 'prepare' || steps.prepared_artifact.outcome != 'success')
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          TASK_TOKEN: ${{ steps.task.outputs.task_token }}
+          PRODUCTION_SHA: ${{ steps.task.outputs.production_sha }}
+          BUNDLE_SHA256: ${{ steps.task.outputs.source_bundle_sha256 }}
+          RECIPIENT_SHA256: ${{ steps.task.outputs.recipient_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          ssh_opts=(-i "$PRIVATE_DIR/ssh_key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$PRIVATE_DIR/known_hosts" -o ConnectTimeout=10 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          timeout 25 ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin --phase=cleanup --task-token='$TASK_TOKEN' --production-sha='$PRODUCTION_SHA' --bundle-sha256='$BUNDLE_SHA256' --recipient-sha256='$RECIPIENT_SHA256'" \
+            < "$PRIVATE_DIR/cleanup.php" >/dev/null 2>/dev/null || echo 'private_evaluation_cleanup_deferred_to_ttl'
+
+      - name: Remove all private runner files
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$PRIVATE_DIR"

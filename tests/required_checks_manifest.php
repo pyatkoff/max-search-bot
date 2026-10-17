@@ -123,6 +123,7 @@ return [
         'php tests/run_manager_ai_draft_context_regression.php',
         'php tests/run_manager_ai_draft_service_regression.php',
         'php tests/run_manager_ai_draft_endpoint_regression.php',
+        'php tests/run_manager_ai_draft_eval_regression.php',
         'node tests/run_manager_ai_draft_behavior_regression.js',
         'php tests/run_channel_post_registry_regression.php',
         'php tests/run_channel_post_reconciliation_regression.php',
