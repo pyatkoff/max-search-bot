@@ -1,0 +1,42 @@
+name: Telegram dialogue archive MySQL
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/Telegram*Archive*.php'
+      - 'services/TelegramDialogue*.php'
+      - 'handlers/TelegramWebhookHandler.php'
+      - 'migrations/041_telegram_dialogue_archive.sql'
+      - 'tools/telegram_dialogue_archive.php'
+      - 'tests/run_telegram_dialogue_archive_regression.php'
+      - '.github/workflows/telegram-dialogue-archive.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: archive-test-only
+          MYSQL_DATABASE: telegram_archive_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -parchive-test-only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Exercise canonical migration and real MySQL archive transactions
+        env:
+          TELEGRAM_ARCHIVE_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=telegram_archive_test;charset=utf8mb4
+        run: php tests/run_telegram_dialogue_archive_regression.php

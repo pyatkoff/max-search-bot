@@ -7,6 +7,7 @@ require_once __DIR__ . '/../services/IntegrationRegistry.php';
 require_once __DIR__ . '/../services/DiagnosticLogger.php';
 require_once __DIR__ . '/../services/ProjectConfig.php';
 require_once __DIR__ . '/../services/TelegramStartSourceResolver.php';
+require_once __DIR__ . '/../services/TelegramBusinessArchiveRuntime.php';
 if (is_file(__DIR__.'/../services/ChannelPostEntryService.php')) require_once __DIR__.'/../services/ChannelPostEntryService.php';
 
 class TelegramWebhookHandler
@@ -22,6 +23,10 @@ class TelegramWebhookHandler
         ?IncomingUpdateDispatcher $dispatcher = null,
         ?TelegramMessengerAdapter $messenger = null
     ): bool {
+        if (TelegramDialogueNormalizer::isBusinessUpdate($update)) {
+            TelegramBusinessArchiveRuntime::receive($update);
+            return true;
+        }
         if (class_exists('ChannelPostRuntime')&&ChannelPostIncomingAdapter::isChannelUpdate('telegram',$update)) {
             $result=ChannelPostRuntime::receive('telegram',$update);
             return !empty($result['recognized']);
