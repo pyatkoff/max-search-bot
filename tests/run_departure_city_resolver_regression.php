@@ -20,6 +20,9 @@ $rows = [
 
 rcheck('matches canonical departure name', DepartureCityResolver::bestMatch('хочу тур с вылетом из москва', $rows), ['city'=>'Москва','city_id'=>1,'matched'=>'Москва']);
 rcheck('matches genitive departure name', DepartureCityResolver::bestMatch('хочу тур из калининграда', $rows), ['city'=>'Калининград','city_id'=>3,'matched'=>'Калининграда']);
+rcheck('matches explicit departure correction', DepartureCityResolver::bestMatch('теперь вылет из калининграда', $rows), ['city'=>'Калининград','city_id'=>3,'matched'=>'Калининграда']);
+rcheck('does not treat explicit departure negation as a choice', DepartureCityResolver::bestMatch('не из калининграда', $rows), false);
+rcheck('does not treat neutral departure question as a choice', DepartureCityResolver::bestMatch('а из калининграда?', $rows), false);
 rcheck('does not match city without departure marker', DepartureCityResolver::bestMatch('живу в калининграде', $rows), false);
 rcheck('does not invent unknown departure', DepartureCityResolver::bestMatch('вылет из омска', $rows), false);
 
