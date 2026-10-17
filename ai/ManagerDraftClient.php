@@ -7,7 +7,7 @@ final class ManagerDraftClient
 {
     public const MAX_RESPONSE_BYTES = 131072;
     private const MAX_OUTPUT_BYTES = 24576;
-    private const MAX_REQUEST_BYTES = 196608;
+    public const MAX_REQUEST_BYTES = 196608;
     private const ENDPOINT = 'https://api.openai.com/v1/responses';
 
     public static function requestJson(string $instructions,array $payload,?callable $metadataObserver=null): array

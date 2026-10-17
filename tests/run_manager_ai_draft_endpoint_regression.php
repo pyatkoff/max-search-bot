@@ -122,6 +122,8 @@ try {
     managerAiEndpointCheck('endpoint passes the authorized server knowledge, ignoring posted project/facts',
         $flow[3]['knowledge_ids'] === ['anytour.public_name','anytour.search_site']
         && !str_contains($valid['body'],'UNTRUSTED_COMPANY_FACT'));
+    managerAiEndpointCheck('selection reader is composed outside session lock without posted source capabilities',
+        $flow[3]['selection_reader_received']===true && $flow[3]['selection_count']===0 && $flow[3]['session_closed']);
     managerAiEndpointCheck('fresh after snapshot runs with reopened read-and-close session',$flow[4]['session_status'] === PHP_SESSION_NONE);
     foreach ([$valid,$thrown] as $response) {
         managerAiEndpointCheck('responses retain no-store JSON headers',count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'cache-control:') && preg_match('/(?:^|[ ,:])no-store(?:[ ,]|$)/i',$header) === 1)) === 1 && count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'content-type: application/json'))) === 1);
