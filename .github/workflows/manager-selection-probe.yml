@@ -1,0 +1,90 @@
+name: Bounded manager selection read probe
+
+on:
+  push:
+    branches: [analysis/manager-selection-probe-20261018]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CANDIDATE_SHA: d30802ae05252f094a423ae8e2afa73a64b1087d
+      SOURCE_BASE: 8ad11a28f229c51ed45a425c148983f779a90819
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring
+      - name: Verify source and synthetic cases before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/analysis/manager-selection-probe-20261018'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          [[ "$CANDIDATE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin refs/heads/feat/manager-selection-context-20261018
+          test "$(git rev-parse FETCH_HEAD)" = "$CANDIDATE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/selection-source" "$CANDIDATE_SHA"
+          php "$RUNNER_TEMP/selection-source/tests/run_manager_selection_regression.php"
+          php -l tools/manager_selection_probe.php
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          expected="$(git rev-parse refs/remotes/origin/main)"
+          [[ "$expected" =~ ^[a-f0-9]{40}$ ]]
+          git diff --exit-code "$SOURCE_BASE" "$expected" -- services/ConversationDb.php services/ProjectConfig.php
+          printf 'EXPECTED_MAIN=%s\n' "$expected" >> "$GITHUB_ENV"
+      - name: Read one authorized source message and at most two selections
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$DEPLOY_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
+          key_file="$RUNNER_TEMP/selection-probe-key"
+          known_file="$RUNNER_TEMP/selection-probe-known"
+          trap 'rm -f "$key_file" "$known_file"' EXIT
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *'PRIVATE KEY'* ]]; then
+            printf '%b\n' "$raw" | tr -d '\r' > "$key_file"
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          printf '%s ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA\n' "$DEPLOY_HOST" > "$known_file"
+          ssh_opts=(-o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$known_file" -o ConnectTimeout=10 -i "$key_file")
+          remote="${DEPLOY_USER}@${DEPLOY_HOST}"
+          probe_dir=''
+          cleanup() {
+            if [[ "$probe_dir" =~ ^/tmp/anytour-selection-probe\.[a-zA-Z0-9]+$ ]]; then
+              ssh "${ssh_opts[@]}" "$remote" "rm -f '$probe_dir/ManagerSelectionSnapshot.php' '$probe_dir/ManagerSelectionPageParser.php' '$probe_dir/ManagerSelectionLinks.php' '$probe_dir/ManagerAiTextRedactor.php' '$probe_dir/manager_selection_probe.php'; rmdir '$probe_dir'" >/dev/null
+            fi
+            rm -f "$key_file" "$known_file"
+            printf '%s\n' '{"cleanup":"success"}'
+          }
+          trap cleanup EXIT
+          probe_dir="$(ssh "${ssh_opts[@]}" "$remote" 'umask 077; mktemp -d /tmp/anytour-selection-probe.XXXXXXXX')"
+          [[ "$probe_dir" =~ ^/tmp/anytour-selection-probe\.[a-zA-Z0-9]+$ ]]
+          for file in ManagerSelectionSnapshot.php ManagerSelectionPageParser.php ManagerSelectionLinks.php ManagerAiTextRedactor.php; do
+            scp "${ssh_opts[@]}" "$RUNNER_TEMP/selection-source/services/$file" "$remote:$probe_dir/$file" >/dev/null
+          done
+          scp "${ssh_opts[@]}" tools/manager_selection_probe.php "$remote:$probe_dir/manager_selection_probe.php" >/dev/null
+          ssh "${ssh_opts[@]}" "$remote" "chmod 600 '$probe_dir/ManagerSelectionSnapshot.php' '$probe_dir/ManagerSelectionPageParser.php' '$probe_dir/ManagerSelectionLinks.php' '$probe_dir/ManagerAiTextRedactor.php' '$probe_dir/manager_selection_probe.php'; php -d display_errors=0 -d log_errors=0 '$probe_dir/manager_selection_probe.php' '$EXPECTED_MAIN' '$CANDIDATE_SHA'" | tee selection-probe-result.json
+          jq -e '.ok == true and .provider_calls == 0 and .business_writes == 0' selection-probe-result.json >/dev/null
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager-selection-probe-safe
+          path: selection-probe-result.json
+          if-no-files-found: ignore
