@@ -59,16 +59,17 @@ final class TelegramArchiveAccountRegistry
         } catch (Throwable $error) { if ($this->pdo->inTransaction()) $this->pdo->rollBack(); throw $error; }
     }
 
-    public function approve(string $project, string $bot, string $account, ?int $manager): void
+    public function setCapture(string $project, string $bot, string $account, bool $enabled, ?int $manager = null): void
     {
+        if (!$enabled) $manager = null;
         if ($manager !== null && (!ManagerAuthService::byId($manager) || !ProjectAccessService::canAccess($manager, $project))) throw new RuntimeException('archive_manager_not_allowed');
         $this->pdo->beginTransaction();
         try {
             $row = $this->account($project, $bot, $account, true);
             if (!$row) throw new RuntimeException('archive_account_not_found');
-            if ($manager !== null && !(bool)$row['provider_enabled']) throw new RuntimeException('archive_account_disconnected');
+            if ($enabled && !(bool)$row['provider_enabled']) throw new RuntimeException('archive_account_disconnected');
             $this->query('UPDATE telegram_archive_accounts SET approved=?,manager_id=? WHERE project_key=? AND bot_key=? AND account_id=?',
-                [$manager !== null ? 1 : 0,$manager,$project,$bot,$account]);
+                [$enabled ? 1 : 0,$manager,$project,$bot,$account]);
             $this->pdo->commit();
         } catch (Throwable $error) { if ($this->pdo->inTransaction()) $this->pdo->rollBack(); throw $error; }
     }
@@ -76,8 +77,8 @@ final class TelegramArchiveAccountRegistry
     public function capturePermission(string $project, string $bot, string $account, string $connection)
     {
         $row = $this->account($project, $bot, $account, true);
-        return $row && (bool)$row['approved'] && (bool)$row['provider_enabled'] && $row['connection_id'] === $connection && $row['manager_id'] !== null
-            ? ['manager_id'=>(string)$row['manager_id']] : false;
+        return $row && (bool)$row['approved'] && (bool)$row['provider_enabled'] && $row['connection_id'] === $connection
+            ? ['manager_id'=>$row['manager_id'] === null ? null : (string)$row['manager_id']] : false;
     }
 
     public function listing(string $project, string $bot): array

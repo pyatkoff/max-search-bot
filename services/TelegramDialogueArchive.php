@@ -78,21 +78,21 @@ final class TelegramDialogueArchive
             if (!(bool)$row['is_enabled']) return ['state'=>'disconnected', 'stored'=>0];
             if ($captureGuard !== null) {
                 $permission = $captureGuard((string)$row['account_id']);
-                if (!is_array($permission)) return ['state'=>'account_not_approved', 'stored'=>0];
-                $manager = TelegramDialogueNormalizer::id($permission['manager_id'] ?? null);
+                if (!is_array($permission) || !array_key_exists('manager_id', $permission)) return ['state'=>'account_not_approved', 'stored'=>0];
+                $manager = isset($permission['manager_id']) ? TelegramDialogueNormalizer::id($permission['manager_id']) : null;
             }
             $stored = 0;
             foreach ($records as $record) {
                 if ($record['account_id'] !== (string)$row['account_id']) throw new RuntimeException('business_message_account_conflict');
                 $record['manager_id'] = $manager;
                 $record['bot_key'] = $bot;
-                if ($this->store($project, $record) !== 'unchanged') $stored++;
+                if ($this->store($project, $record, $captureGuard !== null) !== 'unchanged') $stored++;
             }
             return ['state'=>'archived', 'stored'=>$stored];
         });
     }
 
-    private function store(string $project, array $record): string
+    private function store(string $project, array $record, bool $explicitManager = false): string
     {
         $keys = [$project, TelegramDialogueNormalizer::id($record['account_id']), TelegramDialogueNormalizer::id($record['chat_id']), TelegramDialogueNormalizer::id($record['message_id'])];
         $sql = 'SELECT id,record_json FROM telegram_dialogue_messages WHERE project_key=? AND account_id=? AND chat_id=? AND message_id=?'.$this->lock();
@@ -118,7 +118,8 @@ final class TelegramDialogueArchive
                 if ($previous['source_kind'] === 'business_message' && ($record['bot_key'] ?? null) === ($previous['bot_key'] ?? null)
                     && (int)$record['update_id'] <= (int)$previous['update_id']) return 'unchanged';
             }
-            if ($record['manager_id'] === null) $record['manager_id'] = $previous['manager_id'] ?? null;
+            // A shared account's explicit null must not inherit a former personal mapping.
+            if (!$explicitManager && $record['manager_id'] === null) $record['manager_id'] = $previous['manager_id'] ?? null;
         } else {
             // Keep original chronology but discard content and media on deletion.
             $record['created_at'] = $previous['created_at'];
