@@ -45,9 +45,10 @@ try {
   const original=commit(),baseline=sourceManifest(root,original);
   check('inventory preserves main commands and daily cache separately',()=>{
     assert.equal(SCHEMA,2);assert.equal(TOOLCHAIN.playwright,'1.55.0');
-    assert.equal(mainSpecs('chromium').length,22);assert.equal(mainSpecs('webkit').length,21);
-    assert.equal(allSpecs('chromium').length,23);assert.equal(allSpecs('webkit').length,22);
-    assert.equal(new Set(allSpecs('chromium')).size,23);
+    assert.equal(mainSpecs('chromium').length,23);assert.equal(mainSpecs('webkit').length,22);
+    assert.equal(allSpecs('chromium').length,24);assert.equal(allSpecs('webkit').length,23);
+    assert.equal(new Set(allSpecs('chromium')).size,24);
+    for(const browser of ['chromium','webkit'])assert(mainSpecs(browser).includes('tests/visual/manager-ai-draft.spec.js'));
     assert.deepEqual(alwaysSpecs('webkit'),['tests/visual/manager2-workspace.spec.js']);
     assert(alwaysSpecs('chromium').includes('tests/visual/workspace-v2-layout.spec.js'));
     assert.throws(()=>allSpecs('firefox'));
