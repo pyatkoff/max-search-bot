@@ -1,0 +1,146 @@
+<?php
+
+declare(strict_types=1);
+
+/** Synthetic dependencies for the actual ai-draft.php HTTP boundary only. */
+function managerAiHttpFixtureDirectory(): string
+{
+    return (string) ($GLOBALS['manager_ai_http_fixture_directory'] ?? '');
+}
+
+function managerAiHttpFixtureState(): array
+{
+    $value = json_decode((string) file_get_contents(managerAiHttpFixtureDirectory().'/state.json'), true);
+    if (!is_array($value)) throw new RuntimeException('Invalid synthetic fixture state');
+    return $value;
+}
+
+function managerAiHttpFixtureEvent(string $event, array $data = []): void
+{
+    file_put_contents(managerAiHttpFixtureDirectory().'/events.jsonl', json_encode(['event'=>$event]+$data)."\n", FILE_APPEND|LOCK_EX);
+}
+
+final class ProjectAccessService
+{
+    public static function initializeReadOnly(): void
+    {
+        $GLOBALS['manager_ai_http_fixture_read_only'] = true;
+        managerAiHttpFixtureEvent('initialize_read_only');
+    }
+}
+
+final class ManagerAuthService
+{
+    public static function byId(int $id): ?array
+    {
+        managerAiHttpFixtureEvent('auth', ['manager_id'=>$id]);
+        if (empty($GLOBALS['manager_ai_http_fixture_read_only'])) {
+            throw new RuntimeException('Auth preceded read-only initialization');
+        }
+        $state = managerAiHttpFixtureState();
+        return $id === 7 && $state['active'] ? ['id'=>7,'role'=>'manager'] : null;
+    }
+
+    public static function isAdmin(array $manager): bool
+    {
+        return false;
+    }
+}
+
+final class ManagerConversationAccessPolicy
+{
+    public static function canEditVisibleConversation(array $conversation, array $manager): bool
+    {
+        return false;
+    }
+}
+
+final class ManagerAiDraftContextService
+{
+    public static function snapshot(int $conversationId, int $managerId): array
+    {
+        // Re-read the backing file every time: a cached pre-provider snapshot
+        // must not make the fresh revision or access checks pass accidentally.
+        $state = managerAiHttpFixtureState();
+        managerAiHttpFixtureEvent('snapshot', [
+            'conversation_id'=>$conversationId,'manager_id'=>$managerId,
+            'revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
+            'session_status'=>session_status(),
+        ]);
+        if ($conversationId === 404) return ['ok'=>false,'error'=>'not_found'];
+        if (!$state['active']) return ['ok'=>false,'error'=>'unauthorized'];
+        if (!$state['access']) return ['ok'=>false,'error'=>'forbidden'];
+        if ($state['context_error'] !== '') return ['ok'=>false,'error'=>$state['context_error']];
+        return [
+            'ok'=>true,'revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
+            'context'=>['conversation_id'=>$conversationId,'as_of_message_id'=>$state['latest_message_id'],
+                'history_incomplete'=>false,'media_unread'=>false,
+                'messages'=>[['id'=>$state['latest_message_id'],'sender_type'=>'customer','text'=>'Нужен отдых на море.']]],
+        ];
+    }
+}
+
+final class ManagerAiDraftService
+{
+    public static function generate(array $context): array
+    {
+        $state = managerAiHttpFixtureState();
+        managerAiHttpFixtureEvent('provider', ['session_closed'=>session_status() !== PHP_SESSION_ACTIVE,
+            'conversation_id'=>$context['conversation_id'],'as_of_message_id'=>$context['as_of_message_id']]);
+        if ($state['provider_mode'] === 'throw') {
+            throw new RuntimeException('SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE');
+        }
+        if ($state['provider_mode'] === 'wait') {
+            file_put_contents(managerAiHttpFixtureDirectory().'/provider-ready', 'ready');
+            $deadline = microtime(true)+6;
+            while (!is_file(managerAiHttpFixtureDirectory().'/provider-release')) {
+                if (microtime(true) > $deadline) throw new RuntimeException('Synthetic provider barrier timed out');
+                usleep(10000);
+            }
+        }
+        return $state['proposal'];
+    }
+}
+
+/** Real loopback HTTP client, also used from an independent child process. */
+function managerAiHttpFixtureRequest(string $address, string $path, array $data = [], string $cookie = '', string $method = 'POST'): array
+{
+    $headers = ['Content-Type: application/json'];
+    if ($cookie !== '') $headers[] = 'Cookie: '.$cookie;
+    $context = stream_context_create(['http'=>[
+        'method'=>$method,'header'=>implode("\r\n", $headers),
+        'content'=>$method === 'POST' ? json_encode($data) : '',
+        'ignore_errors'=>true,'timeout'=>10,
+    ]]);
+    $body = (string) file_get_contents('http://'.$address.$path, false, $context);
+    $headers = $http_response_header ?? [];
+    preg_match('/^HTTP\/[^ ]+ ([0-9]+)/', (string) ($headers[0] ?? ''), $match);
+    $responseCookie = '';
+    foreach ($headers as $header) {
+        if (preg_match('/^Set-Cookie: (anytour_manager_panel=[^;]+)/i', $header, $cookieMatch)) $responseCookie = $cookieMatch[1];
+    }
+    return ['status'=>(int) ($match[1] ?? 0),'json'=>json_decode($body, true),
+        'body'=>$body,'headers'=>$headers,'cookie'=>$responseCookie];
+}
+
+// These commands are executed only by the isolated test, never routed by the
+// fixture web server. Session mutations use the real PHP file session handler.
+if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'http-request') {
+    $input = json_decode((string) stream_get_contents(STDIN), true);
+    $result = managerAiHttpFixtureRequest($input['address'], '/manager/ai-draft.php', $input['data'], $input['cookie']);
+    file_put_contents($input['result_path'], json_encode($result));
+    exit;
+}
+if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'mutate-session') {
+    session_save_path($argv[2]);
+    session_name('anytour_manager_panel');
+    session_id($argv[3]);
+    session_start();
+    if ($argv[4] === 'logout') $_SESSION = [];
+    elseif ($argv[4] === 'rotate_csrf') $_SESSION['csrf'] = 'rotated-synthetic-csrf';
+    elseif ($argv[4] === 'change_account') $_SESSION['manager_id'] = 8;
+    else throw new RuntimeException('Unknown synthetic session mutation');
+    session_write_close();
+    echo "session-mutated\n";
+    exit;
+}

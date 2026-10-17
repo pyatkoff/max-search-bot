@@ -19,7 +19,7 @@ const MAIN = Object.freeze([
   'manager2-workspace', 'manager2-messenger-layout', 'manager2-inbox-compact',
   'manager-admin-load', 'manager-admin-workspace', 'manager-quick-replies',
   'manager-personal-workspace', 'manager-manual-groups', 'manager-internal-notes',
-  'manager-customer-name', 'manager2-customer-avatar', 'manager-media-compose',
+  'manager-customer-name', 'manager2-customer-avatar', 'manager-media-compose', 'manager-ai-draft',
   'manager-handoff-cancellation', 'manager-handoff-cancellation-shell', 'manager-transcript-history',
 ].map(name => 'tests/visual/' + name + '.spec.js'));
 const CACHE_SPEC = 'tests/visual/manager-avatar-cache.spec.js';
