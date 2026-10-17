@@ -113,11 +113,15 @@ try {
     $writeState(['provider_mode'=>'throw']); $clearEvents();
     $thrown = $request($body,$cookie); $expectError('provider exception uses generic HTTP error',$thrown,503,'context_unavailable');
     managerAiEndpointCheck('exception details never enter response or server log',!str_contains($thrown['body'].file_get_contents($tmp.'/server.log'),'SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE'));
-    $writeState(); $clearEvents(); $valid = $request($body+['manager_id'=>8],$cookie); $flow = $events();
+    $writeState(); $clearEvents(); $valid = $request($body+['manager_id'=>8,
+        'verified_company_facts'=>[['text'=>'UNTRUSTED_COMPANY_FACT']], 'project_key'=>'anex'],$cookie); $flow = $events();
     managerAiEndpointCheck('valid proposal passes with server revision and latest ID',$valid['status'] === 200 && $valid['json'] === $proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10]);
     managerAiEndpointCheck('read-only initialization precedes actual canonical auth',array_column($flow,'event') === ['initialize_read_only','auth','snapshot','provider','snapshot']);
     managerAiEndpointCheck('provider receives authenticated actor context, not posted manager ID',array_column(array_values(array_filter($flow,static fn(array $event): bool=>$event['event'] === 'snapshot')),'manager_id') === [7,7]);
     managerAiEndpointCheck('provider runs after session lock closes',$flow[3]['session_closed'] === true);
+    managerAiEndpointCheck('endpoint passes the authorized server knowledge, ignoring posted project/facts',
+        $flow[3]['knowledge_ids'] === ['anytour.public_name','anytour.search_site']
+        && !str_contains($valid['body'],'UNTRUSTED_COMPANY_FACT'));
     managerAiEndpointCheck('fresh after snapshot runs with reopened read-and-close session',$flow[4]['session_status'] === PHP_SESSION_NONE);
     foreach ([$valid,$thrown] as $response) {
         managerAiEndpointCheck('responses retain no-store JSON headers',count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'cache-control:') && preg_match('/(?:^|[ ,:])no-store(?:[ ,]|$)/i',$header) === 1)) === 1 && count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'content-type: application/json'))) === 1);
@@ -157,6 +161,7 @@ try {
     };
     $race('new customer message',['latest_message_id'=>11,'revision'=>hash('sha256','new-message')],null,409,'context_stale',2);
     $race('same-ID message edit',['revision'=>hash('sha256','edited-message')],null,409,'context_stale',2);
+    $race('company knowledge changes during generation',['revision'=>hash('sha256','changed-knowledge')],null,409,'context_stale',2);
     $race('assignment access lost',['access'=>false],null,403,'forbidden',2);
     $race('manager deactivated',['active'=>false],null,401,'unauthorized',2);
     $race('logout during provider',[],'logout',401,'unauthorized',1);

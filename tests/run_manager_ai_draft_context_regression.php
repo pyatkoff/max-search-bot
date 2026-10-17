@@ -128,6 +128,10 @@ try {
     $first = draftContextCapture($pdo);
     draftContextCheck('owned visible conversation returns a chronological complete snapshot', $first['ok'] && draftContextIds($first) === [1,2] && $first['latest_message_id'] === 2 && !$first['history_incomplete'] && $first['context']['as_of_message_id'] === 2);
     draftContextCheck('read-only initialization preserves exact project metadata', $pdo->query('SELECT * FROM projects')->fetchAll() === $before);
+    draftContextCheck('authorized snapshot carries server-owned project knowledge outside transcript input',
+        $first['company_knowledge'] instanceof ManagerCompanyKnowledge
+        && $first['company_knowledge']->revision() === ManagerCompanyKnowledge::forProject('anytour')->revision()
+        && !isset($first['context']['verified_company_facts']) && !isset($first['context']['company_knowledge']));
     draftContextCheck('read marker remains unchanged and no synthetic message is added', (int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads')->fetchColumn() === 1 && !in_array(0, draftContextIds($first), true));
     $again = draftContextCapture($pdo);
     draftContextCheck('unchanged fresh captures have the same revision', $first['revision'] === $again['revision'] && preg_match('/\A[a-f0-9]{64}\z/D', $first['revision']) === 1 && $pdo->commits === 2);

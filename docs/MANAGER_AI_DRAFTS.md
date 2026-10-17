@@ -11,6 +11,8 @@ manager action. Nothing is generated on startup, polling or conversation open.
 - `ManagerAiDraftContextService`: fresh active-account, project/source visibility
   and strict reply ownership; short read-only snapshots; revision fingerprint.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.
+- `ManagerCompanyKnowledge`: immutable approved company snapshot, versioned source
+  and expiry checks; see [company knowledge](COMPANY_KNOWLEDGE.md).
 - `ai/ManagerDraftClient.php`: fixed OpenAI Responses endpoint, existing
   `OPENAI_API_KEY`, feature-specific model/reasoning/tier, strict JSON schema, `store:false`, no tools,
   no redirects, bounded response and a 20-second timeout. No automatic retries.
@@ -79,11 +81,13 @@ not a reservation; the existing send path remains authoritative at send time.
 
 ## Knowledge and output
 
-This first slice uses generalized communication procedures only. Private pilot
-examples and candidate company/personal knowledge are not production facts and
-are not bundled or silently loaded. Future knowledge retrieval must require
-approval provenance for company/team facts and scope personal knowledge to its
-actual author; current conversation ownership is not authorship.
+Generalized communication procedures and approved project-specific company facts
+have separate owners. The company catalog initially contains only the AnyTour
+public name and search website from the versioned project configuration. It does
+not approve office, contact, booking, payment or document conditions. Private pilot
+examples and candidate company/personal knowledge remain outside the active base.
+Personal knowledge must be scoped to its actual author; current conversation
+ownership is not authorship.
 
 Archive-derived procedural learning is a versioned instruction change, not
 weight fine-tuning or automatic ingestion of historical replies. The draft
@@ -105,8 +109,11 @@ style or establish production accuracy. Validate changes on separate past-only
 histories with the same fixed model/profile, distinguishing helpful drafts from
 justified abstentions and policy-only results from actual provider calls.
 
-The provider payload always receives an empty `verified_company_facts` list in
-this slice. A narrow deterministic check of the latest real customer question
+The provider payload receives only eligible server-owned `verified_company_facts`
+from the authorized conversation's project. Transcript/context fields cannot
+populate this list. Its knowledge revision participates in post-generation and
+pre-insert validation. Offline callers without a server snapshot retain an empty
+list. A narrow deterministic check of the latest real customer question
 about the agency's office/address or a personal visit returns manager checks
 without a customer draft or provider call. Prior dialogue claims do not bypass
 this boundary. Questions about a hotel's or a consulate's address remain ordinary
