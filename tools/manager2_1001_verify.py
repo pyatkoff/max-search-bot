@@ -8,10 +8,10 @@ from urllib.parse import urljoin, urlsplit, unquote
 from urllib.request import Request, urlopen
 
 REPO="pyatkoff/max-search-bot"
-HEAD="6bed330ca10f4532e2293697e94c344414681cbf"
-TESTED="4c2a399f287f364818b202a49fb9ee90cbb853bd"
-TREE="e5315d4e2be3734c8e6943dcc3e3828d9c5c91a3"
-RUN=39078924045
+HEAD="d39a7612575c38106f82c44eb5de9d2419e7e4a3"
+TESTED="4063ce28290aa060356d612eb533b771259adfec"
+TREE="4df360db6c8510bba050055e78cfb0d69881797f"
+RUN=39079824978
 assert os.environ["GITHUB_REPOSITORY"]==REPO
 AUX=Path.cwd()
 PROOF=Path(os.environ["RUNNER_TEMP"])/"m2-1001-proof"
