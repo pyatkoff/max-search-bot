@@ -257,6 +257,8 @@ return [
         'php tests/run_legacy_paid_yclid_reader_regression.php',
         'php tests/run_paid_daily_report_regression.php',
         'bash tests/run_encrypted_dialogue_evidence.sh',
+        'php tests/run_private_conversation_corpus_regression.php',
+        'bash tests/run_private_conversation_corpus_crypto.sh',
         'php tests/run_live_duplicate_back_callback_regression.php',
         'php tests/run_live_september_typo_regression.php',
         'php tests/run_live_show_tours_duplicate_regression.php',
@@ -280,4 +282,3 @@ return [
         'php tests/run_live_child_age_count_regression.php',
     ],
 ];
-
