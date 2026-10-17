@@ -590,6 +590,26 @@ test('Manager2 reply editor follows canonical client and account recovery bounda
   await page.evaluate(()=>WorkspaceV2Conversation.open(11,{preserveAttachment:true}));await expect(dialog).not.toBeVisible();
   await expect(page.locator('#composer')).not.toBeVisible();await expect(reply).toHaveValue('');
   expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
+  for(const expanded of [false,true]){
+    const account=s.manager.id,sentinel='ACCOUNT_'+account+'_PRIVATE_REPLY_SENTINEL';
+    s.setConversation(12,{manager_id:account,manager_name:'Текущий менеджер'});
+    await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(reply).toBeEnabled();
+    await reply.fill(sentinel);await editorGeometry(page);
+    await page.locator('#replyFile').setInputFiles({name:'account-'+account+'.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic account file')});
+    await expect(page.locator('#mediaSelection')).toContainText('account-'+account+'.txt');
+    if(expanded){await page.locator('#m2ReplyExpand').click();await expect(dialog).toBeVisible()}
+    await page.evaluate(()=>WorkspaceV2.showAuthRecovery());await expect(dialog).not.toBeVisible();
+    await expect(reply).toHaveValue(sentinel);
+    s.manager.id=account+1;
+    await page.locator('#managerAuthLogin').fill('synthetic-next-account');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+    await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(account+1);
+    await expect(page.locator('#managerAuthRecovery')).not.toBeVisible();await expect(reply).toHaveValue('');
+    await expect(page.locator('.m2ReplyMeasure')).toHaveText('');
+    const cleared=await page.evaluate(sentinel=>({dom:!document.body.textContent.includes(sentinel),storage:!Object.values(sessionStorage).some(value=>String(value).includes(sentinel))}),sentinel);
+    expect(cleared).toEqual({dom:true,storage:true});expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);
+    expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
+    console.log(JSON.stringify({replyAccountCleanup:{from:account,to:account+1,expanded,...cleared,mirrorEmpty:true}}));
+  }
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send semantics',async({page})=>{

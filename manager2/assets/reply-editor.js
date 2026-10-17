@@ -81,13 +81,20 @@
     // Measure plain text outside layout, never collapse the live textarea to
     // zero. This preserves native selection and avoids clamping the transcript.
     for(const key of ['fontFamily','fontSize','fontWeight','fontStyle','lineHeight','letterSpacing','wordBreak','overflowWrap','tabSize','paddingTop','paddingRight','paddingBottom','paddingLeft'])measure.style[key]=style[key];
-    measure.textContent=reply.value+'\u200b';
-    measure.style.width=Math.max(40,width-actionWidth-gap)+'px';
     const details=[...main.children].filter(el=>el!==reply);
-    const multiline=measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
-    form.classList.toggle('m2ReplyMultiline',multiline);
-    measure.style.width=Math.max(40,multiline?width:width-actionWidth-gap)+'px';
-    const desired=measure.scrollHeight+border;
+    let multiline,desired;
+    try{
+      measure.textContent=reply.value+'\u200b';
+      measure.style.width=Math.max(40,width-actionWidth-gap)+'px';
+      multiline=measure.scrollHeight+border>minimum+line*.4||reply.value.includes('\n')||details.some(el=>el.getBoundingClientRect().height>0);
+      form.classList.toggle('m2ReplyMultiline',multiline);
+      measure.style.width=Math.max(40,multiline?width:width-actionWidth-gap)+'px';
+      desired=measure.scrollHeight+border;
+    }finally{
+      // Keep no reply text in presentation DOM between synchronous measurements,
+      // including when account recovery hides the form before its next resize.
+      measure.textContent='';
+    }
     const head=zone.querySelector('.conversationHead').getBoundingClientRect().height;
     const extras=details.reduce((sum,el)=>{const rect=el.getBoundingClientRect();if(!rect.height)return sum;const css=getComputedStyle(el);return sum+rect.height+px(css.marginTop)+px(css.marginBottom)},0);
     const chrome=form.getBoundingClientRect().height-surface.getBoundingClientRect().height+top+bottom+surfaceBorder+extras+(multiline?actionHeight+gap:Math.max(0,actionHeight-minimum));
