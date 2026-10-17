@@ -47,11 +47,15 @@ final class ManagerDraftClient
     /** No credentials in this pure request projection; usable by offline regression/evaluation. */
     public static function requestBody(string $instructions,array $payload): array
     {
-        $model=defined('OPENAI_MODEL') ? OPENAI_MODEL : 'gpt-5.6-luna';
+        $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.1-sol';
+        $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'low';
         if (!is_string($model) || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\z/D',$model)!==1) {
             throw new InvalidArgumentException('invalid_draft_model');
         }
-        return ['model'=>$model,'store'=>false,'max_output_tokens'=>2200,
+        if (!is_string($effort) || !in_array($effort,['low','medium','high','xhigh','max'],true)) {
+            throw new InvalidArgumentException('invalid_draft_reasoning');
+        }
+        return ['model'=>$model,'reasoning'=>['effort'=>$effort],'store'=>false,'max_output_tokens'=>2200,
             'input'=>[
                 ['role'=>'developer','content'=>[['type'=>'input_text','text'=>$instructions]]],
                 ['role'=>'user','content'=>[['type'=>'input_text','text'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]]],
