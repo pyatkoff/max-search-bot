@@ -5,6 +5,7 @@ $profileManagerLists=in_array('--profile-manager-lists',$argv??[],true);
 if($profileManagerLists)require_once $baseDir.'/tools/manager-read-profile.php';
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
+require_once $baseDir.'/services/DiagnosticLogger.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
 require_once $baseDir.'/services/ChannelDailyReport.php';
 require_once $baseDir.'/services/LegacyPaidYclidReader.php';
@@ -187,8 +188,8 @@ try{
     }
     if(tableExists($pdo,'admin_audit_log'))$snapshot['recent_admin_audit']=rows($pdo,'SELECT id,actor_manager_id,action,entity_type,entity_id,project_key,created_at FROM admin_audit_log ORDER BY id DESC LIMIT 80');
 
-    $snapshot['recent_manager_priority_events']=recentStructuredEvents($baseDir.'/structured_events.log','manager_priority','push_selected',30);
-    $snapshot['recent_manager_push_events']=recentStructuredComponentEvents($baseDir.'/structured_events.log','manager_push',50);
+    $snapshot['recent_manager_priority_events']=recentStructuredEvents(DiagnosticLogger::filePath(),'manager_priority','push_selected',30);
+    $snapshot['recent_manager_push_events']=recentStructuredComponentEvents(DiagnosticLogger::filePath(),'manager_push',50);
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_sources')&&tableExists($pdo,'projects')){
         $websiteRows=rows($pdo,"SELECT c.id AS conversation_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at,s.source_key,p.project_key AS source_project_key,s.channel AS source_channel FROM conversations c LEFT JOIN conversation_sources s ON s.id=c.source_id LEFT JOIN projects p ON p.id=s.project_id WHERE c.channel='website' ORDER BY c.id DESC LIMIT 50");
@@ -268,7 +269,7 @@ try{
     }
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'messages')&&tableExists($pdo,'conversation_events')){
-        $snapshot['recent_telegram_manager_callback']=recentTelegramManagerCallback($pdo,$baseDir.'/structured_events.log');
+        $snapshot['recent_telegram_manager_callback']=recentTelegramManagerCallback($pdo,DiagnosticLogger::filePath());
     }
 
     if(tableExists($pdo,'messages')){

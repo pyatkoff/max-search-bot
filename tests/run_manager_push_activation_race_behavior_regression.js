@@ -13,9 +13,9 @@ function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{reso
 function abort(message=secret){return new DOMException(message,'AbortError');}
 function subscription(bytes=key){return{options:{applicationServerKey:bytes},toJSON(){return{endpoint:'https://push.example.test/'+secret,keys:{p256dh:secret,auth:secret}}}};}
 function locks(){let queue=Promise.resolve();return{request(name,callback){assert.equal(name,'anytour-manager-push-subscription');const next=queue.then(callback);queue=next.catch(()=>{});return next;}};}
-function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null}={}){
+function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=100,deadlines=null,unhealthy=false,unsubscribe=null,saveRequest=null,outsideScope=false,unrelatedReady=false,keyRequest=null,statusRequest=null,readSubscription=null,diagnosticRequest=null}={}){
   const protocol=lifecycle(1);
-  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,lookup:0,readyReads:0,currentChecks:0,currentHealthy:false,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0};
+  const state={sub:initial,reads:0,subscribes:0,unsubscribes:0,active:0,maxActive:0,saves:0,confirmations:0,shown:0,auth:0,permissions:0,registered:0,lookup:0,readyReads:0,currentChecks:0,currentHealthy:false,serverKey:key,expectedCsrf:'synthetic',otherDeviceHealthy:false,saveAttempts:0,aborts:0,reports:[]};
   const attach=sub=>{if(sub)sub.unsubscribe=async()=>{state.unsubscribes++;if(unsubscribe)await unsubscribe();state.sub=null;return true;};return sub;};
   attach(initial);
   const workerJobs=[];
@@ -32,6 +32,7 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const override=url==='push-status.php'&&statusRequest?await statusRequest(options):url==='push.php?action=key'&&keyRequest?await keyRequest():null;
     if(override)return override;
     const body=options?.method==='POST'?JSON.parse(options.body):null;
+    if(url==='push.php?action=setup_diagnostic'){assert.equal(body.action,'setup_diagnostic');state.reports.push(body);if(diagnosticRequest)return diagnosticRequest(options,state);return{ok:true,status:200,json:async()=>({ok:true,accepted:true})};}
     if(['enable_intent','operation'].includes(body?.action)){const data=protocol.reply(body);return{ok:data.ok!==false,status:data.ok===false?409:200,json:async()=>data};}
     if(url!=='push-status.php'&&options?.method==='POST'){state.saveAttempts++;if(saveRequest){const override=await saveRequest(options,state);if(override)return override;}}
     return{ok:true,status:200,async json(){
@@ -49,7 +50,7 @@ function environment({initial=null,subscribe=null,lockManager=null,deadlineMs=10
     const Notification={permission:'granted',async requestPermission(){state.permissions++;return'granted';}};
     const navigator={serviceWorker:{async getRegistration(url){state.lookup++;assert.equal(url,'https://app.anytoour.ru/manager/');return registration;},async register(){state.registered++;return registration;},get ready(){state.readyReads++;return outsideScope?new Promise(()=>{}):unrelatedReady?Promise.resolve({scope:'https://app.anytoour.ru/',active:{state:'activated'},pushManager:{getSubscription(){throw new Error('Used unrelated global registration');}}}):Promise.resolve(registration);},addEventListener(){}},...(lockManager?{locks:lockManager}:{})};
     const auth={csrf:state.expectedCsrf,manager:{id:1},authGeneration:0};
-    const context={document,navigator,localStorage:protocol.localStorage,crypto:protocol.crypto,window:{WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,URL,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
+    const context={document,navigator,localStorage:protocol.localStorage,crypto:protocol.crypto,window:{isSecureContext:true,WorkspaceV2:{S:auth,showAuthRecovery(){state.auth++;}},Notification,PushManager:function(){}},Notification,fetch,atob,Uint8Array,URL,AbortController,setTimeout:timer,clearTimeout:cancelTimer,console:{warn(){}}};
     vm.runInNewContext(pageSource,context,{filename:'workspace-v2-notifications.js'});
     return{api:context.window.WorkspaceV2Notifications,root,auth};
   }
@@ -103,7 +104,58 @@ async function browserInspectionRaceCases(){
   membership.resolve({ok:false,status:401,json:async()=>({ok:false})});await protectedRead;await turn();assert.equal(authPage.root.innerHTML,'Current account');assert.equal(authEnv.state.auth,0);assert.equal(authEnv.state.subscribes,0);assert.equal(authEnv.state.saves,0);
   console.log('PASS  stale native and membership reads cannot replace newer refresh, activation or account results');
 }
+async function automaticDiagnosticCases(){
+  const env=environment({subscribe:async()=>{throw abort();}}),page=env.page();
+  assert.equal(await page.api.enable(page.root),false);await turn();
+  assert.equal(env.state.reports.length,1);const report=env.state.reports[0],data=report.diagnostic;
+  assert.equal(report.expected_manager_id,1);assert.equal(report.csrf,'synthetic');assert.equal(report.operation_id,undefined);
+  assert.equal(data.stage,'subscription_create');assert.equal(data.code,'AbortError');
+  assert.deepEqual(JSON.parse(JSON.stringify(data.trace.map(row=>[row.call,row.outcome]))),[['subscribe','AbortError'],['recovery_read','none'],['retry_subscribe','AbortError']]);
+  assert.equal(data.permission,'granted');assert.equal(data.secure_context,true);assert.equal(data.worker_active,true);assert.equal(data.worker_scope_matches,true);assert.equal(data.key_length,1);assert.equal(data.key_uncompressed,false);
+  for(const row of data.trace)assert.ok(Number.isInteger(row.duration_ms)&&row.duration_ms>=0&&row.duration_ms<=600000);
+  assert.ok(!JSON.stringify(data).includes(secret));assert.ok(!JSON.stringify(data).includes('https:'));
+  assert.equal(env.state.subscribes,2);assert.equal(env.state.reads,2);assert.equal(env.state.saves,0);assert.equal(env.state.unsubscribes,0);assert.equal(env.state.auth,0);
+  await page.api.refresh();assert.equal(env.state.reports.length,1);
+  console.log('PASS  terminal native failure reports one bounded enum-only trace without endpoint/key/error text or extra native work');
+
+  const readFailure=environment({subscribe:async()=>{throw abort();},readSubscription:count=>{if(count>1)throw new DOMException(secret,'NetworkError');return null;}}),readPage=readFailure.page();
+  assert.equal(await readPage.api.enable(readPage.root),false);await turn();
+  const readData=readFailure.state.reports[0].diagnostic;
+  assert.equal(readData.code,'NetworkError');assert.equal(readData.trace.length,2);assert.equal(readData.trace[1].call,'recovery_read');assert.equal(readData.trace[1].outcome,'NetworkError');assert.equal(readFailure.state.subscribes,1);
+  console.log('PASS  automatic report distinguishes failed recovery read from retry subscribe');
+
+  for(const outcome of ['success','failure','account_changed']){
+    const native=deferred(),late=environment({subscribe:()=>native.promise,deadlineMs:5}),latePage=late.page();
+    assert.equal(await latePage.api.enable(latePage.root),false);assert.equal(late.state.reports.length,0);
+    if(outcome==='account_changed'){latePage.auth.manager.id=2;latePage.auth.authGeneration++;latePage.auth.csrf='new-session';}
+    if(outcome==='success')native.resolve(subscription());else native.reject(new DOMException(secret,'NetworkError'));
+    await turn();await turn();assert.equal(late.state.reports.length,outcome==='failure'?1:0);
+    assert.equal(late.state.subscribes,1);assert.equal(late.state.saves,outcome==='success'?1:0);
+  }
+  console.log('PASS  UI timeout reports nothing until real failure; late success and changed-account outcomes stay unreported');
+
+  for(const interactive of [false,true]){
+    const native=deferred(),background=environment({subscribe:()=>native.promise}),backgroundPage=background.page();
+    await backgroundPage.api.refresh();await turn();assert.equal(background.state.subscribes,1);
+    const clicked=interactive?backgroundPage.api.enable(backgroundPage.root):null;
+    native.reject(new DOMException(secret,'NotAllowedError'));if(clicked)assert.equal(await clicked,false);await turn();await turn();
+    assert.equal(background.state.reports.length,interactive?1:0);assert.equal(background.state.subscribes,1);
+  }
+  console.log('PASS  silent background failure is not reported unless an explicit click adopted the exact pending job');
+
+  for(const response of ['unauthorized','failure','pending']){
+    let nativeFails=true;
+    const pending=deferred(),isolated=environment({subscribe:async()=>{if(nativeFails)throw new DOMException(secret,'NotAllowedError');return subscription();},diagnosticRequest(){if(response==='failure')throw new TypeError(secret);if(response==='pending')return pending.promise;return{ok:false,status:401,json:async()=>({ok:false})};}}),isolatedPage=isolated.page();
+    assert.equal(await isolatedPage.api.enable(isolatedPage.root),false);await turn();
+    assert.equal(isolated.state.reports.length,1);assert.equal(isolated.state.auth,0);assert.equal(isolated.state.saveAttempts,0);assert.equal(isolated.state.subscribes,1);assert.match(isolatedPage.root.innerHTML,/NotAllowedError/);assert.ok(!isolatedPage.root.innerHTML.includes('Результат ещё не подтверждён'));
+    for(let n=0;n<isolated.protocol.localStorage.length;n++)assert.ok(!isolated.protocol.localStorage.key(n).includes('push-pending'));
+    nativeFails=false;assert.equal(await isolatedPage.api.enable(isolatedPage.root),true);assert.equal(isolated.state.reports.length,1);assert.match(isolatedPage.root.innerHTML,/Уведомления включены/);
+    pending.resolve({ok:false,status:401,json:async()=>({ok:false})});await turn();assert.equal(isolated.state.auth,0);assert.match(isolatedPage.root.innerHTML,/Уведомления включены/);
+  }
+  console.log('PASS  telemetry rejection, 401 and pending response cannot block UI, trigger auth recovery or create UNKNOWN commands');
+}
 async function run(){
+  await automaticDiagnosticCases();
   await browserInspectionRaceCases();
   await lateNativeOutcomeCases();
   // Reload can start granted-permission recovery before the visible Enable click.

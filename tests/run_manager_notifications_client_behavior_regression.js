@@ -40,7 +40,7 @@ const secretMarker = 'PRIVATE_ENDPOINT_TOKEN_DO_NOT_DISPLAY';
 function activationHarness({ failAt = '', failure = new Error(secretMarker), httpStatus = 0, permission = 'granted', permissionResult = 'granted', working = false, healthReason = 'manager_inactive', outsideScope = false, permissionRequest = null, keyBody = null, confirmationRequest = null, clock = null, browser = null } = {}) {
   const localRoot = { className: '', innerHTML: '' };
   const protocol=lifecycle(7);if(browser)protocol.localStorage.clear();
-  const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, currentStatus: 0, lookup: 0, auth: 0 };
+  const calls = { permission: 0, register: 0, ready: 0, key: 0, read: 0, repair: 0, subscribe: 0, save: 0, confirmation: 0, status: 0, currentStatus: 0, lookup: 0, auth: 0, diagnostic: 0 };
   const keySignals = [];
   let userGesture = false, permissionDuringGesture = false, nativeSubscription=browser?.subscription??null;
   const step = name => { calls[name]++; if (failAt === name) throw failure; };
@@ -79,6 +79,7 @@ function activationHarness({ failAt = '', failure = new Error(secretMarker), htt
         return { ok: true, status: 200, async json() { return { ok: true, push_status: browser?.accountHealthy||(current&&!browser&&nativeSubscription)?healthy:{ is_working: working, notification_path_usable: false, notification_path_reason: healthReason },...(current?{current_subscription:{notification_path_usable:browser?browser.currentHealthy===true:!!nativeSubscription,notification_path_reason:(!browser&&nativeSubscription)||browser?.currentHealthy?'healthy_subscription':browser?.currentReason||'no_subscription'},current_connection:protocol.current()}:{}) }; } };
       }
       const body=options?.method==='POST'?JSON.parse(options.body):null;
+      if(url==='push.php?action=setup_diagnostic'){calls.diagnostic++;return{ok:true,status:200,json:async()=>({ok:true,accepted:true})};}
       if(body?.action==='enable_intent')return{ok:true,status:200,json:async()=>protocol.reply(body)};
       const name = options?.method === 'POST' ? 'save' : 'key';
       if (!(failAt === name && httpStatus)) step(name); else calls[name]++;

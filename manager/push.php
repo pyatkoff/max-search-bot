@@ -9,6 +9,25 @@ require_once $baseDir.'/services/ManagerPushHealth.php';
 ManagerHttp::startJson();
 ManagerHttp::requireManager();
 $managerId=ManagerHttp::managerId();
+// Only this observation route has a small body contract; existing push commands
+// retain their canonical body parsing and receipt behavior.
+if(($_GET['action']??null)==='setup_diagnostic'){
+    if(($_SERVER['REQUEST_METHOD']??'GET')!=='POST')ManagerHttp::respond(['ok'=>false,'error'=>'method'],405);
+    require_once $baseDir.'/services/ManagerPushSetupDiagnostics.php';
+    $raw=file_get_contents('php://input',false,null,0,ManagerPushSetupDiagnostics::MAX_BODY_BYTES+1);
+    if($raw===false||strlen($raw)>ManagerPushSetupDiagnostics::MAX_BODY_BYTES)ManagerHttp::respond(['ok'=>false,'error'=>'diagnostic_body_too_large'],413);
+    $report=json_decode($raw,true);if(!is_array($report))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_diagnostic'],422);
+    ManagerHttp::requireCsrf($report);
+    if(!isset($report['expected_manager_id'])||$report['expected_manager_id']!==$managerId)ManagerHttp::respond(['ok'=>false,'error'=>'session_changed'],403);
+    if(($report['action']??null)!=='setup_diagnostic')ManagerHttp::respond(['ok'=>false,'error'=>'invalid_diagnostic'],422);
+    $event=ManagerPushSetupDiagnostics::project($report['diagnostic']??null,$managerId,(string)($_SERVER['HTTP_USER_AGENT']??''));
+    if($event===null)ManagerHttp::respond(['ok'=>false,'error'=>'invalid_diagnostic'],422);
+    $accepted=ManagerPushSetupDiagnostics::claim($_SESSION,time());
+    // Persist the rate claim before releasing the same session to other tabs.
+    if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
+    if($accepted)ManagerPushSetupDiagnostics::write($event);
+    ManagerHttp::respond(['ok'=>true,'accepted'=>$accepted,'limited'=>!$accepted]);
+}
 $data=ManagerHttp::body();
 $action=(string)($data['action']??$_GET['action']??'key');
 

@@ -4,6 +4,7 @@ $baseDir = dirname(__DIR__);
 require_once $baseDir . '/config.php';
 require_once $baseDir . '/services/ConversationDb.php';
 require_once $baseDir . '/services/HandoffTimelineService.php';
+require_once $baseDir . '/services/DiagnosticLogger.php';
 
 function redactText(string $text): string {
     $text = preg_replace('/(?<!\d)(?:\+7|8)[\s\-\(\)]*(?:\d[\s\-\(\)]*){10}(?!\d)/u', '[phone-redacted]', $text);
@@ -68,7 +69,7 @@ try {
         ];
     }
 
-    $structured = recentStructuredHandoffEvents($baseDir . '/structured_events.log');
+    $structured = recentStructuredHandoffEvents(DiagnosticLogger::filePath());
     $handoffs = $pdo->query(
         "SELECT c.id,c.project_key,c.channel,c.status,c.manager_id," .
         "MAX(e.created_at) AS manager_request_at " .

@@ -9,6 +9,7 @@ require_once $baseDir . '/services/ProjectHealth.php';
 require_once $baseDir . '/services/ShadowComparisonReport.php';
 require_once $baseDir . '/services/AiRuntimeLogger.php';
 require_once $baseDir . '/services/WebhookRuntimeLogger.php';
+require_once $baseDir . '/services/DiagnosticLogger.php';
 
 $outputDir = trim((string)(getenv('MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') ?: ''));
 if ($outputDir === '') {
@@ -41,7 +42,7 @@ $logs = [
     'tmp'=>WebhookRuntimeLogger::inputFile(),
     'cron'=>$baseDir.'/cron_followup.log',
     'ai'=>AiRuntimeLogger::debugFile(),
-    'structured'=>$baseDir.'/structured_events.log',
+    'structured'=>DiagnosticLogger::filePath(),
     'metrika'=>$baseDir.'/metrika_events.log',
     'metrika_queue'=>$baseDir.'/metrika_offline_queue.csv',
 ];
@@ -130,7 +131,7 @@ $manifest['reports']['conversations']=[
     'file'=>basename($conversationOutput),
 ];
 
-$comparison = ShadowComparisonReport::build($baseDir.'/structured_events.log');
+$comparison = ShadowComparisonReport::build(DiagnosticLogger::filePath());
 atomicWriteJson($shadowComparisonOutput, $comparison);
 $manifest['reports']['shadow_comparison'] = [
     'ok'=>true,

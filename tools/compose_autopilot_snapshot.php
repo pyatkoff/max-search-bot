@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once dirname(__DIR__).'/services/ManagerPushSetupDiagnostics.php';
 
 function readAutopilotJson(string $path,string $label):array
 {
@@ -78,6 +79,7 @@ try{
         'manager'=>[
             'response'=>$production['manager_response_health']??[],
             'push'=>$production['manager_push_health']??[],
+            'push_setup'=>ManagerPushSetupDiagnostics::summary((array)($production['recent_manager_push_events']??[])),
             'visibility'=>$production['manager_visibility']??[],
         ],
         'handoff'=>[

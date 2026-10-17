@@ -5,6 +5,7 @@ if (PHP_SAPI!=='cli') {http_response_code(404);exit;}
 // Real canonical ManagerHttp/session/auth/CSRF and production endpoints on an
 // isolated child PHP HTTP server. Synthetic push URLs are never contacted.
 require_once __DIR__.'/fixtures/manager_push_subscription_fixture.php';
+require_once dirname(__DIR__).'/services/ManagerPushSetupDiagnostics.php';
 $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/manager-push-proof-'.bin2hex(random_bytes(6));
 mkdir($tmp,0700);mkdir($tmp.'/manager',0700);mkdir($tmp.'/sessions',0700);
 $process=null;$db=null;$passed=0;
@@ -15,6 +16,33 @@ function pushHttpCheck(string $name,bool $ok): void
     $passed++;echo 'PASS '.$name."\n";
 }
 try {
+    $diagnostic=['stage'=>'subscription_create','code'=>'AbortError','elapsed_ms'=>900,
+        'permission'=>'granted','secure_context'=>true,'worker_active'=>true,'worker_scope_matches'=>true,
+        'web_locks'=>true,'key_length'=>65,'key_uncompressed'=>true,'trace'=>[
+            ['call'=>'subscribe','outcome'=>'AbortError','duration_ms'=>300],
+            ['call'=>'recovery_read','outcome'=>'none','duration_ms'=>1],
+            ['call'=>'retry_subscribe','outcome'=>'AbortError','duration_ms'=>349],
+        ]];
+    $agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; PRIVATE-UA) Firefox/145.0';
+    $projection=ManagerPushSetupDiagnostics::project($diagnostic+['message'=>'PRIVATE-ERROR','endpoint'=>'https://private.invalid','manager_id'=>8],7,$agent);
+    pushHttpCheck('setup projection binds server identity and coarse browser metadata only',$projection!==null&&$projection['schema']===1&&$projection['manager_id']===7&&$projection['browser_family']==='Firefox'&&$projection['browser_major']===145&&$projection['os_family']==='macOS'&&!preg_match('/PRIVATE|https:|endpoint/',json_encode($projection)));
+    $extraTrace=$diagnostic;$extraTrace['trace'][0]['stack']='PRIVATE-STACK';
+    pushHttpCheck('unknown trace properties are never projected',!str_contains(json_encode(ManagerPushSetupDiagnostics::project($extraTrace,7,$agent)),'PRIVATE'));
+    $invalidDiagnostics=[];
+    foreach (['stage'=>'push_save','code'=>'HTTP_500','elapsed_ms'=>'900','permission'=>'PRIVATE-PERMISSION','secure_context'=>1,'worker_active'=>null,'worker_scope_matches'=>'true','web_locks'=>[], 'key_length'=>513,'key_uncompressed'=>0,'trace'=>array_fill(0,4,$diagnostic['trace'][0])] as $field=>$value) {
+        $invalidDiagnostics[]=array_replace($diagnostic,[$field=>$value]);
+    }
+    foreach ([['elapsed_ms'=>-1],['elapsed_ms'=>600001],['elapsed_ms'=>1.0],['key_length'=>-1],['key_length'=>'65'],['trace'=>['private'=>$diagnostic['trace'][0]]]] as $change) $invalidDiagnostics[]=array_replace($diagnostic,$change);
+    foreach ([['call'=>'unsubscribe'],['outcome'=>'PRIVATE-ERROR'],['duration_ms'=>600001],['duration_ms'=>false]] as $change) {
+        $bad=$diagnostic;$bad['trace'][0]=array_replace($bad['trace'][0],$change);$invalidDiagnostics[]=$bad;
+    }
+    $rejected=true;foreach($invalidDiagnostics as $bad)if(ManagerPushSetupDiagnostics::project($bad,7,$agent)!==null)$rejected=false;
+    pushHttpCheck('setup projection rejects malformed types ranges native methods and unallowlisted errors',$rejected);
+    $boundary=array_replace($diagnostic,['elapsed_ms'=>600000,'key_length'=>512,'trace'=>[]]);
+    $clamped=ManagerPushSetupDiagnostics::project($boundary,7,'PRIVATE-UA Firefox/999999.0');
+    pushHttpCheck('bounded diagnostic limits and unknown UA project safe fixed metadata',$clamped!==null&&$clamped['browser_major']===999&&$clamped['os_family']==='Other');
+    $rate=[];$first=ManagerPushSetupDiagnostics::claim($rate,1000);$early=ManagerPushSetupDiagnostics::claim($rate,1059);$next=ManagerPushSetupDiagnostics::claim($rate,1060);
+    pushHttpCheck('setup reports share one strict sixty-second session rate window',$first&&!$early&&$next&&$rate===['manager_push_setup_diagnostic_at'=>1060]);
     $db=new PDO('sqlite:'.$tmp.'/fixture.sqlite',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     managerPushSubscriptionFixtureSeed($db);
     $before=$db->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll();
@@ -26,7 +54,8 @@ try {
         '(new ReflectionProperty(ConversationDb::class,"pdo"))->setValue(null,$fixturePdo);'."\n".
         'ProjectConfig::resetForTests(["id"=>"push-fixture","brand"=>["name"=>"Push fixture"]]);'."\n".
         'ProjectAccessService::initializeReadOnly();'."\n".
-        'if (str_contains((string)($_SERVER["SCRIPT_NAME"]??""),"push-status.php")) $fixturePdo->exec("PRAGMA query_only=ON");'."\n");
+        'require_once '.var_export($root.'/services/DiagnosticLogger.php',true).';DiagnosticLogger::setFile(($_SERVER["HTTP_X_FIXTURE_LOG_FAILURE"]??"")==="yes"?'.var_export($tmp.'/sessions',true).':'.var_export($tmp.'/setup-events.log',true).');'."\n".
+        'if (str_contains((string)($_SERVER["SCRIPT_NAME"]??""),"push-status.php")||($_GET["action"]??"")==="setup_diagnostic") $fixturePdo->exec("PRAGMA query_only=ON");'."\n");
     foreach (['push-status.php','push.php'] as $entry) copy($root.'/manager/'.$entry,$tmp.'/manager/'.$entry);
     symlink($root.'/manager/lib',$tmp.'/manager/lib');
     mkdir($tmp.'/services',0700);
@@ -42,8 +71,8 @@ try {
     if (!is_resource($process)) throw new RuntimeException('Cannot start push-proof HTTP fixture');fclose($pipes[0]);
     $ready=false;for ($i=0;$i<100;$i++) {if ($probe=@stream_socket_client('tcp://'.$address,$e,$s,.05)) {fclose($probe);$ready=true;break;}usleep(10000);}
     if (!$ready) throw new RuntimeException('Push-proof HTTP fixture did not start');
-    $request=static function(string $path,array $data=[],string $cookie='',string $method='POST') use ($address): array {
-        $headers=['Content-Type: application/json'];if ($cookie!=='') $headers[]='Cookie: '.$cookie;
+    $request=static function(string $path,array $data=[],string $cookie='',string $method='POST',array $extraHeaders=[]) use ($address): array {
+        $headers=array_merge(['Content-Type: application/json'],$extraHeaders);if ($cookie!=='') $headers[]='Cookie: '.$cookie;
         $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data):'','ignore_errors'=>true,'timeout'=>3]]);
         $body=(string)file_get_contents('http://'.$address.$path,false,$ctx);$responseHeaders=$http_response_header??[];
         preg_match('/^HTTP\/[^ ]+ ([0-9]+)/',(string)($responseHeaders[0]??''),$status);$responseCookie='';
@@ -85,6 +114,38 @@ try {
         pushHttpCheck('current proof response retains no-store JSON headers',count(array_filter($response['headers'],static fn(string $h): bool=>strtolower($h)==='cache-control: no-store'))===1&&count(array_filter($response['headers'],static fn(string $h): bool=>str_starts_with(strtolower($h),'content-type: application/json')))===1);
     }
     pushHttpCheck('all status HTTP cases are read-only across every account',$db->query('SELECT * FROM manager_push_subscriptions ORDER BY id')->fetchAll()===$before);
+    $diagnosticPath='/manager/push.php?action=setup_diagnostic';
+    $report=['action'=>'setup_diagnostic','csrf'=>'fixture-csrf-only','expected_manager_id'=>7,'diagnostic'=>$diagnostic];
+    $pushState=[];foreach(['manager_push_installations','manager_push_subscriptions','manager_push_operations'] as $table)$pushState[$table]=$db->query('SELECT * FROM '.$table.' ORDER BY 1,2')->fetchAll();
+    $anonymous=$request($diagnosticPath,$report);$method=$request($diagnosticPath,[],$cookie,'GET');
+    pushHttpCheck('setup report requires canonical authentication and POST',$anonymous['status']===401&&$method['status']===405);
+    foreach (['','invalid'] as $csrfValue) {
+        $csrf=$request($diagnosticPath,array_replace($report,['csrf'=>$csrfValue]),$cookie);
+        pushHttpCheck('setup report retains missing and invalid CSRF protection before logging',$csrf['status']===403&&$csrf['json']['error']==='csrf');
+    }
+    $withoutManager=$report;unset($withoutManager['expected_manager_id']);$missingManager=$request($diagnosticPath,$withoutManager,$cookie);
+    pushHttpCheck('setup report requires an explicit expected manager',$missingManager['status']===403&&$missingManager['json']['error']==='session_changed');
+    foreach ([null,8,'7',7.5,false] as $identity) {
+        $stale=$request($diagnosticPath,array_replace($report,['expected_manager_id'=>$identity]),$cookie);
+        pushHttpCheck('setup report rejects missing stale or coerced expected manager '.json_encode($identity),$stale['status']===403&&$stale['json']['error']==='session_changed');
+    }
+    $wrongAction=$request($diagnosticPath,array_replace($report,['action'=>'subscribe']),$cookie);
+    $wrongCode=$request($diagnosticPath,array_replace($report,['diagnostic'=>array_replace($diagnostic,['code'=>'PRIVATE-ERROR'])]),$cookie);
+    $oversize=$request($diagnosticPath,$report+['padding'=>str_repeat('PRIVATE',800)],$cookie);
+    pushHttpCheck('query report cannot dispatch mutation or accept raw error and oversized body',$wrongAction['status']===422&&$wrongCode['status']===422&&$oversize['status']===413&&!is_file($tmp.'/setup-events.log'));
+    $withExtras=$report;$withExtras['diagnostic']['message']='PRIVATE-ERROR';$withExtras['diagnostic']['trace'][0]['endpoint']='https://private.invalid';
+    $accepted=$request($diagnosticPath,$withExtras,$cookie,'POST',['User-Agent: '.$agent]);
+    $events=file($tmp.'/setup-events.log',FILE_IGNORE_NEW_LINES)?:[];$event=json_decode($events[0]??'',true);
+    pushHttpCheck('accepted setup failure uses existing private structured push event and server timestamp',$accepted['status']===200&&$accepted['json']===['ok'=>true,'accepted'=>true,'limited'=>false]&&count($events)===1&&$event['component']==='manager_push'&&$event['event']==='setup_failed'&&$event['level']==='warning'&&isset($event['ts'])&&$event['data']===$projection&&!preg_match('/PRIVATE|https:|endpoint|csrf|token/',implode('', $events)));
+    $limited=$request($diagnosticPath,$report,$cookie);
+    pushHttpCheck('separate HTTP request observes persisted session rate claim without another event',$limited['status']===200&&$limited['json']===['ok'=>true,'accepted'=>false,'limited'=>true]&&count(file($tmp.'/setup-events.log'))===1);
+    $other=$request($diagnosticPath,array_replace($report,['expected_manager_id'=>8]),$cookie8);
+    pushHttpCheck('another authenticated session has independent telemetry rate cap',$other['json']===['ok'=>true,'accepted'=>true,'limited'=>false]&&count(file($tmp.'/setup-events.log'))===2);
+    $loggingCookie=$request('/manager/fixture-session.php?id=7',[],'','GET')['cookie'];
+    $loggingFailure=$request($diagnosticPath,$report,$loggingCookie,'POST',['X-Fixture-Log-Failure: yes']);
+    pushHttpCheck('unwritable diagnostic sink cannot fail push setup HTTP or expose warnings',$loggingFailure['status']===200&&$loggingFailure['json']===['ok'=>true,'accepted'=>true,'limited'=>false]&&count(file($tmp.'/setup-events.log'))===2);
+    $unchanged=true;foreach($pushState as $table=>$rows)if($db->query('SELECT * FROM '.$table.' ORDER BY 1,2')->fetchAll()!==$rows)$unchanged=false;
+    pushHttpCheck('all setup reports leave subscriptions intent versions receipts shifts and access unchanged',$unchanged&&$db->query('SELECT * FROM managers ORDER BY id')->fetchAll()===$managerBefore&&$db->query('SELECT * FROM manager_projects ORDER BY manager_id')->fetchAll()===$projectBefore);
     $subscription=['endpoint'=>$endpointB,'keys'=>['p256dh'=>'private-p256dh-7-b','auth'=>'private-auth-7-b']];
     $anonymous=$request('/manager/push.php',['action'=>'subscribe','csrf'=>'fixture-csrf-only','subscription'=>$subscription]);
     pushHttpCheck('anonymous subscribe cannot save or return proof',$anonymous['status']===401&&$anonymous['json']===['ok'=>false,'error'=>'unauthorized']);

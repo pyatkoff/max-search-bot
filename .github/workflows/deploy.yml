@@ -98,7 +98,9 @@ jobs:
           remote_bundle="/tmp/max-search-production-$EXPECTED_SHA.bundle"
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
           scp "${ssh_opts[@]}" "$bundle_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_bundle"
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; rm -f '$remote_bundle'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; echo production_sha=\$(git rev-parse HEAD)"
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
+          status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
+          case "$status" in 403|404) ;; *) echo "Public structured log containment failed: HTTP $status" >&2; exit 1;; esac
 
       - name: Apply database migrations
         id: migration
@@ -185,10 +187,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php -l webhook.php; php -l telegram_webhook.php; php -l telegram_webhook_admin.php; php tools/telegram_smoke_test.php; php tools/search_destination_smoke.php --http; bash tools/manager_http_smoke.sh; rm -f ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt; php tools/ai_runtime_log_smoke.php; php tools/webhook_runtime_log_smoke.php; rm -f diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json; rm -rf diagnostics; rm -rf '/tmp/max-search-diagnostics-$EXPECTED_SHA'; install -d -m 700 '/tmp/max-search-diagnostics-$EXPECTED_SHA'; MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR='/tmp/max-search-diagnostics-$EXPECTED_SHA' php export_debug_logs.php; test -n \"\$(find '/tmp/max-search-diagnostics-$EXPECTED_SHA' -maxdepth 1 -type f -name '*.json' -print -quit)\""
-          for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt; do
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php -l webhook.php; php -l telegram_webhook.php; php -l telegram_webhook_admin.php; php tools/telegram_smoke_test.php; php tools/search_destination_smoke.php --http; bash tools/manager_http_smoke.sh; rm -f ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt; php tools/ai_runtime_log_smoke.php; php tools/webhook_runtime_log_smoke.php; rm -f diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json; rm -rf diagnostics; rm -rf '/tmp/max-search-diagnostics-$EXPECTED_SHA'; install -d -m 700 '/tmp/max-search-diagnostics-$EXPECTED_SHA'; MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR='/tmp/max-search-diagnostics-$EXPECTED_SHA' php export_debug_logs.php; php tools/structured_runtime_log_smoke.php --check-only; test -n \"\$(find '/tmp/max-search-diagnostics-$EXPECTED_SHA' -maxdepth 1 -type f -name '*.json' -print -quit)\""
+          for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt structured_events.log; do
             status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' "https://app.anytoour.ru/$path")"
-            case "$status" in 403|404) ;; *) echo "Public AI log containment failed for $path: HTTP $status" >&2; exit 1;; esac
+            case "$status" in 403|404) ;; *) echo "Public runtime log containment failed for $path: HTTP $status" >&2; exit 1;; esac
           done
 
       - name: Download production diagnostics

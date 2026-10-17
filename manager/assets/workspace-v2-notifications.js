@@ -142,25 +142,47 @@
   }
   function subscriptionStage(job,stage){job.stage=stage;job.httpStatus=0;job.observers.forEach(observer=>observer());}
   function compatibleSubscription(sub,key){return !!sub&&(!sub.options?.applicationServerKey||sameBytes(sub.options.applicationServerKey,key));}
+  const diagnosticDuration=start=>Math.min(600000,Math.max(0,Date.now()-start));
+  async function nativeSetupCall(job,call,run){
+    const started=Date.now();
+    try{const sub=await run();job.nativeTrace.push({call,outcome:sub?'subscription':'none',duration_ms:diagnosticDuration(started)});return sub;}
+    catch(error){job.nativeTrace.push({call,outcome:setupFailureDiagnostic('subscription_create',error).code,duration_ms:diagnosticDuration(started)});throw error;}
+  }
+  function reportSetupFailure(job,error){
+    // Observe the real native outcome only. Telemetry cannot cancel/retry setup,
+    // adopt a new account, or turn a UI deadline into a provider failure.
+    try{
+      if(!job.reportRequested||job.reported||job.stage!=='subscription_create'||!job.nativeTrace.length)return;
+      requireActiveJob(job);
+      const last=job.nativeTrace[job.nativeTrace.length-1];
+      if(['subscription','none'].includes(last.outcome))return;
+      job.reported=true;
+      const diagnostic={stage:job.stage,code:setupFailureDiagnostic(job.stage,error).code,elapsed_ms:diagnosticDuration(job.started),permission:['granted','denied','default'].includes(Notification.permission)?Notification.permission:'unknown',secure_context:window.isSecureContext===true,worker_active:job.reg.active?.state==='activated',worker_scope_matches:job.reg.scope===new URL('./',document.baseURI).href,web_locks:typeof navigator.locks?.request==='function',key_length:job.key.length,key_uncompressed:job.key[0]===4,trace:job.nativeTrace.slice(0,3)};
+      // Fixed enums/booleans/counts only: Firefox's privileged native cause is
+      // unavailable to the page. Never send raw errors, endpoints or key bytes.
+      void setupRequest({},'push.php?action=setup_diagnostic',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify({action:'setup_diagnostic',csrf:job.session.csrf,expected_manager_id:job.session.managerId,diagnostic})},'push_diagnostic_timeout').catch(()=>{});
+    }catch(ignored){}
+  }
   async function recoverSubscription(reg,key,job){
-    try{return await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});}
+    try{return await nativeSetupCall(job,'subscribe',()=>reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key}));}
     catch(error){
       if(error?.name!=='AbortError')throw error;
       // A browser/provider may finish another registration after the failed call.
       // Re-read it before the only sequential retry; never delete it to retry.
       await new Promise(resolve=>setTimeout(resolve,250));requireActiveJob(job);
-      const actual=await reg.pushManager.getSubscription();
+      const actual=await nativeSetupCall(job,'recovery_read',()=>reg.pushManager.getSubscription());
       requireActiveJob(job);if(actual){if(compatibleSubscription(actual,key))return actual;throw error;}
-      return reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+      return nativeSetupCall(job,'retry_subscribe',()=>reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key}));
     }
   }
   function subscriptionJob(reg,key,interactive,intentBase){
     if(subscriptionFlight){
       if(!sameSession(subscriptionFlight.session)){subscriptionFlight.superseded=true;throw new Error('subscription_pending_session_change');}
       if(!sameBytes(subscriptionFlight.key,key)||(reg!==subscriptionFlight.reg&&(!reg.scope||reg.scope!==subscriptionFlight.reg.scope))){subscriptionFlight.superseded=true;throw new Error('subscription_changed_while_pending');}
+      if(interactive)subscriptionFlight.reportRequested=true;
       return subscriptionFlight;
     }
-    const job={stage:'subscription_wait',httpStatus:0,observers:new Set(),promise:null,reg,key,interactive,intentBase,superseded:false,session:sessionSnapshot(),intent:null};
+    const job={stage:'subscription_wait',httpStatus:0,observers:new Set(),promise:null,reg,key,interactive,intentBase,superseded:false,session:sessionSnapshot(),intent:null,started:Date.now(),nativeTrace:[],reportRequested:interactive,reported:false};
     const run=async()=>{
       requireActiveJob(job);subscriptionStage(job,'subscription_read');
       let sub=await reg.pushManager.getSubscription();requireActiveJob(job);
@@ -213,7 +235,7 @@
     // page observes this same job; another tab re-reads after the lock is released.
     job.promise=Promise.resolve().then(()=>navigator.locks?.request?navigator.locks.request('anytour-manager-push-subscription',run):run());
     subscriptionFlight=job;
-    job.promise.then(()=>{if(subscriptionFlight===job)subscriptionFlight=null;},()=>{if(subscriptionFlight===job)subscriptionFlight=null;});
+    job.promise.then(()=>{if(subscriptionFlight===job)subscriptionFlight=null;},error=>{if(subscriptionFlight===job)subscriptionFlight=null;reportSetupFailure(job,error);});
     return job;
   }
   function observeSubscription(job){
@@ -251,7 +273,7 @@
     const showBusy=()=>{recentInteractiveFailure=null;recentFailureSession=null;render(root,withCurrentWorking({notification_path_usable:false,notification_path_reason:'no_subscription'}));};
     // The click adopts recovery already running for this session. It keeps the
     // same bounded UI wait and actual subscription job, without a queued retry.
-    const attempt={session:activationSession,promise:null,promote(nextRoot,confirmation){if(interactive)return;root=nextRoot;interactive=true;showConfirmation=confirmation;interactiveEnableInFlight=true;showBusy();}};
+    const attempt={session:activationSession,promise:null,job:null,promote(nextRoot,confirmation){if(interactive)return;root=nextRoot;interactive=true;if(attempt.job)attempt.job.reportRequested=true;showConfirmation=confirmation;interactiveEnableInFlight=true;showBusy();}};
     activationFlight=attempt;if(interactive)showBusy();
     attempt.promise=(async()=>{
       let finalStatus=null,setupStage='support',setupHttpStatus=0,job=null;
@@ -269,6 +291,7 @@
         requireSession(activationSession);const {response:keyResp,data:keyJson}=keyResponse;if(keyResp.status===401){handleUnauthorized(root);return false;}
         if(!keyResp.ok||!keyJson?.ok||!keyJson.public_key)throw new Error('push_key_failed');
         const key=b64ToUint8(keyJson.public_key);setupStage='subscription_wait';job=subscriptionJob(reg,key,interactive,intentBase);
+        attempt.job=job;
         const status=await observeSubscription(job);requireSession(activationSession);lastStatus=status;lastStatusSession=activationSession;finalStatus=lastStatus;recentInteractiveFailure=null;recentFailureSession=null;
         // Saving a healthy subscription completes setup. Optional OS display
         // must neither hold the UI busy nor turn that saved result into failure.

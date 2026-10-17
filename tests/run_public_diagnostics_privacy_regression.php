@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/max-search-public-diag-'.bin2hex(random_bytes(4)).'.json';
+require_once $root.'/services/ManagerPushSetupDiagnostics.php';
 $fixture=[
     'ok'=>true,'production'=>['sha'=>'abc123'],'summary'=>['sessions'=>4,'flags'=>['repeat'=>2]],
     'sessions'=>[['conversation_id'=>91,'manager_id'=>5,'login'=>'Svetlana','message_tail'=>[['text'=>'PRIVATE TOURIST MESSAGE']]]],
@@ -19,6 +20,14 @@ $fixture=[
     ],
     'phone'=>'+70000000000','external_chat_id'=>'private-chat',
 ];
+$pushEvent=['ts'=>'PRIVATE PUSH TIMESTAMP','component'=>'manager_push','event'=>'setup_failed','data'=>[
+    'schema'=>1,'manager_id'=>5,'browser_family'=>'Firefox','browser_major'=>145,'os_family'=>'macOS',
+    'stage'=>'subscription_create','code'=>'AbortError','elapsed_ms'=>100,'permission'=>'granted',
+    'secure_context'=>true,'worker_active'=>true,'worker_scope_matches'=>true,'web_locks'=>true,
+    'key_length'=>65,'key_uncompressed'=>true,'trace'=>[['call'=>'subscribe','outcome'=>'AbortError','duration_ms'=>100]],
+    'endpoint'=>'PRIVATE PUSH ENDPOINT','message'=>'PRIVATE PUSH ERROR','token'=>'PRIVATE PUSH TOKEN']];
+$fixture['recent_manager_push_events']=[$pushEvent];
+$fixture['manager']['push_setup']=ManagerPushSetupDiagnostics::summary([$pushEvent]);
 file_put_contents($tmp,json_encode($fixture,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tmp);
 exec($cmd,$lines,$code);@unlink($tmp);$raw=implode("\n",$lines);$json=json_decode($raw,true);
@@ -30,6 +39,7 @@ function publicDiagCheck(string $name,bool $ok):void{global$passed,$failed;if($o
 publicDiagCheck('sanitizer preserves aggregate health data',$code===0&&is_array($json)&&!empty($json['public_redacted'])&&($json['summary']['sessions']??null)===4);
 publicDiagCheck('sanitizer preserves manager push reason counts',($json['manager_push_health']['working_manager_count']??null)===3&&($json['manager_push_health']['usable_notification_path_count']??null)===1&&($json['manager_push_health']['no_subscription_count']??null)===1&&($json['manager_push_health']['unhealthy_subscription_count']??null)===1&&($json['manager_push_health']['other_unusable_count']??null)===0);
 publicDiagCheck('sanitizer removes transcript and personal identifiers',strpos($raw,'PRIVATE TOURIST MESSAGE')===false&&strpos($raw,'Svetlana')===false&&strpos($raw,'Светлана')===false&&strpos($raw,'+70000000000')===false&&strpos($raw,'private-chat')===false&&strpos($raw,'conversation_id')===false&&strpos($raw,'manager_id')===false);
+publicDiagCheck('raw push event collection is removed while safe sampled summary survives',!str_contains($raw,'recent_manager_push_events')&&!str_contains($raw,'PRIVATE PUSH')&&($json['manager']['push_setup']??null)===$fixture['manager']['push_setup']&&($json['manager']['push_setup']['failure_count']??null)===1&&!array_key_exists('ts',$json['manager']['push_setup']['latest']??[]));
 $allowlist="find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete";
 publicDiagCheck('production publisher commits only public-safe aggregate artifacts',strpos($publish,'cp production_snapshot.json live_session_report.json')===false&&strpos($publish,$allowlist)!==false&&strpos($publish,'git add -A')!==false);
 publicDiagCheck('hourly live publisher removes every non-allowlisted json',strpos($live,'public_live_status.json')!==false&&strpos($live,$allowlist)!==false&&strpos($live,'git add live_sessions.json daily_sessions.json live_anomalies.json')===false);

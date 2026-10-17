@@ -47,6 +47,7 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
   - deploy removes legacy `tmp_in.txt` / `tmp_out.txt` and requires both public paths to return 403/404; the #715 deployment returned 404 for both;
   - authorized diagnostics and delivery inspection use only the external log path;
   - no rollback may restore raw request-body logging or either public legacy file.
+- Structured diagnostic events use `DiagnosticLogger::filePath()` outside the public checkout, with an owner-only directory and file. All readers use that same path. Deployment preserves legacy structured history privately and atomically replaces the public filename with an empty mode-000 permission fence. Keep that fence: cached old code must not recreate a readable public log. Containment runs immediately after source sync and must pass private-write/mode checks plus anonymous HTTP 403/404 before migrations and again after smoke checks. A rollback must retain the external logger and this privacy boundary; it must not restore the old public writer.
 - The read-only MAX event idempotency inventory shipped production-green in PR #717:
   - `message_callback`, `message_created` and `bot_started` key ownership, claim ordering, local-store bounds and generated-surface secondary guards are executable contracts;
   - the inventory explicitly records fail-open missing IDs/storage, local `/tmp` durability, multi-host, crash-after-claim, unchecked write/flush and non-atomic conversation-mirror gaps;
