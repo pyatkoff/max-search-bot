@@ -126,8 +126,9 @@ if ($nativeDsn!=='') {
     try {
         if (!preg_match('/(?:^|;)dbname=(private_corpus_test_[A-Za-z0-9_]+)(?:;|$)/D',$nativeDsn)) throw new RuntimeException('unsafe native fixture database');
         $user=getenv('PRIVATE_CORPUS_MYSQL_USER')?:'root'; $pass=getenv('PRIVATE_CORPUS_MYSQL_PASSWORD')?:'';
-        $native=new PDO($nativeDsn,$user,$pass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+        $native=new PDO($nativeDsn,$user,$pass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false]);
         if (!preg_match('/^private_corpus_test_[A-Za-z0-9_]+$/D',(string)$native->query('SELECT DATABASE()')->fetchColumn())) throw new RuntimeException('unsafe actual fixture database');
+        $native->exec("SET collation_connection='utf8mb4_bin'");
         // Test-only diagnostic: identify unsupported attribute reads without
         // exposing exception messages, connection configuration or credentials.
         if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
@@ -143,8 +144,8 @@ if ($nativeDsn!=='') {
             'CREATE TABLE conversation_sources(id BIGINT PRIMARY KEY,project_id BIGINT,source_key VARCHAR(96)) ENGINE=InnoDB',
             'CREATE TABLE managers(id BIGINT PRIMARY KEY,role VARCHAR(32),is_active INT,display_name VARCHAR(191)) ENGINE=InnoDB',
             'CREATE TABLE conversations(id BIGINT PRIMARY KEY,project_key VARCHAR(64),customer_id BIGINT,channel VARCHAR(32),entry_channel VARCHAR(64),attribution_region VARCHAR(64),attribution_campaign VARCHAR(64),status VARCHAR(32),is_test INT,test_source VARCHAR(64),manager_id BIGINT,started_at DATETIME,last_message_at DATETIME,closed_at DATETIME,source_id BIGINT,lead_outcome VARCHAR(32),lead_close_reason VARCHAR(64),lead_sale_amount DECIMAL(12,2),lead_sale_date DATE,lead_outcome_updated_at DATETIME,lead_outcome_manager_id BIGINT) ENGINE=InnoDB',
-            'CREATE TABLE messages(id BIGINT PRIMARY KEY,conversation_id BIGINT,direction VARCHAR(16),sender_type VARCHAR(16),sender_id VARCHAR(191),channel VARCHAR(32),text MEDIUMTEXT,metadata_json LONGTEXT,created_at DATETIME,KEY(conversation_id,id)) ENGINE=InnoDB',
-            'CREATE TABLE conversation_events(id BIGINT PRIMARY KEY,conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(32),actor_id VARCHAR(191),payload_json LONGTEXT,created_at DATETIME) ENGINE=InnoDB',
+            'CREATE TABLE messages(id BIGINT PRIMARY KEY,conversation_id BIGINT,direction VARCHAR(16),sender_type VARCHAR(16),sender_id VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,channel VARCHAR(32),text MEDIUMTEXT,metadata_json LONGTEXT,created_at DATETIME,KEY(conversation_id,id)) ENGINE=InnoDB',
+            'CREATE TABLE conversation_events(id BIGINT PRIMARY KEY,conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(32),actor_id VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,payload_json LONGTEXT,created_at DATETIME) ENGINE=InnoDB',
             'CREATE TABLE manager_assignments(id BIGINT PRIMARY KEY,conversation_id BIGINT,manager_id BIGINT,assignment_type VARCHAR(32),assigned_at DATETIME,released_at DATETIME) ENGINE=InnoDB',
         ];
         foreach ($schema as $sql) $native->exec($sql);
@@ -198,6 +199,16 @@ if ($nativeDsn!=='') {
         corpusAssert($nativeOk && $denied,'native server rejects business writes inside readonly capture');
         corpusAssert($nativeFooter['complete']===true && $nativeFooter['exported_counts']['conversations']===3 && $nativeFooter['exported_counts']['messages']===405,'native stable snapshot excludes concurrent insert and reconciles all pages');
         corpusAssert((int)$writer->query("SELECT COUNT(*) FROM conversations WHERE status='MUST_NOT_WRITE'")->fetchColumn()===0,'native readonly capture leaves business rows intact');
+        $nativeManagers=[]; $nativeMessages=[]; $nativeEvents=[];
+        foreach ($nativeRecords as $record) {
+            if ($record['type']==='manager') $nativeManagers[$record['source_locator']['manager_id']]=$record['id'];
+            elseif ($record['type']==='message') $nativeMessages[$record['source_locator']['message_id']]=$record;
+            elseif ($record['type']==='event') $nativeEvents[]=$record;
+        }
+        corpusAssert(count($nativeManagers)===2 && ($nativeMessages[2]['manager_ref']??null)===($nativeManagers[1]??'missing')
+            && ($nativeMessages[3]['manager_ref']??null)===($nativeManagers[2]??'missing')
+            && ($nativeEvents[0]['manager_ref']??null)===($nativeManagers[2]??'missing'),
+            'native exact message and event manager IDs correlate across different column and connection collations');
     } catch (Throwable $e) {
         corpusAssert(false,'native MySQL regression setup or capture failed');
     }

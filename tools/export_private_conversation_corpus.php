@@ -113,8 +113,8 @@ final class PrivateConversationCorpus
         if ($this->pdo->inTransaction()) throw new PrivateConversationCorpusFailure('transaction_already_active');
         if (defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) {
             $attribute=constant('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY');
-            // This one-shot collector owns a fresh connection. PDO MySQL allows
-            // setting this driver option, but does not support reading it back.
+            // This one-shot collector owns a fresh connection, so no previous
+            // buffered-query state needs to be read or restored.
             $this->pdo->setAttribute($attribute,false);
         }
         $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -132,9 +132,9 @@ final class PrivateConversationCorpus
     private function managerPredicate(): string
     {
         return "(EXISTS(SELECT 1 FROM conversations c WHERE c.project_key=? AND (c.manager_id=g.id OR c.lead_outcome_manager_id=g.id))"
-            ." OR EXISTS(SELECT 1 FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.project_key=? AND m.sender_type='manager' AND m.sender_id=CAST(g.id AS CHAR))"
+            ." OR EXISTS(SELECT 1 FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.project_key=? AND m.sender_type='manager' AND BINARY m.sender_id=BINARY CAST(g.id AS CHAR))"
             ." OR EXISTS(SELECT 1 FROM manager_assignments a JOIN conversations c ON c.id=a.conversation_id WHERE c.project_key=? AND a.manager_id=g.id)"
-            ." OR EXISTS(SELECT 1 FROM conversation_events e JOIN conversations c ON c.id=e.conversation_id WHERE c.project_key=? AND e.actor_type='manager' AND e.actor_id=CAST(g.id AS CHAR)))";
+            ." OR EXISTS(SELECT 1 FROM conversation_events e JOIN conversations c ON c.id=e.conversation_id WHERE c.project_key=? AND e.actor_type='manager' AND BINARY e.actor_id=BINARY CAST(g.id AS CHAR)))";
     }
 
     private function definitions(): array
