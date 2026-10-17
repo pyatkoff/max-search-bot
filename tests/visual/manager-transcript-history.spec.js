@@ -51,7 +51,7 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
   if(data.action==='send'&&syntheticSend){state.sends.push(data);const all=state.documents[data.conversation_id];all.push({id:Math.max(0,...all.map(m=>m.id))+1,sender_type:'manager',manager_id:state.accountId,text:data.text,created_at:'2026-10-14 08:01:00'});return reply({ok:true})}
  }
  if(url.pathname==='/manager/pipeline-api.php'){
-  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))});if(data.action==='detail'){if(state.leadGate)await state.leadGate.promise;return reply(lead(data.conversation_id))}
+  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))});if(data.action==='detail'){const held=state.leadGate?await state.leadGate.promise:null;if(held?.body&&Number(data.conversation_id)===11)return reply(held.body,held.status||200);return reply(lead(data.conversation_id))}
  }
  if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
  if(url.pathname==='/manager/push.php'&&method==='GET'&&url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
@@ -186,6 +186,87 @@ for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic 
 });
 
 const olderDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&Number(c.before_id)>0);
+async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false}={}){
+ await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead});await open(page);
+ await page.evaluate(()=>WorkspaceV2Conversation.loadOlder());await expect(page.locator('#messages .msg')).toHaveCount(400);
+ await page.locator('#replyText').fill('Точный черновик после неудачного перехода\nПродолжаем отвечать клиенту А');
+ await page.locator('#replyFile').setInputFiles({name:'retained-history.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
+ await page.locator('#messages audio').evaluate(async audio=>{audio.muted=true;await audio.play();window.retainedPlayingAudio=audio;window.retainedAudioTime=audio.currentTime});
+ await readTop(page);await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);
+ const before=await anchor(page);
+ await page.locator('#messages [data-scroll-message-key="402"] .msgBody').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);getSelection().removeAllRanges();getSelection().addRange(r);window.retainedSelection=getSelection().toString();window.retainedMessageRow=el.closest('.msg');window.retainedComposer=document.getElementById('composer');window.retainedReply=document.getElementById('replyText')});
+ return{state,before,draft:await page.locator('#replyText').inputValue()};
+}
+async function assertRetainedHistory(page,{before,draft},count=400){
+ await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await expect(page.locator('#messages .msg')).toHaveCount(count);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue(draft);
+ await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');
+ expect(await page.evaluate(()=>document.getElementById('composer')===window.retainedComposer&&document.getElementById('replyText')===window.retainedReply&&document.querySelector('#messages [data-scroll-message-key="402"]')===window.retainedMessageRow)).toBe(true);
+ expect(await page.evaluate(()=>getSelection().toString()===window.retainedSelection)).toBe(true);
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.retainedPlayingAudio&&!audio.paused&&audio.currentTime>=window.retainedAudioTime-.05)).toBe(true);
+ await sameAnchor(page,before);
+}
+for(const [width,height,outcome] of [[390,844,'500'],[430,844,'500'],[768,844,'500'],[1440,844,'500'],[390,420,'500'],...[403,404,'network','application','mismatched'].map(status=>[1440,844,String(status)])]){
+ test('retained history survives failed target '+outcome+' at '+width+'x'+height,async({page,browserName})=>{
+  const saved=await prepareRetainedHistory(page,{width,height}),{state}=saved,history=await page.evaluate(()=>WorkspaceV2History.getState()),details=refreshDetails(state),older=olderDetails(state).length;
+  state.latest.push(outcome==='network'?{abort:true}:outcome==='application'?{body:{ok:false,error:'synthetic_target'},status:200}:outcome==='mismatched'?{body:{...state.snapshot({conversation_id:12}),conversation:{...state.snapshot({conversation_id:12}).conversation,id:999}}}:{body:{ok:false,error:'synthetic_target'},status:Number(outcome)});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(false);await settled(page);
+  await expect(page.locator('#conversationLoadStatus')).toContainText('Текущий диалог не изменён');
+  expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);expect(refreshDetails(state)).toBe(details+1);expect(olderDetails(state)).toHaveLength(older);
+  await assertRetainedHistory(page,saved);await refresh(page);await assertRetainedHistory(page,saved);
+  expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);
+  await screenshot(page,browserName,width,'failed-target-'+outcome+'-'+height);
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(true);await assertRetainedHistory(page,saved,600);
+  expect(olderDetails(state)).toHaveLength(older+1);expect(olderDetails(state).at(-1).before_id).toBe(401);
+  await page.locator('#replyText').focus();await page.locator('#replyText').press('End');await page.locator('#replyText').press('!');await expect(page.locator('#replyText')).toHaveValue(saved.draft+'!');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);clean(state);
+ });
+}
+for(const width of [390,1440])test('retained history rejects the old older401 while a resumed page is pending at '+width,async({page,browserName})=>{
+ const saved=await prepareRetainedHistory(page,{width}),{state}=saved,old=deferred();state.older.push(old);
+ await page.evaluate(()=>{void WorkspaceV2Conversation.loadOlder()});await expect(page.locator('#conversationLoadOlder')).toBeDisabled();
+ state.latest.push({body:{ok:false,error:'synthetic_target'},status:500});expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(false);
+ const current=deferred();state.older.push(current);await page.evaluate(()=>{void WorkspaceV2Conversation.loadOlder()});await expect(page.locator('#conversationLoadOlder')).toBeDisabled();
+ const history=await page.evaluate(()=>WorkspaceV2History.getState()),count=state.calls.length;
+ const received=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===401);old.resolve({body:{ok:false,error:'unauthorized'},status:401});await(await received).finished();await settled(page);
+ expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);expect(state.calls).toHaveLength(count);await assertRetainedHistory(page,saved);
+ current.resolve(state.snapshot({conversation_id:11,before_id:401}));await expect(page.locator('#messages .msg')).toHaveCount(600);await assertRetainedHistory(page,saved,600);
+ await screenshot(page,browserName,width,'failed-target-late401');clean(state);
+});
+for(const width of [390,1440])test('retained history search resumes after a failed target and successful navigation starts fresh at '+width,async({page})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{total:800});await open(page);await page.evaluate(()=>WorkspaceV2Conversation.loadOlder());await expect(page.locator('#messages .msg')).toHaveCount(400);
+ await useConversationTool(page,'conversationSearchOpen');await page.locator('#conversationSearchInput').fill('сообщение');await expect(page.locator('#conversationSearchCount')).toContainText('400');
+ state.latest.push({body:{ok:false,error:'synthetic_target'},status:404});expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(false);
+ await expect(page.locator('#conversationSearchInput')).toHaveValue('сообщение');await expect(page.locator('#conversationSearchCount')).toContainText('400');await expect(page.locator('#conversationSearchNext')).toBeEnabled();
+ await expect(page.locator('#conversationSearchScope')).toContainText('400 загруженным');await page.locator('#conversationSearchNext').click();
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(true);await expect(page.locator('#messages .msg')).toHaveCount(3);
+ expect(await page.evaluate(()=>WorkspaceV2History.getState().has_more)).toBe(false);await expect(page.locator('#conversationSearchPanel')).toBeHidden();
+ await expect(page.locator('#messages [data-scroll-message-key="402"]')).toHaveCount(0);clean(state);
+});
+test('retained history keeps a disjoint-window gap across failed navigation until explicit pages fill it',async({page})=>{
+ await page.setViewportSize({width:430,height:844});const state=await setup(page,{total:800});await open(page);await page.evaluate(()=>WorkspaceV2Conversation.loadOlder());await expect(page.locator('#messages .msg')).toHaveCount(400);
+ state.documents[11].push(...messages(400).map(m=>({...m,id:m.id+800})));await refresh(page);
+ const history=await page.evaluate(()=>WorkspaceV2History.getState());expect(history.loaded).toBe(600);expect(history.before_id).toBe(1001);expect(history.has_gap).toBe(true);
+ state.latest.push({body:{ok:false,error:'synthetic_target'},status:500});expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(false);expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);
+ await refresh(page);expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);await expect(page.locator('#conversationHistoryStatus')).toContainText('промежуток');
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(true);expect(await page.evaluate(()=>WorkspaceV2History.getState().has_gap)).toBe(true);
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(true);expect(await page.evaluate(()=>WorkspaceV2History.getState().has_gap)).toBe(false);
+ const ids=await page.locator('#messages .msg').evaluateAll(rows=>rows.map(row=>Number(row.dataset.scrollMessageKey)));expect(ids).toEqual(Array.from({length:800},(_,i)=>401+i));expect(new Set(ids).size).toBe(800);clean(state);
+});
+for(const [width,status,oldStatus] of [[390,500,200],[1440,500,200],[1440,403,200],[1440,404,200],[390,500,401],[1440,500,401]])test('retained card ends loading after failed target '+status+' and old card'+oldStatus+' at '+width,async({page,browserName})=>{
+ const saved=await prepareRetainedHistory(page,{width,holdLead:true}),{state}=saved;
+ await expect(page.locator('#leadCard')).toContainText('Загружаем карточку');
+ state.latest.push({body:{ok:false,error:'synthetic_target'},status});expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(false);
+ const count=state.calls.length,old=page.waitForResponse(r=>r.url().endsWith('/manager/pipeline-api.php')&&r.request().postDataJSON()?.action==='detail'&&r.request().postDataJSON()?.conversation_id===11);
+ state.leadGate.resolve(oldStatus===200?null:{body:{ok:false,error:'unauthorized'},status:401});state.leadGate=null;await(await old).finished();await settled(page);
+ await expect(page.locator('#leadCard')).toContainText('Карточка клиента временно недоступна');await expect(page.locator('#leadCard')).not.toContainText('Загружаем карточку');
+ expect(state.calls).toHaveLength(count);expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead)).toBeNull();await assertRetainedHistory(page,saved);
+ await refresh(page);await expect(page.locator('#leadCard')).toContainText('Карточка клиента временно недоступна');await assertRetainedHistory(page,saved);
+ await page.locator('#conversationTitle').click();await expect(page.locator('#retryLeadCard')).toBeVisible();const reads=state.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='detail'&&c.conversation_id===11).length;
+ await page.locator('#retryLeadCard').click();await expect(page.locator('#retryLeadCard')).toHaveCount(0);
+ expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead?.ok)).toBe(true);expect(state.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='detail'&&c.conversation_id===11)).toHaveLength(reads+1);
+ await screenshot(page,browserName,width,'failed-target-card-'+status+'-old'+oldStatus);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');clean(state);
+});
 async function holdOlderWithKeyboard(page,state){
  const hold=deferred(),count=olderDetails(state).length;state.older.push(hold);
  const button=await revealConversationTool(page,'conversationLoadOlder');await button.focus();await button.press('Enter');

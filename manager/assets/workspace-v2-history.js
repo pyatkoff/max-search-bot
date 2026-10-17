@@ -26,6 +26,13 @@ function placeControls(root){
 }
 function render(){const root=ensureControls(),button=$('conversationLoadOlder'),status=$('conversationHistoryStatus');if(!root)return;const {compact,menu,focus}=placeControls(root),current=state.key&&state.key===key()&&!S.authExpired,visible=!!current&&(state.hasMore||state.paging||!!state.error),text=state.error||(state.paging?'Переписка и ответ остаются доступны.':state.gapFrontier?'Между загруженными частями могут быть сообщения. Загрузите предыдущие, чтобы заполнить промежуток.':'');root.classList.toggle('hidden',!visible||(!!menu&&!text));if(menu)menu.hidden=!visible;if(button){button.disabled=state.paging||!state.hasMore||!adapter?.canLoad();button.textContent=compact?(state.paging?'Загрузка…':state.error?'Повторить':'История'):(state.paging?'Загружаем предыдущие…':state.error?'Повторить загрузку предыдущих':'Загрузить предыдущие сообщения');const label=state.error?'Повторить загрузку предыдущих сообщений':'Загрузить предыдущие сообщения';button.setAttribute('aria-label',label);button.title=label}if(status)status.textContent=text;const scope=$('conversationSearchScope');if(scope&&current&&metadata(S.detail))scope.textContent='Поиск по '+state.messages.length+' загруженным сообщениям. '+(state.hasMore?'Предыдущие сообщения можно загрузить отдельно. ':'')+'Цитаты не проверяются.';if(focus&&visible){if(!menu||focus!==button||!window.Manager2Presentation?.focusConversationTool?.(button.id))focus.focus?.({preventScroll:true})}}
 function reset(){version++;state={key:'',messages:[],before:0,hasMore:false,gapFrontier:0,paging:false,error:'',flight:null};render()}
+function invalidateReads(){
+ const currentKey=key(),previous=state.key&&JSON.parse(state.key),current=currentKey&&JSON.parse(currentKey);
+ if(!previous||!current||previous.slice(0,3).some((value,index)=>value!==current[index])){reset();return}
+ // Navigation revokes pending work, not the still-visible authorized history.
+ // Rebind only this same account/session/conversation to its new open generation.
+ version++;state.key=currentKey;state.paging=false;state.flight=null;render();
+}
 function applyLatest(detail,{reset:restart=false,retainLoaded=false}={}){
  const h=metadata(detail),next=sortedUnion(detail?.messages||[]),currentKey=key();if(!h){reset();return next}
  const previous=state.messages,positiveRows=next.filter(m=>positive(m.id)),cutoff=positiveRows.length?Number(positiveRows[0].id):0;
@@ -52,5 +59,5 @@ async function loadOlder(){
  const flight=work.finally(()=>{if(state===record&&record.flight===flight){record.flight=null;record.paging=false;render()}});record.flight=flight;return flight;
 }
 function bind(value){adapter=value;ensureControls();render()}
-window.WorkspaceV2History={bind,reset,render,applyLatest,loadOlder,getState:()=>({before_id:state.before,has_more:state.hasMore,paging:state.paging,error:state.error,has_gap:!!state.gapFrontier,loaded:state.messages.length})};
+window.WorkspaceV2History={bind,reset,invalidateReads,render,applyLatest,loadOlder,getState:()=>({before_id:state.before,has_more:state.hasMore,paging:state.paging,error:state.error,has_gap:!!state.gapFrontier,loaded:state.messages.length})};
 })();
