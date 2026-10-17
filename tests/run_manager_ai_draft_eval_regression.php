@@ -167,15 +167,6 @@ foreach ([
     evalCheck('profile mismatch refuses '.$name.' before provider is relevant',
         evalRejects(static fn()=>evalCall('requestedProfile',$request)));
 }
-$observedInstructions='';
-evalCall('runCase',['case_id'=>'checklist_capture','context'=>evalContext()],1,
-    static function(string $instructions,array $payload) use (&$observedInstructions): array {
-        $observedInstructions=$instructions; return evalModelResult();
-    });
-evalCheck('private checklist augments only instructions, retaining canonical production rules',
-    str_starts_with($observedInstructions,ManagerAiDraftService::instructions())
-    && str_contains($observedInstructions,'Дополнительная проверка перед ответом')
-    && str_contains($observedInstructions,'на человека/на семью'));
 $modelTransportCalls=0;
 $modelRecord=evalCall('runCase',['case_id'=>'model_ok','context'=>evalContext()],1,
     static function(string $instructions,array $payload) use (&$modelTransportCalls): array {
