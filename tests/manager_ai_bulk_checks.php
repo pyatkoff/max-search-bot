@@ -31,6 +31,10 @@ try{
  [$n,$peak]=array_map('intval',explode(',',file_get_contents($d.'/counter')));checkBulk($n===0&&$peak===3,'actual_parallel_cap');
  foreach($records as $r)checkBulk($r['provider_calls']===1&&$r['result']['ok']===true,'one_call_per_worker');
  $rejected=false;try{callBulk('parallel',$cases,3,'generate',$d,static function(){},static function(){throw new RuntimeException('must_not_replay');});}catch(Throwable $e){$rejected=true;}checkBulk($rejected,'started_ledger_prevents_replay');
+ $gd=$d.'/grades';mkdir($gd,0700);$gc=[];for($i=0;$i<8;++$i)$gc[]=['case_id'=>'GRADE_'.$i,'context'=>contextBulk($i+1),'candidate_result'=>resultBulk(),'criteria'=>[]];
+ $gr=callBulk('parallel',$gc,3,'grade',$gd,static function(){},static function(){return ['ok'=>true];});
+ checkBulk(count($gr)===8&&count(array_filter($gr,static fn($x)=>($x['result']['error']??'')==='invalid_grade'))===8,'invalid_grades_quarantined_without_stopping_batch');
+ foreach(glob($gd.'/*')?:[] as $p)unlink($p);rmdir($gd);
 }finally{foreach(glob($d.'/*')?:[] as $p)unlink($p);rmdir($d);}
 checkBulk(!class_exists('ConversationDb',false),'no_database_bootstrap');
 echo "bulk synthetic checks PASS; canonical service, policy, grading, fork concurrency, persistence and no replay\n";
