@@ -228,6 +228,7 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 .manager2 #composer .composerSurface{display:block!important;position:relative;gap:5px;min-height:calc(var(--m2-reply-actions-height,44px) + var(--m2-reply-surface-y,12px))}
 .manager2 #composer .composerMain{display:block;min-height:0;width:calc(100% - var(--m2-reply-actions-width,230px) - var(--m2-reply-gap,5px))!important;padding-bottom:0}
 .manager2 #replyText{flex:none;min-height:0;max-height:none;resize:none}
+.manager2 #replyText:placeholder-shown{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .manager2 #composer .composerActions{position:absolute;right:var(--m2-reply-surface-right,6px);bottom:var(--m2-reply-surface-bottom,6px);width:var(--m2-reply-actions-width,230px);justify-content:flex-end}
 .manager2 #composer .composerActions>*{flex-shrink:0}
 .manager2 #composer.m2ReplyMultiline{--m2-reply-size-delay:0ms;--m2-reply-width-delay:80ms}

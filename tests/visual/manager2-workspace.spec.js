@@ -481,6 +481,7 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   await reply.fill(wrappingText);const wrapped=await editorGeometry(page);
   await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);expect(wrapped.width).toBeGreaterThan(empty.width+80);
   await reply.fill('');expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);await capture(page,browserName,viewport.width,'reply-compact-empty-'+viewport.height);
+  expect(await reply.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeLessThanOrEqual(1);
   await expect(page.locator('#composer')).not.toHaveClass(/m2ReplyMultiline/);
   await reply.fill(editorText);
   await expect.poll(async()=>(await editorGeometry(page)).height).toBeGreaterThan(short.height+40);
