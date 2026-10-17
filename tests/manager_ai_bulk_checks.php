@@ -15,6 +15,7 @@ checkBulk($n===0&&$r['provider_calls']===0&&$r['result_origin']==='policy','zero
 $grade=['ok'=>true,'grade'=>'pass','usable_draft'=>true,'abstention'=>'none','review_required'=>false,'reason'=>'Уточнение неизвестных дат.','suspected_issues'=>[],'evidence_message_ids'=>[7]];
 checkBulk(callBulk('validGrade',$grade,contextBulk()),'valid_grade');$bad=$grade;$bad['evidence_message_ids']=[8];checkBulk(!callBulk('validGrade',$bad,contextBulk()),'future_evidence_rejected');
 $bad=$grade;$bad['abstention']='excessive';checkBulk(!callBulk('validGrade',$bad,contextBulk()),'contradictory_grade_rejected');
+$minor=$grade;$minor['grade']='caution';checkBulk(callBulk('validGrade',$minor,contextBulk()),'minor_internal_caution_can_keep_customer_draft_usable');
 $bad=$grade;$bad['extra']='SYNTHETIC';checkBulk(!callBulk('validGrade',$bad,contextBulk()),'extra_fields_rejected');
 $d=sys_get_temp_dir().'/bulk-synthetic-'.bin2hex(random_bytes(10));mkdir($d,0700);
 try{

@@ -322,7 +322,8 @@ final class ManagerAiBulkEval
             else $record=['type'=>'case','index'=>$item['index'],'case_id'=>$item['case_id'],'stage'=>$stage,
                 'provider_calls'=>null,'result_origin'=>'unknown','elapsed_ms'=>null,'provider_metadata'=>null,'result'=>['ok'=>false,'error'=>'worker_unknown']];
             $records[]=$record;$emit($record);
-            if (($record['result']['ok']??false)!==true) ++$errors;
+            // Invalid semantic grade is a per-case review item, not a transport outage.
+            if (($record['result']['ok']??false)!==true && ($record['result']['error']??'')!=='invalid_grade') ++$errors;
             if ($errors>=3 || $record['result_origin']==='unknown') $halt=true;
         }
         return $records;
@@ -341,7 +342,7 @@ final class ManagerAiBulkEval
             ++$calls;$payload=['conversation'=>$case['context'],'candidate_result'=>$case['candidate_result'],'reviewer_reference_criteria'=>$case['criteria']];
             $result=$transport===null?self::judgeRequest(self::judgeInstructions(),$payload,$observe):$transport(self::judgeInstructions(),$payload,$observe);
             if (isset($result['_error'])) $result=['ok'=>false,'error'=>$result['_error']];
-            elseif (!self::validGrade($result,$case['context'])) $result=['ok'=>false,'error'=>'invalid_grade'];
+            elseif (!self::validGrade($result,$case['context'])) $result=['ok'=>false,'error'=>'invalid_grade','raw_grade'=>$result];
         } else throw new RuntimeException('invalid_stage');
         return ['type'=>'case','index'=>$index,'case_id'=>$case['case_id'],'stage'=>$stage,'provider_calls'=>$calls,
             'result_origin'=>$calls===0?'policy':'model','elapsed_ms'=>(int)round((hrtime(true)-$started)/1000000),'provider_metadata'=>$metadata,'result'=>$result];
@@ -379,7 +380,7 @@ JUDGE;
         foreach ($r['suspected_issues'] as $v) if (!is_string($v) || strlen($v)>600) return false;
         $ids=array_fill_keys(array_column($context['messages'],'id'),true);$seen=[];
         foreach ($r['evidence_message_ids'] as $id) {if (!is_int($id) || !isset($ids[$id]) || isset($seen[$id])) return false;$seen[$id]=true;}
-        return !($r['usable_draft'] && ($r['grade']!=='pass' || $r['abstention']!=='none'));
+        return !($r['usable_draft'] && ($r['grade']==='block' || $r['abstention']!=='none'));
     }
 
     /** Judge-only schema with canonical fixed endpoint/profile/caps. */

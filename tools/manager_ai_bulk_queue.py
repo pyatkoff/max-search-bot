@@ -39,12 +39,27 @@ class Queue:
         p=Path(path);p.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
         self.db=sqlite3.connect(p);os.chmod(p,0o600)
         self.db.execute('CREATE TABLE IF NOT EXISTS jobs (fingerprint TEXT PRIMARY KEY, case_id TEXT, stage TEXT, state TEXT NOT NULL, task_token TEXT, input_json TEXT NOT NULL, result_json TEXT)')
+        columns={row[1] for row in self.db.execute('PRAGMA table_info(jobs)')}
+        for column in ['input_hash','contract_hash']:
+            if column not in columns:self.db.execute('ALTER TABLE jobs ADD COLUMN '+column+' TEXT')
+        for key,raw in self.db.execute('SELECT fingerprint,input_json FROM jobs WHERE input_hash IS NULL').fetchall():
+            value=json.loads(raw);value.pop('case_id',None)
+            self.db.execute('UPDATE jobs SET input_hash=? WHERE fingerprint=?',(digest(encoded(value)),key))
+        self.db.execute('CREATE INDEX IF NOT EXISTS jobs_input_index ON jobs(stage,input_hash)')
         self.db.execute('CREATE TABLE IF NOT EXISTS receipts (task_token TEXT PRIMARY KEY, receipt_json TEXT NOT NULL)');self.db.commit()
 
     def enqueue(self,case,stage,contract):
-        key=digest(encoded({'case':case,'stage':stage,'contract':contract}))
+        value={k:v for k,v in case.items() if k!='case_id'}
+        input_hash=digest(encoded(value));contract_hash=digest(encoded(contract))
+        key=digest(encoded({'input':value,'stage':stage,'contract':contract}))
         with self.db:
-            self.db.execute('INSERT OR IGNORE INTO jobs VALUES(?,?,?,\'pending\',NULL,?,NULL)',(key,case['case_id'],stage,encoded(case).decode()))
+            for old_key,old_input,old_contract in self.db.execute('SELECT fingerprint,input_json,contract_hash FROM jobs WHERE stage=? AND input_hash=?',(stage,input_hash)).fetchall():
+                old_case=json.loads(old_input)
+                legacy=digest(encoded({'case':old_case,'stage':stage,'contract':contract}))
+                if old_contract==contract_hash or old_key==legacy:
+                    self.db.execute('UPDATE jobs SET contract_hash=? WHERE fingerprint=?',(contract_hash,old_key))
+                    return old_key
+            self.db.execute('INSERT OR IGNORE INTO jobs(fingerprint,case_id,stage,state,task_token,input_json,result_json,input_hash,contract_hash) VALUES(?,?,?,\'pending\',NULL,?,NULL,?,?)',(key,case['case_id'],stage,encoded(case).decode(),input_hash,contract_hash))
         return key
 
     def reserve(self,keys,token):
