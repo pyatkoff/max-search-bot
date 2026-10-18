@@ -24,7 +24,20 @@ async function readEarlier(page){
  // Start at the settled latest edge, then prove the real wheel reached the
  // history owner. Distance alone can be nonzero before that gesture is adopted.
  await expect.poll(()=>page.evaluate(()=>({following:WorkspaceV2Jump.isFollowingLatest(),atLatest:WorkspaceV2Jump.distanceFromLatest()<=2}))).toEqual({following:true,atLatest:true});
- await messages.hover();await page.mouse.wheel(0,-1200);
+ await expect.poll(()=>messages.evaluate(box=>new Promise(resolve=>{
+  const geometry=()=>{const r=box.getBoundingClientRect();return [r.x,r.y,r.width,r.height,box.clientHeight,box.scrollHeight].join(',')},before=geometry();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(geometry()===before)));
+ }))).toBe(true);
+ // Settle WebKit's native hit-test after the composer/file reflow. This fixed
+ // two-part gesture establishes reading; it never retries a failed assertion.
+ await messages.hover({position:{x:24,y:24}});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ expect(await messages.evaluate(box=>{const r=box.getBoundingClientRect();return box.contains(document.elementFromPoint(r.left+24,r.top+24))})).toBe(true);
+ await messages.evaluate(box=>{window.manualGroupTrustedWheels=0;box.addEventListener('wheel',event=>{if(event.isTrusted&&event.deltaY<0)window.manualGroupTrustedWheels++},{passive:true})});
+ await page.mouse.wheel(0,-600);
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await page.mouse.wheel(0,-600);
+ await expect.poll(()=>page.evaluate(()=>window.manualGroupTrustedWheels)).toBeGreaterThan(0);
  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
  await expect.poll(()=>messages.evaluate(node=>node.scrollHeight-node.clientHeight-node.scrollTop)).toBeGreaterThan(50);
  await messages.evaluate(node=>node.scrollTop=140);
