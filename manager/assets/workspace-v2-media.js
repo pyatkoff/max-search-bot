@@ -22,7 +22,15 @@ function render(){
  // querySelector fallback keeps the small non-browser context harness supported.
  const items=box.querySelectorAll?Array.from(box.querySelectorAll('.mediaSelectedItem')):rows.map(()=>box);
  items.forEach((item,index)=>{const row=rows[index],f=row.file;item.querySelector('.mediaFileName').textContent=f.name||'Скриншот';item.querySelector('.mediaFileSize').textContent=row.status==='unknown'?'Исход неизвестен — повтор заблокирован':state.busy&&state.sendingRow===row?'Отправляем '+state.progress:Number(f.size||0)<1024*1024?`${(Number(f.size||0)/1024).toFixed(1)} КБ`:`${(Number(f.size||0)/1024/1024).toFixed(2)} МБ`;
- const remove=item.querySelector('.mediaRemove');remove.disabled=state.busy||row.status==='unknown';remove.onclick=()=>{if(state.busy||row.status==='unknown')return;const current=files();revoke([current[index]]);current.splice(index,1);save(current);state.notice='';render()};
+ const remove=item.querySelector('.mediaRemove');remove.disabled=state.busy||row.status==='unknown';remove.onclick=()=>{
+  if(state.busy||row.status==='unknown')return;
+  const focused=document.activeElement===remove,current=files();revoke([current[index]]);current.splice(index,1);save(current);state.notice='';render();
+  if(focused){
+   const buttons=Array.from(selection()?.querySelectorAll?.('.mediaRemove')||[]);
+   const next=buttons.slice(index).find(button=>!button.disabled)||buttons.slice(0,index).reverse().find(button=>!button.disabled)||$('replyText');
+   if(!next?.disabled)next?.focus?.({preventScroll:true});
+  }
+ };
  if(item!==box){const preview=item.querySelector('.mediaPreview');preview.textContent=`${index+1}/${rows.length}`;preview.setAttribute('data-position',`${index+1}/${rows.length}`)}
  if(f.type?.startsWith('image/')&&typeof URL?.createObjectURL==='function'&&item!==box){if(!row.url)row.url=URL.createObjectURL(f);item.querySelector('.mediaPreview').textContent='';const img=document.createElement('img');img.src=row.url;img.alt='';item.querySelector('.mediaPreview').appendChild(img)}
  });
