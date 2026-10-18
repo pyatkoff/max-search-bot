@@ -24,10 +24,35 @@ async function readEarlier(page){
  // Start at the settled latest edge, then prove the real wheel reached the
  // history owner. Distance alone can be nonzero before that gesture is adopted.
  await expect.poll(()=>page.evaluate(()=>({following:WorkspaceV2Jump.isFollowingLatest(),atLatest:WorkspaceV2Jump.distanceFromLatest()<=2}))).toEqual({following:true,atLatest:true});
- await messages.hover();await page.mouse.wheel(0,-1200);
+ await expect.poll(()=>messages.evaluate(box=>new Promise(resolve=>{
+  const geometry=()=>{const r=box.getBoundingClientRect();return [r.x,r.y,r.width,r.height,box.clientHeight,box.scrollHeight].join(',')},before=geometry();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(geometry()===before)));
+ }))).toBe(true);
+ // Settle WebKit's native hit-test after the composer/file reflow. This fixed
+ // two-part gesture establishes reading; it never retries a failed assertion.
+ await messages.hover({position:{x:24,y:24}});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ expect(await messages.evaluate(box=>{const r=box.getBoundingClientRect();return box.contains(document.elementFromPoint(r.left+24,r.top+24))})).toBe(true);
+ await messages.evaluate(box=>{
+  const receipt=window.manualGroupReadingGesture={wheels:0,lastWheel:performance.now(),lastScroll:performance.now()};
+  box.addEventListener('wheel',event=>{if(event.isTrusted&&event.deltaY<0){receipt.wheels++;receipt.lastWheel=performance.now()}},{passive:true});
+  box.addEventListener('scroll',()=>{receipt.lastScroll=performance.now()},{passive:true});
+ });
+ for(let step=0;step<2;step++){
+  const before=await page.evaluate(()=>window.manualGroupReadingGesture.wheels);
+  await page.mouse.wheel(0,-600);
+  await expect.poll(()=>page.evaluate(()=>window.manualGroupReadingGesture.wheels)).toBeGreaterThan(before);
+ }
  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
  await expect.poll(()=>messages.evaluate(node=>node.scrollHeight-node.clientHeight-node.scrollTop)).toBeGreaterThan(50);
- await messages.evaluate(node=>node.scrollTop=140);
+ // Receipt of wheel input precedes its asynchronous default scroll. Let the
+ // fixed gesture finish before placing the exact preservation-test baseline.
+ await expect.poll(()=>messages.evaluate(box=>new Promise(resolve=>{
+  const receipt=window.manualGroupReadingGesture,top=box.scrollTop;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(box.scrollTop===top&&performance.now()-Math.max(receipt.lastWheel,receipt.lastScroll)>=200)));
+ }))).toBe(true);
+ console.log('MANUAL_GROUP_NATIVE_GESTURE '+JSON.stringify(await messages.evaluate(box=>({wheels:window.manualGroupReadingGesture.wheels,top:box.scrollTop,distance:WorkspaceV2Jump.distanceFromLatest(),following:WorkspaceV2Jump.isFollowingLatest()}))));
+ expect(await messages.evaluate(node=>{node.scrollTop=140;return WorkspaceV2Jump.isFollowingLatest()})).toBe(false);
  // Retain the exact position assertion after two actual animation frames,
  // rather than letting a still-pending native scroll become the test baseline.
  await expect.poll(()=>page.evaluate(()=>new Promise(resolve=>{

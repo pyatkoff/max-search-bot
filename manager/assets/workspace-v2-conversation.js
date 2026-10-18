@@ -314,6 +314,8 @@ async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous,retainLoaded=options.preserveHistory===true&&target===previous&&!options.restoreSession;
   if(!target||S.authExpired)return false;
   if(switching&&window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
+  // An admitted newer choice supersedes a startup URL even if its detail fails.
+  W.discardNotificationIntent?.();
   if(switching){closeEmojiPicker();closePhotoViewer(false);window.WorkspaceV2CustomerAvatar?.conversationChanging(target)}
   const seq=++openSeq,manager=Number(S.manager?.id||0),authGeneration=S.authGeneration;
   const validContext=()=>seq===openSeq&&!S.authExpired&&Number(S.manager?.id||0)===manager&&S.authGeneration===authGeneration;

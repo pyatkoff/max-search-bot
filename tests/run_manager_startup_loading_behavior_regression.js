@@ -234,4 +234,63 @@ test('notification reauth ignores the old startup Inbox401 after a new account h
   held.resolve(response({ok:false},401));await boot;assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,103);assert.equal(h.ids.get('replyText').value,'Only account8');assert.equal(h.location.hash,'');assertNoMutations(h);
 });
 
+async function heldNotificationStartup(h){
+  const held=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action==='list'?(entered.resolve(),held.promise):null);
+  const boot=h.start({open:false});await entered.promise;
+  return {boot,release:()=>held.resolve(response({ok:true,conversations:liveRows(1)}))};
+}
+async function expireCounts(h){
+  h.setHook((url,r)=>r.action==='counts'?response({ok:false,error:'unauthorized'},401):null);
+  await assert.rejects(h.W.api('counts'),/unauthorized/);assert.equal(h.W.S.authExpired,true);h.setHook(null);
+}
+const notificationDetails=h=>h.calls.filter(c=>c.url==='api.php'&&c.action==='detail').map(c=>c.conversation_id);
+for(const method of ['notification','manual'])for(const expired of [false,true])test('notification supersession keeps the newer '+method+' choice, expiry='+expired,async()=>{
+  const h=notificationHarness(),startup=await heldNotificationStartup(h);
+  assert.equal(await(method==='notification'?h.W.openNotificationConversation(103):h.C.open(103)),true);
+  await h.draft('Newer exact draft\n  retained');const file={name:'newer.txt'};h.setFile(file);
+  if(expired)await expireCounts(h);startup.release();await startup.boot;if(expired)await h.login();
+  assert.equal(h.W.S.current,103);assert.equal(h.location.hash,'');assert.equal(h.ids.get('replyText').value,'Newer exact draft\n  retained');assert.equal(h.getFile(),file);
+  assert.deepEqual(notificationDetails(h),expired?[103,103]:[103]);assertNoMutations(h);
+});
+for(const status of [401,403,404,500])test('notification supersession does not revive an older target after newer detail '+status,async()=>{
+  const h=notificationHarness(),startup=await heldNotificationStartup(h);
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===103?response({ok:false},status):null);
+  assert.equal(await h.C.open(103),false);if(!h.W.S.authExpired)await expireCounts(h);
+  startup.release();await startup.boot;h.setHook(null);await h.login();
+  assert.equal(h.W.S.current,0);assert.equal(h.location.hash,'');assert.deepEqual(notificationDetails(h),[103]);assertNoMutations(h);
+});
+for(const refusal of ['invalid','auth','dirty task'])test('notification supersession preserves the pending target after '+refusal+' refusal',async()=>{
+  const h=notificationHarness(),startup=await heldNotificationStartup(h);
+  if(refusal==='auth')h.W.showAuthRecovery();
+  if(refusal==='dirty task')h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>true};
+  assert.equal(await h.C.open(refusal==='invalid'?0:103),false);assert.equal(h.location.hash,'#conversation=102');
+  delete h.window.WorkspaceV2Tasks;startup.release();await startup.boot;if(refusal==='auth')await h.login();
+  assert.equal(h.W.S.current,102);assert.deepEqual(notificationDetails(h),[102]);assertNoMutations(h);
+});
+for(const status of [200,401])test('notification supersession ignores obsolete detail '+status+' while a newer login target waits',async()=>{
+  const h=notificationHarness(),startup=await heldNotificationStartup(h),old=deferred(),entered=deferred();
+  h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?(entered.resolve(),old.promise):null);
+  const opening=h.C.open(103);await entered.promise;await expireCounts(h);h.W.openNotificationConversation(104);
+  startup.release();await startup.boot;
+  const recovered=deferred(),listEntered=deferred();h.setHook((url,r)=>r.action==='list'?(listEntered.resolve(),recovered.promise):null);
+  const login=h.login();await listEntered.promise;
+  old.resolve(response(status===200?{ok:true,conversation:{...h.conversation,id:103},messages:[]}:{ok:false},status));await opening;
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.location.hash,'#conversation=104');
+  recovered.resolve(response({ok:true,conversations:[]}));await login;
+  assert.equal(h.W.S.current,104);assert.equal(h.location.hash,'');assert.deepEqual(notificationDetails(h),[103,104]);assertNoMutations(h);
+});
+test('notification supersession clears prior-account selection, draft and File on known account change',async()=>{
+  const h=notificationHarness(),startup=await heldNotificationStartup(h);await h.C.open(103);
+  await h.draft('Account7 private draft');h.setFile({name:'private-account7.txt'});await expireCounts(h);startup.release();await startup.boot;
+  h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});await h.login();
+  assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,0);assert.equal(h.location.hash,'');assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);assert.deepEqual(notificationDetails(h),[103]);assertNoMutations(h);
+});
+for(const hash of ['#conversation=102','#conversation=102&other=1','#workspace-help'])test('notification supersession preserves URL and history ownership for '+hash,async()=>{
+  const h=notificationHarness(hash),state={workspace:'existing-entry'};h.location.pathname='/manager2/index.php';h.location.search='?synthetic=1';h.history.replaceState(state);
+  const entries=h.history.entries.length,startup=await heldNotificationStartup(h);await h.C.open(103);
+  assert.equal(h.location.hash,hash==='#conversation=102'?'':hash);assert.equal(h.location.pathname,'/manager2/index.php');assert.equal(h.location.search,'?synthetic=1');assert.equal(h.history.state,state);assert.equal(h.history.entries.length,entries);
+  startup.release();await startup.boot;assert.equal(h.W.S.current,103);assertNoMutations(h);
+});
+
 (async()=>{let failed=0;for(const {name,run} of cases){try{await run();console.log('PASS '+name);}catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0;})();
