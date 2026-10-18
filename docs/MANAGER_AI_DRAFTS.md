@@ -113,6 +113,39 @@ style or establish production accuracy. Validate changes on separate past-only
 histories with the same fixed model/profile, distinguishing helpful drafts from
 justified abstentions and policy-only results from actual provider calls.
 
+Trip scope applies to internal `reason`/`checks` as well as the customer draft.
+A new season or period does not by itself establish that the old duration still
+applies, or cancel the earlier request. Keep that relationship unresolved when
+the customer has not made it clear. A clear date-only edit of the same trip
+preserves its other confirmed requirements; explicit shared conditions apply
+only to the named alternatives.
+
+Incompatible ages for the same child and trip remain a source conflict until
+the customer clarifies it. A manager's repetition or a tariff label does not
+resolve the conflict. Preserve compatible present/travel-date ages, different
+children and explicit customer corrections. Resolve the conflict before an
+age-dependent calculation, while still answering an independent current question.
+
+Prospective neutral semantic controls for these instruction changes:
+
+| Synthetic situation | Expected boundary |
+| --- | --- |
+| June Portugal for nine days; separate September Iceland request without duration | Do not transfer the nine days or cancel Portugal. |
+| July trip followed by a November-date question with unclear relationship | Preserve uncertainty about the relationship and duration. |
+| Customer says it is the same trip and changes only its departure date | Retain other confirmed conditions without asking the whole request again. |
+| Customer explicitly applies six nights to both named alternatives | Keep six nights for both, without inventing other unknown conditions. |
+| Same child's age is given as five and nine; manager repeats nine | Keep the conflicting evidence until customer clarification. |
+| Customer explicitly corrects five to nine for that child and trip | Use the correction, without retaining an obsolete conflict. |
+| Child is eight now and explicitly nine on the trip | Do not invent a conflict between compatible ages. |
+| Two children are five and nine | Keep the children separate. |
+| Age is unresolved but the current question can be answered independently | Give the supported answer and retain the age check for dependent work. |
+
+These are unsubmitted development controls, not measured model results. The
+synthetic transport regression checks canonical instruction delivery and the
+existing request cap at both context limits; injected replies do not establish
+that the model follows these rules. Provider quality and latency require a
+separate frozen evaluation; previous results and criteria remain unchanged.
+
 The provider payload receives only eligible server-owned `verified_company_facts`
 from the authorized conversation's project. Transcript/context fields cannot
 populate this list. Its knowledge revision participates in post-generation and
