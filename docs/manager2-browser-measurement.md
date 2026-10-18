@@ -20,6 +20,10 @@ measure production API, SQL, network latency or real customer conversations.
   browser process and OS caches are uncontrolled. Playwright routing disables
   HTTP cache: “warm” means a reused page/context, not warmed HTTP cache.
 - Each cycle has the fixed sequence below. The data resets between cycles.
+  Outside the timed phases, clear the previous draft/File, open client B and
+  wait for its 200-message transcript/card, then return to Inbox. Thus every
+  timed A-open is a real B→A switch, including repeated warm-page cycles; the
+  preceding Back cannot silently turn it into a same-client reconciliation.
   These are correlated repeated synthetic observations, not independent users.
   Report sample medians and ranges. Stable P95 remains **`not_measured`**;
   nothing here establishes a production SLA or a physical-device score.

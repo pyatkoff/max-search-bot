@@ -54,15 +54,21 @@ async function phase(page,options,action){
  }catch(error){json(path.join(output,'phase-failure.json'),{phase:options,diagnostic:await page.evaluate(()=>window.__managerMeasurement.diagnostic())});await page.screenshot({path:path.join(output,'failure.png')});throw error}
 }
 const command=(page,name)=>page.evaluate(async name=>{await WorkspaceV2Conversation[name]();window.__managerMeasurement.commandDone()},name);
-async function inbox(page){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox')){await page.locator('#mobileBack').click();await page.waitForFunction(()=>WorkspaceV2Mobile.getScreen()==='inbox')};}
+async function inbox(page){await page.evaluate(()=>{if(WorkspaceV2Mobile.isMobile())WorkspaceV2Mobile.showInbox({historyMode:'replace'})});}
 async function cycle(page,state,index){
  const records=[];state.reset();
  if(await page.evaluate(()=>WorkspaceV2.S.current>0)){await page.evaluate(()=>WorkspaceV2Media.clear());await page.locator('#replyText').fill('')}
+ // Every timed A-open starts from B, including repeated same-page samples.
+ // Otherwise the preceding Back leaves A selected and measures same-client
+ // reconciliation rather than a real conversation switch.
+ await page.evaluate(async()=>{if(!await WorkspaceV2Conversation.open(12,{mobileHistory:'none'}))throw Error('Precondition B did not open')});
+ await page.waitForFunction(()=>WorkspaceV2.S.current===12&&WorkspaceV2.S.detail?.lead&&WorkspaceV2History.getState().loaded===200);
  await inbox(page);
  records.push(await phase(page,{name:'system_selection',kind:'list',event:'click',selector:'[data-q="mine"]',path:'/manager/pipeline-api.php'},()=>page.locator('[data-q="mine"]').click()));
  records.push(await phase(page,{name:'personal_selection',kind:'list',event:'click',selector:'[data-pw-selection="tab:10"]',path:'/manager/personal-workspace-api.php'},()=>page.locator('[data-pw-selection="tab:10"]').click()));
  const selector='#inboxList [data-conversation-id="11"] .m2RowOpen';
- records.push(await phase(page,{name:'open_authorized_reply',kind:'open',event:'click',selector,id:11,loaded:200},()=>page.locator(selector).click()));
+ assert.equal(await page.evaluate(()=>WorkspaceV2.S.current),12);
+ records.push(await phase(page,{name:'open_authorized_reply',kind:'open',event:'click',selector,from:12,id:11,loaded:200},()=>page.locator(selector).click()));
  await page.locator('#replyText').focus();
  records.push(await phase(page,{name:'input_adoption',kind:'input',event:'input',selector:'#replyText',id:11,draft:draftText},()=>page.locator('#replyText').fill(draftText)));
  records.push(await phase(page,{name:'older_200_to_400',kind:'history',id:11,loaded:400},()=>command(page,'loadOlder')));
