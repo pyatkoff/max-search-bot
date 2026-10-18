@@ -1,0 +1,35 @@
+{
+  "schema": "manager_ai_k04_standard_source_v1",
+  "production_sha": "c311533716f8ebba306ef6080b091e18af043c0b",
+  "candidate_sha": "4624e4d6403ff2c18cb09190e9a767424a5c1d96",
+  "candidate_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "732e1df0c89b854178d197c4215d2fde253b96449ca398e918ac8cf86c20f0bc"
+  },
+  "production_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "d09c55ee07ec7f5a2ca220469d7417003ae50d6a1689a84bb0310b6027d08263"
+  },
+  "candidate_instructions_sha256": "eb6ec544409db780351d1b3736faf8492eb0903a9272cf7fe835db68e0dc4e41",
+  "proposal_inputs_sha256": "2134b7508ebba61a68f9cff209bead1de8e0580470c5332b0e19b69959025e67",
+  "criteria_sha256": "e736989c1de0c52b08770c2e1b7e6dbc9f7948c628c967ae5a01659529e68e1a",
+  "selection_freeze_sha256": "3b605e8a97c2427465da76b7b6722a760e9e7758429211069741d5bed9e35649",
+  "case_count": 11,
+  "parallelism": 1,
+  "profile": {
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "low",
+    "service_tier": "default"
+  },
+  "output_token_reservation": 24200
+}
