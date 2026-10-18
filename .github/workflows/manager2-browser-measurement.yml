@@ -1,0 +1,93 @@
+name: Manager2 browser measurement
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/measure_manager2_browser.js'
+      - 'tools/fixtures/manager2_browser_measurement.js'
+      - 'tests/visual/fixtures/personal-workspace.js'
+      - 'docs/manager2-browser-measurement.md'
+      - '.github/workflows/manager2-browser-measurement.yml'
+  workflow_dispatch:
+    inputs:
+      product_sha:
+        description: 'Exact deployed source SHA; empty uses this workflow SHA'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Read-only evidence has its own group; it cannot cancel a deployment.
+concurrency:
+  group: manager2-measurement-${{ github.run_id }}-${{ github.run_attempt }}
+  cancel-in-progress: false
+
+env:
+  PRODUCT_SHA: ${{ inputs.product_sha || github.event.pull_request.base.sha || github.sha }}
+
+jobs:
+  input:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned measurement library
+        run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - name: Capture anonymous static input and verify source hashes
+        run: >-
+          node tools/measure_manager2_browser.js --capture --capture-only
+          --product-sha "$PRODUCT_SHA" --assets measurement-input
+          --output measurement-capture
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manager2-measurement-input-${{ github.sha }}
+          path: measurement-input/
+          if-no-files-found: error
+          retention-days: 30
+
+  browser:
+    needs: input
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned engine and native dependencies
+        env:
+          ENGINE: ${{ matrix.engine }}
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps "$ENGINE"
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager2-measurement-input-${{ github.sha }}
+          path: measurement-input
+      - name: Measure the frozen synthetic whole-path series
+        env:
+          ENGINE: ${{ matrix.engine }}
+        run: >-
+          node tools/measure_manager2_browser.js --engine "$ENGINE"
+          --product-sha "$PRODUCT_SHA" --assets measurement-input
+          --output measurement-result --samples 30 --warmups 3 --cold 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-measurement-${{ matrix.engine }}-${{ github.sha }}
+          path: measurement-result/
+          if-no-files-found: error
+          retention-days: 30
