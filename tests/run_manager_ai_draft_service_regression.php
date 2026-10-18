@@ -253,6 +253,25 @@ $boundaryResult=ManagerAiDraftService::generate($boundary,static function(string
 });
 draftCheck('character limit keeps the full UTF-8 boundary text',$boundarySeen && $boundaryResult===draftResult());
 
+// More procedural instructions must still fit the existing transport cap with
+// both context limits reached. This tests delivery/bytes, not model semantics.
+$wireBoundary=['conversation_id'=>17,'as_of_message_id'=>120,'history_incomplete'=>true,'messages'=>[]];
+for ($i=1;$i<=120;$i++) $wireBoundary['messages'][]=['id'=>$i,'sender_type'=>'customer',
+    'text'=>str_repeat('😀',$i===120?373:333)];
+$wireBoundaryBefore=$wireBoundary;$wireBody=[];$wireCalls=0;
+$wireResult=draftResult();$wireResult['history_incomplete']=true;$wireResult['evidence_message_ids']=[120];
+$wireResponse=ManagerAiDraftService::generate($wireBoundary,static function(string $instructions,array $payload) use (&$wireBody,&$wireCalls,$wireResult):array {
+    $wireCalls++;$wireBody=ManagerDraftClient::requestBody($instructions,$payload);return $wireResult;
+});
+$wireBytes=json_encode($wireBody,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+$wirePayload=json_decode($wireBody['input'][1]['content'][0]['text']??'null',true);
+draftCheck('full message and four-byte character limits fit the canonical developer request',
+    $wireCalls===1 && $wireResponse===$wireResult && $wireBoundary===$wireBoundaryBefore
+    && ($wireBody['input'][0]['role']??null)==='developer'
+    && ($wireBody['input'][0]['content'][0]['text']??null)===ManagerAiDraftService::instructions()
+    && ($wirePayload['messages']??null)===$wireBoundary['messages']
+    && strlen($wireBytes)<=ManagerDraftClient::MAX_REQUEST_BYTES);
+
 $thrown=ManagerAiDraftService::generate(draftContext(),static function():array {throw new RuntimeException('SECRET_EXCEPTION_CANARY');});
 draftCheck('provider exceptions never escape with private details',$thrown===['ok'=>false,'error'=>'provider_unavailable'] && !str_contains(json_encode($thrown),'CANARY'));
 foreach(['provider_not_configured','provider_refused','provider_incomplete','provider_timeout','provider_response_too_large','provider_unavailable'] as $code) {
