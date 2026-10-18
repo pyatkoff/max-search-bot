@@ -60,6 +60,37 @@ for(const width of [390,430,768,1440])for(const height of [900,420])test(`select
  const box=await page.locator('#replyText').boundingBox();expect(box.y+box.height).toBeLessThanOrEqual(height+1);const sendBox=await page.locator('#sendReply').boundingBox();expect(sendBox.y+sendBox.height).toBeLessThanOrEqual(height+1);expect((await page.locator('#messages').boundingBox()).height).toBeGreaterThanOrEqual(40);expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width+1);
  await page.locator('.mediaRemove').first().focus();await expect(page.locator('.mediaRemove').first()).toBeFocused();await page.locator('.mediaRemove').first().press('Enter');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(1);expect(s.uploads[0]).toContain('Билеты.pdf');expect(s.uploads[0]).toContain('Подпись к первому файлу');expect(s.errors).toEqual([]);
 });
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test(`keyboard attachment removal preserves focus and original files ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+ await page.setViewportSize(viewport);
+ await page.addInitScript(()=>{
+  const create=URL.createObjectURL.bind(URL),proof=window.mediaFocusProof={files:[],objects:new Map(),urls:new Map(),keys:[]};
+  URL.createObjectURL=file=>{const url=create(file);proof.objects.set(url,file);return url};
+  window.addEventListener('change',event=>{if(event.target.id==='replyFile')proof.files=Array.from(event.target.files)},{capture:true});
+  window.addEventListener('keydown',event=>{if(['Tab','Enter'].includes(event.key))proof.keys.push({key:event.key,trusted:event.isTrusted})},{capture:true});
+ });
+ const s=await setup(page),reply=page.locator('#replyText'),draft='Точный черновик перед удалением вложений.\n  Сохраняем текст и выделение.';
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aV1sAAAAASUVORK5CYII=','base64');
+ await reply.fill(draft);await page.locator('#replyFile').setInputFiles(['A','B','C'].map(name=>({name:name+'.png',mimeType:'image/png',buffer:png})));
+ await expect(page.locator('.mediaSelectedItem')).toHaveCount(3);
+ await expect.poll(()=>page.locator('.mediaPreview img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth===1))).toBe(true);
+ expect(await page.evaluate(()=>{const p=mediaFocusProof;for(const item of document.querySelectorAll('.mediaSelectedItem'))p.urls.set(item.querySelector('.mediaFileName').textContent,item.querySelector('img').src);return p.files.map(file=>file.name)})).toEqual(['A.png','B.png','C.png']);
+ await reply.click();await reply.evaluate(el=>el.setSelectionRange(4,24,'backward'));
+ const selection={start:4,end:24,direction:'backward'};
+ const retained=async names=>{
+  await expect(page.locator('.mediaFileName')).toHaveText(names);
+  expect(await page.evaluate(()=>{const p=mediaFocusProof;return Array.from(document.querySelectorAll('.mediaSelectedItem'),item=>{const name=item.querySelector('.mediaFileName').textContent,url=item.querySelector('img').src;return{name,sameFile:p.objects.get(url)===p.files.find(file=>file.name===name),sameUrl:url===p.urls.get(name)}})})).toEqual(names.map(name=>({name,sameFile:true,sameUrl:true})));
+  await expect(reply).toHaveValue(draft);expect(await reply.evaluate(el=>({start:el.selectionStart,end:el.selectionEnd,direction:el.selectionDirection}))).toEqual(selection);
+  await expect(page.locator('#composer')).toBeVisible();await expect(reply).toBeVisible();await expect(reply).toBeEnabled();
+  expect(await page.evaluate(()=>({current:WorkspaceV2.S.current,hasFile:WorkspaceV2Media.hasFile()}))).toEqual({current:11,hasFile:names.length>0});expect(s.uploads).toHaveLength(0);expect(s.errors).toEqual([]);
+ };
+ await page.keyboard.press('Tab');await expect(page.locator('.mediaRemove').nth(0)).toBeFocused();
+ await page.keyboard.press('Tab');await expect(page.locator('.mediaRemove').nth(1)).toBeFocused();await expect(page.locator('.mediaRemove').nth(1)).toBeInViewport();
+ fs.mkdirSync('manager-media-artifacts',{recursive:true});const capture=suffix=>page.screenshot({path:`manager-media-artifacts/${browserName}-${viewport.width}-${viewport.height}-keyboard-remove-${suffix}.png`});await capture('selected');
+ await page.keyboard.press('Enter');await expect(page.locator('.mediaSelectedItem')).toHaveCount(2);await capture('middle');await expect(page.locator('.mediaRemove').nth(1)).toBeFocused();await retained(['A.png','C.png']);
+ await page.keyboard.press('Enter');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await expect(page.locator('.mediaRemove').nth(0)).toBeFocused();await retained(['A.png']);
+ await page.keyboard.press('Enter');await expect(page.locator('.mediaSelectedItem')).toHaveCount(0);await expect(reply).toBeFocused();await expect(reply).toBeInViewport();await retained([]);await capture('empty');
+ expect(await page.evaluate(()=>mediaFocusProof.keys)).toEqual(['Tab','Tab','Enter','Enter','Enter'].map(key=>({key,trusted:true})));
+});
 test('partial receipt clears confirmed caption and retries remaining file without repeating it',async({page})=>{
  const s=await setup(page,{failSecond:true});await page.locator('#replyText').fill('Подпись');await page.locator('#replyFile').setInputFiles(files);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено файлов: 1');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Отправлено');expect(s.uploads).toHaveLength(3);expect(s.uploads[0]).toContain('Маршрут.txt');expect(s.uploads[2]).toContain('Билеты.pdf');expect(s.uploads[2]).not.toContain('Подпись');expect(s.errors).toEqual([]);
 });
