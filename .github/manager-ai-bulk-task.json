@@ -1,6 +1,6 @@
 {
   "schema": "manager_ai_k03_task_v1",
-  "phase": "verify",
+  "phase": "prepare",
   "task_token": "9f1eb4a735b0aed049e72d4fdcdf97de190407768e130ff0",
   "production_sha": "c311533716f8ebba306ef6080b091e18af043c0b",
   "source_bundle_sha256": "e6b6b1d20696f7df886fd228310a706171f7a4f2c34cfc85b3d15723e9dbed58",
