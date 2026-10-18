@@ -125,7 +125,7 @@ function openNotificationConversation(id){
   if(!Number.isSafeInteger(id)||id<=0)return false;
   if(!S.manager?.id||!S.csrf||S.authExpired){
     // Keep only the explicit URL intent until canonical authentication settles.
-    notificationUrl(id);if(S.authExpired)showAuthRecovery();return false;
+    notificationUrl(id);return false;
   }
   const alreadyVisible=Number(S.current)===id&&window.WorkspaceV2Mobile?.getScreen?.()==='conversation';
   return window.WorkspaceV2Conversation?.open(id,{preserveHistory:true,preserveMessageScroll:true,preserveAttachment:true,mobileHistory:alreadyVisible?'none':'push'});
@@ -134,7 +134,8 @@ async function resumeAuthenticated(me){
   const previousId=Number(S.manager?.id||0),sameIdentity=previousId>0&&previousId===Number(me.manager?.id||0),recovering=S.authExpired;
   const conversationId=recovering&&sameIdentity?Number(S.current||0):0,conversationGeneration=window.WorkspaceV2Conversation?.getOpenGeneration();
   const notificationId=notificationConversationId();
-  if(notificationId)notificationUrl();
+  // A known account change discards the old intent before any new-account read.
+  if(notificationId&&previousId&&!sameIdentity)notificationUrl();
   S.authGeneration++;
   if(previousId&&!sameIdentity){
     window.WorkspaceV2Conversation?.resetForIdentityChange();
@@ -159,6 +160,8 @@ async function resumeAuthenticated(me){
   void refreshNotificationHealth(generation,managerId);
   await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
   if(!stillAuthenticated())return;
+  // Keep the explicit target through expiry before startup becomes usable.
+  if(notificationId&&notificationConversationId()===notificationId)notificationUrl();
   if(notificationId&&(!previousId||sameIdentity)&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await openNotificationConversation(notificationId);
   else if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
   else if(savedConversationId===window.WorkspaceV2Conversation?.getSavedSelection()&&savedConversationId&&!S.authExpired&&!S.current&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(savedConversationId,{restoreSession:true,mobileHistory:window.WorkspaceV2Mobile?.reloadHistoryMode?.()||'none'});

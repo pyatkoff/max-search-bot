@@ -185,4 +185,53 @@ for(const status of [401,403,404,500])test('notification detail '+status+' retai
 });
 for(const hash of ['#conversation=0','#conversation=-1','#conversation=1.2','#conversation=9007199254740992','#conversation=102&other=1'])test('invalid initial fragment is not a conversation command '+hash,async()=>{const h=notificationHarness(hash);await h.start({open:false});assert.equal(h.W.S.current,0);assert.equal(h.calls.some(c=>c.action==='detail'),false);assertNoMutations(h);});
 
+for(const action of ['list','catalog','filter_options'])test('notification reauth retains the cold target when startup '+action+' expires',async()=>{
+  const h=notificationHarness(),held=deferred(),entered=deferred();
+  h.setHook((url,r)=>r.action===action?(entered.resolve(),held.promise):null);
+  const boot=h.start({open:false});await entered.promise;held.resolve(response({ok:false},401));await boot;await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,true);assert.equal(h.location.hash,'#conversation=102');
+  h.setHook(null);await h.login();assert.equal(h.W.S.current,102);assert.equal(h.location.hash,'');
+  assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='detail'&&c.conversation_id===102).length,1);assertNoMutations(h);
+});
+test('notification reauth retains one target through repeated same-account Inbox expiry',async()=>{
+  const h=notificationHarness();let failures=2;h.setHook((url,r)=>r.action==='list'&&failures-->0?response({ok:false},401):null);
+  await h.start({open:false});await h.login();assert.equal(h.W.S.authExpired,true);assert.equal(h.location.hash,'#conversation=102');
+  await h.login();assert.equal(h.W.S.current,102);assert.equal(h.location.hash,'');
+  assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='detail').length,1);assertNoMutations(h);
+});
+test('notification reauth discards the old-account target before the new Inbox can expire',async()=>{
+  const h=notificationHarness();h.setHook((url,r)=>r.action==='list'?response({ok:false},401):null);await h.start({open:false});
+  h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});await h.login();assert.equal(h.W.S.authExpired,true);assert.equal(h.location.hash,'');
+  h.setHook(null);await h.login();assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,0);assert.equal(h.calls.some(c=>c.action==='detail'),false);assertNoMutations(h);
+});
+test('notification reauth preserves the retained reply and file through another failed Inbox',async()=>{
+  const h=notificationHarness('');await h.start();await h.draft('Retained before notification reauth');const file={name:'retained-reauth.txt'};h.setFile(file);await h.expire();h.W.openNotificationConversation(102);
+  h.setHook((url,r)=>r.action==='list'?response({ok:false},401):null);await h.login();assert.equal(h.W.S.authExpired,true);assert.equal(h.location.hash,'#conversation=102');assert.equal(h.getFile(),file);
+  h.setHook(null);await h.login();assert.equal(h.W.S.current,102);await h.C.open(101,{preserveAttachment:true});assert.equal(h.ids.get('replyText').value,'Retained before notification reauth');assertNoMutations(h);
+});
+test('notification reauth keeps typed credentials and the latest click without another auth reset',async()=>{
+  const h=notificationHarness('');await h.start({open:false});h.W.showAuthRecovery();const generation=h.W.S.authGeneration;
+  h.ids.get('managerAuthLogin').value='typed-login';h.ids.get('managerAuthPassword').value='typed-synthetic-password';h.ids.get('managerAuthError').textContent='Existing login feedback';
+  h.W.openNotificationConversation(102);h.W.openNotificationConversation(103);
+  assert.equal(h.ids.get('managerAuthLogin').value,'typed-login');assert.equal(h.ids.get('managerAuthPassword').value,'typed-synthetic-password');assert.equal(h.ids.get('managerAuthError').textContent,'Existing login feedback');assert.equal(h.W.S.authGeneration,generation);assert.equal(h.location.hash,'#conversation=103');
+  await h.login();assert.equal(h.W.S.current,103);assert.equal(h.calls.some(c=>c.action==='detail'&&c.conversation_id===102),false);assertNoMutations(h);
+});
+test('notification reauth keeps an in-flight login disabled and uses its latest explicit target once',async()=>{
+  const h=notificationHarness(''),held=deferred(),entered=deferred();await h.start({open:false});h.W.showAuthRecovery();
+  h.setHook((url,r)=>r.action==='login'?(entered.resolve(),held.promise):null);const login=h.login();await entered.promise;
+  assert.equal(h.ids.get('managerAuthSubmit').disabled,true);const label=h.ids.get('managerAuthSubmit').textContent;h.W.openNotificationConversation(102);
+  assert.equal(h.ids.get('managerAuthSubmit').disabled,true);assert.equal(h.ids.get('managerAuthSubmit').textContent,label);assert.equal(h.ids.get('managerAuthPassword').value,'synthetic-only');
+  held.resolve(response(h.identity));await login;assert.equal(h.W.S.current,102);assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='detail').length,1);assertNoMutations(h);
+});
+test('notification reauth lets a newer chosen conversation win while the recovered Inbox is held',async()=>{
+  const h=notificationHarness(),held=deferred(),entered=deferred();h.setHook((url,r)=>r.action==='list'?response({ok:false},401):null);await h.start({open:false});
+  h.setHook((url,r)=>r.action==='list'?(entered.resolve(),held.promise):null);const login=h.login();await entered.promise;await h.C.open(103);await h.draft('Newer recovered choice');
+  held.resolve(response({ok:true,conversations:liveRows(1)}));await login;assert.equal(h.W.S.current,103);assert.equal(h.ids.get('replyText').value,'Newer recovered choice');assert.equal(h.location.hash,'');assert.equal(h.calls.some(c=>c.action==='detail'&&c.conversation_id===102),false);assertNoMutations(h);
+});
+test('notification reauth ignores the old startup Inbox401 after a new account has selected a client',async()=>{
+  const h=notificationHarness(),held=deferred(),entered=deferred();h.setHook((url,r)=>r.action==='list'?(entered.resolve(),held.promise):null);const boot=h.start({open:false});await entered.promise;
+  h.W.showAuthRecovery();h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});h.setHook(null);await h.login();await h.C.open(103);await h.draft('Only account8');
+  held.resolve(response({ok:false},401));await boot;assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,103);assert.equal(h.ids.get('replyText').value,'Only account8');assert.equal(h.location.hash,'');assertNoMutations(h);
+});
+
 (async()=>{let failed=0;for(const {name,run} of cases){try{await run();console.log('PASS '+name);}catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0;})();
