@@ -11,6 +11,7 @@ class Node {
   appendChild(node) { this.children.push(...(node.tag === '#fragment' ? node.children : [node])); return node; }
   replaceChildren(...nodes) { this.value = ''; this.children = []; nodes.forEach(n => this.appendChild(n)); }
   get childNodes() { return this.children; }
+  querySelectorAll(tag) { return this.children.flatMap(node => [...(node.tag === tag ? [node] : []), ...node.querySelectorAll(tag)]); }
 }
 const box = new Node('div');
 Object.assign(box, { scrollHeight: 400, scrollTop: 0, clientHeight: 300 });
