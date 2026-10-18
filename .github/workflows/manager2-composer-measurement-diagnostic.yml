@@ -1,0 +1,51 @@
+name: Manager2 redundant composer measurement diagnostic
+on:
+  push:
+    branches: [diagnosis/manager2-composer-measurement-20261018]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - engine: chromium
+            width: 1440
+          - engine: webkit
+            width: 390
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore exact immutable installed input
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs=require('node:fs'),cp=require('node:child_process');
+            const response=await github.rest.actions.downloadArtifact({...context.repo,artifact_id:12150228159,archive_format:'zip'});
+            const bytes=Buffer.from(response.data);
+            if(bytes.length!==244955)throw Error('Installed archive size mismatch');
+            fs.writeFileSync('installed.zip',bytes);
+            cp.execFileSync('python3',['tools/manager2_visual_artifact.py','installed.zip','installed','sha256:6d9a01dab399c2cab86623aa53257c44123d62e23a195b54c06bab03018a2e3d'],{stdio:'inherit'});
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Compare one new candidate in twelve balanced pairs
+        run: >-
+          node tools/diagnose_manager2_composer_measurement.js
+          --engine "${{ matrix.engine }}" --width "${{ matrix.width }}"
+          --pairs 12 --assets installed --output "composer-${{ matrix.engine }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-composer-measurement-${{ matrix.engine }}-${{ github.sha }}
+          path: composer-${{ matrix.engine }}/
+          if-no-files-found: error
+          retention-days: 30
+
