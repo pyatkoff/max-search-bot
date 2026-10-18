@@ -1,0 +1,35 @@
+name: Manager2 detached media diagnostic
+on:
+  push:
+    branches: [diagnosis/manager2-media-unmount-20261018]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 39141379497
+          name: manager2-measurement-input-2ddb0ff079d2682fef5d02a42d31ece3625fd870
+          path: installed
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps webkit
+      - name: Compare unchanged media with explicit detached-row retirement
+        run: node tools/diagnose_manager2_media_unmount.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-detached-media-${{ github.sha }}
+          path: diagnostic-media/
+          if-no-files-found: error
+          retention-days: 30
