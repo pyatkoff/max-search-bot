@@ -1,0 +1,102 @@
+name: Manager2 installed media acceptance
+on:
+  push:
+    branches: [diagnosis/manager2-installed-media-acceptance-20261018]
+permissions:
+  contents: read
+  actions: read
+env:
+  PRODUCT_SHA: e3192f122f5fecc8a7a3c53fe50a490489d042e7
+  EXPECTED_TREE: a4ece73efb8a71ee23b6ad938b28a9ac3efa41df
+jobs:
+  input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require the expected current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq .object.sha)" = "$PRODUCT_SHA"
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - name: Verify anonymous installed HTML,61 assets and worker
+        run: >-
+          node tools/measure_manager2_browser.js --capture --capture-only
+          --product-sha "$PRODUCT_SHA" --assets installed --output capture
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manager2-installed-input-${{ github.sha }}
+          path: installed/
+          if-no-files-found: error
+          retention-days: 30
+  browser:
+    needs: input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager2-installed-input-${{ github.sha }}
+          path: installed
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Verify published bytes on all five viewports with synthetic APIs
+        run: >-
+          node tools/measure_manager2_browser.js --engine "${{ matrix.engine }}"
+          --product-sha "$PRODUCT_SHA" --assets installed
+          --output acceptance-${{ matrix.engine }} --samples 1 --warmups 1 --cold 1
+      - name: Independently validate exact installed acceptance records
+        env:
+          M2_TEST_ENGINE: ${{ matrix.engine }}
+        run: |
+          node <<'JS'
+          const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+          const engine=process.env.M2_TEST_ENGINE,out='acceptance-'+engine;
+          const digest=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const input=JSON.parse(fs.readFileSync('installed/receipt.json'));
+          const manifest=JSON.parse(fs.readFileSync(out+'/manifest.json'));
+          const summary=JSON.parse(fs.readFileSync(out+'/summary.json'));
+          const raw=fs.readFileSync(out+'/samples.jsonl'),rows=raw.toString().trim().split(String.fromCharCode(10)).map(JSON.parse);
+          assert.equal(input.production_sha,process.env.PRODUCT_SHA);assert.equal(input.tree,process.env.EXPECTED_TREE);
+          assert.equal(manifest.productSha,process.env.PRODUCT_SHA);assert.equal(manifest.productTree,process.env.EXPECTED_TREE);
+          assert.equal(input.assets.length,61);assert.equal(input.public_static_gets,63);
+          assert.equal(digest(fs.readFileSync('installed/shell.html')),input.shell_sha256);
+          for(const item of [...input.assets,input.worker]){const bytes=fs.readFileSync('installed/'+item.path);assert.equal(bytes.length,item.bytes);assert.equal(digest(bytes),item.sha256)}
+          assert.equal(summary.ok,true);assert.equal(summary.purpose,'protocol_check');assert.equal(summary.raw_records,75);
+          assert.equal(manifest.method.samples,1);assert.equal(manifest.method.warmups,1);assert.equal(manifest.method.cold,1);
+          assert.equal(rows.length,75);assert.equal(digest(raw),summary.raw_samples_sha256);
+          const viewports=[[390,844],[430,844],[768,844],[1440,900],[390,420]];
+          const phases=['system_selection','personal_selection','open_authorized_reply','input_adoption','older_200_to_400','older_400_to_600','refresh_unchanged_600','refresh_append_601','quick_reply_insert','quick_reply_preview','quick_reply_preview_insert','file_preview','next_waiting'];
+          for(let i=0;i<viewports.length;i++){
+            const [width,height]=viewports[i],part=rows.slice(i*15,i*15+15);
+            assert.deepEqual(part.map(r=>r.name),['startup',...phases,width===1440?'desktop_return_reply':'native_back_reply']);
+            for(const r of part){assert.equal(r.engine,engine);assert.equal(r.viewport.width,width);assert.equal(r.viewport.height,height);assert.equal(r.synthetic,true);assert.ok(r.start<=r.ready&&r.ready<=r.end);assert.ok(Math.abs(r.duration-r.end+r.start)<0.000001);assert.equal(r.counts.mediaResourceEntries,0)}
+            assert.equal(part[3].from,12);assert.equal(part[3].state.current,11);assert.equal(part[3].state.replyDisabled,false);
+            assert.equal(part[14].state.fileRetained,true);assert.equal(part[14].state.replyDisabled,false);
+          }
+          const receipt={ok:true,purpose:'installed_source_synthetic_acceptance',installedSha:manifest.productSha,tree:manifest.productTree,toolingSha:manifest.toolingSha,engine,assets:61,worker:true,records:75,viewports:5,rawSha256:digest(raw),productionDataWrites:0,realSends:0,productionLatencyP95:'not_measured'};
+          fs.writeFileSync(out+'/installed-acceptance-receipt.json',JSON.stringify(receipt,null,2));
+          console.log('INSTALLED_ACCEPTANCE_RECEIPT '+JSON.stringify(receipt));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-installed-${{ matrix.engine }}-${{ github.sha }}
+          path: acceptance-${{ matrix.engine }}/
+          if-no-files-found: error
+          retention-days: 30
