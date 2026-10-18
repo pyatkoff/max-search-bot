@@ -1,0 +1,43 @@
+name: Manager2 detached release diagnostic
+on:
+  push:
+    branches: [diagnosis/manager2-detached-release-20261018]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  paired:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - engine: webkit
+            width: 390
+          - engine: chromium
+            width: 1440
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager2-installed-input-e0242f0bc1c88745c9798a7df3f6eb4c5885c733
+          run-id: 39145205967
+          github-token: ${{ github.token }}
+          path: installed
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Paired exact-source opening comparison
+        run: node tools/diagnose_manager2_detached_release.js --engine ${{ matrix.engine }} --width ${{ matrix.width }} --assets installed --output detached-release-${{ matrix.engine }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-detached-release-${{ matrix.engine }}-${{ github.sha }}
+          path: detached-release-${{ matrix.engine }}/
+          if-no-files-found: error
+          retention-days: 30
