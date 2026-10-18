@@ -8,7 +8,15 @@ function sameSize(a,b){return !!a&&a.height===b.height&&a.total===b.total&&a.wid
 function findAnchor(box){
   const edge=box.getBoundingClientRect().top;
   const row=[...box.children].find(el=>el.getBoundingClientRect().bottom>edge+1);
-  return row?{row,key:row.dataset.scrollMessageKey||'',offset:row.getBoundingClientRect().top-edge}:null;
+  if(!row)return null;
+  const anchor={row,key:row.dataset.scrollMessageKey||'',offset:row.getBoundingClientRect().top-edge};
+  // A lazy image can move a focused link within an otherwise stable row.
+  const focused=document.activeElement;
+  if(focused?.closest?.('.msg')?.parentElement===box){
+    const rect=focused.getBoundingClientRect();
+    if(rect.bottom>edge&&rect.top<box.getBoundingClientRect().bottom)anchor.focus={node:focused,offset:rect.top-edge};
+  }
+  return anchor;
 }
 function anchorRow(anchor,box){return anchor?.row.parentElement===box?anchor.row:anchor?.key?[...box.children].find(el=>el.dataset.scrollMessageKey===anchor.key):null}
 function rememberGeometry(box){
@@ -31,7 +39,8 @@ function align({syncIntent=true}={}){
   if(followingLatest){smoothJump=false;box.scrollTop=box.scrollHeight;readingAnchor=null;}
   else if(readingAnchor){
     const row=anchorRow(readingAnchor,box);
-    if(row)box.scrollTop+=row.getBoundingClientRect().top-box.getBoundingClientRect().top-readingAnchor.offset;
+    const focus=readingAnchor.focus,node=focus?.node===document.activeElement&&box.contains(focus.node)?focus.node:row;
+    if(node)box.scrollTop+=node.getBoundingClientRect().top-box.getBoundingClientRect().top-(node===focus?.node?focus.offset:readingAnchor.offset);
   }
   if(!followingLatest)readingAnchor=findAnchor(box);
   rememberGeometry(box);update();
@@ -90,7 +99,7 @@ function bind(){
   box.addEventListener('touchstart',event=>{touchY=event.touches[0]?.clientY??null;},{passive:true});
   box.addEventListener('touchmove',event=>{const y=event.touches[0]?.clientY;if(touchY!==null&&y>touchY)readingIntent();touchY=y??null;},{passive:true});
   box.addEventListener('keydown',event=>{if(['ArrowUp','PageUp','Home'].includes(event.key)||(event.key===' '&&event.shiftKey))readingIntent();});
-  box.addEventListener('focusin',event=>{if(['AUDIO','VIDEO'].includes(event.target?.tagName))readingIntent();});
+  box.addEventListener('focusin',event=>{if(event.target?.closest?.('.msg'))readingIntent();});
   box.addEventListener('pointerdown',event=>{if(event.target===box&&event.clientX>=box.getBoundingClientRect().right-16)readingIntent();},{passive:true});
   box.addEventListener('pointerup',()=>{if(distanceFromLatest()<=2){followingLatest=true;readingAnchor=null;}},{passive:true});
   observer=new MutationObserver(()=>{observeRows();schedule()});observer.observe(box,{childList:true,subtree:true});
