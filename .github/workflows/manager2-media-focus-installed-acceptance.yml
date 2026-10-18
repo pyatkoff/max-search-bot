@@ -1,0 +1,112 @@
+name: Manager2 attachment focus installed acceptance
+on:
+  push:
+    branches: [diagnosis/manager2-media-focus-installed-20261018]
+permissions:
+  contents: read
+  actions: read
+env:
+  PRODUCT_SHA: c311533716f8ebba306ef6080b091e18af043c0b
+  EXPECTED_TREE: f14153e2e477c66084ee6ec0461c57d18fe9cb57
+jobs:
+  input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require expected current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq .object.sha)" = "$PRODUCT_SHA"
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - name: Capture anonymous installed shell and verify all static bytes
+        run: >-
+          node tools/measure_manager2_browser.js --capture --capture-only
+          --product-sha "$PRODUCT_SHA" --assets installed --output capture
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manager2-media-focus-input-${{ github.sha }}
+          path: installed/
+          if-no-files-found: error
+          retention-days: 30
+  browser:
+    needs: input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager2-media-focus-input-${{ github.sha }}
+          path: installed
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Route original media tests through captured installed HTML and bytes
+        run: |
+          node <<'JS'
+          const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+          const input=JSON.parse(fs.readFileSync('installed/receipt.json')),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+          assert.equal(input.production_sha,process.env.PRODUCT_SHA);assert.equal(input.tree,process.env.EXPECTED_TREE);
+          assert.equal(input.assets.length,61);assert.equal(input.public_static_gets,63);assert.equal(input.production_api_or_business_writes,0);
+          assert.equal(sha(fs.readFileSync('installed/shell.html')),input.shell_sha256);
+          for(const item of [...input.assets,input.worker]){const b=fs.readFileSync('installed/'+item.path);assert.equal(b.length,item.bytes);assert.equal(sha(b),item.sha256);assert.ok(b.equals(execFileSync('git',['show',process.env.PRODUCT_SHA+':'+item.path])));fs.copyFileSync('installed/'+item.path,item.path);}
+          const spec='tests/visual/manager-media-compose.spec.js';assert.ok(fs.readFileSync(spec).equals(execFileSync('git',['show',process.env.PRODUCT_SHA+':'+spec])));
+          JS
+          mkdir -p "$RUNNER_TEMP/installed-bin"
+          cat > "$RUNNER_TEMP/installed-bin/php" <<'SH'
+          #!/bin/sh
+          set -eu
+          [ "$#" = 1 ] && [ "$1" = manager2/index.php ]
+          exec /usr/bin/cat "$M2_MEASUREMENT_HTML"
+          SH
+          chmod 700 "$RUNNER_TEMP/installed-bin/php"
+      - name: Execute all original attachment scenarios on installed assets
+        env:
+          M2_ENGINE: ${{ matrix.engine }}
+          M2_MEASUREMENT_HTML: ${{ github.workspace }}/installed/shell.html
+        run: |
+          export PATH="$RUNNER_TEMP/installed-bin:$PATH"
+          cat > "$RUNNER_TEMP/media-focus.config.cjs" <<'JS'
+          const path=require('node:path'),engine=process.env.M2_ENGINE;
+          module.exports={testDir:path.join(process.env.GITHUB_WORKSPACE,'tests/visual'),testMatch:'manager-media-compose.spec.js',timeout:60000,expect:{timeout:5000},workers:1,retries:0,outputDir:path.join(process.cwd(),'acceptance-'+engine,'test-results'),reporter:[['line'],['json',{outputFile:path.join(process.cwd(),'acceptance-'+engine,'media-report.json')}]],projects:[{name:engine,use:{browserName:engine,headless:true,timezoneId:'Europe/Moscow'}}]};
+          JS
+          npx playwright test --config "$RUNNER_TEMP/media-focus.config.cjs" --list --reporter=json > "listed-${{ matrix.engine }}.json"
+          npx playwright test --config "$RUNNER_TEMP/media-focus.config.cjs"
+      - name: Audit complete exact-source case identities and installed provenance
+        env:
+          M2_TEST_ENGINE: ${{ matrix.engine }}
+        run: |
+          node <<'JS'
+          const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+          const engine=process.env.M2_TEST_ENGINE,out='acceptance-'+engine,sha=b=>crypto.createHash('sha256').update(b).digest('hex'),spec='tests/visual/manager-media-compose.spec.js';
+          assert.ok(fs.readFileSync(spec).equals(execFileSync('git',['show',process.env.PRODUCT_SHA+':'+spec])));
+          const report=JSON.parse(fs.readFileSync(out+'/media-report.json')),listed=JSON.parse(fs.readFileSync('listed-'+engine+'.json'));
+          const cases=(root,executed)=>{const found=[];function visit(suites){for(const suite of suites||[]){for(const s of suite.specs||[]){const tests=s.tests.filter(t=>t.projectName===engine);assert.equal(tests.length,1);if(executed){assert.ok(s.ok);assert.equal(tests[0].expectedStatus,'passed');assert.equal(tests[0].status,'expected');assert.equal(tests[0].results.length,1);assert.equal(tests[0].results[0].status,'passed');}found.push(s.title);}visit(suite.suites);}}visit(root.suites);assert.equal(new Set(found).size,found.length);return found.sort()};
+          const actual=cases(report,true),expected=cases(listed,false);assert.equal(expected.length,21);assert.deepEqual(actual,expected);assert.equal(report.stats.expected,expected.length);assert.equal(report.stats.unexpected,0);assert.equal(report.stats.flaky,0);assert.equal(report.stats.skipped,0);
+          const keyboard=actual.filter(t=>t.startsWith('keyboard attachment removal preserves focus and original files '));assert.equal(keyboard.length,5);
+          assert.deepEqual(keyboard,[[390,900],[430,900],[768,900],[1440,900],[390,420]].map(([w,h])=>'keyboard attachment removal preserves focus and original files '+w+'x'+h).sort());
+          fs.cpSync('manager-media-artifacts',out+'/screenshots',{recursive:true});fs.copyFileSync('listed-'+engine+'.json',out+'/listed-tests.json');
+          const input=JSON.parse(fs.readFileSync('installed/receipt.json')),receipt={ok:true,purpose:'installed_source_synthetic_media_acceptance',productSha:process.env.PRODUCT_SHA,productTree:process.env.EXPECTED_TREE,toolingSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),engine,assets:61,worker:true,anonymousStaticGets:63,cases:actual,keyboardCases:5,testSourceSha256:sha(fs.readFileSync(spec)),inputReceiptSha256:sha(fs.readFileSync('installed/receipt.json')),shellSha256:input.shell_sha256,productionAuthenticatedAPICalls:0,productionBusinessWrites:0,realSends:0,physicalDevice:'not_measured',productionLatencyP95:'not_measured'};
+          fs.writeFileSync(out+'/installed-acceptance-receipt.json',JSON.stringify(receipt,null,2));console.log('INSTALLED_MEDIA_FOCUS_RECEIPT '+JSON.stringify(receipt));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-media-focus-${{ matrix.engine }}-${{ github.sha }}
+          path: acceptance-${{ matrix.engine }}/
+          if-no-files-found: error
+          retention-days: 30
