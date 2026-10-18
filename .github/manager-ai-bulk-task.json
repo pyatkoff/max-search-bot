@@ -1,7 +1,7 @@
 {
   "schema": "manager_ai_bulk_task_v1",
-  "phase": "verify",
-  "task_token": "0cbad9bac12a1f59017b7c61f86e73b42cf88122bbd486a6",
+  "phase": "prepare",
+  "task_token": "c159b686c27a4a8633f45d765a506477102822a61bd18d1f",
   "production_sha": "dfa4f258114ebe5b2671f3453c1264653c17382d",
   "source_bundle_sha256": "b8868caf736208feb71fdfd87489ecea342a18ae2449456699d21d1c94b1c34e",
   "output_recipient": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEArHOsvegQgPv0cJdnMB9g\nOf0x2m3ksILjTF5iISiYT2Swd0OQuZCQHpjD6N38aY3VZ0BV9Qqi05c5ghu9yi8S\nzL+cBxUoQvkBOX9mc2dgMSkYkzRSxCBQGkf259gO99+qeUWn74Cn1adw5zBamJgY\nvCKNXIIHzK3UR9uQJk3silFp9a5PF9XBOxAGI+9dWH1a6ypHkLblrh0w5M6ElkwO\nGqG5fXvuzzkwnv0fFw51U+9bV/6z875dtrt/qpvfvTAU9Gw7qq1fup/MlkvIM2A3\nvYKTaeUJPRVt77A4IWGSt81DbHoxvlNhdkRVYLf+wjgUGJz+mZn1NWY3CAvRcffN\nGf5VizKIQBDyK0w76zPxWluMT8d52wu2EMSyZR9NmOyPa2gh42AhKSPFb99t+F/a\nROZIsNvq3qFjq/v8dI42hdZqDAbVOJCkntQGwq9JqAprHkM0h/CtoYkzN9FXouVW\nykitjsWV217+KDiEuZ5mJnFTj1s1vaxH5+0wCR2+DtnpAgMBAAE=\n-----END PUBLIC KEY-----\n",
