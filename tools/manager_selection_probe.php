@@ -17,7 +17,12 @@ try {
     $expected=$argv[1]??'';$candidate=$argv[2]??'';
     if (!preg_match('/\A[a-f0-9]{40}\z/D',$expected) || !preg_match('/\A[a-f0-9]{40}\z/D',$candidate)
         || selectionProbeHead($root)!==$expected) throw new RuntimeException('source');
-    require_once __DIR__.'/ManagerSelectionSnapshot.php';
+    $installed=($argv[3]??'')==='installed';
+    if (($argv[3]??'')!=='' && !$installed) throw new RuntimeException('mode');
+    if ($installed) foreach (['ManagerSelectionSnapshot.php','ManagerSelectionPageParser.php','ManagerSelectionLinks.php','ManagerAiTextRedactor.php'] as $file) {
+        if (!is_file($root.'/services/'.$file) || !hash_equals(hash_file('sha256',__DIR__.'/'.$file),hash_file('sha256',$root.'/services/'.$file))) throw new RuntimeException('installed_source');
+    }
+    require_once ($installed?$root.'/services':__DIR__).'/ManagerSelectionSnapshot.php';
     require_once $root.'/config.php';
     require_once $root.'/services/ConversationDb.php';
     require_once $root.'/services/ProjectConfig.php';
@@ -44,7 +49,7 @@ try {
     $elapsed=round((hrtime(true)-$start)/1000000,1);
     $phase='final_source';
     if (selectionProbeHead($root)!==$expected) throw new RuntimeException('source_changed');
-    $report=['ok'=>true,'candidate_sha'=>$candidate,'runtime_sha'=>$expected,'source_rows_inspected'=>count($rows),
+    $report=['ok'=>true,'candidate_sha'=>$candidate,'runtime_sha'=>$expected,'installed_modules'=>$installed,'source_rows_inspected'=>count($rows),
         'source_found'=>$before!==null,'pages_attempted'=>count($data['selection_snapshots']),
         'states'=>array_column($data['selection_snapshots'],'state'),'http_statuses'=>array_column($data['selection_snapshots'],'http_status'),
         'offer_counts'=>array_column($data['selection_snapshots'],'offer_count'),

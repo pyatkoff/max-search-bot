@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
-      CANDIDATE_SHA: 15e44bb5d443f6a570e4ea5b6fc831c6754eb1eb
+      CANDIDATE_SHA: 51285182171ef952e29a5e52f656daa5e82bd6d0
       SOURCE_BASE: 8ad11a28f229c51ed45a425c148983f779a90819
     steps:
       - uses: actions/checkout@v4
@@ -80,8 +80,8 @@ jobs:
             scp "${ssh_opts[@]}" "$RUNNER_TEMP/selection-source/services/$file" "$remote:$probe_dir/$file" >/dev/null
           done
           scp "${ssh_opts[@]}" tools/manager_selection_probe.php "$remote:$probe_dir/manager_selection_probe.php" >/dev/null
-          ssh "${ssh_opts[@]}" "$remote" "chmod 600 '$probe_dir/ManagerSelectionSnapshot.php' '$probe_dir/ManagerSelectionPageParser.php' '$probe_dir/ManagerSelectionLinks.php' '$probe_dir/ManagerAiTextRedactor.php' '$probe_dir/manager_selection_probe.php'; php -d display_errors=0 -d log_errors=0 '$probe_dir/manager_selection_probe.php' '$EXPECTED_MAIN' '$CANDIDATE_SHA'" | tee selection-probe-result.json
-          jq -e '.ok == true and .provider_calls == 0 and .business_writes == 0' selection-probe-result.json >/dev/null
+          ssh "${ssh_opts[@]}" "$remote" "chmod 600 '$probe_dir/ManagerSelectionSnapshot.php' '$probe_dir/ManagerSelectionPageParser.php' '$probe_dir/ManagerSelectionLinks.php' '$probe_dir/ManagerAiTextRedactor.php' '$probe_dir/manager_selection_probe.php'; php -d display_errors=0 -d log_errors=0 '$probe_dir/manager_selection_probe.php' '$EXPECTED_MAIN' '$CANDIDATE_SHA' installed" | tee selection-probe-result.json
+          jq -e '.ok == true and .installed_modules == true and .provider_calls == 0 and .business_writes == 0' selection-probe-result.json >/dev/null
       - uses: actions/upload-artifact@v4
         if: always()
         with:
