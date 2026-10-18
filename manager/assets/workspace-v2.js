@@ -121,6 +121,7 @@ function notificationConversationId(){
   return Number.isSafeInteger(id)?id:0;
 }
 function notificationUrl(id=0){history.replaceState(history.state,'',location.pathname+location.search+(id?'#conversation='+id:''))}
+function discardNotificationIntent(){if(notificationConversationId())notificationUrl()}
 function openNotificationConversation(id){
   if(!Number.isSafeInteger(id)||id<=0)return false;
   if(!S.manager?.id||!S.csrf||S.authExpired){
@@ -190,5 +191,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,whenCatalogReady:()=>catalogReady};
+window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,discardNotificationIntent,whenCatalogReady:()=>catalogReady};
 })();

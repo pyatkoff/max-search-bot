@@ -9,10 +9,11 @@ const syntheticVideo=Buffer.from('GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChY
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0,holdInitialList=false}={}){
  const state={calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.mediaRequests=[];state.mediaFailure='';
- state.logins=[];state.lists=Array.from({length:initialListFailures},()=>({body:{ok:false,error:'unauthorized'},status:401}));
+ state.logins=[];state.counts=[];state.lists=Array.from({length:initialListFailures},()=>({body:{ok:false,error:'unauthorized'},status:401}));
+ state.initialList=holdInitialList?deferred():null;state.initialListEntered=holdInitialList?deferred():null;let initialListPending=holdInitialList;
  if(httpMedia)state.documents[11].forEach(m=>{if(m.id===1||m.id%20===0)m.attachments=[{type:'audio',name:'Аудио '+m.id,url:origin+'/synthetic-demand/'+m.id+'.wav'},{type:'video',name:'Видео '+m.id,url:origin+'/synthetic-demand/'+m.id+'.webm'}]});
  const conversation=id=>({id,customer_id:100+id,manager_id:state.accountId,manager_name:'Синтетический менеджер',status:'manager',channel:'max',source_id:1,source_name:'Синтетический проект',display_name:id===11?'Синтетический клиент А':'Синтетический клиент Б',...(waiting?{awaiting_manager_reply:1}:{})});
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
@@ -62,19 +63,19 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
   if(data.action==='login'){const pending=state.logins.shift();if(pending?.promise)await pending.promise;state.unauthorized=false;return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]})}
   if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);
   if(data.action==='me')return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]});
-  if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});
+  if(data.action==='counts'){const item=state.counts.shift();if(item?.body)return reply(item.body,item.status||200);return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});}
   if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
   if(data.action==='detail'){if(state.deny)return reply({ok:false,error:'forbidden'},403);if(![11,12].includes(Number(data.conversation_id)))return block('invalid-conversation');if(Object.keys(data).some(key=>!['action','csrf','conversation_id','before_id'].includes(key)))return block('unexpected-detail-field');const queue=Number(data.before_id)>0?state.older:state.latest;let item=queue.shift();if(typeof item==='function')item=await item(data);if(item?.promise)item=await item.promise;if(item?.abort)return route.abort('failed');if(item?.body)return reply(item.body,item.status||200);if(item?.ok===false)return reply(item,item.status||500);return reply(item||detail(data))}
   if(data.action==='send'&&syntheticSend){state.sends.push(data);const all=state.documents[data.conversation_id];all.push({id:Math.max(0,...all.map(m=>m.id))+1,sender_type:'manager',manager_id:state.accountId,text:data.text,created_at:'2026-10-14 08:01:00'});return reply({ok:true})}
  }
  if(url.pathname==='/manager/pipeline-api.php'){
-  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list'){const item=state.lists.shift();if(item?.body)return reply(item.body,item.status||200);return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))})}if(data.action==='detail'){const held=state.leadGate?await state.leadGate.promise:null;if(held?.body&&Number(data.conversation_id)===11)return reply(held.body,held.status||200);return reply(lead(data.conversation_id))}
+  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list'){const item=state.lists.shift();if(item?.body)return reply(item.body,item.status||200);const body={ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))};if(initialListPending){initialListPending=false;state.initialListEntered.resolve();await state.initialList.promise;}return reply(body)}if(data.action==='detail'){const held=state.leadGate?await state.leadGate.promise:null;if(held?.body&&Number(data.conversation_id)===11)return reply(held.body,held.status||200);return reply(lead(data.conversation_id))}
  }
  if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
  if(url.pathname==='/manager/push.php'&&method==='GET'&&url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
  if(url.pathname==='/manager/notification-events.php'&&data.action==='poll')return reply({ok:true,cursor:0,events:[]});
  return block(data.action);
- });await page.goto(origin+'/manager2/index.php?history-qa=1'+initialHash);if(initialAnonymous||initialListFailures)await expect(page.locator('#managerAuthRecovery')).toBeVisible();else await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
+ });await page.goto(origin+'/manager2/index.php?history-qa=1'+initialHash);if(holdInitialList)await state.initialListEntered.promise;else if(initialAnonymous||initialListFailures)await expect(page.locator('#managerAuthRecovery')).toBeVisible();else await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
 }
 function clean(state,{sends=0}={}){expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);expect(state.sends).toHaveLength(sends)}
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Синтетический клиент А':'Синтетический клиент Б');await settled(page)}
@@ -216,6 +217,57 @@ async function notificationClick(page,id,definitions=[{path:'/manager/push-enabl
  },{source:notificationWorker,id,definitions});
 }
 async function notificationLogin(page){await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();}
+
+const supersessionDraft='Новый клиент Б после уведомления\n  Точный черновик до повторного входа';
+const supersessionFile='notification-supersession-B.txt';
+const notificationTargets=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).map(c=>Number(c.conversation_id));
+async function supersessionStart(page,{width,height=844,withReply=true}={}){
+ await page.setViewportSize({width,height});const state=await setup(page,{total:3,notificationState:'held-register',initialHash:'#conversation=11',holdInitialList:true});
+ expect(await page.evaluate(()=>WorkspaceV2.S.booting)).toBe(true);expect(notificationTargets(state)).toEqual([]);
+ if(withReply){
+  const routed=await notificationClick(page,12);expect(routed.calls.filter(c=>c[0]==='post')).toEqual([['post','/manager2/']]);expect(routed.fallbacks).toEqual([]);
+  await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();await settled(page);
+  await page.locator('#replyText').fill(supersessionDraft);await page.locator('#replyFile').setInputFiles({name:supersessionFile,mimeType:'text/plain',buffer:Buffer.from('Synthetic supersession file B')});
+  await page.evaluate(()=>{window.supersessionFile=document.getElementById('replyFile').files[0];window.supersessionInput=document.getElementById('replyText');});
+ }
+ return state;
+}
+async function supersessionExpire(page,state,{alreadyExpired=false}={}){
+ if(!alreadyExpired){state.counts.push({body:{ok:false,error:'unauthorized'},status:401});await page.evaluate(()=>WorkspaceV2.api('counts').catch(()=>{}));}
+ await expect(page.locator('#managerAuthRecovery')).toBeVisible();
+ const oldList=page.waitForResponse(r=>r.url().endsWith('/manager/pipeline-api.php')&&r.request().postDataJSON()?.action==='list');state.initialList.resolve();await(await oldList).finished();
+ await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.booting)).toBe(false);
+}
+async function supersessionLogin(page,{targetRead=false}={}){
+ const inbox=page.waitForResponse(r=>r.url().endsWith('/manager/pipeline-api.php')&&r.request().postDataJSON()?.action==='list');
+ const detail=targetRead?page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.request().postDataJSON()?.action==='detail'):null;
+ await notificationLogin(page);await(await inbox).finished();if(detail)await(await detail).finished();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+}
+async function supersessionReply(page){
+ await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.current)).toBe(12);
+ await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue(supersessionDraft);await expect(page.locator('#mediaSelection')).toContainText(supersessionFile);
+ expect(await page.evaluate(()=>document.getElementById('replyText')===supersessionInput&&document.getElementById('replyFile').files[0]===supersessionFile)).toBe(true);
+}
+for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])test('notification supersession keeps newer reply after startup expiry at '+width+'x'+height,async({page,browserName})=>{
+ const state=await supersessionStart(page,{width,height});await supersessionExpire(page,state);await supersessionLogin(page,{targetRead:true});await supersessionReply(page);
+ expect(notificationTargets(state)).toEqual([12,12]);expect(await page.evaluate(()=>location.hash)).toBe('');await settled(page);await screenshot(page,browserName,width,'notification-supersession-retained-'+height);
+ await notificationClick(page,11);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText(supersessionFile);await settled(page);
+ if(width<=1100){await page.goBack();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await settled(page);}else await notificationClick(page,12);
+ await supersessionReply(page);await page.locator('#replyText').click();await page.locator('#replyText').press('End');const caret=await page.locator('#replyText').evaluate(el=>({start:el.selectionStart,end:el.selectionEnd}));await page.locator('#replyText').press('!');await expect(page.locator('#replyText')).toHaveValue(supersessionDraft.slice(0,caret.start)+'!'+supersessionDraft.slice(caret.end));
+ await screenshot(page,browserName,width,'notification-supersession-return-'+height);clean(state);
+});
+for(const status of [401,403,404,500])test('notification supersession failed newer detail '+status+' never restores obsolete target',async({page,browserName})=>{
+ const width=390,state=await supersessionStart(page,{width,withReply:false});state.latest.push({body:{ok:false,error:'synthetic_newer_target'},status});await notificationClick(page,12);
+ await expect.poll(()=>notificationTargets(state).length).toBe(1);if(status!==401)await expect(page.locator('#conversationLoadStatus')).toContainText('Не удалось открыть диалог');
+ await supersessionExpire(page,state,{alreadyExpired:status===401});await supersessionLogin(page);
+ expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);expect(notificationTargets(state)).toEqual([12]);expect(await page.evaluate(()=>location.hash)).toBe('');await expect(page.locator('#composer')).toBeHidden();
+ await notificationClick(page,12);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();await page.locator('#replyText').fill('Повторный выбор только по явному действию');await screenshot(page,browserName,width,'notification-supersession-failure-'+status);clean(state);
+});
+for(const width of [390,1440])test('notification supersession new account discards old reply and File at '+width,async({page,browserName})=>{
+ const state=await supersessionStart(page,{width});await supersessionExpire(page,state);state.accountId=8;await supersessionLogin(page);
+ expect(await page.evaluate(()=>[WorkspaceV2.S.manager.id,WorkspaceV2.S.current])).toEqual([8,0]);expect(notificationTargets(state)).toEqual([12]);expect(await page.evaluate(()=>location.hash)).toBe('');await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#composer')).toBeHidden();await expect(page.locator('#mediaSelection')).not.toContainText(supersessionFile);expect(await page.locator('#replyFile').evaluate(el=>el.files.length)).toBe(0);
+ await notificationClick(page,12);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText(supersessionFile);expect(await page.locator('#replyFile').evaluate(el=>el.files.length)).toBe(0);await page.locator('#replyText').fill('Только новый аккаунт');await screenshot(page,browserName,width,'notification-supersession-new-account');clean(state);
+});
 
 for(const width of [390,430,768,1440])test('notification reauth cold target survives repeated Inbox401 at '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:844});const state=await setup(page,{total:3,notificationState:'held-register',initialHash:'#conversation=12',initialListFailures:2});
