@@ -1,0 +1,99 @@
+{
+  "name": "Manager2 1004 isolated release verification",
+  "on": {
+    "push": {
+      "branches": [
+        "analysis/m2-1004-verification-20261018"
+      ]
+    }
+  },
+  "permissions": {
+    "contents": "read",
+    "actions": "read"
+  },
+  "jobs": {
+    "canonical": {
+      "name": "canonical-evidence",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 15,
+      "env": {
+        "GH_TOKEN": "${{ github.token }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@v4",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@v4",
+          "with": {
+            "node-version": "22"
+          }
+        },
+        {
+          "name": "Verify immutable evidence and emit synthetic review frames",
+          "run": "python3 tools/manager2_1004_verify.py canonical"
+        },
+        {
+          "name": "Retain canonical receipt",
+          "if": "always()",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "manager2-1004-canonical-${{ github.sha }}",
+            "path": "${{ runner.temp }}/m2-1004-proof/canonical-summary.json",
+            "if-no-files-found": "error"
+          }
+        }
+      ]
+    },
+    "installed": {
+      "name": "installed-static-browser",
+      "needs": "canonical",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 20,
+      "env": {
+        "GH_TOKEN": "${{ github.token }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@v4",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@v4",
+          "with": {
+            "node-version": "22"
+          }
+        },
+        {
+          "name": "Install pinned browser test runner",
+          "run": "npm install --no-save --package-lock=false --no-audit --no-fund @playwright/test@1.55.0"
+        },
+        {
+          "name": "Install browser runtimes",
+          "run": "npx playwright install --with-deps chromium webkit"
+        },
+        {
+          "name": "Wait for verified publication then test installed static bytes",
+          "run": "python3 tools/manager2_1004_verify.py installed"
+        },
+        {
+          "name": "Retain installed receipt and synthetic evidence",
+          "if": "always()",
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "manager2-1004-installed-${{ github.sha }}",
+            "path": "${{ runner.temp }}/m2-1004-proof/installed/",
+            "if-no-files-found": "error"
+          }
+        }
+      ]
+    }
+  }
+}
