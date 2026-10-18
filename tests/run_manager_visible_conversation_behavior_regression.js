@@ -8,6 +8,7 @@ const flush=async()=>{for(let i=0;i<40;i++)await Promise.resolve()};
 function storage(){const values=new Map();return{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)}}
 async function setup(options={}){
  const h=createHarness({inbox:true,storage:storage(),...options});let messages=[first],conversation=h.conversation,failure=null,hook=null;
+ if(options.reconcileMessages){const box=h.ids.get('messages');box.removeChild=node=>{assert.equal(node.parentNode,box);node.remove();return node};}
  h.setHook((url,r)=>{
    const intercepted=hook?.(url,r);if(intercepted)return intercepted;
    if(url==='api.php'&&r.action==='detail')return response({ok:true,conversation:{...conversation,id:r.conversation_id},messages,delivery_failure:failure});
@@ -58,6 +59,28 @@ test('mobile inbox and lead overlay never fetch read-marking detail; transcript 
 test('unchanged history retains its DOM and media nodes; same-id synthetic summary text can refresh',async()=>{
  const h=await setup();const box=h.ids.get('messages'),fragment=box.children[0];assert.equal(await h.C.refreshVisible(),true);assert.equal(box.children[0],fragment);
  h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary A'}]);await h.C.refreshVisible();const summary=box.children[0];h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary B'}]);await h.C.refreshVisible();assert.notEqual(box.children[0],summary);assert.equal(h.W.S.detail.messages[0].text,'Synthetic summary B');
+});
+
+function trackedMedia(h,row,tag){
+ const media=h.document.createElement(tag);media.setAttribute('src','synthetic-'+tag);media.currentTime=42;media.playing=true;media.onerror=()=>{};
+ media.pauses=0;media.loads=0;media.pause=()=>{assert.equal(media.isConnected,true);media.pauses++;media.playing=false};media.load=()=>{assert.equal(media.src,undefined);media.loads++};row.appendChild(media);return media;
+}
+function assertRetired(media){assert.equal(media.pauses,1);assert.equal(media.loads,1);assert.equal(media.playing,false);assert.equal(media.src,undefined);assert.equal(media.onerror,null);assert.equal(media.isConnected,false)}
+test('switching conversations retires detached audio and video without touching retained players',async()=>{
+ const h=await setup({reconcileMessages:true}),row=h.ids.get('messages').firstChild,audio=trackedMedia(h,row,'audio'),video=trackedMedia(h,row,'video');
+ await h.C.open(102);assertRetired(audio);assertRetired(video);assert.equal(h.W.S.current,102);assertNoMutations(h);
+});
+test('refresh and failed navigation preserve the same loaded native media',async()=>{
+ const h=await setup({reconcileMessages:true}),row=h.ids.get('messages').firstChild,audio=trackedMedia(h,row,'audio');h.arrive();await h.C.refreshVisible();
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'&&r.conversation_id===102?response({ok:false},500):null);assert.equal(await h.C.open(102),false);
+ assert.equal(h.ids.get('messages').firstChild,row);assert.equal(audio.isConnected,true);assert.equal(audio.playing,true);assert.equal(audio.currentTime,42);assert.equal(audio.src,'synthetic-audio');assert.equal(audio.pauses,0);assert.equal(audio.loads,0);assertNoMutations(h);
+});
+test('replaced message media is retired while its unchanged neighbour keeps playing',async()=>{
+ const h=await setup({reconcileMessages:true});h.arrive();await h.C.refreshVisible();const box=h.ids.get('messages'),old=trackedMedia(h,box.children[0],'audio'),retained=trackedMedia(h,box.children[1],'video');
+ h.arrive([{...first,text:'Corrected synthetic first message'},next]);await h.C.refreshVisible();assertRetired(old);assert.equal(retained.isConnected,true);assert.equal(retained.playing,true);assert.equal(retained.pauses,0);assert.equal(retained.loads,0);assertNoMutations(h);
+});
+test('identity reset releases old transcript media',async()=>{
+ const h=await setup(),audio=trackedMedia(h,h.ids.get('messages').firstChild,'audio');h.C.resetForIdentityChange();assertRetired(audio);assertNoMutations(h);
 });
 for(const atBottom of [false,true])test(atBottom?'new messages follow an already-bottom transcript':'new messages preserve earlier-history reading position',async()=>{
  const h=await setup(),box=h.ids.get('messages');box.scrollHeight=1000;box.clientHeight=100;box.scrollTop=atBottom?900:150;
