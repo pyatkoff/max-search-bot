@@ -116,9 +116,25 @@ async function refreshNotificationHealth(generation,managerId){
     if(stillAuthenticated())await window.WorkspaceV2Notifications?.refresh();
   }catch(e){}
 }
+function notificationConversationId(){
+  const id=Number(/^#conversation=([1-9]\d*)$/.exec(String(location.hash||''))?.[1]||0);
+  return Number.isSafeInteger(id)?id:0;
+}
+function notificationUrl(id=0){history.replaceState(history.state,'',location.pathname+location.search+(id?'#conversation='+id:''))}
+function openNotificationConversation(id){
+  if(!Number.isSafeInteger(id)||id<=0)return false;
+  if(!S.manager?.id||!S.csrf||S.authExpired){
+    // Keep only the explicit URL intent until canonical authentication settles.
+    notificationUrl(id);if(S.authExpired)showAuthRecovery();return false;
+  }
+  const alreadyVisible=Number(S.current)===id&&window.WorkspaceV2Mobile?.getScreen?.()==='conversation';
+  return window.WorkspaceV2Conversation?.open(id,{preserveHistory:true,preserveMessageScroll:true,preserveAttachment:true,mobileHistory:alreadyVisible?'none':'push'});
+}
 async function resumeAuthenticated(me){
   const previousId=Number(S.manager?.id||0),sameIdentity=previousId>0&&previousId===Number(me.manager?.id||0),recovering=S.authExpired;
   const conversationId=recovering&&sameIdentity?Number(S.current||0):0,conversationGeneration=window.WorkspaceV2Conversation?.getOpenGeneration();
+  const notificationId=notificationConversationId();
+  if(notificationId)notificationUrl();
   S.authGeneration++;
   if(previousId&&!sameIdentity){
     window.WorkspaceV2Conversation?.resetForIdentityChange();
@@ -143,7 +159,8 @@ async function resumeAuthenticated(me){
   void refreshNotificationHealth(generation,managerId);
   await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
   if(!stillAuthenticated())return;
-  if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
+  if(notificationId&&(!previousId||sameIdentity)&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await openNotificationConversation(notificationId);
+  else if(conversationId&&!S.authExpired&&Number(S.current)===conversationId&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(conversationId,{preserveMessageScroll:true,mobileHistory:'none',preserveAttachment:true});
   else if(savedConversationId===window.WorkspaceV2Conversation?.getSavedSelection()&&savedConversationId&&!S.authExpired&&!S.current&&window.WorkspaceV2Conversation?.getOpenGeneration()===conversationGeneration)await window.WorkspaceV2Conversation?.open(savedConversationId,{restoreSession:true,mobileHistory:window.WorkspaceV2Mobile?.reloadHistoryMode?.()||'none'});
 }
 async function loginFromRecovery(){
@@ -170,5 +187,5 @@ async function boot(){
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
 }
-window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,whenCatalogReady:()=>catalogReady};
+window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,whenCatalogReady:()=>catalogReady};
 })();

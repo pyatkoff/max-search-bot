@@ -9,7 +9,7 @@ const syntheticVideo=Buffer.from('GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChY
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false}={}){
  const state={calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.mediaRequests=[];state.mediaFailure='';
  if(httpMedia)state.documents[11].forEach(m=>{if(m.id===1||m.id%20===0)m.attachments=[{type:'audio',name:'Аудио '+m.id,url:origin+'/synthetic-demand/'+m.id+'.wav'},{type:'video',name:'Видео '+m.id,url:origin+'/synthetic-demand/'+m.id+'.webm'}]});
@@ -17,7 +17,23 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
  const lead=id=>({ok:true,can_edit_pipeline:true,pipeline:{stage,stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция'},contact:{phone:''},source:{project_label:'Синтетический проект',channel:'max'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
  const detail=data=>{const all=state.documents[data.conversation_id]||[],older=Number(data.before_id)>0,pool=older?all.filter(m=>m.id<Number(data.before_id)):all,rows=pool.slice(-pageSize).map(m=>({...m})),first=rows[0]?.id||0,hasMore=pool.length>rows.length;if(!older&&state.summary)rows.unshift({...state.summary});return{ok:true,conversation:conversation(Number(data.conversation_id)),messages:rows,delivery_failure:null,has_manager_reply:all.some(m=>m.sender_type==='manager'),history:{has_more:hasMore,before_id:first,page_size:pageSize,mode:older?'older':'latest'}}};
- await page.addInitScript(()=>{sessionStorage.clear();const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{}};Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:{register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}}});function FakeNotification(){}FakeNotification.permission='denied';Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}})});
+ state.unauthorized=initialAnonymous;
+ await page.addInitScript(mode=>{
+  sessionStorage.clear();const reg={scope:location.origin+'/manager/',active:{state:'activated',postMessage(){}},pushManager:{getSubscription:async()=>null},showNotification:async()=>{throw Error('Unexpected native notification');}};
+  let container={register:async()=>reg,ready:Promise.resolve(reg),addEventListener(){}};
+  if(mode){
+   container=new EventTarget();const f=window.notificationFixture={registrations:0,mutations:0};
+   const worker=new EventTarget();worker.state='installing';worker.postMessage=()=>{};
+   reg.addEventListener=()=>{};reg.removeEventListener=()=>{};
+   if(mode==='held-ready'||mode==='rejected-ready'){reg.active=null;reg.installing=worker;}
+   container.register=()=>{f.registrations++;if(mode==='held-register')return new Promise(resolve=>{f.release=()=>resolve(reg)});if(mode==='rejected-register')return Promise.reject(Error('Synthetic registration unavailable'));return Promise.resolve(reg);};
+   container.ready=Promise.resolve(reg);
+   f.releaseReady=()=>{worker.state='activated';reg.active=worker;worker.dispatchEvent(new Event('statechange'));};
+   f.rejectReady=()=>{worker.state='redundant';worker.dispatchEvent(new Event('statechange'));};
+   f.emit=id=>container.dispatchEvent(new MessageEvent('message',{data:{type:'OPEN_CONVERSATION',conversationId:id}}));
+  }
+  Object.defineProperty(navigator,'serviceWorker',{configurable:true,value:container});function FakeNotification(){}FakeNotification.permission='denied';Object.defineProperty(window,'Notification',{configurable:true,value:FakeNotification});Object.defineProperty(window,'PushManager',{configurable:true,value:function(){}});
+ },notificationState);
  page.on('pageerror',e=>state.errors.push(e.message));
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url()),method=req.method();const block=action=>{state.unexpected.push(method+' '+url.pathname+(action?' '+action:''));return route.abort()};
  // WebKit exposes local media/emoji object-URL reads to routing. Permit only
@@ -57,7 +73,7 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  if(url.pathname==='/manager/push.php'&&method==='GET'&&url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
  if(url.pathname==='/manager/notification-events.php'&&data.action==='poll')return reply({ok:true,cursor:0,events:[]});
  return block(data.action);
- });await page.goto(origin+'/manager2/index.php?history-qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
+ });await page.goto(origin+'/manager2/index.php?history-qa=1'+initialHash);if(initialAnonymous)await expect(page.locator('#managerAuthRecovery')).toBeVisible();else await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
 }
 function clean(state,{sends=0}={}){expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);expect(state.sends).toHaveLength(sends)}
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Синтетический клиент А':'Синтетический клиент Б');await settled(page)}
@@ -185,9 +201,62 @@ for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic 
  await screenshot(page,browserName,width,'refresh-recovery-'+owner);clean(state);
 });
 
+// Execute the exact worker with synthetic Clients, then deliver its command via
+// the browser's EventTarget to the real receiver/core/Conversation. This does not
+// create an OS notification or claim a native notificationclick reproduction.
+const notificationWorker=fs.readFileSync(path.join(assetRoot,'manager/sw.js'),'utf8');
+async function notificationClick(page,id,definitions=[{path:'/manager/push-enable.php'},{path:'/manager2/admin.php'},{path:'/manager/',focusFails:true},{path:'/manager2/'}]){
+ return page.evaluate(async({source,id,definitions})=>{
+  const handlers={},calls=[],fallbacks=[];
+  const clients=definitions.map(def=>{const client={url:location.origin+def.path,async focus(){calls.push(['focus',def.path]);if(def.focusFails)throw Error('Synthetic unfocusable client');return client;},postMessage(data){calls.push(['post',def.path]);if(/^\/manager2?\/(?:index\.php)?$/.test(def.path))navigator.serviceWorker.dispatchEvent(new MessageEvent('message',{data}));}};return client;});
+  const worker={location:{href:location.origin+'/manager/sw.js'},addEventListener(type,fn){handlers[type]=fn;},clients:{matchAll:async()=>clients,openWindow:async url=>{fallbacks.push(url);}}};
+  new Function('self','importScripts',source)(worker,()=>{});let wait;
+  handlers.notificationclick({notification:{data:{conversationId:id,url:'./'},close(){}},waitUntil(p){wait=p;}});await wait;return{calls,fallbacks};
+ },{source:notificationWorker,id,definitions});
+}
+async function notificationLogin(page){await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();}
+
+for(const [width,height,mode] of [[390,844,'held-register'],[430,844,'rejected-register'],[768,844,'held-register'],[1440,844,'rejected-register'],[390,420,'held-register'],[390,844,'held-ready'],[1440,844,'rejected-ready']])test('notification navigation retains the current reply then opens the next client '+width+'x'+height+' '+mode,async({page,browserName})=>{
+ const proof=await prepareRetainedHistory(page,{width,height,notificationState:mode}),state=proof.state;
+ const reads=refreshDetails(state),length=await page.evaluate(()=>history.length);
+ await page.locator('#replyText').evaluate(el=>{window.notificationFile=document.getElementById('replyFile').files[0];window.notificationInput=el;});
+ const routed=await notificationClick(page,11);expect(routed.calls.filter(c=>c[0]==='post')).toEqual([['post','/manager2/']]);expect(routed.fallbacks).toEqual([]);
+ await expect.poll(()=>refreshDetails(state)).toBe(reads+1);await assertRetainedHistory(page,proof);expect(await page.evaluate(()=>history.length)).toBe(length);
+ expect(await page.evaluate(()=>document.getElementById('replyText')===notificationInput&&document.getElementById('replyFile').files[0]===notificationFile)).toBe(true);
+ await page.evaluate(async mode=>{if(mode==='held-register')notificationFixture.release();if(mode==='held-ready')notificationFixture.releaseReady();if(mode==='rejected-ready')notificationFixture.rejectReady();await WorkspaceV2Notifications.init();},mode);
+ expect(refreshDetails(state)).toBe(reads+1);expect(await page.evaluate(()=>notificationFixture.registrations)).toBe(1);
+ await screenshot(page,browserName,width,'notification-retained-'+mode+'-'+height);
+ await notificationClick(page,12);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#messages .msg')).toHaveCount(3);await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('');await expect(page.locator('#mediaSelection')).not.toContainText('retained-history.txt');
+ await page.locator('#replyText').fill('Ответ клиенту Б из уведомления');await page.locator('#replyFile').setInputFiles({name:'notification-B.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B')});
+ await screenshot(page,browserName,width,'notification-target-'+mode+'-'+height);
+ if(width<=1100){await page.goBack();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await settled(page);}else await open(page,11);
+ await expect(page.locator('#replyText')).toHaveValue(proof.draft);await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');await page.locator('#replyText').click();await page.locator('#replyText').press('End');const caret=await page.locator('#replyText').evaluate(el=>({start:el.selectionStart,end:el.selectionEnd}));await page.locator('#replyText').press('!');await expect(page.locator('#replyText')).toHaveValue(proof.draft.slice(0,caret.start)+'!'+proof.draft.slice(caret.end));
+ clean(state);
+});
+
+for(const status of [401,403,404,500])test('notification navigation current detail '+status+' keeps canonical recovery',async({page,browserName})=>{
+ const proof=await prepareRetainedHistory(page,{width:390,notificationState:'ready'}),state=proof.state;state.latest.push({body:{ok:false,error:'synthetic'},status});const reads=refreshDetails(state);
+ await notificationClick(page,12,[{path:'/manager2/'}]);await expect.poll(()=>refreshDetails(state)).toBe(reads+1);
+ if(status===401){await expect(page.locator('#managerAuthRecovery')).toBeVisible();await expect(page.locator('#composer')).toBeHidden();await notificationLogin(page);await expect(page.locator('#replyText')).toHaveValue(proof.draft);await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');}else await assertRetainedHistory(page,proof);
+ expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);await screenshot(page,browserName,390,'notification-failure-'+status);clean(state);
+});
+
+for(const anonymous of [false,true])test('notification navigation new-tab fragment opens once after login anonymous='+anonymous,async({page,browserName})=>{
+ const width=anonymous?390:1440;await page.setViewportSize({width,height:844});const state=await setup(page,{total:3,notificationState:'rejected-register',initialHash:'#conversation=12',initialAnonymous:anonymous});
+ if(anonymous)await notificationLogin(page);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();expect(refreshDetails(state)).toBe(1);expect(await page.evaluate(()=>location.hash)).toBe('');
+ await page.locator('#replyText').fill('Новая вкладка: ответ правильному клиенту');await screenshot(page,browserName,width,'notification-new-tab-'+anonymous);clean(state);
+});
+
+for(const status of [200,401])test('notification navigation late detail cannot restore an old account '+status,async({page})=>{
+ await page.setViewportSize({width:1440,height:844});const state=await setup(page,{total:3,notificationState:'held-register'});await open(page);await page.locator('#replyText').fill('Приватный текст аккаунта А');await page.locator('#replyFile').setInputFiles({name:'notification-private-A.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic A')});
+ const gate=deferred();state.latest.push(gate);const reads=refreshDetails(state);await notificationClick(page,12,[{path:'/manager2/'}]);await expect.poll(()=>refreshDetails(state)).toBe(reads+1);await page.evaluate(()=>WorkspaceV2.showAuthRecovery());state.accountId=8;await notificationLogin(page);await open(page,11);await page.locator('#replyText').fill('Только аккаунт Б');
+ const received=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.status()===status);gate.resolve(status===200?state.snapshot({conversation_id:12}):{body:{ok:false,error:'unauthorized'},status:401});await(await received).finished();await settled(page);
+ await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await expect(page.locator('#replyText')).toHaveValue('Только аккаунт Б');await expect(page.locator('#mediaSelection')).not.toContainText('notification-private-A.txt');await expect(page.locator('#managerAuthRecovery')).toBeHidden();expect(await page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(8);await page.evaluate(()=>notificationFixture.release());clean(state);
+});
+
 const olderDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&Number(c.before_id)>0);
-async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false,viaNext=false}={}){
- await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead,waiting:viaNext});
+async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false,viaNext=false,notificationState=''}={}){
+ await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead,waiting:viaNext,notificationState});
  if(viaNext){
   await open(page,12);await page.locator('#replyText').fill('Черновик клиента Б перед переходом');
   await page.locator('#replyFile').setInputFiles({name:'original-B.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B file')});

@@ -427,6 +427,73 @@ async function pendingSetupCases() {
   console.log('PASS  key auth, invalid JSON and late account changes remain safe; optional confirmation failures never undo saved setup');
 }
 
+async function notificationNavigationCases(){
+  const workerSource=fs.readFileSync(require('path').join(__dirname,'../manager/sw.js'),'utf8');
+  const origin='https://app.anytoour.ru',failures=[];let total=0;
+  async function check(name,run){total++;try{await run();console.log('PASS  notification navigation '+name);}catch(error){failures.push(name+': '+error.message);console.error('FAIL  notification navigation '+name+': '+error.message);}}
+  async function click(definitions,{url='./',id=711,matchFails=false}={}){
+    const handlers={},calls=[],messages=[],fallbacks=[];
+    const clients=definitions.map(def=>{
+      const client={url:new URL(def.path,origin).href,postMessage(data){if(def.postFails)throw Error('synthetic closed client');messages.push({path:def.path,...data});calls.push('post:'+def.path);}};
+      if(!def.noFocus)client.focus=async()=>{calls.push('focus:'+def.path);if(def.focusFails)throw Error('synthetic focus rejection');if(def.changedPath)client.url=new URL(def.changedPath,origin).href;return client;};
+      return client;
+    });
+    vm.runInNewContext(workerSource,{URL,importScripts(){},self:{location:{href:origin+'/manager/sw.js'},clients:{
+      async matchAll(options){assert.equal(options.type,'window');assert.equal(options.includeUncontrolled,true);if(matchFails)throw Error('synthetic client lookup error');return clients;},
+      async openWindow(target){fallbacks.push(new URL(target,origin+'/manager/').href);}
+    },addEventListener(type,fn){handlers[type]=fn;}}},{filename:'sw.js'});
+    let wait,closed=0;handlers.notificationclick({notification:{data:{conversationId:id,url},close(){closed++;}},waitUntil(p){wait=p;}});
+    await wait;assert.equal(closed,1);return{calls,messages,fallbacks};
+  }
+  for(const paths of [
+    ['/manager2/','/manager/push-enable.php'],['/manager/push-enable.php','/manager2/'],['/manager2/admin.php','/manager2/'],
+    ['/manager/index.php'],['/manager2/index.php?view=mine#old'],['/manager2/','/manager/'],['/manager/','/manager2/'],
+    ['https://other.example.test/manager2/','/manager2/'],['/manager2-unsafe/','/manager/'],['/manager2/nested/','/manager/']
+  ])await check('selects only a workspace from '+paths.join(' then '),async()=>{
+    const r=await click(paths.map(path=>({path}))),expected=paths.find(path=>/^\/manager2?\/(?:index\.php(?:[?#].*)?)?$/.test(path));
+    assert.equal(r.messages.length,1);assert.equal(r.messages[0].path,expected);assert.equal(r.messages[0].conversationId,711);assert.deepEqual(r.fallbacks,[]);assert.equal(r.calls.filter(c=>c.startsWith('focus:')).length,1);
+  });
+  for(const first of [{focusFails:true},{postFails:true},{noFocus:true},{changedPath:'/manager/push-enable.php'}])await check('unavailable candidate '+Object.keys(first)[0]+' falls through once',async()=>{
+    const r=await click([{path:'/manager2/',...first},{path:'/manager/index.php'}]);assert.equal(r.messages.length,1);assert.equal(r.messages[0].path,'/manager/index.php');assert.deepEqual(r.fallbacks,[]);
+  });
+  for(const definitions of [[],[{path:'/manager/push-enable.php'}],[{path:'/manager2/admin.php'},{path:'/manager/routing.php'}],[{path:'/manager2/',focusFails:true}]])await check('one fallback for '+JSON.stringify(definitions),async()=>{
+    const r=await click(definitions);assert.deepEqual(r.messages,[]);assert.deepEqual(r.fallbacks,[origin+'/manager/#conversation=711']);
+  });
+  for(const url of ['/manager2/index.php?selection=mine#old','https://other.example.test/manager/','/manager/push-enable.php','javascript:alert(1)'])await check('fallback URL boundary '+url,async()=>{
+    const r=await click([],{url});assert.deepEqual(r.messages,[]);assert.deepEqual(r.fallbacks,[url.startsWith('/manager2/index.php')?origin+'/manager2/index.php?selection=mine#conversation=711':origin+'/manager/#conversation=711']);
+  });
+  await check('failed client lookup still has one canonical fallback',async()=>{const r=await click([],{matchFails:true});assert.deepEqual(r.fallbacks,[origin+'/manager/#conversation=711']);});
+  for(const id of [0,-1,1.5,Infinity,'not-an-id'])await check('invalid conversation '+id+' only focuses the workspace',async()=>{const r=await click([{path:'/manager2/'}],{id});assert.equal(r.messages.length,0);assert.deepEqual(r.fallbacks,[]);assert.deepEqual(r.calls,['focus:/manager2/']);});
+
+  for(const mode of ['held-register','rejected-register','held-ready','rejected-ready','ready'])await check('receiver is independent of '+mode,async()=>{
+    let resolve,reject;const pending=new Promise((yes,no)=>{resolve=yes;reject=no;}),opens=[];let bound=0,registrations=0;
+    const worker=new EventTarget();worker.state='installing';
+    const registration=mode.includes('ready')&&mode!=='ready'?{active:null,installing:worker,addEventListener(){},removeEventListener(){}}:{active:{state:'activated'}};
+    const serviceWorker=new EventTarget(),add=serviceWorker.addEventListener.bind(serviceWorker);
+    serviceWorker.addEventListener=(type,fn,...rest)=>{if(type==='message')bound++;return add(type,fn,...rest);};
+    serviceWorker.register=()=>{registrations++;return mode.includes('register')?pending:Promise.resolve(registration);};
+    const doc=new EventTarget();doc.readyState='complete';doc.getElementById=()=>null;
+    const local={window:{WorkspaceV2:{S:{},openNotificationConversation:id=>opens.push(id)},WorkspaceV2Conversation:{open:id=>opens.push(id)}},document:doc,navigator:{serviceWorker},URL,setTimeout,clearTimeout,console:{warn(){}}};
+    vm.runInNewContext(source,local,{filename:'workspace-v2-notifications.js'});
+    const init=local.window.WorkspaceV2Notifications.init();await Promise.resolve();if(mode==='ready')await init;
+    const emit=(type,id)=>{const event=new Event('message');event.data={type,conversationId:id};serviceWorker.dispatchEvent(event);};
+    try{emit('OPEN_CONVERSATION',711);assert.deepEqual(opens,[711]);assert.equal(bound,1);}
+    finally{
+      if(mode==='rejected-register')reject(Error('synthetic registration error'));else resolve(registration);
+      if(mode==='held-ready'||mode==='rejected-ready'){worker.state=mode==='held-ready'?'activated':'redundant';if(mode==='held-ready')registration.active=worker;worker.dispatchEvent(new Event('statechange'));}
+      await init;
+    }
+    await local.window.WorkspaceV2Notifications.init();assert.equal(bound,1);assert.equal(registrations,1);assert.deepEqual(opens,[711]);
+    emit('OTHER',712);emit('OPEN_CONVERSATION',712);assert.deepEqual(opens,[711,712]);
+  });
+  for(const blocked of [false,true])await check('unavailable worker does not prevent module loading, restricted='+blocked,async()=>{
+    const doc=new EventTarget();doc.readyState='complete';doc.getElementById=()=>null;const navigator={};
+    if(blocked)Object.defineProperty(navigator,'serviceWorker',{get(){throw new DOMException('Synthetic restricted worker','SecurityError');}});
+    const local={window:{WorkspaceV2:{S:{}}},document:doc,navigator,URL,setTimeout,clearTimeout,console:{warn(){}}};vm.runInNewContext(source,local);assert.equal(typeof local.window.WorkspaceV2Notifications.init,'function');await local.window.WorkspaceV2Notifications.init();
+  });
+  console.log('NAVIGATION TOTAL '+total+' | FAIL '+failures.length);if(failures.length)throw Error(failures.join('; '));
+}
+
 async function run() {
   const manager2 = activationHarness({ outsideScope: true });
   if (await manager2.enable() !== true || manager2.calls.ready !== 0 || manager2.calls.subscribe !== 1 || manager2.calls.save !== 1) throw new Error('/manager2 must enable through its canonical active registration while global serviceWorker.ready remains pending');
@@ -518,6 +585,7 @@ async function run() {
   await pendingSetupCases();
   await registrationLifecycleCases();
   await currentBrowserCases();
+  await notificationNavigationCases();
 }
 
 run().catch(error => {
