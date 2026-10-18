@@ -1,0 +1,110 @@
+name: Manager2 transcript focus installed acceptance
+on:
+  push:
+    branches: [diagnosis/manager2-transcript-focus-installed-20261018]
+permissions:
+  contents: read
+  actions: read
+env:
+  PRODUCT_SHA: 821c8364921ace661aa89f31c2270470a1d8d963
+  EXPECTED_TREE: fbe09dab6d13acb804f7c841abff7d509027f519
+jobs:
+  input:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require the expected current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api repos/${{ github.repository }}/git/ref/heads/main --jq .object.sha)" = "$PRODUCT_SHA"
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - name: Verify anonymous installed shell, static assets and worker
+        run: >-
+          node tools/measure_manager2_browser.js --capture --capture-only
+          --product-sha "$PRODUCT_SHA" --assets installed --output capture
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manager2-focus-input-${{ github.sha }}
+          path: installed/
+          if-no-files-found: error
+          retention-days: 30
+  browser:
+    needs: input
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager2-focus-input-${{ github.sha }}
+          path: installed
+      - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Verify the maintained whole path on five installed viewports
+        run: >-
+          node tools/measure_manager2_browser.js --engine "${{ matrix.engine }}"
+          --product-sha "$PRODUCT_SHA" --assets installed
+          --output acceptance-${{ matrix.engine }} --samples 1 --warmups 1 --cold 1
+      - name: Verify transcript keyboard reading on the installed source
+        env:
+          M2_HISTORY_BASELINE: '1'
+          M2_HISTORY_BASELINE_ROOT: ${{ github.workspace }}/installed
+          M2_ENGINE: ${{ matrix.engine }}
+        run: |
+          cat > "$RUNNER_TEMP/native-focus.config.cjs" <<'JS'
+          const path=require('node:path'),engine=process.env.M2_ENGINE;
+          module.exports={testDir:path.join(process.env.GITHUB_WORKSPACE,'tests/visual'),testMatch:'manager-transcript-history.spec.js',timeout:60000,expect:{timeout:5000},workers:1,retries:0,outputDir:path.join(process.cwd(),'acceptance-'+engine,'native-test-results'),reporter:[['line'],['json',{outputFile:path.join(process.cwd(),'acceptance-'+engine,'native-focus-report.json')}]],projects:[{name:engine,use:{browserName:engine,headless:true,timezoneId:'Europe/Moscow'}}]};
+          JS
+          npx playwright test --config "$RUNNER_TEMP/native-focus.config.cjs" --grep '(native (audio|video)|transcript (file|photo|details)) keyboard reading survives incoming messages'
+      - name: Independently audit installed source, raw records and all focused transcript cases
+        env:
+          M2_TEST_ENGINE: ${{ matrix.engine }}
+        run: |
+          node <<'JS'
+          const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict'),{execFileSync}=require('node:child_process');
+          const engine=process.env.M2_TEST_ENGINE,out='acceptance-'+engine,digest=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const input=JSON.parse(fs.readFileSync('installed/receipt.json')),manifest=JSON.parse(fs.readFileSync(out+'/manifest.json')),summary=JSON.parse(fs.readFileSync(out+'/summary.json'));
+          const raw=fs.readFileSync(out+'/samples.jsonl'),rows=raw.toString().trim().split(String.fromCharCode(10)).map(JSON.parse);
+          assert.equal(input.production_sha,process.env.PRODUCT_SHA);assert.equal(input.tree,process.env.EXPECTED_TREE);
+          assert.equal(manifest.productSha,process.env.PRODUCT_SHA);assert.equal(manifest.productTree,process.env.EXPECTED_TREE);
+          assert.equal(input.assets.length,61);assert.equal(input.public_static_gets,63);
+          assert.equal(digest(fs.readFileSync('installed/shell.html')),input.shell_sha256);
+          for(const item of [...input.assets,input.worker]){const b=fs.readFileSync('installed/'+item.path);assert.equal(b.length,item.bytes);assert.equal(digest(b),item.sha256);assert.ok(b.equals(execFileSync('git',['show',process.env.PRODUCT_SHA+':'+item.path])));}
+          assert.equal(summary.ok,true);assert.equal(summary.purpose,'protocol_check');assert.equal(summary.raw_records,75);assert.equal(rows.length,75);assert.equal(digest(raw),summary.raw_samples_sha256);
+          for(const key of ['samples','warmups','cold'])assert.equal(manifest.method[key],1);
+          const viewports=[[390,844],[430,844],[768,844],[1440,900],[390,420]];
+          const phases=['system_selection','personal_selection','open_authorized_reply','input_adoption','older_200_to_400','older_400_to_600','refresh_unchanged_600','refresh_append_601','quick_reply_insert','quick_reply_preview','quick_reply_preview_insert','file_preview','next_waiting'];
+          for(let i=0;i<viewports.length;i++){const [width,height]=viewports[i],part=rows.slice(i*15,i*15+15);assert.deepEqual(part.map(r=>r.name),['startup',...phases,width===1440?'desktop_return_reply':'native_back_reply']);for(const r of part){assert.equal(r.engine,engine);assert.equal(r.viewport.width,width);assert.equal(r.viewport.height,height);assert.equal(r.synthetic,true);assert.ok(r.start<=r.ready&&r.ready<=r.end);assert.ok(Math.abs(r.duration-r.end+r.start)<.000001);assert.equal(r.counts.mediaResourceEntries,0);}assert.equal(part[3].from,12);assert.equal(part[3].state.current,11);assert.equal(part[3].state.replyDisabled,false);assert.equal(part[14].state.fileRetained,true);assert.equal(part[14].state.replyDisabled,false);}
+          const commands=rows.filter(r=>r.kind==='history'||r.kind==='refresh');assert.equal(commands.length,20);for(const r of commands){assert.ok(r.commandDone>=r.start&&r.commandDone<=r.ready);assert.ok(r.commandAttempts.length>=1&&r.commandAttempts.length<=2);assert.equal(r.commandAttempts.at(-1).result,true);assert.ok(r.fetches.some(f=>f.path==='/manager/api.php'&&f.action==='detail'&&f.conversation_id===11&&f.start>=r.start&&f.jsonEnd<=r.commandDone));}
+          const specPath='tests/visual/manager-transcript-history.spec.js';
+          assert.ok(fs.readFileSync(specPath).equals(execFileSync('git',['show',process.env.PRODUCT_SHA+':'+specPath])),'Native regression source differs from published product');
+          const native=JSON.parse(fs.readFileSync(out+'/native-focus-report.json'));assert.equal(native.stats.expected,25);assert.equal(native.stats.unexpected,0);assert.equal(native.stats.flaky,0);assert.equal(native.stats.skipped,0);
+          const expected=new Set([[390,900],[430,900],[768,900],[1440,900],[390,420]].flatMap(([w,h])=>[...['audio','video'].map(kind=>'native '+kind+' keyboard reading survives incoming messages '+w+'x'+h),...['file','photo','details'].map(kind=>'transcript '+kind+' keyboard reading survives incoming messages '+w+'x'+h)])),actual=[];
+          function visit(suites){for(const suite of suites||[]){for(const spec of suite.specs||[]){assert.ok(spec.ok);const tests=spec.tests.filter(t=>t.projectName===engine);assert.equal(tests.length,1);const t=tests[0];assert.equal(t.expectedStatus,'passed');assert.equal(t.status,'expected');assert.equal(t.results.length,1);assert.equal(t.results[0].status,'passed');actual.push(spec.title);}visit(suite.suites);}}visit(native.suites);
+          assert.equal(actual.length,25);assert.equal(new Set(actual).size,25);assert.deepEqual([...actual].sort(),[...expected].sort());
+          const screenshots=fs.readdirSync('manager2-artifacts').filter(p=>p.endsWith('.png'));assert.equal(screenshots.length,50);fs.cpSync('manager2-artifacts',out+'/native-screenshots',{recursive:true});
+          const receipt={ok:true,purpose:'installed_source_synthetic_acceptance',installedSha:manifest.productSha,tree:manifest.productTree,toolingSha:manifest.toolingSha,engine,assets:61,worker:true,records:75,viewports:5,nativeKeyboardCases:25,nativeTestSourceSha256:digest(fs.readFileSync(specPath)),rawSha256:digest(raw),productionDataWrites:0,realSends:0,productionLatencyP95:'not_measured'};
+          fs.writeFileSync(out+'/installed-acceptance-receipt.json',JSON.stringify(receipt,null,2));console.log('INSTALLED_ACCEPTANCE_RECEIPT '+JSON.stringify(receipt));
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: manager2-focus-${{ matrix.engine }}-${{ github.sha }}
+          path: acceptance-${{ matrix.engine }}/
+          if-no-files-found: error
+          retention-days: 30
