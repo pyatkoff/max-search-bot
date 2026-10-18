@@ -59,7 +59,18 @@ async function phase(page,options,action){
   return page.evaluate(()=>window.__managerMeasurement.record());
  }catch(error){json(path.join(output,'phase-failure.json'),{phase:options,url:page.url(),error:error.message,diagnostic:await page.evaluate(()=>window.__managerMeasurement?.diagnostic()).catch(e=>({error:e.message}))});await failureScreenshot(page);throw error}
 }
-const command=(page,name)=>page.evaluate(async name=>{await WorkspaceV2Conversation[name]();window.__managerMeasurement.commandDone()},name);
+const command=(page,name)=>page.evaluate(async name=>{
+ const meter=window.__managerMeasurement;
+ for(let attempt=0;attempt<2;attempt++){
+  const start=performance.now(),result=await WorkspaceV2Conversation[name]();meter.commandAttempt({start,end:performance.now(),result});
+  if(result===true){meter.commandDone();return}
+  if(name!=='refreshVisible'||attempt||!meter.pendingDetail())throw Error('Canonical command did not complete: '+name);
+  // A concurrent automatic refresh suppresses this manual call. Preserve it as
+  // an attempt, wait for that read to settle, then require our own successful
+  // command and response. Its wait stays inside the measured duration.
+  await new Promise(resolve=>{const tick=()=>meter.pendingDetail()?requestAnimationFrame(tick):requestAnimationFrame(resolve);tick()});
+ }
+},name);
 async function inbox(page){await page.evaluate(()=>{if(WorkspaceV2Mobile.isMobile())WorkspaceV2Mobile.showInbox({historyMode:'replace'})});}
 async function cycle(page,state,index){
  const records=[];try{state.reset();

@@ -101,6 +101,8 @@ function installMeter(){
  window.__managerMeasurement={
   begin(options){if(active&&!active.end)throw Error('Previous measurement unfinished');active={...options,start:null,ready:null,end:null,milestones:{},fetchIndex:fetches.length,armed:performance.now(),generation:window.WorkspaceV2Conversation?.getOpenGeneration()};if(!active.event)start();return true},
   done(){return !!active?.end},
+  commandAttempt(attempt){if(active)(active.commandAttempts??=[]).push(attempt)},
+  pendingDetail(){return fetches.some(r=>r.path==='/manager/api.php'&&r.action==='detail'&&Number(r.conversation_id)===active?.id&&!r.jsonEnd&&!r.error)},
   commandDone(){if(active)active.commandDone=performance.now()},
   fileRetained(){return !!nativeFile&&objectFiles.get(document.querySelector('#mediaSelection img')?.src)===nativeFile&&window.WorkspaceV2Media.hasFile()},
   diagnostic(){return {active,state:{current:window.WorkspaceV2?.S.current,history:window.WorkspaceV2History?.getState(),reply:document.getElementById('replyText')?.value,media:document.getElementById('mediaSelection')?.textContent,selection:window.WorkspaceV2Inbox?.getLoadedSelectionStatus()},fetches:fetches.slice(-12)}},

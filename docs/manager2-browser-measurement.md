@@ -65,6 +65,13 @@ permissions. Command phases start when armed in the browser, before the driver
 invokes the canonical command, and require its promise to complete. Driver and
 synthetic-route overhead are included. Startup starts at document init-script
 execution; navigation time before that script is outside the metric.
+History/refresh also require the canonical command to return `true`. If an
+already pending automatic detail read suppresses a manual refresh (`false`),
+the meter records that attempt, waits for the read to settle, then permits one
+retry. The retry must succeed and parse a response started after phase arming;
+the wait/retry overhead stays inside the measured duration. Attempt timestamps
+and results are retained. Other false results fail rather than waiting for a
+later automatic refresh to masquerade as command completion.
 
 The finish is the first required state followed by two animation frames with
 the state still valid. This is a browser rendering opportunity, not a physical
