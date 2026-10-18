@@ -88,6 +88,11 @@ Incomplete artifacts are not a completed baseline.
 
 Run the **Manager2 browser measurement** Actions workflow at a reviewed tooling
 SHA, with the exact deployed `product_sha`. The PR workflow uses its base SHA.
+Draft PRs run only a one-cycle-per-viewport protocol check in both engines;
+marking the PR ready triggers the full declared series. `purpose` in the
+manifest and summary distinguishes `protocol_check` from `baseline`. Native
+actions, navigation, startup and canonical-command waits are bounded to 15 s;
+timeouts fail with diagnostics rather than waiting for the runner limit.
 Capture first reads only anonymous public shell, stylesheet/script URLs and
 `/manager/sw.js` from `https://app.anytoour.ru`. Each body must match `git show`
 for the specified product SHA. The input artifact is shared by both engines.
