@@ -73,7 +73,9 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.locator('#replyFile').setInputFiles({name:'synthetic-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   await reply.evaluate(node=>{node.focus();node.setSelectionRange(2,12,'backward');window.aiNativeProof={reply:node,form:document.querySelector('#composer'),file:document.querySelector('#replyFile'),preview:document.querySelector('#mediaSelection .mediaSelectedItem')}});
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await expect.poll(()=>page.locator('#composer').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
+  // Viewport coordinates also include the mobile pane's own transform. A settled
+  // composer alone can still move with that ancestor before the first snapshot.
+  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   await expect(page.locator('#composer')).toHaveClass(/m2ReplyMultiline/);
   await expect.poll(()=>page.locator('#composer .composerActions').evaluate(node=>{
     const surface=node.closest('.composerSurface'),css=getComputedStyle(surface);

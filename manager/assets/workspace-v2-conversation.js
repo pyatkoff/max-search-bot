@@ -298,6 +298,18 @@ function renderLeadLoading(c){
   const hint=document.createElement('div');hint.className='leadPanelHint';hint.textContent='Загружаем карточку клиента… Переписка уже доступна.';
   panel.appendChild(title);panel.appendChild(hint);root.replaceChildren(panel);
 }
+function restoreRetainedOpen(previous){
+  const retained=previous&&!accessLost&&Number(S.current)===previous&&Number(S.detail?.conversation?.id)===previous;
+  if(retained&&!S.detail.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
+  applyInteractionState();window.WorkspaceV2History?.render();window.WorkspaceV2ConversationSearch?.setState(retained?'ready':'error');
+}
+function cancelPendingOpen(){
+  if(!opening)return false;
+  // A newer screen intent revokes the read before its shared HTTP/auth callback.
+  // Release only opening; an actual send/action/UNKNOWN keeps its own lock.
+  openSeq++;opening=0;refreshEpoch++;window.WorkspaceV2History?.invalidateReads();
+  setLoadStatus();restoreRetainedOpen(Number(S.current||0));return true;
+}
 async function open(id,options={}){
   const previous=Number(S.current||0),target=Number(id||0),switching=target!==previous,retainLoaded=options.preserveHistory===true&&target===previous&&!options.restoreSession;
   if(!target||S.authExpired)return false;
@@ -319,9 +331,7 @@ async function open(id,options={}){
   if(!d?.ok||Number(d.conversation?.id)!==target){
     if(options.restoreSession&&([403,404].includes(d?.http_status)||d?.ok))forgetSavedConversation(target);
     if(!switching&&[403,404].includes(d?.http_status)&&S.detail?.conversation){W.HandoffCancellation?.render($('handoffCancellation'),null);accessLost=true;window.WorkspaceV2History?.reset();window.WorkspaceV2CustomerAvatar?.invalidateConversation(target);forgetSavedConversation(target);clearCurrentReply(target);renderActions(S.detail.conversation);window.WorkspaceV2ConversationSearch?.reset()}
-    const retained=previous&&!accessLost&&Number(S.current)===previous&&Number(S.detail?.conversation?.id)===previous;
-    if(retained&&!S.detail.lead)window.WorkspaceV2LeadCard?.renderUnavailable(S.detail.conversation);
-    applyInteractionState();window.WorkspaceV2History?.render();window.WorkspaceV2ConversationSearch?.setState(retained?'ready':'error');
+    restoreRetainedOpen(previous);
     setLoadStatus(switching?'Не удалось открыть диалог. Текущий диалог не изменён.':'Не удалось обновить диалог. На экране остаются предыдущие данные.','error');return false;
   }
   if(switching){window.WorkspaceV2ConversationSearch?.reset();window.WorkspaceV2Media?.preserveDraft?.(previous)}
@@ -530,5 +540,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
 })();

@@ -43,13 +43,28 @@ class EvidenceTests(unittest.TestCase):
         return evidence.build_evidence([("live", report or fixture())], SHA, self.recipient)
 
     def test_minimization_retains_debuggable_message_order(self):
-        data = self.build()
+        source = fixture()
+        now = dt.datetime.now(dt.timezone.utc)
+        source["generated_at"] = source["since_utc"] = now.replace(microsecond=462999).isoformat()
+        for message in source["sessions"][0]["message_tail"]:
+            message["created_at"] = now.replace(microsecond=987654).isoformat()
+        data = self.build(source)
         report = json.loads(data)
-        messages = report["sessions"][0]["messages"]
+        session = report["sessions"][0]
+        messages = session["messages"]
         self.assertIn("Египет на 7 ночей, 2 взрослых", messages[0]["text"])
         self.assertEqual(messages[1]["text"], "SYNTHETIC_PRIVATE_MESSAGE")
-        for secret in (b"987654", b"private-login", b"hidden-user", b"999", b"example.org", b"@contact"):
+        for field in ("conversation_id", "login", "external_user_id"):
+            self.assertNotIn(field, session)
+        for secret in (b"private-login", b"hidden-user", b"example.org", b"@contact"):
             self.assertNotIn(secret, data)
+        # Numeric tokens may also occur in legitimate timestamps or age recipients.
+        for message in messages:
+            for secret in ("987654", "999"):
+                self.assertNotIn(secret, message["text"])
+            self.assertEqual(message["created_at"], source["sessions"][0]["message_tail"][0]["created_at"])
+        self.assertEqual(report["windows"][0]["generated_at"], source["generated_at"])
+        self.assertEqual(report["windows"][0]["since_utc"], source["since_utc"])
 
     def test_test_sessions_and_unflagged_sessions_are_excluded(self):
         report = fixture()

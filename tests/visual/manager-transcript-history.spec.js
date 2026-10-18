@@ -9,11 +9,11 @@ const syntheticVideo=Buffer.from('GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChY
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false}={}){
  const state={calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.mediaRequests=[];state.mediaFailure='';
  if(httpMedia)state.documents[11].forEach(m=>{if(m.id===1||m.id%20===0)m.attachments=[{type:'audio',name:'Аудио '+m.id,url:origin+'/synthetic-demand/'+m.id+'.wav'},{type:'video',name:'Видео '+m.id,url:origin+'/synthetic-demand/'+m.id+'.webm'}]});
- const conversation=id=>({id,customer_id:100+id,manager_id:state.accountId,manager_name:'Синтетический менеджер',status:'manager',channel:'max',source_id:1,source_name:'Синтетический проект',display_name:id===11?'Синтетический клиент А':'Синтетический клиент Б'});
+ const conversation=id=>({id,customer_id:100+id,manager_id:state.accountId,manager_name:'Синтетический менеджер',status:'manager',channel:'max',source_id:1,source_name:'Синтетический проект',display_name:id===11?'Синтетический клиент А':'Синтетический клиент Б',...(waiting?{awaiting_manager_reply:1}:{})});
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
  const lead=id=>({ok:true,can_edit_pipeline:true,pipeline:{stage,stage_history:[],tags:[],outcome:{outcome:'open'}},tasks:[],trip:{city:'Москва',country:'Турция'},contact:{phone:''},source:{project_label:'Синтетический проект',channel:'max'},handoff:{technical_status:'manager',manager_name:conversation(id).manager_name}});
  const detail=data=>{const all=state.documents[data.conversation_id]||[],older=Number(data.before_id)>0,pool=older?all.filter(m=>m.id<Number(data.before_id)):all,rows=pool.slice(-pageSize).map(m=>({...m})),first=rows[0]?.id||0,hasMore=pool.length>rows.length;if(!older&&state.summary)rows.unshift({...state.summary});return{ok:true,conversation:conversation(Number(data.conversation_id)),messages:rows,delivery_failure:null,has_manager_reply:all.some(m=>m.sender_type==='manager'),history:{has_more:hasMore,before_id:first,page_size:pageSize,mode:older?'older':'latest'}}};
@@ -186,8 +186,13 @@ for(const width of [390,1440])for(const owner of [7,8])test('obsolete automatic 
 });
 
 const olderDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&Number(c.before_id)>0);
-async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false}={}){
- await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead});await open(page);
+async function prepareRetainedHistory(page,{width=1440,height=844,holdLead=false,viaNext=false}={}){
+ await page.setViewportSize({width,height});const state=await setup(page,{total:800,media:true,holdLead,waiting:viaNext});
+ if(viaNext){
+  await open(page,12);await page.locator('#replyText').fill('Черновик клиента Б перед переходом');
+  await page.locator('#replyFile').setInputFiles({name:'original-B.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic B file')});
+  await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await settled(page);
+ }else await open(page);
  await page.evaluate(()=>WorkspaceV2Conversation.loadOlder());await expect(page.locator('#messages .msg')).toHaveCount(400);
  await page.locator('#replyText').fill('Точный черновик после неудачного перехода\nПродолжаем отвечать клиенту А');
  await page.locator('#replyFile').setInputFiles({name:'retained-history.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
@@ -268,6 +273,64 @@ for(const [width,status,oldStatus] of [[390,500,200],[1440,500,200],[1440,403,20
  await page.locator('#retryLeadCard').click();await expect(page.locator('#retryLeadCard')).toHaveCount(0);
  expect(await page.evaluate(()=>WorkspaceV2.S.detail.lead?.ok)).toBe(true);expect(state.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='detail'&&c.conversation_id===11)).toHaveLength(reads+1);
  await screenshot(page,browserName,width,'failed-target-card-'+status+'-old'+oldStatus);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');clean(state);
+});
+
+async function backPastPendingClient(page,state){
+ const old=deferred(),before=refreshDetails(state),length=await page.evaluate(()=>history.length);state.latest.push(old);
+ // Native same-document history, including the actual asynchronous popstate
+ // callback. No direct restore() invocation or replacement navigation handler.
+ await page.evaluate(()=>history.back());await expect.poll(()=>refreshDetails(state)).toBe(before+1);
+ expect(state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&!c.before_id).at(-1).conversation_id).toBe(12);
+ await page.evaluate(()=>history.back());await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox');
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.getSavedSelection())).toBe(0);
+ return {old,before,length};
+}
+async function settleBackClient(page,state,old,status){
+ const received=page.waitForResponse(r=>r.url().endsWith('/manager/api.php')&&r.request().postDataJSON()?.action==='detail'&&r.request().postDataJSON()?.conversation_id===12&&r.status()===status);
+ old.resolve({body:status===200?state.snapshot({conversation_id:12}):{ok:false,error:'synthetic_obsolete'},status});
+ await(await received).finished();await settled(page);
+}
+for(const [width,height] of [[390,844],[430,844],[768,844],[390,420]])for(const status of [200,401])test('mobile history superseded Back '+status+' retains the current transcript before and after native Forward at '+width+'x'+height,async({page,browserName})=>{
+ const saved=await prepareRetainedHistory(page,{width,height,viaNext:true}),{state}=saved;
+ const history=await page.evaluate(()=>WorkspaceV2History.getState()),generation=await page.evaluate(()=>WorkspaceV2.S.authGeneration);
+ const {old,before,length}=await backPastPendingClient(page,state);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
+ // Select the existing Forward destination, without an extra detail read for
+ // the already retained authorized client. The obsolete HTTP read is still held.
+ await page.evaluate(()=>history.go(2));await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');
+ await assertRetainedHistory(page,saved);expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);
+ expect(refreshDetails(state)).toBe(before+1);expect(await page.evaluate(()=>history.length)).toBe(length);
+ expect(await page.evaluate(()=>history.state.conversation_id)).toBe(11);
+ await settleBackClient(page,state,old,status);await assertRetainedHistory(page,saved);
+ expect(await page.evaluate(()=>WorkspaceV2.S.authGeneration)).toBe(generation);expect(await page.evaluate(()=>WorkspaceV2Conversation.getSavedSelection())).toBe(11);
+ expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);
+ expect(refreshDetails(state)).toBe(before+1);
+ expect(await page.evaluate(()=>WorkspaceV2Conversation.loadOlder())).toBe(true);await assertRetainedHistory(page,saved,600);
+ await page.locator('#replyText').click();await expect(page.locator('#replyText')).toBeFocused();await page.locator('#replyText').press('ControlOrMeta+End');await page.locator('#replyText').press('!');
+ await expect(page.locator('#replyText')).toHaveValue(saved.draft+'!');await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await screenshot(page,browserName,width,'mobile-back-'+status+'-'+height);clean(state);
+});
+for(const width of [390,1440])for(const status of [200,401,500])test('mobile history obsolete Back '+status+' cannot hide a newer client at '+width,async({page,browserName})=>{
+ const saved=await prepareRetainedHistory(page,{width:390,viaNext:true}),{state}=saved;
+ const {old}=await backPastPendingClient(page,state);
+ if(width===1440)await page.setViewportSize({width,height:844});
+ await page.locator('#inboxList [data-conversation-id="12"] .m2RowOpen').click();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');
+ await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Черновик клиента Б перед переходом');
+ await expect(page.locator('#mediaSelection')).toContainText('original-B.txt');
+ const draft='Новый ответ клиенту Б после возврата';await page.locator('#replyText').fill(draft);
+ const entries=await page.evaluate(()=>({length:history.length,state:history.state})),reads=refreshDetails(state);
+ await settleBackClient(page,state,old,status);
+ await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#composer')).toBeVisible();await expect(page.locator('#replyText')).toBeEnabled();
+ await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#messages .msg')).toHaveCount(3);
+ await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toContainText('original-B.txt');
+ expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(12);expect(await page.evaluate(()=>WorkspaceV2Conversation.getSavedSelection())).toBe(12);
+ if(width===390)expect(await page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('conversation');
+ expect(await page.evaluate(()=>({length:history.length,state:history.state}))).toEqual(entries);expect(refreshDetails(state)).toBe(reads);
+ await screenshot(page,browserName,width,'mobile-back-newer-'+status);
+ await useConversationTool(page,'nextWaitingConversation');await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');
+ await expect(page.locator('#replyText')).toHaveValue(saved.draft);await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');
+ await expect(page.locator('#messages .msg')).toHaveCount(200);expect(await page.evaluate(()=>WorkspaceV2History.getState().loaded)).toBe(200);clean(state);
 });
 async function holdOlderWithKeyboard(page,state){
  const hold=deferred(),count=olderDetails(state).length;state.older.push(hold);
