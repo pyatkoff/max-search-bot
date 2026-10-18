@@ -89,7 +89,7 @@ hashes, dataset SHA, installed HTML/assets/worker hashes, engine version,
 Playwright/Node/platform/CPU identity, cache and sample protocol. `summary.json`
 contains grouped medians/ranges and the SHA-256 of the raw JSONL. Final viewport
 screenshots are inspection aids. A failure produces a nonzero exit and
-`failure.json`; a phase failure also saves synthetic state and a screenshot.
+`failure.json`; a phase failure also saves synthetic state and attempts a screenshot. A screenshot failure is recorded separately and preserves the primary error.
 Incomplete artifacts are not a completed baseline. A failed cycle also preserves its completed phase records in `partial-cycle-<index>.json`, explicitly excluded from accepted samples. `primary-error.json` preserves the original failure before bounded browser shutdown; a separate cleanup failure cannot replace it.
 
 ## Run

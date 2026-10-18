@@ -48,7 +48,8 @@ function verifyInputs(){
  return receipt;
 }
 async function bounded(action,name){lastOperation=name;let timer;try{return await Promise.race([Promise.resolve().then(action),new Promise((_,reject)=>{timer=setTimeout(()=>{json(path.join(output,'action-timeout.json'),{ok:false,time:new Date().toISOString(),operation:name});reject(Error('Operation timeout: '+name))},15000)})])}finally{clearTimeout(timer)}}
-async function startup(page){lastOperation='startup';try{await page.waitForFunction(()=>window.__managerMeasurement.done())}catch(error){json(path.join(output,'startup-failure.json'),{diagnostic:await page.evaluate(()=>window.__managerMeasurement?.diagnostic()).catch(e=>({error:e.message}))});await page.screenshot({path:path.join(output,'failure.png')});throw error}}
+async function failureScreenshot(page){try{await page.screenshot({path:path.join(output,'failure.png')})}catch(error){json(path.join(output,'failure-screenshot-error.json'),{error:error.message})}}
+async function startup(page){lastOperation='startup';try{await page.waitForFunction(()=>window.__managerMeasurement.done())}catch(error){json(path.join(output,'startup-failure.json'),{error:error.message,diagnostic:await page.evaluate(()=>window.__managerMeasurement?.diagnostic()).catch(e=>({error:e.message}))});await failureScreenshot(page);throw error}}
 async function phase(page,options,action){
  lastOperation=options.name;
  await page.evaluate(options=>window.__managerMeasurement.begin(options),options);
@@ -56,7 +57,7 @@ async function phase(page,options,action){
   await page.waitForFunction(()=>window.__managerMeasurement.done(),{},{timeout:15000});
   if(['open','back'].includes(options.kind))await page.waitForFunction(()=>window.__managerMeasurement.cardDone(),{},{timeout:15000});
   return page.evaluate(()=>window.__managerMeasurement.record());
- }catch(error){json(path.join(output,'phase-failure.json'),{phase:options,url:page.url(),error:error.message,diagnostic:await page.evaluate(()=>window.__managerMeasurement?.diagnostic()).catch(e=>({error:e.message}))});await page.screenshot({path:path.join(output,'failure.png')});throw error}
+ }catch(error){json(path.join(output,'phase-failure.json'),{phase:options,url:page.url(),error:error.message,diagnostic:await page.evaluate(()=>window.__managerMeasurement?.diagnostic()).catch(e=>({error:e.message}))});await failureScreenshot(page);throw error}
 }
 const command=(page,name)=>page.evaluate(async name=>{await WorkspaceV2Conversation[name]();window.__managerMeasurement.commandDone()},name);
 async function inbox(page){await page.evaluate(()=>{if(WorkspaceV2Mobile.isMobile())WorkspaceV2Mobile.showInbox({historyMode:'replace'})});}
