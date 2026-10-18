@@ -90,6 +90,7 @@ function bind(){
   box.addEventListener('touchstart',event=>{touchY=event.touches[0]?.clientY??null;},{passive:true});
   box.addEventListener('touchmove',event=>{const y=event.touches[0]?.clientY;if(touchY!==null&&y>touchY)readingIntent();touchY=y??null;},{passive:true});
   box.addEventListener('keydown',event=>{if(['ArrowUp','PageUp','Home'].includes(event.key)||(event.key===' '&&event.shiftKey))readingIntent();});
+  box.addEventListener('focusin',event=>{if(['AUDIO','VIDEO'].includes(event.target?.tagName))readingIntent();});
   box.addEventListener('pointerdown',event=>{if(event.target===box&&event.clientX>=box.getBoundingClientRect().right-16)readingIntent();},{passive:true});
   box.addEventListener('pointerup',()=>{if(distanceFromLatest()<=2){followingLatest=true;readingAnchor=null;}},{passive:true});
   observer=new MutationObserver(()=>{observeRows();schedule()});observer.observe(box,{childList:true,subtree:true});

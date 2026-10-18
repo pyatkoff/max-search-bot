@@ -136,6 +136,19 @@ for(const width of [390,1440])test('history media waits for explicit playback '+
  await page.locator('#messages [data-scroll-message-key="1"]').scrollIntoViewIfNeeded();await screenshot(page,browserName,width,'media-older-retained');
  expect(state.calls.filter(c=>c.path==='/manager/api.php'&&c.action==='detail'&&c.before_id)).toHaveLength(1);clean(state);
 });
+for(const [width,height] of [[390,900],[430,900],[768,900],[1440,900],[390,420]])for(const kind of ['audio','video'])test('native '+kind+' keyboard reading survives incoming messages '+width+'x'+height,async({page,browserName})=>{
+ await page.setViewportSize({width,height});const state=await setup(page,{total:205,httpMedia:true});
+ for(const message of state.documents[11])if(message.attachments)message.attachments=message.attachments.filter(a=>a.type===kind);
+ await open(page);const draft='Черновик при чтении '+kind;await page.locator('#replyText').fill(draft);await page.locator('#replyFile').setInputFiles({name:'native-reading.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic only')});await page.locator('#replyText').click();
+ let focused='';for(let step=0;step<40;step++){await page.keyboard.press('Shift+Tab');focused=await page.evaluate(()=>document.activeElement?.tagName?.toLowerCase());if(focused===kind)break}expect(focused).toBe(kind);await settled(page);
+ const before=await page.evaluate(()=>{const media=document.activeElement,rect=media.getBoundingClientRect(),box=document.getElementById('messages').getBoundingClientRect();window.nativeReadingMedia=media;return{offset:rect.top-box.top,visible:rect.bottom>box.top&&rect.top<box.bottom,src:media.getAttribute('src')}});expect(before.visible).toBe(true);
+ await screenshot(page,browserName,width,'native-'+kind+'-focus-before-'+height);
+ state.documents[11].push({id:206,sender_type:'customer',text:'Новое сообщение при чтении с клавиатуры'});await refresh(page);
+ const after=await page.evaluate(()=>{const media=window.nativeReadingMedia,rect=media.getBoundingClientRect(),box=document.getElementById('messages').getBoundingClientRect();return{same:document.activeElement===media&&media.isConnected,offset:rect.top-box.top,visible:rect.bottom>box.top&&rect.top<box.bottom,src:media.getAttribute('src')}});
+ expect(after.same).toBe(true);expect(after.visible).toBe(true);expect(Math.abs(after.offset-before.offset)).toBeLessThanOrEqual(2);expect(after.src).toBe(before.src);expect(await page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+ await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toContainText('native-reading.txt');await screenshot(page,browserName,width,'native-'+kind+'-focus-retained-'+height);
+ await useConversationTool(page,'jumpToLatest');await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.distanceFromLatest())).toBeLessThanOrEqual(2);expect(await page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(true);clean(state);
+});
 test('history media keeps explicit native error fallback without loading other files',async({page,browserName})=>{
  await page.setViewportSize({width:390,height:420});const state=await setup(page,{total:205,httpMedia:true});await open(page);await page.waitForLoadState('networkidle');expect(state.mediaRequests).toEqual([]);
  for(const [kind,suffix,label] of [['audio','wav','Аудио 200'],['video','webm','Видео 200']]){
