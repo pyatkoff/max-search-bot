@@ -66,21 +66,22 @@ mpCheck(
 );
 mpCheck(
     'notification click targets exact conversation id',
-    strpos($swSource, "const conversationId=Number(data.conversationId||0)") !== false
-        && strpos($swSource, "'#conversation='+conversationId") !== false
+    strpos($swSource, 'Number.isSafeInteger(parsedId)&&parsedId>0') !== false
+        && strpos($swSource, "targetUrl.hash='conversation='+conversationId") !== false
 );
 mpCheck(
     'existing manager window receives one open-conversation command then returns',
-    strpos($swSource, "client.postMessage({type:'OPEN_CONVERSATION',conversationId});\n        return;") !== false
+    strpos($swSource, "if(conversationId)client.postMessage({type:'OPEN_CONVERSATION',conversationId});\n        return;") !== false
+        && strpos($swSource, 'workspaceUrl(client.url)') !== false
 );
 mpCheck(
     'notification click has openWindow fallback only when no window handled it',
     strpos($swSource, 'if(self.clients.openWindow)return self.clients.openWindow(target);') !== false
 );
 mpCheck(
-    'Workspace V2 maps service-worker open command directly to conversation open',
+    'Workspace V2 routes service-worker open command through canonical startup',
     strpos($notificationSource, "data.type==='OPEN_CONVERSATION'") !== false
-        && strpos($notificationSource, 'WorkspaceV2Conversation?.open(Number(data.conversationId))') !== false
+        && strpos($notificationSource, 'openNotificationConversation?.(Number(data.conversationId))') !== false
 );
 
 $openConversation = '';

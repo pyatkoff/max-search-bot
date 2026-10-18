@@ -159,4 +159,30 @@ for(const action of ['catalog','filter_options'])for(const status of [200,401])t
   assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.authExpired,false);assertNoMutations(h);
 });
 
+function notificationHarness(hash='#conversation=102'){
+  const h=createHarness({inbox:true});h.location.hash=hash;
+  const replace=h.history.replaceState.bind(h.history);
+  h.history.replaceState=(state,unused,url)=>{replace(state);if(url!==undefined){const parsed=new URL(url,h.location.href);Object.assign(h.location,{pathname:parsed.pathname,search:parsed.search,hash:parsed.hash,href:parsed.href});}};
+  return h;
+}
+test('notification fragment opens its exact conversation once after authenticated startup',async()=>{
+  const h=notificationHarness();await h.start({open:false});assert.equal(h.W.S.current,102);assert.equal(h.location.hash,'');assert.equal(h.calls.filter(c=>c.url==='api.php'&&c.action==='detail').length,1);assertNoMutations(h);
+});
+test('notification fragment remains through anonymous login then uses protected detail once',async()=>{
+  const h=notificationHarness();h.setHook((url,r)=>r.action==='me'?response({ok:false},401):null);await h.start({open:false});assert.equal(h.W.S.authExpired,true);assert.equal(h.location.hash,'#conversation=102');h.setHook(null);await h.login();assert.equal(h.W.S.current,102);assert.equal(h.location.hash,'');assertNoMutations(h);
+});
+test('an older startup fragment cannot override a newer conversation chosen during Inbox loading',async()=>{
+  const h=notificationHarness(),held=deferred(),entered=deferred();h.setHook((url,r)=>r.action==='list'?(entered.resolve(),held.promise):null);const boot=h.start({open:false});await entered.promise;await h.C.open(103);await h.draft('Newer choice');held.resolve(response({ok:true,conversations:liveRows(1)}));await boot;assert.equal(h.W.S.current,103);assert.equal(h.ids.get('replyText').value,'Newer choice');assert.equal(h.calls.some(c=>c.action==='detail'&&c.conversation_id===102),false);assertNoMutations(h);
+});
+for(const same of [true,false])test('expired notification intent is scoped to recovered account, same='+same,async()=>{
+  const h=notificationHarness('');await h.start();await h.draft('Account7 unsent');const file={name:'account7.txt'};h.setFile(file);await h.expire();assert.equal(h.W.openNotificationConversation(102),false);assert.equal(h.location.hash,'#conversation=102');if(!same)h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});await h.login();assert.equal(h.W.S.manager.id,same?7:8);assert.equal(h.W.S.current,same?102:0);assert.equal(h.location.hash,'');if(same){await h.C.open(101,{preserveAttachment:true});assert.equal(h.ids.get('replyText').value,'Account7 unsent');}else{assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);}assertNoMutations(h);
+});
+test('notification for current conversation retains canonical history and selected file',async()=>{
+  const h=notificationHarness('');await h.start();await h.draft('Current draft');const file={name:'current.txt'};h.setFile(file);await h.W.openNotificationConversation(101);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Current draft');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+for(const status of [401,403,404,500])test('notification detail '+status+' retains canonical auth and failure handling',async()=>{
+  const h=notificationHarness();h.setHook((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},status):null);await h.start({open:false});assert.equal(h.W.S.current,0);assert.equal(h.W.S.authExpired,status===401);assert.equal(h.location.hash,'');assertNoMutations(h);
+});
+for(const hash of ['#conversation=0','#conversation=-1','#conversation=1.2','#conversation=9007199254740992','#conversation=102&other=1'])test('invalid initial fragment is not a conversation command '+hash,async()=>{const h=notificationHarness(hash);await h.start({open:false});assert.equal(h.W.S.current,0);assert.equal(h.calls.some(c=>c.action==='detail'),false);assertNoMutations(h);});
+
 (async()=>{let failed=0;for(const {name,run} of cases){try{await run();console.log('PASS '+name);}catch(error){failed++;console.error('FAIL '+name+'\n'+error.stack);}}console.log(`TOTAL ${cases.length} | FAIL ${failed}`);process.exitCode=failed?1:0;})();

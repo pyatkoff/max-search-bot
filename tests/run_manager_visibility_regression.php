@@ -51,7 +51,7 @@ mvCheck('Workspace contains presentation-specific admin settings link',strpos($w
 mvCheck('Workspace admin settings link starts hidden',strpos($workspace,'id="adminLink" class="actionBtn hidden"')!==false);
 mvCheck('Workspace admin settings link is role gated',strpos($workspaceJs,"adminLink.classList.toggle('hidden',S.manager.role!=='admin')")!==false);
 mvCheck('Workspace registers manager service worker',strpos($workspaceNotifications,"serviceWorker.register('sw.js'")!==false);
-mvCheck('Workspace notification click opens exact conversation',strpos($workspaceNotifications,"data.type==='OPEN_CONVERSATION'")!==false && strpos($workspaceNotifications,'WorkspaceV2Conversation?.open(Number(data.conversationId))')!==false);
+mvCheck('Workspace notification click uses canonical startup and conversation owners',strpos($workspaceNotifications,"data.type==='OPEN_CONVERSATION'")!==false && strpos($workspaceNotifications,'openNotificationConversation?.(Number(data.conversationId))')!==false && strpos($workspaceJs,'WorkspaceV2Conversation?.open(id,{preserveHistory:true')!==false);
 mvCheck('server push includes project source and channel context',strpos($managerPush,"\$c['project_name']??\$c['project_key']")!==false && strpos($managerPush,"\$c['source_name']")!==false && strpos($managerPush,"\$c['channel']")!==false);
 mvCheck('server push includes customer/body context',strpos($managerPush,"'body'=>(\$ctx?implode(' · ',\$ctx).' — ':'').\$body")!==false);
 mvCheck('service worker targets exact conversation',strpos($serviceWorker,"conversationId:Number(data.conversationId||0)")!==false && strpos($serviceWorker,"postMessage({type:'OPEN_CONVERSATION',conversationId})")!==false);

@@ -435,7 +435,10 @@
     const button=target.closest('[data-enable-push]');if(!button)return;event.preventDefault();void enable(document.getElementById('notificationStatus'));
   }
   document.addEventListener('click',handleSetupClick);
-  async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');await readyRegistration(registered);navigator.serviceWorker.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION'&&Number(data.conversationId||0)>0){window.WorkspaceV2Conversation?.open(Number(data.conversationId));}});}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
+  // Navigation belongs to the workspace even while native push setup is pending
+  // or unavailable. Bind once at module load, independently of repeated init().
+  try{navigator.serviceWorker?.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION')window.WorkspaceV2?.openNotificationConversation?.(Number(data.conversationId));});}catch(error){/* A restricted worker must not prevent the workspace from loading. */}
+  async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');await readyRegistration(registered);}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
   window.WorkspaceV2Notifications={refresh,init,enable,maybeRecoverGranted,readyRegistration,openConnections};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 })();

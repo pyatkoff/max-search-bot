@@ -63,16 +63,24 @@ self.addEventListener('push',event=>{
 self.addEventListener('notificationclick',event=>{
   event.notification.close();
   const data=event.notification.data||{};
-  const conversationId=Number(data.conversationId||0);
-  const target=(data.url||'./')+(conversationId?('#conversation='+conversationId):'');
+  const parsedId=Number(data.conversationId||0);
+  const conversationId=Number.isSafeInteger(parsedId)&&parsedId>0?parsedId:0;
+  const base=new URL('./',self.location.href),alternate=new URL('../manager2/',base);
+  const paths=[base.pathname,base.pathname+'index.php',alternate.pathname,alternate.pathname+'index.php'];
+  const workspaceUrl=value=>{try{const url=new URL(value,base);return url.origin===base.origin&&paths.includes(url.pathname)?url:null;}catch(error){return null;}};
+  const targetUrl=workspaceUrl(data.url||'./')||new URL(base.href);
+  if(conversationId)targetUrl.hash='conversation='+conversationId;
+  const target=targetUrl.href;
   event.waitUntil((async()=>{
-    const list=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    const list=await self.clients.matchAll({type:'window',includeUncontrolled:true}).catch(()=>[]);
     for(const client of list){
-      if('focus' in client){
-        await client.focus();
-        client.postMessage({type:'OPEN_CONVERSATION',conversationId});
+      if(!workspaceUrl(client.url)||typeof client.focus!=='function')continue;
+      try{
+        const focused=await client.focus();
+        if(focused&&!workspaceUrl(focused.url))continue;
+        if(conversationId)client.postMessage({type:'OPEN_CONVERSATION',conversationId});
         return;
-      }
+      }catch(error){/* A closed or unfocusable window cannot consume this click. */}
     }
     if(self.clients.openWindow)return self.clients.openWindow(target);
   })());

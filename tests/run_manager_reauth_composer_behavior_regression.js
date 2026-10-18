@@ -136,7 +136,7 @@ async function start({open=true}={}){await W.boot();if(open)await C.open(101);}
 async function expire(){hook=(url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false,error:'unauthorized'},401):null;await C.open(101);hook=null;assert.equal(W.S.authExpired,true);}
 async function login(){ids.get('managerAuthLogin').value='synthetic';ids.get('managerAuthPassword').value='synthetic-only';await ids.get('managerAuthForm').dispatch('submit');}
 async function draft(text='Unsent synthetic draft'){ids.get('replyText').value=text;await ids.get('replyText').dispatch('input');}
-return {W,C,ids,calls,start,expire,login,draft,window,history,document,documentEvents,events,timers,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
+return {W,C,ids,calls,start,expire,login,draft,window,history,location:context.location,document,documentEvents,events,timers,setHook(fn){hook=fn},setIdentity(value){nextIdentity=value},identity,conversation,
   setFile(file){selectedFile=file},getFile(){return selectedFile}};
 }
 function response(value,status=200){return{ok:status>=200&&status<300,status,json:async()=>value};}
