@@ -93,6 +93,9 @@ marking the PR ready triggers the full declared series. `purpose` in the
 manifest and summary distinguishes `protocol_check` from `baseline`. Native
 actions, navigation, startup and canonical-command waits are bounded to 15 s;
 timeouts fail with diagnostics rather than waiting for the runner limit.
+An outer watchdog also bounds browser/driver shutdown: three minutes for a
+protocol check, sixteen minutes for a full measurement, with partial artifacts
+explicitly rejected as a baseline.
 Capture first reads only anonymous public shell, stylesheet/script URLs and
 `/manager/sw.js` from `https://app.anytoour.ru`. Each body must match `git show`
 for the specified product SHA. The input artifact is shared by both engines.
