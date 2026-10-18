@@ -1,7 +1,7 @@
-name: Manager2 detached media diagnostic
+name: Manager2 media retirement confirmation
 on:
   push:
-    branches: [diagnosis/manager2-media-unmount-20261018]
+    branches: [diagnosis/manager2-media-retirement-confirm-20261018]
 permissions:
   contents: read
   actions: read
@@ -24,12 +24,12 @@ jobs:
           path: installed
       - run: npm install --no-save --package-lock=false @playwright/test@1.55.0
       - run: npx playwright install --with-deps webkit
-      - name: Compare unchanged media with explicit detached-row retirement
-        run: node tools/diagnose_manager2_media_unmount.js
+      - name: Confirm exact candidate through30 full cycles and clean shutdown
+        run: node tools/confirm_manager2_media_retirement.js
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: manager2-detached-media-${{ github.sha }}
-          path: diagnostic-media/
+          name: manager2-media-confirmation-${{ github.sha }}
+          path: media-confirmation/
           if-no-files-found: error
           retention-days: 30
