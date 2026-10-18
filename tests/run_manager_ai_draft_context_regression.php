@@ -135,6 +135,12 @@ try {
     draftContextCheck('read marker remains unchanged and no synthetic message is added', (int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads')->fetchColumn() === 1 && !in_array(0, draftContextIds($first), true));
     $again = draftContextCapture($pdo);
     draftContextCheck('unchanged fresh captures have the same revision', $first['revision'] === $again['revision'] && preg_match('/\A[a-f0-9]{64}\z/D', $first['revision']) === 1 && $pdo->commits === 2);
+    $pdo->exec("UPDATE messages SET sender_type='manager',text='Варианты https://qui-quo.ru/AAAA-0001' WHERE id=2");
+    $linked = draftContextCapture($pdo);
+    draftContextCheck('literal link capability is server-only and tied to retained message',
+        $linked['selection_sources']===[['message_id'=>2,'sender_type'=>'manager','sent_at'=>'2026-10-17 12:00:00','url'=>'https://qui-quo.ru/AAAA-0001']]
+        && !str_contains(json_encode($linked['context']),'qui-quo.ru') && $linked['context']['selections_link_unread']);
+    $pdo->exec("UPDATE messages SET sender_type='customer',text='Сообщение 2' WHERE id=2");
     $pdo->exec("UPDATE messages SET text='Исправленный ответ',metadata_json='{\"edited_at\":\"2026-10-17 12:01:00\"}' WHERE id=1");
     $edited = draftContextCapture($pdo);
     draftContextCheck('edit in place invalidates revision without a new ID or last-message timestamp', $edited['revision'] !== $first['revision'] && $edited['latest_message_id'] === 2 && $pdo->query('SELECT last_message_at FROM conversations')->fetchColumn() === '2026-10-17 12:00:00');
