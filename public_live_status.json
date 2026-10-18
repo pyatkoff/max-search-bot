@@ -1,46 +1,44 @@
 {
     "ok": true,
-    "generated_at": "2026-10-18T06:03:52+00:00",
+    "generated_at": "2026-10-18T09:54:09+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 4,
-        "raw_sessions": 4,
+        "sessions": 6,
+        "raw_sessions": 6,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 4,
+            "resolved": 6,
             "unresolved": 0
         },
-        "started": 3,
-        "needs_collected": 3,
-        "tours_opened": 3,
+        "started": 6,
+        "needs_collected": 0,
+        "tours_opened": 0,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 3,
-        "manager_replied": 1,
-        "customer_replied_after_manager": 1,
+        "manager_requested": 4,
+        "manager_replied": 4,
+        "customer_replied_after_manager": 3,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 1,
-            "still_unanswered": 1,
-            "measured_responses": 1,
-            "avg_seconds": 1569,
-            "max_seconds": 1569
+            "answered_after_90s": 4,
+            "still_unanswered": 0,
+            "measured_responses": 4,
+            "avg_seconds": 17344,
+            "max_seconds": 40349
         },
         "drop_points": {
-            "manager_requested": 2,
-            "tours_opened": 1,
-            "customer_replied_after_manager": 1
+            "customer_replied_after_manager": 3,
+            "collecting_needs": 2,
+            "manager_replied": 1
         },
         "flags": {
-            "repeated_callback_input": 2,
-            "manager_requested_no_reply": 1,
-            "excessive_turns": 1
+            "repeated_callback_input": 1
         }
     },
-    "since_utc": "2026-10-18 05:03:52",
+    "since_utc": "2026-10-18 08:54:09",
     "public_redacted": true
 }
