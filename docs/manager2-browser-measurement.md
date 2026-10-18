@@ -8,7 +8,7 @@ measure production API, SQL, network latency or real customer conversations.
 
 ## Frozen protocol
 
-- Playwright **1.55.0**, Chromium and WebKit, one page at a time per engine.
+- Playwright **1.55.0**, Chromium and WebKit, one page at a time per job.
 - Viewports, in order: **390×844, 430×844, 768×844, 1440×900, 390×420**, device
   scale factor 1, Europe/Moscow timezone, no CPU or network throttle.
 - Synthetic manager **7**, 200 Inbox rows in both the system queue and personal
@@ -27,6 +27,14 @@ measure production API, SQL, network latency or real customer conversations.
   These are correlated repeated synthetic observations, not independent users.
   Report sample medians and ranges. Stable P95 remains **`not_measured`**;
   nothing here establishes a production SLA or a physical-device score.
+
+Actions uses a separate job for each engine/viewport pair. This preserves all
+30 cycles per pair without a sequential five-viewport WebKit job exceeding its
+time budget. Runners are independent: preserve each shard's platform identity
+and do not attribute differences between viewport/engine hosts to product code.
+Each full shard has **423 raw records** (3 startup + 30×14 phases); ten shards
+total **4,230**, with 2,115 per engine. A draft shard has only 15 protocol-check
+records. Local all-viewport runs keep the supplied viewport order.
 
 | Phase | Required finish state |
 | --- | --- |
