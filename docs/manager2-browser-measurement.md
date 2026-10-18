@@ -90,7 +90,7 @@ Playwright/Node/platform/CPU identity, cache and sample protocol. `summary.json`
 contains grouped medians/ranges and the SHA-256 of the raw JSONL. Final viewport
 screenshots are inspection aids. A failure produces a nonzero exit and
 `failure.json`; a phase failure also saves synthetic state and a screenshot.
-Incomplete artifacts are not a completed baseline.
+Incomplete artifacts are not a completed baseline. A failed cycle also preserves its completed phase records in `partial-cycle-<index>.json`, explicitly excluded from accepted samples. `primary-error.json` preserves the original failure before bounded browser shutdown; a separate cleanup failure cannot replace it.
 
 ## Run
 
@@ -124,6 +124,8 @@ The input directory contains `shell.html`, `receipt.json`, source-matched
 available through `--capture --assets <directory>`; `--capture-only` stops after
 input verification. No local PHP installation is needed: a strict temporary
 shim supplies the verified PHP-generated shell to the existing fixture.
+An output directory containing prior measurement evidence is refused, so a
+failed rerun cannot leave an old successful summary beside new partial data.
 
 Small `--samples 1 --warmups 1 --cold 1` runs are protocol checks, never the
 accepted baseline. Preserve raw artifacts, workflow run/attempt, tested tooling

@@ -18,6 +18,7 @@ const engine=arg('engine')||'chromium';assert.ok(['chromium','webkit'].includes(
 const productSha=arg('product-sha')||git('rev-parse','HEAD');assert.match(productSha,/^[a-f0-9]{40}$/);
 const output=path.resolve(arg('output')||path.join(root,'manager2-artifacts','measurement-'+engine));fs.mkdirSync(output,{recursive:true});
 const assets=path.resolve(arg('assets')||path.join(output,'installed'));
+if(['manifest.json','samples.jsonl','summary.json','failure.json'].some(file=>fs.existsSync(path.join(output,file)))){process.stderr.write('Output already contains measurement evidence; use a new output directory\n');process.exit(2)}
 const readSource=relative=>execFileSync('git',['show',productSha+':'+relative],{cwd:root,maxBuffer:4*1024*1024});
 
 async function publicGet(url){
@@ -60,7 +61,7 @@ async function phase(page,options,action){
 const command=(page,name)=>page.evaluate(async name=>{await WorkspaceV2Conversation[name]();window.__managerMeasurement.commandDone()},name);
 async function inbox(page){await page.evaluate(()=>{if(WorkspaceV2Mobile.isMobile())WorkspaceV2Mobile.showInbox({historyMode:'replace'})});}
 async function cycle(page,state,index){
- const records=[];state.reset();
+ const records=[];try{state.reset();
  if(await page.evaluate(()=>WorkspaceV2.S.current>0)){await page.evaluate(()=>WorkspaceV2Media.clear());await page.locator('#replyText').fill('')}
  // Every timed A-open starts from B, including repeated same-page samples.
  // Otherwise the preceding Back leaves A selected and measures same-client
@@ -95,6 +96,7 @@ async function cycle(page,state,index){
  assert.deepEqual(state.unexpected,[]);assert.deepEqual(state.rejected,[]);assert.deepEqual(state.errors,[]);
  assert.equal(await page.locator('#replyText').inputValue(),finalDraft);
  return records.map(record=>({...record,sample:index,synthetic:true}));
+ }catch(error){json(path.join(output,'partial-cycle-'+index+'.json'),{ok:false,acceptedBaseline:false,saved_at:new Date().toISOString(),engine,viewport:page.viewportSize(),sample:index,error:error.message,records:records.map(record=>({...record,sample:index,synthetic:true,cacheMode:index<0?'discarded_warmup':'same_page_after_warmup'}))});throw error}
 }
 function summarise(records){
  const groups={};for(const r of records){const key=[r.engine,r.viewport.width+'x'+r.viewport.height,r.cacheMode,r.name].join('/');(groups[key]??=[]).push(r.duration)}
@@ -115,7 +117,7 @@ async function main(){
   const context=await browser.newContext({viewport,deviceScaleFactor:1,timezoneId:'Europe/Moscow'}),page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(15000);await page.addInitScript(installMeter);const state=await setup(page,{sourceRoot:assets});await startup(page);
   for(let i=-warmups;i<samples;i++){const result=await cycle(page,state,i);if(i>=0)for(const record of result)save({...record,engine,viewport,cacheMode:'same_page_after_warmup'});process.stdout.write(JSON.stringify({engine,viewport,sample:i,operations:result.length})+'\n')}
   await page.screenshot({path:path.join(output,'final-'+viewport.width+'x'+viewport.height+'.png'),animations:'disabled'});await bounded(()=>context.close(),'close_context');
- }}finally{lastOperation='close_browser';await browser.close()}
+ }}catch(error){json(path.join(output,'primary-error.json'),{ok:false,time:new Date().toISOString(),operation:lastOperation,error:error.message,stack:error.stack});throw error}finally{try{await bounded(()=>browser.close(),'close_browser')}catch(error){json(path.join(output,'cleanup-failure.json'),{ok:false,time:new Date().toISOString(),error:error.message});process.stderr.write(error.stack+'\n');process.exit(1)}}
  clearTimeout(experimentWatchdog);
  const summary={ok:true,purpose:manifest.method.purpose,completed_at:new Date().toISOString(),raw_samples_sha256:digest(fs.readFileSync(rawFile)),raw_records:records.length,groups:summarise(records),environments,scope:'Synthetic installed-assets browser baseline only; production browser/API/SQL and stable P95 not measured'};json(path.join(output,'summary.json'),summary);process.stdout.write('M2_BROWSER_MEASUREMENT '+JSON.stringify({ok:true,engine,records:records.length,raw_sha256:summary.raw_samples_sha256})+'\n');
 }

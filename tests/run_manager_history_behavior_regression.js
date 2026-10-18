@@ -10,6 +10,7 @@ class Element{
  removeChild(node){const at=this.children.indexOf(node);assert.ok(at>=0);this.children.splice(at,1);node.parentElement=null;return node}
  replaceChildren(...nodes){this.children.forEach(c=>c.parentElement=null);this.children=[];nodes.forEach(c=>this.appendChild(c))}
  contains(node){return node===this||this.children.some(c=>c.contains(node))}
+ querySelectorAll(tag){return this.children.flatMap(node=>[...(node.tagName===tag.toUpperCase()?[node]:[]),...node.querySelectorAll(tag)])}
  before(node){this.parentElement?.insertBefore(node,this)}
 }
 const message=id=>({id,sender_type:'customer',text:'Synthetic '+id,created_at:'2026-10-14 10:00:00'});
