@@ -9,9 +9,10 @@ const syntheticVideo=Buffer.from('GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQJChY
 const stage={id:1,stage_key:'working',display_name:'В работе',sort_order:1};
 const messages=(total,media=false)=>Array.from({length:total},(_,i)=>({id:i+1,sender_type:i===0?'manager':'customer',manager_id:i===0?7:null,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем отели, даты и состав туристов.',created_at:'2026-10-14 08:00:00',...(media&&i===total-2?{attachments:[{type:'audio',name:'Синтетическое аудио',url:origin+'/synthetic-history.wav'}]}:{})}));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve}}
-async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false}={}){
+async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=false,pageSize=200,summaryAudio=false,httpMedia=false,waiting=false,notificationState='',initialHash='',initialAnonymous=false,initialListFailures=0}={}){
  const state={calls:[],unexpected:[],errors:[],sends:[],payloadBytes:[],older:[],latest:[],leadGate:holdLead?deferred():null,documents:{11:messages(total,media),12:messages(3)},accountId:7,deny:false,unauthorized:false,summary:summaryAudio?{id:0,sender_type:'ai',text:'Синтетическая сводка первого обращения',created_at:'2026-10-14 08:00:00',attachments:[{type:'audio',name:'Синтетическое аудио в сводке',url:origin+'/synthetic-history.wav'}]}:null};if(summaryAudio)state.documents[11].forEach(m=>m.sender_type='customer');
  state.mediaRequests=[];state.mediaFailure='';
+ state.logins=[];state.lists=Array.from({length:initialListFailures},()=>({body:{ok:false,error:'unauthorized'},status:401}));
  if(httpMedia)state.documents[11].forEach(m=>{if(m.id===1||m.id%20===0)m.attachments=[{type:'audio',name:'Аудио '+m.id,url:origin+'/synthetic-demand/'+m.id+'.wav'},{type:'video',name:'Видео '+m.id,url:origin+'/synthetic-demand/'+m.id+'.webm'}]});
  const conversation=id=>({id,customer_id:100+id,manager_id:state.accountId,manager_name:'Синтетический менеджер',status:'manager',channel:'max',source_id:1,source_name:'Синтетический проект',display_name:id===11?'Синтетический клиент А':'Синтетический клиент Б',...(waiting?{awaiting_manager_reply:1}:{})});
  const manager=()=>({id:state.accountId,role:'manager',display_name:'Синтетический менеджер '+state.accountId,is_working:true});
@@ -58,7 +59,7 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
  if(method==='POST'&&url.pathname==='/manager/post-context-api.php'&&data.action==='detail'&&data.csrf==='synthetic-history-csrf'&&[11,12].includes(data.conversation_id)){if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);if(state.deny)return reply({ok:false,error:'forbidden'},403);return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}})}
  if(method==='POST'&&url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar'&&data.csrf==='synthetic-history-csrf'){if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);return reply({ok:true,replies:[],version:'0'.repeat(64),max_replies:100})}
  if(url.pathname==='/manager/api.php'){
-  if(data.action==='login'){state.unauthorized=false;return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]})}
+  if(data.action==='login'){const pending=state.logins.shift();if(pending?.promise)await pending.promise;state.unauthorized=false;return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]})}
   if(state.unauthorized)return reply({ok:false,error:'unauthorized'},401);
   if(data.action==='me')return reply({ok:true,csrf:'synthetic-history-csrf',manager:manager(),projects:[{project_key:'synthetic-main',display_name:'Синтетический проект'}]});
   if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});
@@ -67,13 +68,13 @@ async function setup(page,{total=500,media=false,syntheticSend=false,holdLead=fa
   if(data.action==='send'&&syntheticSend){state.sends.push(data);const all=state.documents[data.conversation_id];all.push({id:Math.max(0,...all.map(m=>m.id))+1,sender_type:'manager',manager_id:state.accountId,text:data.text,created_at:'2026-10-14 08:01:00'});return reply({ok:true})}
  }
  if(url.pathname==='/manager/pipeline-api.php'){
-  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list')return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))});if(data.action==='detail'){const held=state.leadGate?await state.leadGate.promise:null;if(held?.body&&Number(data.conversation_id)===11)return reply(held.body,held.status||200);return reply(lead(data.conversation_id))}
+  if(data.csrf!=='synthetic-history-csrf')return block('invalid-csrf');if(data.action==='catalog')return reply({ok:true,stages:[stage],tags:[],outcomes:{open:'В работе'},close_reasons:{}});if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager()]}});if(data.action==='list'){const item=state.lists.shift();if(item?.body)return reply(item.body,item.status||200);return reply({ok:true,conversations:[11,12].map(id=>({...conversation(id),can_edit_pipeline:true,lead_stage:stage,last_text:'Синтетическая переписка',last_sender_type:'customer',unread_count:0,lead_outcome:'open'}))})}if(data.action==='detail'){const held=state.leadGate?await state.leadGate.promise:null;if(held?.body&&Number(data.conversation_id)===11)return reply(held.body,held.status||200);return reply(lead(data.conversation_id))}
  }
  if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
  if(url.pathname==='/manager/push.php'&&method==='GET'&&url.searchParams.get('action')==='key')return reply({ok:true,public_key:Buffer.from([4,...Array(64).fill(1)]).toString('base64url')});
  if(url.pathname==='/manager/notification-events.php'&&data.action==='poll')return reply({ok:true,cursor:0,events:[]});
  return block(data.action);
- });await page.goto(origin+'/manager2/index.php?history-qa=1'+initialHash);if(initialAnonymous)await expect(page.locator('#managerAuthRecovery')).toBeVisible();else await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
+ });await page.goto(origin+'/manager2/index.php?history-qa=1'+initialHash);if(initialAnonymous||initialListFailures)await expect(page.locator('#managerAuthRecovery')).toBeVisible();else await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);state.snapshot=detail;return state;
 }
 function clean(state,{sends=0}={}){expect(state.unexpected).toEqual([]);expect(state.errors).toEqual([]);expect(state.sends).toHaveLength(sends)}
 async function open(page,id=11){if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile()&&WorkspaceV2Mobile.getScreen()!=='inbox'))await page.locator('#mobileBack').click();await page.locator('#inboxList [data-conversation-id="'+id+'"]').click();await expect(page.locator('#conversationTitle')).toHaveText(id===11?'Синтетический клиент А':'Синтетический клиент Б');await settled(page)}
@@ -215,6 +216,41 @@ async function notificationClick(page,id,definitions=[{path:'/manager/push-enabl
  },{source:notificationWorker,id,definitions});
 }
 async function notificationLogin(page){await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();}
+
+for(const width of [390,430,768,1440])test('notification reauth cold target survives repeated Inbox401 at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{total:3,notificationState:'held-register',initialHash:'#conversation=12',initialListFailures:2});
+ expect(await page.evaluate(()=>location.hash)).toBe('#conversation=12');expect(refreshDetails(state)).toBe(0);
+ await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();
+ await expect.poll(()=>refreshLists(state)).toBe(2);await expect(page.locator('#managerAuthSubmit')).toBeEnabled();expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);expect(await page.evaluate(()=>location.hash)).toBe('#conversation=12');
+ await notificationLogin(page);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();expect(refreshDetails(state)).toBe(1);expect(await page.evaluate(()=>location.hash)).toBe('');
+ await page.locator('#replyText').fill('После повторного входа — нужному клиенту');await screenshot(page,browserName,width,'notification-reauth-cold-target');clean(state);
+});
+
+for(const width of [390,430,768,1440])test('notification reauth keeps typed login and pending submit at '+width,async({page,browserName})=>{
+ const height=width===390?420:844;await page.setViewportSize({width,height});const state=await setup(page,{total:3,notificationState:'rejected-register',initialAnonymous:true}),password=page.locator('#managerAuthPassword');
+ await page.locator('#managerAuthLogin').fill('synthetic-owner');await password.fill('typed-synthetic-password');await password.focus();await password.evaluate(el=>el.setSelectionRange(2,7,'backward'));
+ const generation=await page.evaluate(()=>WorkspaceV2.S.authGeneration);await notificationClick(page,12);await notificationClick(page,11);
+ await expect(page.locator('#managerAuthLogin')).toHaveValue('synthetic-owner');await expect(password).toHaveValue('typed-synthetic-password');await expect(password).toBeFocused();expect(await password.evaluate(el=>[el.selectionStart,el.selectionEnd,el.selectionDirection])).toEqual([2,7,'backward']);expect(await page.evaluate(()=>WorkspaceV2.S.authGeneration)).toBe(generation);expect(refreshDetails(state)).toBe(0);
+ const login=deferred();state.logins.push(login);await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthSubmit')).toBeDisabled();await expect(page.locator('#managerAuthSubmit')).toHaveText('Входим…');
+ await notificationClick(page,12);await expect(page.locator('#managerAuthSubmit')).toBeDisabled();await expect(page.locator('#managerAuthSubmit')).toHaveText('Входим…');await expect(password).toHaveValue('typed-synthetic-password');await screenshot(page,browserName,width,'notification-reauth-pending-submit-'+height);
+ login.resolve();await expect(page.locator('#managerAuthRecovery')).toBeHidden();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#replyText')).toBeEnabled();expect(refreshDetails(state)).toBe(1);expect(state.calls.filter(c=>c.action==='login')).toHaveLength(1);expect(await page.evaluate(()=>location.hash)).toBe('');clean(state);
+});
+
+for(const width of [390,1440])test('notification reauth discards old account intent before another Inbox401 at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{total:3,notificationState:'rejected-register',initialHash:'#conversation=12',initialListFailures:1});state.accountId=8;state.lists.push({body:{ok:false,error:'unauthorized'},status:401});
+ await page.locator('#managerAuthLogin').fill('synthetic-account8');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect.poll(()=>refreshLists(state)).toBe(2);await expect(page.locator('#managerAuthSubmit')).toBeEnabled();
+ expect(await page.evaluate(()=>WorkspaceV2.S.manager.id)).toBe(8);expect(await page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);expect(await page.evaluate(()=>location.hash)).toBe('');
+ await notificationLogin(page);expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(0);expect(refreshDetails(state)).toBe(0);await open(page,11);await page.locator('#replyText').fill('Только новый аккаунт');await screenshot(page,browserName,width,'notification-reauth-new-account');clean(state);
+});
+
+for(const width of [390,1440])test('notification reauth retains the previous draft and File through repeated login at '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:844});const state=await setup(page,{total:3,notificationState:'held-register'});await open(page);const draft='Точный черновик до повторного входа\n  Продолжение';await page.locator('#replyText').fill(draft);await page.locator('#replyFile').setInputFiles({name:'notification-reauth-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic reauth retained')});await page.evaluate(()=>window.reauthFile=document.getElementById('replyFile').files[0]);
+ state.latest.push({body:{ok:false,error:'unauthorized'},status:401});await refresh(page);await expect(page.locator('#managerAuthRecovery')).toBeVisible();await notificationClick(page,12);state.lists.push({body:{ok:false,error:'unauthorized'},status:401});const lists=refreshLists(state);
+ await page.locator('#managerAuthLogin').fill('synthetic-owner');await page.locator('#managerAuthPassword').fill('synthetic-password');await page.locator('#managerAuthSubmit').click();await expect.poll(()=>refreshLists(state)).toBe(lists+1);await expect(page.locator('#managerAuthSubmit')).toBeEnabled();expect(await page.evaluate(()=>location.hash)).toBe('#conversation=12');
+ await notificationLogin(page);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');
+ if(width<=1100){await page.goBack();await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент А');await settled(page);}else await open(page,11);
+ await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toContainText('notification-reauth-retained.txt');expect(await page.evaluate(()=>document.getElementById('replyFile').files[0]===reauthFile)).toBe(true);await screenshot(page,browserName,width,'notification-reauth-retained-reply');clean(state);
+});
 
 for(const [width,height,mode] of [[390,844,'held-register'],[430,844,'rejected-register'],[768,844,'held-register'],[1440,844,'rejected-register'],[390,420,'held-register'],[390,844,'held-ready'],[1440,844,'rejected-ready']])test('notification navigation retains the current reply then opens the next client '+width+'x'+height+' '+mode,async({page,browserName})=>{
  const proof=await prepareRetainedHistory(page,{width,height,notificationState:mode}),state=proof.state;
