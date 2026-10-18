@@ -13,7 +13,7 @@ assert.ok(!fs.existsSync(out),'Output namespace must be new');fs.mkdirSync(out,{
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex'),json=(name,value)=>fs.writeFileSync(path.join(out,name),JSON.stringify(value,null,2)+'\n');
 const source=p=>execFileSync('git',['show',base+':'+p],{cwd:root,maxBuffer:4*1024*1024});
 const control=source('manager2/assets/manager2.css').toString();
-const rule='\n.manager2 .attachments audio,.manager2 .attachments video{content-visibility:auto}\n';
+const rule='\n.manager2 .attachments audio:not(:hover):not(:focus-within){content-visibility:auto}\n';
 const candidate=control+rule;
 fs.writeFileSync(path.join(out,'control-manager2.css'),control);fs.writeFileSync(path.join(out,'candidate-manager2.css'),candidate);
 const receipt=JSON.parse(fs.readFileSync(path.join(assets,'receipt.json')));
