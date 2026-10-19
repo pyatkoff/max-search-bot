@@ -184,14 +184,20 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     const image=testInfo.outputPath('oauth-consent-'+choice.width+'-'+browserName+'.png');
     await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{path:image,contentType:'image/png'});
     phase='native_post';
-    const posted=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).origin===fixture.origin&&new URL(response.url()).pathname==='/manager/ai-oauth.php',{timeout:10000});
+    const isPost=request=>request.method()==='POST'&&new URL(request.url()).origin===fixture.origin&&new URL(request.url()).pathname==='/manager/ai-oauth.php';
+    const sent=page.waitForRequest(isPost,{timeout:10000});
+    const posted=choice.legacy?null:page.waitForResponse(response=>isPost(response.request()),{timeout:10000});
     await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
-    const response=await posted,body=new URLSearchParams(response.request().postData());
-    postStatus=response.status();
+    const body=new URLSearchParams((await sent).postData());
     expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);expect(body.get('decision')).toBe(choice.decision);
-    expect(response.status()).toBe(303);
     phase='callback_navigation';
     if(choice.legacy){
+      // Chromium suppresses page.response for the 303 whose follow-up CSP
+      // blocks. Observe PHP's real status at the TLS fixture, not an invented
+      // browser response. Positive flows below still require browser 303.
+      await expect.poll(()=>fixture.responses.filter(result=>result.method==='POST'&&result.path==='/manager/ai-oauth.php').length).toBe(1);
+      postStatus=fixture.responses.find(result=>result.method==='POST'&&result.path==='/manager/ai-oauth.php').status;
+      expect(postStatus).toBe(303);
       await expect.poll(async()=>callbacks.length>0||(await page.evaluate(()=>window.oauthCspDirectives??[])).includes('form-action')).toBe(true);
       const directives=await page.evaluate(()=>window.oauthCspDirectives??[]);
       // Chromium checks the redirected form destination. Preserve the observed
@@ -209,6 +215,7 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
       }
       expect(unexpected).toEqual([]);return;
     }
+    const response=await posted;postStatus=response.status();expect(postStatus).toBe(303);
     await expect.poll(()=>callbacks.length).toBe(1);
     expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
     expect(callbacks[0].searchParams.get('state')).toBe('synthetic-state/a?b&c');

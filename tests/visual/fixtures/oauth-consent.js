@@ -14,7 +14,7 @@ const {spawn, execFileSync} = require('node:child_process');
 async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'oauth-consent-browser-'));
   let child, proxy, callbackServer, networkProxy, lines;
-  const callbacks=[], unexpected=[], sockets=new Set();
+  const callbacks=[], unexpected=[], responses=[], sockets=new Set();
   const track=server=>server.on('connection',socket=>{sockets.add(socket);socket.on('close',()=>sockets.delete(socket));});
   const listen=server=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   const close = async () => {
@@ -53,6 +53,9 @@ async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
       const target = new URL(request.url, metadata.origin);
       if (target.origin !== metadata.origin) {response.writeHead(400).end(); return;}
       const upstream = http.request(target, {method:request.method,headers:request.headers}, incoming => {
+        // Fixed request metadata only. A browser may suppress its response
+        // event when CSP blocks the redirect after this real PHP response.
+        responses.push({method:request.method,path:target.pathname,status:incoming.statusCode});
         const headers={...incoming.headers};
         if(legacyFormPolicy&&headers['content-security-policy']){
           const canonical="form-action 'self' "+metadata.redirect_uri+';';
@@ -101,7 +104,7 @@ async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
       client.on('close',()=>upstream.destroy());
     });
     await listen(networkProxy);
-    return {...metadata,origin,proxy:{server:'http://127.0.0.1:'+networkProxy.address().port,bypass:'127.0.0.1,localhost'},callbacks,unexpected,close};
+    return {...metadata,origin,proxy:{server:'http://127.0.0.1:'+networkProxy.address().port,bypass:'127.0.0.1,localhost'},callbacks,unexpected,responses,close};
   } catch (error) {
     await close();
     throw error;
