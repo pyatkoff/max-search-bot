@@ -26,7 +26,7 @@ try {
     foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions'] as $directory) mkdir($directory,0700);
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
-    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
+    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService','ManagerPreparedReplyService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
     foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
@@ -97,6 +97,32 @@ try {
     $writeState(); $clearEvents();
     $expectError('latest message mismatch rejects before generation',$request(array_replace($body,['latest_message_id'=>9]),$cookie),409,'context_stale');
     $assertNoProvider('latest mismatch does not invoke provider');
+    $prepared=array_replace($body,['action'=>'prepared']);
+    $writeState();$clearEvents();
+    $missingPrepared=$request($prepared,$cookie);
+    managerAiEndpointCheck('prepared cache miss is explicit and never generates',
+        $missingPrepared['status']===200&&$missingPrepared['json']===['ok'=>true,'prepared'=>false]
+        &&in_array('prepared_read',array_column($events(),'event'),true));
+    $assertNoProvider('prepared cache miss has zero provider calls');
+    managerAiEndpointCheck('prepared lookup makes no feedback observation',
+        !array_intersect(['feedback_record','feedback_insert_request'],array_column($events(),'event')));
+    $cached=$proposal+['prepared'=>true,'revision'=>$baseState['revision'],'latest_message_id'=>10,'source'=>'chatgpt','prepared_at'=>'2026-10-19 10:00:00'];
+    $stored=array_diff_key($cached,$proposal)+['ok'=>true,'proposal'=>$proposal];
+    $writeState(['prepared_result'=>$stored]);$clearEvents();
+    $ready=$request($prepared,$cookie);
+    managerAiEndpointCheck('prepared action returns only current owner cache result',
+        $ready['status']===200&&$ready['json']===$cached);
+    $assertNoProvider('prepared hit has zero provider calls');
+    $readEvents=array_values(array_filter($events(),static fn(array $e):bool=>$e['event']==='prepared_read'));
+    managerAiEndpointCheck('prepared cache receives session actor and released session',
+        count($readEvents)===1&&$readEvents[0]['manager_id']===7&&$readEvents[0]['session_closed']===true);
+    $writeState(['context_error'=>'reply_not_allowed']);$clearEvents();
+    $expectError('reassigned prepared conversation is refused before cache',$request($prepared,$cookie),403,'reply_not_allowed');
+    managerAiEndpointCheck('unauthorized prepared lookup does not reach cache',!in_array('prepared_read',array_column($events(),'event'),true));
+    $writeState();$clearEvents();
+    $expectError('prepared request also checks latest message',$request(array_replace($prepared,['latest_message_id'=>9]),$cookie),409,'context_stale');
+    managerAiEndpointCheck('stale prepared request does not reach cache',!in_array('prepared_read',array_column($events(),'event'),true));
+    $writeState();
     $validate = array_replace($body,['action'=>'validate','revision'=>$baseState['revision']]);
     foreach ([null,'',str_repeat('g',64),str_repeat('a',63),17,[]] as $revision) {
         $clearEvents(); $expectError('validate revision syntax '.json_encode($revision),$request(array_replace($validate,['revision'=>$revision]),$cookie),400,'invalid_request');

@@ -7,6 +7,7 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftContextService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftFeedbackService.php';
+require_once dirname(__DIR__).'/services/ManagerPreparedReplyService.php';
 
 ManagerHttp::startJson();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -35,7 +36,7 @@ try {
     $data = ManagerHttp::body();
     ManagerHttp::requireCsrf($data);
     $action = $data['action'] ?? '';
-    if (!in_array($action,['generate','validate'],true)) {
+    if (!in_array($action,['generate','validate','prepared'],true)) {
         aiDraftRespond(['ok'=>false,'error'=>'unknown_action']);
     }
     $cid = $data['conversation_id'] ?? null;
@@ -48,6 +49,17 @@ try {
     if (empty($before['ok'])) aiDraftRespond($before);
     if ($expectedLatest !== $before['latest_message_id']) {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
+    }
+    if ($action === 'prepared') {
+        // This only retrieves a separately prepared, current-context proposal.
+        // It never invokes the model or changes the manager's composer/read state.
+        session_write_close();
+        $prepared=ManagerPreparedReplyService::prepared($cid,$actor,$before);
+        if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
+            $proposal=$prepared['proposal'];unset($prepared['proposal']);
+            aiDraftRespond($proposal+$prepared);
+        }
+        aiDraftRespond($prepared);
     }
     if ($action === 'validate') {
         $revision = $data['revision'] ?? null;

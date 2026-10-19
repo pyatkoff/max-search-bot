@@ -21,9 +21,20 @@ function mhCheck(string $name,bool $ok):void{global $passed,$failed;if($ok){echo
 $unbounded=[];
 foreach(glob($root.'/manager/*.php')?:[] as $managerEndpoint){
     $source=(string)file_get_contents($managerEndpoint);
+    // Machine-to-machine MCP has its own OAuth bearer boundary, not a manager
+    // browser session. Every other manager interface retains ManagerHttp.
+    if(basename($managerEndpoint)==='ai-mcp.php')continue;
     if(strpos($source,"lib/ManagerHttp.php")===false||strpos($source,'ManagerHttp::start')===false)$unbounded[]=basename($managerEndpoint);
 }
-mhCheck('all top-level Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
+mhCheck('all session Manager PHP interfaces enter through ManagerHttp',$unbounded===[]);
+$mcp=(string)file_get_contents($root.'/manager/ai-mcp.php');
+mhCheck('only the dedicated MCP interface uses mandatory OAuth bearer and connection binding',
+    strpos($mcp,'ManagerPreparationOAuth::authenticateBearer($header)')!==false
+    &&strpos($mcp,'ManagerPreparationOAuth::connectionIdForBearer($header)')!==false
+    &&strpos($mcp,'if ($actor===null||$connection===null)')!==false
+    &&strpos($mcp,'WWW-Authenticate: Bearer resource_metadata=')!==false
+    &&strpos($mcp,'authenticateBearer($header)')<strpos($mcp,'->handle($rpc,$actor,$connection)')
+    &&strpos($mcp,'ManagerRequestContext::')===false&&strpos($mcp,'ManagerHttp::start')===false);
 
 mhCheck('HTTP boundary owns session and JSON headers',strpos($http,'function start()')!==false&&strpos($http,'ManagerRequestContext::startSession()')!==false&&strpos($http,'self::start();')!==false&&strpos($http,"Content-Type: application/json")!==false&&strpos($http,"Cache-Control: no-store")!==false);
 mhCheck('legacy manager path redirects to canonical app origin before session bootstrap',strpos($http,"legacyPrefix='/max-search/manager'")!==false&&strpos($http,"target='https://app.anytoour.ru'")!==false&&strpos($http,"header('Location: '.\$target,true,308)")!==false&&strpos($http,'self::redirectLegacyPath();')<strpos($http,'ManagerRequestContext::startSession();'));

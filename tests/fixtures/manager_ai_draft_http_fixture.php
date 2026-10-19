@@ -84,6 +84,16 @@ final class ManagerAiDraftContextService
     }
 }
 
+final class ManagerPreparedReplyService
+{
+    public static function prepared(int $cid,int $actor,array $snapshot):array
+    {
+        managerAiHttpFixtureEvent('prepared_read',['conversation_id'=>$cid,'manager_id'=>$actor,
+            'session_closed'=>session_status()!==PHP_SESSION_ACTIVE]);
+        return managerAiHttpFixtureState()['prepared_result']??['ok'=>true,'prepared'=>false];
+    }
+}
+
 final class ManagerAiDraftService
 {
     public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null): array

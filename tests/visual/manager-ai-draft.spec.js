@@ -4,11 +4,12 @@ const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),sourceRoot=process.env.M2_QA_SOURCE_ROOT||root,origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
+const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
 async function setup(page){
   const calls=[],unexpected=[],errors=[],messages=new Map();
-  let ai=async data=>data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
+  let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   const manager={id:7,role:'manager',display_name:'Мария',is_working:true};
   const conversation=id=>({id,status:'manager',manager_id:7,manager_name:'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
@@ -46,7 +47,7 @@ async function setup(page){
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
-      expect(['generate','validate']).toContain(data.action);const result=await ai(data);return reply(result.body,result.status||200);
+      expect(['prepared','generate','validate']).toContain(data.action);const result=await ai(data);return reply(result.body,result.status||200);
     }
     unexpected.push(method+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
@@ -84,33 +85,52 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   const actionBoxes=await page.locator('#composer .composerActions').boundingBox();
   await expect(reply).toHaveValue(text);
   await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftPanel')).toBeFocused();
-  await expect(page.locator('.aiDraftAction')).toHaveText('Уточнить запрос');await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('synthetic-plan.txt');
-  expect(state.aiCalls()).toHaveLength(1);expect(state.aiCalls()[0]).toMatchObject({action:'generate',conversation_id:11,latest_message_id:35});
+  await expect(page.locator('#aiDraftStatus')).toContainText('Ответ подготовлен заранее');await expect(page.locator('.aiDraftAction')).toHaveText('Уточнить запрос');await expect(reply).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('synthetic-plan.txt');
+  expect(state.aiCalls()).toHaveLength(1);expect(state.aiCalls()[0]).toMatchObject({action:'prepared',conversation_id:11,latest_message_id:35});
   const previewBoxes=await page.locator('#composer .composerActions').boundingBox();expect(Math.abs(previewBoxes.y-actionBoxes.y)).toBeLessThanOrEqual(1);expect(Math.abs(previewBoxes.x-actionBoxes.x)).toBeLessThanOrEqual(1);
   await bounded(page);await capture(page,browserName,viewport);
   await page.locator('#aiDraftInsert').click();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(reply).toHaveValue(text+'\nКакие даты поездки вам удобны?');await expect(reply).toBeFocused();
   expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([2,12,'backward']);
   expect(await page.evaluate(()=>{const proof=aiNativeProof;return document.querySelector('#replyText')===proof.reply&&document.querySelector('#composer')===proof.form&&document.querySelector('#replyFile')===proof.file&&document.querySelector('#mediaSelection .mediaSelectedItem')===proof.preview&&WorkspaceV2Media.hasFile()})).toBe(true);
-  expect(state.aiCalls().map(call=>call.action)).toEqual(['generate','validate']);
-  expect(state.aiCalls()[1].draft_id).toBe('d'.repeat(32));
-  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('d'.repeat(32));
+  expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','validate']);
+  expect(state.aiCalls()[1].draft_id).toBeUndefined();
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBeUndefined();
   clean(state);
+});
+for(const unavailable of [false,true])test('AI cache '+(unavailable?'unavailable':'miss')+' preserves text and File until explicit regeneration',async({page})=>{
+  const state=await setup(page),text='Свой ответ  ';
+  state.setAI(async data=>data.action==='prepared'?{body:unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},status:unavailable?503:200}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
+  await page.locator('#replyText').fill(text);await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftStatus')).toContainText(unavailable?'Не удалось проверить готовый ответ':'Готового ответа пока нет');
+  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);
+  await page.locator('#aiDraftRetry').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftStatus')).not.toContainText('подготовлен заранее');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','generate']);
+  await page.locator('#aiDraftInsert').click();await expect(page.locator('#replyText')).toHaveValue(text+'\n'+proposal().draft);expect(state.aiCalls()[2].draft_id).toBe('d'.repeat(32));
+  expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('d'.repeat(32));await expect(page.locator('#mediaSelection')).toContainText('keep.txt');clean(state);
+});
+test('AI stale cached cutoff never renders the text or generates a replacement',async({page})=>{
+  const state=await setup(page);state.setAI(async()=>({body:prepared({latest_message_id:34})}));await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();
+  await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');await expect(page.locator('.aiDraftText')).toHaveCount(0);await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
+});
+test('AI reassignment discards a late successful cached reply',async({page})=>{
+  const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
+  await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
+  await page.evaluate(()=>{WorkspaceV2.S.detail.conversation.manager_id=99;WorkspaceV2AiDraft.sync()});release();await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#aiDraftOpen')).toBeDisabled();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
 });
 test('AI no_contact and unavailable provider remain human readable without inserting',async({page})=>{
   const state=await setup(page);await page.locator('#replyText').fill('Свой ответ');
-  state.setAI(async()=>({body:proposal({should_draft:false,draft:null,next_action:'no_contact',reason:'Турист попросил не писать.'})}));
+  state.setAI(async()=>({body:prepared({should_draft:false,draft:null,next_action:'no_contact',reason:'Турист попросил не писать.'})}));
   await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftAction')).toHaveText('Сейчас не писать');await expect(page.locator('#aiDraftInsert')).not.toBeVisible();
   await expect(page.locator('#replyText')).toHaveValue('Свой ответ');expect(state.aiCalls()).toHaveLength(1);
   state.setAI(async()=>({body:{ok:false,error:'provider_not_configured'},status:503}));await page.locator('#aiDraftRetry').click();await expect(page.locator('#aiDraftStatus')).toContainText('AI сейчас недоступен');
   await expect(page.locator('#aiDraftInsert')).not.toBeVisible();clean(state);
 });
 test('AI server context_stale409 blocks explicit insertion',async({page})=>{
-  const state=await setup(page);state.setAI(async data=>data.action==='generate'?{body:proposal()}:{body:{ok:false,error:'context_stale'},status:409});
+  const state=await setup(page);state.setAI(async data=>data.action==='prepared'?{body:prepared()}:{body:{ok:false,error:'context_stale'},status:409});
   await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await page.locator('#aiDraftInsert').click();
   await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue('Свой текст');expect(state.aiCalls()).toHaveLength(2);clean(state);
 });
-for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' while generation is pending',async({page})=>{
-  const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:proposal()}});
+for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' while the cached reply is pending',async({page})=>{
+  const state=await setup(page);let release;state.setAI(async()=>{await new Promise(resolve=>{release=resolve});return {body:prepared()}});
   await page.locator('#replyText').fill('Свой текст');await page.locator('#aiDraftOpen').click();await expect.poll(()=>!!release).toBe(true);
   if(change==='arrival')state.messages.get(11).push({id:36,sender_type:'customer',text:'Синтетическое новое требование',created_at:'2026-10-17 12:01:00'});else state.messages.get(11)[34].text='Синтетическое исправленное требование';
   await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible());await expect(page.locator('#aiDraftStatus')).toContainText('Переписка изменилась');release();
@@ -118,7 +138,7 @@ for(const change of ['arrival','same-ID edit'])test('AI rejects a '+change+' whi
 });
 test('AI validation preserves text edited while waiting and does not execute proposal HTML',async({page})=>{
   const state=await setup(page);let release;const draft='<img src=x onerror="throw 1"> Литерал';
-  state.setAI(async data=>{if(data.action==='generate')return {body:proposal({draft})};await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});
+  state.setAI(async data=>{if(data.action==='prepared')return {body:prepared({draft})};await new Promise(resolve=>{release=resolve});return {body:{ok:true,revision:'1'.repeat(64),latest_message_id:35}}});
   await page.locator('#replyText').fill('Первый текст');await page.locator('#aiDraftOpen').click();await expect(page.locator('.aiDraftText')).toHaveText(draft);await expect(page.locator('.aiDraftText img')).toHaveCount(0);
   await page.locator('#aiDraftInsert').click();await expect.poll(()=>!!release).toBe(true);await page.locator('#replyText').fill('Новый текст  ');release();
   await expect(page.locator('#replyText')).toHaveValue('Новый текст  \n'+draft);await expect(page.locator('#aiDraftPanel')).not.toBeVisible();clean(state);

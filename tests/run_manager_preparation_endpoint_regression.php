@@ -1,0 +1,64 @@
+<?php
+declare(strict_types=1);
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+$tmp=sys_get_temp_dir().'/preparation-mcp-http-'.bin2hex(random_bytes(6));
+$server=null;$passed=0;
+function preparationHttpCheck(string $name,bool $ok):void{global $passed;if(!$ok)throw new RuntimeException('FAIL '.$name);++$passed;echo "PASS $name\n";}
+try{
+    mkdir($tmp,0700);mkdir($tmp.'/manager',0700);mkdir($tmp.'/services',0700);
+    file_put_contents($tmp.'/config.php',<<<'PHP'
+<?php
+final class ManagerPreparationOAuth{
+public static function authenticateBearer(string $header):?int{return $header==='Bearer '.str_repeat('x',43)?7:null;}
+public static function connectionIdForBearer(string $header):?string{return self::authenticateBearer($header)===7?str_repeat('a',32):null;}
+}
+final class ManagerPreparationMcpService{
+public function handle(array $rpc,int $actor,?string $connection):array{
+file_put_contents(__DIR__.'/dispatch',json_encode(['actor'=>$actor,'connection'=>$connection]));
+return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['authenticated'=>true,'method'=>$rpc['method']??'']];
+}}
+PHP);
+    foreach(['ManagerPreparationOAuth','ManagerPreparationMcpService']as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/config.php';");
+    copy(dirname(__DIR__).'/manager/ai-mcp.php',$tmp.'/manager/ai-mcp.php');
+    $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('socket_unavailable');
+    $address=stream_socket_get_name($socket,false);fclose($socket);
+    $server=proc_open([PHP_BINARY,'-d','display_errors=0','-S',$address,'-t',$tmp],[0=>['pipe','r'],1=>['file',$tmp.'/server.log','a'],2=>['file',$tmp.'/server.log','a']],$pipes);
+    if(!is_resource($server))throw new RuntimeException('server_unavailable');fclose($pipes[0]);
+    for($i=0;$i<100;++$i){if($s=@stream_socket_client('tcp://'.$address,$e,$m,.03)){fclose($s);break;}usleep(10000);}
+    $request=static function(string $body,string $authorization='',string $method='POST',string $origin='')use($address):array{
+        $headers="Content-Type: application/json\r\n";
+        if($authorization!=='')$headers.='Authorization: '.$authorization."\r\n";
+        if($origin!=='')$headers.='Origin: '.$origin."\r\n";
+        $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>$headers,'content'=>$body,'ignore_errors'=>true,'timeout'=>3]]);
+        $raw=file_get_contents('http://'.$address.'/manager/ai-mcp.php',false,$ctx);
+        $responseHeaders=$http_response_header??[];
+        preg_match('~HTTP/\S+\s+(\d+)~',$responseHeaders[0]??'',$match);
+        return ['status'=>(int)($match[1]??0),'headers'=>implode("\n",$responseHeaders),'json'=>json_decode((string)$raw,true),'body'=>(string)$raw];
+    };
+    $rpc=json_encode(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list']);$token='Bearer '.str_repeat('x',43);
+    foreach(['','Bearer '.str_repeat('z',43)]as $auth){
+        $r=$request($rpc,$auth);
+        preparationHttpCheck('unauthenticated request cannot discover private tools',$r['status']===401&&!file_exists($tmp.'/dispatch'));
+        preparationHttpCheck('OAuth resource discovery challenge is present',str_contains($r['headers'],'WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource"'));
+        preparationHttpCheck('rejected bearer is not echoed',!str_contains($r['body'],str_repeat('z',43)));
+    }
+    $r=$request($rpc,$token,'POST','https://hostile.example');
+    preparationHttpCheck('hostile browser origin blocked before dispatch',$r['status']===403&&!file_exists($tmp.'/dispatch'));
+    $r=$request($rpc,$token,'GET');
+    preparationHttpCheck('authenticated GET cannot invoke tools',$r['status']===405&&!file_exists($tmp.'/dispatch'));
+    foreach(['{','[]','null',json_encode(['jsonrpc'=>'1.0','id'=>1,'method'=>'tools/list']),json_encode(['jsonrpc'=>'2.0','method'=>'tools/call']),json_encode(['jsonrpc'=>'2.0','id'=>true,'method'=>'tools/list'])]as $bad){
+        $r=$request($bad,$token);preparationHttpCheck('invalid RPC is refused before dispatch',$r['status']===400&&!file_exists($tmp.'/dispatch'));
+    }
+    $r=$request(str_repeat('x',196609),$token);
+    preparationHttpCheck('oversized authenticated request is bounded',$r['status']===413&&!file_exists($tmp.'/dispatch'));
+    $r=$request(json_encode(['jsonrpc'=>'2.0','method'=>'notifications/initialized']),$token);
+    preparationHttpCheck('initialization notification acknowledges without tools',$r['status']===202&&$r['body']===''&&!file_exists($tmp.'/dispatch'));
+    $r=$request($rpc,$token,'POST','https://chatgpt.com');
+    preparationHttpCheck('OAuth bearer and stable connection reach exact service',$r['status']===200&&$r['json']===['jsonrpc'=>'2.0','id'=>1,'result'=>['authenticated'=>true,'method'=>'tools/list']]
+        &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('a',32)]);
+    preparationHttpCheck('transport remains private and is not cached',str_contains($r['headers'],'Cache-Control: no-store')&&!str_contains($r['headers'],'Set-Cookie'));
+    echo 'TOTAL '.$passed." preparation endpoint checks passed\n";
+}catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}finally{
+    if(is_resource($server)){proc_terminate($server);proc_close($server);}
+    if(is_dir($tmp)){$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tmp,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);foreach($it as $f){$f->isDir()?rmdir($f->getPathname()):unlink($f->getPathname());}rmdir($tmp);}
+}
