@@ -20,7 +20,7 @@ Run:
 bash tests/run_required_checks.sh
 ```
 
-This includes PHP syntax plus dialogue, manager, integration, website, diagnostics and architecture regressions.
+This full command includes PHP syntax plus dialogue, manager, integration, website, diagnostics and architecture regressions. Required PR CI uses the bounded selection in `docs/CI_SCOPES.md`; unknown/shared/mixed changes and manual runs keep full coverage. Production deploy verification remains the full command.
 
 ## Production verification
 

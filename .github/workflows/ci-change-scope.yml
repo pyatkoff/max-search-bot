@@ -1,0 +1,31 @@
+name: Select CI scope
+
+on:
+  workflow_call:
+    outputs:
+      mode:
+        description: Exact OAuth-only change or conservative full coverage
+        value: ${{ jobs.scope.outputs.mode }}
+
+permissions:
+  contents: read
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      mode: ${{ steps.scope.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify CI selection rules
+        run: |
+          node tests/run_ci_change_scope_regression.js
+          node tests/run_oauth_browser_report_regression.js
+          python3 -m pip install --disable-pip-version-check PyYAML==6.0.2
+          python3 tests/check_ci_workflow_scopes.py
+      - name: Select from the complete base and head diff
+        id: scope
+        run: node tools/ci_change_scope.js

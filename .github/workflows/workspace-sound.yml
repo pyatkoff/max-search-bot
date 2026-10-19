@@ -16,13 +16,21 @@ on:
       - 'tests/mysql/manager-push-connections.php'
       - 'tests/visual/workspace-sound.spec.js'
       - '.github/workflows/workspace-sound.yml'
+      - '.github/workflows/ci-change-scope.yml'
+      - 'tools/ci_change_scope.js'
+      - 'tests/run_ci_change_scope_regression.js'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  change-scope:
+    uses: ./.github/workflows/ci-change-scope.yml
+
   sound:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
@@ -70,6 +78,8 @@ jobs:
           retention-days: 7
 
   native-mysql:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     services:

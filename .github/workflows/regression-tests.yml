@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  change-scope:
+    uses: ./.github/workflows/ci-change-scope.yml
+
   inventory:
     runs-on: ubuntu-latest
     steps:
@@ -35,7 +38,8 @@ jobs:
         run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
   required:
-    needs: inventory
+    if: needs.change-scope.outputs.mode == 'full'
+    needs: [inventory, change-scope]
     strategy:
       fail-fast: false
       matrix:
@@ -65,6 +69,8 @@ jobs:
           retention-days: 14
 
   prepared-mysql:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -96,21 +102,54 @@ jobs:
           php tests/run_manager_prepared_reply_regression.php
           php tests/mysql/manager-preparation-migrations.php
 
+  oauth:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'oauth'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, dom
+          coverage: none
+      - name: Execute OAuth, MCP and HTTP boundary regressions
+        run: |
+          php tests/run_manager_preparation_oauth_regression.php
+          php tests/run_manager_preparation_mcp_regression.php
+          php tests/run_manager_preparation_endpoint_regression.php
+          php tests/run_manager_http_boundary_regression.php
+
   regression:
     name: regression
-    needs: [inventory, php-syntax, required, prepared-mysql]
+    needs: [change-scope, inventory, php-syntax, required, prepared-mysql, oauth]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require every gate
         env:
+          SCOPE_RESULT: ${{ needs.change-scope.result }}
+          CI_MODE: ${{ needs.change-scope.outputs.mode }}
+          OAUTH_RESULT: ${{ needs.oauth.result }}
           INVENTORY_RESULT: ${{ needs.inventory.result }}
           SYNTAX_RESULT: ${{ needs.php-syntax.result }}
           REQUIRED_RESULT: ${{ needs.required.result }}
           PREPARED_MYSQL_RESULT: ${{ needs.prepared-mysql.result }}
         run: |
-          printf 'inventory=%s\nsyntax=%s\nrequired=%s\n' "$INVENTORY_RESULT" "$SYNTAX_RESULT" "$REQUIRED_RESULT"
+          test "$SCOPE_RESULT" = success
           test "$INVENTORY_RESULT" = success
           test "$SYNTAX_RESULT" = success
-          test "$REQUIRED_RESULT" = success
-          test "$PREPARED_MYSQL_RESULT" = success
+          case "$CI_MODE" in
+            oauth)
+              test "$OAUTH_RESULT" = success
+              test "$REQUIRED_RESULT" = skipped
+              test "$PREPARED_MYSQL_RESULT" = skipped
+              ;;
+            full)
+              test "$REQUIRED_RESULT" = success
+              test "$PREPARED_MYSQL_RESULT" = success
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            *) exit 1 ;;
+          esac

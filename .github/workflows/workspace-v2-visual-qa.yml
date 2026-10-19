@@ -4,6 +4,8 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'services/ManagerPreparationOAuth.php'
+      - 'tests/run_manager_preparation_oauth_regression.php'
       - 'manager/**'
       - 'manager2/**'
       - 'tests/visual/**'
@@ -16,6 +18,12 @@ on:
       - 'tests/run_manager2_visual_gate_regression.js'
       - 'tests/run_manager2_visual_selection_regression.js'
       - 'tests/run_workspace_v2_visual_qa_contract_regression.php'
+      - '.github/workflows/ci-change-scope.yml'
+      - 'tools/verify_oauth_browser_report.js'
+      - 'tests/run_oauth_browser_report_regression.js'
+      - 'tests/check_ci_workflow_scopes.py'
+      - 'tools/ci_change_scope.js'
+      - 'tests/run_ci_change_scope_regression.js'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +37,12 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  change-scope:
+    uses: ./.github/workflows/ci-change-scope.yml
+
   selection:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -300,8 +313,8 @@ jobs:
   # Preserve the existing per-engine check contexts and canonical artifacts.
   # No flat merge of reports or PNGs from different isolated browser runners.
   browser-tests:
-    if: always()
-    needs: [selection, browser-parts]
+    if: always() && needs.change-scope.result == 'success' && needs.change-scope.outputs.mode == 'full'
+    needs: [change-scope, selection, browser-parts]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -349,6 +362,8 @@ jobs:
           retention-days: 14
 
   firefox-history:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -405,6 +420,8 @@ jobs:
           retention-days: 14
 
   firefox-notifications:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -457,8 +474,8 @@ jobs:
 
   # Keep the required check name stable. A failed, cancelled or skipped engine,
   # missing artifact/receipt or mismatched provenance must never become green.
-  screenshots:
-    if: always()
+  full-screenshots:
+    if: always() && needs.browser-tests.result == 'success'
     needs: [browser-tests, firefox-history, firefox-notifications]
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -511,3 +528,71 @@ jobs:
           path: evidence/visual-evidence.json
           if-no-files-found: error
           retention-days: 14
+
+  oauth-browser:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'oauth'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, dom
+          coverage: none
+      - name: Install pinned browser
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      # Only native consent/callback cases run. The selector rejects changes to
+      # the shared/non-OAuth part of this spec before it can choose this scope.
+      # The helper uses isolated local HTTPS; no production account is used.
+      - name: Run only native OAuth consent and callback cases
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: oauth-browser.json
+        run: npx playwright test tests/visual/manager-ai-draft.spec.js --grep 'OAuth native (allow|deny|legacy policy control)' --browser=${{ matrix.browser }} --reporter=line,json --workers=1 --forbid-only
+      - name: Require executed consent cases, including both decisions
+        run: node tools/verify_oauth_browser_report.js oauth-browser.json ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: oauth-browser-${{ matrix.browser }}-${{ github.sha }}
+          path: |
+            oauth-browser.json
+            manager2-artifacts/ai-draft-*.png
+            test-results/**/error-context.md
+          if-no-files-found: error
+          retention-days: 7
+
+  screenshots:
+    if: always()
+    needs: [change-scope, full-screenshots, oauth-browser]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the selected current-run evidence
+        env:
+          SCOPE_RESULT: ${{ needs.change-scope.result }}
+          CI_MODE: ${{ needs.change-scope.outputs.mode }}
+          FULL_RESULT: ${{ needs.full-screenshots.result }}
+          OAUTH_RESULT: ${{ needs.oauth-browser.result }}
+        run: |
+          test "$SCOPE_RESULT" = success
+          case "$CI_MODE" in
+            oauth)
+              test "$OAUTH_RESULT" = success
+              test "$FULL_RESULT" = skipped
+              ;;
+            full)
+              test "$FULL_RESULT" = success
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            *) exit 1 ;;
+          esac
