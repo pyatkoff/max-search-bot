@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 $files = [
+    'tools/ai_profile_rollout.php',
     'repair_max_search_subscription.php',
     'telegram_webhook_admin.php',
     'cron_followup.php',
