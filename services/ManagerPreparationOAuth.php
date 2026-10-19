@@ -8,9 +8,12 @@ require_once __DIR__.'/ProjectConfig.php';
 /** Narrow public-client OAuth boundary. This service never reads a transcript. */
 final class ManagerPreparationOAuth
 {
-    public const ISSUER = 'https://app.anytoour.ru';
-    public const RESOURCE = self::ISSUER.'/manager/ai-mcp.php';
-    public const ENDPOINT = self::ISSUER.'/manager/ai-oauth.php';
+    public const ORIGIN = 'https://app.anytoour.ru';
+    // RFC 8414 inserts the well-known segment before this issuer path. The
+    // explicit PHP discovery route works without directory-index permissions.
+    public const ISSUER = self::ORIGIN.'/manager/ai-oauth.php';
+    public const RESOURCE = self::ORIGIN.'/manager/ai-mcp.php';
+    public const ENDPOINT = self::ORIGIN.'/manager/ai-oauth.php';
     public const SCOPES = ['queue:read', 'prepared:write'];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
