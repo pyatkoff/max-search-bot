@@ -27,6 +27,18 @@ numbers, emails, handles and credential-shaped text are masked. This is best
 effort minimization, **not a guarantee that free text is anonymous**: names or
 other personal facts may remain, so plaintext must remain private.
 
+The same encrypted capture also carries a bounded Manager AI feedback projection
+from the exact-SHA production snapshot: at most ten recent linked text comparisons,
+2,000 characters per proposed/current text, explicit truncation and initial-text
+availability. It uses independent per-capture draft/message aliases and the same
+contact redaction. No raw proposal JSON, manager identity, instruction/context
+digest or arbitrary metadata is copied. This extends the original flagged-MAX
+scope only for these feedback samples; the existing session selection is unchanged.
+See [feedback report definitions](MANAGER_AI_DRAFT_FEEDBACK.md#read-only-usage-report).
+The public snapshot receives aggregate counters only. An unavailable report is
+distinct from an available report with no linked samples. Current edited text is
+not necessarily the original sent text; recorded equality is not a quality score.
+
 The standard age format encrypts the projection to the single X25519 public
 recipient in `docs/diagnostics-recipient.txt`. The pinned `pyrage` wheel wraps
 the interoperable Rust age implementation; no cryptographic construction is

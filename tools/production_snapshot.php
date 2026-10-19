@@ -8,6 +8,7 @@ require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/DiagnosticLogger.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
 require_once $baseDir.'/services/ChannelDailyReport.php';
+require_once $baseDir.'/services/ManagerAiDraftFeedbackReport.php';
 require_once $baseDir.'/services/LegacyPaidYclidReader.php';
 require_once $baseDir.'/services/RuntimeBootstrap.php';
 require_once $baseDir.'/services/MigrationRunner.php';
@@ -163,6 +164,11 @@ try{
         $snapshot['conversation_status']=rows($pdo,'SELECT project_key,channel,status,COUNT(*) AS count FROM conversations GROUP BY project_key,channel,status ORDER BY project_key,channel,status');
         $snapshot['recent_entry_attribution']=rows($pdo,"SELECT id AS conversation_id,project_key,channel,source_id,entry_channel,attribution_region,attribution_campaign,status,manager_id,started_at,last_message_at FROM conversations WHERE entry_channel IS NOT NULL AND entry_channel<>'' ORDER BY id DESC LIMIT 50");
     }
+    $aiFeedback=ManagerAiDraftFeedbackReport::collect($pdo,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')));
+    $snapshot['manager_ai_feedback']=$aiFeedback['summary'];
+    // Never compose or publish this collection. The existing encrypted evidence
+    // projector is its sole export path; ordinary public output gets aggregates.
+    $snapshot['manager_ai_feedback_private']=$aiFeedback['samples'];
     try {
         $snapshot['channel_daily']=ChannelDailyReport::collect($pdo,ProjectConfig::projectId(),new DateTimeImmutable('now',new DateTimeZone('UTC')));
     } catch (Throwable $e) {

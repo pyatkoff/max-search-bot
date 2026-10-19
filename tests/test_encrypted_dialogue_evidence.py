@@ -34,13 +34,144 @@ def fixture():
                                "text": "SYNTHETIC_PRIVATE_MESSAGE"}]}]}
 
 
+def production_fixture():
+    now = dt.datetime.now(dt.timezone.utc).isoformat()
+    return {"ok": True, "production": {"sha": SHA}, "generated_at": now,
+            "manager_ai_feedback": {"ok": True, "generated_at": now,
+                                    "unknown_private_summary": "HIDDEN_SUMMARY"},
+            "manager_ai_feedback_private": [{
+                "draft_id": "deadbeef" * 4, "conversation_id": 987654, "message_id": 7654321,
+                "proposed_text": "SYNTHETIC_PRIVATE_PROPOSAL +7 (999) 123-45-67 a@example.org https://example.org @contact",
+                "current_sent_text": "SYNTHETIC_PRIVATE_SENT token=secret password=hidden",
+                "proposed_text_truncated": False, "current_sent_text_truncated": False,
+                "initial_text_available": True, "recorded_text_matches_proposal": False,
+                "edited": True, "created_at": now, "sent_at": now,
+                "manager_id": "HIDDEN_ACTOR", "project_key": "HIDDEN_PROJECT",
+                "context_sha256": "HIDDEN_CONTEXT", "sent_text_sha256": "HIDDEN_HASH",
+                "proposal_json": "HIDDEN_RAW_PROPOSAL", "extra": "HIDDEN_EXTRA"}]}
+
+
 class EvidenceTests(unittest.TestCase):
     def setUp(self):
         self.identity = pyrage.x25519.Identity.generate()
         self.recipient = str(self.identity.to_public())
 
-    def build(self, report=None):
-        return evidence.build_evidence([("live", report or fixture())], SHA, self.recipient)
+    def build(self, report=None, production=None):
+        return evidence.build_evidence([("live", report or fixture())], SHA, self.recipient,
+                                       production=production)
+
+    def test_optional_feedback_projection_redacts_and_allowlists_private_fields(self):
+        self.assertNotIn("manager_ai_feedback", json.loads(self.build()))
+        data = self.build(production=production_fixture())
+        report = json.loads(data)
+        feedback = report["manager_ai_feedback"]
+        self.assertTrue(feedback["ok"])
+        self.assertEqual(feedback["limits"], {"samples": 10, "characters_per_text": 2000})
+        sample = feedback["samples"][0]
+        self.assertEqual(sample["session_ref"], report["sessions"][0]["session_ref"])
+        self.assertEqual(set(sample), {"draft_ref", "session_ref", "message_ref", "proposed_text",
+                                      "current_sent_text", "initial_text_available", "edited",
+                                      "recorded_text_matches_proposal", "proposed_text_truncated",
+                                      "current_sent_text_truncated", "created_at", "sent_at"})
+        self.assertIn("SYNTHETIC_PRIVATE_PROPOSAL", sample["proposed_text"])
+        for marker in ("[NUMBER]", "[EMAIL]", "[URL]", "[HANDLE]"):
+            self.assertIn(marker, sample["proposed_text"])
+        self.assertEqual(sample["current_sent_text"], "SYNTHETIC_PRIVATE_SENT [CREDENTIAL] [CREDENTIAL]")
+        for secret in ("deadbeef", "HIDDEN_", "example.org", "@contact", "secret", "password=hidden"):
+            self.assertNotIn(secret.encode(), data)
+
+    def test_feedback_correlations_rotate_and_missing_identifiers_are_not_invented(self):
+        production = production_fixture()
+        production["manager_ai_feedback_private"] *= 2
+        first = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"]
+        second = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"]
+        for field in ("draft_ref", "session_ref", "message_ref"):
+            self.assertEqual(first[0][field], first[1][field])
+            self.assertNotEqual(first[0][field], second[0][field])
+        for field in ("draft_id", "conversation_id", "message_id"):
+            production["manager_ai_feedback_private"][0].pop(field)
+        sample = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"][0]
+        self.assertTrue(all(field not in sample for field in ("draft_ref", "session_ref", "message_ref")))
+
+    def test_feedback_text_bounds_and_truthful_truncation_after_redaction(self):
+        production = production_fixture()
+        sample = production["manager_ai_feedback_private"][0]
+        sample["proposed_text"] = "ю" * 2000
+        sample["proposed_text_truncated"] = True
+        sample["current_sent_text"] = "a@b.c " * 333
+        result = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"][0]
+        self.assertEqual(result["proposed_text"], "ю" * 2000)
+        self.assertEqual(len(result["current_sent_text"]), 2000)
+        self.assertTrue(result["proposed_text_truncated"])
+        self.assertTrue(result["current_sent_text_truncated"])
+        self.assertNotIn("a@b.c", result["current_sent_text"])
+        sample.update(proposed_text="short", proposed_text_truncated=False,
+                      current_sent_text="short", current_sent_text_truncated=False)
+        result = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"][0]
+        self.assertFalse(result["proposed_text_truncated"])
+        self.assertFalse(result["current_sent_text_truncated"])
+        production["manager_ai_feedback_private"] *= 10
+        self.assertEqual(len(json.loads(self.build(production=production))["manager_ai_feedback"]["samples"]), 10)
+
+    def test_feedback_empty_and_unavailable_are_distinct(self):
+        production = production_fixture()
+        production["manager_ai_feedback_private"] = []
+        for available in (True, False):
+            production["manager_ai_feedback"]["ok"] = available
+            feedback = json.loads(self.build(production=production))["manager_ai_feedback"]
+            self.assertEqual(feedback["ok"], available)
+            self.assertEqual(feedback["samples"], [])
+        production = production_fixture()
+        sample = production["manager_ai_feedback_private"][0]
+        sample["initial_text_available"] = False
+        result = json.loads(self.build(production=production))["manager_ai_feedback"]["samples"][0]
+        self.assertFalse(result["initial_text_available"])
+        self.assertIn("SYNTHETIC_PRIVATE_PROPOSAL", result["proposed_text"])
+
+    def test_feedback_snapshot_rejects_wrong_sha_staleness_and_malformed_shapes(self):
+        mutations = [
+            lambda p: p.update(ok=False),
+            lambda p: p.update(production={"sha": "b" * 40}),
+            lambda p: p.update(production=[]),
+            lambda p: p.update(generated_at="2020-01-01T00:00:00Z"),
+            lambda p: p["manager_ai_feedback"].update(generated_at="2020-01-01T00:00:00Z"),
+            lambda p: p.pop("manager_ai_feedback"),
+            lambda p: p.pop("manager_ai_feedback_private"),
+            lambda p: p.update(manager_ai_feedback=[]),
+            lambda p: p["manager_ai_feedback"].update(ok=1),
+            lambda p: p["manager_ai_feedback"].update(ok=False),
+            lambda p: p.update(manager_ai_feedback_private={}),
+            lambda p: p.update(manager_ai_feedback_private=[None]),
+            lambda p: p.update(manager_ai_feedback_private=p["manager_ai_feedback_private"] * 11),
+        ]
+        for mutate in mutations:
+            production = production_fixture()
+            mutate(production)
+            with self.subTest(snapshot=production), self.assertRaises(ValueError):
+                self.build(production=production)
+        invalid_fields = [("proposed_text", "x" * 2001), ("current_sent_text", None),
+                          ("initial_text_available", 1), ("recorded_text_matches_proposal", "true"),
+                          ("edited", None), ("proposed_text_truncated", 0),
+                          ("current_sent_text_truncated", "false"), ("created_at", None),
+                          ("sent_at", "invalid"), ("draft_id", "not-an-id"),
+                          ("conversation_id", True), ("message_id", -1)]
+        for field, value in invalid_fields:
+            production = production_fixture()
+            production["manager_ai_feedback_private"][0][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.build(production=production)
+
+    def test_feedback_roundtrip_uses_same_age_integrity_contract(self):
+        data = self.build(production=production_fixture())
+        ciphertext = pyrage.encrypt(data, [self.identity.to_public()])
+        self.assertNotIn(b"SYNTHETIC_PRIVATE_PROPOSAL", ciphertext)
+        self.assertNotIn(b"SYNTHETIC_PRIVATE_SENT", ciphertext)
+        self.assertEqual(pyrage.decrypt(ciphertext, [self.identity]), data)
+        with self.assertRaises(Exception):
+            pyrage.decrypt(ciphertext, [pyrage.x25519.Identity.generate()])
+        damaged = ciphertext[:-1] + bytes([ciphertext[-1] ^ 1])
+        with self.assertRaises(Exception):
+            pyrage.decrypt(damaged, [self.identity])
 
     def test_minimization_retains_debuggable_message_order(self):
         source = fixture()
@@ -167,6 +298,51 @@ class EvidenceTests(unittest.TestCase):
             decoded = json.loads(pyrage.decrypt(output.read_bytes(), [self.identity]))
             self.assertEqual([w["name"] for w in decoded["windows"]], ["live", "today", "yesterday"])
             self.assertEqual(decoded["production_sha"], SHA)
+
+    def test_optional_production_cli_roundtrip_and_failures_never_publish_plaintext(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            recipient = parent / "recipient.txt"
+            recipient.write_text(self.recipient)
+            paths = []
+            for name in ("live", "today", "yesterday"):
+                report = fixture()
+                if name != "live":
+                    report.update(window_type="calendar_day", timezone="Europe/Kaliningrad", window_hours=None)
+                path = parent / (name + ".json")
+                path.write_text(json.dumps(report))
+                paths.extend(["--" + name, str(path)])
+            production = parent / "production.json"
+            production.write_text(json.dumps(production_fixture()))
+            output = parent / "result.age"
+            command = [sys.executable, str(TOOL), "encrypt", "--recipient", str(recipient),
+                       "--sha", SHA, "--output", str(output), "--production", str(production)] + paths
+            result = subprocess.run(command, capture_output=True)
+            self.assertEqual(result.returncode, 0)
+            private_markers = (b"SYNTHETIC_PRIVATE_MESSAGE", b"SYNTHETIC_PRIVATE_PROPOSAL", b"SYNTHETIC_PRIVATE_SENT")
+            for marker in private_markers:
+                self.assertNotIn(marker, result.stdout + result.stderr + output.read_bytes())
+            decoded = json.loads(pyrage.decrypt(output.read_bytes(), [self.identity]))
+            self.assertEqual(len(decoded["manager_ai_feedback"]["samples"]), 1)
+            self.assertEqual(output.stat().st_mode & 0o777, 0o600)
+            output.unlink()
+            wrong_sha, stale = production_fixture(), production_fixture()
+            wrong_sha["production"]["sha"] = "b" * 40
+            stale["generated_at"] = "2020-01-01T00:00:00Z"
+            for invalid in (None, [], wrong_sha, stale, {"raw": "SYNTHETIC_PRIVATE_PROPOSAL"}):
+                production.write_text(json.dumps(invalid))
+                failed = subprocess.run(command, capture_output=True)
+                self.assertNotEqual(failed.returncode, 0)
+                self.assertFalse(output.exists())
+                self.assertEqual(failed.stdout, b"")
+                for marker in private_markers:
+                    self.assertNotIn(marker, failed.stderr)
+            with production.open("wb") as stream:
+                stream.truncate(evidence.MAX_INPUT + 1)
+            failed = subprocess.run(command, capture_output=True)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(b"no plaintext was published", failed.stderr)
 
     def test_decrypt_rejects_old_authenticated_capture(self):
         with tempfile.TemporaryDirectory() as directory:

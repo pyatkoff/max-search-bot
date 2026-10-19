@@ -19,6 +19,8 @@ function publicDiagnosticSensitiveKey(string $key): bool
         'flagged_sessions','recent_events',
         'login','display_name','phone','email','username','external_chat_id',
         'external_user_id','recent_manager_priority_events','recent_manager_push_events',
+        'manager_ai_feedback_private','draft_id','proposed_text','current_sent_text',
+        'sent_text_sha256','context_revision','instruction_revision','proposal_json',
     ], true);
 }
 
