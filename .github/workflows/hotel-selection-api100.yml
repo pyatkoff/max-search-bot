@@ -1,0 +1,104 @@
+name: Isolated hotel selection API batch 81-100
+on:
+  push:
+    branches: ['analysis/hotel-selection-api100-20261019']
+    paths: ['tools/hotel100/task.json']
+permissions:
+  contents: read
+concurrency:
+  group: private-hotel-selection-api100-20261019
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Validate isolated input and exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/analysis/hotel-selection-api100-20261019'
+          php -l tools/hotel100/runner.php >/dev/null
+          node --check tools/hotel100/pack_remote.cjs
+          umask 077
+          mkdir -p "$RUNNER_TEMP/hotel100"
+          node tools/hotel100/pack_remote.cjs > "$RUNNER_TEMP/hotel100/remote.php"
+          php -l "$RUNNER_TEMP/hotel100/remote.php" >/dev/null
+          phase="$(node -p "require('./tools/hotel100/task.json').phase")"
+          echo "HOTEL100_PHASE=$phase" >> "$GITHUB_ENV"
+          if [ "$phase" = 'prepare' ] || [ "$phase" = 'evaluate' ]; then
+            git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+            test "$(git rev-parse refs/remotes/origin/main)" = "$(node -p "require('./tools/hotel100/task.json').production_sha")"
+          fi
+      - name: Use configured SSH identity
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/hotel100/ssh_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/hotel100/ssh_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$RUNNER_TEMP/hotel100/ssh_key"
+          fi
+          chmod 600 "$RUNNER_TEMP/hotel100/ssh_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel100/ssh_key" >/dev/null 2>&1
+      - name: Run bounded API experiment
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          opts=(-i "$RUNNER_TEMP/hotel100/ssh_key" -o UserKnownHostsFile="$RUNNER_TEMP/hotel100/known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          if [ "$HOTEL100_PHASE" = 'prepare' ]; then
+            opts+=(-o StrictHostKeyChecking=accept-new)
+          else
+            host_key="$(node -p "require('./tools/hotel100/task.json').ssh_host_key")"
+            printf '%s %s\n' "$DEPLOY_HOST" "$host_key" > "$RUNNER_TEMP/hotel100/known_hosts"
+            opts+=(-o StrictHostKeyChecking=yes)
+          fi
+          set +e
+          timeout 600 ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin" < "$RUNNER_TEMP/hotel100/remote.php" > "$RUNNER_TEMP/hotel100/phase.json" 2> "$RUNNER_TEMP/hotel100/stderr.txt"
+          result=$?
+          set -e
+          if [ "$HOTEL100_PHASE" = 'prepare' ] && [ -f "$RUNNER_TEMP/hotel100/known_hosts" ]; then
+            awk 'NF>=3 {print $2 " " $3; exit}' "$RUNNER_TEMP/hotel100/known_hosts" > "$RUNNER_TEMP/hotel100/host-key.txt"
+          fi
+          if [ "$HOTEL100_PHASE" = 'evaluate' ]; then
+            node -e "const fs=require('fs');let t=JSON.parse(fs.readFileSync('tools/hotel100/task.json','utf8'));t.phase='collect';delete t.ciphertext_base64;fs.writeFileSync('tools/hotel100/task.json',JSON.stringify(t));"
+            node tools/hotel100/pack_remote.cjs > "$RUNNER_TEMP/hotel100/collect.php"
+            ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin" < "$RUNNER_TEMP/hotel100/collect.php" > "$RUNNER_TEMP/hotel100/results.sealed.json" 2>> "$RUNNER_TEMP/hotel100/stderr.txt" || true
+          fi
+          exit "$result"
+      - name: Upload ciphertext and bounded receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotel100-${{ env.HOTEL100_PHASE }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/hotel100/phase.json
+            ${{ runner.temp }}/hotel100/host-key.txt
+            ${{ runner.temp }}/hotel100/results.sealed.json
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Remove temporary runner files
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os,shutil
+          from pathlib import Path
+          folder=Path(os.environ['RUNNER_TEMP'])/'hotel100'
+          if folder.exists() and not folder.is_symlink():shutil.rmtree(folder)
+          PY
