@@ -98,9 +98,12 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   clean(state);
 });
 for(const unavailable of [false,true])test('AI cache '+(unavailable?'unavailable':'miss')+' preserves text and File until explicit regeneration',async({page})=>{
-  const state=await setup(page),text='Свой ответ  ';
+  const state=await setup(page),typed='Свой ответ  ';
   state.setAI(async data=>data.action==='prepared'?{body:unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},status:unavailable?503:200}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
-  await page.locator('#replyText').fill(text);await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await page.locator('#replyText').fill(typed);await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  // WebKit may turn the final filled space into NBSP before any AI action.
+  // Compare the native value byte-for-byte across cache read and insertion.
+  const text=await page.locator('#replyText').inputValue();expect(text.replace(/\u00a0/g,' ')).toBe(typed);
   await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftStatus')).toContainText(unavailable?'Не удалось проверить готовый ответ':'Готового ответа пока нет');
   await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);
   await page.locator('#aiDraftRetry').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftStatus')).not.toContainText('подготовлен заранее');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','generate']);
