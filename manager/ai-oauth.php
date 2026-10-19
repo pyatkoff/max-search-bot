@@ -9,7 +9,9 @@ header('Pragma: no-cache');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+// Browsers may enforce form-action on the authorization POST's redirect too.
+// Permit only the server-pinned callback, never a request-supplied destination.
+header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ".ManagerPreparationOAuth::REDIRECT_URI."; frame-ancestors 'none'; base-uri 'none'");
 
 function preparationOAuthJson(array $body, int $status = 200): never
 {
@@ -46,6 +48,7 @@ function preparationOAuthHtml(string $title, string $body, int $status = 200): n
 function preparationOAuthEscape(string $value): string { return htmlspecialchars($value,ENT_QUOTES,'UTF-8'); }
 
 try {
+    $invalidReason='authorization_request_invalid';
     $query=preparationOAuthForm((string)($_SERVER['QUERY_STRING']??''));
     $action=$query['action']??'';
     $method=(string)($_SERVER['REQUEST_METHOD']??'');
@@ -62,6 +65,7 @@ try {
     $oauth=new ManagerPreparationOAuth();
     $body=[];
     if ($method==='POST') {
+        if ($action==='authorize') $invalidReason='consent_form_invalid';
         if ((int)($_SERVER['CONTENT_LENGTH']??0)>16384) preparationOAuthJson(['error'=>'invalid_request'],413);
         $raw=(string)file_get_contents('php://input',false,null,0,16385);
         if (strlen($raw)>16384) preparationOAuthJson(['error'=>'invalid_request'],413);
@@ -71,7 +75,8 @@ try {
             $body=json_decode($raw,true,16,JSON_THROW_ON_ERROR);
             if (!is_array($body) || array_is_list($body)) preparationOAuthJson(['error'=>'invalid_client_metadata'],400);
         } else {
-            if ($contentType!=='application/x-www-form-urlencoded') preparationOAuthJson(['error'=>'invalid_request'],415);
+            if ($contentType!=='application/x-www-form-urlencoded') preparationOAuthJson(
+                $action==='authorize' ? ['error'=>'invalid_request','error_description'=>'consent_form_encoding'] : ['error'=>'invalid_request'],415);
             $body=preparationOAuthForm($raw);
         }
     }
@@ -107,7 +112,9 @@ try {
         preparationOAuthHtml('Подключения ChatGPT',$html);
     }
     if ($method==='POST') {
-        if (!in_array($body['decision']??null,['allow','deny'],true)) throw new InvalidArgumentException('invalid_request');
+        if (!array_key_exists('decision',$body)) throw new ManagerPreparationOAuthRequestException('consent_decision_missing');
+        if (!in_array($body['decision'],['allow','deny'],true)) throw new ManagerPreparationOAuthRequestException('consent_decision_invalid');
+        $invalidReason='consent_context_invalid';
         $target=$oauth->completeAuthorization($_SESSION,(string)($body['pending_id']??''),$adminId,(string)($body['csrf']??''),$body['decision']==='allow');
         session_write_close();
         header('Location: '.$target,true,303);
@@ -126,7 +133,11 @@ try {
 } catch (InvalidArgumentException $error) {
     $allowed=['invalid_request','invalid_client','invalid_client_metadata','invalid_target','invalid_scope','unsupported_grant_type','invalid_grant','access_denied','csrf','temporarily_unavailable'];
     $code=in_array($error->getMessage(),$allowed,true)?$error->getMessage():'invalid_request';
-    preparationOAuthJson(['error'=>$code],in_array($code,['access_denied','csrf'],true)?403:($code==='temporarily_unavailable'?429:400));
+    $response=['error'=>$code];
+    if ($code==='invalid_request' && ($action??null)==='authorize') {
+        $response['error_description']=$error instanceof ManagerPreparationOAuthRequestException ? $error->reason : $invalidReason;
+    }
+    preparationOAuthJson($response,in_array($code,['access_denied','csrf'],true)?403:($code==='temporarily_unavailable'?429:400));
 } catch (Throwable $error) {
     // No authorization code, token, state, transcript, credential or exception text in logs.
     error_log('MANAGER_PREPARATION_OAUTH_UNAVAILABLE '.get_class($error));

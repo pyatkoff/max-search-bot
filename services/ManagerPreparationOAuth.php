@@ -5,6 +5,15 @@ declare(strict_types=1);
 require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ProjectConfig.php';
 
+/** Fixed diagnostic categories only; never include request or credential values. */
+final class ManagerPreparationOAuthRequestException extends InvalidArgumentException
+{
+    public function __construct(public readonly string $reason)
+    {
+        parent::__construct('invalid_request');
+    }
+}
+
 /** Narrow public-client OAuth boundary. This service never reads a transcript. */
 final class ManagerPreparationOAuth
 {
@@ -172,9 +181,10 @@ final class ManagerPreparationOAuth
     /** Bind a resumed request to the account viewing the explicit consent. */
     public function pendingAuthorization(array &$session, string $id, int $adminId = 0): array
     {
-        if (!preg_match('/\A[a-f0-9]{48}\z/D',$id)) $this->fail('invalid_request');
+        if (!preg_match('/\A[a-f0-9]{48}\z/D',$id)) throw new ManagerPreparationOAuthRequestException('consent_request_invalid');
         $pending=$session['manager_preparation_oauth_pending'][$id]??null;
-        if (!is_array($pending) || (int)($pending['expires_at']??0)<=$this->now()) $this->fail('invalid_request');
+        if (!is_array($pending)) throw new ManagerPreparationOAuthRequestException('consent_request_missing');
+        if ((int)($pending['expires_at']??0)<=$this->now()) throw new ManagerPreparationOAuthRequestException('consent_request_expired');
         if ($adminId>0) {
             if (!$this->activeAdmin($adminId)) $this->fail('access_denied');
             if ((int)$pending['admin_id']!==0 && (int)$pending['admin_id']!==$adminId) $this->fail('access_denied');

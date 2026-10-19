@@ -3,6 +3,7 @@ const {execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..'),sourceRoot=process.env.M2_QA_SOURCE_ROOT||root,origin='http://127.0.0.1:4173';
 const shell=execFileSync('php',['manager2/index.php'],{cwd:sourceRoot,encoding:'utf8'});
+const {startOAuthFixture}=require('./fixtures/oauth-consent');
 const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие даты поездки вам удобны?',next_action:'clarify',reason:'В запросе не указаны даты вылета.',checks:[],evidence_message_ids:[35],history_incomplete:false,revision:'1'.repeat(64),latest_message_id:35,draft_id:'d'.repeat(32),...changes});
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
@@ -160,4 +161,79 @@ test('AI panel travels with the canonical expanded editor and Escape returns the
   await page.setViewportSize({width:390,height:420});const state=await setup(page);await page.locator('#replyText').fill('Свой ответ');await page.locator('#m2ReplyExpand').click();
   await page.locator('#replyText').evaluate(node=>node.setSelectionRange(1,5,'backward'));await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await bounded(page);
   await page.keyboard.press('Escape');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await expect(page.locator('#replyText')).toBeFocused();expect(await page.locator('#replyText').evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([1,5,'backward']);clean(state);
+});
+
+for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390},{decision:'allow',label:'Разрешить',width:430,legacy:true}])test('OAuth native '+(choice.legacy?'legacy policy control':choice.decision)+' posts the actual secure consent form and verifies callback navigation',async({browser,browserName},testInfo)=>{
+  const fixture=await startOAuthFixture(sourceRoot,{legacyFormPolicy:!!choice.legacy});
+  const context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:choice.width,height:900}});
+  const {callbacks,unexpected}=fixture;
+  let failed=false,page,phase='startup',postStatus=null;
+  try{
+    page=await context.newPage();
+    await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
+    const cookies=await context.cookies(fixture.origin+'/manager/');
+    expect(cookies.some(cookie=>cookie.name==='anytour_manager_panel'&&cookie.secure&&cookie.httpOnly&&cookie.path==='/manager/')).toBe(true);
+    const authorizationPage=await page.goto(fixture.origin+fixture.authorization_path);
+    const policy=(await authorizationPage.allHeaders())['content-security-policy'];
+    expect(policy.includes("form-action 'self'"+(choice.legacy?'':(' '+fixture.redirect_uri))+';')).toBe(true);
+    await expect(page.getByRole('heading',{name:'Разрешить подготовку ответов в ChatGPT?'})).toBeVisible();
+    const form=page.locator('form');await expect(form).toHaveAttribute('method','post');
+    await expect(form.locator('input[name="pending_id"]')).toHaveValue(/^[a-f0-9]{48}$/);
+    await expect(form.locator('input[name="csrf"]')).not.toHaveValue('');
+    await page.evaluate(()=>{window.oauthCspDirectives=[];document.addEventListener('securitypolicyviolation',event=>window.oauthCspDirectives.push(event.effectiveDirective));});
+    const image=testInfo.outputPath('oauth-consent-'+choice.width+'-'+browserName+'.png');
+    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{path:image,contentType:'image/png'});
+    phase='native_post';
+    const isPost=request=>request.method()==='POST'&&new URL(request.url()).origin===fixture.origin&&new URL(request.url()).pathname==='/manager/ai-oauth.php';
+    const sent=page.waitForRequest(isPost,{timeout:10000});
+    const posted=!choice.legacy&&browserName==='chromium'?page.waitForResponse(response=>isPost(response.request()),{timeout:10000}):null;
+    await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
+    const body=new URLSearchParams((await sent).postData());
+    expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);expect(body.get('decision')).toBe(choice.decision);
+    phase='callback_navigation';
+    // WebKit omits this redirected POST response event even after reaching the
+    // callback. Require the real PHP 303 at the TLS boundary in every engine;
+    // Chromium additionally exposes it on page.response for positive flows.
+    await expect.poll(()=>fixture.responses.filter(result=>result.method==='POST'&&result.path==='/manager/ai-oauth.php').length).toBe(1);
+    postStatus=fixture.responses.find(result=>result.method==='POST'&&result.path==='/manager/ai-oauth.php').status;
+    expect(postStatus).toBe(303);
+    if(posted)expect((await posted).status()).toBe(303);
+    if(choice.legacy){
+      await expect.poll(async()=>callbacks.length>0||(await page.evaluate(()=>window.oauthCspDirectives??[])).includes('form-action')).toBe(true);
+      const directives=await page.evaluate(()=>window.oauthCspDirectives??[]);
+      // Chromium checks the redirected form destination. Preserve the observed
+      // engine difference if WebKit permits the old policy instead.
+      if(browserName==='chromium'||directives.includes('form-action')){
+        expect(directives).toContain('form-action');expect(callbacks).toHaveLength(0);
+        phase='blocked_callback_retry';
+        const retried=page.waitForResponse(result=>result.request().method()==='POST'&&new URL(result.url()).origin===fixture.origin,{timeout:10000});
+        await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
+        const rejected=await retried;expect(rejected.status()).toBe(400);
+        expect(await rejected.json()).toEqual({error:'invalid_request',error_description:'consent_request_missing'});
+        expect(callbacks).toHaveLength(0);
+      }else{
+        expect(callbacks).toHaveLength(1);expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
+      }
+      expect(unexpected).toEqual([]);return;
+    }
+    await expect.poll(()=>callbacks.length).toBe(1);
+    expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
+    expect(callbacks[0].searchParams.get('state')).toBe('synthetic-state/a?b&c');
+    if(choice.decision==='allow'){
+      const code=callbacks[0].searchParams.get('code');expect(code).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      const token=await context.request.post(fixture.origin+'/manager/ai-oauth.php?action=token',{maxRedirects:0,form:{grant_type:'authorization_code',
+        client_id:fixture.client_id,code,code_verifier:fixture.verifier,resource:fixture.resource,redirect_uri:fixture.redirect_uri}});
+      expect(token.status()).toBe(200);const grant=await token.json();expect(grant.token_type).toBe('Bearer');expect(grant.expires_in).toBe(3600);
+    }else{
+      expect(callbacks[0].searchParams.get('error')).toBe('access_denied');expect(callbacks[0].searchParams.has('code')).toBe(false);
+    }
+    expect(unexpected).toEqual([]);
+  }catch(error){
+    failed=true;
+    const csp=page?await page.evaluate(()=>window.oauthCspDirectives??[]).catch(()=>['unavailable']):[];
+    error.message+=' [OAuth fixture phase='+phase+' post_status='+postStatus+' csp='+csp.join(',')+' callback_count='+callbacks.length+']';
+    throw error;
+  }finally{
+    try{await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}
+  }
 });
