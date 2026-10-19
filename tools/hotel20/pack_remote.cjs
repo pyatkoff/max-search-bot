@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),crypto=require('node:crypto');
+const t=JSON.parse(fs.readFileSync('tools/hotel20/task.json','utf8'));
+if(t.schema!=='anytour_hotel_model20_task_v1'||!['prepare','evaluate','collect','cleanup'].includes(t.phase)||t.case_count!==20||t.max_output_tokens!==2200||t.model!=='gpt-6.1-sol'||t.reasoning_effort!=='low'||t.service_tier!=='default'||t.retries!==0)throw Error('invalid_task');
+for(const [k,n]of[['token',48],['production_sha',40],['client_sha256',64],['input_sha256',64]])if(typeof t[k]!=='string'||!new RegExp('^[0-9a-f]{'+n+'}$').test(t[k]))throw Error('invalid_task');
+if(Buffer.from(t.output_public_base64,'base64').length!==32)throw Error('invalid_recipient');
+if(t.phase==='evaluate'&&(typeof t.ciphertext_base64!=='string'||t.ciphertext_base64.length>5500000))throw Error('invalid_ciphertext');
+if(t.phase!=='prepare'&&(typeof t.ssh_host_key!=='string'||!/^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256) [A-Za-z0-9+/]+={0,2}$/.test(t.ssh_host_key)))throw Error('invalid_host_key');
+let source=fs.readFileSync('tools/hotel20/runner.php','utf8');if(!source.startsWith('<?php\ndeclare(strict_types=1);\n'))throw Error('invalid_source');
+source=source.slice('<?php\ndeclare(strict_types=1);\n'.length);
+process.stdout.write("<?php\ndeclare(strict_types=1);\ndefine('HOTEL20_TASK',json_decode(base64_decode('"+Buffer.from(JSON.stringify(t)).toString('base64')+"'),true,32,JSON_THROW_ON_ERROR));\n"+source);

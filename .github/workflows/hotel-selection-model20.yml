@@ -1,0 +1,100 @@
+name: Private hotel selection model20
+on:
+  push:
+    branches: ['analysis/hotel-selection-model20-20261019']
+    paths: ['tools/hotel20/**', '.github/workflows/hotel-selection-model20.yml']
+permissions:
+  contents: read
+concurrency:
+  group: private-hotel-selection-model20-20261019
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Validate source before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/analysis/hotel-selection-model20-20261019'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          php -l tools/hotel20/runner.php >/dev/null
+          node --check tools/hotel20/pack_remote.cjs
+          umask 077
+          mkdir -p "$RUNNER_TEMP/hotel20"
+          node tools/hotel20/pack_remote.cjs > "$RUNNER_TEMP/hotel20/remote.php"
+          php -l "$RUNNER_TEMP/hotel20/remote.php" >/dev/null
+          phase="$(node -p "require('./tools/hotel20/task.json').phase")"
+          echo "HOTEL20_PHASE=$phase" >> "$GITHUB_ENV"
+          if [ "$phase" = 'prepare' ] || [ "$phase" = 'evaluate' ]; then
+            git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+            test "$(git rev-parse refs/remotes/origin/main)" = "$(node -p "require('./tools/hotel20/task.json').production_sha")"
+          fi
+      - name: Prepare existing SSH identity privately
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/hotel20/ssh_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/hotel20/ssh_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode | tr -d '\r' > "$RUNNER_TEMP/hotel20/ssh_key"
+          fi
+          chmod 600 "$RUNNER_TEMP/hotel20/ssh_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/hotel20/ssh_key" >/dev/null 2>&1
+      - name: Execute bounded private CLI
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          opts=(-i "$RUNNER_TEMP/hotel20/ssh_key" -o UserKnownHostsFile="$RUNNER_TEMP/hotel20/known_hosts" -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=publickey)
+          if [ "$HOTEL20_PHASE" = 'prepare' ]; then
+            opts+=(-o StrictHostKeyChecking=accept-new)
+          else
+            host_key="$(node -p "require('./tools/hotel20/task.json').ssh_host_key")"
+            printf '%s %s\n' "$DEPLOY_HOST" "$host_key" > "$RUNNER_TEMP/hotel20/known_hosts"
+            opts+=(-o StrictHostKeyChecking=yes)
+          fi
+          timeout 600 ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin" < "$RUNNER_TEMP/hotel20/remote.php" > "$RUNNER_TEMP/hotel20/phase.json" 2> "$RUNNER_TEMP/hotel20/stderr.txt"
+          if [ "$HOTEL20_PHASE" = 'prepare' ]; then
+            awk 'NF>=3 {print $2 " " $3; exit}' "$RUNNER_TEMP/hotel20/known_hosts" > "$RUNNER_TEMP/hotel20/host-key.txt"
+          fi
+          if [ "$HOTEL20_PHASE" = 'evaluate' ]; then
+            node -e "const fs=require('fs');let t=JSON.parse(fs.readFileSync('tools/hotel20/task.json','utf8'));t.phase='collect';delete t.ciphertext_base64;fs.writeFileSync('tools/hotel20/task.json',JSON.stringify(t));"
+            node tools/hotel20/pack_remote.cjs > "$RUNNER_TEMP/hotel20/collect.php"
+            ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin" < "$RUNNER_TEMP/hotel20/collect.php" > "$RUNNER_TEMP/hotel20/results.sealed.json" 2>> "$RUNNER_TEMP/hotel20/stderr.txt"
+          fi
+      - name: Upload ciphertext or public receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-hotel20-${{ env.HOTEL20_PHASE }}-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/hotel20/phase.json
+            ${{ runner.temp }}/hotel20/host-key.txt
+            ${{ runner.temp }}/hotel20/results.sealed.json
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+      - name: Remove runner secrets
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, shutil
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'hotel20'
+          if p.exists() and not p.is_symlink(): shutil.rmtree(p)
+          PY

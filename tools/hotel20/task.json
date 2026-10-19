@@ -1,0 +1,15 @@
+{
+  "schema": "anytour_hotel_model20_task_v1",
+  "phase": "prepare",
+  "token": "4fb826eb83b0c384b0c2bc966eca9bb2f72d67e02a249658",
+  "production_sha": "94fcad8d28de8c7271178d6e4f8bb21e6dbfcdf8",
+  "client_sha256": "b2d109e71783fcca3e0b5c8b598b4a17e0a50e08cf5b88c05bc6cdc8434952ab",
+  "input_sha256": "8fe2562bbed2641999a70c0fbffd165a3814e29a6cbacba5f3e4933bb12dd11d",
+  "output_public_base64": "3n4I54+yxrl2S60pdmaCAJ2U1P2QLGBrpAlwLrXNHl4=",
+  "case_count": 20,
+  "max_output_tokens": 2200,
+  "service_tier": "default",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "low",
+  "retries": 0
+}
