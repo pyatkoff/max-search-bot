@@ -62,15 +62,44 @@ function preparationOauthGrant(ManagerPreparationOAuth $oauth, string $client, i
         'resource'=>ManagerPreparationOAuth::RESOURCE,'code'=>$query['code'],'code_verifier'=>$verifier],$target,$session,$id];
 }
 
+/** Read the actual rendered successful controls, not a hand-invented POST body. */
+function preparationOauthConsentForm(string $html, string $decision): array
+{
+    $dom=new DOMDocument();
+    $previous=libxml_use_internal_errors(true);
+    try {
+        if (!$dom->loadHTML($html,LIBXML_NONET)) throw new RuntimeException('Consent HTML unavailable');
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+    }
+    $xpath=new DOMXPath($dom);
+    $forms=$xpath->query('//form[@action="/manager/ai-oauth.php?action=authorize"]');
+    if ($forms->length!==1) throw new RuntimeException('Expected one canonical consent form');
+    $form=$forms->item(0);
+    $fields=[];
+    foreach ($xpath->query('.//input[@type="hidden"]',$form) as $input) {
+        $name=$input->getAttribute('name');
+        if ($name==='' || array_key_exists($name,$fields)) throw new RuntimeException('Invalid consent control');
+        $fields[$name]=$input->getAttribute('value');
+    }
+    $buttons=$xpath->query('.//button[@type="submit" and @name="decision"]',$form);
+    $choices=[];
+    foreach ($buttons as $button) $choices[]=$button->getAttribute('value');
+    if (!in_array($decision,$choices,true)) throw new RuntimeException('Consent submitter unavailable');
+    return ['action'=>$form->getAttribute('action'),'method'=>strtoupper($form->getAttribute('method')),
+        'fields'=>$fields,'choices'=>$choices,'post'=>$fields+['decision'=>$decision]];
+}
+
 /** Exact endpoint, real session and real SQLite service; no production bootstrap. */
-function preparationOauthHttpChecks(): void
+function preparationOauthHttpChecks(bool $browserFixture = false): void
 {
     $tmp=sys_get_temp_dir().'/manager-preparation-oauth-'.bin2hex(random_bytes(6));
     $server=null;
     try {
         foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions',$tmp.'/.well-known',$tmp.'/.well-known/oauth-authorization-server',$tmp.'/.well-known/oauth-authorization-server/manager'] as $directory) mkdir($directory,0700);
         $database=$tmp.'/fixture.sqlite';
-        [$pdo]=preparationOauthFixture($database);
+        [$pdo,,,$fixtureClient]=preparationOauthFixture($database);
         chmod($database,0600);
         $root=dirname(__DIR__);
         foreach (['manager/ai-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php','.well-known/oauth-authorization-server/manager/ai-oauth.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
@@ -83,6 +112,7 @@ function preparationOauthHttpChecks(): void
         // exact RFC 8414 PHP path; never simulate a working directory index.
         file_put_contents($tmp.'/router.php','<?php $path=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if($path==="/.well-known/oauth-authorization-server/manager/ai-oauth.php"){require __DIR__.$path;return true;}return false;');
         file_put_contents($tmp.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();session_regenerate_id(true);$_SESSION["manager_id"]=(int)($_GET["actor"]??1);$_SESSION["csrf"]="synthetic-http-csrf";header("Content-Type:application/json");echo "{}";');
+        file_put_contents($tmp.'/manager/fixture-expire.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();foreach($_SESSION["manager_preparation_oauth_pending"]??[]as$id=>$pending)$_SESSION["manager_preparation_oauth_pending"][$id]["expires_at"]=1;header("Content-Type:application/json");echo "{}";');
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);
         if (!$socket) throw new RuntimeException('OAuth HTTP fixture socket unavailable');
         $address=(string)stream_socket_get_name($socket,false);fclose($socket);
@@ -96,6 +126,19 @@ function preparationOauthHttpChecks(): void
             usleep(10000);
         }
         if (!$ready) throw new RuntimeException('OAuth HTTP fixture not ready');
+        if ($browserFixture) {
+            // CLI-only, synthetic SQLite/cookies. The browser harness supplies
+            // loopback TLS and intercepts the fixed external callback locally.
+            echo 'OAUTH_BROWSER_FIXTURE '.json_encode(['origin'=>'http://'.$address,
+                'authorization_path'=>'/manager/ai-oauth.php?'.http_build_query(
+                    preparationOauthRequest($fixtureClient,str_repeat('q',43))+['ui_locales'=>'ru-RU','action'=>'authorize'],'','&',PHP_QUERY_RFC3986),
+                'client_id'=>$fixtureClient,'verifier'=>str_repeat('q',43),
+                'resource'=>ManagerPreparationOAuth::RESOURCE,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+                'issuer'=>ManagerPreparationOAuth::ISSUER],JSON_THROW_ON_ERROR)."\n";
+            flush();
+            fgets(STDIN);
+            return;
+        }
         $request=static function(string $path,string $method='GET',string $body='',string $cookie='',string $type='application/x-www-form-urlencoded')use($address):array {
             $socket=stream_socket_client('tcp://'.$address,$errno,$error,3);
             if (!$socket) throw new RuntimeException('OAuth HTTP fixture client unavailable');
@@ -150,21 +193,47 @@ function preparationOauthHttpChecks(): void
         $login=$request('/manager/fixture-session.php?actor=1','GET','',$page['cookie']);
         $cookie=$login['cookie'];
         $consent=$request($resume,'GET','',$cookie);
-        preg_match('/name="pending_id" value="([a-f0-9]{48})"/',$consent['body'],$match);
-        $pending=$match[1]??'';
+        $form=preparationOauthConsentForm($consent['body'],'allow');
+        $pending=$form['fields']['pending_id']??'';
         preparationOauthCheck('active admin sees explicit two-scope consent after real session regeneration',
             $consent['status']===200 && $pending!=='' && str_contains($consent['body'],'value="allow"') && str_contains($consent['body'],'value="deny"')
             && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===0);
+        preparationOauthCheck('rendered consent form has canonical POST, exact hidden controls and both explicit submitters',
+            $form['method']==='POST' && array_keys($form['fields'])===['pending_id','csrf']
+            && preg_match('/\A[a-f0-9]{48}\z/D',$pending)===1 && $form['fields']['csrf']!=='' && $form['choices']===['allow','deny']);
         $bad=$request('/manager/ai-oauth.php?action=authorize','POST',http_build_query(['pending_id'=>$pending,'csrf'=>'wrong','decision'=>'allow']),'anytour_manager_panel=unknown-session');
         preparationOauthCheck('HTTP consent cannot authorize without the original session and CSRF', $bad['status']===403 && $bad['location']==='');
-        $post=http_build_query(['pending_id'=>$pending,'csrf'=>'synthetic-http-csrf','decision'=>'allow']);
+        $bad=$request($form['action'],'POST',http_build_query($form['fields']),$cookie);
+        preparationOauthCheck('missing submitter is distinguishable without assuming consent or issuing a grant',
+            $bad['status']===400 && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_decision_missing'] && $bad['location']==='');
+        $bad=$request($form['action'],'POST',http_build_query($form['fields']+['decision'=>'unexpected']),$cookie);
+        preparationOauthCheck('unsupported submitter is distinguishable and never interpreted as consent',
+            $bad['status']===400 && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_decision_invalid']);
+        $bad=$request($form['action'],'POST',json_encode($form['post']),$cookie,'application/json');
+        preparationOauthCheck('wrong consent encoding has a fixed diagnostic and does not accept JSON fallback',
+            $bad['status']===415 && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_form_encoding']);
+        $badPost=$form['post'];$badPost['pending_id']='malformed';
+        $bad=$request($form['action'],'POST',http_build_query($badPost),$cookie);
+        preparationOauthCheck('malformed pending reference has a fixed diagnostic',
+            $bad['status']===400 && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_request_invalid']);
+        $badPost['pending_id']=str_repeat('f',48);
+        $bad=$request($form['action'],'POST',http_build_query($badPost),$cookie);
+        preparationOauthCheck('missing session request is distinguishable from expiry without reflecting any values',
+            $bad['status']===400 && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_request_missing']);
+        $post=http_build_query($form['post']);
         $bad=$request('/manager/ai-oauth.php?action=authorize','POST',$post.'&csrf=wrong',$cookie);
-        preparationOauthCheck('HTTP consent rejects duplicated CSRF fields', $bad['status']===400 && $bad['location']==='');
-        $allowed=$request('/manager/ai-oauth.php?action=authorize','POST',$post,$cookie);
+        preparationOauthCheck('HTTP consent rejects duplicated CSRF fields before authorization',
+            $bad['status']===400 && $bad['location']==='' && $bad['json']===['error'=>'invalid_request','error_description'=>'consent_form_invalid']
+            && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===0);
+        $allowed=$request($form['action'],$form['method'],$post,$cookie);
         parse_str((string)parse_url($allowed['location'],PHP_URL_QUERY),$callback);
         preparationOauthCheck('HTTP explicit consent redirects only to pinned callback with issuer identification',
             $allowed['status']===303 && str_starts_with($allowed['location'],ManagerPreparationOAuth::REDIRECT_URI.'?')
             && ($callback['iss']??null)===ManagerPreparationOAuth::ISSUER && ($callback['state']??null)===$authorization['state'] && isset($callback['code']));
+        $replayed=$request($form['action'],$form['method'],$post,$cookie);
+        preparationOauthCheck('repeated form submission does not issue a second grant',
+            $replayed['status']===400 && $replayed['json']===['error'=>'invalid_request','error_description'=>'consent_request_missing']
+            && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
         $exchange=['grant_type'=>'authorization_code','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'code'=>$callback['code'],'code_verifier'=>$verifier];
         $bad=$request('/manager/ai-oauth.php?action=token','POST',http_build_query($exchange).'&resource%5B%5D=x');
         preparationOauthCheck('HTTP parser rejects bracketed audience parameters', $bad['status']===400);
@@ -176,6 +245,13 @@ function preparationOauthHttpChecks(): void
         $disconnected=$request('/manager/ai-oauth.php?action=connections','POST',http_build_query(['grant_id'=>$family,'csrf'=>'synthetic-http-csrf']),$cookie);
         preparationOauthCheck('HTTP administrator disconnect immediately revokes existing bearer and event family',
             $disconnected['status']===303 && !$active->connectionActive($family,1) && $active->verifyBearer('Bearer '.$tokens['json']['access_token'])===null);
+        $expiring=$request($url,'GET','',$cookie);
+        $expiredForm=preparationOauthConsentForm($expiring['body'],'allow');
+        $request('/manager/fixture-expire.php','GET','',$cookie);
+        $expired=$request($expiredForm['action'],$expiredForm['method'],http_build_query($expiredForm['post']),$cookie);
+        preparationOauthCheck('expired consent form has a distinct fixed diagnostic and retains the ten-minute guard',
+            $expired['status']===400 && $expired['json']===['error'=>'invalid_request','error_description'=>'consent_request_expired']
+            && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
         $login=$request('/manager/fixture-session.php?actor=2');
         $denied=$request($url,'GET','',$login['cookie']);
         preparationOauthCheck('HTTP existing ordinary manager session receives no consent rights', $denied['status']===403 && $denied['json']===['error'=>'access_denied']);
@@ -193,6 +269,10 @@ function preparationOauthHttpChecks(): void
 }
 
 try {
+    if (PHP_SAPI==='cli' && in_array('--browser-fixture',$argv??[],true)) {
+        preparationOauthHttpChecks(true);
+        exit;
+    }
     [$pdo,$clock,$oauth,$client]=preparationOauthFixture();
     $metadata=ManagerPreparationOAuth::authorizationMetadata();
     preparationOauthCheck('issuer path leaves origin resource and OAuth action endpoints unchanged',

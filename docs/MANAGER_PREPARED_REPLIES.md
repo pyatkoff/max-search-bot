@@ -68,6 +68,18 @@ Every request checks current administrator/project/grant state. The owner can re
 connections at `/manager/ai-oauth.php?action=connections`; callbacks stop on grant
 revocation. No raw credentials, message text, drafts or callback secrets are logged.
 
+Browser authorization failures retain their OAuth error and, for `invalid_request`,
+add a fixed `error_description` category. Missing/invalid form decisions, unsupported
+encoding, malformed form fields, and malformed/missing/expired session requests are
+distinguishable without reflecting request values, account IDs or credentials.
+These categories diagnose the failed step; they never imply that consent succeeded
+or relax CSRF, the ten-minute pending lifetime, administrator or project checks.
+The HTTP regression submits controls parsed from the actual rendered consent HTML;
+it is not an owner-session acceptance test. The native Chromium/WebKit fixture clicks
+the rendered form over loopback HTTPS with real secure cookies and the exact PHP
+endpoint/SQLite service; its fixed ChatGPT callback is intercepted locally. Neither
+fixture establishes the owner's live connection or actual ChatGPT code exchange.
+
 Public discovery is limited to authorization/resource metadata. The authorization
 issuer is `https://app.anytoour.ru/manager/ai-oauth.php`. RFC 8414 inserts the
 well-known segment before that issuer path, giving an explicit PHP discovery URL.
