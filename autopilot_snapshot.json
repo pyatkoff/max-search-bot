@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-18T23:50:09+00:00",
+    "generated_at": "2026-10-19T00:24:13+00:00",
     "production": {
-        "sha": "d86dccd229a9d7bb318bcaf59bd6960305e0cb4f",
+        "sha": "7af94dddba1808d90f78e0bc0abb84c15b0200a5",
         "branch": "main"
     },
     "migrations": {
-        "total": 44,
+        "total": 45,
         "pending": 0,
         "checksum_failures": 0,
-        "latest_version": "042_telegram_archive_accounts.sql"
+        "latest_version": "043_manager_ai_draft_feedback.sql"
     },
     "health": {
         "manager_visibility_ok": true,
@@ -31,7 +31,7 @@
             "pending_count": 10,
             "overdue_count": 10,
             "stuck_count": 10,
-            "oldest_wait_seconds": 498453,
+            "oldest_wait_seconds": 500503,
             "routing_blocked_count": 0
         },
         "push": {
@@ -63,9 +63,9 @@
                 "waiting": 8,
                 "assigned_to_others": 103,
                 "load_ms": {
-                    "all": 77.3,
-                    "mine": 15.9,
-                    "waiting": 68.2
+                    "all": 73.4,
+                    "mine": 14.8,
+                    "waiting": 67.2
                 },
                 "sample_check": {
                     "ok": true,
@@ -85,9 +85,9 @@
                 "waiting": 8,
                 "assigned_to_others": 103,
                 "load_ms": {
-                    "all": 69.3,
-                    "mine": 5.4,
-                    "waiting": 70.9
+                    "all": 67.9,
+                    "mine": 5.1,
+                    "waiting": 61.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -107,9 +107,9 @@
                 "waiting": 9,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 96.3,
-                    "mine": 62.4,
-                    "waiting": 96.8
+                    "all": 75.4,
+                    "mine": 35.5,
+                    "waiting": 76.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -129,9 +129,9 @@
                 "waiting": 9,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 74.2,
-                    "mine": 294.8,
-                    "waiting": 81.3
+                    "all": 71.6,
+                    "mine": 283.6,
+                    "waiting": 71.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -151,9 +151,9 @@
                 "waiting": 8,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 79.8,
-                    "mine": 3.2,
-                    "waiting": 83.7
+                    "all": 71.5,
+                    "mine": 2.9,
+                    "waiting": 72.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -173,9 +173,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 79.2,
-                    "mine": 22.2,
-                    "waiting": 75.2
+                    "all": 75.2,
+                    "mine": 19.9,
+                    "waiting": 68.7
                 },
                 "sample_check": {
                     "ok": true,
@@ -195,9 +195,9 @@
                 "waiting": 9,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 73.5,
-                    "mine": 52.6,
-                    "waiting": 67.4
+                    "all": 71.7,
+                    "mine": 46.8,
+                    "waiting": 61.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -222,7 +222,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-18 22:49:52",
+        "since_utc": "2026-10-18 23:24:01",
         "summary": {
             "sessions": 1,
             "raw_sessions": 1,
@@ -261,7 +261,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "d86dccd229a9d7bb318bcaf59bd6960305e0cb4f",
+        "sha": "7af94dddba1808d90f78e0bc0abb84c15b0200a5",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -270,7 +270,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-18T23:50:09Z"
+        "reported_at": "2026-10-19T00:24:13Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -278,7 +278,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-18T23:49:45+00:00",
+        "generated_at": "2026-10-19T00:23:54+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -373,7 +373,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-18T23:49:45+00:00",
+        "generated_at": "2026-10-19T00:23:54+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -671,7 +671,7 @@
                 "date": "2026-10-19",
                 "partial": true,
                 "since_utc": "2026-10-18 22:00:00",
-                "until_utc": "2026-10-18 23:49:45",
+                "until_utc": "2026-10-19 00:23:54",
                 "channels": [
                     {
                         "channel": "max",
@@ -764,7 +764,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-18T23:50:06+00:00",
+        "generated_at": "2026-10-19T00:24:11+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -777,9 +777,9 @@
                 "code_lines": 602
             },
             "services": {
-                "files": 210,
-                "bytes": 1198558,
-                "code_lines": 22010
+                "files": 211,
+                "bytes": 1209867,
+                "code_lines": 22200
             },
             "integrations": {
                 "files": 16,
@@ -788,8 +788,8 @@
             },
             "manager": {
                 "files": 97,
-                "bytes": 933257,
-                "code_lines": 6902
+                "bytes": 936224,
+                "code_lines": 6934
             },
             "website": {
                 "files": 4,
@@ -802,14 +802,14 @@
                 "code_lines": 0
             },
             "migrations": {
-                "files": 44,
-                "bytes": 56460,
+                "files": 45,
+                "bytes": 57512,
                 "code_lines": 0
             },
             "tests": {
-                "files": 363,
-                "bytes": 3954418,
-                "code_lines": 39914
+                "files": 365,
+                "bytes": 4002704,
+                "code_lines": 40560
             },
             "tools": {
                 "files": 69,
@@ -850,8 +850,8 @@
             },
             {
                 "path": "manager/assets/workspace-v2-conversation.js",
-                "lines": 552,
-                "bytes": 60312,
+                "lines": 567,
+                "bytes": 61582,
                 "severity": "medium"
             },
             {
@@ -882,8 +882,8 @@
         "signal_counts": {
             "runtime_ddl": 0,
             "schema_infrastructure_ddl": 1,
-            "direct_sql_writes": 31,
-            "authorization_mentions": 39,
+            "direct_sql_writes": 32,
+            "authorization_mentions": 40,
             "validation_mentions": 18
         },
         "signals": {
@@ -901,6 +901,7 @@
                 "services/ConversationRecorder.php",
                 "services/ExistingWizardStepApplicationService.php",
                 "services/LeadTaskService.php",
+                "services/ManagerAiDraftFeedbackService.php",
                 "services/ManagerAuthService.php",
                 "services/ManagerConversationService.php",
                 "services/ManagerCustomerNameService.php",
@@ -931,6 +932,7 @@
                 "integrations/MaxPrivateAvatarProbe.php",
                 "integrations/MaxWebhookHealth.php",
                 "manager/admin.php",
+                "manager/ai-draft.php",
                 "manager/index.php",
                 "manager/pipeline-admin.php",
                 "manager/post-channels-api.php",
