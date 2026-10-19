@@ -8,8 +8,8 @@ $media=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.js');
 $passed=0;$failed=0;
 function sciCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 
-sciCheck('text send captures source conversation before await',strpos($conversation,'const target=Number(S.current||0),generation=openSeq,text=')!==false&&strpos($conversation,"api('send',{conversation_id:target,text,...")!==false);
-sciCheck('successful send clears only the captured draft version for the authenticated owner',strpos($conversation,'drafts.delete(target)')!==false&&strpos($conversation,'owner===replySessionOwner&&owner===Number(S.manager?.id)&&matchingDraft()')!==false&&strpos($conversation,'drafts.get(target)?.version===draftVersion')!==false&&strpos($conversation,'drafts.delete(Number(S.current))')===false);
+sciCheck('text send captures source conversation before await',strpos($conversation,'const target=Number(S.current||0),generation=openSeq,text=')!==false&&strpos($conversation,"api('send',{conversation_id:target,text,")!==false);
+sciCheck('successful send clears only the captured draft version for the authenticated owner',strpos($conversation,'drafts.delete(target)')!==false&&strpos($conversation,'owner===replySessionOwner&&owner===Number(S.manager?.id)&&matchingDraft()')!==false&&strpos($conversation,'drafts.get(target)?.version===draftVersion')!==false&&strpos($conversation,"(drafts.get(target)?.text||'')===draftText")!==false&&strpos($conversation,'drafts.delete(Number(S.current))')===false);
 // These contracts describe the current controller owner, not the old error copy
 // or the removed 1.4-second success timer. Executed race/failure behavior is also
 // covered by the required reauth/composer Node regression using the real asset.
