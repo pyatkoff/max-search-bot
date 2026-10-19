@@ -18,13 +18,21 @@ on:
       - 'tests/visual/fixtures/post-channel-shell.php'
       - 'tests/mysql/channel-post-registry.php'
       - '.github/workflows/channel-post-context.yml'
+      - '.github/workflows/ci-change-scope.yml'
+      - 'tools/ci_change_scope.js'
+      - 'tests/run_ci_change_scope_regression.js'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  change-scope:
+    uses: ./.github/workflows/ci-change-scope.yml
+
   browser:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
@@ -60,6 +68,8 @@ jobs:
           retention-days: 14
 
   native-mysql:
+    needs: change-scope
+    if: needs.change-scope.outputs.mode == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     services:
