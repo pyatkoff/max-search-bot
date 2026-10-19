@@ -120,6 +120,8 @@ return [
         'php tests/run_web_consultant_v2_regression.php',
     ],
     'manager' => [
+        'php tests/run_manager_ai_draft_feedback_regression.php',
+        'php tests/run_manager_ai_draft_outbound_regression.php',
         'php tests/run_manager_ai_draft_context_regression.php',
         'php tests/run_manager_selection_regression.php',
         'php tests/run_manager_ai_draft_service_regression.php',

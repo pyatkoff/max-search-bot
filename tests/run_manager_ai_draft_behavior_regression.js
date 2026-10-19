@@ -65,6 +65,32 @@ test('explicit validation appends through canonical Conversation, retains newer 
   assert.equal(h.aiCalls()[1].action,'validate');assert.equal(h.aiCalls()[1].revision,'synthetic-revision-1');
   await h.C.open(102);await h.C.open(101);assert.equal(reply.value,'Более новый текст  \nУточните удобные даты поездки.');assertNoMutations(h);
 });
+for(const returnedId of ['a'.repeat(32),null,undefined,'b'.repeat(32),'A'.repeat(32)])test('insertion carries only the same validated optional identity: '+String(returnedId),async()=>{
+  const id='a'.repeat(32),h=await harness(data=>response(data.action==='generate'?generated({draft_id:id}):{ok:true,revision:'synthetic-revision-1',latest_message_id:8,...(returnedId===undefined?{}:{draft_id:returnedId})}));
+  await h.click('aiDraftOpen');await h.insert();
+  assert.equal(h.aiCalls()[1].draft_id,id);assert.equal(h.ids.get('replyText').value,generated().draft);assertNoMutations(h);
+  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();
+  const sends=h.calls.filter(call=>call.action==='send');assert.equal(sends.length,1);
+  assert.equal(sends[0].ai_draft_id,returnedId===id?id:undefined);
+});
+for(const generatedId of [undefined,null,'invalid','A'.repeat(32)])test('legacy or untracked proposal remains usable without accepting an unsolicited validation identity: '+String(generatedId),async()=>{
+  const h=await harness(data=>response(data.action==='generate'?generated(generatedId===undefined?{}:{draft_id:generatedId}):{ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'b'.repeat(32)}));
+  await h.click('aiDraftOpen');await h.insert();assert.equal(h.aiCalls()[1].draft_id,undefined);assert.equal(h.ids.get('replyText').value,generated().draft);
+  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();assert.equal(h.calls.find(call=>call.action==='send').ai_draft_id,undefined);
+});
+test('closing a tracked preview neither associates the composer nor submits feedback',async()=>{
+  const h=await harness(()=>response(generated({draft_id:'a'.repeat(32)})));await h.draft('Manual reply');await h.click('aiDraftOpen');await h.close();
+  assert.equal(h.aiCalls().length,1);assertNoMutations(h);
+  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();assert.equal(h.calls.find(call=>call.action==='send').ai_draft_id,undefined);
+});
+test('late tracked validation cannot associate a different conversation',async()=>{
+  const pending=deferred(),id='a'.repeat(32),h=await harness(data=>data.action==='generate'?response(generated({draft_id:id})):pending.promise);
+  await h.click('aiDraftOpen');await h.insert();await h.C.open(102);await h.draft('Other conversation reply');
+  pending.resolve(response({ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:id}));await tick();
+  assert.equal(h.ids.get('replyText').value,'Other conversation reply');
+  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();
+  const sent=h.calls.find(call=>call.action==='send');assert.equal(sent.conversation_id,102);assert.equal(sent.ai_draft_id,undefined);
+});
 test('a recommendation without a draft has no insertion or validation request',async()=>{
   const h=await harness(()=>response(generated({should_draft:false,draft:null,next_action:'Проверить обещание менеджера'})));
   await h.draft('Свой ответ');await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftInsert').hidden,true);

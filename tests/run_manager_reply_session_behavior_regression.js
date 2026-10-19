@@ -163,6 +163,68 @@ test('late send completion cannot erase a newer draft for the same conversation'
   assert.equal(h.ids.get('replyText').value,'New synthetic text after send began');const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,'New synthetic text after send began');
 });
 
+test('inserted identity survives edits, quick replies, switching and authorized reload with its exact text',async()=>{
+  const saved=storage(),h=createHarness({storage:saved}),id='a'.repeat(32);await h.start();await h.draft('Manual introduction');
+  assert.equal(h.C.insertAiDraft('Synthetic AI reply',h.C.captureReplyContext(),id),true);assertNoMutations(h);
+  await h.draft(h.ids.get('replyText').value+' with manual changes');h.C.insertQuickReply('Manual extra paragraph');
+  const text=h.ids.get('replyText').value;assert.equal(snapshot(saved).drafts[0].aiDraftId,id);
+  await h.C.open(102);await h.draft('Unrelated reply');await h.C.open(101);assert.equal(h.ids.get('replyText').value,text);
+  const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,text);
+  next.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);await next.C.sendReply();
+  const sent=next.calls.find(r=>r.action==='send');assert.equal(sent.conversation_id,101);assert.equal(sent.text,text);assert.equal(sent.ai_draft_id,id);assert.equal(snapshot(saved).drafts.find(d=>d.id===101).aiDraftId,id);
+});
+test('clearing a tracked draft removes its identity before a new manual reply',async()=>{
+  const saved=storage(),h=createHarness({storage:saved});await h.start();h.C.insertAiDraft('Synthetic AI reply',h.C.captureReplyContext(),'a'.repeat(32));await h.draft('');
+  assert.equal(snapshot(saved).drafts.length,0);await h.draft('New manual reply');
+  h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);await h.C.sendReply();
+  assert.equal(h.calls.find(r=>r.action==='send').ai_draft_id,undefined);assert.equal(snapshot(saved).drafts.length,0);
+});
+test('a new untracked AI insertion cannot inherit the previous proposal identity',async()=>{
+  const saved=storage(),h=createHarness({storage:saved});await h.start();h.C.insertAiDraft('Tracked text',h.C.captureReplyContext(),'a'.repeat(32));
+  h.C.insertAiDraft('Untracked text',h.C.captureReplyContext(),null);assert.equal(snapshot(saved).drafts[0].aiDraftId,undefined);
+  h.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);await h.C.sendReply();assert.equal(h.calls.find(r=>r.action==='send').ai_draft_id,undefined);
+});
+test('late same-text success cannot consume a newer proposal identity',async()=>{
+  const saved=storage(),h=createHarness({storage:saved}),oldId='a'.repeat(32),newId='b'.repeat(32);await h.start();h.C.insertAiDraft('Same synthetic reply',h.C.captureReplyContext(),oldId);
+  const sent=deferred(),requested=deferred();h.setHook((url,r)=>r.action==='send'?(requested.resolve(),sent.promise):null);
+  const pending=h.C.sendReply();await requested.promise;
+  // Replace the local draft identity without changing its text while the old
+  // completion is pending; the canonical save owner assigns a new version.
+  h.C.saveDraft(101,newId);sent.resolve(response({ok:true}));await pending;
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.find(r=>r.action==='send').ai_draft_id,oldId);
+  assert.equal(h.ids.get('replyText').value,'Same synthetic reply');assert.equal(snapshot(saved).drafts[0].aiDraftId,newId);
+  const next=createHarness({storage:saved});await next.start({open:false});next.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);await next.C.sendReply();assert.equal(next.calls.find(r=>r.action==='send').ai_draft_id,newId);
+});
+for(const outcome of ['network','failure'])test('unconfirmed tracked '+outcome+' keeps identity and text without replay',async()=>{
+  const saved=storage(),h=createHarness({storage:saved}),id='a'.repeat(32);await h.start();h.C.insertAiDraft('Synthetic AI reply',h.C.captureReplyContext(),id);
+  h.setHook((url,r)=>{if(r.action!=='send')return null;if(outcome==='network')throw new Error('Synthetic loss');return response({ok:false},409)});await h.C.sendReply();
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(snapshot(saved).drafts[0].aiDraftId,id);assert.equal(h.ids.get('replyText').value,'Synthetic AI reply');
+});
+test('media send receives only its caption and retains untracked coverage on failure',async()=>{
+  const saved=storage(),h=createHarness({storage:saved}),id='a'.repeat(32);await h.start();h.C.insertAiDraft('Synthetic AI caption',h.C.captureReplyContext(),id);h.setFile({name:'synthetic.png'});
+  const media=[];h.window.WorkspaceV2Media.send=async(...args)=>{media.push(args);return{ok:false,error:'media_unknown'}};await h.C.sendReply();
+  assert.equal(media.length,1);assert.deepEqual(media[0],['Synthetic AI caption']);assert.equal(h.calls.some(r=>r.action==='send'),false);assert.equal(snapshot(saved).drafts[0].aiDraftId,id);
+});
+test('partial media caption completion cannot consume a newer same-text proposal',async()=>{
+  const saved=storage(),h=createHarness({storage:saved});await h.start();h.C.insertAiDraft('Same synthetic caption',h.C.captureReplyContext(),'a'.repeat(32));h.setFile({name:'synthetic.png'});
+  const sent=deferred();h.window.WorkspaceV2Media.send=()=>sent.promise;const pending=h.C.sendReply();await tick();h.C.saveDraft(101,'b'.repeat(32));
+  sent.resolve({ok:false,confirmed_count:1,caption_sent:true,error_message:'Synthetic partial delivery'});await pending;
+  assert.equal(h.ids.get('replyText').value,'Same synthetic caption');assert.equal(snapshot(saved).drafts[0].aiDraftId,'b'.repeat(32));
+});
+test('tracked drafts cannot cross accounts or inaccessible restored conversations',async()=>{
+  for(const mode of ['account','access']){
+    const saved=storage(),h=createHarness({storage:saved});await h.start();h.C.insertAiDraft('Private synthetic draft',h.C.captureReplyContext(),'a'.repeat(32));
+    const next=createHarness({storage:saved,...(mode==='account'?{managerId:8}:{})});
+    if(mode==='access')next.setHook((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},403):null);
+    await next.start({open:false});assert.equal(next.ids.get('replyText').value,'');assert.equal(saved.values.size,0);assertNoMutations(next);
+  }
+});
+for(const invalid of ['A'.repeat(32),'short',null,3])test('malformed stored identity is ignored without losing manual text: '+String(invalid),async()=>{
+  const {saved}=await seeded(),value=snapshot(saved);value.drafts[0].aiDraftId=invalid;saved.values.set([...saved.values.keys()][0],JSON.stringify(value));
+  const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,'Unsent synthetic draft');
+  next.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);await next.C.sendReply();assert.equal(next.calls.find(r=>r.action==='send').ai_draft_id,undefined);
+});
+
 test('late previous-account attachment success cannot delete a new account draft',async()=>{
   const {saved,h}=await seeded(),sent=deferred();h.setFile({name:'synthetic.png'});h.window.WorkspaceV2Media.send=()=>sent.promise;
   const pending=h.C.sendReply();await tick();h.W.showAuthRecovery();h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});await h.login();

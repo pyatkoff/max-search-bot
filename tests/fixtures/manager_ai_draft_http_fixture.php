@@ -109,6 +109,24 @@ final class ManagerAiDraftService
     }
 }
 
+/** Isolated feedback dependency; the persistence service has its own SQL suite. */
+final class ManagerAiDraftFeedbackService
+{
+    public static function record(int $cid,int $actor,array $snapshot,array $proposal): ?string
+    {
+        managerAiHttpFixtureEvent('feedback_record',['conversation_id'=>$cid,'manager_id'=>$actor,
+            'revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]);
+        return (managerAiHttpFixtureState()['feedback_available'] ?? true) ? str_repeat('d',32) : null;
+    }
+
+    public static function markInsertRequested(int $cid,int $actor,string $id,string $revision,int $latest): ?string
+    {
+        managerAiHttpFixtureEvent('feedback_insert_request',['conversation_id'=>$cid,'manager_id'=>$actor,
+            'draft_id'=>$id,'revision'=>$revision,'latest_message_id'=>$latest]);
+        return (managerAiHttpFixtureState()['feedback_available'] ?? true) && $id===str_repeat('d',32) ? $id : null;
+    }
+}
+
 /** Real loopback HTTP client, also used from an independent child process. */
 function managerAiHttpFixtureRequest(string $address, string $path, array $data = [], string $cookie = '', string $method = 'POST'): array
 {

@@ -8,6 +8,7 @@
   const context=()=>conversation()?.captureReplyContext();
   const latestMessageId=()=>Array.isArray(S.detail?.messages)?S.detail.messages.reduce((latest,message)=>{const id=Number(message.id);return Number.isSafeInteger(id)&&id>latest?id:latest},0):0;
   const messageState=()=>JSON.stringify(S.detail?.messages||[]);
+  const validDraftId=value=>typeof value==='string'&&/^[a-f0-9]{32}$/.test(value);
   function canCompose(){
     const form=$('composer'),reply=$('replyText'),c=S.detail?.conversation,issue=$('conversationLifecycleStatus');
     return !!form&&!!reply&&!form.hidden&&!form.classList.contains('hidden')&&!reply.disabled&&!S.authExpired&&!!S.manager?.id&&!!S.current&&Number(c?.id)===Number(S.current)&&c.status==='manager'&&Number(c.manager_id)===Number(S.manager.id)&&S.detail?.delivery_failure?.category!=='suspended'&&!(issue&&!issue.classList.contains('hidden'));
@@ -106,11 +107,11 @@
   }
   async function insertDraft(){
     sync();if(!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
-    const saved=view.snapshot,result=view.result;
+    const saved=view.snapshot,result=view.result,draftId=validDraftId(view.result.draft_id)?view.result.draft_id:null;
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);status.textContent='Проверяем, что контекст не изменился…';
     const isCurrent=()=>flight===current&&current.ticket===sequence&&view?.result===result&&currentSnapshot(saved);
     try{
-      const checked=await W.request('ai-draft.php','validate',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest,revision:result.revision},{signal:current.controller?.signal,isCurrent});
+      const checked=await W.request('ai-draft.php','validate',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest,revision:result.revision,...(draftId?{draft_id:draftId}:{})},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent()){sync();return false}
       if(checked?.ok!==true||checked.revision!==result.revision||checked.latest_message_id!==saved.latest){
         if(checked?.http_status===403||checked?.http_status===404){resetSession();return false}
@@ -119,7 +120,8 @@
       // Conversation remains the only draft/submit owner. Append to its current
       // text, including edits made while validation was pending; never touch File.
       const savedSelection=selection();
-      if(!conversation().insertQuickReply(result.draft,saved.context)){
+      const validatedId=draftId&&checked.draft_id===draftId?draftId:null;
+      if(!conversation().insertAiDraft(result.draft,saved.context,validatedId)){
         status.textContent='Не удалось добавить черновик. Проверьте текст и доступность ответа.';return false;
       }
       close(false);restoreSelection(savedSelection);return true;

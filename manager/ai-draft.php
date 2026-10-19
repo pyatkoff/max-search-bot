@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftContextService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
+require_once dirname(__DIR__).'/services/ManagerAiDraftFeedbackService.php';
 
 ManagerHttp::startJson();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
@@ -56,7 +57,16 @@ try {
         if (!hash_equals($before['revision'],$revision)) {
             aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
         }
-        aiDraftRespond(['ok'=>true,'revision'=>$before['revision'],'latest_message_id'=>$before['latest_message_id']]);
+        $draftId = $data['draft_id'] ?? null;
+        if ($draftId !== null && (!is_string($draftId) || !preg_match('/^[a-f0-9]{32}$/D',$draftId))) {
+            aiDraftRespond(['ok'=>false,'error'=>'invalid_request']);
+        }
+        // This observes an explicit, authorized insertion request. It does not
+        // establish that the browser inserted text or the manager sent it.
+        $trackedId = $draftId === null ? null : ManagerAiDraftFeedbackService::markInsertRequested(
+            $cid,$actor,$draftId,$revision,$before['latest_message_id']);
+        aiDraftRespond(['ok'=>true,'revision'=>$before['revision'],'latest_message_id'=>$before['latest_message_id'],
+            'draft_id'=>$trackedId]);
     }
 
     // Do not hold the manager's session or a database snapshot while waiting
@@ -79,9 +89,13 @@ try {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
     if (empty($proposal['ok'])) aiDraftRespond($proposal);
+    // Persist only the bounded validated proposal after fresh authorization.
+    // A feedback outage must not discard an otherwise usable suggestion.
+    $draftId = ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal);
     aiDraftRespond($proposal + [
         'revision'=>$after['revision'],
         'latest_message_id'=>$after['latest_message_id'],
+        'draft_id'=>$draftId,
     ]);
 } catch (Throwable $error) {
     // No transcript, prompt, generated text, URL, credential or exception text.

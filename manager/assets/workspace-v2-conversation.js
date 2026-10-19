@@ -2,13 +2,14 @@
 const W=window.WorkspaceV2,{S,$,api,pipe,statusText}=W;let bound=false,busy=false,openSeq=0,opening=0,refreshEpoch=0,refreshPending=null,accessLost=false;const drafts=new Map();
 let lifecycleFlight=null,lifecycleIssue=null;
 const replySessionKey='workspaceV2.replySession.v1',draftLifetime=24*60*60*1000,maxStoredDrafts=20,maxStoredDraftLength=20000;
-let replySessionOwner=0,savedSelection=0;
+let replySessionOwner=0,savedSelection=0,draftSequence=0;
 let photoViewer=null;
 function validId(value){return Number.isSafeInteger(value)&&value>0}
+function validAiDraftId(value){return typeof value==='string'&&/^[a-f0-9]{32}$/.test(value)}
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
 function persistReplySession(){
   if(!replySessionOwner)return;
-  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime).sort((a,b)=>b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text,updatedAt:d.updatedAt}));
+  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime).sort((a,b)=>b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text,updatedAt:d.updatedAt,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{})}));
   // Remove the previous envelope first: a quota error must not revive a sent/cleared draft.
   removeReplySession();
   if(!savedSelection&&!entries.length)return;
@@ -25,7 +26,7 @@ function activateReplySession(managerId){
     const value=raw&&raw.length<=2500000?JSON.parse(raw):null;
     if(value?.version===1&&value.managerId===managerId&&Number.isFinite(value.updatedAt)&&value.updatedAt<=now&&now-value.updatedAt<draftLifetime&&Array.isArray(value.drafts)){
       savedSelection=validId(value.selected)?value.selected:0;
-      for(const d of value.drafts.slice(0,maxStoredDrafts))if(validId(d?.id)&&typeof d.text==='string'&&d.text.length>0&&d.text.length<=maxStoredDraftLength&&Number.isFinite(d.updatedAt)&&d.updatedAt<=now&&now-d.updatedAt<draftLifetime)drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt});
+      for(const d of value.drafts.slice(0,maxStoredDrafts))if(validId(d?.id)&&typeof d.text==='string'&&d.text.length>0&&d.text.length<=maxStoredDraftLength&&Number.isFinite(d.updatedAt)&&d.updatedAt<=now&&now-d.updatedAt<draftLifetime)drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt,version:++draftSequence,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{})});
     }
   }catch(e){}
   persistReplySession();return savedSelection;
@@ -58,16 +59,25 @@ function sendFailureNotice(failure,fallback=''){
 }
 function renderDeliveryFailure(failure,fallback=''){const el=$('deliveryFailure');if(!el)return;const f=failure||null;if(!f){el.textContent='';el.classList.add('hidden');applyInteractionState();return}const message=sendFailureNotice(f,fallback);el.textContent=message;el.classList.remove('hidden');el.classList.toggle('suspended',String(f.category||'')==='suspended');applyInteractionState()}
 function autoGrow(){if(window.WorkspaceV2ReplyEditor?.resize())return;const el=$('replyText');if(!el)return;el.style.height='auto';el.style.height=Math.min(150,Math.max(38,el.scrollHeight))+'px'}
-function saveDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;const text=reply.value;drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now()});persistReplySession()}
+function saveDraft(id=S.current,aiDraftId=undefined){
+  const reply=$('replyText'),key=Number(id||0);if(!reply||!key)return;
+  const text=reply.value,previous=drafts.get(key),candidate=aiDraftId===undefined?previous?.aiDraftId:aiDraftId;
+  const trackedId=validAiDraftId(candidate)?candidate:null;
+  const version=previous&&previous.text===text&&(previous.aiDraftId||null)===trackedId?previous.version:++draftSequence;
+  drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now(),version,...(trackedId?{aiDraftId:trackedId}:{})});persistReplySession();
+}
 function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
 function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
-function insertQuickReply(text,context=captureReplyContext()){
+function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined){
   const current=captureReplyContext(),addition=String(text||'');
   if(!canInsertEmoji()||!context||Object.keys(current).some(key=>current[key]!==context[key])||!addition||/\{\{?[^{}\r\n]+\}\}?/.test(addition))return false;
   const reply=$('replyText'),draft=reply.value;
   reply.value=draft+(draft&&!draft.endsWith('\n')?'\n':'')+addition;
-  saveDraft();autoGrow();reply.focus();return true;
+  saveDraft(S.current,aiDraftId);autoGrow();reply.focus();return true;
 }
+// This records a local source association, not acceptance or delivery. A new
+// untracked AI insertion must not inherit the preceding proposal's identity.
+function insertAiDraft(text,context,aiDraftId=null){return insertQuickReply(text,context,validAiDraftId(aiDraftId)?aiDraftId:null)}
 function addQuickReply(text){return insertQuickReply(text)}
 const replyEmojis=[
   ['😊','Улыбка'],['🙂','Лёгкая улыбка'],['😀','Радость'],['😄','Смех'],['😂','Смех до слёз'],['😉','Подмигивание'],['😍','Восхищение'],['🥰','Нежность'],
@@ -471,6 +481,9 @@ async function sendReply(){
   if(accessLost||S.authExpired||lifecycleBlocked())return;
   const owner=replySessionOwner,draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  saveDraft();
+  const draftVersion=drafts.get(target)?.version,aiDraftId=drafts.get(target)?.aiDraftId;
+  const matchingDraft=()=>drafts.get(target)?.version===draftVersion&&(drafts.get(target)?.text||'')===draftText;
   const manager=Number(S.manager?.id),authGeneration=S.authGeneration;
   const sameSession=()=>!S.authExpired&&S.authGeneration===authGeneration&&Number(S.manager?.id)===manager;
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
@@ -483,7 +496,7 @@ async function sendReply(){
   try{
     let j;
     try{
-      if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text});
+      if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{})});
     }catch(e){
       if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error');
       return;
@@ -492,10 +505,11 @@ async function sendReply(){
     // rejection/unknown result. Consume only a confirmed caption and refresh
     // history without treating the remaining queue as successfully delivered.
     if(hasFile&&j?.ok!==true&&Number(j?.confirmed_count||j?.sent_count||0)>0){
-      if(j.caption_sent&&sameSession()&&owner===replySessionOwner&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+      const consumeCaption=j.caption_sent&&sameSession()&&owner===replySessionOwner&&matchingDraft();
+      if(consumeCaption){drafts.delete(target);persistReplySession()}
       if(currentAttempt()){
         if(j.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}
-        if(j.caption_sent&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
+        if(consumeCaption&&$('replyText').value===draftText){$('replyText').value='';autoGrow()}
         let refreshGeneration=openSeq;
         try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true});refreshGeneration=openSeq;await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error');
@@ -509,10 +523,11 @@ async function sendReply(){
       if(currentAttempt())setReplyStatus(hasFile&&!failure&&j?.error_message?j.error_message:sendFailureNotice(failure,j?.error_message),'error');
       return;
     }
-    if(sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&drafts.get(target)?.text===draftText){drafts.delete(target);persistReplySession()}
+    const consumeDraft=sameSession()&&owner===replySessionOwner&&owner===Number(S.manager?.id)&&matchingDraft();
+    if(consumeDraft){drafts.delete(target);persistReplySession()}
     const stillCurrent=currentAttempt();
     if(stillCurrent){
-      if($('replyText').value===draftText)$('replyText').value='';autoGrow();
+      if(consumeDraft&&$('replyText').value===draftText)$('replyText').value='';autoGrow();
       setReplyStatus('Отправлено','success');
       // Sending already succeeded. A later history/render failure cannot reverse that result.
       let refreshed=false,refreshGeneration=openSeq;
@@ -547,5 +562,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,insertQuickReply,insertAiDraft,openSearch,nextWaiting};
 })();

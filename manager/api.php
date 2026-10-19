@@ -143,7 +143,8 @@ if($action==='lifecycle_state'){
     out(['ok'=>true,'conversation_state'=>$state]);
 }
 if($action==='send'){
-    $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''));
+    $draftId=is_string($data['ai_draft_id']??null)?$data['ai_draft_id']:null;
+    $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''),$draftId);
     if($ok) out(['ok'=>true]);
     $failure=ManagerOutboundService::lastFailure();
     out(['ok'=>false,'error'=>'delivery_failed','failure'=>$failure,'error_message'=>$failure?ManagerOutboundService::failureNotice($failure):'Сообщение не доставлено'],409);
