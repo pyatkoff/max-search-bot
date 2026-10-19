@@ -108,6 +108,15 @@ source/schema in ChatGPT and test a harmless queue read before configuring autom
 
 ## Tools and events
 
+Ordinary tool discovery also accepts the handshake-based MCP versions `2024-11-05`,
+`2025-03-26`, `2025-06-18` and `2025-11-25`. `initialize` returns the supported
+version requested by the client, or the latest supported handshake version for an
+unknown version. It must not force `2026-07-28` on an older client: such a client
+can reject initialization before `tools/list`, even after successful OAuth.
+The handshake advertises tools only; MCP 2.0 Events retain their separate
+`server/discover` contract. All discovery still requires current OAuth/admin/project
+authorization and never reads or changes queued jobs.
+
 MCP exposes only the pending inventory, a fresh context for one job and saving a
 prepared result. There is no send, reassignment, customer-edit or provider tool.
 The worker is deliberately an administrator-scoped capability for assigned-manager
