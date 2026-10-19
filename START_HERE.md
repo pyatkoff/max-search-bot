@@ -696,7 +696,7 @@ Only then centralize one proven duplicate per PR. A confirmed defect may justify
 
 Before merge:
 
-- `bash tests/run_required_checks.sh`;
+- scope-aware required PR CI per `docs/CI_SCOPES.md` (full suite for unknown/shared/mixed changes);
 - green aggregate Regression tests and Retired domain guard;
 - Workspace visual QA for relevant UI changes.
 
