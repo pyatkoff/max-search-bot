@@ -163,8 +163,8 @@ test('AI panel travels with the canonical expanded editor and Escape returns the
   await page.keyboard.press('Escape');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();await expect(page.locator('#m2ReplyEditor')).toBeVisible();await expect(page.locator('#replyText')).toBeFocused();expect(await page.locator('#replyText').evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection])).toEqual([1,5,'backward']);clean(state);
 });
 
-for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390}])test('OAuth native '+choice.decision+' posts the actual secure consent form and reaches the pinned callback',async({browser,browserName},testInfo)=>{
-  const fixture=await startOAuthFixture(sourceRoot);
+for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390},{decision:'allow',label:'Разрешить',width:430,legacy:true}])test('OAuth native '+(choice.legacy?'legacy policy control':choice.decision)+' posts the actual secure consent form and verifies callback navigation',async({browser,browserName},testInfo)=>{
+  const fixture=await startOAuthFixture(sourceRoot,{legacyFormPolicy:!!choice.legacy});
   const context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:choice.width,height:900}});
   const {callbacks,unexpected}=fixture;
   let failed=false,page,phase='startup',postStatus=null;
@@ -173,7 +173,9 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
     const cookies=await context.cookies(fixture.origin+'/manager/');
     expect(cookies.some(cookie=>cookie.name==='anytour_manager_panel'&&cookie.secure&&cookie.httpOnly&&cookie.path==='/manager/')).toBe(true);
-    await page.goto(fixture.origin+fixture.authorization_path);
+    const authorizationPage=await page.goto(fixture.origin+fixture.authorization_path);
+    const policy=(await authorizationPage.allHeaders())['content-security-policy'];
+    expect(policy.includes("form-action 'self'"+(choice.legacy?'':(' '+fixture.redirect_uri))+';')).toBe(true);
     await expect(page.getByRole('heading',{name:'Разрешить подготовку ответов в ChatGPT?'})).toBeVisible();
     const form=page.locator('form');await expect(form).toHaveAttribute('method','post');
     await expect(form.locator('input[name="pending_id"]')).toHaveValue(/^[a-f0-9]{48}$/);
@@ -189,6 +191,24 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);expect(body.get('decision')).toBe(choice.decision);
     expect(response.status()).toBe(303);
     phase='callback_navigation';
+    if(choice.legacy){
+      await expect.poll(async()=>callbacks.length>0||(await page.evaluate(()=>window.oauthCspDirectives??[])).includes('form-action')).toBe(true);
+      const directives=await page.evaluate(()=>window.oauthCspDirectives??[]);
+      // Chromium checks the redirected form destination. Preserve the observed
+      // engine difference if WebKit permits the old policy instead.
+      if(browserName==='chromium'||directives.includes('form-action')){
+        expect(directives).toContain('form-action');expect(callbacks).toHaveLength(0);
+        phase='blocked_callback_retry';
+        const retried=page.waitForResponse(result=>result.request().method()==='POST'&&new URL(result.url()).origin===fixture.origin,{timeout:10000});
+        await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
+        const rejected=await retried;expect(rejected.status()).toBe(400);
+        expect(await rejected.json()).toEqual({error:'invalid_request',error_description:'consent_request_missing'});
+        expect(callbacks).toHaveLength(0);
+      }else{
+        expect(callbacks).toHaveLength(1);expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
+      }
+      expect(unexpected).toEqual([]);return;
+    }
     await expect.poll(()=>callbacks.length).toBe(1);
     expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
     expect(callbacks[0].searchParams.get('state')).toBe('synthetic-state/a?b&c');

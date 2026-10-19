@@ -9,7 +9,9 @@ header('Pragma: no-cache');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+// Browsers may enforce form-action on the authorization POST's redirect too.
+// Permit only the server-pinned callback, never a request-supplied destination.
+header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ".ManagerPreparationOAuth::REDIRECT_URI."; frame-ancestors 'none'; base-uri 'none'");
 
 function preparationOAuthJson(array $body, int $status = 200): never
 {

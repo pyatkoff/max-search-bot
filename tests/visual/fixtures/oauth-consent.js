@@ -11,7 +11,7 @@ const net = require('node:net');
 const readline = require('node:readline');
 const {spawn, execFileSync} = require('node:child_process');
 
-async function startOAuthFixture(sourceRoot) {
+async function startOAuthFixture(sourceRoot, {legacyFormPolicy=false} = {}) {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'oauth-consent-browser-'));
   let child, proxy, callbackServer, networkProxy, lines;
   const callbacks=[], unexpected=[], sockets=new Set();
@@ -53,7 +53,17 @@ async function startOAuthFixture(sourceRoot) {
       const target = new URL(request.url, metadata.origin);
       if (target.origin !== metadata.origin) {response.writeHead(400).end(); return;}
       const upstream = http.request(target, {method:request.method,headers:request.headers}, incoming => {
-        response.writeHead(incoming.statusCode, incoming.headers);
+        const headers={...incoming.headers};
+        if(legacyFormPolicy&&headers['content-security-policy']){
+          const canonical="form-action 'self' "+metadata.redirect_uri+';';
+          if(!headers['content-security-policy'].includes(canonical)){
+            unexpected.push('noncanonical CSP control input');incoming.resume();response.writeHead(502).end();return;
+          }
+          // Explicit negative control only: reproduce the former one-directive
+          // policy while executing the identical endpoint and browser flow.
+          headers['content-security-policy']=headers['content-security-policy'].replace(canonical,"form-action 'self';");
+        }
+        response.writeHead(incoming.statusCode, headers);
         incoming.pipe(response);
       });
       upstream.on('error', () => response.writeHead(502).end());

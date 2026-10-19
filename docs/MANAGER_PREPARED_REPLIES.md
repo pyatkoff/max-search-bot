@@ -79,6 +79,12 @@ it is not an owner-session acceptance test. The native Chromium/WebKit fixture c
 the rendered form over loopback HTTPS with real secure cookies and the exact PHP
 endpoint/SQLite service; its fixed ChatGPT callback is intercepted locally. Neither
 fixture establishes the owner's live connection or actual ChatGPT code exchange.
+The form-navigation CSP allowlist contains only self plus that pinned callback;
+scripts/frames/base URLs remain disabled. A native-browser negative control restores
+only the former self-only form policy to distinguish redirect blocking and a
+subsequent consumed-request rejection from server form parsing. The callback TLS
+server and deny-by-default CONNECT proxy are entirely loopback; browser redirects
+cannot fall through to the Internet, even if route interception misses them.
 
 Public discovery is limited to authorization/resource metadata. The authorization
 issuer is `https://app.anytoour.ru/manager/ai-oauth.php`. RFC 8414 inserts the

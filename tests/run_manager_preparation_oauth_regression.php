@@ -190,6 +190,9 @@ function preparationOauthHttpChecks(bool $browserFixture = false): void
         preparationOauthCheck('OAuth browser response has no-store, no-referrer and frame protections',
             str_contains(strtolower($page['headers']),'cache-control: no-store') && str_contains(strtolower($page['headers']),'referrer-policy: no-referrer')
             && str_contains(strtolower($page['headers']),'x-frame-options: deny'));
+        preg_match('/\r\nContent-Security-Policy: ([^\r\n]+)/i',$page['headers'],$policy);
+        preparationOauthCheck('OAuth navigation policy permits only self and the pinned callback without relaxing other directives',
+            ($policy[1]??'')==="default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ".ManagerPreparationOAuth::REDIRECT_URI."; frame-ancestors 'none'; base-uri 'none'");
         $login=$request('/manager/fixture-session.php?actor=1','GET','',$page['cookie']);
         $cookie=$login['cookie'];
         $consent=$request($resume,'GET','',$cookie);
