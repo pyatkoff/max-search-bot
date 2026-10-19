@@ -1,13 +1,16 @@
 # Manager AI reply drafts
 
-An assigned manager can explicitly request a proposed reply, inspect its reason
-and checks, and append it to the current composer. Sending remains the existing
-manager action. Nothing is generated on startup, polling or conversation open.
+An assigned manager can inspect a previously prepared reply, its reason and checks,
+then explicitly append it to the current composer. AI first reads the ready cache;
+a miss does not call the model. The separate regenerate button retains the existing
+API generation path. Nothing is generated on startup, polling or conversation open.
+Sending remains the existing manager action. The owner-authorized ChatGPT worker
+is documented in [prepared replies](MANAGER_PREPARED_REPLIES.md).
 
 ## Owners and boundaries
 
 - `manager/ai-draft.php`: canonical ManagerHttp authentication, CSRF and JSON
-  boundary; `generate` and read-only `validate` actions.
+  boundary; `generate`, `prepared` and `validate` actions.
 - `ManagerAiDraftContextService`: fresh active-account, project/source visibility
   and strict reply ownership; short read-only snapshots; revision fingerprint.
 - `ManagerAiDraftService`: isolated draft instructions and strict result checks.

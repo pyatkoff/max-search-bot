@@ -64,9 +64,41 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  prepared-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: prepared-fixture-only
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: maxbot_prepared_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pprepared-fixture-only"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql
+          coverage: none
+      - name: Verify prepared replies against native MySQL and forward migration
+        env:
+          PREPARED_REPLY_MYSQL_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test;charset=utf8mb4'
+          PREPARED_REPLY_MYSQL_USER: root
+          PREPARED_REPLY_MYSQL_PASS: prepared-fixture-only
+        run: |
+          php tests/run_manager_prepared_reply_regression.php
+          php tests/mysql/manager-preparation-migrations.php
+
   regression:
     name: regression
-    needs: [inventory, php-syntax, required]
+    needs: [inventory, php-syntax, required, prepared-mysql]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -75,8 +107,10 @@ jobs:
           INVENTORY_RESULT: ${{ needs.inventory.result }}
           SYNTAX_RESULT: ${{ needs.php-syntax.result }}
           REQUIRED_RESULT: ${{ needs.required.result }}
+          PREPARED_MYSQL_RESULT: ${{ needs.prepared-mysql.result }}
         run: |
           printf 'inventory=%s\nsyntax=%s\nrequired=%s\n' "$INVENTORY_RESULT" "$SYNTAX_RESULT" "$REQUIRED_RESULT"
           test "$INVENTORY_RESULT" = success
           test "$SYNTAX_RESULT" = success
           test "$REQUIRED_RESULT" = success
+          test "$PREPARED_MYSQL_RESULT" = success

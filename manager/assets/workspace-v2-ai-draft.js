@@ -79,30 +79,38 @@
       const list=addText('ul','aiDraftChecks','');
       for(const check of result.checks){const text=readable(check);if(!text)continue;const item=document.createElement('li');item.textContent=text;list.appendChild(item)}
     }
-    status.textContent=result.should_draft?'Проверьте текст. Добавим в конец ответа.':'Сначала проверьте рекомендации. Новое сообщение пока не подготовлено.';
+    const prepared=result.prepared===true?'Ответ подготовлен заранее. ':'';
+    status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':'Сначала проверьте рекомендации. Новое сообщение пока не подготовлено.');
   }
-  function failure(result){
+  function failure(result,action){
     clearBody();view.result=null;
     if(['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error)){stale();return}
+    if(action==='prepared'){
+      if(result?.http_status===403||result?.http_status===404){resetSession();return}
+      status.textContent='Не удалось проверить готовый ответ. Ваш текст и вложения сохранены. Можно сформировать ответ заново.';return;
+    }
     if(result?.error==='provider_not_configured'){status.textContent='AI сейчас недоступен. Ваш текст и вложения сохранены.';return}
     status.textContent='Не удалось подготовить ответ. Ваш текст и вложения сохранены. Можно повторить по кнопке.';
   }
   function validResult(result,saved){
     return result?.ok===true&&typeof result.revision==='string'&&!!result.revision&&Number.isSafeInteger(result.latest_message_id)&&result.latest_message_id===saved.latest&&typeof result.should_draft==='boolean'&&(!result.should_draft||typeof result.draft==='string'&&!!result.draft.trim());
   }
-  async function generate(){
+  async function loadProposal(action){
     if(!canCompose()||flight)return false;
     const saved=snapshot(),savedSelection=selection();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false};
-    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();status.textContent='Готовим черновик…';
+    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();status.textContent=action==='prepared'?'Проверяем готовый ответ…':'Готовим черновик…';
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
-      const result=await W.request('ai-draft.php','generate',{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+      const result=await W.request('ai-draft.php',action,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent()){sync();return false}
-      if(!validResult(result,saved)){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result);return false}
-      view.result=result;renderResult(result);return true;
-    }catch(error){if(isCurrent())failure(null);else sync();return false}
+      if(action==='prepared'&&result?.ok===true&&result.prepared===false){status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
+      if(!validResult(result,saved)||action==='prepared'&&result.prepared!==true){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result,action);return false}
+      // Prepared replies are not provider-generated feedback records. Their
+      // insertion still requires the same canonical live-context validation.
+      view.result=action==='prepared'?{...result,draft_id:null}:result;renderResult(view.result);return true;
+    }catch(error){if(isCurrent())failure(null,action);else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false)}}
   }
   async function insertDraft(){
@@ -145,8 +153,8 @@
     const actions=document.createElement('div');actions.className='aiDraftActions';
     insert=document.createElement('button');insert.id='aiDraftInsert';insert.type='button';insert.textContent='Добавить в ответ';insert.hidden=true;actions.appendChild(insert);
     retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Сформировать заново';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
-    bound=true;button.addEventListener('click',()=>{if(view)close();else void generate()});dismiss.addEventListener('click',()=>close());
-    retry.addEventListener('click',()=>void generate());insert.addEventListener('click',()=>void insertDraft());
+    bound=true;button.addEventListener('click',()=>{if(view)close();else void loadProposal('prepared')});dismiss.addEventListener('click',()=>close());
+    retry.addEventListener('click',()=>void loadProposal('generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});
     for(const event of ['input','select','keyup','pointerup'])reply.addEventListener(event,rememberSelection);
     window.addEventListener('pagehide',resetSession);

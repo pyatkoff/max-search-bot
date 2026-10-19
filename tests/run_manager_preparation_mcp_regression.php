@@ -1,0 +1,192 @@
+<?php
+
+declare(strict_types=1);
+
+require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+
+$passed=0;
+function preparationMcpCheck(string $name,bool $ok): void
+{
+    global $passed;
+    if (!$ok) throw new RuntimeException('FAIL '.$name);
+    ++$passed;echo 'PASS '.$name."\n";
+}
+
+final class PreparationMcpPdo extends PDO
+{
+    public $beforeClaim=null;
+    public function prepare(string $query,array $options=[]): PDOStatement|false
+    {
+        if ($this->beforeClaim!==null && str_contains($query,'SET lease_token=?,lease_until=?')) {
+            $hook=$this->beforeClaim;$this->beforeClaim=null;$hook($this);
+        }
+        return parent::prepare($query,$options);
+    }
+}
+
+function preparationMcpFixture(): PreparationMcpPdo
+{
+    $pdo=new PreparationMcpPdo('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+    (new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->setValue(null,false);
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
+    $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
+CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
+CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER);
+INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other',1);
+INSERT INTO managers VALUES(1,'admin',1),(2,'manager',1),(3,'admin',1),(4,'admin',1);
+INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2),(4,1);
+CREATE TABLE manager_preparation_events(subscription_id TEXT PRIMARY KEY,admin_id INTEGER,oauth_connection_id TEXT,
+project_key TEXT,event_name TEXT,arguments_json TEXT,callback_url TEXT,signing_secret TEXT,previous_secret TEXT,
+previous_secret_until TEXT,verified_at TEXT,expires_at TEXT,is_active INTEGER,observed_jobs_json TEXT,
+pending_event_id TEXT,pending_body TEXT,pending_jobs_json TEXT,attempts INTEGER DEFAULT 0,next_attempt_at TEXT,
+lease_token TEXT,lease_until TEXT,last_batch_hash TEXT,last_status INTEGER,created_at TEXT,updated_at TEXT);");
+    return $pdo;
+}
+
+function preparationMcpRpc(string $method,array $params=[]): array { return ['jsonrpc'=>'2.0','id'=>1,'method'=>$method,'params'=>$params]; }
+function preparationMcpHeaders(array $headers): array
+{
+    $out=[];foreach ($headers as $header) { [$key,$value]=explode(': ',$header,2);$out[strtolower($key)]=$value; }return $out;
+}
+
+try {
+    $pdo=preparationMcpFixture();$now=1792406400;$connection=str_repeat('a',32);$connectionValid=true;
+    $secret='whsec_'.base64_encode(str_repeat('k',32));$nextSecret='whsec_'.base64_encode(str_repeat('n',32));
+    $job=['job_id'=>str_repeat('1',64),'project_key'=>'anytour','context_revision'=>str_repeat('2',64),
+        'conversation_id'=>10,'manager_id'=>2,'latest_message_id'=>99,'created_at'=>'2026-10-19 08:00:00',
+        'private_text'=>'PRIVATE TRANSCRIPT','private_name'=>'PRIVATE CUSTOMER'];
+    $jobs=[$job];$calls=[];$requests=[];$statuses=[];$challengeGood=true;$resolveIps=['8.8.8.8'];$pendingAdvance=0;
+    $resolver=static function(string $host) use (&$resolveIps): array { return $resolveIps; };
+    $clock=static function() use (&$now): int { return $now; };
+    $transport=static function(string $url,array $headers,string $body,array $destination) use (&$requests,&$statuses,&$challengeGood): array {
+        $decoded=json_decode($body,true);$requests[]=['url'=>$url,'headers'=>preparationMcpHeaders($headers),'body'=>$body,'decoded'=>$decoded,'destination'=>$destination];
+        if (($decoded['type']??'')==='verification') return ['status'=>200,'body'=>json_encode(['challenge'=>$challengeGood?$decoded['challenge']:'wrong'])];
+        return ['status'=>array_shift($statuses)??204,'body'=>''];
+    };
+    $webhook=new ManagerPreparationWebhook($transport,$resolver,$clock);
+    $store=static function(string $op,array $args) use (&$calls,&$jobs,&$pendingAdvance,&$now): array {
+        $calls[]=[$op,$args];
+        if ($op==='pending' && $pendingAdvance>0) { $now+=$pendingAdvance;$pendingAdvance=0; }
+        return match ($op) {
+            'pending'=>['ok'=>true,'jobs'=>array_slice($jobs,0,$args[0])],
+            'context'=>['ok'=>true,'revision'=>str_repeat('2',64),'context'=>['messages'=>[['id'=>99,'text'=>'Synthetic customer']]]],
+            'complete'=>['ok'=>true,'job_id'=>$args[0],'idempotent'=>true],
+        };
+    };
+    $active=static function(string $family,int $actor) use (&$connectionValid,$connection): bool { return $connectionValid && $family===$connection && in_array($actor,[1,4],true); };
+    $service=new ManagerPreparationMcpService($pdo,$store,$webhook,$clock,$active);
+    $subscribe=['name'=>ManagerPreparationMcpService::EVENT,'arguments'=>['project_key'=>'anytour'],
+        'delivery'=>['mode'=>'webhook','url'=>'https://callback.example.com/events/abc','secret'=>$secret]];
+
+    preparationMcpCheck('MCP2 discovery advertises tools and events',isset($service->handle(preparationMcpRpc('server/discover'),1)['result']['capabilities']['events']));
+    preparationMcpCheck('only protocol 2026-07-28 is advertised',$service->handle(preparationMcpRpc('server/discover'),1)['result']['supportedVersions']===['2026-07-28']);
+    foreach ([0,2,3] as $actor) preparationMcpCheck('current active project admin required '.$actor,($service->handle(preparationMcpRpc('tools/list'),$actor)['error']['code']??0)===-32001);
+    preparationMcpCheck('invalid JSON-RPC envelope is rejected',($service->handle(['method'=>'tools/list'],1)['error']['code']??0)===-32600);
+    preparationMcpCheck('unknown method is rejected',($service->handle(preparationMcpRpc('customers/send'),1)['error']['code']??0)===-32601);
+    $tools=$service->handle(preparationMcpRpc('tools/list'),1)['result']['tools'];
+    preparationMcpCheck('exactly the three preparation tools are exposed',array_column($tools,'name')===['list_pending_replies','get_reply_context','save_prepared_reply']);
+    preparationMcpCheck('tools advertise matching OAuth scope metadata',$tools[0]['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]] && $tools[0]['_meta']['securitySchemes']===$tools[0]['securitySchemes']);
+    $listed=$service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>20]]),1)['result']['structuredContent'];
+    preparationMcpCheck('metadata strips customer identity and transcript',!str_contains(json_encode($listed),'PRIVATE') && !isset($listed['jobs'][0]['conversation_id']));
+    preparationMcpCheck('canonical context revision is exposed',$listed['jobs'][0]['revision']===$job['context_revision']);
+    $jobs[]=$job+[];$jobs[1]['project_key']='other';
+    preparationMcpCheck('metadata cannot leak another project',count($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies']),1)['result']['structuredContent']['jobs'])===1);$jobs=[$job];
+    preparationMcpCheck('tool batch limit cannot exceed twenty',($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>21]]),1)['error']['code']??0)===-32602);
+    $context=$service->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>$job['job_id']]]),1);
+    preparationMcpCheck('canonical store receives the opaque context job',$context['result']['structuredContent']['ok'] && end($calls)===['context',[$job['job_id']]]);
+    $proposal=['ok'=>true,'should_draft'=>false,'draft'=>'','reason'=>'Synthetic','checks'=>[]];
+    $save=$service->handle(preparationMcpRpc('tools/call',['name'=>'save_prepared_reply','arguments'=>['job_id'=>$job['job_id'],'revision'=>$job['context_revision'],'proposal'=>$proposal]]),1);
+    preparationMcpCheck('save uses canonical idempotent store without a provider',$save['result']['structuredContent']['idempotent'] && end($calls)===['complete',[$job['job_id'],$job['context_revision'],$proposal]]);
+    preparationMcpCheck('unknown tool arguments fail closed',($service->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>$job['job_id'],'project'=>'other']]),1)['error']['code']??0)===-32602);
+    preparationMcpCheck('event definition has strict project filter',$service->handle(preparationMcpRpc('events/list'),1)['result']['events'][0]['inputSchema']['properties']['project_key']['const']==='anytour');
+    preparationMcpCheck('subscription requires a live OAuth connection',($service->handle(preparationMcpRpc('events/subscribe',$subscribe),1)['error']['code']??0)===-32001);
+
+    $sub=$service->handle(preparationMcpRpc('events/subscribe',$subscribe),1,$connection);
+    preparationMcpCheck('signed callback challenge activates a persistent subscription',isset($sub['result']['id']) && count($requests)===1 && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===1);
+    $subId=$sub['result']['id'];$challenge=$requests[0];$headers=$challenge['headers'];
+    $expected='v1,'.base64_encode(hash_hmac('sha256',$headers['webhook-id'].'.'.$headers['webhook-timestamp'].'.'.$challenge['body'],str_repeat('k',32),true));
+    preparationMcpCheck('challenge signature uses exact Standard Webhooks bytes',hash_equals($expected,$headers['webhook-signature']) && $headers['x-mcp-subscription-id']===$subId);
+    preparationMcpCheck('callback uses the validated pinned public destination',$challenge['destination']===['host'=>'callback.example.com','ip'=>'8.8.8.8']);
+    $same=$service->handle(preparationMcpRpc('events/subscribe',$subscribe),1,$connection);
+    preparationMcpCheck('refresh is idempotent with bounded verification cache',$same['result']['id']===$subId && count($requests)===1);
+    $short=$subscribe;$short['ttlMs']=5000;$shortResult=$service->handle(preparationMcpRpc('events/subscribe',$short),1,$connection);
+    preparationMcpCheck('granted expiration never exceeds requested TTL',strtotime($shortResult['result']['refreshBefore'])===$now+5);
+    $long=$subscribe;$long['ttlMs']=172800000;$longResult=$service->handle(preparationMcpRpc('events/subscribe',$long),1,$connection);
+    preparationMcpCheck('subscription TTL is capped at twenty four hours',strtotime($longResult['result']['refreshBefore'])===$now+86400);
+    $bad=$subscribe;$bad['arguments']['project_key']='other';
+    preparationMcpCheck('other project subscription is rejected',($service->handle(preparationMcpRpc('events/subscribe',$bad),1,$connection)['error']['code']??0)===-32602);
+    $bad=$subscribe;$bad['delivery']['secret']='whsec_'.base64_encode('short');
+    preparationMcpCheck('short signing secret is rejected',($service->handle(preparationMcpRpc('events/subscribe',$bad),1,$connection)['error']['code']??0)===-32602);
+    foreach (['http://callback.example.com/a','https://127.0.0.1/a','https://169.254.169.254/a','https://user:pass@callback.example.com/a','https://callback.example.com:444/a','https://callback.example.com/a#fragment','https://localhost/a'] as $url) preparationMcpCheck('unsafe callback blocked '.parse_url($url,PHP_URL_HOST),$webhook->destination($url)===null);
+    $resolveIps=['8.8.8.8','10.0.0.1'];preparationMcpCheck('mixed public and private DNS answer is rejected',$webhook->destination('https://callback.example.com/a')===null);$resolveIps=['8.8.8.8'];
+    $challengeGood=false;$bad=$subscribe;$bad['delivery']['url']='https://callback.example.com/different';$failed=$service->handle(preparationMcpRpc('events/subscribe',$bad),1,$connection);
+    preparationMcpCheck('wrong verification echo returns categorized callback error',($failed['error']['code']??0)===-32015 && ($failed['error']['data']['reason']??'')==='challenge_failed');$challengeGood=true;
+    preparationMcpCheck('failed callback is never persisted',(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===1);
+
+    preparationMcpCheck('active subscription gate checks current principal',$service->hasActiveSubscriptions());
+    $before=count($requests);$first=$service->deliverPending();$event=$requests[count($requests)-1];
+    preparationMcpCheck('pending batch is delivered exactly once',$first['accepted']===1 && count($requests)===$before+1);
+    preparationMcpCheck('event contains only count and opaque batch hash',array_keys($event['decoded']['data'])===['project_key','pending_count','batch_hash'] && !str_contains($event['body'],'PRIVATE') && !str_contains($event['body'],$job['job_id']));
+    $again=$service->deliverPending();preparationMcpCheck('acknowledged unchanged queue causes no repeated wakeup',$again['unchanged']===1 && count($requests)===$before+1);
+    $jobs=[];$again=$service->deliverPending();preparationMcpCheck('saving a draft and shrinking queue does not create a feedback event',$again['unchanged']===1 && count($requests)===$before+1);
+    $jobs=[$job];$jobs[0]['context_revision']=str_repeat('3',64);$statuses=[500];$retry=$service->deliverPending();$failedEvent=end($requests);
+    preparationMcpCheck('changed source revision creates new bounded retry work',$retry['retried']===1 && $failedEvent['decoded']['eventId']!==$event['decoded']['eventId']);
+    $count=count($requests);$service->deliverPending();preparationMcpCheck('backoff prevents premature retries',count($requests)===$count);
+    $now+=60;$service=new ManagerPreparationMcpService($pdo,$store,$webhook,$clock,$active);$retried=$service->deliverPending();$resent=end($requests);
+    preparationMcpCheck('retry survives restart with stable event ID and body',$retried['accepted']===1 && $resent['body']===$failedEvent['body'] && $resent['headers']['webhook-id']===$failedEvent['headers']['webhook-id']);
+    preparationMcpCheck('retry signs a fresh timestamp',$resent['headers']['webhook-timestamp']!==$failedEvent['headers']['webhook-timestamp'] && $resent['headers']['webhook-signature']!==$failedEvent['headers']['webhook-signature']);
+    $rotate=$subscribe;$rotate['delivery']['secret']=$nextSecret;$service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);
+    $jobs[0]['context_revision']=str_repeat('4',64);$service->deliverPending();$rotated=end($requests);
+    preparationMcpCheck('secret rotation signs both keys for a bounded window',count(explode(' ',$rotated['headers']['webhook-signature']))===2);
+    $jobs[0]['context_revision']=str_repeat('7',64);$signature=hash('sha256',$jobs[0]['job_id'].':'.$jobs[0]['context_revision']);$count=count($requests);
+    $pdo->beforeClaim=static function(PDO $db) use ($signature): void {
+        $db->prepare('UPDATE manager_preparation_events SET observed_jobs_json=?')->execute([json_encode([$signature])]);
+    };
+    $race=$service->deliverPending();
+    preparationMcpCheck('concurrent acknowledgement is reread after acquiring the lease',$race['unchanged']===1 && count($requests)===$count);
+    $jobs[0]['context_revision']=str_repeat('8',64);
+    $pdo->beforeClaim=static function(PDO $db) use (&$now): void {
+        $db->prepare('UPDATE manager_preparation_events SET next_attempt_at=?')->execute([gmdate('Y-m-d H:i:s',$now+60)]);
+    };
+    $service->deliverPending();
+    preparationMcpCheck('concurrent retry backoff cannot be bypassed by a stale inventory',count($requests)===$count);
+    $pdo->exec('UPDATE manager_preparation_events SET next_attempt_at=NULL');
+    $second=$rotate;$second['delivery']['url']='https://callback.example.com/second';
+    $secondResult=$service->handle(preparationMcpRpc('events/subscribe',$second),4,$connection);
+    $count=count($requests);$pendingAdvance=31;$slow=$service->deliverPending();
+    preparationMcpCheck('expired delivery lease retries without revoking an authorized subscription',$slow['retried']===1 && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events WHERE is_active=1')->fetchColumn()===2);
+    preparationMcpCheck('later subscriptions receive leases based on a fresh clock',$slow['accepted']===1 && count($requests)===$count+1);
+    $pdo->prepare('DELETE FROM manager_preparation_events WHERE subscription_id=?')->execute([$secondResult['result']['id']]);
+    $now+=60;
+    $jobs[0]['context_revision']=str_repeat('9',64);
+    $pdo->exec("UPDATE manager_preparation_events SET pending_event_id=NULL,pending_body=NULL,pending_jobs_json=NULL,attempts=0,next_attempt_at=NULL");
+    $statuses=[500,500,500,500,500];$stopped=null;
+    foreach ([0,60,120,240,480] as $advance) { $now+=$advance;$stopped=$service->deliverPending(); }
+    preparationMcpCheck('transient delivery attempts are bounded at five',$stopped['stopped']===1 && (int)$pdo->query('SELECT attempts FROM manager_preparation_events')->fetchColumn()===5);
+    $service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);
+    $statuses=[410];$stopped=$service->deliverPending();
+    preparationMcpCheck('HTTP 410 stops retries and collection gate',$stopped['stopped']===1 && !$service->hasActiveSubscriptions());
+    $count=count($requests);$now+=1000;$service->deliverPending();preparationMcpCheck('stopped subscription is not retried',count($requests)===$count);
+    $service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);$jobs[0]['context_revision']=str_repeat('6',64);
+    $connectionValid=false;$count=count($requests);$callCount=count($calls);
+    preparationMcpCheck('OAuth revocation closes active collection gate',!$service->hasActiveSubscriptions());$revoked=$service->deliverPending();
+    preparationMcpCheck('OAuth revocation stops delivery before context or queue reads',$revoked['stopped']===1 && count($requests)===$count && count($calls)===$callCount);$connectionValid=true;
+    $service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);$pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');$count=count($requests);$revoked=$service->deliverPending();
+    preparationMcpCheck('admin deactivation stops ongoing subscriptions',$revoked['stopped']===1 && count($requests)===$count);$pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
+    $service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);
+    $unsubscribe=$rotate;unset($unsubscribe['delivery']['secret']);$resolveIps=['10.0.0.1'];
+    $unsubscribed=$service->handle(preparationMcpRpc('events/unsubscribe',$unsubscribe),1,$connection);
+    preparationMcpCheck('unsubscribe works after destination becomes unavailable',isset($unsubscribed['result']) && !$service->hasActiveSubscriptions());
+    preparationMcpCheck('unsubscribe is idempotent',isset($service->handle(preparationMcpRpc('events/unsubscribe',$unsubscribe),1,$connection)['result']));$resolveIps=['8.8.8.8'];
+    $service->handle(preparationMcpRpc('events/subscribe',$rotate),1,$connection);$count=count($requests);$now+=86401;
+    preparationMcpCheck('finite subscription expiry stops collection and delivery',!$service->hasActiveSubscriptions() && $service->deliverPending()['subscriptions']===0 && count($requests)===$count);
+    for ($i=0;$i<20;++$i) {
+        $bounded=$rotate;$bounded['delivery']['url']='https://callback.example.com/bounded/'.$i;
+        $created=$service->handle(preparationMcpRpc('events/subscribe',$bounded),1,$connection);
+        if (!isset($created['result']['id'])) throw new RuntimeException('FAIL bounded subscription fixture');
+    }
+    $bounded['delivery']['url']='https://callback.example.com/bounded/overflow';
+    preparationMcpCheck('active subscription cap prevents starvation beyond one bounded delivery pass',($service->handle(preparationMcpRpc('events/subscribe',$bounded),1,$connection)['error']['code']??0)===-32602);
+    echo 'Manager preparation MCP regression: '.$passed." checks passed\n";
+} catch (Throwable $error) { fwrite(STDERR,$error->getMessage()."\n");exit(1); }
