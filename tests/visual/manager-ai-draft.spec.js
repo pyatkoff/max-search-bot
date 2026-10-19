@@ -202,7 +202,7 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     await expect(form.locator('input[name="csrf"]')).not.toHaveValue('');
     await page.evaluate(()=>{window.oauthCspDirectives=[];document.addEventListener('securitypolicyviolation',event=>window.oauthCspDirectives.push(event.effectiveDirective));});
     const image=testInfo.outputPath('oauth-consent-'+choice.width+'-'+browserName+'.png');
-    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{path:image,contentType:'image/png'});
+    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{body:fs.readFileSync(image),contentType:'image/png'});
     phase='native_post';
     const isPost=request=>request.method()==='POST'&&new URL(request.url()).origin===fixture.origin&&new URL(request.url()).pathname==='/manager/ai-oauth.php';
     const sent=page.waitForRequest(isPost,{timeout:10000});
