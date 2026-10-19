@@ -31,7 +31,7 @@ jobs:
           php -l "$RUNNER_TEMP/hotel100/remote.php" >/dev/null
           phase="$(node -p "require('./tools/hotel100/task.json').phase")"
           echo "HOTEL100_PHASE=$phase" >> "$GITHUB_ENV"
-          if [ "$phase" = 'prepare' ] || [ "$phase" = 'evaluate' ]; then
+          if [ "$phase" = 'prepare' ] || [ "$phase" = 'evaluate' ] || [ "$phase" = 'continue' ]; then
             git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
             test "$(git rev-parse refs/remotes/origin/main)" = "$(node -p "require('./tools/hotel100/task.json').production_sha")"
           fi
@@ -74,7 +74,7 @@ jobs:
           if [ "$HOTEL100_PHASE" = 'prepare' ] && [ -f "$RUNNER_TEMP/hotel100/known_hosts" ]; then
             awk 'NF>=3 {print $2 " " $3; exit}' "$RUNNER_TEMP/hotel100/known_hosts" > "$RUNNER_TEMP/hotel100/host-key.txt"
           fi
-          if [ "$HOTEL100_PHASE" = 'evaluate' ]; then
+          if [ "$HOTEL100_PHASE" = 'evaluate' ] || [ "$HOTEL100_PHASE" = 'continue' ]; then
             node -e "const fs=require('fs');let t=JSON.parse(fs.readFileSync('tools/hotel100/task.json','utf8'));t.phase='collect';delete t.ciphertext_base64;fs.writeFileSync('tools/hotel100/task.json',JSON.stringify(t));"
             node tools/hotel100/pack_remote.cjs > "$RUNNER_TEMP/hotel100/collect.php"
             ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php -d display_errors=0 -d log_errors=0 /dev/stdin" < "$RUNNER_TEMP/hotel100/collect.php" > "$RUNNER_TEMP/hotel100/results.sealed.json" 2>> "$RUNNER_TEMP/hotel100/stderr.txt" || true
