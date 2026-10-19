@@ -30,6 +30,13 @@ final class ManagerPreparationMcpService
             $this->requireAdmin($authorizedAdminId);
             $params = $rpc['params'] ?? [];
             if (!is_array($params) || array_is_list($params) && $params !== []) throw new InvalidArgumentException();
+            // Protocol metadata is not a tool argument or an authorization source.
+            // MCP 2026-07-28 carries it on every request; older clients may omit it.
+            if (array_key_exists('_meta',$params)) {
+                $meta=$params['_meta'];
+                if (!is_array($meta) || ($meta !== [] && array_is_list($meta))) throw new InvalidArgumentException();
+                unset($params['_meta']);
+            }
             $result = match ($rpc['method']) {
                 'server/discover'=>['resultType'=>'complete','supportedVersions'=>['2026-07-28'],
                     'capabilities'=>['tools'=>(object)[],'events'=>(object)[]],
