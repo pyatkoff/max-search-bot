@@ -25,15 +25,27 @@ PHP);
     foreach(['ManagerPreparationOAuth','ManagerPreparationMcpService']as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/config.php';");
     foreach(['ManagerPreparationMcpDiagnostics','DiagnosticLogger']as $name)copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
     copy(dirname(__DIR__).'/manager/ai-mcp.php',$tmp.'/manager/ai-mcp.php');
+    // Simulate CGI representations while keeping the actual incoming header
+    // available to PHP's native header API. This router exists only in /tmp.
+    file_put_contents($tmp.'/router.php',<<<'PHP'
+<?php
+$mode=$_SERVER['HTTP_X_FIXTURE_HEADER_PATH']??'';
+if($mode==='redirect'){$_SERVER['REDIRECT_HTTP_AUTHORIZATION']=$_SERVER['HTTP_AUTHORIZATION']??'';unset($_SERVER['HTTP_AUTHORIZATION']);}
+if($mode==='header_api')unset($_SERVER['HTTP_AUTHORIZATION']);
+if($mode==='conflict')$_SERVER['REDIRECT_HTTP_AUTHORIZATION']='Bearer '.str_repeat('x',43);
+if($mode==='forwarded')$_SERVER['HTTP_X_FORWARDED_AUTHORIZATION']='Bearer '.str_repeat('x',43);
+require __DIR__.'/manager/ai-mcp.php';
+PHP);
     $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('socket_unavailable');
     $address=stream_socket_get_name($socket,false);fclose($socket);
-    $server=proc_open([PHP_BINARY,'-d','display_errors=0','-S',$address,'-t',$tmp],[0=>['pipe','r'],1=>['file',$tmp.'/server.log','a'],2=>['file',$tmp.'/server.log','a']],$pipes);
+    $server=proc_open([PHP_BINARY,'-d','display_errors=0','-S',$address,'-t',$tmp,$tmp.'/router.php'],[0=>['pipe','r'],1=>['file',$tmp.'/server.log','a'],2=>['file',$tmp.'/server.log','a']],$pipes);
     if(!is_resource($server))throw new RuntimeException('server_unavailable');fclose($pipes[0]);
     for($i=0;$i<100;++$i){if($s=@stream_socket_client('tcp://'.$address,$e,$m,.03)){fclose($s);break;}usleep(10000);}
-    $request=static function(string $body,string $authorization='',string $method='POST',string $origin='')use($address):array{
+    $request=static function(string $body,string $authorization='',string $method='POST',string $origin='',string $fixtureMode='')use($address):array{
         $headers="Content-Type: application/json\r\n";
         if($authorization!=='')$headers.='Authorization: '.$authorization."\r\n";
         if($origin!=='')$headers.='Origin: '.$origin."\r\n";
+        if($fixtureMode!=='')$headers.='X-Fixture-Header-Path: '.$fixtureMode."\r\n";
         $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>$headers,'content'=>$body,'ignore_errors'=>true,'timeout'=>3]]);
         $raw=file_get_contents('http://'.$address.'/manager/ai-mcp.php',false,$ctx);
         $responseHeaders=$http_response_header??[];
@@ -69,6 +81,15 @@ PHP);
     $log=(string)file_get_contents($tmp.'-private/events.log');
     preparationHttpCheck('actual HTTP log never includes bearer or hostile origin',
         !str_contains($log,str_repeat('x',43))&&!str_contains($log,str_repeat('z',43))&&!str_contains($log,'hostile.example'));
+    foreach(['redirect','header_api']as $mode){
+        @unlink($tmp.'/dispatch');$r=$request($rpc,$token,'POST','',$mode);
+        preparationHttpCheck('real Authorization survives CGI representation '.$mode,
+            $r['status']===200&&($r['json']['result']['authenticated']??false)===true&&file_exists($tmp.'/dispatch'));
+    }
+    @unlink($tmp.'/dispatch');$r=$request($rpc,'Bearer '.str_repeat('z',43),'POST','','conflict');
+    preparationHttpCheck('invalid direct bearer cannot be replaced by a valid redirect value',$r['status']===401&&!file_exists($tmp.'/dispatch'));
+    $r=$request($rpc,'','POST','','forwarded');
+    preparationHttpCheck('forwarded authorization cannot authenticate',$r['status']===401&&!file_exists($tmp.'/dispatch'));
     echo 'TOTAL '.$passed." preparation endpoint checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}finally{
     if(is_resource($server)){proc_terminate($server);proc_close($server);}
