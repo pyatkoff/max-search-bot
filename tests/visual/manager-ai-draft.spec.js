@@ -165,19 +165,11 @@ test('AI panel travels with the canonical expanded editor and Escape returns the
 
 for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{decision:'deny',label:'Отмена',width:390}])test('OAuth native '+choice.decision+' posts the actual secure consent form and reaches the pinned callback',async({browser,browserName},testInfo)=>{
   const fixture=await startOAuthFixture(sourceRoot);
-  const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:choice.width,height:900}});
-  const callbacks=[],unexpected=[];
+  const context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:choice.width,height:900}});
+  const {callbacks,unexpected}=fixture;
+  let failed=false,page,phase='startup',postStatus=null;
   try{
-    await context.route('**/*',route=>{
-      const url=new URL(route.request().url());
-      if(url.origin===fixture.origin)return route.continue();
-      if(url.origin==='https://chatgpt.com'&&url.pathname==='/connector_platform_oauth_redirect'){
-        callbacks.push(url);
-        return route.fulfill({contentType:'text/html',body:'<!doctype html><title>Synthetic callback</title><p>Callback intercepted locally</p>'});
-      }
-      unexpected.push(url.origin+url.pathname);return route.abort('blockedbyclient');
-    });
-    const page=await context.newPage();
+    page=await context.newPage();
     await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
     const cookies=await context.cookies(fixture.origin+'/manager/');
     expect(cookies.some(cookie=>cookie.name==='anytour_manager_panel'&&cookie.secure&&cookie.httpOnly&&cookie.path==='/manager/')).toBe(true);
@@ -186,26 +178,35 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     const form=page.locator('form');await expect(form).toHaveAttribute('method','post');
     await expect(form.locator('input[name="pending_id"]')).toHaveValue(/^[a-f0-9]{48}$/);
     await expect(form.locator('input[name="csrf"]')).not.toHaveValue('');
+    await page.evaluate(()=>{window.oauthCspDirectives=[];document.addEventListener('securitypolicyviolation',event=>window.oauthCspDirectives.push(event.effectiveDirective));});
     const image=testInfo.outputPath('oauth-consent-'+choice.width+'-'+browserName+'.png');
     await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{path:image,contentType:'image/png'});
-    const posted=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).origin===fixture.origin&&new URL(response.url()).pathname==='/manager/ai-oauth.php');
-    await page.getByRole('button',{name:choice.label,exact:true}).click();
+    phase='native_post';
+    const posted=page.waitForResponse(response=>response.request().method()==='POST'&&new URL(response.url()).origin===fixture.origin&&new URL(response.url()).pathname==='/manager/ai-oauth.php',{timeout:10000});
+    await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
     const response=await posted,body=new URLSearchParams(response.request().postData());
+    postStatus=response.status();
     expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);expect(body.get('decision')).toBe(choice.decision);
     expect(response.status()).toBe(303);
+    phase='callback_navigation';
     await expect.poll(()=>callbacks.length).toBe(1);
     expect(callbacks[0].searchParams.get('iss')).toBe(fixture.issuer);
     expect(callbacks[0].searchParams.get('state')).toBe('synthetic-state/a?b&c');
     if(choice.decision==='allow'){
       const code=callbacks[0].searchParams.get('code');expect(code).toMatch(/^[A-Za-z0-9_-]{43}$/);
-      const token=await context.request.post(fixture.origin+'/manager/ai-oauth.php?action=token',{form:{grant_type:'authorization_code',
+      const token=await context.request.post(fixture.origin+'/manager/ai-oauth.php?action=token',{maxRedirects:0,form:{grant_type:'authorization_code',
         client_id:fixture.client_id,code,code_verifier:fixture.verifier,resource:fixture.resource,redirect_uri:fixture.redirect_uri}});
       expect(token.status()).toBe(200);const grant=await token.json();expect(grant.token_type).toBe('Bearer');expect(grant.expires_in).toBe(3600);
     }else{
       expect(callbacks[0].searchParams.get('error')).toBe('access_denied');expect(callbacks[0].searchParams.has('code')).toBe(false);
     }
     expect(unexpected).toEqual([]);
+  }catch(error){
+    failed=true;
+    const csp=page?await page.evaluate(()=>window.oauthCspDirectives??[]).catch(()=>['unavailable']):[];
+    error.message+=' [OAuth fixture phase='+phase+' post_status='+postStatus+' csp='+csp.join(',')+' callback_count='+callbacks.length+']';
+    throw error;
   }finally{
-    await context.close();await fixture.close();
+    try{await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}
   }
 });
