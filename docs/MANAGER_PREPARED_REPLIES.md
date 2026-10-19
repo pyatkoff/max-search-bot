@@ -49,6 +49,33 @@ default provider transport is selected. All source status/ownership, source revi
 knowledge and instruction changes invalidate older work. New storage never changes
 messages, lead state, ownership, shift, routing or customer contact preferences.
 
+The same canonical snapshot now includes bounded `origin_posts` and
+`travel_reference` evidence for AnyTour. The former reuses the saved version bound
+to the latest channel-post entry, not the post's later edited version or guessed
+start payload; one previous entry is explicitly historical. Unknown latest entries
+never fall back to an older post. Text is redacted and capped; attachments remain
+unread. A post identifies the enquiry, not consent to book, a personal budget or
+verified current conditions. Explicit subsequent customer changes take priority.
+
+Route evidence reads only the existing local `tourvisor_routes.json` cache and
+the catalogue's canonical/genitive city names. It makes no supplier HTTP call or
+cache repair. Up to three explicitly mentioned departures are kept separately,
+including regular and charter directions; cities from an available current post
+may also select reference rows. Country/date truncation, file modification time
+and cache age are explicit. Older-than-24-hour, unavailable or absent rows never
+prove that flights are unavailable. Even a fresh row is not live tour inventory,
+price or hotel verification. These references participate in the context revision,
+so a changed entry/cache invalidates an older prepared reply without transcript
+changes. The manual generation path receives the same server-owned projection;
+caller-supplied reference fields cannot substitute for it. Optional evidence is
+omitted rather than exceeding the existing transport size cap.
+
+The response instructions retain unchanged departure city, party, budget and
+preferences when a customer corrects a month/date within the same enquiry. They
+still separate genuinely independent trips and clarify only an ambiguous link,
+not the entire intake. These are prompt rules, not proof of a future model result;
+the manager remains the reviewer and sender.
+
 ## OAuth and private MCP connection
 
 MCP URL: `https://app.anytoour.ru/manager/ai-mcp.php`.

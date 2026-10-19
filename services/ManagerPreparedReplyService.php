@@ -95,7 +95,8 @@ final class ManagerPreparedReplyService
             if ($snapshot === null) return self::failure('stale_context');
             $knowledge = $snapshot['company_knowledge'];
             return ['ok'=>true,'job_id'=>$jobId,'revision'=>$row['context_revision'],
-                'latest_message_id'=>(int)$row['latest_message_id'],'context'=>$snapshot['context'],
+                'latest_message_id'=>(int)$row['latest_message_id'],
+                'context'=>$snapshot['context'] + (($snapshot['reference_context'] ?? null)?->forContext($snapshot['context']) ?? []),
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
                 'instructions'=>ManagerAiDraftService::instructions(),'instruction_revision'=>$row['instruction_revision']];
         } catch (Throwable $ignored) { return self::failure('job_unavailable'); }
@@ -167,7 +168,8 @@ final class ManagerPreparedReplyService
     private static function validatedJson(array $proposal, array $snapshot): ?string
     {
         if (count($proposal) !== count(self::FIELDS) || array_diff(self::FIELDS, array_keys($proposal))) return null;
-        $result = ManagerAiDraftService::generate($snapshot['context'], static fn(string $instructions, array $context): array => $proposal, $snapshot['company_knowledge']);
+        $result = ManagerAiDraftService::generate($snapshot['context'], static fn(string $instructions, array $context): array => $proposal,
+            $snapshot['company_knowledge'], null, $snapshot['reference_context'] ?? null);
         if (($result['ok'] ?? null) !== true) return null;
         $ordered = [];
         foreach (self::FIELDS as $field) {

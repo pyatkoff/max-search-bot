@@ -177,6 +177,8 @@ try {
     managerAiEndpointCheck('endpoint passes the authorized server knowledge, ignoring posted project/facts',
         $flow[3]['knowledge_ids'] === ['anytour.public_name','anytour.search_site']
         && !str_contains($valid['body'],'UNTRUSTED_COMPANY_FACT'));
+    managerAiEndpointCheck('endpoint passes source evidence from its fresh authorized snapshot',
+        $flow[3]['reference_revision'] === $baseState['revision']);
     managerAiEndpointCheck('selection reader is composed outside session lock without posted source capabilities',
         $flow[3]['selection_reader_received']===true && $flow[3]['selection_count']===0 && $flow[3]['session_closed']);
     managerAiEndpointCheck('fresh after snapshot runs with reopened read-and-close session',$flow[4]['session_status'] === PHP_SESSION_NONE);
