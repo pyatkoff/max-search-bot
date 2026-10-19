@@ -81,6 +81,35 @@ try {
 
     preparationMcpCheck('MCP2 discovery advertises tools and events',isset($service->handle(preparationMcpRpc('server/discover'),1)['result']['capabilities']['events']));
     preparationMcpCheck('only protocol 2026-07-28 is advertised',$service->handle(preparationMcpRpc('server/discover'),1)['result']['supportedVersions']===['2026-07-28']);
+    foreach (['2025-11-25','2025-06-18','2025-03-26','2024-11-05'] as $version) {
+        $params=['protocolVersion'=>$version,'capabilities'=>[],
+            'clientInfo'=>['name'=>'synthetic-discovery-client','version'=>'1.0']];
+        $initialized=$service->handle(preparationMcpRpc('initialize',$params),1);
+        preparationMcpCheck('handshake preserves supported client version '.$version,
+            ($initialized['result']['protocolVersion']??null)===$version);
+        $wire=json_decode(json_encode($initialized,JSON_THROW_ON_ERROR),false,32,JSON_THROW_ON_ERROR);
+        preparationMcpCheck('handshake capabilities encode as objects without Events '.$version,
+            $wire->result->capabilities->tools instanceof stdClass && !isset($wire->result->capabilities->events));
+        $available=$service->handle(preparationMcpRpc('tools/list'),1);
+        preparationMcpCheck('handshake client can discover the preparation tools '.$version,
+            array_column($available['result']['tools']??[],'name')===['list_pending_replies','get_reply_context','save_prepared_reply']);
+    }
+    foreach (['2099-01-01','2026-07-28'] as $version) {
+        $initialized=$service->handle(preparationMcpRpc('initialize',['protocolVersion'=>$version]),1);
+        preparationMcpCheck('unknown handshake version offers a supported fallback '.$version,
+            ($initialized['result']['protocolVersion']??null)==='2025-11-25');
+    }
+    foreach ([null,[],42,'','unsupported'] as $version) {
+        preparationMcpCheck('malformed handshake version is rejected '.get_debug_type($version),
+            ($service->handle(preparationMcpRpc('initialize',['protocolVersion'=>$version]),1)['error']['code']??0)===-32602);
+    }
+    foreach ([0,2,3] as $actor) preparationMcpCheck('handshake retains active project admin boundary '.$actor,
+        ($service->handle(preparationMcpRpc('initialize',['protocolVersion'=>'2025-06-18']),$actor)['error']['code']??0)===-32001);
+    preparationMcpCheck('handshake and discovery do not read or write queued jobs',$calls===[] && $requests===[]
+        && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===0);
+    $discovery=$service->handle(preparationMcpRpc('server/discover'),1)['result'];
+    preparationMcpCheck('MCP2 Events discovery remains available after legacy handshakes',
+        $discovery['supportedVersions']===['2026-07-28'] && isset($discovery['capabilities']['events']));
     foreach ([0,2,3] as $actor) preparationMcpCheck('current active project admin required '.$actor,($service->handle(preparationMcpRpc('tools/list'),$actor)['error']['code']??0)===-32001);
     preparationMcpCheck('invalid JSON-RPC envelope is rejected',($service->handle(['method'=>'tools/list'],1)['error']['code']??0)===-32600);
     preparationMcpCheck('unknown method is rejected',($service->handle(preparationMcpRpc('customers/send'),1)['error']['code']??0)===-32601);

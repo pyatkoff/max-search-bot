@@ -10,6 +10,7 @@ final class ManagerPreparationMcpService
 {
     public const EVENT = 'manager_replies.pending';
     private const PROJECT = 'anytour';
+    private const INITIALIZE_VERSIONS = ['2025-11-25','2025-06-18','2025-03-26','2024-11-05'];
     private PDO $pdo;
     private ManagerPreparationWebhook $webhook;
 
@@ -33,8 +34,7 @@ final class ManagerPreparationMcpService
                 'server/discover'=>['resultType'=>'complete','supportedVersions'=>['2026-07-28'],
                     'capabilities'=>['tools'=>(object)[],'events'=>(object)[]],
                     'serverInfo'=>['name'=>'anytour-prepared-replies','version'=>'1.0.0']],
-                'initialize'=>['protocolVersion'=>'2026-07-28','capabilities'=>['tools'=>(object)[],'events'=>(object)[]],
-                    'serverInfo'=>['name'=>'anytour-prepared-replies','version'=>'1.0.0']],
+                'initialize'=>$this->initialize($params),
                 'ping'=>(object)[],
                 'notifications/initialized'=>null,
                 'tools/list'=>['tools'=>$this->tools()],
@@ -51,6 +51,17 @@ final class ManagerPreparationMcpService
         } catch (InvalidArgumentException $error) { return self::error($id,-32602,'Invalid params');
         } catch (OutOfBoundsException $error) { return self::error($id,-32601,'Method not found');
         } catch (Throwable $error) { return self::error($id,-32603,'Internal error'); }
+    }
+
+    private function initialize(array $params): array
+    {
+        $requested=$params['protocolVersion']??null;
+        if (!is_string($requested) || !preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$requested)) throw new InvalidArgumentException();
+        // Handshake clients must receive a version they can negotiate. MCP 2.0
+        // Events discovery uses server/discover, not the legacy initialize RPC.
+        $version=in_array($requested,self::INITIALIZE_VERSIONS,true)?$requested:self::INITIALIZE_VERSIONS[0];
+        return ['protocolVersion'=>$version,'capabilities'=>['tools'=>(object)[]],
+            'serverInfo'=>['name'=>'anytour-prepared-replies','version'=>'1.0.0']];
     }
 
     private function requireAdmin(int $admin): void
