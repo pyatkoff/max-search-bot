@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/services/ManagerPushSetupDiagnostics.php';
+require_once dirname(__DIR__).'/services/ManagerAiDraftFeedbackReport.php';
 
 function readAutopilotJson(string $path,string $label):array
 {
@@ -105,6 +106,7 @@ try{
     ];
     if(isset($production['paid_daily'])) $snapshot['paid_daily']=$production['paid_daily'];
     if(isset($production['channel_daily'])) $snapshot['channel_daily']=$production['channel_daily'];
+    if(is_array($production['manager_ai_feedback']??null)) $snapshot['manager_ai_feedback']=ManagerAiDraftFeedbackReport::publicSummary($production['manager_ai_feedback']);
     if(is_array($daily)){
         $snapshot['daily']=[
             'window_hours'=>$daily['window_hours']??null,

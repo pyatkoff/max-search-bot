@@ -23,6 +23,8 @@ MAX_OUTPUT = 2 * 1024 * 1024
 MAX_SESSIONS = 20
 MAX_MESSAGES = 24
 MAX_TEXT = 280
+MAX_AI_SAMPLES = 10
+MAX_AI_TEXT = 2000
 FLAGS = {
     "repeated_callback_input", "repeated_same_input", "excessive_turns",
     "rapid_date_reselection", "manager_requested_no_reply",
@@ -47,7 +49,7 @@ def fresh(value, now, minutes=15):
         raise ValueError("stale evidence")
 
 
-def redacted_text(value):
+def redacted_text(value, limit=MAX_TEXT):
     text = value if isinstance(value, str) else ""
     text = re.sub(r"[\x00-\x1f\x7f]", " ", text)
     text = re.sub(r"(?:https?://|www\.)\S+", "[URL]", text, flags=re.I)
@@ -57,7 +59,7 @@ def redacted_text(value):
                   lambda m: "[NUMBER]" if len(re.sub(r"\D", "", m[0])) >= 9 else m[0], text)
     text = re.sub(r"(?i)\b(?:token|authorization|password|api[_-]?key)\s*[:=]\s*\S+",
                   "[CREDENTIAL]", text)
-    return " ".join(text.split())[:MAX_TEXT]
+    return " ".join(text.split())[:limit]
 
 
 def read_bounded(path, limit):
@@ -86,7 +88,69 @@ def private_write(path, data):
         raise
 
 
-def build_evidence(reports, sha, recipient, now=None):
+def manager_ai_feedback_evidence(production, sha, salt, now):
+    """Allowlisted private projection; the source snapshot is never copied wholesale."""
+    if not isinstance(production, dict) or production.get("ok") is not True:
+        raise ValueError("invalid production snapshot")
+    source = production.get("production")
+    if not isinstance(source, dict) or source.get("sha") != sha:
+        raise ValueError("wrong production provenance")
+    fresh(production.get("generated_at"), now)
+    summary = production.get("manager_ai_feedback")
+    samples = production.get("manager_ai_feedback_private")
+    if not isinstance(summary, dict) or type(summary.get("ok")) is not bool:
+        raise ValueError("invalid feedback summary")
+    fresh(summary.get("generated_at"), now)
+    if not isinstance(samples, list) or len(samples) > MAX_AI_SAMPLES:
+        raise ValueError("invalid feedback samples")
+    if not summary["ok"] and samples:
+        raise ValueError("unavailable feedback has samples")
+    result = {
+        "ok": summary["ok"],
+        "generated_at": timestamp(summary["generated_at"]).isoformat(),
+        "limits": {"samples": MAX_AI_SAMPLES, "characters_per_text": MAX_AI_TEXT},
+        "coverage": "bounded latest verified linked messages; current sent text may differ after edits",
+        "samples": [],
+    }
+    for sample in samples:
+        if not isinstance(sample, dict):
+            raise ValueError("invalid feedback sample")
+        item = {}
+        for field in ("initial_text_available", "recorded_text_matches_proposal", "edited",
+                      "proposed_text_truncated", "current_sent_text_truncated"):
+            if type(sample.get(field)) is not bool:
+                raise ValueError("invalid feedback flag")
+            item[field] = sample[field]
+        for field in ("proposed_text", "current_sent_text"):
+            value = sample.get(field)
+            if not isinstance(value, str) or len(value) > MAX_AI_TEXT:
+                raise ValueError("invalid feedback text")
+            # Redaction can expand a short token. Preserve upstream truncation and
+            # also report any truncation introduced by this final projection.
+            redacted = redacted_text(value, None)
+            item[field] = redacted[:MAX_AI_TEXT]
+            item[field + "_truncated"] = item[field + "_truncated"] or len(redacted) > MAX_AI_TEXT
+        for field in ("created_at", "sent_at"):
+            item[field] = timestamp(sample.get(field)).isoformat()
+        for field, alias in (("draft_id", "draft_ref"), ("conversation_id", "session_ref"),
+                             ("message_id", "message_ref")):
+            if field not in sample:
+                continue
+            value = sample[field]
+            if field == "draft_id":
+                if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{32}", value):
+                    raise ValueError("invalid feedback correlation")
+                identifier = "draft:" + value
+            else:
+                if type(value) is not int or not 0 < value <= 2**63 - 1:
+                    raise ValueError("invalid feedback correlation")
+                identifier = str(value) if field == "conversation_id" else "message:" + str(value)
+            item[alias] = hmac.new(salt, identifier.encode(), hashlib.sha256).hexdigest()[:16]
+        result["samples"].append(item)
+    return result
+
+
+def build_evidence(reports, sha, recipient, now=None, production=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     if not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise ValueError("invalid production sha")
@@ -146,6 +210,8 @@ def build_evidence(reports, sha, recipient, now=None):
               "privacy": "private; contact redaction is best effort, not anonymization",
               "coverage": "flagged MAX sessions only; tails may be truncated; windows may overlap",
               "sessions": evidence}
+    if production is not None:
+        result["manager_ai_feedback"] = manager_ai_feedback_evidence(production, sha, salt, now)
     data = json.dumps(result, ensure_ascii=False, separators=(",", ":")).encode()
     if len(data) > MAX_OUTPUT:
         raise ValueError("output limit")
@@ -164,6 +230,7 @@ def main():
     encrypt.add_argument("--live", required=True)
     encrypt.add_argument("--today", required=True)
     encrypt.add_argument("--yesterday", required=True)
+    encrypt.add_argument("--production")
     encrypt.add_argument("--output", required=True)
     decrypt = sub.add_parser("decrypt")
     decrypt.add_argument("--identity", required=True)
@@ -183,7 +250,10 @@ def main():
             recipient = pyrage.x25519.Recipient.from_str(read_bounded(args.recipient, 256).decode().strip())
             reports = [(name, json.loads(read_bounded(getattr(args, name), MAX_INPUT)))
                        for name in ("live", "today", "yesterday")]
-            data = build_evidence(reports, args.sha, str(recipient))
+            production = json.loads(read_bounded(args.production, MAX_INPUT)) if args.production else None
+            if args.production and production is None:
+                raise ValueError("invalid production snapshot")
+            data = build_evidence(reports, args.sha, str(recipient), production=production)
             private_write(args.output, pyrage.encrypt(data, [recipient]))
         else:
             identity = pyrage.x25519.Identity.from_str(read_bounded(args.identity, 256).decode().strip())

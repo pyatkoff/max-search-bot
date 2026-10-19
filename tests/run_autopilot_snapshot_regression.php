@@ -13,6 +13,8 @@ $fixtures=[
 ];
 $fixtures['production.json']['paid_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','paid_new'=>2,'tours_opened'=>1]]];
 $fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','channels'=>[['channel'=>'telegram','new_conversations'=>3]]]]];
+$fixtures['production.json']['manager_ai_feedback']=['ok'=>true,'error'=>null,'generated_at'=>'2026-08-27T17:00:00Z','complete'=>false,'draft_limit_reached'=>true,'message_limit_reached'=>false,'counts'=>[],'window'=>['since'=>'2026-08-20 17:00:00','until'=>'2026-08-27 17:00:00','timezone'=>'UTC','days'=>7,'basis'=>'persisted_generation_cohort'],'limits'=>['draft_rows'=>1000,'message_rows'=>5000,'samples'=>10,'sample_characters'=>2000],'private_canary'=>'PRIVATE AI SUMMARY'];
+$fixtures['production.json']['manager_ai_feedback_private']=[['proposed_text'=>'PRIVATE AI PROPOSAL','current_sent_text'=>'PRIVATE AI SENT','draft_id'=>str_repeat('a',32)]];
 $fixtures['production.json']['manager_visibility'][0]['load_ms']=['all'=>12.3,'mine'=>4.5,'waiting'=>2.1];
 $pushDiagnostic=['schema'=>1,'manager_id'=>77,'browser_family'=>'Firefox','browser_major'=>145,'os_family'=>'macOS',
     'stage'=>'subscription_create','code'=>'AbortError','elapsed_ms'=>100,'permission'=>'granted',
@@ -39,6 +41,7 @@ function aCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "
 aCheck('composer exits successfully',$code===0&&is_array($json)&&!empty($json['ok']));
 aCheck('paid cohort aggregate survives composition',($json['paid_daily']['days'][0]['paid_new']??null)===2);
 aCheck('channel aggregate survives composition',($json['channel_daily']['days'][0]['channels'][0]['new_conversations']??null)===3);
+aCheck('AI aggregate preserves incomplete coverage while dropping private and unknown fields',($json['manager_ai_feedback']['ok']??null)===true&&($json['manager_ai_feedback']['complete']??null)===false&&($json['manager_ai_feedback']['draft_limit_reached']??null)===true&&!str_contains($raw,'PRIVATE AI')&&!array_key_exists('manager_ai_feedback_private',$json));
 aCheck('production sha is surfaced',($json['production']['sha']??null)==='abc123');
 aCheck('migration summary is compact and healthy',($json['migrations']['total']??null)===2&&($json['migrations']['pending']??null)===0&&($json['migrations']['checksum_failures']??null)===0);
 aCheck('manager health is surfaced',($json['manager']['response']['pending']??null)===0&&($json['manager']['push'][0]['status']??null)==='healthy');

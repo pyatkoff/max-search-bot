@@ -53,3 +53,43 @@ comparisons and graders must explicitly request `service_tier: "default"`
 (Standard), retaining the selected model and reasoning. Mock request/profile
 contract tests may describe Fast without making a provider call. This feedback
 feature makes no provider test call and renews no previous evaluation budget.
+
+## Read-only usage report
+
+`ManagerAiDraftFeedbackReport` reads a fixed seven-day UTC generation cohort
+through the existing trusted production-diagnostics CLI. It performs no request
+authorization bootstrap, read-marker update, data repair, provider call or DDL.
+The report owns its read transaction and refuses a borrowed transaction. Explicit
+test conversations and other projects are excluded. At most 1,000 draft rows and
+5,000 canonical outbound manager-message rows are inspected, with one extra row
+to detect each limit. Limits, errors and incomplete coverage are explicit;
+unavailable counts are not replaced with zero and no percentages are inferred.
+
+Persisted proposals are not all AI requests: proposal recording is best effort.
+Reply proposals and proposals without a reply are counted separately. An insertion
+request counts each draft once. Linked draft count is distinct from linked message
+count because the same draft can accompany more than one real canonical send.
+Only valid historical conversation, actor, exact project, metadata and timestamp
+bindings qualify. Historical links are not rejected merely because the current
+owner or current 24-hour reference eligibility has changed. Unresolved references
+outside the captured cohort and malformed bindings remain explicit. Unlinked text
+does not mean the manager never used AI, and a still-open reference window is not
+evidence of rejection.
+
+`production_snapshot.php` exposes a fixed aggregate summary as
+`manager_ai_feedback`; `compose_autopilot_snapshot.php` projects only allowlisted
+summary fields into the public snapshot. Private samples are separately held in
+`manager_ai_feedback_private`, which the public sanitizer always removes. The
+existing encrypted evidence command accepts this same production snapshot with
+`--production`, verifies its SHA/freshness and exports only allowlisted redacted
+fields. No plaintext sample or raw draft/message/conversation identity is
+published. Per-capture aliases cannot correlate people across captures.
+
+At most ten recent verified linked messages have private comparison samples,
+bounded to 2,000 characters per proposed/current text with explicit truncation.
+Recorded equality describes the initial send. Later message edits preserve that
+provenance but replace the current stored text: the report checks the initial hash
+and labels whether the initial text is still available. A changed current text
+must not be presented as the original send or used as a training target without
+review. Samples are neither random nor representative, and none is automatically
+added to instructions, company knowledge or training.

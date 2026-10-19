@@ -138,6 +138,7 @@ jobs:
             --recipient docs/diagnostics-recipient.txt --sha "$TARGET_SHA" \
             --live live_session_report.json --today daily_session_report.json \
             --yesterday yesterday_session_report.json \
+            --production production_snapshot.json \
             --output "$RUNNER_TEMP/dialogue-evidence.age"
           rm -f "$RUNNER_TEMP/deploy_key"
 
