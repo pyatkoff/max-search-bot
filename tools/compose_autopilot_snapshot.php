@@ -75,6 +75,7 @@ try{
         'schema_version'=>1,
         'generated_at'=>gmdate('c'),
         'production'=>$production['production']??[],
+        'manager_mcp_discovery'=>$production['manager_mcp_discovery']??[],
         'migrations'=>migrationSummary((array)($production['migrations']??[])),
         'health'=>$production['health']??[],
         'manager'=>[

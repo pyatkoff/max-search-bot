@@ -154,6 +154,17 @@ single installed cron. A full real subscription/analysis/save/manager-preview cy
 can be claimed only after the owner connects the plugin and the actual callback
 and prepared result have been observed. No such cycle is inferred from fixtures.
 
+If OAuth succeeds but action discovery fails, inspect `manager_mcp_discovery` in
+the fresh diagnostics snapshot. The endpoint records only fixed categories for
+HTTP method/status, credential-header presence/shape, discovery method, known
+protocol version, stage and RPC error code in the existing private structured
+log. It never records tokens, account/job IDs, origins, client strings, request
+bodies or tool arguments/results. The snapshot re-allowlists the last 20 matching
+records from at most 512 KiB. `missing`/`redirect_only` distinguish header delivery
+from rejected credentials; authenticated discovery methods distinguish protocol
+errors from authorization failures. Telemetry changes no authentication policy
+or queue state. Passing a local SDK probe does not prove ChatGPT's live import.
+
 Rollback is a forward code revert; do not migrate down or delete business data.
 Disable the dedicated cron/connection if needed. Revoke the OAuth grant to stop
 callbacks immediately. Existing source messages and assignments remain unchanged.

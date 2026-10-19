@@ -6,6 +6,7 @@ if($profileManagerLists)require_once $baseDir.'/tools/manager-read-profile.php';
 require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/DiagnosticLogger.php';
+require_once $baseDir.'/services/ManagerPreparationMcpDiagnostics.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
 require_once $baseDir.'/services/ChannelDailyReport.php';
 require_once $baseDir.'/services/ManagerAiDraftFeedbackReport.php';
@@ -112,6 +113,7 @@ try{
         'ok'=>true,
         'generated_at'=>gmdate('c'),
         'production'=>['sha'=>$sha,'branch'=>$branch],
+        'manager_mcp_discovery'=>ManagerPreparationMcpDiagnostics::snapshot(),
         'database'=>['name'=>$ping['database']??null,'host'=>$ping['host']??null,'latency_ms'=>$ping['latency_ms']??null],
         'migrations'=>(new MigrationRunner())->status(),
         'stats'=>[],
