@@ -68,11 +68,20 @@ Every request checks current administrator/project/grant state. The owner can re
 connections at `/manager/ai-oauth.php?action=connections`; callbacks stop on grant
 revocation. No raw credentials, message text, drafts or callback secrets are logged.
 
-Public discovery is limited to authorization/resource metadata. Verify both public
-metadata routes on the actual host, including the bare well-known URL without a slash:
+Public discovery is limited to authorization/resource metadata. The authorization
+issuer is `https://app.anytoour.ru/manager/ai-oauth.php`. RFC 8414 inserts the
+well-known segment before that issuer path, giving an explicit PHP discovery URL.
+The host denies bare and trailing-slash directory indexes; clients must discover
+the issuer-specific PHP route, without relying on a directory index or redirects.
+Verify both public metadata routes on the actual host:
 
-- `/.well-known/oauth-authorization-server`
+- `/.well-known/oauth-authorization-server/manager/ai-oauth.php`
 - `/manager/ai-oauth.php?action=resource`
+
+Authorization metadata `issuer`, protected-resource `authorization_servers` and
+every callback's RFC 9207 `iss` use that exact path-bearing issuer. The MCP resource
+remains `https://app.anytoour.ru/manager/ai-mcp.php`; authorization, token, registration
+and revocation action URLs remain under `/manager/ai-oauth.php`.
 
 Installing and authorizing a custom MCP plugin is a separate account action. Code
 deployment and cron installation do not establish a ChatGPT connection. After the

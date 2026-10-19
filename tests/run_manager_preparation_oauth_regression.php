@@ -68,20 +68,20 @@ function preparationOauthHttpChecks(): void
     $tmp=sys_get_temp_dir().'/manager-preparation-oauth-'.bin2hex(random_bytes(6));
     $server=null;
     try {
-        foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions',$tmp.'/.well-known',$tmp.'/.well-known/oauth-authorization-server'] as $directory) mkdir($directory,0700);
+        foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions',$tmp.'/.well-known',$tmp.'/.well-known/oauth-authorization-server',$tmp.'/.well-known/oauth-authorization-server/manager'] as $directory) mkdir($directory,0700);
         $database=$tmp.'/fixture.sqlite';
         [$pdo]=preparationOauthFixture($database);
         chmod($database,0600);
         $root=dirname(__DIR__);
-        foreach (['manager/ai-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
+        foreach (['manager/ai-oauth.php','manager/lib/ManagerHttp.php','services/ManagerPreparationOAuth.php','services/ManagerRequestContext.php','.well-known/oauth-authorization-server/index.php','.well-known/oauth-authorization-server/manager/ai-oauth.php'] as $file) copy($root.'/'.$file,$tmp.'/'.$file);
         preparationOauthCheck('HTTP fixture executes exact OAuth endpoint and service bytes',hash_file('sha256',$root.'/manager/ai-oauth.php')===hash_file('sha256',$tmp.'/manager/ai-oauth.php') && hash_file('sha256',$root.'/services/ManagerPreparationOAuth.php')===hash_file('sha256',$tmp.'/services/ManagerPreparationOAuth.php'));
         file_put_contents($tmp.'/services/ConversationDb.php','<?php class ConversationDb { public static function connection():PDO { return new PDO('.var_export('sqlite:'.$database,true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]); } }');
         file_put_contents($tmp.'/services/ProjectConfig.php',"<?php class ProjectConfig { public static function projectId():string{return 'anytour';} public static function get(string \$key,\$default=null){return \$key==='brand.name'?'Synthetic project':\$default;} }");
         foreach (['ManagerAuthService','ManagerConversationAccessPolicy'] as $class) file_put_contents($tmp.'/services/'.$class.'.php','<?php class '.$class.' {}');
         file_put_contents($tmp.'/config.php','<?php // isolated fixture bootstrap');
-        // PHP's development server rejects hidden directory segments; expose only
-        // the exact discovery route as production's web-server mapping does.
-        file_put_contents($tmp.'/router.php','<?php $path=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if(in_array($path,["/.well-known/oauth-authorization-server","/.well-known/oauth-authorization-server/"],true)){require __DIR__."/.well-known/oauth-authorization-server/index.php";return true;}return false;');
+        // PHP's development server rejects hidden directory segments. Map the
+        // exact RFC 8414 PHP path; never simulate a working directory index.
+        file_put_contents($tmp.'/router.php','<?php $path=parse_url($_SERVER["REQUEST_URI"],PHP_URL_PATH);if($path==="/.well-known/oauth-authorization-server/manager/ai-oauth.php"){require __DIR__.$path;return true;}return false;');
         file_put_contents($tmp.'/manager/fixture-session.php','<?php require dirname(__DIR__)."/services/ManagerRequestContext.php";ManagerRequestContext::startSession();session_regenerate_id(true);$_SESSION["manager_id"]=(int)($_GET["actor"]??1);$_SESSION["csrf"]="synthetic-http-csrf";header("Content-Type:application/json");echo "{}";');
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);
         if (!$socket) throw new RuntimeException('OAuth HTTP fixture socket unavailable');
@@ -111,10 +111,22 @@ function preparationOauthHttpChecks(): void
             preg_match('/\r\nSet-Cookie: ([^;\r\n]+)/i',$head,$newCookie);
             return ['status'=>(int)($match[1]??0),'body'=>$response,'json'=>json_decode($response,true),'headers'=>$head,'location'=>$location[1]??'','cookie'=>$newCookie[1]??$cookie];
         };
-        $meta=$request('/.well-known/oauth-authorization-server/');
-        preparationOauthCheck('discovery HTTP returns fixed issuer metadata without auth', $meta['status']===200 && $meta['json']===ManagerPreparationOAuth::authorizationMetadata());
+        $issuerParts=parse_url(ManagerPreparationOAuth::ISSUER);
+        $discoveryPath='/.well-known/oauth-authorization-server'.($issuerParts['path']??'');
+        preparationOauthCheck('RFC8414 issuer resolves to explicit PHP discovery path', $discoveryPath==='/.well-known/oauth-authorization-server/manager/ai-oauth.php');
+        $meta=$request($discoveryPath);
+        preparationOauthCheck('exact path-bearing issuer discovery returns metadata without redirects or auth',
+            $meta['status']===200 && $meta['location']==='' && $meta['cookie']==='' && $meta['json']===ManagerPreparationOAuth::authorizationMetadata()
+            && $meta['json']['issuer']===ManagerPreparationOAuth::ISSUER);
+        $method=$request($discoveryPath,'POST');
+        preparationOauthCheck('explicit discovery PHP wrapper retains GET-only and no-store boundary',
+            $method['status']===405 && $method['json']===['error'=>'invalid_request']
+            && str_contains(strtolower($meta['headers']),'cache-control: no-store') && $method['cookie']==='');
         $resource=$request('/manager/ai-oauth.php?action=resource');
-        preparationOauthCheck('resource discovery supports WWW-Authenticate advertised URL', $resource['status']===200 && $resource['json']===ManagerPreparationOAuth::resourceMetadata());
+        preparationOauthCheck('resource discovery points at exact path-bearing authorization issuer', $resource['status']===200
+            && $resource['json']===ManagerPreparationOAuth::resourceMetadata()
+            && $resource['json']['authorization_servers']===[$meta['json']['issuer']]
+            && $resource['json']['resource']==='https://app.anytoour.ru/manager/ai-mcp.php');
         $invalid=$request('/manager/ai-oauth.php?action=metadata&action=authorize');
         preparationOauthCheck('HTTP rejects duplicate query parameters before PHP collapse', $invalid['status']===400 && $invalid['location']==='');
         preparationOauthCheck('HTTP token endpoint refuses GET', $request('/manager/ai-oauth.php?action=token')['status']===405);
@@ -183,6 +195,15 @@ function preparationOauthHttpChecks(): void
 try {
     [$pdo,$clock,$oauth,$client]=preparationOauthFixture();
     $metadata=ManagerPreparationOAuth::authorizationMetadata();
+    preparationOauthCheck('issuer path leaves origin resource and OAuth action endpoints unchanged',
+        ManagerPreparationOAuth::ORIGIN==='https://app.anytoour.ru'
+        && ManagerPreparationOAuth::ISSUER==='https://app.anytoour.ru/manager/ai-oauth.php'
+        && ManagerPreparationOAuth::RESOURCE==='https://app.anytoour.ru/manager/ai-mcp.php'
+        && ManagerPreparationOAuth::ENDPOINT==='https://app.anytoour.ru/manager/ai-oauth.php'
+        && $metadata['authorization_endpoint']==='https://app.anytoour.ru/manager/ai-oauth.php?action=authorize'
+        && $metadata['token_endpoint']==='https://app.anytoour.ru/manager/ai-oauth.php?action=token'
+        && $metadata['registration_endpoint']==='https://app.anytoour.ru/manager/ai-oauth.php?action=register'
+        && $metadata['revocation_endpoint']==='https://app.anytoour.ru/manager/ai-oauth.php?action=revoke');
     preparationOauthCheck('metadata pins issuer, audience, PKCE S256 and public DCR without machine grants',
         $metadata['issuer']===ManagerPreparationOAuth::ISSUER && $metadata['authorization_response_iss_parameter_supported']===true
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
