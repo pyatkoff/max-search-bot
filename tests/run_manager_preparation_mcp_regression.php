@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
 
 $passed=0;
 function preparationMcpCheck(string $name,bool $ok): void
@@ -50,7 +51,54 @@ function preparationMcpHeaders(array $headers): array
     $out=[];foreach ($headers as $header) { [$key,$value]=explode(': ',$header,2);$out[strtolower($key)]=$value; }return $out;
 }
 
+function preparationMcpDiagnosticChecks(): void
+{
+    $dir=sys_get_temp_dir().'/mcp-diagnostics-'.bin2hex(random_bytes(6));mkdir($dir,0700);
+    $file=$dir.'/events.log';DiagnosticLogger::setFile($file);
+    try {
+        $server=['REQUEST_METHOD'=>'POST','HTTP_AUTHORIZATION'=>'Bearer '.str_repeat('S',43),
+            'HTTP_MCP_PROTOCOL_VERSION'=>'2025-11-25','HTTP_COOKIE'=>'PRIVATE COOKIE','HTTP_ORIGIN'=>'PRIVATE ORIGIN'];
+        $rpc=preparationMcpRpc('initialize',['protocolVersion'=>'2025-11-25','clientInfo'=>['name'=>'PRIVATE CLIENT']]);
+        ManagerPreparationMcpDiagnostics::record($server,$rpc,200,'complete',null);
+        $snapshot=ManagerPreparationMcpDiagnostics::snapshot();$last=$snapshot['recent_attempts'][0]??[];
+        preparationMcpCheck('HTTP discovery diagnostics retain only useful protocol categories',
+            $snapshot['sampled_count']===1&&$last['credential_header']==='bearer'&&$last['rpc_method']==='initialize'
+            &&$last['requested_version']==='2025-11-25'&&$last['http_status']===200&&$last['rpc_error']===null);
+        $raw=(string)file_get_contents($file);
+        preparationMcpCheck('HTTP discovery log contains no credentials or client-supplied strings',
+            !str_contains($raw,str_repeat('S',43))&&!str_contains($raw,'PRIVATE')&&!str_contains($raw,'clientInfo'));
+        preparationMcpCheck('HTTP discovery records use private file permissions',(fileperms($file)&0777)===0600);
+        foreach (['missing'=>[], 'redirect_only'=>['REDIRECT_HTTP_AUTHORIZATION'=>'PRIVATE TOKEN'],
+            'noncanonical_bearer'=>['HTTP_AUTHORIZATION'=>'bearer '.str_repeat('S',43)]] as $expected=>$headers) {
+            $meta=ManagerPreparationMcpDiagnostics::metadata($headers,null,401,'credentials',-32001);
+            preparationMcpCheck('credential delivery category '.$expected,$meta['credential_header']===$expected
+                &&$meta['stage']==='credentials'&&$meta['rpc_method']==='absent'&&$meta['rpc_error']===-32001);
+        }
+        $hostile=ManagerPreparationMcpDiagnostics::metadata(['REQUEST_METHOD'=>'PRIVATE METHOD'],
+            ['method'=>['PRIVATE METHOD'],'params'=>['protocolVersion'=>'PRIVATE VERSION']],999,'PRIVATE STAGE',999);
+        preparationMcpCheck('unknown and malformed diagnostic values cannot become published text',
+            !str_contains(json_encode($hostile),'PRIVATE')&&$hostile['http_status']===0&&$hostile['rpc_error']===null);
+        // A corrupt or old writer cannot smuggle new fields through the public reader.
+        $row=['ts'=>gmdate('c'),'component'=>'manager_preparation_mcp','event'=>'http_result',
+            'data'=>['http_method'=>'POST','rpc_method'=>'PRIVATE RPC','stage'=>'complete','http_status'=>200,
+                'access_token'=>'PRIVATE TOKEN','text'=>'PRIVATE TRANSCRIPT','manager_id'=>7]];
+        file_put_contents($file,json_encode($row)."\n",FILE_APPEND);
+        $published=json_encode(ManagerPreparationMcpDiagnostics::snapshot());
+        preparationMcpCheck('snapshot re-allowlists stored records and excludes injected private fields',
+            !str_contains($published,'PRIVATE')&&!str_contains($published,'access_token')&&!str_contains($published,'manager_id'));
+        for ($i=0;$i<24;++$i) ManagerPreparationMcpDiagnostics::record($server,preparationMcpRpc('tools/list'),200,'complete',null);
+        preparationMcpCheck('discovery history is capped at twenty most recent attempts',ManagerPreparationMcpDiagnostics::snapshot()['sampled_count']===20);
+        file_put_contents($file,str_repeat('x',524289)."\n",FILE_APPEND);
+        ManagerPreparationMcpDiagnostics::record($server,preparationMcpRpc('tools/list'),200,'complete',null);
+        preparationMcpCheck('discovery reader never searches beyond its bounded tail',ManagerPreparationMcpDiagnostics::snapshot()['sampled_count']===1);
+        DiagnosticLogger::setFile($dir.'/missing/events.log');
+        ManagerPreparationMcpDiagnostics::record($server,$rpc,200,'complete',null);
+        preparationMcpCheck('unavailable diagnostic storage is nonfatal and reports no sample',ManagerPreparationMcpDiagnostics::snapshot()['sampled_count']===0);
+    } finally {DiagnosticLogger::setFile('');@unlink($file);@rmdir($dir);}
+}
+
 try {
+    preparationMcpDiagnosticChecks();
     $pdo=preparationMcpFixture();$now=1792406400;$connection=str_repeat('a',32);$connectionValid=true;
     $secret='whsec_'.base64_encode(str_repeat('k',32));$nextSecret='whsec_'.base64_encode(str_repeat('n',32));
     $job=['job_id'=>str_repeat('1',64),'project_key'=>'anytour','context_revision'=>str_repeat('2',64),

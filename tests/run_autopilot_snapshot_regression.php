@@ -16,6 +16,8 @@ $fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'202
 $fixtures['production.json']['manager_ai_feedback']=['ok'=>true,'error'=>null,'generated_at'=>'2026-08-27T17:00:00Z','complete'=>false,'draft_limit_reached'=>true,'message_limit_reached'=>false,'counts'=>[],'window'=>['since'=>'2026-08-20 17:00:00','until'=>'2026-08-27 17:00:00','timezone'=>'UTC','days'=>7,'basis'=>'persisted_generation_cohort'],'limits'=>['draft_rows'=>1000,'message_rows'=>5000,'samples'=>10,'sample_characters'=>2000],'private_canary'=>'PRIVATE AI SUMMARY'];
 $fixtures['production.json']['manager_ai_feedback_private']=[['proposed_text'=>'PRIVATE AI PROPOSAL','current_sent_text'=>'PRIVATE AI SENT','draft_id'=>str_repeat('a',32)]];
 $fixtures['production.json']['manager_visibility'][0]['load_ms']=['all'=>12.3,'mine'=>4.5,'waiting'=>2.1];
+$fixtures['production.json']['manager_mcp_discovery']=['sampled_count'=>1,'recent_attempts'=>[
+    ['at'=>'2026-10-19T13:39:00Z','credential_header'=>'missing','http_status'=>401,'stage'=>'credentials','rpc_error'=>-32001]]];
 $pushDiagnostic=['schema'=>1,'manager_id'=>77,'browser_family'=>'Firefox','browser_major'=>145,'os_family'=>'macOS',
     'stage'=>'subscription_create','code'=>'AbortError','elapsed_ms'=>100,'permission'=>'granted',
     'secure_context'=>true,'worker_active'=>true,'worker_scope_matches'=>true,'web_locks'=>true,
@@ -43,6 +45,7 @@ aCheck('paid cohort aggregate survives composition',($json['paid_daily']['days']
 aCheck('channel aggregate survives composition',($json['channel_daily']['days'][0]['channels'][0]['new_conversations']??null)===3);
 aCheck('AI aggregate preserves incomplete coverage while dropping private and unknown fields',($json['manager_ai_feedback']['ok']??null)===true&&($json['manager_ai_feedback']['complete']??null)===false&&($json['manager_ai_feedback']['draft_limit_reached']??null)===true&&!str_contains($raw,'PRIVATE AI')&&!array_key_exists('manager_ai_feedback_private',$json));
 aCheck('production sha is surfaced',($json['production']['sha']??null)==='abc123');
+aCheck('MCP connection evidence survives composition',($json['manager_mcp_discovery']??null)===$fixtures['production.json']['manager_mcp_discovery']);
 aCheck('migration summary is compact and healthy',($json['migrations']['total']??null)===2&&($json['migrations']['pending']??null)===0&&($json['migrations']['checksum_failures']??null)===0);
 aCheck('manager health is surfaced',($json['manager']['response']['pending']??null)===0&&($json['manager']['push'][0]['status']??null)==='healthy');
 aCheck('bounded real-database loading durations survive composition',($json['manager']['visibility'][0]['load_ms']??null)===['all'=>12.3,'mine'=>4.5,'waiting'=>2.1]);
@@ -60,6 +63,7 @@ aCheck('raw and invalid setup observations never enter composed snapshot',!str_c
 file_put_contents($tmp.'/composed.json',$raw);
 $publicLines=[];exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tmp.'/composed.json'),$publicLines,$publicCode);
 $publicRaw=implode("\n",$publicLines);$public=json_decode($publicRaw,true);
+aCheck('public diagnostics retain fixed-category MCP failure evidence',($public['manager_mcp_discovery']??null)===$fixtures['production.json']['manager_mcp_discovery']);
 aCheck('actual public sanitizer preserves only the safe composed setup summary',$publicCode===0&&!empty($public['public_redacted'])&&($public['manager']['push_setup']??null)===$pushSetup&&!str_contains($publicRaw,'PRIVATE PUSH')&&!str_contains($publicRaw,'manager_id'));
 @unlink($tmp.'/composed.json');
 foreach(array_keys($fixtures) as $name)@unlink($tmp.'/'.$name);@rmdir($tmp);

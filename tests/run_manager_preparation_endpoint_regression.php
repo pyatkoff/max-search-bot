@@ -1,13 +1,17 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
 $tmp=sys_get_temp_dir().'/preparation-mcp-http-'.bin2hex(random_bytes(6));
 $server=null;$passed=0;
 function preparationHttpCheck(string $name,bool $ok):void{global $passed;if(!$ok)throw new RuntimeException('FAIL '.$name);++$passed;echo "PASS $name\n";}
 try{
     mkdir($tmp,0700);mkdir($tmp.'/manager',0700);mkdir($tmp.'/services',0700);
+    mkdir($tmp.'-private',0700);DiagnosticLogger::setFile($tmp.'-private/events.log');
     file_put_contents($tmp.'/config.php',<<<'PHP'
 <?php
+require_once __DIR__.'/services/DiagnosticLogger.php';
+DiagnosticLogger::setFile(__DIR__.'-private/events.log');
 final class ManagerPreparationOAuth{
 public static function authenticateBearer(string $header):?int{return $header==='Bearer '.str_repeat('x',43)?7:null;}
 public static function connectionIdForBearer(string $header):?string{return self::authenticateBearer($header)===7?str_repeat('a',32):null;}
@@ -19,6 +23,7 @@ return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['authenticated'=>true,'meth
 }}
 PHP);
     foreach(['ManagerPreparationOAuth','ManagerPreparationMcpService']as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/config.php';");
+    foreach(['ManagerPreparationMcpDiagnostics','DiagnosticLogger']as $name)copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
     copy(dirname(__DIR__).'/manager/ai-mcp.php',$tmp.'/manager/ai-mcp.php');
     $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('socket_unavailable');
     $address=stream_socket_get_name($socket,false);fclose($socket);
@@ -57,8 +62,16 @@ PHP);
     preparationHttpCheck('OAuth bearer and stable connection reach exact service',$r['status']===200&&$r['json']===['jsonrpc'=>'2.0','id'=>1,'result'=>['authenticated'=>true,'method'=>'tools/list']]
         &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('a',32)]);
     preparationHttpCheck('transport remains private and is not cached',str_contains($r['headers'],'Cache-Control: no-store')&&!str_contains($r['headers'],'Set-Cookie'));
+    $observed=ManagerPreparationMcpDiagnostics::snapshot()['recent_attempts'];
+    preparationHttpCheck('actual HTTP diagnostics distinguish successful discovery and missing credentials',
+        ($observed[0]['rpc_method']??null)==='tools/list'&&$observed[0]['http_status']===200
+        &&$observed[0]['credential_header']==='bearer'&&end($observed)['credential_header']==='missing');
+    $log=(string)file_get_contents($tmp.'-private/events.log');
+    preparationHttpCheck('actual HTTP log never includes bearer or hostile origin',
+        !str_contains($log,str_repeat('x',43))&&!str_contains($log,str_repeat('z',43))&&!str_contains($log,'hostile.example'));
     echo 'TOTAL '.$passed." preparation endpoint checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}finally{
     if(is_resource($server)){proc_terminate($server);proc_close($server);}
+    DiagnosticLogger::setFile('');@unlink($tmp.'-private/events.log');@rmdir($tmp.'-private');
     if(is_dir($tmp)){$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($tmp,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);foreach($it as $f){$f->isDir()?rmdir($f->getPathname()):unlink($f->getPathname());}rmdir($tmp);}
 }
