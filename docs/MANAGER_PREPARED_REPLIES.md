@@ -117,6 +117,12 @@ The handshake advertises tools only; MCP 2.0 Events retain their separate
 `server/discover` contract. All discovery still requires current OAuth/admin/project
 authorization and never reads or changes queued jobs.
 
+Request-level `_meta` is accepted as a metadata object and removed before method
+argument validation. This supports required MCP 2026-07-28 client metadata and
+optional metadata from older clients. It is never an authorization source or
+forwarded to the preparation store. Tool argument allowlists, bounded limits and
+current administrator/project checks remain strict; non-object metadata is rejected.
+
 MCP exposes only the pending inventory, a fresh context for one job and saving a
 prepared result. There is no send, reassignment, customer-edit or provider tool.
 The worker is deliberately an administrator-scoped capability for assigned-manager

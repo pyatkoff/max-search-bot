@@ -164,6 +164,37 @@ try {
     $tools=$service->handle(preparationMcpRpc('tools/list'),1)['result']['tools'];
     preparationMcpCheck('exactly the three preparation tools are exposed',array_column($tools,'name')===['list_pending_replies','get_reply_context','save_prepared_reply']);
     preparationMcpCheck('tools advertise matching OAuth scope metadata',$tools[0]['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]] && $tools[0]['_meta']['securitySchemes']===$tools[0]['securitySchemes']);
+    $protocolMeta=['io.modelcontextprotocol/protocolVersion'=>'2026-07-28',
+        'io.modelcontextprotocol/clientInfo'=>['name'=>'Synthetic client','version'=>'1'],
+        'io.modelcontextprotocol/clientCapabilities'=>[], 'example.com/private'=>'PRIVATE METADATA'];
+    foreach ([[],['progressToken'=>'synthetic-progress'],$protocolMeta] as $meta) {
+        foreach ([[],['limit'=>1]] as $args) {
+            $reply=$service->handle(preparationMcpRpc('tools/call',[
+                'name'=>'list_pending_replies','arguments'=>$args,'_meta'=>$meta]),1);
+            preparationMcpCheck('standard request metadata permits bounded queue reads '.count($meta).'/'.count($args),
+                ($reply['result']['structuredContent']['ok']??false)===true
+                && end($calls)===['pending',[$args['limit']??20]]
+                && !str_contains(json_encode($reply),'PRIVATE'));
+        }
+    }
+    $before=count($calls);
+    foreach ([null,'metadata',true,17,['list-item']] as $meta) {
+        preparationMcpCheck('nonobject request metadata is rejected '.get_debug_type($meta),
+            ($service->handle(preparationMcpRpc('tools/call',[
+                'name'=>'list_pending_replies','_meta'=>$meta]),1)['error']['code']??0)===-32602);
+    }
+    preparationMcpCheck('invalid metadata does not reach the queue',count($calls)===$before);
+    foreach ([0,2,3] as $actor) preparationMcpCheck('metadata cannot replace active project admin authorization '.$actor,
+        ($service->handle(preparationMcpRpc('tools/call',[
+            'name'=>'list_pending_replies','_meta'=>$protocolMeta+['admin_id'=>1,'project_key'=>'anytour']]),$actor)['error']['code']??0)===-32001);
+    foreach ([['name'=>'list_pending_replies','project_key'=>'other','_meta'=>$protocolMeta],
+        ['name'=>'list_pending_replies','arguments'=>['limit'=>21],'_meta'=>$protocolMeta],
+        ['name'=>'list_pending_replies','arguments'=>['limit'=>'1'],'_meta'=>$protocolMeta],
+        ['name'=>'list_pending_replies','arguments'=>['_meta'=>$protocolMeta],'_meta'=>$protocolMeta]] as $params) {
+        preparationMcpCheck('request metadata does not relax command validation '.count($params).'/'.count($params['arguments']??[]),
+            ($service->handle(preparationMcpRpc('tools/call',$params),1)['error']['code']??0)===-32602);
+    }
+    preparationMcpCheck('denied metadata calls have no queue side effects',count($calls)===$before);
     $listed=$service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>20]]),1)['result']['structuredContent'];
     preparationMcpCheck('metadata strips customer identity and transcript',!str_contains(json_encode($listed),'PRIVATE') && !isset($listed['jobs'][0]['conversation_id']));
     preparationMcpCheck('canonical context revision is exposed',$listed['jobs'][0]['revision']===$job['context_revision']);
@@ -175,11 +206,18 @@ try {
     $proposal=['ok'=>true,'should_draft'=>false,'draft'=>'','reason'=>'Synthetic','checks'=>[]];
     $save=$service->handle(preparationMcpRpc('tools/call',['name'=>'save_prepared_reply','arguments'=>['job_id'=>$job['job_id'],'revision'=>$job['context_revision'],'proposal'=>$proposal]]),1);
     preparationMcpCheck('save uses canonical idempotent store without a provider',$save['result']['structuredContent']['idempotent'] && end($calls)===['complete',[$job['job_id'],$job['context_revision'],$proposal]]);
+    foreach ([['get_reply_context',['job_id'=>$job['job_id']],'context',[$job['job_id']]],
+        ['save_prepared_reply',['job_id'=>$job['job_id'],'revision'=>$job['context_revision'],'proposal'=>$proposal],
+            'complete',[$job['job_id'],$job['context_revision'],$proposal]]] as [$name,$args,$operation,$expected]) {
+        $reply=$service->handle(preparationMcpRpc('tools/call',['name'=>$name,'arguments'=>$args,'_meta'=>$protocolMeta]),1);
+        preparationMcpCheck('protocol metadata is not forwarded to the canonical store '.$name,
+            ($reply['result']['structuredContent']['ok']??false)===true && end($calls)===[$operation,$expected]);
+    }
     preparationMcpCheck('unknown tool arguments fail closed',($service->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>$job['job_id'],'project'=>'other']]),1)['error']['code']??0)===-32602);
     preparationMcpCheck('event definition has strict project filter',$service->handle(preparationMcpRpc('events/list'),1)['result']['events'][0]['inputSchema']['properties']['project_key']['const']==='anytour');
     preparationMcpCheck('subscription requires a live OAuth connection',($service->handle(preparationMcpRpc('events/subscribe',$subscribe),1)['error']['code']??0)===-32001);
 
-    $sub=$service->handle(preparationMcpRpc('events/subscribe',$subscribe),1,$connection);
+    $sub=$service->handle(preparationMcpRpc('events/subscribe',$subscribe+['_meta'=>$protocolMeta]),1,$connection);
     preparationMcpCheck('signed callback challenge activates a persistent subscription',isset($sub['result']['id']) && count($requests)===1 && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===1);
     $subId=$sub['result']['id'];$challenge=$requests[0];$headers=$challenge['headers'];
     $expected='v1,'.base64_encode(hash_hmac('sha256',$headers['webhook-id'].'.'.$headers['webhook-timestamp'].'.'.$challenge['body'],str_repeat('k',32),true));
