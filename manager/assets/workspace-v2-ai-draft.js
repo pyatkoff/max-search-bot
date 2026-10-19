@@ -4,6 +4,9 @@
   const {S,$}=W;
   let bound=false,view=null,flight=null,sequence=0;
   let button,panel,status,body,insert,retry;
+  let ready=null,watch=null,statusFlight=null,watchTimer=null,expiryTimer=null,notice,noticeLabel;
+  const dismissedNotices=new Set(),manager2=()=>document.body.classList.contains('manager2');
+  const visible=()=>document.visibilityState!=='hidden';
   const conversation=()=>window.WorkspaceV2Conversation;
   const context=()=>conversation()?.captureReplyContext();
   const latestMessageId=()=>Array.isArray(S.detail?.messages)?S.detail.messages.reduce((latest,message)=>{const id=Number(message.id);return Number.isSafeInteger(id)&&id>latest?id:latest},0):0;
@@ -19,6 +22,64 @@
   }
   function snapshot(){return {context:context(),latest:latestMessageId(),messages:messageState()}}
   function currentSnapshot(saved){return canCompose()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState()}
+  function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
+  function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
+  function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
+  function clearReady(){ready=null;window.clearTimeout?.(expiryTimer);expiryTimer=null;hideNotice(true)}
+  function noticeKey(){return ready?JSON.stringify([S.manager?.id,S.current,ready.revision,ready.prepared_at]):''}
+  function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true)}
+  function syncPreferences(){
+    if(!notice)return;
+    hideNotice(!manager2()||!visible()||!ready||ready.kind!=='prepared'||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+  }
+  function renderButton(){
+    if(!bound||!manager2())return;
+    let state='idle',label='AI',hint='Проверить готовый ответ AI. Генерация по кнопке «Сформировать заново» доступна отдельно.';
+    if(ready&&currentSnapshot(ready.snapshot)&&ready.expires>Date.now()){
+      state=ready.kind;label=ready.should_draft?'AI — Ответ готов':'AI — Рекомендации';
+      hint=(state==='prepared'?'Подготовлен автоматически':'Сформирован по нажатию')+(timeLabel(ready.prepared_at)?': '+timeLabel(ready.prepared_at):'')+'. Нажмите, чтобы проверить '+(ready.should_draft?'черновик.':'рекомендации.');
+    }else if(view?.stale){state='stale';label='AI — Обновить';hint='Переписка изменилась. Прежний черновик нужно обновить.'}
+    if(flight){state='loading';label=flight.action==='generate'?'AI — Готовим ответ':'AI — Проверяем';hint=flight.action==='generate'?'Готовим новый вариант по вашему нажатию.':'Проверяем готовый ответ и актуальность переписки.'}
+    if(button.textContent!==label)button.textContent=label;
+    button.dataset.aiState=state;button.title=hint;button.setAttribute('aria-label',label+'. '+hint);syncPreferences();
+  }
+  function rememberReady(result,saved,kind){
+    if(!manager2()||!currentSnapshot(saved))return;
+    const expires=kind==='prepared'?timeValue(result.expires_at):Date.now()+600000;
+    if(!expires||expires<=Date.now())return;
+    clearReady();ready={...result,snapshot:saved,kind,expires,prepared_at:result.prepared_at||new Date().toISOString()};
+    const captured=ready;
+    expiryTimer=window.setTimeout?.(()=>{if(ready!==captured)return;clearReady();if(view?.result?.prepared===true){view.result=null;clearBody();status.textContent='Срок хранения готового ответа истёк. Проверьте наличие нового ответа.'}renderButton()},Math.min(expires-Date.now(),2147483647));
+    renderButton();
+  }
+  function abortStatusRead(){const previous=statusFlight;statusFlight=null;previous?.controller?.abort();window.clearTimeout?.(watchTimer);watchTimer=null}
+  function stopWatching(){abortStatusRead();watch=null;clearReady()}
+  function scheduleStatus(saved){
+    if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until)return;
+    window.clearTimeout?.(watchTimer);watchTimer=window.setTimeout?.(()=>{watchTimer=null;void readStatus(saved)},15000);
+  }
+  async function readStatus(saved){
+    if(watch!==saved||saved.blocked||!visible()||!currentSnapshot(saved.snapshot)||Date.now()>=saved.until||statusFlight)return;
+    if(flight){scheduleStatus(saved);return}
+    const current={controller:typeof AbortController==='function'?new AbortController():null};statusFlight=current;
+    const isCurrent=()=>watch===saved&&statusFlight===current&&visible()&&currentSnapshot(saved.snapshot);
+    try{
+      const result=await W.request('ai-draft.php','prepared_status',{conversation_id:saved.snapshot.context.conversationId,latest_message_id:saved.snapshot.latest},{signal:current.controller?.signal,isCurrent});
+      if(!isCurrent())return;
+      if(result?.http_status===403||result?.http_status===404){saved.blocked=true;clearReady();resetSession({keepReady:true});return}
+      if(result?.ok===true&&result.prepared===true&&typeof result.should_draft==='boolean'&&typeof result.revision==='string'&&result.revision&&result.latest_message_id===saved.snapshot.latest){
+        if(ready?.kind!=='generated')rememberReady(result,saved.snapshot,'prepared');
+      }else if(ready?.kind!=='generated')clearReady();
+      renderButton();
+    }catch(error){if(isCurrent()&&ready?.kind!=='generated'){clearReady();renderButton()}}
+    finally{if(statusFlight===current){statusFlight=null;scheduleStatus(saved)}}
+  }
+  function syncWatch(){
+    // A server predating the new preference does not advertise readiness support.
+    if(!manager2()||!canCompose()||!visible()||window.WorkspaceV2PersonalWorkspace?.supportsAiReadiness?.()===false){stopWatching();return}
+    if(watch&&currentSnapshot(watch.snapshot))return;
+    stopWatching();watch={snapshot:snapshot(),until:Date.now()+600000};void readStatus(watch);
+  }
   function selection(){const reply=$('replyText');return {start:reply.selectionStart,end:reply.selectionEnd,direction:reply.selectionDirection,top:reply.scrollTop,left:reply.scrollLeft}}
   function restoreSelection(saved){
     const reply=$('replyText');if(!saved||!canCompose())return;
@@ -35,21 +96,24 @@
     panel.setAttribute('aria-busy',String(value));
     insert.disabled=value||!view?.result?.should_draft;retry.disabled=value;
     const disabled=!canCompose()||value;if(button.disabled!==disabled)button.disabled=disabled;
+    renderButton();
   }
   function clearBody(){body.replaceChildren();insert.hidden=true;insert.disabled=true}
   function abortFlight(){sequence++;const previous=flight;flight=null;previous?.controller?.abort()}
-  function resetSession(){
+  function resetSession({keepReady=false}={}){
     abortFlight();view=null;
+    if(!keepReady)stopWatching();
     if(!bound)return;
     panel.hidden=true;status.textContent='';clearBody();button.setAttribute('aria-expanded','false');setBusy(false);
   }
   function close(restoreFocus=true){
     const previous=view,mayFocus=previous&&sameContext(previous.snapshot.context)&&canCompose();
-    resetSession();if(restoreFocus&&mayFocus)restoreSelection(previous.selection);
+    resetSession({keepReady:true});if(restoreFocus&&mayFocus)restoreSelection(previous.selection);
   }
   function stale(){
     if(!view||view.stale)return;
     abortFlight();view.stale=true;view.result=null;clearBody();
+    clearReady();
     status.textContent='Переписка изменилась. Сформируйте ответ заново.';setBusy(false);
   }
   function sync(){
@@ -57,6 +121,7 @@
     if(view&&(!canCompose()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canCompose()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
+    syncWatch();renderButton();
     positionPanel();
   }
   function addText(tag,className,text){
@@ -95,26 +160,34 @@
   function validResult(result,saved){
     return result?.ok===true&&typeof result.revision==='string'&&!!result.revision&&Number.isSafeInteger(result.latest_message_id)&&result.latest_message_id===saved.latest&&typeof result.should_draft==='boolean'&&(!result.should_draft||typeof result.draft==='string'&&!!result.draft.trim());
   }
+  function openReady(){
+    if(ready?.kind==='generated'&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)){
+      const result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel();panel.focus({preventScroll:true});if(watch)scheduleStatus(watch);return;
+    }
+    void loadProposal('prepared');
+  }
   async function loadProposal(action){
     if(!canCompose()||flight)return false;
+    abortStatusRead();dismissNotice();
     const saved=snapshot(),savedSelection=selection();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false};
     panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();status.textContent=action==='prepared'?'Проверяем готовый ответ…':'Готовим черновик…';
-    const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
+    const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
       const result=await W.request('ai-draft.php',action,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
       if(!isCurrent()){sync();return false}
-      if(action==='prepared'&&result?.ok===true&&result.prepared===false){status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
+      if(action==='prepared'&&result?.ok===true&&result.prepared===false){clearReady();status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
       if(!validResult(result,saved)||action==='prepared'&&result.prepared!==true){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result,action);return false}
       // Prepared replies are not provider-generated feedback records. Their
       // insertion still requires the same canonical live-context validation.
-      view.result=action==='prepared'?{...result,draft_id:null}:result;renderResult(view.result);return true;
+      view.result=action==='prepared'?{...result,draft_id:null}:result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
     }catch(error){if(isCurrent())failure(null,action);else sync();return false}
-    finally{if(flight===current){flight=null;setBusy(false)}}
+    finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
   }
   async function insertDraft(){
     sync();if(!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
+    if(view.result.prepared===true&&view.result.expires_at&&timeValue(view.result.expires_at)<=Date.now()){stale();return false}
     const saved=view.snapshot,result=view.result,draftId=validDraftId(view.result.draft_id)?view.result.draft_id:null;
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);status.textContent='Проверяем, что контекст не изменился…';
     const isCurrent=()=>flight===current&&current.ticket===sequence&&view?.result===result&&currentSnapshot(saved);
@@ -153,11 +226,18 @@
     const actions=document.createElement('div');actions.className='aiDraftActions';
     insert=document.createElement('button');insert.id='aiDraftInsert';insert.type='button';insert.textContent='Добавить в ответ';insert.hidden=true;actions.appendChild(insert);
     retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Сформировать заново';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
-    bound=true;button.addEventListener('click',()=>{if(view)close();else void loadProposal('prepared')});dismiss.addEventListener('click',()=>close());
+    if(manager2()){
+      notice=document.createElement('div');notice.id='aiReadyNotice';notice.className='aiReadyNotice';notice.hidden=true;notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
+      noticeLabel=document.createElement('span');noticeLabel.textContent='AI — Ответ готов';notice.appendChild(noticeLabel);
+      const show=document.createElement('button');show.type='button';show.textContent='Посмотреть';show.addEventListener('click',()=>void loadProposal('prepared'));notice.appendChild(show);
+      const hide=document.createElement('button');hide.type='button';hide.textContent='×';hide.setAttribute('aria-label','Скрыть уведомление AI');hide.addEventListener('click',dismissNotice);notice.appendChild(hide);form.appendChild(notice);
+      document.addEventListener('visibilitychange',()=>{if(!visible())stopWatching();else sync()});
+    }
+    bound=true;button.addEventListener('click',()=>{if(view&&!view.stale)close();else openReady()});dismiss.addEventListener('click',()=>close());
     retry.addEventListener('click',()=>void loadProposal('generate'));insert.addEventListener('click',()=>void insertDraft());
     panel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close()}});
     for(const event of ['input','select','keyup','pointerup'])reply.addEventListener(event,rememberSelection);
-    window.addEventListener('pagehide',resetSession);
+    window.addEventListener('pagehide',()=>resetSession());
     window.addEventListener('resize',positionPanel);window.visualViewport?.addEventListener('resize',positionPanel);
     if(typeof ResizeObserver==='function'){const sizeObserver=new ResizeObserver(positionPanel);sizeObserver.observe(form)}
     if(typeof MutationObserver==='function'){
@@ -169,6 +249,6 @@
     }
     sync();
   }
-  window.WorkspaceV2AiDraft={bind,sync,resetSession};
+  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();

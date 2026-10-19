@@ -81,7 +81,14 @@ function pwBusiness(): array {global $pdo;$out=[];foreach (['managers','conversa
 $pdo->exec("INSERT INTO lead_tasks VALUES(1,1,'Synthetic followup','2026-10-15 12:00:00',1,'open')");
 $before=pwBusiness();
 $empty=pwState();
-pwCheck('empty account read has defaults and no write',$empty['ok']&&$empty['version']===0&&$empty['state']['tabs']===[]&&$empty['state']['pins']===[]&&json_encode($empty['state']['members'])==='{}'&&$empty['state']['settings']===['start_tab'=>'waiting','density'=>'comfortable','font'=>'normal']&&(int)$pdo->query('SELECT COUNT(*) FROM manager_personal_workspace_states')->fetchColumn()===0);
+pwCheck('empty account read has defaults and no write',$empty['ok']&&$empty['version']===0&&$empty['state']['tabs']===[]&&$empty['state']['pins']===[]&&json_encode($empty['state']['members'])==='{}'&&$empty['state']['settings']===['start_tab'=>'waiting','density'=>'comfortable','font'=>'normal','ai_ready_notice'=>'show']&&(int)$pdo->query('SELECT COUNT(*) FROM manager_personal_workspace_states')->fetchColumn()===0);
+$legacyState=['tabs'=>[],'labels'=>[],'members'=>[],'pins'=>[],'settings'=>['start_tab'=>'waiting','density'=>'comfortable','font'=>'normal'],'next_tab_id'=>1,'next_label_id'=>1];
+$legacyJson=json_encode($legacyState);$legacyInsert=$pdo->prepare('INSERT INTO manager_personal_workspace_states VALUES(8,0,?,?)');$legacyInsert->execute([$legacyJson,'2026-10-19 10:00:00']);
+pwCheck('old account rows receive readiness default without a write',pwState(8)['state']['settings']['ai_ready_notice']==='show'&&$pdo->query('SELECT state_json FROM manager_personal_workspace_states WHERE manager_id=8')->fetchColumn()===$legacyJson&&pwState(8)['version']===0);
+$noticeHidden=pwMut('settings',['settings'=>['ai_ready_notice'=>'hide']],8);
+pwCheck('AI notice preference belongs only to its account and survives fresh reads',$noticeHidden['ok']&&pwState(8)['state']['settings']['ai_ready_notice']==='hide'&&pwState(7)['state']['settings']['ai_ready_notice']==='show');
+foreach ([true,1,'unknown'] as $invalidNotice) pwCheck('readiness preference rejects invalid type or value',pwMut('settings',['settings'=>['ai_ready_notice'=>$invalidNotice]],8)['error']==='invalid_settings');
+pwMut('settings',['settings'=>['ai_ready_notice'=>'show']],8);
 pwCheck('inactive, missing and zero actors fail before preference access',pwState(10)['error']==='unauthorized'&&pwState(0)['error']==='unauthorized'&&pwState(999)['error']==='unauthorized');
 $label=pwMut('label_save',['name'=>'Любимые клиенты']);$labelId=$label['id'];
 $tabInput=['name'=>'Моя подборка','queue'=>'all','channel'=>'max','source_id'=>1,'reply_needed'=>false,'label_id'=>$labelId,'pinned_only'=>false];

@@ -6,7 +6,7 @@ function harness(handler){
   const nodes=new Map(),storage=new Map(),calls=[],loads=[],queues=[],classes=new Set();let active=null;
   function element(id=''){
     const handlers=new Map(),attrs=new Map(),node={id,disabled:false,hidden:false,isConnected:true,open:false,value:'',checked:false,textContent:'',dataset:{},innerMarkup:'',children:[],parentNode:null,
-      classList:{toggle(name,on){if(on)classes.add(name);else classes.delete(name)},remove(){},add(){}},
+      classList:{contains:name=>classes.has(name),toggle(name,on){if(on)classes.add(name);else classes.delete(name)},remove(){},add(){}},
       addEventListener(type,cb){handlers.set(type,cb)},emit(type,event={}){return handlers.get(type)?.({currentTarget:node,...event})},
       contains(target){for(let n=target;n;n=n.parentNode)if(n===node)return true;return false},getClientRects(){return node.hidden?[]:[{}]},setAttribute(k,v){attrs.set(k,String(v))},getAttribute:k=>attrs.get(k),focus(){active=node},blur(){active=null},setSelectionRange(start,end){node.selectionStart=start;node.selectionEnd=end},
       showModal(){node.open=true},close(){node.open=false;node.emit('close')},appendChild(child){child.parentNode=node;node.children.push(child);nodes.set(child.id,child)},
@@ -60,6 +60,12 @@ const tick=()=>new Promise(r=>setTimeout(r,0));
 
   const settings=harness(action=>({...snapshot(1),state:{...snapshot().state,settings:{start_tab:'pinned',density:'compact',font:'large'}}}));await settings.api.activate(5);assert.ok(settings.classes.has('pwCompact'));assert.ok(settings.classes.has('pwLargeFont'));await settings.api.open();assert.match(settings.nodes.get('pwDialog').innerHTML,/Видно только вам/);settings.api.suspend();assert.equal(settings.classes.has('pwCompact'),false);assert.equal(settings.nodes.get('pwDialog').open,false);
   console.log('PASS account-scoped appearance, explicit private copy and auth suspension');
+
+  const oldServer=harness(()=>snapshot());await oldServer.api.activate(5);assert.equal(oldServer.api.supportsAiReadiness(),false,'older snapshot does not enable a new endpoint');
+  const aiSnapshot=snapshot();aiSnapshot.state.settings.ai_ready_notice='show';
+  const aiSettings=harness((action,data)=>action==='snapshot'?aiSnapshot:{...aiSnapshot,version:1,state:{...aiSnapshot.state,settings:data.settings}});aiSettings.classes.add('manager2');await aiSettings.api.activate(5);assert.equal(aiSettings.api.supportsAiReadiness(),true);assert.equal(aiSettings.api.showAiReadyNotice(),true);await aiSettings.api.open();
+  const hide=aiSettings.nodes.get('pwHideAiReadyNotice');assert.equal(hide.checked,false);hide.checked=true;hide.emit('change');aiSettings.nodes.get('pwSettingsForm').onsubmit({preventDefault(){}});await tick();assert.equal(aiSettings.calls.at(-1).action,'settings');assert.equal(aiSettings.calls.at(-1).data.settings.ai_ready_notice,'hide');assert.equal(aiSettings.api.showAiReadyNotice(),false);assert.equal(aiSettings.api.supportsAiReadiness(),true);aiSettings.api.suspend();assert.equal(aiSettings.api.showAiReadyNotice(),false);assert.equal(aiSettings.api.supportsAiReadiness(),false);
+  console.log('PASS Manager2 notice preference persists privately and older servers do not enable readiness polling');
 
   const deleted=snapshot();deleted.state.labels=[];const dangling=harness(()=>deleted);await dangling.api.activate(5);await dangling.api.open();assert.match(dangling.nodes.get('pwTabs').innerHTML,/Метка удалена/,'dependent tab remains a bounded empty selection rather than silently broadening');
   console.log('PASS deleted label warning preserves personal selection semantics');
