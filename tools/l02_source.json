@@ -1,0 +1,214 @@
+{
+  "schema": "manager_ai_l02_source_v1",
+  "production_sha": "189392a33d096407e4bd125f6b4add524828cab3",
+  "candidate_sha": "f687eebceb105628dc06005d01efbb54955eef7b",
+  "candidate_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "36e9f958d79297aa94a10adbb31b556c8ed1cc8f39ba527b4d82b61ac0f7fc89"
+  },
+  "production_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "732e1df0c89b854178d197c4215d2fde253b96449ca398e918ac8cf86c20f0bc"
+  },
+  "candidate_instructions_sha256": "c13d249fd8a0600275e47fcf66ec0b3d797ffcc09b45e7c3c61cffb996575a1f",
+  "proposal_inputs_sha256": "62fea18e44cd1b4b2db9e4e2aa1c9ee711561d7228337379c70dc305c64645dd",
+  "criteria_sha256": "90b86d426a45539cc2a106de5ffab3eabd1afed80625a737ec5b147f81646fe9",
+  "selection_freeze_sha256": "df20b6d53f6fe9643ccb5f1ee397888c474dcd9a2010e41998e36d60bc101737",
+  "case_count": 24,
+  "parallelism": 1,
+  "profiles": [
+    {
+      "model": "gpt-6-luna",
+      "reasoning_effort": "low",
+      "service_tier": "default"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "service_tier": "default"
+    }
+  ],
+  "output_token_reservation": 52800,
+  "attempt_bindings": [
+    {
+      "case_id": "L02-001",
+      "model": "gpt-6-luna",
+      "request_bytes": 42818,
+      "request_sha256": "7394403272edee9147a37301ff5852b5d05c7876b52ece8aa6dd3e32e3bde24b",
+      "reservation_microusd": 7239
+    },
+    {
+      "case_id": "L02-002",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 42819,
+      "request_sha256": "8d39572d1903b6da6f99a1ecf9adaea2d5b440976a08c8747f28befbf1278b63",
+      "reservation_microusd": 144769
+    },
+    {
+      "case_id": "L02-003",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 50148,
+      "request_sha256": "9fe67a2a8d6b7e871f87694bab8c0f591e5b917f4faf0332ae48f809d431ed47",
+      "reservation_microusd": 164923
+    },
+    {
+      "case_id": "L02-004",
+      "model": "gpt-6-luna",
+      "request_bytes": 50147,
+      "request_sha256": "5921165aab97e4f3365da0fce2d9738ce17e6b5d2bd2fb7e61a17e9f7a2e9102",
+      "reservation_microusd": 8247
+    },
+    {
+      "case_id": "L02-005",
+      "model": "gpt-6-luna",
+      "request_bytes": 35051,
+      "request_sha256": "a22822cb001168c0a71acd66a15886002b4343630feb24598957859f0e8d4f42",
+      "reservation_microusd": 6171
+    },
+    {
+      "case_id": "L02-006",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 35052,
+      "request_sha256": "54919341c5f9e03c11fa68e4e173556fe45bcccc9ee05268eca6ba583de7a9fb",
+      "reservation_microusd": 123409
+    },
+    {
+      "case_id": "L02-007",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 43330,
+      "request_sha256": "f2285a013b95bbb1f62bff815be18fea821b5593c4a7b39eb86bcbda1757e257",
+      "reservation_microusd": 146174
+    },
+    {
+      "case_id": "L02-008",
+      "model": "gpt-6-luna",
+      "request_bytes": 43329,
+      "request_sha256": "c5612b266b68136b2370ea26c486cdc68b80e97d64c6952505dc2705a5d1481d",
+      "reservation_microusd": 7309
+    },
+    {
+      "case_id": "L02-009",
+      "model": "gpt-6-luna",
+      "request_bytes": 37836,
+      "request_sha256": "fc293d753717d5027587d7c2143521a7f3d1ec36ffd885f855595b509145365b",
+      "reservation_microusd": 6554
+    },
+    {
+      "case_id": "L02-010",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 37837,
+      "request_sha256": "371822396a7ca2fd42922a3d42ae20d0061ffa56ad2438de24b471e0bb77dd76",
+      "reservation_microusd": 131068
+    },
+    {
+      "case_id": "L02-011",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 30953,
+      "request_sha256": "aa6ef3bdb6ffaecd830f7d6b9b0efea10c4bf5e4392bb4075516dbb6098fdf3e",
+      "reservation_microusd": 112137
+    },
+    {
+      "case_id": "L02-012",
+      "model": "gpt-6-luna",
+      "request_bytes": 30952,
+      "request_sha256": "2f3c02469b9714427a4043b35604d52587f0929ec9a7fbea014880cb7c348f99",
+      "reservation_microusd": 5607
+    },
+    {
+      "case_id": "L02-013",
+      "model": "gpt-6-luna",
+      "request_bytes": 33334,
+      "request_sha256": "ca3cb6dc90d7ddb58c672f99bfcd6977a2c8dad72562de8ad592a38a5705e6b5",
+      "reservation_microusd": 5935
+    },
+    {
+      "case_id": "L02-014",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 33335,
+      "request_sha256": "1f30c4a304ba60451334ace34c9aa1a16a4c93070138dbd3a2692e56a4a0d84d",
+      "reservation_microusd": 118688
+    },
+    {
+      "case_id": "L02-015",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 39774,
+      "request_sha256": "29e7922b3a6f030ceec324ffa7a4c6fe16730818e671e6626c9a98ad61c23b55",
+      "reservation_microusd": 136395
+    },
+    {
+      "case_id": "L02-016",
+      "model": "gpt-6-luna",
+      "request_bytes": 39773,
+      "request_sha256": "e5a93476cd4c10d390b67305c8b0ae25470e22dda33616727fa24c5096dbffa6",
+      "reservation_microusd": 6820
+    },
+    {
+      "case_id": "L02-017",
+      "model": "gpt-6-luna",
+      "request_bytes": 34421,
+      "request_sha256": "70bae8c28ac67c8403d68423c44a8a114a30568a68fc2639e4ba5568263aeb43",
+      "reservation_microusd": 6084
+    },
+    {
+      "case_id": "L02-018",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 34422,
+      "request_sha256": "5b06ca49b40d1d85b2e7c84112baeaa13f9d3e90b1d74d4dccce2e38ed97ce66",
+      "reservation_microusd": 121677
+    },
+    {
+      "case_id": "L02-019",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 36388,
+      "request_sha256": "c56fb9efd85275eb61bb1168b0f1f3b4c57a0d2a16b6bbdcf6089d5cc6a4699f",
+      "reservation_microusd": 127083
+    },
+    {
+      "case_id": "L02-020",
+      "model": "gpt-6-luna",
+      "request_bytes": 36387,
+      "request_sha256": "880e9a062fbad1c1c4fb73e0290d2129d90397c34fb93fe0302122940aa5bccf",
+      "reservation_microusd": 6355
+    },
+    {
+      "case_id": "L02-021",
+      "model": "gpt-6-luna",
+      "request_bytes": 49599,
+      "request_sha256": "11593dd89ea98d2bbec65e13d78737953f37957809a4d4e2aea17a94e038baa9",
+      "reservation_microusd": 8171
+    },
+    {
+      "case_id": "L02-022",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 49600,
+      "request_sha256": "f4eeccc6d080e2470e936326d392bb7f6da01c552cea5515309d841665fd0f21",
+      "reservation_microusd": 163416
+    },
+    {
+      "case_id": "L02-023",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 50059,
+      "request_sha256": "82ffa9f5218b8de41793fcc16fd3400aa0522dca39204c3668ce779cad941f81",
+      "reservation_microusd": 164679
+    },
+    {
+      "case_id": "L02-024",
+      "model": "gpt-6-luna",
+      "request_bytes": 50058,
+      "request_sha256": "061748088e92c3f1398a5e4b1f0e72208a74e3b22d146bf12b11639c91e12360",
+      "reservation_microusd": 8234
+    }
+  ],
+  "budget_cap_microusd": 1000000,
+  "reservation_microusd": 1737144
+}
