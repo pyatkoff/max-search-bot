@@ -1,0 +1,301 @@
+<?php
+
+declare(strict_types=1);
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
+// Execute byte-exact current outbound/recorder sources in an isolated app.
+// Only their external dependencies are doubles: no config, real transport,
+// provider or production DB is loaded. Feedback ownership/storage validation
+// belongs to its own service suite; null below models its declined lookups.
+final class DraftOutboundFixture
+{
+    public static ?PDO $pdo = null;
+    public static bool $configured = true;
+    public static bool $visible = true;
+    public static bool $delivered = true;
+    public static bool $duplicate = false;
+    public static bool $locked = true;
+    public static string $channel = 'telegram';
+    public static string $feedbackMode = 'available';
+    public static string $proposal = '';
+    public static array $trace = [];
+    public static int $connections = 0;
+
+    public static function reset(string $channel = 'telegram'): PDO
+    {
+        self::$configured = self::$visible = self::$delivered = self::$locked = true;
+        self::$duplicate = false;
+        self::$channel = $channel;
+        self::$feedbackMode = 'available';
+        self::$proposal = 'Вариант <b>море</b> & "номер"';
+        self::$trace = [];
+        self::$connections = 0;
+        $pdo = new PDO('sqlite::memory:', null, null, [
+            PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
+        ]);
+        $pdo->sqliteCreateFunction('NOW', static fn(): string=>'2026-10-19 12:00:00');
+        $pdo->exec("CREATE TABLE conversations (id INTEGER PRIMARY KEY,last_message_at TEXT);
+CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT,conversation_id INTEGER,direction TEXT,sender_type TEXT,sender_id TEXT,channel TEXT,external_message_id TEXT,text TEXT,metadata_json TEXT);
+CREATE TABLE conversation_events (id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,created_at TEXT,payload_json TEXT);
+INSERT INTO conversations VALUES (42,'2026-10-18 12:00:00');");
+        self::$pdo = $pdo;
+        return $pdo;
+    }
+
+    public static function events(string $name): array
+    {
+        return array_values(array_filter(self::$trace, static fn(array $item): bool=>$item['event'] === $name));
+    }
+
+    public static function rows(): array
+    {
+        return self::$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
+    }
+}
+
+class ConversationDb
+{
+    public static function isConfigured(): bool { return DraftOutboundFixture::$configured; }
+    public static function connection(): PDO
+    {
+        ++DraftOutboundFixture::$connections;
+        return DraftOutboundFixture::$pdo;
+    }
+}
+class ManagerConversationService
+{
+    public static function visibleConversation(int $conversationId, int $managerId): ?array
+    {
+        if (!DraftOutboundFixture::$visible || $conversationId !== 42 || $managerId !== 7) return null;
+        return ['id'=>42,'manager_id'=>7,'status'=>'manager','project_key'=>'synthetic-project',
+            'channel'=>DraftOutboundFixture::$channel,'external_chat_id'=>'synthetic-chat-42'];
+    }
+}
+class ManagerSendGuardService
+{
+    public static function acquire(int $conversationId, int $managerId): bool { return DraftOutboundFixture::$locked; }
+    public static function isImmediateDuplicate(int $conversationId, string $text): bool { return DraftOutboundFixture::$duplicate; }
+    public static function release(int $conversationId, int $managerId): void
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'release','args'=>[$conversationId,$managerId]];
+    }
+}
+class ManagerAiDraftFeedbackService
+{
+    public static function forMessage(int $conversationId, int $managerId, string $projectKey, ?string $draftId, string $text): ?array
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'feedback','args'=>func_get_args()];
+        if (DraftOutboundFixture::$feedbackMode !== 'available') return null;
+        return ['draft_id'=>$draftId,
+            'text_matches_proposal'=>trim($text) === trim(DraftOutboundFixture::$proposal),
+            'sent_text_sha256'=>hash('sha256',trim($text))];
+    }
+}
+class ConversationControlService
+{
+    public static function event(int $conversationId, string $eventType, string $actorType, int $actorId, array $payload): bool
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'control','type'=>$eventType,'payload'=>$payload];
+        return true;
+    }
+}
+class ManagerPushService
+{
+    public static function notifyConversation(int $conversationId, string $notice): void
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'push'];
+    }
+}
+class MetrikaConversionGoalService
+{
+    public static function managerReply(int $conversationId): void
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'reply_goal'];
+    }
+}
+class ManagerDeliveryStateService
+{
+    public static function maxRestartsAfter(array $events): array { return []; }
+}
+class DiagnosticLogger
+{
+    public static function log(...$args): void
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'recorder_failure','stage'=>$args[2]['stage'] ?? null];
+    }
+}
+abstract class DraftOutboundAdapter
+{
+    public function __construct(...$args)
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'adapter_construct','class'=>static::class,'args'=>$args];
+    }
+    public function send($chatId, string $text): bool
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'adapter_send','args'=>func_get_args()];
+        return DraftOutboundFixture::$delivered;
+    }
+    public function sendMedia($chatId, string $type, string $path, string $name, string $mime, string $caption, string $preview): bool
+    {
+        DraftOutboundFixture::$trace[] = ['event'=>'adapter_media','args'=>func_get_args()];
+        return DraftOutboundFixture::$delivered;
+    }
+    public function lastExternalMessageId(): string { return 'synthetic-delivery-id'; }
+}
+class MaxMessengerAdapter extends DraftOutboundAdapter {}
+class TelegramMessengerAdapter extends DraftOutboundAdapter {}
+class WebsiteMessengerAdapter extends DraftOutboundAdapter {}
+
+$root = dirname(__DIR__);
+$tmp = sys_get_temp_dir().'/manager-ai-outbound-'.bin2hex(random_bytes(6));
+$passed = 0;
+function draftOutboundCheck(string $name, bool $ok): void
+{
+    global $passed;
+    if (!$ok) throw new RuntimeException('FAIL '.$name);
+    ++$passed;
+    echo 'PASS '.$name."\n";
+}
+
+try {
+    foreach ([$tmp,$tmp.'/services',$tmp.'/integrations'] as $directory) mkdir($directory,0700);
+    foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService',
+        'ManagerDeliveryStateService','ConversationDb','ManagerAiDraftFeedbackService',
+        'MetrikaConversionGoalService','ProjectConfig','RoutingAccessService'] as $dependency) {
+        file_put_contents($tmp.'/services/'.$dependency.'.php', "<?php\n// Dependency supplied by the isolated regression.\n");
+    }
+    foreach (['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $adapter) {
+        file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
+    }
+    file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
+    foreach (['ManagerOutboundService','ConversationRecorder'] as $service) {
+        $source = $root.'/services/'.$service.'.php';
+        $target = $tmp.'/services/'.$service.'.php';
+        if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
+        draftOutboundCheck($service.' executes exact current canonical bytes',hash_file('sha256',$source) === hash_file('sha256',$target));
+    }
+    require $tmp.'/services/ManagerOutboundService.php';
+    draftOutboundCheck('SQLite is required for real canonical recorder writes',in_array('sqlite',PDO::getAvailableDrivers(),true));
+
+    $draftId = str_repeat('a',32);
+    foreach (['telegram','max','website'] as $channel) {
+        $pdo = DraftOutboundFixture::reset($channel);
+        $raw = " \n".DraftOutboundFixture::$proposal."\t ";
+        $trimmed = trim($raw);
+        $escaped = htmlspecialchars($trimmed,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
+        draftOutboundCheck($channel.' delivered AI-associated text succeeds',ManagerOutboundService::send(42,7,$raw,$draftId));
+        $feedback = DraftOutboundFixture::events('feedback');
+        $rows = DraftOutboundFixture::rows();
+        $meta = json_decode((string)($rows[0]['metadata_json'] ?? ''),true);
+        $expectedFeedback = ['draft_id'=>$draftId,'text_matches_proposal'=>true,'sent_text_sha256'=>hash('sha256',$trimmed)];
+        draftOutboundCheck($channel.' feedback gets authenticated scope and original trimmed text',
+            count($feedback) === 1 && $feedback[0]['args'] === [42,7,'synthetic-project',$draftId,$trimmed]);
+        draftOutboundCheck($channel.' adapter and canonical row receive the same escaped text',
+            DraftOutboundFixture::events('adapter_send')[0]['args'] === ['synthetic-chat-42',$escaped]
+            && count($rows) === 1 && $rows[0]['text'] === $escaped && $escaped !== $trimmed);
+        draftOutboundCheck($channel.' minimal AI metadata is atomic with one canonical message row',
+            $meta === ['project_key'=>'synthetic-project','ai_draft'=>$expectedFeedback]
+            && (int)$rows[0]['id'] > 0 && (int)$rows[0]['id'] === (int)$pdo->lastInsertId()
+            && (int)$rows[0]['conversation_id'] === 42 && $rows[0]['direction'] === 'outbound'
+            && $rows[0]['sender_type'] === 'manager' && $rows[0]['sender_id'] === '7' && $rows[0]['channel'] === $channel);
+        draftOutboundCheck($channel.' keeps original text hash distinct from escaped transport hash',
+            $meta['ai_draft']['sent_text_sha256'] !== hash('sha256',$escaped)
+            && $rows[0]['external_message_id'] === ($channel === 'website' ? null : 'synthetic-delivery-id'));
+        $names = array_column(DraftOutboundFixture::$trace,'event');
+        $constructed = DraftOutboundFixture::events('adapter_construct')[0]['args'];
+        draftOutboundCheck($channel.' feedback follows successful adapter delivery and guard releases',
+            array_search('adapter_send',$names,true) < array_search('feedback',$names,true)
+            && count(DraftOutboundFixture::events('release')) === 1);
+        draftOutboundCheck($channel.' AI association is not attached to lifecycle event payloads',
+            DraftOutboundFixture::events('control') === [['event'=>'control','type'=>'manager_message',
+                'payload'=>['channel'=>$channel,'project_key'=>'synthetic-project']]]);
+        draftOutboundCheck($channel.' adapter remains explicitly non-mirroring',
+            $constructed[count($constructed)-1] === false);
+    }
+
+    DraftOutboundFixture::reset();
+    $edited = 'Другой текст <проверка> & дата';
+    draftOutboundCheck('edited draft text still delivers',ManagerOutboundService::send(42,7,$edited,$draftId));
+    $meta = json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true);
+    draftOutboundCheck('edited text retains draft identity but hashes the sent original text',
+        $meta['ai_draft'] === ['draft_id'=>$draftId,'text_matches_proposal'=>false,'sent_text_sha256'=>hash('sha256',$edited)]);
+
+    DraftOutboundFixture::reset();
+    draftOutboundCheck('legacy three-argument text send still works',ManagerOutboundService::send(42,7,'Обычный ответ'));
+    draftOutboundCheck('null draft ID performs no feedback lookup and stores no association',
+        DraftOutboundFixture::events('feedback') === []
+        && json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true) === ['project_key'=>'synthetic-project']);
+    foreach (['missing_draft','invalid_draft','foreign_scope','unavailable_store'] as $mode) {
+        DraftOutboundFixture::reset();
+        DraftOutboundFixture::$feedbackMode = $mode;
+        $id = $mode === 'invalid_draft' ? 'not-a-valid-draft-id' : $draftId;
+        draftOutboundCheck($mode.' feedback cannot block delivered customer text',ManagerOutboundService::send(42,7,'Ответ без связи',$id));
+        draftOutboundCheck($mode.' leaves the canonical row without AI metadata',
+            count(DraftOutboundFixture::rows()) === 1
+            && json_decode(DraftOutboundFixture::rows()[0]['metadata_json'],true) === ['project_key'=>'synthetic-project']);
+    }
+
+    DraftOutboundFixture::reset();
+    draftOutboundCheck('initial send creates one associated row',ManagerOutboundService::send(42,7,'Повторяемый ответ',$draftId));
+    DraftOutboundFixture::$trace = [];
+    DraftOutboundFixture::$connections = 0;
+    DraftOutboundFixture::$duplicate = true;
+    draftOutboundCheck('suppressed duplicate remains legacy success',ManagerOutboundService::send(42,7,'Повторяемый ответ',$draftId));
+    draftOutboundCheck('duplicate does not query feedback, redeliver, or call the real recorder',
+        DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []
+        && DraftOutboundFixture::$connections === 0 && count(DraftOutboundFixture::rows()) === 1
+        && array_column(DraftOutboundFixture::events('control'),'type') === ['manager_message_suppressed_duplicate']);
+
+    DraftOutboundFixture::reset();
+    DraftOutboundFixture::$delivered = false;
+    draftOutboundCheck('failed delivery remains false',ManagerOutboundService::send(42,7,'Не доставлено',$draftId) === false);
+    draftOutboundCheck('failed delivery cannot query feedback or create associated recorder row',
+        DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::rows() === []
+        && DraftOutboundFixture::$connections === 0 && count(DraftOutboundFixture::events('push')) === 1
+        && count(DraftOutboundFixture::events('release')) === 1 && ManagerOutboundService::lastFailure() !== null);
+
+    foreach (['unconfigured','insert_failure'] as $failure) {
+        $pdo = DraftOutboundFixture::reset();
+        if ($failure === 'unconfigured') DraftOutboundFixture::$configured = false;
+        else $pdo->exec("CREATE TRIGGER reject_message BEFORE INSERT ON messages BEGIN SELECT RAISE(FAIL,'synthetic_mirror_failure'); END;");
+        draftOutboundCheck($failure.' recorder cannot undo successful transport delivery',ManagerOutboundService::send(42,7,'Доставлено, но не записано',$draftId));
+        draftOutboundCheck($failure.' creates no canonical row or durable AI association',
+            count(DraftOutboundFixture::events('adapter_send')) === 1 && DraftOutboundFixture::rows() === []);
+        if ($failure === 'insert_failure') {
+            draftOutboundCheck('actual recorder handles failed INSERT through its best-effort failure path',
+                array_column(DraftOutboundFixture::events('recorder_failure'),'stage') === ['outbound_for_conversation']);
+        }
+    }
+
+    foreach (['telegram','max'] as $channel) {
+        DraftOutboundFixture::reset($channel);
+        $file = $tmp.'/synthetic-media.txt';
+        file_put_contents($file,'synthetic attachment bytes');
+        draftOutboundCheck($channel.' media send keeps its existing behavior',
+            ManagerOutboundService::sendMedia(42,7,$file,'synthetic.txt','text/plain',' <caption> '));
+        $rows = DraftOutboundFixture::rows();
+        $meta = json_decode($rows[0]['metadata_json'],true);
+        draftOutboundCheck($channel.' media does not query or attach draft feedback',
+            DraftOutboundFixture::events('feedback') === [] && count($rows) === 1
+            && $meta === ['project_key'=>'synthetic-project','attachments'=>[['type'=>'file','name'=>'synthetic.txt','mime_type'=>'text/plain']]]
+            && $rows[0]['text'] === '&lt;caption&gt;');
+    }
+    DraftOutboundFixture::reset();
+    draftOutboundCheck('empty text is rejected before feedback or delivery',ManagerOutboundService::send(42,7," \n ",$draftId) === false
+        && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);
+    DraftOutboundFixture::$visible = false;
+    draftOutboundCheck('inaccessible conversation is rejected before feedback or delivery',ManagerOutboundService::send(42,7,'Ответ',$draftId) === false
+        && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);
+} finally {
+    DraftOutboundFixture::$pdo = null;
+    $remove = static function(string $path) use (&$remove): void {
+        if (is_link($path) || is_file($path)) { unlink($path); return; }
+        if (is_dir($path)) {
+            foreach (scandir($path) ?: [] as $entry) if ($entry !== '.' && $entry !== '..') $remove($path.'/'.$entry);
+            rmdir($path);
+        }
+    };
+    $remove($tmp);
+}
+echo "TOTAL {$passed} passed\n";

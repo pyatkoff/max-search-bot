@@ -4,6 +4,12 @@ This directory is the owned interface boundary for the manager product. Changes 
 
 ## Target boundaries
 
+- **AI draft feedback** — `ManagerAiDraftFeedbackService` stores bounded private
+  proposals and insertion requests. The canonical composer carries an optional
+  scoped identity; only the existing outbound recorder attaches it to a real
+  text-message row. See [feedback provenance](../docs/MANAGER_AI_DRAFT_FEEDBACK.md)
+  for the optional `validate` observation, expiry and interpretation limits.
+
 - **Entrypoint / shell** — `index.php` owns the canonical production workspace shell. The owner-authorized `/manager2/index.php` is a thin opt-in presentation include of this same shell; it owns no API or business state. It renders the workspace and never performs HTTP canonical redirects. Browser-visible `/manager/index.php` is normalized with `history.replaceState`, not a network navigation.
 - **Workspace modules** — inbox, filters/search, conversation, lead card, pipeline, tasks, stage history, media, notifications, kanban and mobile behavior own their corresponding `assets/workspace-v2-*` files.
 - **Manager HTTP interfaces** — `api.php`, `pipeline-api.php`, media and push endpoints are thin interfaces. Authentication, authorization and validation converge on `lib/ManagerHttp.php` instead of being reimplemented per endpoint.

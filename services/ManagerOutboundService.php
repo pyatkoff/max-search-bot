@@ -5,6 +5,7 @@ require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
+require_once __DIR__ . '/ManagerAiDraftFeedbackService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
@@ -28,7 +29,7 @@ class ManagerOutboundService
         return'file';
     }
 
-    public static function send(int $conversationId, int $managerId, string $text): bool
+    public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null): bool
     {
         self::$lastFailure = null;
         $text = trim($text); if ($text === '') return false;
@@ -58,7 +59,14 @@ class ManagerOutboundService
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
             if ($ok) {
-                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,['project_key'=>$projectKey],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
+                $metadata=['project_key'=>$projectKey];
+                if ($aiDraftId !== null) {
+                    $feedback=ManagerAiDraftFeedbackService::forMessage($conversationId,$managerId,$projectKey,$aiDraftId,$text);
+                    if ($feedback !== null) $metadata['ai_draft']=$feedback;
+                }
+                // Provenance is atomic with the canonical message INSERT.
+                // Suppressed duplicates and failed deliveries never reach it.
+                ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 MetrikaConversionGoalService::managerReply($conversationId);
                 return true;

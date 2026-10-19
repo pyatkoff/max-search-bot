@@ -26,7 +26,7 @@ try {
     foreach ([$tmp,$tmp.'/manager',$tmp.'/manager/lib',$tmp.'/services',$tmp.'/sessions'] as $directory) mkdir($directory,0700);
     $loader = "<?php\nrequire_once ".var_export($fixture,true).";\n";
     file_put_contents($tmp.'/config.php', $loader.'$GLOBALS["manager_ai_http_fixture_directory"] = '.var_export($tmp,true).";\n");
-    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
+    foreach (['ManagerAuthService','ManagerConversationAccessPolicy','ManagerAiDraftContextService','ManagerAiDraftService','ManagerAiDraftFeedbackService'] as $service) file_put_contents($tmp.'/services/'.$service.'.php',$loader);
     foreach (['manager/ai-draft.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php'] as $source) copy($root.'/'.$source,$tmp.'/'.$source);
     managerAiEndpointCheck('isolated app executes exact current endpoint bytes',hash_file('sha256',$root.'/manager/ai-draft.php') === hash_file('sha256',$tmp.'/manager/ai-draft.php'));
     file_put_contents($tmp.'/manager/fixture-session.php', '<?php require dirname(__DIR__)."/config.php";require __DIR__."/lib/ManagerHttp.php";ManagerHttp::startJson();$_SESSION["manager_id"]=7;$_SESSION["csrf"]="synthetic-csrf";ManagerHttp::respond(["ok"=>true]);');
@@ -105,8 +105,20 @@ try {
     $clearEvents(); $expectError('validate rejects stale content revision',$request(array_replace($validate,['revision'=>hash('sha256','old')]),$cookie),409,'context_stale');
     $assertNoProvider('stale validate revision never invokes provider');
     $clearEvents(); $valid = $request($validate,$cookie);
-    managerAiEndpointCheck('validate passes current revision without generating',$valid['status'] === 200 && $valid['json'] === ['ok'=>true,'revision'=>$baseState['revision'],'latest_message_id'=>10]);
+    managerAiEndpointCheck('legacy validate passes current revision without generating or feedback attribution',$valid['status'] === 200 && $valid['json'] === ['ok'=>true,'revision'=>$baseState['revision'],'latest_message_id'=>10,'draft_id'=>null]
+        && !in_array('feedback_insert_request',array_column($events(),'event'),true));
     $assertNoProvider('valid validate has zero provider calls');
+    foreach (['',str_repeat('g',32),str_repeat('d',31),5,[]] as $id) {
+        $clearEvents(); $expectError('invalid draft identity is rejected before feedback',$request($validate+['draft_id'=>$id],$cookie),400,'invalid_request');
+        managerAiEndpointCheck('invalid identity creates no feedback observation',!in_array('feedback_insert_request',array_column($events(),'event'),true));
+    }
+    $clearEvents(); $tracked = $request($validate+['draft_id'=>str_repeat('d',32),'manager_id'=>8],$cookie);
+    managerAiEndpointCheck('explicit validate observes only authenticated insertion request',$tracked['status']===200 && $tracked['json']['draft_id']===str_repeat('d',32)
+        && (array_reverse($events())[0]??null)===['event'=>'feedback_insert_request','conversation_id'=>42,'manager_id'=>7,'draft_id'=>str_repeat('d',32),'revision'=>$baseState['revision'],'latest_message_id'=>10]);
+    $clearEvents(); $untracked=$request($validate+['draft_id'=>str_repeat('e',32)],$cookie);
+    managerAiEndpointCheck('unbound identity is not echoed as attribution',$untracked['status']===200 && $untracked['json']['draft_id']===null);
+    $clearEvents(); $expectError('stale insert request never records feedback',$request(array_replace($validate,['revision'=>hash('sha256','old'),'draft_id'=>str_repeat('d',32)]),$cookie),409,'context_stale');
+    managerAiEndpointCheck('stale validation has no feedback observation',!in_array('feedback_insert_request',array_column($events(),'event'),true));
     $writeState(['proposal'=>['ok'=>false,'error'=>'provider_unavailable']]); $clearEvents();
     $expectError('provider error is safe and contains no details',$request($body,$cookie),503,'provider_unavailable');
     managerAiEndpointCheck('returned provider error still checks fresh context',count(array_filter($events(),static fn(array $event): bool=>$event['event'] === 'snapshot')) === 2);
@@ -115,8 +127,9 @@ try {
     managerAiEndpointCheck('exception details never enter response or server log',!str_contains($thrown['body'].file_get_contents($tmp.'/server.log'),'SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE'));
     $writeState(); $clearEvents(); $valid = $request($body+['manager_id'=>8,
         'verified_company_facts'=>[['text'=>'UNTRUSTED_COMPANY_FACT']], 'project_key'=>'anex'],$cookie); $flow = $events();
-    managerAiEndpointCheck('valid proposal passes with server revision and latest ID',$valid['status'] === 200 && $valid['json'] === $proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10]);
-    managerAiEndpointCheck('read-only initialization precedes actual canonical auth',array_column($flow,'event') === ['initialize_read_only','auth','snapshot','provider','snapshot']);
+    managerAiEndpointCheck('valid proposal passes with server revision, latest ID and draft identity',$valid['status'] === 200 && $valid['json'] === $proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10,'draft_id'=>str_repeat('d',32)]);
+    managerAiEndpointCheck('feedback persistence follows fresh post-provider authorization',array_column($flow,'event') === ['initialize_read_only','auth','snapshot','provider','snapshot','feedback_record']
+        && $flow[5]['manager_id']===7 && $flow[5]['conversation_id']===42 && $flow[5]['revision']===$baseState['revision']);
     managerAiEndpointCheck('provider receives authenticated actor context, not posted manager ID',array_column(array_values(array_filter($flow,static fn(array $event): bool=>$event['event'] === 'snapshot')),'manager_id') === [7,7]);
     managerAiEndpointCheck('provider runs after session lock closes',$flow[3]['session_closed'] === true);
     managerAiEndpointCheck('endpoint passes the authorized server knowledge, ignoring posted project/facts',
@@ -125,6 +138,12 @@ try {
     managerAiEndpointCheck('selection reader is composed outside session lock without posted source capabilities',
         $flow[3]['selection_reader_received']===true && $flow[3]['selection_count']===0 && $flow[3]['session_closed']);
     managerAiEndpointCheck('fresh after snapshot runs with reopened read-and-close session',$flow[4]['session_status'] === PHP_SESSION_NONE);
+    $writeState(['feedback_available'=>false]); $clearEvents();
+    $untracked=$request($body,$cookie);
+    managerAiEndpointCheck('feedback unavailable preserves usable generated text without an identity',$untracked['status']===200 && $untracked['json']===$proposal+['revision'=>$baseState['revision'],'latest_message_id'=>10,'draft_id'=>null]);
+    $untracked=$request($validate+['draft_id'=>str_repeat('d',32)],$cookie);
+    managerAiEndpointCheck('feedback unavailable preserves fresh validation without attribution',$untracked['status']===200 && $untracked['json']['draft_id']===null);
+    $writeState();
     foreach ([$valid,$thrown] as $response) {
         managerAiEndpointCheck('responses retain no-store JSON headers',count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'cache-control:') && preg_match('/(?:^|[ ,:])no-store(?:[ ,]|$)/i',$header) === 1)) === 1 && count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'content-type: application/json'))) === 1);
     }
