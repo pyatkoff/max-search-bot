@@ -29,6 +29,15 @@ try {
     }
     $preparationMcpStage='credentials';
     $header=(string)($_SERVER['HTTP_AUTHORIZATION']??'');
+    if ($header==='') $header=(string)($_SERVER['REDIRECT_HTTP_AUTHORIZATION']??'');
+    if ($header===''&&function_exists('getallheaders')) {
+        foreach (getallheaders() as $name=>$value) {
+            if (strcasecmp((string)$name,'Authorization')===0) {$header=(string)$value;break;}
+        }
+    }
+    // Normalize only the real Authorization header supplied by the web server.
+    // Never accept forwarded/custom headers or fall back from an invalid value.
+    $_SERVER['HTTP_AUTHORIZATION']=$header;
     $bearer=preg_match('/\ABearer ([A-Za-z0-9_-]{32,512})\z/D',$header,$m)===1?$m[1]:'';
     $actor=$bearer!==''?ManagerPreparationOAuth::authenticateBearer($header):null;
     $connection=$actor!==null?ManagerPreparationOAuth::connectionIdForBearer($header):null;

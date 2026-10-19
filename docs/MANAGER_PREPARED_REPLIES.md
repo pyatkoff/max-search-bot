@@ -165,6 +165,16 @@ from rejected credentials; authenticated discovery methods distinguish protocol
 errors from authorization failures. Telemetry changes no authentication policy
 or queue state. Passing a local SDK probe does not prove ChatGPT's live import.
 
+The MCP endpoint accepts the actual `Authorization` header through PHP's direct
+CGI variable, its internal-redirect variable or the server header API. A present
+invalid direct value is never replaced by a fallback. The narrowly scoped
+`manager/.htaccess` preserves that header for `ai-mcp.php` on Apache CGI hosts;
+custom/forwarded headers are not authentication sources. Deployment also sends
+one known-invalid synthetic bearer through the production host's own HTTPS
+ingress and requires both a private `header_probe` observation of the effective
+bearer and HTTP 401. This tests header transport without an owner token, queue
+reads, grant creation or customer calls.
+
 Rollback is a forward code revert; do not migrate down or delete business data.
 Disable the dedicated cron/connection if needed. Revoke the OAuth grant to stop
 callbacks immediately. Existing source messages and assignments remain unchanged.

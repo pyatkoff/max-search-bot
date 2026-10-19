@@ -20,6 +20,7 @@ final class ManagerPreparationMcpDiagnostics
         return self::sanitize([
             'http_method'=>$server['REQUEST_METHOD']??null,
             'credential_header'=>$credential,
+            'client_kind'=>($server['HTTP_USER_AGENT']??'')==='AnyTour-MCP-Header-Probe/1.0'?'header_probe':'other',
             'rpc_method'=>$rpc['method']??null,
             'requested_version'=>$params['protocolVersion']??null,
             'header_version'=>$server['HTTP_MCP_PROTOCOL_VERSION']??null,
@@ -64,6 +65,7 @@ final class ManagerPreparationMcpDiagnostics
         return [
             'http_method'=>$category($data['http_method']??null,['POST','GET','HEAD','OPTIONS','DELETE']),
             'credential_header'=>$category($data['credential_header']??null,['missing','redirect_only','bearer','noncanonical_bearer','other']),
+            'client_kind'=>$category($data['client_kind']??null,['header_probe','other','absent']),
             'rpc_method'=>$category($data['rpc_method']??null,[...self::METHODS,'absent']),
             'requested_version'=>$category($data['requested_version']??null,[...self::VERSIONS,'absent']),
             'header_version'=>$category($data['header_version']??null,[...self::VERSIONS,'absent']),
