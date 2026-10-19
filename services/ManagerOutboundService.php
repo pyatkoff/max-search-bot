@@ -5,7 +5,6 @@ require_once __DIR__ . '/ManagerSendGuardService.php';
 require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
-require_once __DIR__ . '/ManagerAiDraftFeedbackService.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
@@ -61,6 +60,7 @@ class ManagerOutboundService
             if ($ok) {
                 $metadata=['project_key'=>$projectKey];
                 if ($aiDraftId !== null) {
+                    require_once __DIR__ . '/ManagerAiDraftFeedbackService.php';
                     $feedback=ManagerAiDraftFeedbackService::forMessage($conversationId,$managerId,$projectKey,$aiDraftId,$text);
                     if ($feedback !== null) $metadata['ai_draft']=$feedback;
                 }
