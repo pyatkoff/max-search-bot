@@ -1,0 +1,144 @@
+{
+  "schema": "manager_ai_l01_source_v1",
+  "production_sha": "7af94dddba1808d90f78e0bc0abb84c15b0200a5",
+  "candidate_sha": "f687eebceb105628dc06005d01efbb54955eef7b",
+  "candidate_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "36e9f958d79297aa94a10adbb31b556c8ed1cc8f39ba527b4d82b61ac0f7fc89"
+  },
+  "production_dependency_sha256": {
+    "ai/ManagerDraftClient.php": "dc6f832af628d8a544251355da0b60bd4275935d7a31b35429da1eef3b5093fb",
+    "services/ManagerAiTextRedactor.php": "7e33e755f09953017203641978c8f499fd390c7a07cf87df45999fd0c7edba03",
+    "services/ManagerCompanyKnowledge.php": "dd9b7e50c5b5da5d08561edc84820f3231977024a040694193f08627bdc62a7c",
+    "services/ManagerSelectionLinks.php": "802292507332c1ea99f4b2136e8e193c4f50e476e372e12cb2810d366be0c917",
+    "services/ManagerSelectionPageParser.php": "6401cbeb62a1e77dabe84b96e6538dcf7edea8cd8847cbeec6bea0ccddd7a0bb",
+    "services/ManagerSelectionSnapshot.php": "26a99eb1c2a0460580ce2aeeb3444fade8ba2bfc003c2ae648a9a3aa0511882b",
+    "services/ManagerAiDraftService.php": "732e1df0c89b854178d197c4215d2fde253b96449ca398e918ac8cf86c20f0bc"
+  },
+  "candidate_instructions_sha256": "c13d249fd8a0600275e47fcf66ec0b3d797ffcc09b45e7c3c61cffb996575a1f",
+  "proposal_inputs_sha256": "115b4fed21611f43950b41684c9e3adc6f3ca1a32c0d4978d58c09159588d7bb",
+  "criteria_sha256": "31955e722998034d94426ab1afe600a156f9fe17ac87b70b6a7654a5ef4b955d",
+  "selection_freeze_sha256": "cdb394fcd8d0197697daff92d25a7e19af491b66e3a8cab9ead696653781bffc",
+  "case_count": 14,
+  "parallelism": 1,
+  "profiles": [
+    {
+      "model": "gpt-6-luna",
+      "reasoning_effort": "low",
+      "service_tier": "default"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "service_tier": "default"
+    }
+  ],
+  "output_token_reservation": 30800,
+  "attempt_bindings": [
+    {
+      "case_id": "L01-001",
+      "model": "gpt-6-luna",
+      "request_bytes": 40092,
+      "request_sha256": "e1c6d71ad2332f505eab95d28f36e77b2853d8c9267be8aeb528ed59c02ae222",
+      "reservation_microusd": 6864
+    },
+    {
+      "case_id": "L01-002",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 40093,
+      "request_sha256": "6519693eb090dedcaa8f973c4668272321502f078358a009121bcd86ae608aef",
+      "reservation_microusd": 137272
+    },
+    {
+      "case_id": "L01-003",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 39948,
+      "request_sha256": "c5bdba8a921b33a0a4a7e8a35c52dedfc58d986106026606554c15a2f37cd401",
+      "reservation_microusd": 136873
+    },
+    {
+      "case_id": "L01-004",
+      "model": "gpt-6-luna",
+      "request_bytes": 39947,
+      "request_sha256": "e162fc01630f23cda185296c9e2a57803b273bc53f225d7c01cc6c4ad96f34e2",
+      "reservation_microusd": 6844
+    },
+    {
+      "case_id": "L01-005",
+      "model": "gpt-6-luna",
+      "request_bytes": 28547,
+      "request_sha256": "a910bf47ee4574f42c0853f4d3b69d583f1b62c5ee71da5abaf3cc76806cbe20",
+      "reservation_microusd": 5277
+    },
+    {
+      "case_id": "L01-006",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 28548,
+      "request_sha256": "7199885bea44c78a288ac73874d21ff8de1fd79956a6cd11a13afe8b2054e111",
+      "reservation_microusd": 105523
+    },
+    {
+      "case_id": "L01-007",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 42946,
+      "request_sha256": "99481c52b0c9b33e07969335f41097ac3fb267bcc7a1413a448ddec18de433fb",
+      "reservation_microusd": 145118
+    },
+    {
+      "case_id": "L01-008",
+      "model": "gpt-6-luna",
+      "request_bytes": 42945,
+      "request_sha256": "a997095ddaeb4728144c95f941dd1204dde3eb1cfc4c1351b70ccbf0004192d8",
+      "reservation_microusd": 7256
+    },
+    {
+      "case_id": "L01-009",
+      "model": "gpt-6-luna",
+      "request_bytes": 31307,
+      "request_sha256": "598af246591c67c260177230dd85c598f596a3436711908dec42c5ce5591867d",
+      "reservation_microusd": 5656
+    },
+    {
+      "case_id": "L01-010",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 31308,
+      "request_sha256": "e5d6e7c8b878297e8fb1a6b5e25826bec09d15a4075b79030f6c55562dc87c0c",
+      "reservation_microusd": 113113
+    },
+    {
+      "case_id": "L01-011",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 31007,
+      "request_sha256": "9fb464ea9f3c9977833a72c94de3148910e3f005f1e597cee87f97b999c9308e",
+      "reservation_microusd": 112286
+    },
+    {
+      "case_id": "L01-012",
+      "model": "gpt-6-luna",
+      "request_bytes": 31006,
+      "request_sha256": "512e811ad3939167e5b42afb74360d853fc98e02040e8967beaeebcbec6beaa2",
+      "reservation_microusd": 5615
+    },
+    {
+      "case_id": "L01-013",
+      "model": "gpt-6-luna",
+      "request_bytes": 36510,
+      "request_sha256": "0e5aa0e1c7515ba86792fe8467afab4069fef096d90abe63e27ed9502556a6f4",
+      "reservation_microusd": 6371
+    },
+    {
+      "case_id": "L01-014",
+      "model": "gpt-6.1-sol",
+      "request_bytes": 36511,
+      "request_sha256": "5f6a88a9ce4e9250d984a4a117a3a68dff46190d3e664e5b83d2fc7fa4326de4",
+      "reservation_microusd": 127422
+    }
+  ],
+  "budget_cap_microusd": 1000000,
+  "reservation_microusd": 921490
+}
