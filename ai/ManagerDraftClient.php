@@ -26,7 +26,7 @@ final class ManagerDraftClient
             try {
                 $configured=curl_setopt_array($handle,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$encoded,
                     CURLOPT_HTTPHEADER=>['Authorization: Bearer '.OPENAI_API_KEY,'Content-Type: application/json'],
-                    CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>20,CURLOPT_FOLLOWLOCATION=>false,
+                    CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>90,CURLOPT_FOLLOWLOCATION=>false,
                     CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
                     CURLOPT_PROXY=>'',CURLOPT_RETURNTRANSFER=>false,
                     CURLOPT_WRITEFUNCTION=>static function($ignored,string $chunk) use (&$bytes,&$oversized): int {
@@ -59,7 +59,7 @@ final class ManagerDraftClient
         if (!is_string($tier) || !in_array($tier,['default','fast','priority'],true)) {
             throw new InvalidArgumentException('invalid_draft_service_tier');
         }
-        return ['model'=>$model,'reasoning'=>['effort'=>$effort],'service_tier'=>$tier,'store'=>false,'max_output_tokens'=>2200,
+        return ['model'=>$model,'reasoning'=>['effort'=>$effort],'service_tier'=>$tier,'store'=>false,'max_output_tokens'=>8192,
             'input'=>[
                 ['role'=>'developer','content'=>[['type'=>'input_text','text'=>$instructions]]],
                 ['role'=>'user','content'=>[['type'=>'input_text','text'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]]],
