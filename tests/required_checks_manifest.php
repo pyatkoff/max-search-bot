@@ -41,6 +41,7 @@ return [
     'dialogue' => [
         'php tests/run_regression.php',
         'php tests/run_ai_context_regression.php',
+        'php tests/run_ai_profile_rollout_regression.php',
         'php tests/run_trip_state_regression.php',
         'php tests/run_active_budget_regression.php',
         'php tests/run_messenger_adapters_regression.php',

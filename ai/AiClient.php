@@ -7,20 +7,7 @@ class AiClient
             return ['_error' => 'OPENAI_API_KEY_NOT_SET'];
         }
 
-        $body = [
-            'model' => defined('OPENAI_MODEL') ? OPENAI_MODEL : 'gpt-5.6-luna',
-            'input' => [
-                [
-                    'role' => 'developer',
-                    'content' => [['type'=>'input_text','text'=>$instructions]],
-                ],
-                [
-                    'role' => 'user',
-                    'content' => [['type'=>'input_text','text'=>json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]],
-                ],
-            ],
-            'max_output_tokens' => 1200,
-        ];
+        $body = self::requestBody($instructions, $payload);
 
         $ch = curl_init('https://api.openai.com/v1/responses');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -60,5 +47,26 @@ class AiClient
         $json = json_decode($text, true);
         if (!is_array($json)) return ['_error'=>'BAD_JSON', '_detail'=>$text];
         return $json;
+    }
+
+    /** Pure projection used by the transport and production profile smoke; no API call. */
+    public static function requestBody(string $instructions, array $payload): array
+    {
+        return [
+            'model' => defined('OPENAI_MODEL') ? OPENAI_MODEL : 'gpt-6.1-sol',
+            'reasoning' => ['effort' => 'low'],
+            'service_tier' => 'default',
+            'input' => [
+                [
+                    'role' => 'developer',
+                    'content' => [['type'=>'input_text','text'=>$instructions]],
+                ],
+                [
+                    'role' => 'user',
+                    'content' => [['type'=>'input_text','text'=>json_encode($payload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]],
+                ],
+            ],
+            'max_output_tokens' => 1200,
+        ];
     }
 }

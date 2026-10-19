@@ -6,7 +6,10 @@
  */
 
 define('OPENAI_API_KEY', '');
-define('OPENAI_MODEL', 'gpt-5.6-luna');
+define('OPENAI_MODEL', 'gpt-6.1-sol');
+define('MANAGER_AI_DRAFT_MODEL', 'gpt-6.1-sol');
+define('MANAGER_AI_DRAFT_REASONING', 'low');
+define('MANAGER_AI_DRAFT_SERVICE_TIER', 'default');
 define('TOURVISOR_JWT', '');
 define('MAX_SEARCH_TOKEN', '');
 define('MAX_SEARCH_WEBHOOK_SECRET', '');

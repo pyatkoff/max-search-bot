@@ -21,31 +21,21 @@ manager action. Nothing is generated on startup, polling or conversation open.
 - `workspace-v2-ai-draft.js`: preview, stale-result fencing and explicit insertion
   through `WorkspaceV2Conversation.insertQuickReply`; no new send implementation.
 
-The draft profile defaults to `gpt-6.1-sol` with explicit
-`reasoning: {effort: "low"}` and `service_tier: "fast"`. Optional
+The owner-directed profile from 19 October 2026 is `gpt-6.1-sol`, explicit
+`reasoning: {effort: "low"}` and Standard `service_tier: "default"`, for both
+the manager draft and shared MAX/Telegram/website bot transport. Draft overrides
 `MANAGER_AI_DRAFT_MODEL`, `MANAGER_AI_DRAFT_REASONING` and
-`MANAGER_AI_DRAFT_SERVICE_TIER` constants affect this feature only; the bot's
-`OPENAI_MODEL` is neither read nor changed by the draft client. Supported draft
-efforts are `low`, `medium`, `high`, `xhigh` and `max`; `none`, `minimal` and
-malformed values fail closed. The tier override allows only `default`, `fast`
-and its alias `priority`; `auto`, `ultrafast`, other tiers and malformed values
-fail closed. No runtime config change is included in this slice.
+`MANAGER_AI_DRAFT_SERVICE_TIER` stay feature-specific; `OPENAI_MODEL` affects
+only the bot. Canonical deployment reconciles these four external configuration
+literals and verifies the effective request bodies without provider calls.
+See [AI model rollout](AI_MODEL_PROFILE.md). No sampling parameters are sent.
 
-[Official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol)
-confirms these efforts. With reasoning enabled, the
-[GPT-6.1 Sol migration guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-6.1-sol)
-excludes sampling parameters such as `temperature`; none are sent.
-[Fast mode](https://developers.openai.com/api/docs/guides/fast-mode)
-uses `service_tier: "fast"` (or `priority`) and is
-[priced at twice Standard token rates](https://developers.openai.com/api/docs/pricing)
-for this model. Actual service can fall back to Standard; requested tier does
-not prove the served tier or a specific latency. Omitting `service_tier` means
-`auto`, which follows the project's setting; explicitly selecting `default`
-requests Standard. The draft client selects Fast explicitly without changing
-the bot or project settings. Existing timeout/token/byte limits remain in force;
-compare quality, actual served tier and elapsed time on private representative
-cases before claiming a speed improvement. Synthetic regressions do not call
-the provider.
+The model supports draft efforts `low`, `medium`, `high`, `xhigh`, `max`.
+Malformed settings fail closed. Explicit optional draft tiers `fast`/`priority`
+remain supported for future separately authorized configuration, but are not
+selected by the production rollout. Provider-served tier and latency are not
+inferred from the requested tier. Historical Fast tests remain historical;
+the existing 20-second timeout and token/byte limits are unchanged.
 
 For isolated evaluation, `requestJson()` and the pure `parseResponse()` accept
 an optional third callable. After a completed assistant JSON object is decoded,
