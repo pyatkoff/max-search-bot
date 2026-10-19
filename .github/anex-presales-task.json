@@ -1,6 +1,6 @@
 {
   "schema": "manager_ai_anex_b36_task_v1",
-  "phase": "verify",
+  "phase": "prepare",
   "task_token": "599dd4fd1dc7f4ea20fc69881c867c79c5a20f9922e203bd",
   "production_sha": "d86dccd229a9d7bb318bcaf59bd6960305e0cb4f",
   "candidate_sha": "f687eebceb105628dc06005d01efbb54955eef7b",
