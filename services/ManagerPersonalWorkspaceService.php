@@ -155,10 +155,10 @@ final class ManagerPersonalWorkspaceService
     {
         if ($action==='settings') {
             $settings=$input['settings']??null;
-            if (!is_array($settings)||array_diff(array_keys($settings),['start_tab','density','font'])) return self::error('invalid_settings');
+            if (!is_array($settings)||array_diff(array_keys($settings),['start_tab','density','font','ai_ready_notice'])) return self::error('invalid_settings');
             foreach ($settings as $key=>$value) if (!is_string($value)) return self::error('invalid_settings');
             $settings=array_merge($state['settings'],$settings);
-            if (!in_array($settings['density'],['comfortable','compact'],true)||!in_array($settings['font'],['normal','large'],true)||!self::validStart($settings['start_tab'],$state)) return self::error('invalid_settings');
+            if (!in_array($settings['density'],['comfortable','compact'],true)||!in_array($settings['font'],['normal','large'],true)||!in_array($settings['ai_ready_notice'],['show','hide'],true)||!self::validStart($settings['start_tab'],$state)) return self::error('invalid_settings');
             $state['settings']=$settings;return ['ok'=>true];
         }
         if ($action==='tab_reorder') {
@@ -297,7 +297,7 @@ final class ManagerPersonalWorkspaceService
 
     private static function defaults(): array
     {
-        return ['tabs'=>[],'labels'=>[],'members'=>[],'pins'=>[],'settings'=>['start_tab'=>'waiting','density'=>'comfortable','font'=>'normal'],'next_tab_id'=>1,'next_label_id'=>1];
+        return ['tabs'=>[],'labels'=>[],'members'=>[],'pins'=>[],'settings'=>['start_tab'=>'waiting','density'=>'comfortable','font'=>'normal','ai_ready_notice'=>'show'],'next_tab_id'=>1,'next_label_id'=>1];
     }
 
     private static function read(PDO $pdo, int $actor, bool $lock=false): array
@@ -312,6 +312,8 @@ final class ManagerPersonalWorkspaceService
         if (!$row) return ['version'=>0,'state'=>self::defaults()];
         $state=json_decode((string)$row['state_json'],true,32,JSON_THROW_ON_ERROR);
         if (!is_array($state)||!isset($state['tabs'],$state['labels'],$state['members'],$state['pins'],$state['settings'],$state['next_tab_id'],$state['next_label_id'])) throw new RuntimeException('invalid_personal_workspace_storage');
+        // Older account rows gain the presentation default without a write or migration.
+        $state['settings']+=['ai_ready_notice'=>'show'];
         return ['version'=>(int)$row['revision'],'state'=>$state];
     }
 

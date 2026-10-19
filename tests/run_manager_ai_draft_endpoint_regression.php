@@ -113,6 +113,22 @@ try {
     managerAiEndpointCheck('prepared action returns only current owner cache result',
         $ready['status']===200&&$ready['json']===$cached);
     $assertNoProvider('prepared hit has zero provider calls');
+    $statusRequest=array_replace($body,['action'=>'prepared_status']);
+    $statusStored=$stored+['expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant','job_id'=>str_repeat('a',64)];
+    $writeState(['prepared_result'=>$statusStored]);$clearEvents();
+    $readyStatus=$request($statusRequest,$cookie);
+    managerAiEndpointCheck('readiness returns current metadata without proposal, job ID or customer text',
+        $readyStatus['status']===200&&$readyStatus['json']===['ok'=>true,'prepared'=>true,'should_draft'=>true,
+            'revision'=>$baseState['revision'],'latest_message_id'=>10,'prepared_at'=>'2026-10-19 10:00:00',
+            'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']);
+    $assertNoProvider('automatic readiness never calls the provider');
+    $statusStored['proposal']['should_draft']=false;$statusStored['proposal']['draft']=null;
+    $writeState(['prepared_result'=>$statusStored]);
+    managerAiEndpointCheck('readiness distinguishes recommendations without a customer draft',$request($statusRequest,$cookie)['json']['should_draft']===false);
+    $writeState(['context_error'=>'reply_not_allowed']);$clearEvents();
+    $expectError('readiness keeps strict current reply ownership',$request($statusRequest,$cookie),403,'reply_not_allowed');
+    managerAiEndpointCheck('forbidden readiness never reads cache',!in_array('prepared_read',array_column($events(),'event'),true));
+    $writeState(['prepared_result'=>$stored]);$clearEvents();$request($prepared,$cookie);
     $readEvents=array_values(array_filter($events(),static fn(array $e):bool=>$e['event']==='prepared_read'));
     managerAiEndpointCheck('prepared cache receives session actor and released session',
         count($readEvents)===1&&$readEvents[0]['manager_id']===7&&$readEvents[0]['session_closed']===true);

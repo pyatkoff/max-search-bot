@@ -36,7 +36,7 @@ try {
     $data = ManagerHttp::body();
     ManagerHttp::requireCsrf($data);
     $action = $data['action'] ?? '';
-    if (!in_array($action,['generate','validate','prepared'],true)) {
+    if (!in_array($action,['generate','validate','prepared','prepared_status'],true)) {
         aiDraftRespond(['ok'=>false,'error'=>'unknown_action']);
     }
     $cid = $data['conversation_id'] ?? null;
@@ -50,11 +50,21 @@ try {
     if ($expectedLatest !== $before['latest_message_id']) {
         aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
     }
-    if ($action === 'prepared') {
+    if ($action === 'prepared' || $action === 'prepared_status') {
         // This only retrieves a separately prepared, current-context proposal.
         // It never invokes the model or changes the manager's composer/read state.
         session_write_close();
         $prepared=ManagerPreparedReplyService::prepared($cid,$actor,$before);
+        if ($action === 'prepared_status') {
+            // Same canonical freshness/ownership/expiry checks, without returning
+            // the private proposal or a job identity to the readiness observer.
+            if (empty($prepared['prepared'])) aiDraftRespond(['ok'=>true,'prepared'=>false]);
+            aiDraftRespond(['ok'=>true,'prepared'=>true,
+                'should_draft'=>$prepared['proposal']['should_draft'],
+                'revision'=>$prepared['revision'],'latest_message_id'=>$prepared['latest_message_id'],
+                'prepared_at'=>$prepared['prepared_at'],'expires_at'=>$prepared['expires_at'],
+                'preparation_source'=>$prepared['preparation_source']]);
+        }
         if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
             aiDraftRespond($proposal+$prepared);

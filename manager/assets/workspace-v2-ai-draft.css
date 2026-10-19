@@ -1,4 +1,17 @@
 .composer .quickReplies #aiDraftOpen{display:inline-block!important;flex:none;min-width:40px;font-weight:700;color:#376a4b;background:#edf5e8;border-color:#cddfc1}
+.manager2 .composer .quickReplies #aiDraftOpen{font-weight:600;white-space:nowrap;color:#625184;background:#f1edf8;border-color:#dfd5ed}
+.manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=prepared]{color:#236443;background:#e8f5ed;border-color:#c7e4d2}
+.manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=generated]{color:#275c98;background:#edf3fc;border-color:#ccdcf0}
+.manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=loading]{color:#805b20;background:#fff4dc;border-color:#ebd9b2}
+.manager2 .composer .quickReplies #aiDraftOpen[data-ai-state=stale]{color:#617169;background:#f1f4f1;border-color:#dce3dd}
+.aiReadyNotice[hidden]{display:none!important}
+.manager2 .aiReadyNotice{position:absolute;z-index:11;bottom:calc(100% + 8px);right:12px;display:flex;align-items:center;gap:12px;box-sizing:border-box;max-width:calc(100% - 24px);padding:10px 12px;border:1px solid #d4e4d8;border-radius:10px;background:#fff;color:#345543;box-shadow:0 4px 18px #203b3918;font-size:13px;line-height:1.4}
+.manager2 .aiReadyNotice>span{font-weight:600;min-width:0}
+.manager2 .aiReadyNotice button{flex:none;min-height:32px;padding:4px 6px;border:0;border-radius:6px;background:transparent;color:#3e6851;font:inherit;cursor:pointer}
+.manager2 .aiReadyNotice button:hover{background:#edf5ee}
+.manager2 .aiReadyNotice button:last-child{font-size:20px;padding:0 6px}
+.manager2 .m2ReplyEditor .aiReadyNotice{bottom:64px}
+@media(max-width:740px){.manager2 .aiReadyNotice{right:8px;gap:7px;padding:8px;max-width:calc(100% - 16px);font-size:12px}.manager2 .aiReadyNotice button{min-height:40px}}
 .aiDraftPanel[hidden],.aiDraftPanel button[hidden]{display:none!important}
 .aiDraftPanel{position:absolute;z-index:12;bottom:calc(100% + 6px);left:8px;right:8px;box-sizing:border-box;display:flex;flex-direction:column;max-height:min(46dvh,360px,var(--ai-draft-room,360px));overflow:hidden;border:1px solid #cbdac2;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 30px #203b3926;color:#273a30;font-size:13px;line-height:1.4}
 .aiDraftPanel:focus{outline:2px solid #739663;outline-offset:2px}

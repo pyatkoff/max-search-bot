@@ -8,7 +8,7 @@ const tick=()=>new Promise(setImmediate);
 const cases=[];function test(name,run){cases.push({name,run})}
 const generated=(changes={})=>({ok:true,should_draft:true,draft:'Уточните удобные даты поездки.',next_action:'Уточнить даты',reason:'В запросе нет даты вылета.',checks:['Проверить состав туристов'],evidence_message_ids:[8],history_incomplete:false,revision:'synthetic-revision-1',latest_message_id:8,...changes});
 const prepared=(changes={})=>({...generated(),prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',...changes});
-async function harness(handler=()=>response(prepared())){
+async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   const h=createHarness();await h.start();
   const form=h.ids.get('composer'),reply=h.ids.get('replyText'),prototype=Object.getPrototypeOf(reply);
   prototype.setSelectionRange=function(start,end,direction='none'){this.selectionStart=Math.min(start,this.value.length);this.selectionEnd=Math.min(end,this.value.length);this.selectionDirection=direction};
@@ -21,8 +21,13 @@ async function harness(handler=()=>response(prepared())){
   const observers=[];
   class Observer{constructor(callback){observers.push(callback)}observe(){}}
   h.document.readyState='complete';
+  const aiTimers=new Map();let timerId=0,now=Date.now();
+  if(manager2)h.document.body.classList.add('manager2');
+  h.window.setTimeout=(fn,ms)=>{const id=++timerId;aiTimers.set(id,{fn,ms});return id};
+  h.window.clearTimeout=id=>aiTimers.delete(id);
+  h.aiTimers=aiTimers;h.advanceAiClock=ms=>{now+=ms};
   h.setHook((url,data)=>url==='ai-draft.php'?handler(data,h):null);
-  vm.runInNewContext(source,{window:h.window,document:h.document,MutationObserver:Observer,AbortController,console});
+  vm.runInNewContext(source,{window:h.window,document:h.document,MutationObserver:Observer,AbortController,Date:class extends Date{static now(){return now}},console});
   h.ai=h.window.WorkspaceV2AiDraft;
   h.observe=()=>observers.forEach(callback=>callback());
   h.click=async id=>{await h.ids.get(id).dispatch('click');await tick()};
@@ -39,6 +44,35 @@ test('binding is lazy and adds one stable button without another draft, file or 
   assert.equal(h.ids.get('composer').querySelectorAll('textarea').length,1);assert.equal(h.ids.get('composer').querySelectorAll('input').length,1);
   assertNoMutations(h);
 });
+const readiness=(changes={})=>({ok:true,prepared:true,should_draft:true,revision:'synthetic-revision-1',latest_message_id:8,prepared_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),...changes});
+test('Manager2 status observes metadata without preview, focus, generation or composer changes',async()=>{
+  const pending=deferred(),h=await harness(()=>pending.promise,{manager2:true});
+  const file={name:'kept.txt'};await h.draft('Набранный текст');h.setFile(file);const reply=h.ids.get('replyText');reply.focus();reply.setSelectionRange(1,5,'backward');
+  pending.resolve(response(readiness()));await tick();
+  assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared_status']);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Ответ готов');assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'prepared');
+  assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiReadyNotice').hidden,false);assert.equal(h.document.activeElement,reply);assert.equal(reply.value,'Набранный текст');assert.equal(h.getFile(),file);assert.equal(reply.selectionStart,1);assertNoMutations(h);
+});
+test('personal hide setting changes only the readiness notice, not the ready button or preview',async()=>{
+  let show=false;
+  const h=await harness(data=>response(data.action==='prepared_status'?readiness():prepared()),{manager2:true});await tick();
+  h.window.WorkspaceV2PersonalWorkspace={showAiReadyNotice:()=>show};h.ai.syncPreferences();assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Ответ готов');
+  show=true;h.ai.syncPreferences();assert.equal(h.ids.get('aiReadyNotice').hidden,false);
+  await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftPanel').hidden,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);assertNoMutations(h);
+});
+test('readiness without a customer draft is described as recommendations and stays quiet',async()=>{
+  const h=await harness(()=>response(readiness({should_draft:false})),{manager2:true});await tick();
+  assert.equal(h.ids.get('aiDraftOpen').textContent,'AI — Рекомендации');assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assertNoMutations(h);
+});
+test('late status401 after account change cannot expire the next session or announce readiness',async()=>{
+  const pending=deferred(),h=await harness(()=>pending.promise,{manager2:true});h.W.S.authGeneration++;h.W.S.manager={...h.W.S.manager,id:9};h.W.S.detail.conversation.manager_id=9;
+  pending.resolve(response({ok:false,error:'unauthorized'},401));await tick();
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');assertNoMutations(h);
+});
+test('expiry clears a ready button even after the bounded observer has stopped',async()=>{
+  const h=await harness(()=>response(readiness()),{manager2:true});await tick();h.advanceAiClock(600001);
+  const poll=[...h.aiTimers.values()].find(t=>t.ms===15000);await poll.fn();await tick();assert.equal(h.aiCalls().length,1);
+  const expiry=[...h.aiTimers.values()].find(t=>t.ms>600000);expiry.fn();assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');assert.equal(h.ids.get('aiReadyNotice').hidden,true);assertNoMutations(h);
+});
 test('prepared reply renders inert text and keeps exact draft, file, selection and scroll',async()=>{
   const literal='<img src=x onerror="throw 1"> & {unknown}';
   const h=await harness(()=>response(prepared({draft:literal,reason:literal,checks:[literal],history_incomplete:true})));
@@ -54,6 +88,14 @@ test('prepared reply renders inert text and keeps exact draft, file, selection a
   assert.match(h.ids.get('aiDraftStatus').textContent,/Ответ подготовлен заранее/);
   assert.deepEqual(h.aiCalls().map(call=>[call.action,call.conversation_id,call.latest_message_id,call.csrf]),[['prepared',101,8,'synthetic-csrf']]);
   await h.close();assert.equal(h.document.activeElement,reply);assert.equal(h.ids.get('aiDraftPanel').hidden,true);assertNoMutations(h);
+});
+test('manual ready button reopens the same private proposal without another generation or cache substitution',async()=>{
+  const h=await harness(data=>response(data.action==='prepared_status'?{ok:true,prepared:false}:data.action==='prepared'?{ok:true,prepared:false}:data.action==='generate'?generated():{ok:true,revision:'synthetic-revision-1',latest_message_id:8}),{manager2:true});await tick();
+  await h.click('aiDraftOpen');await h.click('aiDraftRetry');assert.equal(h.ids.get('aiDraftOpen').dataset.aiState,'generated');await h.close();const before=h.aiCalls().length;await h.click('aiDraftOpen');assert.equal(h.aiCalls().length,before);assert.equal(h.ids.get('aiDraftPanel').children[2].querySelector('.aiDraftText').textContent,generated().draft);await h.insert();assert.equal(h.aiCalls().at(-1).action,'validate');assertNoMutations(h);
+});
+test('current status access denial clears an open private preview and stops repeated status reads',async()=>{
+  let deny=false;const h=await harness(data=>data.action==='prepared_status'?response(deny?{ok:false,error:'reply_not_allowed'}:readiness(),deny?403:200):response(prepared()),{manager2:true});await tick();await h.click('aiDraftOpen');deny=true;
+  const [timerId,poll]=[...h.aiTimers.entries()].find(([,t])=>t.ms===15000);h.aiTimers.delete(timerId);await poll.fn();await tick();assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);const count=h.aiCalls().length;h.ai.sync();await tick();assert.equal(h.aiCalls().length,count);assert.equal([...h.aiTimers.values()].filter(t=>t.ms===15000).length,0);assertNoMutations(h);
 });
 for(const unavailable of [false,true])test('cache '+(unavailable?'unavailable':'miss')+' preserves the composer and generates only after an explicit retry',async()=>{
   const h=await harness(data=>data.action==='prepared'?response(unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},unavailable?503:200):response(generated()));

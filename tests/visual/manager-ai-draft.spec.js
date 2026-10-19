@@ -8,7 +8,7 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page){
+async function setup(page,{readiness=false,hideNotice=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
   const manager={id:7,role:'manager',display_name:'Мария',is_working:true};
@@ -42,13 +42,13 @@ async function setup(page){
       if(data.action==='detail')return reply({ok:true,can_edit_pipeline:true,pipeline:{stage:null,tags:[],stage_history:[],outcome:{outcome:'open'}},tasks:[],trip:{},contact:{},source:{},handoff:{}});
     }
     if(url.pathname==='/manager/quick-replies-api.php'&&data.action==='toolbar')return reply({ok:true,replies:[],version:'1'.repeat(64),max_replies:100});
-    if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot')return reply(require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot());
+    if(url.pathname==='/manager/personal-workspace-api.php'&&data.action==='snapshot'){const snapshot=require('./fixtures/personal-workspace-default').emptyPersonalWorkspaceSnapshot();snapshot.state.settings.ai_ready_notice=hideNotice?'hide':'show';return reply(snapshot);}
     if(url.pathname==='/manager/post-context-api.php'&&data.action==='detail')return reply({ok:true,conversation_id:data.conversation_id,context:{current:null,history:[]}});
     if(url.pathname==='/manager/push-status.php')return reply({ok:true,push_status:{is_working:true,notification_path_usable:false,healthy_subscription_count:0,notification_path_reason:'no_subscription'}});
     if(url.pathname==='/manager/notification-events.php')return reply({ok:true,cursor:0,events:[]});
     if(url.pathname==='/manager/ai-draft.php'){
       expect(data.csrf).toBe('fixture-csrf');expect([11,12]).toContain(data.conversation_id);
-      expect(['prepared','generate','validate']).toContain(data.action);const result=await ai(data);return reply(result.body,result.status||200);
+      expect(['prepared','generate','validate','prepared_status']).toContain(data.action);if(data.action==='prepared_status')return reply(readiness?{ok:true,prepared:true,should_draft:readiness!=='recommendations',revision:'1'.repeat(64),latest_message_id:data.latest_message_id,prepared_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),preparation_source:'chatgpt_assistant'}:{ok:true,prepared:false});const result=await ai(data);return reply(result.body,result.status||200);
     }
     unexpected.push(method+' '+url.pathname+' '+data.action);return reply({ok:false,error:'unexpected_fixture_action'},400);
   });
@@ -56,7 +56,7 @@ async function setup(page){
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#replyText')).toBeEnabled();
   await expect(page.locator('#aiDraftOpen')).toBeEnabled();
-  return {calls,unexpected,errors,setAI:handler=>{ai=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php')};
+  return {calls,unexpected,errors,setAI:handler=>{ai=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&call.action!=='prepared_status'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
 async function bounded(page){
@@ -66,6 +66,26 @@ async function bounded(page){
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
+for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet and fits the composer '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
+  const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
+  await expect(button).toHaveText('AI — Ответ готов');await expect(button).toHaveAttribute('data-ai-state','prepared');await expect(button).toHaveAttribute('title',/Подготовлен автоматически.*МСК/);
+  await expect(notice).toBeVisible();await expect(notice).toContainText('AI — Ответ готов');await expect(page.locator('#aiDraftPanel')).not.toBeVisible();
+  await page.locator('#replyText').fill('Мой ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await page.locator('#replyText').focus();await page.evaluate(()=>{for(let i=0;i<5;i++)WorkspaceV2AiDraft.sync()});
+  await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Мой ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
+  expect(state.aiCalls()).toEqual([]);expect(state.statusCalls().length).toBeGreaterThan(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  for(const locator of [button,notice,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-ready-${browserName}-${width}.png`)});
+  await notice.getByRole('button',{name:'Посмотреть'}).click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(notice).not.toBeVisible();expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
+});
+for(const mode of ['hidden','recommendations'])test('AI '+mode+' keeps the ready button without a conversation notice',async({page})=>{
+  const state=await setup(page,{readiness:mode==='recommendations'?'recommendations':true,hideNotice:mode==='hidden'});
+  await expect(page.locator('#aiDraftOpen')).toHaveText(mode==='recommendations'?'AI — Рекомендации':'AI — Ответ готов');await expect(page.locator('.aiReadyNotice')).not.toBeVisible();expect(state.aiCalls()).toEqual([]);
+  if(mode==='hidden'){await page.evaluate(()=>WorkspaceV2PersonalWorkspace.open());await expect(page.locator('#pwHideAiReadyNotice')).toBeChecked();await page.locator('#pwClose').click();await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled()}
+  clean(state);
+});
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI preview and explicit insert retain the native draft, File and controls '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
   await page.setViewportSize(viewport);const state=await setup(page);expect(state.aiCalls()).toEqual([]);
   const reply=page.locator('#replyText'),text='  Уже набранный ответ\nс сохранёнными пробелами  ';
@@ -182,7 +202,7 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     await expect(form.locator('input[name="csrf"]')).not.toHaveValue('');
     await page.evaluate(()=>{window.oauthCspDirectives=[];document.addEventListener('securitypolicyviolation',event=>window.oauthCspDirectives.push(event.effectiveDirective));});
     const image=testInfo.outputPath('oauth-consent-'+choice.width+'-'+browserName+'.png');
-    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{path:image,contentType:'image/png'});
+    await page.screenshot({path:image,fullPage:true});await testInfo.attach('oauth-consent',{body:fs.readFileSync(image),contentType:'image/png'});
     phase='native_post';
     const isPost=request=>request.method()==='POST'&&new URL(request.url()).origin===fixture.origin&&new URL(request.url()).pathname==='/manager/ai-oauth.php';
     const sent=page.waitForRequest(isPost,{timeout:10000});
