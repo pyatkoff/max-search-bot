@@ -1,0 +1,6 @@
+{
+  "schema": "manager_draft_pilot_task_v1",
+  "source_sha": "4c0e35b3f8a2362efcc7ba12348b041b8f1eba40",
+  "task_token": "ec2232bbc2480f4330b22edbfabcc0db2569b0c874e61a9d",
+  "recipient_pem": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAozYNgq2BArdfc1N2xrbH\n3WTgCYKDWLBmnugYpA+3Kv7d3LYyORuP3ZRShRcMQMugYNfOB69Xj86fE/8KLqlO\nEmhic/qRTaGs2RExtS6XZh8g65q1qtbSDiMGXy8tkenVb8razPqBIolXcJuUUcoK\npK3IFVUq+olWDn6ySF3+fPxw09nQgwUf3y7+WE4Pkjp2IubkvCp1AskUF3kldBsn\nOHiQHjybTpjxQLOhWgauHuWHO8e8pV/87ZEUtanz+3doNo6UAVqv9ogOga1Jo5Rb\n/8U3SgNbymqWfadf3QbGIQyyho90JWb4VVntsp3DX3imhPniP2l4lt11qUHM0hCi\nbbUhhRY+tRgHu9krBQyJbef8bfh8Lr9uI7Xj/djWt+ZFXXJrS74biwu2mt2weyX7\nNJTKwlD9LfEQg51/VCSgkNR+PUNb7HvGOmomz8K9C4cDdgqn7ffJ8QpsqkbHeVgA\n+nvs/9GMhSjp6ifgJwlABKqB28fJKhHr2E8qN11/RuhhAgMBAAE=\n-----END PUBLIC KEY-----\n"
+}
