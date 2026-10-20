@@ -54,7 +54,7 @@ final class ManagerAiDraftReferenceContext
         return hash('sha256',json_encode($this->data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     }
 
-    /** Authenticated preparation diagnostics use the exact same reader as drafts. */
+    /** Legacy-file validation for operations; drafts primarily read the catalogue DB. */
     public static function routeCacheHealth(?string $path = null): array
     {
         return self::readRouteCache($path ?? dirname(__DIR__).'/tourvisor_routes.json',time())['health'];
