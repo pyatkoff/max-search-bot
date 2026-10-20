@@ -31,6 +31,21 @@ $captured=[];$result=['ok'=>true,'should_draft'=>true,'draft'=>'Рассчита
 $generated=ManagerAiDraftService::generate($context,static function($instructions,$payload,$images)use(&$captured,$result){$captured=[$payload,$images];return $result;},null,null,null,
     static fn(array $normalized):?array=>$photos->read($normalized,static fn()=>photoFile($png)));
 photoCheck('manual generation uses the same actual image parts and clears only their unread flag',$generated===$result&&count($captured[1])===1&&!$captured[0]['media_unread']);
+
+foreach ([false,true] as $hasImage) {
+    $web=$context;
+    if (!$hasImage) { $web['media_unread']=false;$web['messages'][0]['media_unread']=false; }
+    $capability=ManagerAiDraftPhotoContext::capture($web,7,'anytour','website',$hasImage?$metadata:[],null);
+    $network=0;$reader=static fn(array $normalized):?array=>$capability->read($normalized,static function()use(&$network){++$network;return null;});
+    $input=ManagerAiDraftService::prepareInput($web,null,null,null,$reader);
+    photoCheck('website '.($hasImage?'unavailable image':'text only').' preserves independent text without media I/O',
+        isset($input['context'])&&$input['images']===[]&&$input['context']['messages']===$web['messages']
+        &&$input['context']['media_unread']===$web['media_unread']&&$network===0);
+    $calls=0;
+    $reply=ManagerAiDraftService::generate($web,static function($instructions,$payload,$images)use(&$calls,$result){++$calls;return $result;},null,null,null,$reader);
+    photoCheck('website '.($hasImage?'unavailable image':'text only').' invokes the manual provider once',$reply===$result&&$calls===1&&$network===0);
+}
+
 foreach(['conversation_id'=>18,'as_of_message_id'=>503]as $key=>$value){$other=$context;$other[$key]=$value;$called=false;
     photoCheck('a changed '.$key.' cannot reuse a photo capability',$photos->read($other,static function()use(&$called){$called=true;return null;})===null&&!$called);}
 $other=$context;$other['messages'][1]['text']='Изменённый запрос';
