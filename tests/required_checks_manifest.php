@@ -125,6 +125,7 @@ return [
         'php tests/run_manager_prepared_reply_regression.php',
         'php tests/run_manager_preparation_oauth_regression.php',
         'php tests/run_manager_preparation_mcp_regression.php',
+        'php tests/run_manager_preparation_health_regression.php',
         'php tests/run_manager_preparation_endpoint_regression.php',
         'php tests/run_manager_ai_draft_feedback_regression.php',
         'php tests/run_manager_ai_draft_outbound_regression.php',

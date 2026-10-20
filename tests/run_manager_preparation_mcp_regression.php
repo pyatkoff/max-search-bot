@@ -198,6 +198,9 @@ try {
     $listed=$service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>20]]),1)['result']['structuredContent'];
     preparationMcpCheck('metadata strips customer identity and transcript',!str_contains(json_encode($listed),'PRIVATE') && !isset($listed['jobs'][0]['conversation_id']));
     preparationMcpCheck('canonical context revision is exposed',$listed['jobs'][0]['revision']===$job['context_revision']);
+    preparationMcpCheck('queue inventory exposes heartbeat availability separately from empty connection inventory',
+        is_bool($listed['preparation_health']['tick']['available']??null)
+        && ($listed['preparation_health']['connections']['active']??null)===0);
     $jobs[]=$job+[];$jobs[1]['project_key']='other';
     preparationMcpCheck('metadata cannot leak another project',count($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies']),1)['result']['structuredContent']['jobs'])===1);$jobs=[$job];
     preparationMcpCheck('tool batch limit cannot exceed twenty',($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>21]]),1)['error']['code']??0)===-32602);
@@ -219,6 +222,17 @@ try {
 
     $sub=$service->handle(preparationMcpRpc('events/subscribe',$subscribe+['_meta'=>$protocolMeta]),1,$connection);
     preparationMcpCheck('signed callback challenge activates a persistent subscription',isset($sub['result']['id']) && count($requests)===1 && (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_events')->fetchColumn()===1);
+    $beforeHealth=$pdo->query('SELECT * FROM manager_preparation_events')->fetchAll();$beforeRequests=count($requests);
+    $health=$service->preparationHealth();
+    preparationMcpCheck('health distinguishes active subscriptions without writing or delivering',
+        ($health['connections']['active']??null)===1 && $beforeHealth===$pdo->query('SELECT * FROM manager_preparation_events')->fetchAll() && count($requests)===$beforeRequests);
+    $connectionValid=false;
+    preparationMcpCheck('health distinguishes revoked authorization from a stopped cron',($service->preparationHealth()['connections']['unauthorized']??null)===1);
+    $connectionValid=true;
+    $pdo->prepare('UPDATE manager_preparation_events SET expires_at=?')->execute([gmdate('Y-m-d H:i:s',$now-1)]);
+    preparationMcpCheck('health reports subscription expiry independently of OAuth',($service->preparationHealth()['connections']['expired']??null)===1);
+    $pdo->prepare('UPDATE manager_preparation_events SET expires_at=?')->execute([$beforeHealth[0]['expires_at']]);
+    preparationMcpCheck('health excludes callback secrets and identities',!str_contains(json_encode($health),'callback.example.com') && !str_contains(json_encode($health),'oauth_connection_id'));
     $subId=$sub['result']['id'];$challenge=$requests[0];$headers=$challenge['headers'];
     $expected='v1,'.base64_encode(hash_hmac('sha256',$headers['webhook-id'].'.'.$headers['webhook-timestamp'].'.'.$challenge['body'],str_repeat('k',32),true));
     preparationMcpCheck('challenge signature uses exact Standard Webhooks bytes',hash_equals($expected,$headers['webhook-signature']) && $headers['x-mcp-subscription-id']===$subId);

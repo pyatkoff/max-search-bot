@@ -76,6 +76,7 @@ try{
         'generated_at'=>gmdate('c'),
         'production'=>$production['production']??[],
         'manager_mcp_discovery'=>$production['manager_mcp_discovery']??[],
+        'manager_preparation'=>$production['manager_preparation']??[],
         'migrations'=>migrationSummary((array)($production['migrations']??[])),
         'health'=>$production['health']??[],
         'manager'=>[
