@@ -114,6 +114,10 @@ test('access refusal clears the previously visible recommendation',async()=>{
   const h=harness();h.A.activate(7);await h.A.open(101);h.data.delete(101);await h.A.loadDetail(101);assert.doesNotMatch(h.$('assistantDetail').textContent,/Check selected hotel/);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);assert.equal(h.$('assistantDialog').classList.contains('hasSelection'),false,'Mobile returns to the list after an inaccessible selection');h.onlyReads();
 });
 
+test('existing dirty task editor blocks assistant mutations and same-client reloads',async()=>{
+  const h=harness();let warnings=0;h.window.WorkspaceV2Tasks={blockNavigationForDirtyDraft:()=>{warnings++;return true}};h.data.get(101).tasks=[{id:31,title:'Check supplier',status:'open',due_state:'today'}];h.A.activate(7);await h.A.open(101);await h.click('[data-assistant-task="31"]');assert.equal(h.$('assistantDialog').open,false);assert.equal(h.calls.filter(c=>c.url==='pipeline-api.php').length,0);await h.A.open(101);await h.click('#assistantConversation');assert.equal(h.$('assistantDialog').open,false);assert.equal(h.opened.length,0);assert.ok(warnings>=2);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+
 async function run(){let passed=0;for(const t of tests){await t.run();passed++;console.log('PASS '+t.name)}console.log('Manager assistant behavior: '+passed+' checks passed')}
 if(require.main===module)run().catch(error=>{console.error(error.stack);process.exitCode=1});
 module.exports={harness,deferred};

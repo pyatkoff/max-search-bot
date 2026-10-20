@@ -125,7 +125,12 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   async function openConversation(id){
     if(!authenticated())return false;
+    if(protectTaskDraft())return false;
     close();return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true});
+  }
+  function protectTaskDraft(){
+    if(!window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;
+    close();window.WorkspaceV2Tasks.blockNavigationForDirtyDraft();return true;
   }
   async function planTask(item){
     const id=Number(item.conversation_id),scope=epoch;
@@ -147,6 +152,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   }
   async function taskMutation(item,data){
     const id=Number(item.conversation_id),scope=epoch,opened=modal;if(pending.has(id))return false;
+    if(protectTaskDraft())return false;
     pending.add(id);renderDetail();status('Сохраняем задачу…');let result;
     try{const {action,...payload}=data;result=await W.pipe(action,{conversation_id:id,...payload},{isCurrent:()=>valid(scope)})}catch{result={ok:false,error:'network_error'}}
     if(!valid(scope))return false;pending.delete(id);
