@@ -47,6 +47,15 @@ photograph and previous entries. Prices remain the prices in the publication.
 - A provider timeout or lost receipt becomes `unknown`. The operation is never
   blindly edited a second time. MAX can reconcile by readback; Telegram requires
   an authenticated edited-channel event, otherwise administrator attention.
+- MAX may include `quote` markup spans in a webhook while GET omits them. The
+  pre-edit comparison accepts only complete omission of valid quote spans, with
+  exact text, stable photographs, forward context and every other markup span
+  unchanged. A partly changed quote list, malformed spans, changed links or other
+  formatting still block the edit. The button edit sends attachments only and
+  preserves the fresh provider content. Post-edit readback stays exact, including
+  its markup; an ambiguous result never authorizes a second write. Stored
+  snapshots, content fingerprints and version identities remain unchanged by
+  this comparison tolerance; it does not reset or requeue historical failures.
 - Fresh Manager authentication, project and canonical conversation ACL protect
   both context and images. Context API reads do not mark a dialogue as read.
 

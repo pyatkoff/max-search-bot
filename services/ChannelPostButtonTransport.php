@@ -74,8 +74,7 @@ final class ChannelPostButtonTransport
                 $current = $this->maxMessage($mid, $channelId, 'current_post');
                 $currentSnapshot = ChannelPostIncomingAdapter::maxSnapshot($current);
                 self::check(is_array($currentSnapshot), 'current_post_invalid');
-                $expectedHash = ChannelPostIncomingAdapter::contentFingerprint($snapshot, $url, (string)$channel['bot_url']);
-                self::check($expectedHash === ChannelPostIncomingAdapter::contentFingerprint($currentSnapshot, $url, (string)$channel['bot_url']), 'post_changed_since_event');
+                self::check(self::maxContentMatches($snapshot, $currentSnapshot), 'post_changed_since_event');
                 self::check(($currentSnapshot['metadata']['capability'] ?? '') === 'supported', (string)($currentSnapshot['metadata']['capability_reason'] ?? 'unsupported_post'));
                 $body = self::maxEditBody($current, $url, $label, (string)$channel['bot_url']);
                 if (ChannelPostIncomingAdapter::containsOnlyButton($currentSnapshot, $url, $label)) return $this->result('sent', 'already_present');
@@ -164,6 +163,30 @@ final class ChannelPostButtonTransport
         $message = self::readable($this->call('max', 'GET', '/messages/' . rawurlencode($mid), [], null, $purpose), 'max');
         self::check(($message['body']['mid'] ?? '') === $mid && (string)($message['recipient']['chat_id'] ?? '') === $channelId && ($message['recipient']['chat_type'] ?? '') === 'channel', 'post_identity_mismatch');
         return $message;
+    }
+
+    private static function maxContentMatches(array $observed, array $current): bool
+    {
+        if (ChannelPostIncomingAdapter::contentFingerprint($observed) === ChannelPostIncomingAdapter::contentFingerprint($current)) return true;
+        $markup = $observed['markup'] ?? null;
+        $currentMarkup = $current['markup'] ?? null;
+        if (!is_array($markup) || !array_is_list($markup) || !is_array($currentMarkup) || !array_is_list($currentMarkup)) return false;
+        // MAX can include quote spans in its webhook but omit all of them in
+        // GET /messages. Accept only that observed omission before our
+        // attachments-only edit; retain every other content/formatting check.
+        foreach ($currentMarkup as $span) if (is_array($span) && ($span['type'] ?? '') === 'quote') return false;
+        $textLength = strlen(mb_convert_encoding((string)($observed['text'] ?? ''), 'UTF-16LE', 'UTF-8')) / 2;
+        $withoutQuotes = []; $quotes = 0;
+        foreach ($markup as $span) {
+            if (!is_array($span) || ($span['type'] ?? '') !== 'quote') { $withoutQuotes[] = $span; continue; }
+            if (count($span) !== 3 || !is_int($span['from'] ?? null) || !is_int($span['length'] ?? null)
+                || $span['from'] < 0 || $span['length'] <= 0 || $span['from'] > $textLength
+                || $span['length'] > $textLength - $span['from']) return false;
+            $quotes++;
+        }
+        if ($quotes === 0) return false;
+        $observed['markup'] = $withoutQuotes;
+        return ChannelPostIncomingAdapter::contentFingerprint($observed) === ChannelPostIncomingAdapter::contentFingerprint($current);
     }
 
     private static function maxEditBody(array $message, string $url, string $label, string $botUrl): array
