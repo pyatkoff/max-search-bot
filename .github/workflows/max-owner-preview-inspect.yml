@@ -1,0 +1,95 @@
+name: Read-only owner phrase and fixed send-window inspection
+
+on:
+  push:
+    branches: [analysis/max-owner-preview-window-20261020]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EXPECTED_SHA: 090cd40344c114257cdaf3289870985d0e9f05c6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify fixed source and current main before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_ACTOR" = 'pyatkoff'
+          test "$GITHUB_ACTOR_ID" = '226193297'
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_SHA"
+          test "$GITHUB_REF" = 'refs/heads/analysis/max-owner-preview-window-20261020'
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          php -l tools/max_owner_preview_inspect.php
+          php tests/max_owner_preview_inspect_test.php
+      - name: Execute fixed two-GET inspection with pinned SSH host
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          SSH_HOST_KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private_dir="$(mktemp -d "$RUNNER_TEMP/max-owner-inspect.XXXXXX")"
+          echo "MAX_OWNER_INSPECT_PRIVATE_DIR=$private_dir" >> "$GITHUB_ENV"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$private_dir/key"; else printf '%s\n' "$raw" | tr -d '\r' > "$private_dir/key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$private_dir/key"
+          fi
+          chmod 600 "$private_dir/key"
+          ssh-keygen -y -f "$private_dir/key" >/dev/null
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[A-Za-z_][A-Za-z0-9_.-]*$ ]]
+          printf '%s %s\n' "$DEPLOY_HOST" "$SSH_HOST_KEY" > "$private_dir/known_hosts"
+          chmod 600 "$private_dir/known_hosts"
+          ssh_opts=(-i "$private_dir/key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$private_dir/known_hosts" -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o LogLevel=ERROR)
+          remote_ok=true
+          timeout 45 ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; git diff --quiet; git diff --cached --quiet; php -d display_errors=0 -d log_errors=0 /dev/stdin; git diff --quiet; git diff --cached --quiet; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'" < tools/max_owner_preview_inspect.php > "$private_dir/result.json" 2> "$private_dir/stderr.txt" || remote_ok=false
+          test "$remote_ok" = true
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          python3 - "$private_dir/result.json" <<'PYTHON'
+          import json, sys
+          result = json.load(open(sys.argv[1]))
+          allowed = {'inspection','receipt_state','receipt_unchanged','provider_requests','identity_status','history_status','window_messages','matching_messages','matching_cards','window_may_be_truncated','identity_verified','owner_inbound_timestamp_ms','owner_inbound_contains_empty','owner_inbound_fresh','requested_window_lower_ms','requested_window_upper_ms','window_min_timestamp_ms','window_max_timestamp_ms','all_returned_within_window','window_not_truncated','bot_messages_in_window','demo_like_messages_in_window','media_messages_in_window'}
+          assert isinstance(result, dict) and set(result) <= allowed
+          assert result.get('inspection') in ('inconclusive','matching_demo_found','no_bot_demo_evidence_in_send_window')
+          assert result.get('receipt_state') in ('unknown','unavailable')
+          for key in ('provider_requests','identity_status','history_status','window_messages','matching_messages','bot_messages_in_window','demo_like_messages_in_window','media_messages_in_window'):
+              if key in result: assert type(result[key]) is int and 0 <= result[key] <= 599
+          assert result.get('provider_requests',0) <= 2 and result.get('window_messages',0) <= 100 and result.get('matching_messages',0) <= 100
+          cards = result.get('matching_cards', [])
+          assert isinstance(cards, list) and len(cards) <= 100
+          for card in cards:
+              assert set(card) == {'images','attachments','like_message_button'}
+              assert type(card['images']) is int and 0 <= card['images'] <= 12
+              assert type(card['attachments']) is int and 0 <= card['attachments'] <= 12
+              assert type(card['like_message_button']) is bool
+          for key in ('receipt_unchanged','window_may_be_truncated','identity_verified','owner_inbound_contains_empty','owner_inbound_fresh','all_returned_within_window','window_not_truncated'):
+              if key in result: assert type(result[key]) is bool
+          for key in ('owner_inbound_timestamp_ms','requested_window_lower_ms','requested_window_upper_ms','window_min_timestamp_ms','window_max_timestamp_ms'):
+              if key in result: assert result[key] is None or (type(result[key]) is int and 0 < result[key] <= 4102444800000)
+          print(json.dumps(result, separators=(',', ':')))
+          PYTHON
+
+      - name: Remove private runner files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${MAX_OWNER_INSPECT_PRIVATE_DIR:-}" in "$RUNNER_TEMP"/max-owner-inspect.*) ;; *) exit 0;; esac
+          rm -f "$MAX_OWNER_INSPECT_PRIVATE_DIR/key" "$MAX_OWNER_INSPECT_PRIVATE_DIR/known_hosts" "$MAX_OWNER_INSPECT_PRIVATE_DIR/result.json" "$MAX_OWNER_INSPECT_PRIVATE_DIR/stderr.txt"
+          rmdir "$MAX_OWNER_INSPECT_PRIVATE_DIR"
