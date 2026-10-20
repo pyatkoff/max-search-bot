@@ -213,5 +213,23 @@ $pdo->beginTransaction();
 storeCheck('caller transaction cannot supply a stale source snapshot',storeReject(fn()=>$store->reconcile(1),'virtual_reply_source_recheck_in_transaction'));
 $pdo->rollBack();
 
+$priorityDb=storeDb();$priorityReader=new StoreFixtureReader($priorityDb);$priorityNow=1792490400;
+$priorityStore=new VirtualReplyStore($priorityDb,$priorityReader,static function()use(&$priorityNow):int{return $priorityNow;});
+foreach ([1,2] as $id) {
+    $priorityReader->put('conversation',$id,'Старый вопрос');
+    $old=&$priorityReader->values['conversation'][$id];
+    $old['reference_time']='2020-01-01T10:00:00Z';$old['payload']['cutoff']['reference_time']=$old['reference_time'];
+    $old['payload']['messages'][0]['created_at']=$old['reference_time'];$old['source_revision']=hash('sha256',json_encode($old['payload']));
+    unset($old);
+}
+$priorityStore->capture('conversation','history',20);$priorityNow+=10;
+$priorityReader->put('conversation',3,'Новый вопрос');$priorityStore->capture('conversation','fresh',20);
+$prioritized=$priorityStore->claim('author',7,1)['jobs'][0];
+storeCheck('recent real questions take priority over older captured archive backlog',
+    $priorityStore->context($prioritized['case_id'],'author',$prioritized['claim_token'],7)['source']['id']===3);
+$historyClaim=$priorityStore->claim('author',7,1)['jobs'][0];
+storeCheck('historical backlog remains available after recent work',
+    $priorityStore->context($historyClaim['case_id'],'author',$historyClaim['claim_token'],7)['source']['id']===1);
+
 echo "Virtual reply store regression: {$passed} passed, {$failed} failed\n";
 exit($failed?1:0);

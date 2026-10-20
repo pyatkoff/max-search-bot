@@ -70,6 +70,9 @@ prepared queue continue to represent ordinary manager replies only.
 2. `claim_virtual_replies(role, limit)` reserves work before generation. Limits:
    20 per call and 200 claims per role per UTC day. This is a protective sampling
    limit, not a claim that every incoming question has already been processed.
+   Questions from the last 48 hours precede older pending cases, preserving FIFO
+   order within each group so the historical replay backlog cannot displace new
+   questions merely because it was captured first.
 3. `get_virtual_reply_context` returns frozen instructions, required profile,
    source prefix and evidence for the exact claim.
 4. Run the author on Sol low, or a separate reviewer on Astra high. Pass only

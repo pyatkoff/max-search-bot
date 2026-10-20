@@ -10,6 +10,7 @@ final class VirtualReplyStore
 {
     public const DAILY_LIMIT = 200;
     public const REVIEW_DELAY_SECONDS = 60;
+    private const RECENT_WINDOW_SECONDS = 172800;
     private PDO $pdo;
     private object $reader;
     private $clock;
@@ -90,8 +91,9 @@ final class VirtualReplyStore
         $limit=$this->limit($limit,20);
         $this->expire();
         $now=$this->now(); $day=substr($now,0,10); $jobs=[];
-        $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY j.available_at,c.id LIMIT 100',
-            ['anytour','active',$role,'pending',$now]);
+        $recent=gmdate('Y-m-d\TH:i:s\Z',$this->at($now)-self::RECENT_WINDOW_SECONDS);
+        $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
+            ['anytour','active',$role,'pending',$now,$recent]);
         foreach ($candidates as $candidate) {
             if (count($jobs)>=$limit) break;
             $fresh=$this->refresh($candidate);
