@@ -96,6 +96,35 @@ still separate genuinely independent trips and clarify only an ambiguous link,
 not the entire intake. These are prompt rules, not proof of a future model result;
 the manager remains the reviewer and sender.
 
+Owner feedback on 2026-10-20 also prefers a short, context-supported confirmation
+over restarting intake. An available current post naming Moscow supports the
+question "Вылет из Москвы рассматриваете?", including when the customer changes
+the destination or period without discussing departure. It does not establish
+an agreed departure. Without that source hint, Moscow is not a default; an explicit
+customer departure such as Saint Petersburg always takes precedence.
+
+A current post for two adults or a couple enquiry supports "Вдвоём планируете
+поехать?" rather than "Сколько человек?" when party is unknown. For a honeymoon,
+departure and an unknown budget are usually more useful next questions than an
+open headcount question. Couple wording remains a hypothesis: it establishes
+neither two confirmed adults, a room plan nor absence of children. Explicit solo,
+family, child and known-party details override it. An unknown budget may be a
+comfortable range or upper bound; do not demand an exact amount or block an
+independent answer with budget intake.
+
+Anonymized wording examples from that feedback (not newly saved replies):
+
+| Request and source evidence | Useful next wording |
+| --- | --- |
+| Honeymoon, several destinations, current post departs Moscow; budget unknown | «Вылет из Москвы рассматриваете? В какую сумму хотели бы уложиться вдвоём?» |
+| Egypt in July, 5-star first-line requirement, current post for two adults; party/budget unknown | «Вдвоём планируете поехать? В какую сумму хотели бы уложиться?» |
+| Customer explicitly departs Saint Petersburg in January; post for two adults, party/budget unknown | «Вдвоём планируете поехать? Какой бюджет на поездку рассматриваете?» |
+| Indonesia around January 5, explicitly one adult, current post departs Moscow | «Вылет из Москвы рассматриваете? На сколько ночей планируете поездку?» |
+
+These prompt rules do not mutate booking fields or prove future generation quality.
+They do not authorize rewriting completed jobs: normal instruction/context revision
+freshness and manager review still apply.
+
 ## OAuth and private MCP connection
 
 MCP URL: `https://app.anytoour.ru/manager/ai-mcp.php`.
