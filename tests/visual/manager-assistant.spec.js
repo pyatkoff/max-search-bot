@@ -44,7 +44,7 @@ await page.locator('[data-assistant-client="11"]').click();await expect(page.loc
   await page.setViewportSize({width,height:900});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await expect(page.locator('#replyText')).toBeEnabled();
   await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'assistant-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
   const draft=await page.locator('#replyText').inputValue(),selection=await page.locator('#mediaSelection').textContent();
-  await page.locator('#assistantClientOpen').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
+await expect(page.locator('.conversationIdentityText #assistantClientOpen')).toHaveCount(0);await page.locator('#m2ConversationMenuToggle').click();await page.locator('#assistantClientOpen').click();await expect(page.locator('#assistantDetail')).toContainText('Отмечено выполненным');expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(1);await page.locator('#assistantClose').click();
   await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(selection);
   clean(s);
 });

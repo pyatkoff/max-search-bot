@@ -31,8 +31,8 @@
     const global=$('assistantOpen');if(global)global.disabled=!authenticated();
     const own=authenticated()&&Number(c?.id)===Number(S.current)&&Number(c?.manager_id)===owner&&c?.status==='manager';
     let button=$('assistantClientOpen');
-    const host=document.querySelector('.conversationIdentityText')||document.querySelector('.conversationTools');
-if(!button&&host){button=document.createElement('button');button.type='button';button.id='assistantClientOpen';button.className='actionBtn assistantClientOpen';button.textContent='Рекомендации';button.setAttribute('aria-haspopup','dialog');button.onclick=()=>open(Number(S.current));host.appendChild(button)}
+    const host=document.querySelector('.m2ConversationMenu>div')||document.querySelector('.conversationTools');
+    if(!button&&host){button=document.createElement('button');button.type='button';button.id='assistantClientOpen';button.className='actionBtn assistantClientOpen';button.textContent='Рекомендации';button.setAttribute('aria-haspopup','dialog');button.onclick=()=>{const menu=button.closest?.('details');if(menu)menu.open=false;void open(Number(S.current))};host.appendChild(button)}
     if(button)button.hidden=!own;
     if(!authenticated()){close();clear();return}
     if(!dialog?.open)return;
@@ -62,7 +62,7 @@ if(!button&&host){button=document.createElement('button');button.type='button';b
     if(dialog.open){$('assistantClose').focus();schedule()}
     return true;
   }
-  function close(){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(authenticated()&&opener?.isConnected)opener.focus({preventScroll:true})}}
+  function close(){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(authenticated()&&opener?.isConnected){if(opener.id==='assistantClientOpen'){const menu=opener.closest?.('details');if(menu)menu.open=true}opener.focus({preventScroll:true})}}}
 function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())return;timer=setTimeout(()=>{if(!dialog?.open)return;if(!$('assistantTaskEditor')?.querySelector('form')){render();if(selected)void loadDetail(selected)}else if(!fresh(rows.get(selected))){const advice=$('assistantDetail').querySelector('.assistantRecommendation');if(advice)advice.hidden=true}schedule()},20000)}
   async function loadList(more=false){
     if(!authenticated()||busy)return false;
