@@ -14,8 +14,9 @@ final class ManagerAiDraftFeedbackService
     private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
     private const ACTIONS = ['clarify','answer_question','check_offer','prepare_selection','no_contact'];
 
-    public static function record(int $cid, int $actor, array $snapshot, array $proposal): ?string
+    public static function record(int $cid, int $actor, array $snapshot, array $proposal, ?string $preparedJobId = null): ?string
     {
+        if ($preparedJobId !== null && !self::revision($preparedJobId)) return null;
         try {
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction()) return null;
@@ -42,14 +43,38 @@ final class ManagerAiDraftFeedbackService
             foreach (self::FIELDS as $field) $copy[$field] = $proposal[$field];
             $json = json_encode($copy, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
             if (strlen($json) > self::MAX_PROPOSAL_BYTES) return null;
-            $id = bin2hex(random_bytes(16));
-            $q = $pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at) VALUES (?,?,?,?,?,?,?,?,?)');
-            if (!$q->execute([$id,$cid,$actor,$scope['project_key'],$revision,
-                hash('sha256', ManagerAiDraftService::instructions()),$latest,$json,gmdate('Y-m-d H:i:s')])) return null;
+            $id = $preparedJobId === null ? bin2hex(random_bytes(16))
+                : substr(hash('sha256', "prepared\0".$scope['project_key']."\0".$actor."\0".$preparedJobId), 0, 32);
+            $values = [$id,$cid,$actor,$scope['project_key'],$revision,
+                hash('sha256', ManagerAiDraftService::instructions()),$latest,$json,gmdate('Y-m-d H:i:s')];
+            if ($preparedJobId !== null) {
+                // Reopening one prepared result must not inflate usage or replace
+                // its original text. The job identity comes only from the server.
+                $existing = self::preparedRecord($pdo,$cid,$actor,$scope['project_key'],$id,$preparedJobId,$revision,$latest,$json);
+                if ($existing) return $id;
+                $q = $pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at,preparation_job_id) VALUES (?,?,?,?,?,?,?,?,?,?)');
+                $values[] = $preparedJobId;
+                try { $inserted = $q->execute($values); }
+                catch (Throwable $ignored) { $inserted = false; }
+                if (!$inserted) return self::preparedRecord($pdo,$cid,$actor,$scope['project_key'],$id,$preparedJobId,$revision,$latest,$json) ? $id : null;
+            } else {
+                $q = $pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at) VALUES (?,?,?,?,?,?,?,?,?)');
+                if (!$q->execute($values)) return null;
+            }
             return $id;
         } catch (Throwable $ignored) {
             return null;
         }
+    }
+
+    private static function preparedRecord(PDO $pdo,int $cid,int $actor,string $project,string $id,string $job,string $revision,int $latest,string $json): bool
+    {
+        $q=$pdo->prepare('SELECT preparation_job_id,proposal_json,context_revision,latest_message_id,created_at FROM manager_ai_drafts WHERE draft_id=? AND conversation_id=? AND manager_id=? AND project_key=?');
+        $q->execute([$id,$cid,$actor,$project]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        return $row && $row['preparation_job_id']===$job && $row['proposal_json']===$json
+            && $row['context_revision']===$revision && (int)$row['latest_message_id']===$latest
+            && self::timestamp($row['created_at'])!==null && self::timestamp($row['created_at'])<=time()
+            && time()-self::timestamp($row['created_at'])<=self::ATTRIBUTION_SECONDS;
     }
 
     /** Caller also performs the canonical fresh-context check before this observation. */

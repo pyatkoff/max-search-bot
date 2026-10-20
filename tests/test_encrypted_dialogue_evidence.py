@@ -72,13 +72,25 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(set(sample), {"draft_ref", "session_ref", "message_ref", "proposed_text",
                                       "current_sent_text", "initial_text_available", "edited",
                                       "recorded_text_matches_proposal", "proposed_text_truncated",
-                                      "current_sent_text_truncated", "created_at", "sent_at"})
+                                      "current_sent_text_truncated", "created_at", "sent_at", "source"})
+        self.assertEqual(sample["source"], "generated")
         self.assertIn("SYNTHETIC_PRIVATE_PROPOSAL", sample["proposed_text"])
         for marker in ("[NUMBER]", "[EMAIL]", "[URL]", "[HANDLE]"):
             self.assertIn(marker, sample["proposed_text"])
         self.assertEqual(sample["current_sent_text"], "SYNTHETIC_PRIVATE_SENT [CREDENTIAL] [CREDENTIAL]")
         for secret in ("deadbeef", "HIDDEN_", "example.org", "@contact", "secret", "password=hidden"):
             self.assertNotIn(secret.encode(), data)
+
+    def test_prepared_source_survives_without_exposing_its_job_identity(self):
+        production = production_fixture()
+        sample = production["manager_ai_feedback_private"][0]
+        sample.update(source="prepared", preparation_job_id="PRIVATE_JOB_ID")
+        data = self.build(production=production)
+        self.assertEqual(json.loads(data)["manager_ai_feedback"]["samples"][0]["source"], "prepared")
+        self.assertNotIn(b"PRIVATE_JOB_ID", data)
+        sample["source"] = "untrusted"
+        with self.assertRaises(ValueError):
+            self.build(production=production)
 
     def test_feedback_correlations_rotate_and_missing_identifiers_are_not_invented(self):
         production = production_fixture()

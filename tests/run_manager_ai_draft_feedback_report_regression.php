@@ -13,7 +13,7 @@ function reportDb(): PDO
 {
     $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
     $pdo->exec("CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT COLLATE NOCASE,is_test INTEGER,channel TEXT,manager_id INTEGER);
-CREATE TABLE manager_ai_drafts(draft_id TEXT PRIMARY KEY,conversation_id INTEGER,manager_id INTEGER,project_key TEXT COLLATE NOCASE,context_revision TEXT,instruction_revision TEXT,latest_message_id INTEGER,proposal_json BLOB,created_at TEXT,insert_requested_at TEXT);
+CREATE TABLE manager_ai_drafts(draft_id TEXT PRIMARY KEY,conversation_id INTEGER,manager_id INTEGER,project_key TEXT COLLATE NOCASE,context_revision TEXT,instruction_revision TEXT,latest_message_id INTEGER,proposal_json BLOB,created_at TEXT,insert_requested_at TEXT,preparation_job_id TEXT);
 CREATE INDEX draft_created ON manager_ai_drafts(created_at);
 CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,sender_id TEXT,channel TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
 CREATE INDEX message_created ON messages(created_at);
@@ -48,6 +48,21 @@ function reportMessage(PDO $pdo,int $id,array $changes=[]): void
     $q=$pdo->prepare('INSERT INTO messages('.implode(',',array_keys($v)).') VALUES('.implode(',',array_fill(0,count($v),'?')).')');$q->execute(array_values($v));
 }
 function reportCollect(PDO $pdo): array {return ManagerAiDraftFeedbackReport::collect($pdo,'anytour',new DateTimeImmutable('2026-10-19 10:00:00+02:00'));}
+
+$preparedDb=reportDb();
+reportDraft($preparedDb,1,['preparation_job_id'=>str_repeat('c',64)]);
+reportMessage($preparedDb,1);
+$changedText='Changed by manager';
+reportMessage($preparedDb,2,['text'=>$changedText,'metadata_json'=>json_encode(reportRef(1,$changedText,false))]);
+$preparedReport=reportCollect($preparedDb);
+reportCheck('prepared source is counted separately with exact before and after samples',
+    $preparedReport['summary']['counts']['prepared_proposals']===1
+    &&$preparedReport['summary']['counts']['prepared_linked_messages']===2
+    &&$preparedReport['summary']['counts']['prepared_same_messages']===1
+    &&$preparedReport['summary']['counts']['prepared_changed_messages']===1
+    &&$preparedReport['samples'][0]['source']==='prepared'
+    &&$preparedReport['samples'][0]['current_sent_text']===$changedText
+    &&!array_key_exists('preparation_job_id',$preparedReport['samples'][0]));
 
 $pdo=reportDb();$result=reportCollect($pdo);$s=$result['summary'];
 reportCheck('empty migrated store is a complete zero observation',$s['ok']&&$s['complete']&&$result['samples']===[]&&array_sum($s['counts'])===0);

@@ -116,6 +116,10 @@ def manager_ai_feedback_evidence(production, sha, salt, now):
         if not isinstance(sample, dict):
             raise ValueError("invalid feedback sample")
         item = {}
+        source = sample.get("source", "generated")
+        if source not in ("generated", "prepared"):
+            raise ValueError("invalid feedback source")
+        item["source"] = source
         for field in ("initial_text_available", "recorded_text_matches_proposal", "edited",
                       "proposed_text_truncated", "current_sent_text_truncated"):
             if type(sample.get(field)) is not bool:
