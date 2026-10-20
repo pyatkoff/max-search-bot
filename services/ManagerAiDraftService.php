@@ -18,12 +18,34 @@ final class ManagerAiDraftService
 
     public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null): array
     {
+        $input = self::prepareInput($context, $knowledge, $selectionReader, $references);
+        if (isset($input['error'])) return ['ok'=>false,'error'=>$input['error']];
+        if ($input['preflight'] !== null) return $input['preflight'];
+        $normalized = $input['context'];
+        $provider = $provider ?? [ManagerDraftClient::class,'requestJson'];
+        try {
+            $result = $provider(self::instructions(), $normalized);
+        } catch (Throwable $ignored) {
+            return ['ok'=>false,'error'=>'provider_unavailable'];
+        }
+        if (is_array($result) && isset($result['_error'])) {
+            $error = is_string($result['_error']) && in_array($result['_error'],self::PROVIDER_ERRORS,true)
+                ? $result['_error'] : 'provider_unavailable';
+            return ['ok'=>false,'error'=>$error];
+        }
+        if (!self::validResult($result,$normalized)) return ['ok'=>false,'error'=>'invalid_ai_response'];
+        return $result;
+    }
+
+    /** Shared bounded server input for manual and private worker analysis; no model call. */
+    public static function prepareInput(array $context, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?ManagerAiDraftReferenceContext $references = null): array
+    {
         $normalized = self::context($context);
-        if (isset($normalized['error'])) return ['ok'=>false,'error'=>$normalized['error']];
+        if (isset($normalized['error'])) return $normalized;
         $normalized['verified_company_facts'] = $knowledge?->facts() ?? [];
         if ($references !== null) {
             $extra = $references->forContext($normalized);
-            if ($extra === null) return ['ok'=>false,'error'=>'invalid_context'];
+            if ($extra === null) return ['error'=>'invalid_context'];
             $plain = $normalized;
             $normalized += $extra;
             try {
@@ -37,13 +59,13 @@ final class ManagerAiDraftService
             } catch (Throwable $ignored) { $normalized = $plain; }
         }
         $companyCheck = self::companyFactPreflight($normalized);
-        if ($companyCheck !== null) return $companyCheck;
+        if ($companyCheck !== null) return ['context'=>$normalized,'preflight'=>$companyCheck];
         $withoutSelections = $normalized;
         if ($selectionReader !== null && $normalized['selections_link_unread']) {
             try { $selection = $selectionReader(); } catch (Throwable $ignored) { $selection = null; }
             if ($selection instanceof ManagerSelectionSnapshot) {
                 $extra = $selection->forContext($normalized);
-                if ($extra === null) return ['ok'=>false,'error'=>'invalid_context'];
+                if ($extra === null) return ['error'=>'invalid_context'];
                 $normalized += $extra;
                 $complete = array_fill_keys($selection->completeMessageIds(), true);
                 $allFlags = true; $unread = false;
@@ -70,19 +92,7 @@ final class ManagerAiDraftService
                 } catch (Throwable $ignored) { $normalized = $withoutSelections; }
             }
         }
-        $provider = $provider ?? [ManagerDraftClient::class,'requestJson'];
-        try {
-            $result = $provider(self::instructions(), $normalized);
-        } catch (Throwable $ignored) {
-            return ['ok'=>false,'error'=>'provider_unavailable'];
-        }
-        if (is_array($result) && isset($result['_error'])) {
-            $error = is_string($result['_error']) && in_array($result['_error'],self::PROVIDER_ERRORS,true)
-                ? $result['_error'] : 'provider_unavailable';
-            return ['ok'=>false,'error'=>$error];
-        }
-        if (!self::validResult($result,$normalized)) return ['ok'=>false,'error'=>'invalid_ai_response'];
-        return $result;
+        return ['context'=>$normalized,'preflight'=>null];
     }
 
     /** Public and versioned in code so an offline evaluator uses the same instructions. */

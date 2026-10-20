@@ -43,7 +43,13 @@ reservation; the existing send path remains authoritative.
 
 The worker reads each bounded canonical context separately and uses the exact
 server-owned instructions and approved knowledge facts returned with it. Unread
-photos, selection pages and external communication stay unknown. Imported eight-field
+photos and external communication stay unknown. Explicit `get_reply_context`
+reuses the manual AI's bounded reader for supported public selection links and
+returns only redacted card fields with source-message bindings and observed time.
+Failed/unsupported reads remain unknown. Reading happens outside database locks;
+current source, owner, job lifetime and requesting OAuth access are rechecked after
+it. See `MANAGER_SELECTION_CONTEXT.md` for transport limits and the distinction
+between observed page contents and verified current prices. Imported eight-field
 proposals are checked through `ManagerAiDraftService` with an injected result, so no
 default provider transport is selected. All source status/ownership, source revision,
 knowledge and instruction changes invalidate older work. New storage never changes

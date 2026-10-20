@@ -199,7 +199,7 @@ function preparedReplyRun(): void
     $pending = ManagerPreparedReplyService::pending(20);
     preparedReplyCheck('pending exposes only job metadata', ($pending['ok'] ?? false) === true && count($pending['jobs'] ?? []) === 1 && $pending['jobs'][0]['job_id'] === $job && !str_contains(json_encode($pending, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 'Подберите') && !str_contains(json_encode($pending, JSON_THROW_ON_ERROR), 'PRIVATE') && !array_key_exists('context', $pending['jobs'][0]) && !array_key_exists('proposal', $pending['jobs'][0]));
     $context = ManagerPreparedReplyService::context($job);
-    $expectedContext = $snapshot['context'] + $snapshot['reference_context']->forContext($snapshot['context']);
+    $expectedContext = ManagerAiDraftService::prepareInput($snapshot['context'], $snapshot['company_knowledge'], null, $snapshot['reference_context'])['context'];
     preparedReplyCheck('job context comes from current canonical input, source references and approved knowledge', ($context['ok'] ?? false) === true && $context['context'] === $expectedContext && $context['revision'] === $snapshot['revision'] && $context['instructions'] === ManagerAiDraftService::instructions() && $context['company_knowledge']['facts'] === $snapshot['company_knowledge']->facts() && $context['company_knowledge']['revision'] === $snapshot['company_knowledge']->revision() && preg_match('/\A[a-f0-9]{64}\z/D', $context['instruction_revision']) === 1);
     preparedReplyCheck('external identifiers and selection capabilities are excluded from job context', !str_contains(json_encode($context, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 'PRIVATE') && !isset($context['selection_sources']));
     $beforeInvalid = $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
@@ -270,7 +270,7 @@ function preparedReplyRun(): void
     $oldRow = $pdo->prepare('SELECT expires_at FROM manager_prepared_replies WHERE job_id=?');
     $oldRow->execute([$oldJob]);
     preparedReplyCheck('a new canonical revision retires superseded pending work', $oldJob !== $newJob && strtotime($oldRow->fetchColumn()) <= time() && array_column(ManagerPreparedReplyService::pending(20)['jobs'] ?? [], 'job_id') === [$newJob]);
-    preparedReplyCheck('retired work cannot be read or completed while the new revision is available', (ManagerPreparedReplyService::context($oldJob)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($oldJob, $original['revision'], preparedReplyProposal())['ok'] ?? false) === false && (ManagerPreparedReplyService::context($newJob)['context'] ?? null) === $updated['context'] + $updated['reference_context']->forContext($updated['context']) && preparedReplySourceState($pdo) === $sourceAfter && $pdo->sourceWriteAttempts === 0);
+        preparedReplyCheck('retired work cannot be read or completed while the new revision is available', (ManagerPreparedReplyService::context($oldJob)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($oldJob, $original['revision'], preparedReplyProposal())['ok'] ?? false) === false && (ManagerPreparedReplyService::context($newJob)['context'] ?? null) === ManagerAiDraftService::prepareInput($updated['context'], $updated['company_knowledge'], null, $updated['reference_context'])['context'] && preparedReplySourceState($pdo) === $sourceAfter && $pdo->sourceWriteAttempts === 0);
 
     $pdo = preparedReplyFixture();
     $snapshot = preparedReplySnapshot();
@@ -334,7 +334,79 @@ function preparedReplyRun(): void
     $writes = $pdo->cacheWrites;
     preparedReplyCheck('a different runtime project cannot enumerate or complete another project work', (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === [] && (ManagerPreparedReplyService::context($job)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === false && (ManagerPreparedReplyService::prepared(1, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
     preparedReplyCheck('all cache operations finish without source writes or transaction leakage', $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
+    preparedReplySelectionRun();
     echo 'Manager prepared replies'.(PreparedReplyPdo::$mysqlFixture ? ' (MySQL)' : '').': '.($preparedReplyPassed - $startedWith)." checks passed\n";
+}
+
+function preparedReplySelectionFixture(): array
+{
+    $pdo = preparedReplyFixture();
+    $pdo->mutate("UPDATE messages SET text='Варианты https://qui-quo.ru/AAAA-0001' WHERE id=1; UPDATE messages SET text='Какой вариант лучше для двоих на 7 ночей в пределах 200000 рублей?' WHERE id=2");
+    $snapshot = preparedReplySnapshot();
+    return [$pdo, $snapshot, preparedReplyQueue($snapshot)];
+}
+
+function preparedReplySelectionRun(): void
+{
+    $html = '<div class="tour"><b class="name">Synthetic Hotel</b><div class="details"><span class="room">2 взрослых, стандарт</span><span class="nights">7 ночей</span><span class="price">190000 RUB</span></div><div class="details"><span class="room">2 взрослых, улучшенный</span><span class="price">210000 RUB</span></div></div>';
+    [$pdo, $snapshot, $job] = preparedReplySelectionFixture();
+    $sourceBefore = preparedReplySourceState($pdo);
+    $cacheBefore = $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
+    $reads = 0;
+    $transport = static function(array $urls) use (&$reads, $pdo, $html): array {
+        ++$reads;
+        preparedReplyCheck('selection network read holds no database transaction', !$pdo->inTransaction());
+        preparedReplyCheck('only canonical retained selection URL reaches transport', $urls === ['https://qui-quo.ru/AAAA-0001']);
+        return [$urls[0]=>['status'=>200,'type'=>'text/html','html'=>$html]];
+    };
+    $context = ManagerPreparedReplyService::context($job, $transport);
+    $input = $context['context'] ?? [];
+    $page = $input['selection_snapshots'][0] ?? [];
+    preparedReplyCheck('worker receives distinct observed card variants bound to source message', ($context['ok'] ?? false) && $reads === 1 && count($page['offers'] ?? []) === 2 && $page['source_messages'] === [['message_id'=>1,'sender_type'=>'manager','sent_at'=>'2026-10-19 10:00:00']] && $page['offers'][0]['hotel'] === 'Synthetic Hotel' && $page['offers'][0]['price_amount'] === '190000' && $page['offers'][1]['price_amount'] === '210000');
+    preparedReplyCheck('worker card fields retain unknown price basis and current availability', $page['historical_send_snapshot'] === false && $page['current_price_verified'] === false && $page['offers'][0]['price_basis'] === null && !$input['selections_link_unread'] && !$input['messages'][0]['selections_link_unread']);
+    $serialized = json_encode($context, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    preparedReplyCheck('worker sees no raw URL HTML or contact data', !str_contains($serialized, 'qui-quo.ru') && !str_contains($serialized, 'AAAA-0001') && !str_contains($serialized, '<div') && !str_contains($serialized, 'PRIVATE') && !isset($input['selection_sources']));
+    preparedReplyCheck('page observation leaves canonical revision and source/cache data unchanged', $context['revision'] === $snapshot['revision'] && preparedReplySourceState($pdo) === $sourceBefore && $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll() === $cacheBefore && $pdo->sourceWriteAttempts === 0);
+    ManagerPreparedReplyService::context($job, $transport);
+    preparedReplyCheck('explicit worker reread makes a new observation rather than reusing a page cache', $reads === 2);
+    $proposal = preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'check_offer','reason'=>'Сопоставить два номера и подтвердить цену.','checks'=>['Проверить единицу цены и наличие.'],'evidence_message_ids'=>[1,2]]);
+    $saved = ManagerPreparedReplyService::complete($job, $snapshot['revision'], $proposal);
+    $ready = ManagerPreparedReplyService::prepared(1, 1, $snapshot);
+    preparedReplyCheck('card-informed eight-field proposal saves without persisting page contents', ($saved['ok'] ?? false) && ($ready['proposal'] ?? null) === $proposal && !str_contains(json_encode($pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()), 'Synthetic Hotel') && $pdo->sourceWriteAttempts === 0);
+
+    foreach (['failure','exception','unavailable','office','unsupported'] as $case) {
+        [$pdo, $snapshot, $job] = preparedReplySelectionFixture();
+        if ($case === 'office' || $case === 'unsupported') {
+            $pdo->mutate($case === 'office' ? "UPDATE messages SET text='Где у вас офис?' WHERE id=2" : "UPDATE messages SET text='Варианты https://qui-quo.ru/AAAA-0001?private=1' WHERE id=1");
+            $snapshot = preparedReplySnapshot(); $job = preparedReplyQueue($snapshot);
+        }
+        $reads = 0;
+        $out = ManagerPreparedReplyService::context($job, static function(array $urls) use (&$reads, $case): array {
+            ++$reads;
+            if ($case === 'exception') throw new RuntimeException('PRIVATE_NETWORK_DETAIL');
+            return $case === 'unavailable' ? [$urls[0]=>['status'=>404]] : [];
+        });
+        preparedReplyCheck($case.' preserves usable context and honest unread evidence', ($out['ok'] ?? false) && $out['context']['selections_link_unread'] && !str_contains(json_encode($out), 'PRIVATE_NETWORK_DETAIL') && $pdo->sourceWriteAttempts === 0);
+        if ($case === 'office' || $case === 'unsupported') preparedReplyCheck($case.' never calls selection transport', $reads === 0);
+    }
+
+    foreach ([
+        'message_edit'=>"UPDATE messages SET text='Варианты https://qui-quo.ru/BBBB-0002' WHERE id=1",
+        'new_inbound'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Другие даты.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'manager_reassigned'=>'UPDATE conversations SET manager_id=2',
+        'manager_revoked'=>'DELETE FROM manager_projects WHERE manager_id=1',
+        'closed'=>"UPDATE conversations SET status='closed'",
+        'test_conversation'=>'UPDATE conversations SET is_test=1',
+        'expired'=>"UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'",
+        'completed'=>"UPDATE manager_prepared_replies SET status='ready'",
+    ] as $case=>$sql) {
+        [$pdo, $snapshot, $job] = preparedReplySelectionFixture();
+        $out = ManagerPreparedReplyService::context($job, static function(array $urls) use ($pdo, $sql, $html): array {
+            $pdo->mutate($sql);
+            return [$urls[0]=>['status'=>200,'type'=>'text/html','html'=>$html]];
+        });
+        preparedReplyCheck($case.' during page read cannot expose stale card/transcript context', ($out['ok'] ?? true) === false && !isset($out['context']) && !str_contains(json_encode($out), 'Synthetic Hotel') && $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
+    }
 }
 
 try {

@@ -84,7 +84,7 @@ final class ManagerPreparedReplyService
     }
 
     /** Canonical authorization is repeated before exposing each private context. */
-    public static function context(string $jobId): array
+    public static function context(string $jobId, ?callable $selectionTransport = null): array
     {
         try {
             $pdo = ConversationDb::connection();
@@ -94,9 +94,19 @@ final class ManagerPreparedReplyService
             $snapshot = self::snapshotFor($pdo, $row);
             if ($snapshot === null) return self::failure('stale_context');
             $knowledge = $snapshot['company_knowledge'];
+            // Only this explicit context read may fetch supported public cards.
+            // snapshotFor has already committed its short read-only transaction.
+            $input = ManagerAiDraftService::prepareInput($snapshot['context'], $knowledge,
+                static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($snapshot, $selectionTransport),
+                $snapshot['reference_context'] ?? null);
+            if (isset($input['error'])) return self::failure('context_unavailable');
+            // Network I/O must not expose a now-revoked/edited/expired job.
+            $fresh = self::load($pdo, $jobId);
+            if ($fresh === null || $fresh['status'] !== 'pending' || !self::currentRow($fresh)) return self::failure('job_unavailable');
+            if (self::snapshotFor($pdo, $fresh) === null) return self::failure('stale_context');
             return ['ok'=>true,'job_id'=>$jobId,'revision'=>$row['context_revision'],
                 'latest_message_id'=>(int)$row['latest_message_id'],
-                'context'=>$snapshot['context'] + (($snapshot['reference_context'] ?? null)?->forContext($snapshot['context']) ?? []),
+                'context'=>$input['context'],
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
                 'instructions'=>ManagerAiDraftService::instructions(),'instruction_revision'=>$row['instruction_revision']];
         } catch (Throwable $ignored) { return self::failure('job_unavailable'); }
