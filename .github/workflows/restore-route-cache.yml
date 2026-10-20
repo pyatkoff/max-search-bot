@@ -1,0 +1,133 @@
+name: Restore missing MAX Search route cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/restore-route-cache.yml'
+      - 'services/RouteCacheRestorer.php'
+      - 'tools/restore_route_cache.php'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: restore-missing-max-search-route-cache
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Wait for successful canonical deployment of this exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 100); do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/deploy.yml/runs?head_sha=$EXPECTED_SHA&event=push&per_page=5" --jq 'if (.workflow_runs|length)==0 then "pending" else .workflow_runs[0] | .status+":"+(.conclusion//"") end')"
+            case "$state" in
+              completed:success) exit 0 ;;
+              completed:*) echo 'canonical_deploy_failed' >&2; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo 'canonical_deploy_not_completed' >&2; exit 1
+
+      - name: Verify authoritative current main before loading credentials
+        run: bash tools/verify_deploy_main_provenance.sh
+
+      - name: Prepare existing legacy and canonical connections
+        env:
+          LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          write_key() {
+            local raw="$1" out="$2" decoded
+            if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+              if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$out"; else printf '%s\n' "$raw" | tr -d '\r' > "$out"; fi
+            else
+              decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+              [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo 'invalid_existing_key' >&2; exit 1; }
+              printf '%s\n' "$decoded" | tr -d '\r' > "$out"
+            fi
+            chmod 600 "$out"; ssh-keygen -y -f "$out" >/dev/null
+          }
+          write_key "$LEGACY_KEY" "$RUNNER_TEMP/route_legacy_key"
+          write_key "$CANONICAL_KEY" "$RUNNER_TEMP/route_canonical_key"
+
+      - name: Read the retained MAX Search cache without legacy writes
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          opts=(-i "$RUNNER_TEMP/route_legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/route_known_hosts" -o ConnectTimeout=10)
+          ssh "${opts[@]}" "$USER@$HOST" 'bash -s' > "$RUNNER_TEMP/legacy-route-cache.transfer" <<'REMOTE'
+          set -euo pipefail
+          shopt -s nullglob
+          receivers=("$HOME"/www/*/max-search/lead-receiver.php)
+          [[ "${#receivers[@]}" == 1 ]] || { echo 'legacy_directory_ambiguous' >&2; exit 1; }
+          receiver="${receivers[0]}"
+          grep -Fq 'max-search-hmac-bitrix-lead' "$receiver" || { echo 'legacy_directory_unverified' >&2; exit 1; }
+          source="$(dirname "$receiver")/tourvisor_routes.json"
+          [[ -f "$source" && -r "$source" ]] || { echo 'legacy_cache_not_found_or_unreadable' >&2; exit 1; }
+          [[ "$(stat -c %s "$source")" -le 8388608 ]] || { echo 'legacy_cache_too_large' >&2; exit 1; }
+          stat -c %Y "$source"
+          head -c 8388609 -- "$source"
+          REMOTE
+          python3 - <<'PY'
+          import os, pathlib, json, hashlib, time
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          transfer=(root/'legacy-route-cache.transfer').read_bytes()
+          date,raw=transfer.split(b'\n',1)
+          modified=int(date)
+          if not 0<modified<=time.time()+300 or len(raw)>8388608:
+              raise SystemExit('legacy_cache_invalid_size_or_time')
+          try: cache=json.loads(raw)
+          except Exception: raise SystemExit('legacy_cache_invalid_json')
+          if not isinstance(cache,dict) or not isinstance(cache.get('departures'),list) or not cache['departures']:
+              raise SystemExit('legacy_cache_invalid_shape')
+          source=root/'legacy-route-cache.json'
+          source.write_bytes(raw);source.chmod(0o600);os.utime(source,(modified,modified))
+          print(json.dumps({'legacy_cache_validated':True,'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'departures':len(cache['departures'])}))
+          PY
+
+      - name: Install only an absent canonical cache and verify exact data
+        env:
+          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          opts=(-i "$RUNNER_TEMP/route_canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/route_known_hosts" -o ConnectTimeout=10)
+          staged="/tmp/max-search-route-cache-$EXPECTED_SHA.json"
+          cleanup() { ssh "${opts[@]}" "$USER@$HOST" "rm -f '$staged'" >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
+          scp -p "${opts[@]}" "$RUNNER_TEMP/legacy-route-cache.json" "$USER@$HOST:$staged"
+          ssh "${opts[@]}" "$USER@$HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/restore_route_cache.php --source '$staged'" > "$RUNNER_TEMP/route-restore-result.json"
+          python3 - <<'PY'
+          import os,json,pathlib,hashlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);result=json.loads((root/'route-restore-result.json').read_text())
+          if result.get('ok') is not True: raise SystemExit('canonical_cache_restore_failed')
+          if result.get('result')=='installed':
+              expected=hashlib.sha256((root/'legacy-route-cache.json').read_bytes()).hexdigest()
+              if result.get('sha256')!=expected or result.get('health',{}).get('status')!='available': raise SystemExit('canonical_cache_verification_failed')
+          elif result.get('result')!='already_present': raise SystemExit('canonical_cache_result_unknown')
+          print(json.dumps(result))
+          PY

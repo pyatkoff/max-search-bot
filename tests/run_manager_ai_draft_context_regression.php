@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__).'/services/ManagerAiDraftContextService.php';
 require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
+require_once dirname(__DIR__).'/services/RouteCacheRestorer.php';
 
 /** Real services/SQL on an ephemeral database; writes during capture are fatal. */
 final class DraftContextStatement extends PDOStatement
@@ -368,6 +369,43 @@ INSERT INTO post_entries VALUES(1,1,1,1,'','2026-10-17 11:59:00');");
         draftContextCheck('authenticated health does not expose paths, raw data or customer context',
             !str_contains($json,dirname(__DIR__)) && !str_contains($json,'Краснодар') && !str_contains($json,'PRIVATE'));
     } finally { if (is_file($cachePath)) unlink($cachePath); }
+    $restoreDir=sys_get_temp_dir().'/route-restore-'.bin2hex(random_bytes(8));mkdir($restoreDir,0700);
+    $restoreSource=$restoreDir.'/source.json';$restoreTarget=$restoreDir.'/target.json';
+    try {
+        file_put_contents($restoreSource,json_encode(['departures'=>$cacheRows],JSON_THROW_ON_ERROR));
+        $oldMtime=time()-172800;touch($restoreSource,$oldMtime);
+        $restored=RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget);
+        draftContextCheck('restoration installs exact existing source bytes and preserves an old source timestamp',
+            $restored['ok'] && $restored['result']==='installed'
+            && hash_file('sha256',$restoreTarget)===hash_file('sha256',$restoreSource)
+            && filemtime($restoreTarget)===$oldMtime && $restored['health']['cache_stale']
+            && $restored['health']['status']==='available');
+        $before=file_get_contents($restoreTarget);file_put_contents($restoreSource,'changed source');
+        draftContextCheck('restoration never overwrites an existing cache even when the source changes',
+            RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget)['result']==='already_present'
+            && file_get_contents($restoreTarget)===$before);
+        unlink($restoreTarget);
+        draftContextCheck('invalid source cannot create a target cache',
+            !RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget)['ok'] && !file_exists($restoreTarget));
+        file_put_contents($restoreSource,'{"departures":[]}');
+        draftContextCheck('empty route source cannot masquerade as a restored directory',
+            !RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget)['ok'] && !file_exists($restoreTarget));
+        $handle=fopen($restoreSource,'wb');ftruncate($handle,8388609);fclose($handle);
+        draftContextCheck('restoration refuses an oversized source before installation',
+            RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget)['result']==='source_too_large'
+            && !file_exists($restoreTarget));
+        symlink($restoreDir.'/absent',$restoreTarget);
+        draftContextCheck('an existing broken link is never replaced by restoration',
+            RouteCacheRestorer::installAbsent($restoreSource,$restoreTarget)['result']==='already_present'
+            && is_link($restoreTarget));
+        unlink($restoreTarget);
+        draftContextCheck('failed restoration leaves no staged files',
+            glob($restoreDir.'/.route-cache-*')===[]);
+    } finally {
+        if (is_file($restoreSource)) unlink($restoreSource);
+        if (is_link($restoreTarget)||is_file($restoreTarget)) unlink($restoreTarget);
+        rmdir($restoreDir);
+    }
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {
     fwrite(STDERR, ($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ') ? $error->getMessage() : 'FAIL synthetic context fixture')."\n");
