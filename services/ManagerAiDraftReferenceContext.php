@@ -55,9 +55,9 @@ final class ManagerAiDraftReferenceContext
     }
 
     /** Authenticated preparation diagnostics use the exact same reader as drafts. */
-    public static function routeCacheHealth(): array
+    public static function routeCacheHealth(?string $path = null): array
     {
-        return self::readRouteCache(dirname(__DIR__).'/tourvisor_routes.json',time())['health'];
+        return self::readRouteCache($path ?? dirname(__DIR__).'/tourvisor_routes.json',time())['health'];
     }
 
     private static function binding(array $context): string

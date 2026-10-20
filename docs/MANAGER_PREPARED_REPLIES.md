@@ -280,6 +280,16 @@ limit, modification time, staleness and departure count are exposed; no filesyst
 path, raw cache, credentials or transcript is returned. This read neither refreshes
 the supplier nor repairs runtime data. An unavailable reference is not flight
 unavailability.
+
+`Restore missing MAX Search route cache` is a one-time operations workflow,
+triggered only when its own restoration code changes on `main`. After successful
+canonical deployment of that exact SHA, it reads the retained legacy MAX Search
+cache using the existing legacy SSH credentials and the existing lead-receiver
+directory discovery. It changes no legacy files. Only a validated, nonempty cache
+up to 8 MiB can be installed; atomic creation refuses to replace any current file
+or symlink, including a concurrent writer. Source modification time is preserved,
+so historical data stays explicitly stale. Cache bytes and keys are not printed.
+The workflow adds no cron, supplier call or business-data change.
 It neither renews subscriptions nor sends callbacks. The same safe aggregates
 are published as `manager_preparation` in production/autopilot diagnostics; their
 capture time must be considered separately from the tick's own timestamps.
