@@ -67,6 +67,17 @@ try {
         }
         if (!empty($prepared['prepared'])&&is_array($prepared['proposal']??null)) {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
+            // Explicit preview records provenance; automatic readiness stays read-only.
+            if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
+                || !ManagerRequestContext::validCsrf((string)$data['csrf'])) {
+                aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
+            }
+            $after=ManagerAiDraftContextService::snapshot($cid,$actor);
+            if (empty($after['ok'])) aiDraftRespond($after);
+            if (!hash_equals($before['revision'],$after['revision'])) aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
+            $jobId=$prepared['job_id']??null;
+            $prepared['draft_id']=is_string($jobId)
+                ? ManagerAiDraftFeedbackService::record($cid,$actor,$after,$proposal,$jobId) : null;
             aiDraftRespond($proposal+$prepared);
         }
         aiDraftRespond($prepared);

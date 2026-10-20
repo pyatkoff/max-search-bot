@@ -54,6 +54,15 @@ comparisons and graders must explicitly request `service_tier: "default"`
 contract tests may describe Fast without making a provider call. This feedback
 feature makes no provider test call and renews no previous evaluation budget.
 
+Prepared replies from ChatGPT use the same private provenance when the assigned
+manager explicitly opens their preview. Readiness polling and worker saves remain
+read-only with respect to feedback. `preparation_job_id` identifies that source;
+reopening the same job as the same manager reuses its immutable feedback row.
+Fresh session, ownership and context are rechecked before recording. Insertion
+and sending use the existing composer reference and canonical outbound recorder.
+A storage outage leaves the reply usable with unknown attribution. Viewing alone
+does not mean use. Prepared counts are previewed proposals, not every worker save.
+
 ## Read-only usage report
 
 `ManagerAiDraftFeedbackReport` reads a fixed seven-day UTC generation cohort
@@ -93,3 +102,7 @@ and labels whether the initial text is still available. A changed current text
 must not be presented as the original send or used as a training target without
 review. Samples are neither random nor representative, and none is automatically
 added to instructions, company knowledge or training.
+
+The summary separately counts prepared proposals and linked prepared messages
+(unchanged or changed). Private samples label `prepared` versus `generated` and
+retain the proposed/current texts for review. Source job identities stay private.

@@ -106,13 +106,18 @@ try {
     $assertNoProvider('prepared cache miss has zero provider calls');
     managerAiEndpointCheck('prepared lookup makes no feedback observation',
         !array_intersect(['feedback_record','feedback_insert_request'],array_column($events(),'event')));
-    $cached=$proposal+['prepared'=>true,'revision'=>$baseState['revision'],'latest_message_id'=>10,'source'=>'chatgpt','prepared_at'=>'2026-10-19 10:00:00'];
+    $cached=$proposal+['prepared'=>true,'revision'=>$baseState['revision'],'latest_message_id'=>10,'source'=>'chatgpt','prepared_at'=>'2026-10-19 10:00:00','job_id'=>str_repeat('a',64),'draft_id'=>str_repeat('d',32)];
     $stored=array_diff_key($cached,$proposal)+['ok'=>true,'proposal'=>$proposal];
     $writeState(['prepared_result'=>$stored]);$clearEvents();
     $ready=$request($prepared,$cookie);
     managerAiEndpointCheck('prepared action returns only current owner cache result',
         $ready['status']===200&&$ready['json']===$cached);
     $assertNoProvider('prepared hit has zero provider calls');
+    managerAiEndpointCheck('explicit preview records the exact prepared job after fresh authorization',
+        (array_reverse($events())[0]??null)===['event'=>'feedback_record','conversation_id'=>42,'manager_id'=>7,'revision'=>$baseState['revision'],'latest_message_id'=>10,'preparation_job_id'=>str_repeat('a',64)]);
+    $writeState(['prepared_result'=>$stored,'feedback_available'=>false]);$clearEvents();
+    managerAiEndpointCheck('feedback outage preserves the prepared reply with unavailable attribution',
+        $request($prepared,$cookie)['json']===array_replace($cached,['draft_id'=>null]));
     $statusRequest=array_replace($body,['action'=>'prepared_status']);
     $statusStored=$stored+['expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant','job_id'=>str_repeat('a',64)];
     $writeState(['prepared_result'=>$statusStored]);$clearEvents();
@@ -122,6 +127,7 @@ try {
             'revision'=>$baseState['revision'],'latest_message_id'=>10,'prepared_at'=>'2026-10-19 10:00:00',
             'expires_at'=>'2026-10-19 11:00:00','preparation_source'=>'chatgpt_assistant']);
     $assertNoProvider('automatic readiness never calls the provider');
+    managerAiEndpointCheck('automatic readiness never records feedback',!in_array('feedback_record',array_column($events(),'event'),true));
     $statusStored['proposal']['should_draft']=false;$statusStored['proposal']['draft']=null;
     $writeState(['prepared_result'=>$statusStored]);
     managerAiEndpointCheck('readiness distinguishes recommendations without a customer draft',$request($statusRequest,$cookie)['json']['should_draft']===false);

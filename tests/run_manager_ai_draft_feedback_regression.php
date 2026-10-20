@@ -13,7 +13,7 @@ ProjectConfig::resetForTests(['id'=>'feedback-fixture','brand'=>['name'=>'Synthe
 $pdo->exec("CREATE TABLE manager_ai_drafts (
  draft_id TEXT PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,
  context_revision TEXT NOT NULL,instruction_revision TEXT NOT NULL,latest_message_id INTEGER NOT NULL,
- proposal_json BLOB NOT NULL CHECK(length(CAST(proposal_json AS BLOB))<=32768),created_at TEXT NOT NULL,insert_requested_at TEXT);
+ proposal_json BLOB NOT NULL CHECK(length(CAST(proposal_json AS BLOB))<=32768),created_at TEXT NOT NULL,insert_requested_at TEXT,preparation_job_id TEXT);
 CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
 CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
 CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role TEXT,email TEXT,is_active INTEGER,is_working INTEGER);
@@ -92,6 +92,14 @@ feedbackCheck('generated alone is not an insertion request or sent association',
 $second = ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal);
 feedbackCheck('two generations have distinct IDs without replacing the first',is_string($second)&&$second!==$id&&feedbackCount()===2&&feedbackRow($id)===$row);
 
+$beforeCount=feedbackCount();
+$job=str_repeat('c',64);
+$preparedId=ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,$job);
+feedbackCheck('prepared preview records its exact server job and proposal',is_string($preparedId)&&feedbackRow($preparedId)['preparation_job_id']===$job);
+$preparedRow=feedbackRow($preparedId);$preparedCount=feedbackCount();
+feedbackCheck('repeated prepared preview reuses provenance without changing its timestamps',ManagerAiDraftFeedbackService::record(1,7,$snapshot,$proposal,$job)===$preparedId&&feedbackCount()===$preparedCount&&feedbackRow($preparedId)===$preparedRow);
+feedbackCheck('same prepared identity cannot replace its original text',ManagerAiDraftFeedbackService::record(1,7,$snapshot,feedbackProposal(['draft'=>'Changed source']),$job)===null&&feedbackRow($preparedId)===$preparedRow);
+feedbackCheck('prepared preview alone is not use but explicit insertion links changed text',ManagerAiDraftFeedbackService::forMessage(1,7,'feedback-fixture',$preparedId,'Human changed')===null&&ManagerAiDraftFeedbackService::markInsertRequested(1,7,$preparedId,$snapshot['revision'],12)===$preparedId&&ManagerAiDraftFeedbackService::forMessage(1,7,'feedback-fixture',$preparedId,'Human changed')['text_matches_proposal']===false);
 $beforeCount=feedbackCount();
 foreach ([[0,7],[1,0],[1,8],[1,90],[1,10],[3,7],[4,7],[5,7],[999,7]] as [$cid,$actor]) {
     feedbackCheck('missing inactive foreign colleague admin and nonreply scopes fail closed',

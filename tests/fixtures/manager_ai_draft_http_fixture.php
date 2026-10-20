@@ -124,10 +124,11 @@ final class ManagerAiDraftService
 /** Isolated feedback dependency; the persistence service has its own SQL suite. */
 final class ManagerAiDraftFeedbackService
 {
-    public static function record(int $cid,int $actor,array $snapshot,array $proposal): ?string
+    public static function record(int $cid,int $actor,array $snapshot,array $proposal,?string $preparedJobId=null): ?string
     {
         managerAiHttpFixtureEvent('feedback_record',['conversation_id'=>$cid,'manager_id'=>$actor,
-            'revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]);
+            'revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]
+            +($preparedJobId===null?[]:['preparation_job_id'=>$preparedJobId]));
         return (managerAiHttpFixtureState()['feedback_available'] ?? true) ? str_repeat('d',32) : null;
     }
 

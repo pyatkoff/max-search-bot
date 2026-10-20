@@ -179,9 +179,8 @@
       if(!isCurrent()){sync();return false}
       if(action==='prepared'&&result?.ok===true&&result.prepared===false){clearReady();status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
       if(!validResult(result,saved)||action==='prepared'&&result.prepared!==true){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result,action);return false}
-      // Prepared replies are not provider-generated feedback records. Their
-      // insertion still requires the same canonical live-context validation.
-      view.result=action==='prepared'?{...result,draft_id:null}:result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
+      // Both sources carry server-owned provenance through fresh validation.
+      view.result=result;renderResult(view.result);rememberReady(view.result,saved,action==='prepared'?'prepared':'generated');return true;
     }catch(error){if(isCurrent())failure(null,action);else sync();return false}
     finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
   }

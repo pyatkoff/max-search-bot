@@ -106,10 +106,11 @@ for(const unavailable of [false,true])test('cache '+(unavailable?'unavailable':'
   await h.click('aiDraftRetry');assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','generate']);assert.equal(h.ids.get('aiDraftInsert').hidden,false);
   assert.doesNotMatch(h.ids.get('aiDraftStatus').textContent,/подготовлен заранее/);assert.equal(h.ids.get('replyText').value,'Свой текст  ');assert.equal(h.getFile(),file);assertNoMutations(h);
 });
-test('prepared insertion validates freshness without accepting an unsolicited feedback identity',async()=>{
+test('prepared insertion carries the server identity through validation and edited sending',async()=>{
   const h=await harness(data=>response(data.action==='prepared'?prepared({draft_id:'a'.repeat(32)}):{ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}));
-  await h.click('aiDraftOpen');await h.insert();assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','validate']);assert.equal(h.aiCalls()[1].draft_id,undefined);
-  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();assert.equal(h.calls.find(call=>call.action==='send').ai_draft_id,undefined);
+  await h.click('aiDraftOpen');await h.insert();assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','validate']);assert.equal(h.aiCalls()[1].draft_id,'a'.repeat(32));
+  await h.draft('Исправленный менеджером ответ');
+  h.setHook((url,data)=>data.action==='send'?response({ok:false},409):null);await h.C.sendReply();assert.equal(h.calls.find(call=>call.action==='send').ai_draft_id,'a'.repeat(32));
 });
 test('a stale cached cutoff is hidden without calling the provider',async()=>{
   const h=await harness(()=>response(prepared({latest_message_id:7})));await h.draft('Свой текст');await h.click('aiDraftOpen');await h.insert();

@@ -11,6 +11,7 @@ final class ManagerAiDraftFeedbackReport
     public const SAMPLE_CHARACTERS = 2000;
     private const COUNTS = ['persisted_proposals','reply_proposals','no_reply_proposals','invalid_proposals',
         'insert_requested_drafts','invalid_insert_request_drafts','linked_drafts','linked_messages','recorded_same_messages','recorded_changed_messages',
+        'prepared_proposals','prepared_linked_messages','prepared_same_messages','prepared_changed_messages',
         'edited_messages','manager_message_rows','manager_text_messages','unlinked_manager_text_messages',
         'unresolved_reference_messages','invalid_reference_messages','unclassifiable_message_rows','media_messages_excluded'];
 
@@ -37,7 +38,7 @@ final class ManagerAiDraftFeedbackReport
             if (!$pdo->beginTransaction()) return self::failure($summary,'storage_unavailable');
             $owned = true;
             $counts = array_fill_keys(self::COUNTS,0);
-            $q=$pdo->prepare('SELECT d.draft_id,d.conversation_id,d.manager_id,d.project_key,d.context_revision,d.instruction_revision,d.latest_message_id,SUBSTR(d.proposal_json,1,32769) AS proposal_json,d.created_at,d.insert_requested_at,c.project_key AS conversation_project FROM manager_ai_drafts d JOIN conversations c ON c.id=d.conversation_id WHERE d.project_key=? AND c.project_key=? AND c.is_test=0 AND d.created_at>=? AND d.created_at<? ORDER BY d.created_at DESC,d.draft_id DESC LIMIT '.(self::DRAFT_LIMIT+1));
+            $q=$pdo->prepare('SELECT d.draft_id,d.conversation_id,d.manager_id,d.project_key,d.context_revision,d.instruction_revision,d.latest_message_id,d.preparation_job_id,SUBSTR(d.proposal_json,1,32769) AS proposal_json,d.created_at,d.insert_requested_at,c.project_key AS conversation_project FROM manager_ai_drafts d JOIN conversations c ON c.id=d.conversation_id WHERE d.project_key=? AND c.project_key=? AND c.is_test=0 AND d.created_at>=? AND d.created_at<? ORDER BY d.created_at DESC,d.draft_id DESC LIMIT '.(self::DRAFT_LIMIT+1));
             $q->execute([$projectKey,$projectKey,$since,$until]);
             $drafts=[];$scanned=0;
             while ($row=$q->fetch(PDO::FETCH_ASSOC)) {
@@ -51,9 +52,12 @@ final class ManagerAiDraftFeedbackReport
                     && self::positive($row['manager_id']) && self::positive($row['latest_message_id'])
                     && self::hex($row['context_revision'],64) && self::hex($row['instruction_revision'],64)
                     && $created!==null && $created>=self::timestamp($since) && $created<self::timestamp($until)
+                    && ($row['preparation_job_id']===null || self::hex($row['preparation_job_id'],64))
                     && $proposal!==null;
                 if (!$valid) {++$counts['invalid_proposals'];$drafts[(string)$row['draft_id']]=null;continue;}
                 ++$counts[$proposal['should_draft']?'reply_proposals':'no_reply_proposals'];
+                $prepared=$row['preparation_job_id']!==null;
+                if ($prepared) ++$counts['prepared_proposals'];
                 $requested=self::timestamp($row['insert_requested_at']);
                 $requestedValid=$proposal['should_draft'] && $requested!==null && $requested>=$created
                     && $requested<self::timestamp($until) && $requested-$created<=86400;
@@ -61,7 +65,7 @@ final class ManagerAiDraftFeedbackReport
                 elseif ($row['insert_requested_at']!==null) ++$counts['invalid_insert_request_drafts'];
                 $drafts[$row['draft_id']]=['conversation_id'=>(int)$row['conversation_id'],'manager_id'=>(int)$row['manager_id'],
                     'created'=>$created,'requested'=>$requestedValid?$requested:null,'created_at'=>$row['created_at'],
-                    'proposal'=>$proposal];
+                    'proposal'=>$proposal,'prepared'=>$prepared];
             }
             $q->closeCursor();
             // Metadata is bounded before transfer. Message text is hydrated only for ten samples.
@@ -99,6 +103,10 @@ final class ManagerAiDraftFeedbackReport
                 }
                 ++$counts['linked_messages'];$linked[$ref['draft_id']]=true;
                 ++$counts[$ref['text_matches_proposal']?'recorded_same_messages':'recorded_changed_messages'];
+                if ($draft['prepared']) {
+                    ++$counts['prepared_linked_messages'];
+                    ++$counts[$ref['text_matches_proposal']?'prepared_same_messages':'prepared_changed_messages'];
+                }
                 $edited=self::timestamp($metadata['edited_at']??null);
                 $edited=$edited!==null && $edited>=$sent && $edited<=self::timestamp($until);
                 if ($edited) ++$counts['edited_messages'];
@@ -118,6 +126,7 @@ final class ManagerAiDraftFeedbackReport
                 [$proposalText,$proposalTruncated]=self::sampleText(trim($draft['proposal']['draft']));
                 [$sentText,$sentTruncated]=self::sampleText($raw);
                 $samples[]=['draft_id'=>$ref['draft_id'],'conversation_id'=>(int)$row['conversation_id'],'message_id'=>(int)$row['id'],
+                    'source'=>$draft['prepared']?'prepared':'generated',
                     'proposed_text'=>$proposalText,'current_sent_text'=>$sentText,
                     'proposed_text_truncated'=>$proposalTruncated,'current_sent_text_truncated'=>$sentTruncated||strlen($stored)>120000,
                     'initial_text_available'=>$initial,'recorded_text_matches_proposal'=>$ref['text_matches_proposal'],
