@@ -26,13 +26,14 @@ final class ManagerMaxMediaService
     }
 
     /** Returns a private local stream; the caller must close it after serving. */
-    public static function open(array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): ?array
+    public static function open(array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, bool $persistRecovery = true): ?array
     {
         return MaxInboundMediaArchiveService::openMessageAttachment(
             (int)($attachment['message_id'] ?? 0),
             (int)($attachment['attachment'] ?? -1),
             $messageFetcher,
-            $mediaFetcher
+            $mediaFetcher,
+            $persistRecovery
         );
     }
 }

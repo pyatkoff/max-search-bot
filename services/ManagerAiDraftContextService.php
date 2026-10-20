@@ -11,6 +11,7 @@ require_once __DIR__.'/ManagerCompanyKnowledge.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ManagerSelectionLinks.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
+require_once __DIR__.'/ManagerAiDraftPhotoContext.php';
 
 /** A bounded, read-only input snapshot. It neither generates nor sends a reply. */
 final class ManagerAiDraftContextService
@@ -158,6 +159,8 @@ final class ManagerAiDraftContextService
                 'selections_link_unread'=>in_array(true, array_column($messages, 'selections_link_unread'), true)];
             $knowledge = ManagerCompanyKnowledge::forProject((string)$conversation['project_key']);
             $references = ManagerAiDraftReferenceContext::capture($pdo,$conversation,$context);
+            $photos = ManagerAiDraftPhotoContext::capture($context,$actor,(string)$conversation['project_key'],
+                (string)$conversation['channel'],$metadata,$references->forContext($context)['origin_posts']['current']??null);
             // Evidence continuity permits a ready pre-take draft to be reviewed
             // by its real new owner. Access/state remain freshly checked above.
             $preparationRevision = hash('sha256', json_encode([
@@ -177,7 +180,7 @@ final class ManagerAiDraftContextService
             $pdo->commit();
             $started = false;
             return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'preparation_revision'=>$preparationRevision, 'company_knowledge'=>$knowledge,
-                'reference_context'=>$references,
+                'reference_context'=>$references, 'photo_context'=>$photos,
                 'selection_sources'=>array_slice($selectionLinks, -41),
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];
         } catch (Throwable $ignored) {

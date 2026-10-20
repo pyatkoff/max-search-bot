@@ -106,7 +106,8 @@ try {
     // for the model: Inbox, logout and reassignment must remain independent.
     session_write_close();
     $proposal = ManagerAiDraftService::generate($before['context'], null, $before['company_knowledge'] ?? null,
-        static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($before), $before['reference_context'] ?? null);
+        static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($before), $before['reference_context'] ?? null,
+        isset($before['photo_context'])?static fn(array $context):?array=>$before['photo_context']->read($context):null);
 
     // Reload the same session without writing it. A logout/account/CSRF change
     // while the model was running invalidates the entire response.

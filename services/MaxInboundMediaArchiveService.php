@@ -114,7 +114,7 @@ final class MaxInboundMediaArchiveService
     }
 
     /** Load an authorized message attachment from local storage, recovering it from MAX once when absent. */
-    public static function openMessageAttachment(int $messageId, int $index, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): ?array
+    public static function openMessageAttachment(int $messageId, int $index, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, bool $persistRecovery = true): ?array
     {
         if ($messageId <= 0 || $index < 0 || $index > 20 || !ConversationDb::isConfigured()) return null;
         $q = ConversationDb::connection()->prepare("SELECT channel,direction,external_message_id,metadata_json FROM messages WHERE id=? LIMIT 1");
@@ -136,7 +136,7 @@ final class MaxInboundMediaArchiveService
         $local = self::archiveMedia($messageId, $index, (string)($row['external_message_id'] ?? ''), $attachment, $messageFetcher, $mediaFetcher);
         if ($local === null) return null;
         $meta['attachments'][$key]['local_media'] = $local;
-        self::updateMetadata($messageId, $meta);
+        if ($persistRecovery) self::updateMetadata($messageId, $meta);
         return self::openLocal($local);
     }
 

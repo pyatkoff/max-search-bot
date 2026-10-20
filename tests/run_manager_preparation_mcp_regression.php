@@ -125,12 +125,13 @@ try {
         return ['status'=>array_shift($statuses)??204,'body'=>''];
     };
     $webhook=new ManagerPreparationWebhook($transport,$resolver,$clock);
-    $store=static function(string $op,array $args) use (&$calls,&$jobs,&$pendingAdvance,&$now): array {
+    $imageInputs=[];
+    $store=static function(string $op,array $args) use (&$calls,&$jobs,&$pendingAdvance,&$now,&$imageInputs): array {
         $calls[]=[$op,$args];
         if ($op==='pending' && $pendingAdvance>0) { $now+=$pendingAdvance;$pendingAdvance=0; }
         return match ($op) {
             'pending'=>['ok'=>true,'jobs'=>array_slice($jobs,0,$args[0])],
-            'context'=>['ok'=>true,'revision'=>str_repeat('2',64),'context'=>['messages'=>[['id'=>99,'text'=>'Synthetic customer']]]],
+            'context'=>['ok'=>true,'revision'=>str_repeat('2',64),'context'=>['messages'=>[['id'=>99,'text'=>'Synthetic customer']]],'image_inputs'=>$imageInputs],
             'complete'=>['ok'=>true,'job_id'=>$args[0],'idempotent'=>true],
         };
     };
@@ -218,6 +219,13 @@ try {
     preparationMcpCheck('tool batch limit cannot exceed twenty',($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>21]]),1)['error']['code']??0)===-32602);
     $context=$service->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>$job['job_id']]]),1);
     preparationMcpCheck('canonical store receives the opaque context job',$context['result']['structuredContent']['ok'] && end($calls)===['context',[$job['job_id']]]);
+    $imageInputs=[['type'=>'input_image','image_url'=>'data:image/png;base64,U1lOVEhFVElDX1BIT1RP','detail'=>'high']];
+    $photoContext=$service->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>$job['job_id']]]),1)['result'];
+    preparationMcpCheck('private preparation returns an actual MCP image block beside the text context',
+        $photoContext['content'][1]===['type'=>'image','mimeType'=>'image/png','data'=>'U1lOVEhFVElDX1BIT1RP']);
+    preparationMcpCheck('image bytes are absent from structured context and its duplicate text representation',
+        !isset($photoContext['structuredContent']['image_inputs'])&&!str_contains($photoContext['content'][0]['text'],'U1lOVEhFVElDX1BIT1RP'));
+    $imageInputs=[];
     $proposal=['ok'=>true,'should_draft'=>false,'draft'=>'','reason'=>'Synthetic','checks'=>[]];
     $save=$service->handle(preparationMcpRpc('tools/call',['name'=>'save_prepared_reply','arguments'=>['job_id'=>$job['job_id'],'revision'=>$job['context_revision'],'proposal'=>$proposal]]),1);
     preparationMcpCheck('save uses canonical idempotent store without a provider',$save['result']['structuredContent']['idempotent'] && end($calls)===['complete',[$job['job_id'],$job['context_revision'],$proposal]]);

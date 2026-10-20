@@ -71,7 +71,7 @@ final class ManagerAiDraftReferenceContext
             'entered_at'=>self::text((string)($row['entered_at'] ?? ''),64),
             'title'=>$title,'text'=>$text,'unavailable'=>$unavailable,
             'text_truncated'=>!$unavailable && (self::length((string)($row['text'] ?? ''))>2400 || self::length((string)($row['title'] ?? ''))>240),
-            'media_unread'=>$media,'current_price_verified'=>false];
+            'media_unread'=>$media,'media_count'=>(int)($row['media_count']??0),'current_price_verified'=>false];
     }
 
     private static function routes(string $path, array $texts, int $now): array

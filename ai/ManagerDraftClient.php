@@ -8,18 +8,19 @@ final class ManagerDraftClient
     public const MAX_RESPONSE_BYTES = 131072;
     private const MAX_OUTPUT_BYTES = 24576;
     public const MAX_REQUEST_BYTES = 196608;
+    public const MAX_IMAGE_REQUEST_BYTES = 6291456;
     private const ENDPOINT = 'https://api.openai.com/v1/responses';
 
-    public static function requestJson(string $instructions,array $payload,?callable $metadataObserver=null): array
+    public static function requestJson(string $instructions,array $payload,?callable $metadataObserver=null,array $images=[]): array
     {
         if (!defined('OPENAI_API_KEY') || !is_string(OPENAI_API_KEY) || trim(OPENAI_API_KEY)===''
             || OPENAI_API_KEY==='PASTE_OPENAI_API_KEY_HERE' || strlen(OPENAI_API_KEY)>4096
             || preg_match('/[\x00-\x20\x7F]/',OPENAI_API_KEY)) return ['_error'=>'provider_not_configured'];
         if (!function_exists('curl_init')) return ['_error'=>'provider_unavailable'];
         try {
-            $body=self::requestBody($instructions,$payload);
+            $body=self::requestBody($instructions,$payload,$images);
             $encoded=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
-            if (strlen($encoded)>self::MAX_REQUEST_BYTES) return ['_error'=>'provider_unavailable'];
+            if (strlen($encoded)>self::MAX_REQUEST_BYTES+($images?self::MAX_IMAGE_REQUEST_BYTES:0)) return ['_error'=>'provider_unavailable'];
             $bytes='';$oversized=false;
             $handle=curl_init(self::ENDPOINT);
             if ($handle===false) return ['_error'=>'provider_unavailable'];
@@ -45,8 +46,17 @@ final class ManagerDraftClient
     }
 
     /** No credentials in this pure request projection; usable by offline regression/evaluation. */
-    public static function requestBody(string $instructions,array $payload): array
+    public static function requestBody(string $instructions,array $payload,array $images=[]): array
     {
+        if (count($images)>4) throw new InvalidArgumentException('invalid_image_input');
+        $imageBytes=0;
+        foreach ($images as $image) {
+            if (!is_array($image)||array_keys($image)!==['type','image_url','detail']||$image['type']!=='input_image'
+                ||$image['detail']!=='high'||!is_string($image['image_url'])
+                ||preg_match('~\Adata:image/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}\z~D',$image['image_url'])!==1) throw new InvalidArgumentException('invalid_image_input');
+            $imageBytes+=strlen($image['image_url']);
+        }
+        if ($imageBytes>self::MAX_IMAGE_REQUEST_BYTES) throw new InvalidArgumentException('invalid_image_input');
         $model=defined('MANAGER_AI_DRAFT_MODEL') ? MANAGER_AI_DRAFT_MODEL : 'gpt-6.1-sol';
         $effort=defined('MANAGER_AI_DRAFT_REASONING') ? MANAGER_AI_DRAFT_REASONING : 'low';
         $tier=defined('MANAGER_AI_DRAFT_SERVICE_TIER') ? MANAGER_AI_DRAFT_SERVICE_TIER : 'default';
@@ -62,7 +72,7 @@ final class ManagerDraftClient
         return ['model'=>$model,'reasoning'=>['effort'=>$effort],'service_tier'=>$tier,'store'=>false,'max_output_tokens'=>2200,
             'input'=>[
                 ['role'=>'developer','content'=>[['type'=>'input_text','text'=>$instructions]]],
-                ['role'=>'user','content'=>[['type'=>'input_text','text'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]]],
+                ['role'=>'user','content'=>array_merge([['type'=>'input_text','text'=>json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)]],$images)],
             ],
             'text'=>['format'=>['type'=>'json_schema','name'=>'manager_reply_draft','strict'=>true,'schema'=>self::responseSchema()]]];
     }
