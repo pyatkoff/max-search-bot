@@ -1,10 +1,16 @@
 # Selection context for manager AI
 
-An explicit AI generation may read at most two latest distinct supported Qui-Quo
-links in the authorized, retained transcript. The source message ID, sender type
+An explicit AI generation or private worker `get_reply_context` may read at most
+two latest distinct supported Qui-Quo links in the authorized, retained transcript. The source message ID, sender type
 and original timestamp accompany each observation. Merely opening/polling a chat,
 the post-generation authorization check and pre-insert `validate` do not fetch
 pages. Office-policy and invalid-context results return before the reader.
+Queue inventory, collection, completion/import validation and prepared-preview
+lookup do not read pages. Worker input and manual generation share
+`ManagerAiDraftService::prepareInput`; it does not select or call a model.
+The worker rechecks current job lifetime/status and canonical source/owner access
+after the network read, and MCP rechecks the requesting administrator and OAuth
+connection before returning. A changed/revoked job exposes no stale context.
 
 ## Owners and trust
 
@@ -44,7 +50,7 @@ No response body or URL is logged or cached.
 
 ## Meaning of the observation
 
-`observed_at` is when this click read the page; `sent_at` is the recorded source
+`observed_at` is when this explicit request read the page; `sent_at` is the recorded source
 message timestamp, whose original timezone representation is retained. The
 observation does not establish the page contents at sending. Sender type does not
 prove card authorship or tourist acceptance. A failed read does not prove manager
@@ -57,7 +63,8 @@ budget default does not silently become a rule for a page's price. Currency,
 families, rooms and alternatives must not be mixed. The model uses scoped matches
 and discrepancies in manager reason/checks without inventing current conditions.
 
-This first integration retains observations only during generation. The existing
+Observations are returned in worker context or retained during manual generation,
+never stored by the prepared-reply queue. The existing
 fingerprint still fences source-message edits/ownership/access/company knowledge,
 not later changes to the remote page. Pre-insert validation does not make a price
 fresh. Durable send-time snapshots and own-brand selection design are separate

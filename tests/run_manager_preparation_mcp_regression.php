@@ -99,6 +99,18 @@ function preparationMcpDiagnosticChecks(): void
 
 try {
     preparationMcpDiagnosticChecks();
+    foreach (['admin','project','connection'] as $revocation) {
+        $racePdo=preparationMcpFixture();$stillConnected=true;
+        $raceStore=static function() use ($racePdo,$revocation,&$stillConnected): array {
+            if ($revocation==='admin') $racePdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+            elseif ($revocation==='project') $racePdo->exec('DELETE FROM manager_projects WHERE manager_id=1');
+            else $stillConnected=false;
+            return ['ok'=>true,'context'=>['private'=>'PRIVATE delayed context']];
+        };
+        $raceService=new ManagerPreparationMcpService($racePdo,$raceStore,null,null,static function() use (&$stillConnected): bool {return $stillConnected;});
+        $raceResult=$raceService->handle(preparationMcpRpc('tools/call',['name'=>'get_reply_context','arguments'=>['job_id'=>str_repeat('1',64)]]),1,str_repeat('a',32));
+        preparationMcpCheck($revocation.' revoked during context read blocks private response', ($raceResult['error']['code']??0)===-32001 && !str_contains(json_encode($raceResult),'PRIVATE'));
+    }
     $pdo=preparationMcpFixture();$now=1792406400;$connection=str_repeat('a',32);$connectionValid=true;
     $secret='whsec_'.base64_encode(str_repeat('k',32));$nextSecret='whsec_'.base64_encode(str_repeat('n',32));
     $job=['job_id'=>str_repeat('1',64),'project_key'=>'anytour','context_revision'=>str_repeat('2',64),
