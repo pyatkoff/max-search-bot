@@ -123,6 +123,8 @@ return [
     'manager' => [
         'php tests/run_manager_draft_pilot_collector_regression.php',
         'php tests/run_manager_prepared_reply_regression.php',
+        'php tests/run_manager_assistant_regression.php',
+        'node tests/run_manager_assistant_behavior_regression.js',
         'php tests/run_manager_preparation_oauth_regression.php',
         'php tests/run_manager_preparation_mcp_regression.php',
         'php tests/run_manager_preparation_health_regression.php',

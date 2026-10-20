@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -11,7 +11,7 @@ try{
     foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
     $pdo->exec('CREATE TABLE managers(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
     $pdo->exec('CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
-    foreach(['043_manager_ai_draft_feedback.sql','044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql','046_manager_preparation_events.sql','047_prepared_reply_feedback.sql']as $name){
+    foreach(['043_manager_ai_draft_feedback.sql','044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql','046_manager_preparation_events.sql','047_prepared_reply_feedback.sql','048_manager_assistant_decisions.sql']as $name){
         $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/'.$name));
         echo 'PASS native MySQL forward migration '.$name."\n";
     }
@@ -23,6 +23,15 @@ try{
     $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/047_prepared_reply_feedback.sql'));
     if($pdo->query('SELECT * FROM manager_ai_drafts')->fetchAll()!==$feedbackBefore)throw new RuntimeException('feedback_migration_retry_changed_data');
     echo "PASS native MySQL prepared feedback column and migration retry preserve provenance\n";
+    $decision=$pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)');
+    $decision->execute([1,1,'anytour',str_repeat('1',64),str_repeat('2',64),str_repeat('3',64),'done',gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);
+    $decisionsBefore=$pdo->query('SELECT * FROM manager_assistant_decisions')->fetchAll();
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/048_manager_assistant_decisions.sql'));
+    if($pdo->query('SELECT * FROM manager_assistant_decisions')->fetchAll()!==$decisionsBefore)throw new RuntimeException('assistant_migration_retry_changed_data');
+    $duplicateRejected=false;
+    try{$decision->execute([1,1,'anytour',str_repeat('1',64),str_repeat('2',64),str_repeat('3',64),'irrelevant',gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);}catch(PDOException $error){$duplicateRejected=$error->getCode()==='23000';}
+    if(!$duplicateRejected)throw new RuntimeException('assistant_duplicate_revision_allowed');
+    echo "PASS native MySQL assistant migration retry and revision uniqueness\n";
     $client=str_repeat('a',48);$family=str_repeat('b',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')->execute([$client,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('c',64),time()]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);
@@ -35,6 +44,7 @@ try{
     if($pdo->query('SELECT LENGTH(observed_jobs_json)=LENGTH(pending_jobs_json) FROM manager_preparation_events')->fetchColumn()!=1)throw new RuntimeException('binary_roundtrip_failed');
     $pdo->exec('DELETE FROM managers WHERE id=1');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_tokens')->fetchColumn()!==0)throw new RuntimeException('grant_cascade_failed');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()!==0)throw new RuntimeException('assistant_manager_cascade_failed');
     echo "PASS native OAuth family cascade and bounded event BLOB roundtrip\n";
 }catch(Throwable $ignored){fwrite(STDERR,"FAIL native preparation migrations\n");exit(1);}finally{
     if($safe&&$pdo instanceof PDO)foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
