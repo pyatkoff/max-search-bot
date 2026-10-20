@@ -28,10 +28,10 @@ final class ManagerPreparedReplyService
                 $revision = is_array($candidate) ? ($candidate['revision'] ?? $candidate['context_revision'] ?? null) : null;
                 $latest = is_array($candidate) ? ($candidate['latest_message_id'] ?? null) : null;
                 $project = is_array($candidate) ? ($candidate['project_key'] ?? null) : null;
-                if (!is_int($cid) || $cid <= 0 || !is_int($actor) || $actor <= 0 || !self::revision($revision)
+                if (!is_int($cid) || $cid <= 0 || !is_int($actor) || $actor < 0 || !self::revision($revision)
                     || !is_int($latest) || $latest <= 0 || !self::project($project)
                     || $project !== ProjectConfig::projectId()) { ++$out['skipped']; continue; }
-                $snapshot = ManagerAiDraftContextService::snapshot($cid, $actor);
+                $snapshot = ManagerAiDraftContextService::preparationSnapshot($cid, $actor);
                 if (!self::matches($snapshot, $revision, $latest) || self::projectFor($pdo, $cid, $actor) !== $project) {
                     ++$out['skipped']; continue;
                 }
@@ -69,7 +69,7 @@ final class ManagerPreparedReplyService
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction()) return self::failure('queue_unavailable');
             $q = $pdo->prepare("SELECT job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,created_at,expires_at FROM manager_prepared_replies j WHERE project_key=? AND status='pending' AND created_at<=? AND expires_at>? AND instruction_revision=?"
-                ." AND EXISTS (SELECT 1 FROM conversations c JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.manager_id=j.manager_id AND c.project_key=j.project_key AND c.status='manager' AND c.is_test=0 AND m.is_active=1)"
+                ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
                 .' AND latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id) ORDER BY created_at,job_id LIMIT '.$limit);
             $now = self::utc(time());
             $q->execute([ProjectConfig::projectId(),$now,$now,self::instructionRevision()]);
@@ -105,6 +105,7 @@ final class ManagerPreparedReplyService
             if ($fresh === null || $fresh['status'] !== 'pending' || !self::currentRow($fresh)) return self::failure('job_unavailable');
             if (self::snapshotFor($pdo, $fresh) === null) return self::failure('stale_context');
             return ['ok'=>true,'job_id'=>$jobId,'revision'=>$row['context_revision'],
+                'preparation_scope'=>(int)$row['manager_id'] === 0 ? 'unassigned_waiting' : 'assigned_manager',
                 'latest_message_id'=>(int)$row['latest_message_id'],
                 'context'=>$input['context'],
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
@@ -151,8 +152,8 @@ final class ManagerPreparedReplyService
             if (!self::matches($fresh, $snapshot['revision'] ?? null, $snapshot['latest_message_id'] ?? null)) return $empty;
             $project = self::projectFor($pdo, $cid, $actor);
             if ($project === null) return $empty;
-            $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=? AND instruction_revision=? AND latest_message_id=? AND status='ready' ORDER BY prepared_at DESC LIMIT 1");
-            $q->execute([$cid,$actor,$project,$fresh['revision'],self::instructionRevision(),$fresh['latest_message_id']]);
+            $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND project_key=? AND instruction_revision=? AND latest_message_id=? AND status='ready' AND ((manager_id=? AND context_revision=?) OR (manager_id=0 AND context_revision=?)) ORDER BY prepared_at DESC LIMIT 1");
+            $q->execute([$cid,$project,self::instructionRevision(),$fresh['latest_message_id'],$actor,$fresh['revision'],$fresh['preparation_revision'] ?? '']);
             $row = $q->fetch(PDO::FETCH_ASSOC);
             if (!$row || !self::validRow($row) || !self::currentRow($row) || !self::readyTimes($row)) return $empty;
             $json = $row['proposal_json'] ?? null;
@@ -161,7 +162,7 @@ final class ManagerPreparedReplyService
             $proposal = json_decode($json, true, 16, JSON_THROW_ON_ERROR);
             if (!is_array($proposal) || self::validatedJson($proposal, $fresh) !== $json) return $empty;
             return ['ok'=>true,'prepared'=>true,'proposal'=>$proposal,'job_id'=>$row['job_id'],
-                'revision'=>$row['context_revision'],'latest_message_id'=>(int)$row['latest_message_id'],
+                'revision'=>$fresh['revision'],'latest_message_id'=>(int)$row['latest_message_id'],
                 'prepared_at'=>$row['prepared_at'],'expires_at'=>$row['expires_at'],'preparation_source'=>'chatgpt_assistant'];
         } catch (Throwable $ignored) { return $empty; }
     }
@@ -192,15 +193,15 @@ final class ManagerPreparedReplyService
 
     private static function snapshotFor(PDO $pdo, array $row): ?array
     {
-        $snapshot = ManagerAiDraftContextService::snapshot((int)$row['conversation_id'], (int)$row['manager_id']);
+        $snapshot = ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'], (int)$row['manager_id']);
         return self::matches($snapshot, $row['context_revision'], (int)$row['latest_message_id'])
             && self::projectFor($pdo, (int)$row['conversation_id'], (int)$row['manager_id']) === $row['project_key'] ? $snapshot : null;
     }
 
     private static function projectFor(PDO $pdo, int $cid, int $actor): ?string
     {
-        $q = $pdo->prepare("SELECT project_key FROM conversations WHERE id=? AND manager_id=? AND status='manager' AND is_test=0");
-        $q->execute([$cid,$actor]);
+        $q = $pdo->prepare('SELECT project_key FROM conversations WHERE id=? AND is_test=0 AND '.($actor === 0 ? "manager_id IS NULL AND status='waiting_manager'" : "manager_id=? AND status='manager'"));
+        $q->execute($actor === 0 ? [$cid] : [$cid,$actor]);
         $project = $q->fetchColumn();
         return self::project($project) && $project === ProjectConfig::projectId() ? $project : null;
     }
@@ -217,7 +218,8 @@ final class ManagerPreparedReplyService
     {
         if (!self::revision($row['job_id'] ?? null) || !self::revision($row['context_revision'] ?? null)
             || !self::revision($row['instruction_revision'] ?? null) || !self::project($row['project_key'] ?? null)) return false;
-        foreach (['conversation_id','manager_id','latest_message_id'] as $key) {
+        if (filter_var($row['manager_id'] ?? null,FILTER_VALIDATE_INT,['options'=>['min_range'=>0]]) === false) return false;
+        foreach (['conversation_id','latest_message_id'] as $key) {
             if (filter_var($row[$key] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) === false) return false;
         }
         return self::timestamp($row['created_at'] ?? null) !== null && self::timestamp($row['expires_at'] ?? null) !== null;
