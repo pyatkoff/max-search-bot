@@ -38,7 +38,7 @@ final class ManagerAiDraftReferenceContext
             if (!empty($posts['current']) && !$posts['current']['unavailable']) {
                 $texts[] = $posts['current']['title'].' '.$posts['current']['text'];
             }
-            try { $travel = self::routes(dirname(__DIR__).'/tourvisor_routes.json', $texts, time()); }
+            try { $travel = self::travelRoutes($texts, time()); }
             catch (Throwable $ignored) { /* Unknown directory evidence stays unknown. */ }
         }
         return new self(self::binding($context), ['origin_posts'=>$posts,'travel_reference'=>$travel]);
@@ -58,6 +58,77 @@ final class ManagerAiDraftReferenceContext
     public static function routeCacheHealth(?string $path = null): array
     {
         return self::readRouteCache($path ?? dirname(__DIR__).'/tourvisor_routes.json',time())['health'];
+    }
+
+    /** Same primary reader as draft capture; no supplier calls or refresh. */
+    public static function travelReferenceHealth(): array
+    {
+        $reference = self::travelRoutes([], time());
+        unset($reference['departures'], $reference['departures_truncated']);
+        return $reference;
+    }
+
+    private static function travelRoutes(array $texts, int $now): array
+    {
+        $catalog = self::catalogRoutes($texts, $now);
+        if ($catalog['status'] === 'available') return $catalog;
+        $legacy = self::routes(dirname(__DIR__).'/tourvisor_routes.json', $texts, $now);
+        $legacy['catalog_status'] = $catalog['status'];
+        $legacy['catalog_reason'] = $catalog['reason'];
+        return $legacy;
+    }
+
+    private static function catalogRoutes(array $texts, int $now): array
+    {
+        $result = ['status'=>'unavailable', 'source'=>'anytour_catalog_db', 'reason'=>'catalog_unavailable',
+            'current_price_verified'=>false, 'coverage_complete'=>false, 'dates_available'=>false,
+            'catalog_synced_at'=>null, 'catalog_stale'=>true, 'departures'=>[]];
+        try { $raw = TravelDirectoryRepository::routeMatrixRows(); }
+        catch (Throwable $ignored) {
+            $result['reason'] = HotelDatabase::configured() ? 'catalog_unavailable' : 'catalog_not_configured';
+            return $result;
+        }
+        if (!$raw) { $result['reason']='catalog_empty'; return $result; }
+        $truncated = count($raw)>8192;
+        $counts = ['all'=>0,'direct'=>0,'charter'=>0,'direct_charter'=>0];
+        $rows = []; $forms = []; $flags = []; $oldest = $now; $stale = false;
+        foreach (array_slice($raw,0,8192) as $row) {
+            $kind = (string)($row['kind'] ?? '');
+            $did = self::id($row['departure_id'] ?? null); $cid = self::id($row['country_id'] ?? null);
+            $departure = self::label($row['departure'] ?? null); $country = self::label($row['country'] ?? null);
+            if (!array_key_exists($kind,$counts) || $did===null || $cid===null || $departure===null || $country===null) {
+                $truncated=true; continue;
+            }
+            ++$counts[$kind];
+            $synced = (int)($row['synced_at_unix'] ?? 0);
+            $stale = $stale || $synced<=0 || $synced>$now+300 || $now-$synced>86400;
+            $oldest = min($oldest,$synced);
+            if ($kind==='all') {
+                if (!isset($rows[$did])) $rows[$did]=['id'=>$did,'name'=>$departure,'countries'=>[]];
+                $rows[$did]['countries'][$cid]=['country_id'=>$cid,'country'=>$country,'dates'=>[]];
+                $genitive=self::label($row['name_genitive'] ?? null);
+                if ($genitive!==null) $forms[self::lower($departure)]=[$genitive];
+            } else $flags[$did][$cid][$kind]=true;
+        }
+        if (!$counts['all']) { $result['reason']='catalog_empty'; return $result; }
+        foreach ($rows as $did=>&$departure) {
+            foreach ($departure['countries'] as $cid=>&$country) {
+                foreach (['direct','charter','direct_charter'] as $kind) {
+                    $country[$kind]=isset($flags[$did][$cid][$kind]) ? true :
+                        (!$truncated && $counts[$kind]>0 ? false : null);
+                }
+            }
+            unset($country);
+            $departure['countries']=array_values($departure['countries']);
+        }
+        unset($departure);
+        $projected=self::projectRoutes(array_values($rows),$texts,$forms);
+        return array_replace($result, ['status'=>'available','reason'=>'catalog_readable',
+            'catalog_synced_at'=>$oldest>0 ? gmdate('Y-m-d\TH:i:s\Z',$oldest) : null,
+            'catalog_stale'=>$stale, 'catalog_rows_truncated'=>$truncated,
+            'matrix_coverage_complete'=>!$truncated && !in_array(0,$counts,true),
+            'matrix_pair_counts'=>$counts, 'departure_count'=>count($rows),
+            'departures'=>$projected['departures'], 'departures_truncated'=>$projected['truncated']]);
     }
 
     private static function binding(array $context): string
@@ -168,6 +239,7 @@ final class ManagerAiDraftReferenceContext
                     $dates = array_keys($dates);sort($dates,SORT_STRING);
                     $countries[] = ['country_id'=>$cid,'country'=>$countryName,
                         'direct'=>self::flag($country['direct'] ?? null),'charter'=>self::flag($country['charter'] ?? null),
+                        'direct_charter'=>self::flag($country['direct_charter'] ?? null),
                         'dates'=>array_slice($dates,0,self::MAX_DATES),'dates_truncated'=>count($dates)>self::MAX_DATES];
                 }
                 $out[$id] = ['departure_id'=>$id,'departure'=>$name,'countries'=>$countries,

@@ -101,16 +101,22 @@ never fall back to an older post. Text is redacted and capped; attachments remai
 unread. A post identifies the enquiry, not consent to book, a personal budget or
 verified current conditions. Explicit subsequent customer changes take priority.
 
-Route evidence reads only the existing local `tourvisor_routes.json` cache and
-the catalogue's canonical/genitive city names. It makes no supplier HTTP call or
-cache repair. Up to three explicitly mentioned departures are kept separately,
-including regular and charter directions; cities from an available current post
-may also select reference rows. Country/date truncation, file modification time
-and cache age are explicit. Older-than-24-hour, unavailable or absent rows never
-prove that flights are unavailable. Even a fresh row is not live tour inventory,
-price or hotel verification. These references participate in the context revision,
-so a changed entry/cache invalidates an older prepared reply without transcript
-changes. The manual generation path receives the same server-owned projection;
+Route evidence primarily reads the existing `HotelDatabase` catalogue: active
+`catalog_departure_countries` plus the separate `_direct`, `_charter` and
+`_direct_charter` matrices, joined to active departure/country names. One bounded
+SQL statement observes a consistent set without database, supplier or schedule
+writes. The existing Search3 catalogue owner refreshes these tables; this reader
+does not install another updater. Up to three explicitly mentioned departures
+are kept separately, with catalogue genitive names used for matching. Catalogue
+sync age, source, matrix counts, partial coverage and output truncation are explicit.
+The matrices have no departure dates (`dates_available=false`); empty dates never
+mean no flights. If the catalogue cannot be read, the historical local
+`tourvisor_routes.json` reader remains a fallback with its own file age and the
+fixed catalogue failure reason. An absent legacy file does not describe the DB.
+Older-than-24-hour, unavailable, partial or absent rows never prove that flights
+are unavailable. Even a fresh row is not live inventory, price or hotel verification.
+These references participate in the context revision, so changed route evidence
+invalidates an older prepared reply without transcript changes. The manual generation path receives the same server-owned projection;
 caller-supplied reference fields cannot substitute for it. Optional evidence is
 omitted rather than exceeding the existing transport size cap.
 
@@ -273,13 +279,13 @@ that ChatGPT generated or a manager sent a reply.
 `list_pending_replies` includes `preparation_health` under its existing active
 project-admin authorization. It contains the checkpoint plus bounded read-only
 subscription aggregates (active, inactive, expired, unauthorized and retrying).
-Its `travel_reference` summary uses the exact draft cache reader even when there
-are no pending jobs. Fixed reasons distinguish a missing/inaccessible path,
-unreadable/nonregular/overbound file, invalid JSON and invalid shape. Only size,
-limit, modification time, staleness and departure count are exposed; no filesystem
-path, raw cache, credentials or transcript is returned. This read neither refreshes
-the supplier nor repairs runtime data. An unavailable reference is not flight
-unavailability.
+Its `travel_reference` summary uses the same DB-first reader as drafts, even
+with an empty queue. It exposes aggregate source, sync age, counts and explicit
+coverage limits; it does not return city/country rows, filesystem paths,
+credentials or transcripts. Legacy fallback reasons distinguish a missing,
+inaccessible, unreadable, nonregular, oversized or malformed file. This read
+neither refreshes a supplier nor repairs runtime data. An unavailable reference
+is not flight unavailability.
 
 `Restore missing MAX Search route cache` is a one-time operations workflow,
 triggered only when its own restoration code changes on `main`. After successful

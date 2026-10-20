@@ -302,6 +302,74 @@ INSERT INTO post_entries VALUES(1,1,1,1,'','2026-10-17 11:59:00');");
         draftContextCapture($pdo,2) === ['ok'=>false,'error'=>'reply_not_allowed']
         && !array_filter($pdo->executed,static fn(string $sql):bool=>str_contains($sql,'post_entries')));
 
+    // The scheduled catalogue already owns real route matrices. Missing legacy
+    // JSON must not hide them from the canonical, authorized reply snapshot.
+    $catalog = new DraftContextPdo();
+    $catalog->sqliteCreateFunction('UNIX_TIMESTAMP',static fn(string $value):int=>(int)strtotime($value.' UTC'),1);
+    $catalog->exec("CREATE TABLE catalog_departures(id INTEGER PRIMARY KEY,name TEXT,name_genitive TEXT,is_active INTEGER);
+CREATE TABLE catalog_countries(id INTEGER PRIMARY KEY,name TEXT,is_active INTEGER);
+INSERT INTO catalog_departures VALUES(11,'Краснодар','Краснодара',1),(1,'Москва','Москвы',1),(999,'Неактивный','Неактивного',0);
+INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(999,'Неактивная',0);");
+    $synced=gmdate('Y-m-d H:i:s');
+    foreach (['all'=>'catalog_departure_countries','direct'=>'catalog_departure_countries_direct',
+        'charter'=>'catalog_departure_countries_charter','direct_charter'=>'catalog_departure_countries_direct_charter'] as $kind=>$table) {
+        $catalog->exec("CREATE TABLE {$table}(departure_id INTEGER,country_id INTEGER,is_active INTEGER,synced_at TEXT)");
+        $pairs=match($kind) {
+            'all'=>[[11,1,1],[11,4,1],[1,4,1],[999,1,1],[11,999,1],[1,1,0]],
+            'direct'=>[[11,1,1],[1,4,1]],
+            'charter'=>[[11,4,1],[1,4,1]],
+            default=>[[1,4,1]],
+        };
+        $insert=$catalog->prepare("INSERT INTO {$table} VALUES(?,?,?,?)");
+        foreach ($pairs as $pair) $insert->execute([...$pair,$synced]);
+    }
+    (new ReflectionProperty(HotelDatabase::class,'pdo'))->setValue(null,$catalog);
+    try {
+        $catalog->beginTransaction();
+        $pdo=draftContextFixture();
+        $pdo->exec("UPDATE messages SET text='Хотим из Краснодара в Египет' WHERE id=2");
+        $databaseSnapshot=draftContextCapture($pdo);
+        $reference=$databaseSnapshot['reference_context']->forContext($databaseSnapshot['context'])['travel_reference'];
+        draftContextCheck('canonical reply capture uses the existing DB matrices when legacy JSON is missing',
+            $reference['status']==='available' && $reference['source']==='anytour_catalog_db'
+            && $reference['departures'][0]['departure_id']===11
+            && array_column($reference['departures'][0]['countries'],'country_id')===[1,4]);
+        $countries=$reference['departures'][0]['countries'];
+        draftContextCheck('DB regular, charter and direct-charter evidence remain distinct',
+            $countries[0]['direct']===true && $countries[0]['charter']===false
+            && $countries[1]['direct']===false && $countries[1]['charter']===true
+            && $countries[1]['direct_charter']===false);
+        draftContextCheck('catalogue freshness never fabricates dates, prices or complete flight coverage',
+            !$reference['catalog_stale'] && $reference['catalog_synced_at']!==null
+            && !$reference['dates_available'] && $countries[0]['dates']===[]
+            && !$reference['coverage_complete'] && !$reference['current_price_verified']
+            && $reference['matrix_pair_counts']===['all'=>3,'direct'=>2,'charter'=>2,'direct_charter'=>1]);
+        $catalogReader=new ReflectionMethod(ManagerAiDraftReferenceContext::class,'catalogRoutes');
+        $staleCatalog=$catalogReader->invoke(null,['из Краснодара'],time()+86401);
+        draftContextCheck('a readable old catalogue is explicitly stale',
+            $staleCatalog['status']==='available' && $staleCatalog['catalog_stale']);
+        $health=ManagerAiDraftReferenceContext::travelReferenceHealth();
+        draftContextCheck('empty-queue health reads the same catalogue without exposing route rows',
+            $health['source']==='anytour_catalog_db' && $health['departure_count']===2
+            && !isset($health['departures']) && !str_contains(json_encode($health),'Краснодар'));
+        draftContextCheck('catalogue capture never owns a refresh or commits its independent connection',
+            $catalog->inTransaction() && $catalog->commits===0 && $catalog->writeAttempts===0);
+        $catalog->rollBack();
+        $beforeRevision=$databaseSnapshot['reference_context']->revision();
+        $catalog->exec('UPDATE catalog_departure_countries_charter SET is_active=0 WHERE departure_id=11');
+        $changed=draftContextCapture($pdo);
+        draftContextCheck('a matrix change invalidates the reply context without a new customer message',
+            $beforeRevision!==$changed['reference_context']->revision());
+        $catalog->exec('DROP TABLE catalog_departure_countries_direct');
+        $failed=ManagerAiDraftReferenceContext::travelReferenceHealth();
+        draftContextCheck('unreadable catalogue fallback exposes only fixed failure metadata',
+            isset($failed['catalog_reason']) && !str_contains(json_encode($failed),'SQLSTATE')
+            && !str_contains(json_encode($failed),'PRIVATE'));
+    } finally {
+        if ($catalog->inTransaction()) $catalog->rollBack();
+        (new ReflectionProperty(HotelDatabase::class,'pdo'))->setValue(null,null);
+    }
+
     // Project the actual cache shape without network/provider calls or a mutable
     // production cache. Genitive forms are supplied by the existing catalogue.
     $routes = new ReflectionMethod(ManagerAiDraftReferenceContext::class,'projectRoutes');
