@@ -353,6 +353,20 @@ INSERT INTO post_entries VALUES(1,1,1,1,'','2026-10-17 11:59:00');");
         draftContextCheck('unusable or absent cache stays unavailable without fetching a replacement',
             $readRoutes->invoke(null,$cachePath,['Краснодар'],$mtime)['status'] === 'unavailable'
             && $readRoutes->invoke(null,$cachePath.'.missing',['Краснодар'],$mtime)['status'] === 'unavailable');
+        draftContextCheck('missing cache and invalid cache shape have distinct safe reasons',
+            $readRoutes->invoke(null,$cachePath,['Краснодар'],$mtime)['reason'] === 'cache_invalid_shape'
+            && $readRoutes->invoke(null,$cachePath.'.missing',['Краснодар'],$mtime)['reason'] === 'cache_not_found');
+        file_put_contents($cachePath,'{"departures":');
+        draftContextCheck('malformed cache is distinguished from a missing file',
+            $readRoutes->invoke(null,$cachePath,[],$mtime)['reason'] === 'cache_invalid_json');
+        $handle=fopen($cachePath,'wb');ftruncate($handle,8388609);fclose($handle);
+        $oversize=$readRoutes->invoke(null,$cachePath,[],$mtime);
+        draftContextCheck('overbound cache reports the size without reading it as route evidence',
+            $oversize['reason']==='cache_too_large' && $oversize['cache_size_bytes']===8388609
+            && $oversize['departures']===[] && !$oversize['coverage_complete']);
+        $json=json_encode(ManagerAiDraftReferenceContext::routeCacheHealth(),JSON_THROW_ON_ERROR);
+        draftContextCheck('authenticated health does not expose paths, raw data or customer context',
+            !str_contains($json,dirname(__DIR__)) && !str_contains($json,'Краснодар') && !str_contains($json,'PRIVATE'));
     } finally { if (is_file($cachePath)) unlink($cachePath); }
     echo 'Manager AI draft context: '.$passed." checks passed\n";
 } catch (Throwable $error) {

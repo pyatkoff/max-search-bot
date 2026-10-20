@@ -214,6 +214,10 @@ try {
     preparationMcpCheck('queue inventory exposes heartbeat availability separately from empty connection inventory',
         is_bool($listed['preparation_health']['tick']['available']??null)
         && ($listed['preparation_health']['connections']['active']??null)===0);
+    preparationMcpCheck('authorized queue inventory can diagnose the exact draft route source without a pending job',
+        is_string($listed['preparation_health']['travel_reference']['reason']??null)
+        && isset($listed['preparation_health']['travel_reference']['status'])
+        && !str_contains(json_encode($listed['preparation_health']['travel_reference']),dirname(__DIR__)));
     $jobs[]=$job+[];$jobs[1]['project_key']='other';
     preparationMcpCheck('metadata cannot leak another project',count($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies']),1)['result']['structuredContent']['jobs'])===1);$jobs=[$job];
     preparationMcpCheck('tool batch limit cannot exceed twenty',($service->handle(preparationMcpRpc('tools/call',['name'=>'list_pending_replies','arguments'=>['limit'=>21]]),1)['error']['code']??0)===-32602);
