@@ -125,6 +125,16 @@ These prompt rules do not mutate booking fields or prove future generation quali
 They do not authorize rewriting completed jobs: normal instruction/context revision
 freshness and manager review still apply.
 
+The same owner review clarified service intent: an old generic word «билеты»
+does not itself establish an air-only enquiry. In the reviewed chronology, an
+October 11 question about January prices had no country; on October 19 the
+customer entered through an Egypt package post and named Egypt. Continue package
+selection in that current context rather than asking package versus tickets solely
+because of the old word. Keep the stated January period. Explicit «только
+авиабилеты», «без отеля» or «перелёт не нужен» remain authoritative; a substantive
+service conflict still warrants clarification. This is contextual interpretation,
+not a fixed age cutoff, deletion of history or permission to ignore explicit needs.
+
 ## OAuth and private MCP connection
 
 MCP URL: `https://app.anytoour.ru/manager/ai-mcp.php`.
