@@ -143,10 +143,13 @@ test('late periodic assistant reads cannot steal client navigation focus or acco
     await page.locator('#managerAuthLogin').fill('isolated-account');await page.locator('#managerAuthPassword').fill('isolated-password');await page.locator('#managerAuthSubmit').click();await expect(page.locator('#managerAuthRecovery')).toBeHidden();
     await page.locator('#assistantOpen').click();await page.locator('[data-assistant-client="12"]').click();await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');
   }
-  await page.evaluate(()=>{window.assistantNavigationFocus=document.activeElement});
+  // Cached client text renders before its protected detail read completes. Wait
+  // for that navigation's intentional focus handoff before releasing older work.
+  if(destination==='other-client'||destination==='other-account')await expect(page.locator('#assistantConversation')).toBeFocused();
+  const focused=await page.evaluate(()=>{window.assistantNavigationFocus=document.activeElement;return{activeId:document.activeElement.id,selectedClient:document.querySelector('.assistantClient.isSelected')?.dataset.assistantClient||null}});
   const response=page.waitForResponse(response=>response.url().endsWith('/manager/assistant-api.php')&&response.request().postDataJSON().action==='detail'&&Number(response.request().postDataJSON().conversation_id)===11);s.releaseDetail();await (await response).finished();
   await expect(page.locator('#assistantDetail')).not.toContainText('Устаревший ответ от предыдущего запроса.');
-  await expect.poll(()=>page.evaluate(()=>document.activeElement===window.assistantNavigationFocus&&document.activeElement.isConnected)).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>({sameControl:document.activeElement===window.assistantNavigationFocus,connected:window.assistantNavigationFocus.isConnected,activeId:document.activeElement.id,selectedClient:document.querySelector('.assistantClient.isSelected')?.dataset.assistantClient||null}))).toEqual({sameControl:true,connected:true,...focused});
   if(destination==='back'){await expect(page.locator('#assistantDialog')).not.toHaveClass(/hasSelection/);await expect(page.locator('[data-assistant-client="11"]')).toBeFocused()}
   else if(destination==='close'){await expect(page.locator('#assistantDialog')).not.toBeVisible();await expect(page.locator('#assistantOpen')).toBeFocused()}
   else{await expect(page.locator('#assistantDetail')).toContainText('Дождаться клиента');await expect(page.locator('#assistantDetail h3')).toHaveText('Клиент выбирает отель')}
