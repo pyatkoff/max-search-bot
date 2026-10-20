@@ -78,6 +78,22 @@ jobs:
            $out['worker_cron_count']=preg_match_all('/^[^#\r\n]*channel_post_worker\.php[^\r\n]*$/m',$cron);
            $out['worker_cron_reconcile']=preg_match('/^[^#\r\n]*channel_post_worker\.php[^\r\n]*--reconcile/m',$cron)===1;
            $out['server_utc']=gmdate('c');$out['ok']=true;
+          
+           if(($out['ok']??false)&&is_array($channel)){
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>'-77309177991187','from'=>1792498928543,'to'=>1792498928543,'count'=>2],null);
+            $mm=$r['data']['messages']??[];
+            if(count($mm)===1){
+             $m=$mm[0];$mid=(string)$m['body']['mid'];
+             $q=$pdo->prepare('SELECT p.id,p.start_payload,p.current_version_id,v.state,v.error_reason,v.version_number,v.write_attempts,v.snapshot_json FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=? AND p.external_message_id=? LIMIT 1');
+             $q->execute([(int)$channel['id'],$mid]);$row=$q->fetch();
+             $old=json_decode((string)$row['snapshot_json'],true);
+             $detail=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$md=$detail['data']??null;
+             $cur=is_array($md)?ChannelPostIncomingAdapter::maxSnapshot($md):null;$ls=ChannelPostIncomingAdapter::maxSnapshot($m);
+             $h=static fn($v)=>hash('sha256',json_encode($v,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+             $stable=static fn($s)=>array_map(static fn($a)=>[$a['type']??'',(string)($a['photo_id']??'')],$s['attachments']??[]);
+             $out['exact_post_preview']=['published_ms'=>1792498928543,'image_count'=>count($cur['attachments']??[]),'list_detail_content_equal'=>is_array($cur)&&ChannelPostIncomingAdapter::contentFingerprint($cur)===ChannelPostIncomingAdapter::contentFingerprint($ls),'same_mid'=>is_array($md)&&($md['body']['mid']??null)===$mid,'same_channel'=>is_array($md)&&(string)($md['recipient']['chat_id']??'')==='-77309177991187','state'=>$safe($row['state']),'error_reason'=>$safe($row['error_reason']),'version_number'=>(int)$row['version_number'],'write_attempts'=>(int)$row['write_attempts'],'fresh_content_hash'=>is_array($cur)?ChannelPostIncomingAdapter::contentFingerprint($cur):null,'equal_fields'=>['text'=>$h($old['text']??null)===$h($cur['text']??null),'markup'=>$h($old['markup']??null)===$h($cur['markup']??null),'stable_media'=>$h($stable($old))===$h($stable($cur)),'forward_link'=>$h($old['metadata']['link']??null)===$h($cur['metadata']['link']??null),'media_group'=>$h($old['metadata']['media_group_id']??'')===$h($cur['metadata']['media_group_id']??'')]];
+            }
+           }
           }catch(Throwable $ignored){$out['error']='read_only_diagnostic_unavailable';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           exit($out['ok']?0:2);
