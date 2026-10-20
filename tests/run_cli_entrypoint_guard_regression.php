@@ -19,6 +19,7 @@ $files = [
     'tools/telegram_smoke_test.php',
     'tools/webhook_target_status.php',
     'tools/website_production_smoke.php',
+    'tools/virtual_reply_learning.php',
 ];
 
 $failures = [];

@@ -121,6 +121,10 @@ return [
         'php tests/run_web_consultant_v2_regression.php',
     ],
     'manager' => [
+        'php tests/run_virtual_reply_client_regression.php',
+        'php tests/run_virtual_reply_source_regression.php',
+        'php tests/run_virtual_reply_store_regression.php',
+        'php tests/run_virtual_reply_mcp_regression.php',
         'php tests/run_manager_draft_pilot_collector_regression.php',
         'php tests/run_manager_prepared_reply_regression.php',
         'php tests/run_manager_assistant_regression.php',

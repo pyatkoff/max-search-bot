@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ProjectAccessService.php';
 require_once __DIR__.'/ManagerPreparationWebhook.php';
 require_once __DIR__.'/ManagerPreparationHealth.php';
+require_once __DIR__.'/VirtualReplyMcpAdapter.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -16,7 +17,7 @@ final class ManagerPreparationMcpService
     private ManagerPreparationWebhook $webhook;
 
     /** $store is an operation/arguments adapter for isolated tests. */
-    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null)
+    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null)
     {
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->webhook = $webhook ?? new ManagerPreparationWebhook();
@@ -46,7 +47,7 @@ final class ManagerPreparationMcpService
                 'ping'=>(object)[],
                 'notifications/initialized'=>null,
                 'tools/list'=>['tools'=>$this->tools()],
-                'tools/call'=>$this->callTool($params),
+                'tools/call'=>$this->callTool($params,$authorizedAdminId,$connectionId),
                 'events/list'=>['events'=>[$this->eventDefinition()]],
                 'events/subscribe'=>$this->subscribe($params,$authorizedAdminId,$connectionId),
                 'events/unsubscribe'=>$this->unsubscribe($params,$authorizedAdminId),
@@ -54,7 +55,8 @@ final class ManagerPreparationMcpService
             };
             // A context read may wait for public selection pages. Recheck the
             // requesting administrator/connection before exposing its result.
-            if ($rpc['method'] === 'tools/call' && ($params['name'] ?? null) === 'get_reply_context') {
+            if ($rpc['method'] === 'tools/call' && (($params['name'] ?? null) === 'get_reply_context'
+                || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true))) {
                 $this->requireAdmin($authorizedAdminId);
                 if ($connectionId !== null && !$this->activeConnection($connectionId,$authorizedAdminId)) throw new DomainException();
             }
@@ -104,6 +106,7 @@ final class ManagerPreparationMcpService
                     'required'=>['job_id','revision','proposal'],'additionalProperties'=>false],
                 'annotations'=>['readOnlyHint'=>false,'destructiveHint'=>false,'idempotentHint'=>true,'openWorldHint'=>false]],
         ];
+        $tools=array_merge($tools,VirtualReplyMcpAdapter::tools());
         foreach ($tools as &$tool) {
             $tool['securitySchemes']=[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]];
             $tool['_meta']=['securitySchemes'=>$tool['securitySchemes']];
@@ -112,12 +115,15 @@ final class ManagerPreparationMcpService
         return $tools;
     }
 
-    private function callTool(array $params): array
+    private function callTool(array $params,int $admin,?string $connection): array
     {
         self::keys($params,['name','arguments']);
         $name=$params['name']??null; $args=$params['arguments']??[];
         if (!is_string($name) || !is_array($args) || ($args !== [] && array_is_list($args))) throw new InvalidArgumentException();
-        if ($name === 'list_pending_replies') {
+        if (in_array($name,VirtualReplyMcpAdapter::NAMES,true)) {
+            if ($connection===null||!$this->activeConnection($connection,$admin)) throw new DomainException();
+            $data=(new VirtualReplyMcpAdapter($this->pdo,$this->virtualStore,$this->clock))->call($name,$args,$admin);
+        } elseif ($name === 'list_pending_replies') {
             self::keys($args,['limit']); $limit=$args['limit']??20;
             if (!is_int($limit) || $limit<1 || $limit>20) throw new InvalidArgumentException();
             $jobs=$this->pending($limit);
