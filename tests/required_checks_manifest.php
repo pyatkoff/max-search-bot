@@ -271,6 +271,8 @@ return [
         'php tests/run_max_channel_attribution.php',
         'python3 tests/run_max_attribution_key.py',
         'php tests/run_max_private_avatar_probe_regression.php',
+        'php tests/run_max_owner_tour_preview_regression.php',
+        'python3 tests/run_max_owner_tour_workflow_regression.py',
         'python3 tests/run_max_owner_avatar_workflow_regression.py',
         'php tests/run_channel_daily_report_regression.php',
         'php tests/run_legacy_paid_yclid_reader_regression.php',
