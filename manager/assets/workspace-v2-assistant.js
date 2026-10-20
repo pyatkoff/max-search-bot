@@ -40,7 +40,8 @@ if(!button&&host){button=document.createElement('button');button.type='button';b
     if(signature&&signature!==next&&selected===Number(S.current)){
       // Hide old reasoning immediately while the canonical snapshot is checked.
       const item=rows.get(selected);if(item)item.recommendation=null;
-      render();void loadDetail(selected);
+      if($('assistantTaskEditor')?.querySelector('form')){const advice=$('assistantDetail').querySelector('.assistantRecommendation');if(advice)advice.hidden=true;status('Переписка изменилась. Сохраните или отмените новый срок, затем обновится рекомендация.')}
+      else{render();void loadDetail(selected)}
     }
     signature=next;
   }
@@ -62,7 +63,7 @@ if(!button&&host){button=document.createElement('button');button.type='button';b
     return true;
   }
   function close(){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(authenticated()&&opener?.isConnected)opener.focus({preventScroll:true})}}
-  function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())return;timer=setTimeout(()=>{if(!dialog?.open)return;render();if(selected)void loadDetail(selected);schedule()},20000)}
+function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())return;timer=setTimeout(()=>{if(!dialog?.open)return;if(!$('assistantTaskEditor')?.querySelector('form')){render();if(selected)void loadDetail(selected)}else if(!fresh(rows.get(selected))){const advice=$('assistantDetail').querySelector('.assistantRecommendation');if(advice)advice.hidden=true}schedule()},20000)}
   async function loadList(more=false){
     if(!authenticated()||busy)return false;
     const scope=epoch,ticket=++listTicket,selectionTicket=detailTicket;busy=true;status('Загружаем клиентов…');renderBusy();
@@ -94,7 +95,7 @@ if(!button&&host){button=document.createElement('button');button.type='button';b
     if(!dialog?.open||!authenticated())return;
     const items=[...rows.values()].filter(matches).sort((a,b)=>rank(a)-rank(b)||Number(b.conversation_id)-Number(a.conversation_id));
     $('assistantList').innerHTML=items.length?items.map(item=>{const id=Number(item.conversation_id),r=fresh(item)?item.recommendation:null;return`<button class="assistantClient${id===selected?' isSelected':''}" type="button" data-assistant-client="${id}" aria-pressed="${id===selected}"><strong>${esc(item.display_name||'Клиент')}</strong><span>${esc(title(item))}</span><small>${esc(r&&['done','irrelevant'].includes(r.decision)?r.decision==='done'?'Выполнено':'Неактуально':rank(item)===0?'Есть просроченная задача':r?.next_action==='no_contact'?'Ожидание клиента':r?'Свежая рекомендация':'Задачи доступны · разбора пока нет')}</small></button>`}).join(''):'<p class="assistantEmpty">В загруженной части списка таких клиентов нет.</p>';
-    $('assistantList').querySelectorAll('[data-assistant-client]').forEach(button=>button.onclick=async()=>{const id=Number(button.dataset.assistantClient);await loadDetail(id);if(dialog?.open&&selected===id)$('assistantBack')?.focus()});
+    $('assistantList').querySelectorAll('[data-assistant-client]').forEach(button=>button.onclick=async()=>{const id=Number(button.dataset.assistantClient);await loadDetail(id);if(dialog?.open&&selected===id)$(window.matchMedia?.('(max-width:767px)')?.matches?'assistantBack':'assistantConversation')?.focus()});
     $('assistantCoverage').textContent=`Загружено клиентов: ${rows.size}${hasMore?' · есть ещё':''}. Рекомендации есть только по клиентам со свежим разбором.${checkedAt?' Список обновлён '+time(checkedAt)+' МСК.':''}`;
     $('assistantMore').hidden=!hasMore;dialog.querySelectorAll('[data-assistant-filter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.assistantFilter===filter)));
     dialog.classList.toggle('hasSelection',selected>0);renderDetail();renderBusy();status(statusText,statusError);
@@ -142,7 +143,7 @@ if(!button&&host){button=document.createElement('button');button.type='button';b
   function editTask(item,task){
     if(!task)return;
     const host=$('assistantTaskEditor');host.innerHTML=`<form class="assistantTaskEditor"><label for="assistantDue">Новый срок · МСК</label><input id="assistantDue" type="datetime-local" required value="${esc(window.ManagerTime?.toInput(task.due_at_utc)||'')}"><div><button type="submit">Сохранить срок</button><button type="button" id="assistantCancelDue">Отмена</button></div></form>`;
-    $('assistantCancelDue').onclick=()=>host.replaceChildren();host.querySelector('form').onsubmit=event=>{event.preventDefault();const due=window.ManagerTime?.fromInput($('assistantDue').value);if(!due){status('Укажите корректные дату и время по МСК.',true);return}void taskMutation(item,{action:'update_task',task_id:Number(task.id),title:task.title,due_at:due})};$('assistantDue').focus();
+    $('assistantCancelDue').onclick=()=>loadDetail(Number(item.conversation_id));host.querySelector('form').onsubmit=event=>{event.preventDefault();const due=window.ManagerTime?.fromInput($('assistantDue').value);if(!due){status('Укажите корректные дату и время по МСК.',true);return}void taskMutation(item,{action:'update_task',task_id:Number(task.id),title:task.title,due_at:due})};$('assistantDue').focus();
   }
   async function taskMutation(item,data){
     const id=Number(item.conversation_id),scope=epoch,opened=modal;if(pending.has(id))return false;
