@@ -195,7 +195,7 @@ function preparedReplyRun(): void
         $snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
         $context=ManagerPreparedReplyService::context($job);
         preparedReplyCheck($channel.' text-only worker context survives the photo capability',
-            ($context['ok']??false)&&($context['image_inputs']??null)===[]&&$context['context']['messages']===$snapshot['context']['messages']
+            ($context['ok']??false)&&($context['image_inputs']??null)===[]&&$context['context']['messages']===ManagerAiDraftService::prepareInput($snapshot['context'],$snapshot['company_knowledge'],null,$snapshot['reference_context'])['context']['messages']
             &&$pdo->sourceWriteAttempts===0&&preparedReplySourceState($pdo)===$sourceBefore);
         $calls=0;
         $reply=ManagerAiDraftService::generate($snapshot['context'],static function($instructions,$payload,$images)use(&$calls):array {
