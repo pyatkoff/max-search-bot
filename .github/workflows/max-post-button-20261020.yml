@@ -1,4 +1,4 @@
-name: Inspect MAX event-only markup 20261020
+name: Verify installed MAX quote markup fix
 on:
   push:
     branches: [test/max-post-button-20261020]
@@ -10,7 +10,7 @@ concurrency:
   group: max-post-button-20261020
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 9f840db6e4e5c3daa9054e9a816f0a725b2be128
+  EXPECTED_PRODUCTION_SHA: 654eb9d88f24c0f0287426861a7928ca3af7076b
 jobs:
   inspect:
     if: github.ref == 'refs/heads/test/max-post-button-20261020'
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 9f840db6e4e5c3daa9054e9a816f0a725b2be128
+          ref: 654eb9d88f24c0f0287426861a7928ca3af7076b
       - name: Verify authoritative release before read-only diagnostic
         env:
           GH_TOKEN: ${{ github.token }}
@@ -38,23 +38,32 @@ jobs:
           cat > "$RUNNER_TEMP/post-diagnostic.php" <<'PHP'
           <?php
           declare(strict_types=1);
-          ini_set('display_errors','0');
+          ini_set('display_errors','0');ini_set('log_errors','0');
           $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0];
           try{
            $root=getcwd();ob_start();try{require $root.'/config.php';}finally{ob_end_clean();}
            require_once $root.'/services/ChannelPostRuntime.php';
            $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
-           $q=$pdo->prepare('SELECT p.external_message_id,v.snapshot_json FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id JOIN post_versions v ON v.publication_id=p.id AND v.version_number=1 WHERE c.platform=? AND c.channel_id=? ORDER BY p.id DESC LIMIT 1');
+           $q=$pdo->prepare('SELECT p.id,v.snapshot_json FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id JOIN post_versions v ON v.publication_id=p.id AND v.version_number=1 WHERE c.platform=? AND c.channel_id=? ORDER BY p.id DESC LIMIT 1');
            $q->execute(['max','-77309177991187']);$row=$q->fetch();$pdo->rollBack();
-           $old=json_decode((string)$row['snapshot_json'],true);$mid=(string)$row['external_message_id'];
+           $old=json_decode((string)$row['snapshot_json'],true);
            if(($old['published_at']??'')!=='2026-10-20 12:22:08')throw new RuntimeException();
-           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$m=$r['data']??null;
-           if(($r['http']??0)!==200||!is_array($m)||($m['body']['mid']??'')!==$mid)throw new RuntimeException();
-           $cur=ChannelPostIncomingAdapter::maxSnapshot($m);
-           $shape=static function($ee){$out=[];foreach((array)$ee as $e){if(!is_array($e))continue;$type=$e['type']??'';$out[]=['type'=>is_string($type)&&preg_match('/\A[a-z_]{1,40}\z/',$type)?$type:'redacted','from'=>(int)($e['from']??-1),'length'=>(int)($e['length']??-1),'keys'=>array_keys($e)];}return $out;};
-           $out['event_markup']=$shape($old['markup']??null);$out['current_markup']=$shape($cur['markup']??null);
-           $out['ok']=true;
-          }catch(Throwable $e){$out['error']='read_only_markup_probe_failed';}
+           $registry=new ChannelPostRegistryService($pdo);$publication=$registry->publication((int)$row['id']);
+           if(!$publication||$publication['state']!=='sent'||$publication['project_key']!=='anytour'||$publication['source_key']!=='max_anytour_spb')throw new RuntimeException();
+           $operation=$publication;$operation['snapshot']=$old;
+           $quoteCount=count(array_filter((array)$old['markup'],static fn($s)=>is_array($s)&&($s['type']??'')==='quote'));
+           if($quoteCount!==4)throw new RuntimeException();
+           $request=static function($platform,$method,$path,$query,$body){
+            if($platform!=='max'||$method!=='GET'||$body!==null)throw new RuntimeException('read_only_probe');
+            return ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
+           };
+           $result=(new ChannelPostButtonTransport($request))->attempt($operation,static fn():bool=>false,true);
+           $out['original_event_quote_count']=$quoteCount;
+           $out['state']=$result['state'];$out['reason']=$result['reason'];
+           $out['receipt']=array_intersect_key((array)$result['receipt'],array_flip(['request_count','write_attempts','http_results']));
+           $out['ok']=$result['state']==='sent'&&$result['reason']==='already_present'&&($out['receipt']['write_attempts']??-1)===0;
+           $out['server_utc']=gmdate('c');
+          }catch(Throwable $e){$out['error']='read_only_runtime_verification_failed';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES),PHP_EOL;exit($out['ok']?0:2);
           PHP
           php -l "$RUNNER_TEMP/post-diagnostic.php"
