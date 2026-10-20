@@ -9,6 +9,23 @@ class TravelDirectoryRepository
 {
     private static function pdo(): PDO { return HotelDatabase::connection(); }
 
+    /** One consistent, bounded read of the existing scheduled catalogue owner's matrices. */
+    public static function routeMatrixRows(): array
+    {
+        $parts = [];
+        foreach (['all'=>'catalog_departure_countries', 'direct'=>'catalog_departure_countries_direct',
+            'charter'=>'catalog_departure_countries_charter', 'direct_charter'=>'catalog_departure_countries_direct_charter'] as $kind=>$table) {
+            $parts[] = "SELECT departure_id,country_id,synced_at,'{$kind}' AS kind FROM {$table} WHERE is_active=1";
+        }
+        $sql = "SELECT r.departure_id,d.name AS departure,d.name_genitive,r.country_id,c.name AS country,
+                r.kind,UNIX_TIMESTAMP(r.synced_at) AS synced_at_unix
+            FROM (".implode(' UNION ALL ', $parts).") r
+            INNER JOIN catalog_departures d ON d.id=r.departure_id AND d.is_active=1
+            INNER JOIN catalog_countries c ON c.id=r.country_id AND c.is_active=1
+            ORDER BY r.kind,r.departure_id,r.country_id LIMIT 8193";
+        return self::pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public static function cityById($hlId, $cityId)
     {
         $stmt = self::pdo()->prepare('SELECT name FROM catalog_departures WHERE id = :id AND is_active = 1 LIMIT 1');

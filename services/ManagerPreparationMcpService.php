@@ -275,7 +275,7 @@ final class ManagerPreparationMcpService
         $reference=['status'=>'unavailable','reason'=>'inspection_failed'];
         try {
             require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
-            $reference=ManagerAiDraftReferenceContext::routeCacheHealth();
+            $reference=ManagerAiDraftReferenceContext::travelReferenceHealth();
         } catch (Throwable $ignored) { /* A directory outage never breaks queue reads. */ }
         return ['tick'=>$tick,'connections'=>$summary,'travel_reference'=>$reference];
     }
