@@ -252,6 +252,70 @@ channelPostCheck('write accepted but verification unavailable stays UNKNOWN', ch
 $provider->failVerification = false;
 channelPostCheck('later exact GET resolves UNKNOWN without another PUT', channelPostRun($service)[0]['state'] === 'sent' && $provider->writes() === 1);
 
+// Production webhook 2026-10-20 contained four quote spans that GET omitted.
+// All text here is synthetic; retain the observed span offsets and overlap.
+$quoteEvent = $fixtures['max'];
+$quoteEvent['body']['text'] = str_repeat('т', 1300);
+$quoteEvent['body']['markup'] = [
+    ['from'=>0,'length'=>63,'type'=>'strong'], ['from'=>0,'length'=>63,'type'=>'heading'],
+    ['url'=>'https://example.test/one','from'=>440,'length'=>9,'type'=>'link'],
+    ['from'=>440,'length'=>9,'type'=>'strong'], ['from'=>450,'length'=>82,'type'=>'quote'],
+    ['from'=>537,'length'=>29,'type'=>'strong'], ['from'=>607,'length'=>77,'type'=>'quote'],
+    ['from'=>689,'length'=>27,'type'=>'strong'], ['from'=>750,'length'=>91,'type'=>'quote'],
+    ['from'=>845,'length'=>39,'type'=>'strong'], ['from'=>918,'length'=>79,'type'=>'quote'],
+];
+$quoteRead = $quoteEvent;
+$quoteRead['body']['markup'] = array_values(array_filter($quoteRead['body']['markup'], static fn(array $span):bool=>$span['type']!=='quote'));
+[$store, $provider, $transport, $service] = channelPostScenario($quoteRead);
+$queuedQuote = channelPostReceive($service, $quoteEvent);
+$quoteHash = array_values($store->posts)[0]['content_hash'];
+$quoteResult = channelPostRun($service)[0];
+channelPostCheck('MAX event-only quote spans do not block the one button edit', [$quoteResult['state'], $provider->writes()], ['sent', 1]);
+channelPostCheck('quote omission keeps exact provider text markup image and forward context', $provider->message['body']['text']===$quoteRead['body']['text'] && $provider->message['body']['markup']===$quoteRead['body']['markup'] && $provider->message['body']['attachments'][0]===$quoteRead['body']['attachments'][0] && $provider->message['link']===$quoteRead['link']);
+channelPostCheck('quote tolerance leaves the immutable event and durable content hash unchanged', array_values($store->posts)[0]['snapshot']['markup']===$quoteEvent['body']['markup'] && array_values($store->posts)[0]['content_hash']===$quoteHash && ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($quoteEvent))!==ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($quoteRead)));
+$quoteSelfEdit = $provider->message; $quoteSelfEdit['body']['markup'] = $quoteEvent['body']['markup'];
+channelPostCheck('quote-shaped own edit keeps the existing publication version', channelPostReceive($service,$quoteSelfEdit,'max',true)['version_id'], $queuedQuote['version_id']);
+channelPostCheck('quote-shaped completed replay never repeats the provider edit', [channelPostRun($service),$provider->writes()], [[],1]);
+
+foreach (['text','photo','forward','link','style','span','partial_quotes','new_quote','unknown_style'] as $change) {
+    $changed = $quoteRead;
+    if($change==='text')$changed['body']['text'].='changed';
+    elseif($change==='photo')$changed['body']['attachments'][0]['payload']['photo_id']=902;
+    elseif($change==='forward')$changed['link']['mid']='mid.different';
+    elseif($change==='link')$changed['body']['markup'][2]['url']='https://example.test/changed';
+    elseif($change==='style')$changed['body']['markup'][0]['type']='emphasized';
+    elseif($change==='span')$changed['body']['markup'][0]['length']++;
+    elseif($change==='partial_quotes')$changed['body']['markup'][]=['from'=>450,'length'=>82,'type'=>'quote'];
+    elseif($change==='new_quote')$changed['body']['markup'][]=['from'=>10,'length'=>12,'type'=>'quote'];
+    else $changed['body']['markup'][]=['from'=>450,'length'=>82,'type'=>'blockquote'];
+    [$store,$provider,$transport,$service] = channelPostScenario($changed);
+    channelPostReceive($service,$quoteEvent);
+    channelPostCheck('quote omission does not hide changed '.$change, [channelPostRun($service)[0]['reason'],$provider->writes()], ['post_changed_since_event',0]);
+}
+foreach (['extra_field','negative_start','string_length','zero_length','out_of_bounds'] as $invalid) {
+    $bad = $quoteEvent;
+    if($invalid==='extra_field')$bad['body']['markup'][4]['extra']='unrecognized';
+    elseif($invalid==='negative_start')$bad['body']['markup'][4]['from']=-1;
+    elseif($invalid==='string_length')$bad['body']['markup'][4]['length']='82';
+    elseif($invalid==='zero_length')$bad['body']['markup'][4]['length']=0;
+    else $bad['body']['markup'][4]['length']=10000;
+    [$store,$provider,$transport,$service] = channelPostScenario($quoteRead);
+    channelPostReceive($service,$bad);
+    channelPostCheck('malformed quote stays blocked: '.$invalid, [channelPostRun($service)[0]['reason'],$provider->writes()], ['post_changed_since_event',0]);
+}
+[$store,$provider,$transport,$service] = channelPostScenario($quoteRead);
+channelPostReceive($service,$quoteEvent);$provider->mode='timeout_unapplied';
+$quoteUnknown = channelPostRun($service)[0]; $quoteReconcile = channelPostRun($service)[0];
+channelPostCheck('quote omission cannot authorize retry of an unknown edit', [$quoteUnknown['state'],$quoteReconcile['state'],$provider->writes()], ['unknown','unknown',1]);
+[$store,$provider] = channelPostScenario($quoteRead);
+$strictAfter = new ChannelPostButtonTransport(static function($platform,$method,$path,$query,$body)use($provider){
+    if($method==='GET'&&str_starts_with($path,'/messages/')&&$provider->writes()>0)$provider->message['body']['markup'][]=['from'=>450,'length'=>82,'type'=>'quote'];
+    return $provider->request($platform,$method,$path,$query,$body);
+});
+$service = new ChannelPostAutomationService($store,$strictAfter);channelPostReceive($service,$quoteEvent);
+$strictResult=channelPostRun($service)[0];
+channelPostCheck('post-write preservation stays strict even for a quote-only change', [$strictResult['state'],$strictResult['receipt']['content_preserved'],$provider->writes()], ['unknown',false,1]);
+
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['max']);
 channelPostReceive($service, $fixtures['max']); $provider->message['body']['text'] = 'SMM changed before worker';
 channelPostCheck('fresh MAX post changed since webhook blocked', channelPostRun($service)[0]['reason'], 'post_changed_since_event');
