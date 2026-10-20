@@ -1,4 +1,4 @@
-name: Verify installed MAX quote markup fix
+name: Audit enabled MAX publication buttons 20261020
 on:
   push:
     branches: [test/max-post-button-20261020]
@@ -39,31 +39,48 @@ jobs:
           <?php
           declare(strict_types=1);
           ini_set('display_errors','0');ini_set('log_errors','0');
-          $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0];
+          $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0,'channels'=>[]];
           try{
            $root=getcwd();ob_start();try{require $root.'/config.php';}finally{ob_end_clean();}
            require_once $root.'/services/ChannelPostRuntime.php';
-           $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
-           $q=$pdo->prepare('SELECT p.id,v.snapshot_json FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id JOIN post_versions v ON v.publication_id=p.id AND v.version_number=1 WHERE c.platform=? AND c.channel_id=? ORDER BY p.id DESC LIMIT 1');
-           $q->execute(['max','-77309177991187']);$row=$q->fetch();$pdo->rollBack();
-           $old=json_decode((string)$row['snapshot_json'],true);
-           if(($old['published_at']??'')!=='2026-10-20 12:22:08')throw new RuntimeException();
-           $registry=new ChannelPostRegistryService($pdo);$publication=$registry->publication((int)$row['id']);
-           if(!$publication||$publication['state']!=='sent'||$publication['project_key']!=='anytour'||$publication['source_key']!=='max_anytour_spb')throw new RuntimeException();
-           $operation=$publication;$operation['snapshot']=$old;
-           $quoteCount=count(array_filter((array)$old['markup'],static fn($s)=>is_array($s)&&($s['type']??'')==='quote'));
-           if($quoteCount!==4)throw new RuntimeException();
-           $request=static function($platform,$method,$path,$query,$body){
-            if($platform!=='max'||$method!=='GET'||$body!==null)throw new RuntimeException('read_only_probe');
-            return ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
-           };
-           $result=(new ChannelPostButtonTransport($request))->attempt($operation,static fn():bool=>false,true);
-           $out['original_event_quote_count']=$quoteCount;
-           $out['state']=$result['state'];$out['reason']=$result['reason'];
-           $out['receipt']=array_intersect_key((array)$result['receipt'],array_flip(['request_count','write_attempts','http_results']));
-           $out['ok']=$result['state']==='sent'&&$result['reason']==='already_present'&&($out['receipt']['write_attempts']??-1)===0;
-           $out['server_utc']=gmdate('c');
-          }catch(Throwable $e){$out['error']='read_only_runtime_verification_failed';}
+           $identity=ChannelPostRuntime::identity('max');
+           if(!$identity||$identity['project_key']!=='anytour')throw new RuntimeException();
+           $pdo=ConversationDb::connection();$registry=new ChannelPostRegistryService($pdo);
+           $pdo->exec('START TRANSACTION READ ONLY');
+           $q=$pdo->prepare("SELECT c.* FROM post_channels c JOIN projects p ON p.id=c.project_id JOIN conversation_sources s ON s.id=c.source_id AND s.project_id=c.project_id WHERE p.project_key=? AND p.is_active=1 AND c.platform='max' AND c.bot_key=? AND c.is_enabled=1 AND s.is_active=1 AND s.channel='max' AND s.handling_mode IN('manager','ask') ORDER BY c.id LIMIT 9");
+           $q->execute([$identity['project_key'],$identity['bot_key']]);$channels=$q->fetchAll();
+           $pdo->rollBack();
+           $out['channel_limit_exceeded']=count($channels)>8;
+           $safe=static fn($s)=>is_string($s)&&preg_match('/\A[a-z_]{0,96}\z/',$s)?$s:'redacted';
+           $types=static function($aa){$r=[];foreach((array)$aa as $a){$t=$a['type']??'';$t=in_array($t,['image','video','audio','file','sticker','inline_keyboard'],true)?$t:'other';$r[$t]=($r[$t]??0)+1;}return $r;};
+           $now=(int)floor(microtime(true)*1000);
+           foreach(array_slice($channels,0,8)as $rank=>$c){
+            $channel=$registry->channel($identity['project_key'],'max',$identity['bot_key'],(string)$c['channel_id']);
+            if(!$channel)throw new RuntimeException();
+            $known=['-77309177991187'=>'spb','-72182945320979'=>'reported_channel_2','-80095447388179'=>'test'];
+            $item=['rank'=>$rank+1,'label'=>$known[(string)$c['channel_id']]??('channel_'.($rank+1)),'posts'=>[]];
+            $q=$pdo->prepare('SELECT enabled_since_ms,completed_through_ms,scan_until_ms,last_checked_at,error_reason FROM post_channel_reconciliation WHERE post_channel_id=?');
+            $q->execute([(int)$c['id']]);$cursor=$q->fetch();
+            $item['cursor']=$cursor;$item['rights']=(new ChannelPostButtonTransport())->verifyChannel($channel);
+            $q=$pdo->prepare('SELECT v.state,v.error_reason,COUNT(*) AS n FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=? GROUP BY v.state,v.error_reason');
+            $q->execute([(int)$c['id']]);$item['registered_states']=array_map(static fn($r)=>['state'=>$safe($r['state']),'reason'=>$safe($r['error_reason']),'count'=>(int)$r['n']],$q->fetchAll());
+            $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>(string)$c['channel_id'],'from'=>$now,'to'=>$now-7*86400000,'count'=>12],null);
+            $item['provider_http']=(int)($r['http']??0);$item['transport_error']=!empty($r['transport_error']);
+            foreach(array_slice((array)($r['data']['messages']??[]),0,12)as $m){
+             if(!is_array($m)||(string)($m['recipient']['chat_id']??'')!==(string)$c['channel_id']||($m['recipient']['chat_type']??'')!=='channel')throw new RuntimeException();
+             $s=ChannelPostIncomingAdapter::maxSnapshot($m);$mid=(string)($m['body']['mid']??'');
+             $q=$pdo->prepare('SELECT p.id FROM post_publications p WHERE p.post_channel_id=? AND p.external_message_id=? LIMIT 1');
+             $q->execute([(int)$c['id'],$mid]);$pid=(int)$q->fetchColumn();$p=$pid?$registry->publication($pid):null;
+             $url=$p?ChannelPostButtonTransport::buttonUrl($p):'';
+             $count=0;$buttonTypes=[];foreach((array)($s['keyboard']??[])as $row)foreach((array)$row as $b){$type=$safe($b['type']??'');$buttonTypes[$type]=($buttonTypes[$type]??0)+1;if($url!==''&&($b['url']??'')===$url)$count++;}
+             $item['posts'][]=['published_ms'=>(int)($m['timestamp']??0),'published_utc'=>gmdate('c',(int)floor((int)($m['timestamp']??0)/1000)),'after_activation'=>(int)($m['timestamp']??0)>=(int)($cursor['enabled_since_ms']??$now),'registered'=>$p!==null,'version'=>$p?(int)$p['version_number']:null,'state'=>$p?$safe($p['state']):null,'reason'=>$p?$safe($p['error_reason']):null,'write_attempts'=>$p?(int)$p['write_attempts']:null,'content_equals_snapshot'=>$p&&is_array($s)?ChannelPostIncomingAdapter::contentFingerprint($p['snapshot'])===ChannelPostIncomingAdapter::contentFingerprint($s):null,'attachments'=>$types($m['body']['attachments']??[]),'only_our_button'=>$url!==''&&is_array($s)&&ChannelPostIncomingAdapter::containsOnlyButton($s,$url,(string)$channel['button_text']),'our_button_count'=>$count,'button_types'=>$buttonTypes,'capability_reason'=>$safe($s['metadata']['capability_reason']??'')];
+            }
+            $out['channels'][]=$item;
+           }
+           $cron=(string)shell_exec('crontab -l 2>/dev/null');
+           $out['worker_cron_count']=preg_match_all('/^[^#\r\n]*channel_post_worker\.php[^\r\n]*--platform=max[^\r\n]*--run[^\r\n]*--reconcile[^\r\n]*$/m',$cron);
+           $out['server_utc']=gmdate('c');$out['ok']=!$out['channel_limit_exceeded'];
+          }catch(Throwable $e){$out['error']='bounded_channel_audit_failed';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES),PHP_EOL;exit($out['ok']?0:2);
           PHP
           php -l "$RUNNER_TEMP/post-diagnostic.php"
