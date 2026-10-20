@@ -7,7 +7,23 @@ read-only and is not used to send.
 
 After normal reviewed merge/deploy and exact production SHA verification, manually
 run **MAX owner tour preview** on `main` with `expected_sha` equal to that installed
-SHA and `confirm_owner_send=true`. The only installed command is:
+SHA and `confirm_owner_send=true`. Alternatively, the authenticated owner can
+create one exact comment in repository issue **55**, containing only
+`/owner-tour-preview <installed-main-sha>` (40 lowercase hexadecimal characters;
+no newline, Markdown, extra spaces or other text). Edited comments do not activate
+it. Comments on PRs, other issues/repos, from another login/ID or actor are rejected.
+The permanent owner identity `pyatkoff` / `226193297` was verified from GitHub
+authenticated profile and PR1041 metadata. This is an explicit manual activation,
+not a push/deploy trigger or a general ChatOps command.
+
+Both paths parse event JSON via `GITHUB_EVENT_PATH`, require the trusted
+default-main workflow, match the requested SHA to `GITHUB_SHA`, and independently
+GET the fixed GitHub main-ref endpoint with the default contents-read token before
+loading deployment SSH credentials. The installed SHA must also match before the
+fixed CLI runs. Comment text never enters shell interpolation. Workflow permissions
+remain contents-read only. Inspect the issue_comment workflow run and jobs through
+GitHub Actions GET APIs; no completion comment or additional write permission is
+introduced. The only installed command is:
 
 ```sh
 php tools/max_owner_tour_preview.php --expected-sha=<installed-main-sha> --confirm-owner-send
@@ -42,7 +58,7 @@ Before POST the CLI exclusively creates and fsyncs the mode0600 fixed receipt
 inside a mode0700 directory outside the webroot. Any existing receipt, including
 an incomplete/corrupt one, blocks every subsequent send. The fixed demo ID stays
 the same across future commits and deploys. The workflow has no retries/schedule
-and serializes manual executions.
+and serializes both manual activation paths.
 
 `verified` means one POST returned a MID and one GET readback matched the exact
 owner/bot identities, text, three images and native message button.
