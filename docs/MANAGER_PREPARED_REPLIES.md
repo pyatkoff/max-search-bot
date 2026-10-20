@@ -175,6 +175,25 @@ target after connection and delivery verification, not a guarantee of answer lat
 The available ordinary ChatGPT schedule tool permits hourly recurrence at most;
 do not fabricate a subhourly schedule or a connected worker.
 
+Every valid tick now writes a bounded private operational checkpoint beside the
+canonical external diagnostic log (mode 0600, outside the application root).
+It records start/finish, last successful pass, last failure and its fixed stage,
+and allowlisted aggregate counters. Bootstrap failure is captured before config
+loading; shutdown before completion records failure. No exception text, job IDs,
+transcripts, callback URLs or credentials are stored. Diagnostic write failure
+never changes processing. Missing, invalid or oversized state is explicitly
+unknown; a checkpoint older than three minutes is stale. A fresh
+`awaiting_connection` means the cron ran but found no authorized live subscription,
+not that the queue was scanned and empty. Successful tick completion is not proof
+that ChatGPT generated or a manager sent a reply.
+
+`list_pending_replies` includes `preparation_health` under its existing active
+project-admin authorization. It contains the checkpoint plus bounded read-only
+subscription aggregates (active, inactive, expired, unauthorized and retrying).
+It neither renews subscriptions nor sends callbacks. The same safe aggregates
+are published as `manager_preparation` in production/autopilot diagnostics; their
+capture time must be considered separately from the tick's own timestamps.
+
 ## Verification and rollout
 
 Required tests cover canonical collector semantics, private cache/idempotency,

@@ -7,6 +7,7 @@ require_once $baseDir.'/config.php';
 require_once $baseDir.'/services/ConversationDb.php';
 require_once $baseDir.'/services/DiagnosticLogger.php';
 require_once $baseDir.'/services/ManagerPreparationMcpDiagnostics.php';
+require_once $baseDir.'/services/ManagerPreparationMcpService.php';
 require_once $baseDir.'/services/PaidDailyReport.php';
 require_once $baseDir.'/services/ChannelDailyReport.php';
 require_once $baseDir.'/services/ManagerAiDraftFeedbackReport.php';
@@ -114,6 +115,7 @@ try{
         'generated_at'=>gmdate('c'),
         'production'=>['sha'=>$sha,'branch'=>$branch],
         'manager_mcp_discovery'=>ManagerPreparationMcpDiagnostics::snapshot(),
+        'manager_preparation'=>(new ManagerPreparationMcpService($pdo))->preparationHealth(),
         'database'=>['name'=>$ping['database']??null,'host'=>$ping['host']??null,'latency_ms'=>$ping['latency_ms']??null],
         'migrations'=>(new MigrationRunner())->status(),
         'stats'=>[],

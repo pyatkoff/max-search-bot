@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ProjectAccessService.php';
 require_once __DIR__.'/ManagerPreparationWebhook.php';
+require_once __DIR__.'/ManagerPreparationHealth.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -114,7 +115,7 @@ final class ManagerPreparationMcpService
             self::keys($args,['limit']); $limit=$args['limit']??20;
             if (!is_int($limit) || $limit<1 || $limit>20) throw new InvalidArgumentException();
             $jobs=$this->pending($limit);
-            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs];
+            $data=['ok'=>true,'project_key'=>self::PROJECT,'jobs'=>$jobs,'preparation_health'=>$this->preparationHealth()];
         } elseif ($name === 'get_reply_context') {
             self::keys($args,['job_id']); $data=$this->storeCall('context',[self::job($args)]);
         } elseif ($name === 'save_prepared_reply') {
@@ -229,6 +230,33 @@ final class ManagerPreparationMcpService
             } catch (DomainException $ignored) {}
         }
         return false;
+    }
+
+    /** Read-only aggregates; only current-project admins can reach this through MCP. */
+    public function preparationHealth(): array
+    {
+        $tick=ManagerPreparationHealth::snapshot($this->now());
+        try {
+            if (ProjectConfig::projectId()!==self::PROJECT) throw new DomainException();
+            $q=$this->pdo->prepare('SELECT admin_id,oauth_connection_id,is_active,expires_at,next_attempt_at,last_status FROM manager_preparation_events WHERE project_key=? ORDER BY created_at DESC LIMIT 101');
+            $q->execute([self::PROJECT]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+            $summary=['available'=>true,'sampled_count'=>min(100,count($rows)),'truncated'=>count($rows)>100,
+                'active'=>0,'inactive'=>0,'expired'=>0,'unauthorized'=>0,'retrying'=>0,'last_http_status_counts'=>[]];
+            $date=gmdate('Y-m-d H:i:s',$this->now());
+            foreach (array_slice($rows,0,100) as $row) {
+                $status=(int)($row['last_status']??0);
+                if ($status>=100 && $status<=599) $summary['last_http_status_counts'][$status]=($summary['last_http_status_counts'][$status]??0)+1;
+                if ((int)$row['is_active']!==1) {++$summary['inactive'];continue;}
+                if ((string)$row['expires_at']<=$date) {++$summary['expired'];continue;}
+                try {
+                    $this->requireAdmin((int)$row['admin_id']);
+                    if (!$this->activeConnection((string)$row['oauth_connection_id'],(int)$row['admin_id'])) throw new DomainException();
+                } catch (DomainException $denied) {++$summary['unauthorized'];continue;}
+                ++$summary['active'];
+                if ($row['next_attempt_at']!==null) ++$summary['retrying'];
+            }
+        } catch (Throwable $ignored) {$summary=['available'=>false];}
+        return ['tick'=>$tick,'connections'=>$summary];
     }
 
     public function deliverPending(): array
