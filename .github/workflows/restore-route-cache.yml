@@ -71,14 +71,14 @@ jobs:
 
       - name: Read the retained MAX Search cache without legacy writes
         env:
-          HOST: ${{ secrets.DEPLOY_HOST }}
-          USER: ${{ secrets.DEPLOY_USER }}
+          ROUTE_LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
+          ROUTE_LEGACY_USER: ${{ secrets.DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           opts=(-i "$RUNNER_TEMP/route_legacy_key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/route_known_hosts" -o ConnectTimeout=10)
-          ssh "${opts[@]}" "$USER@$HOST" 'bash -s' > "$RUNNER_TEMP/legacy-route-cache.transfer" <<'REMOTE'
+          ssh "${opts[@]}" "$ROUTE_LEGACY_USER@$ROUTE_LEGACY_HOST" 'bash -s' > "$RUNNER_TEMP/legacy-route-cache.transfer" <<'REMOTE'
           set -euo pipefail
           shopt -s nullglob
           receivers=("$HOME"/www/*/max-search/lead-receiver.php)
@@ -110,17 +110,17 @@ jobs:
 
       - name: Install only an absent canonical cache and verify exact data
         env:
-          HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          ROUTE_CANONICAL_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          ROUTE_CANONICAL_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           opts=(-i "$RUNNER_TEMP/route_canonical_key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/route_known_hosts" -o ConnectTimeout=10)
           staged="/tmp/max-search-route-cache-$EXPECTED_SHA.json"
-          cleanup() { ssh "${opts[@]}" "$USER@$HOST" "rm -f '$staged'" >/dev/null 2>&1 || true; }
+          cleanup() { ssh "${opts[@]}" "$ROUTE_CANONICAL_USER@$ROUTE_CANONICAL_HOST" "rm -f '$staged'" >/dev/null 2>&1 || true; }
           trap cleanup EXIT
-          scp -p "${opts[@]}" "$RUNNER_TEMP/legacy-route-cache.json" "$USER@$HOST:$staged"
-          ssh "${opts[@]}" "$USER@$HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/restore_route_cache.php --source '$staged'" > "$RUNNER_TEMP/route-restore-result.json"
+          scp -p "${opts[@]}" "$RUNNER_TEMP/legacy-route-cache.json" "$ROUTE_CANONICAL_USER@$ROUTE_CANONICAL_HOST:$staged"
+          ssh "${opts[@]}" "$ROUTE_CANONICAL_USER@$ROUTE_CANONICAL_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/restore_route_cache.php --source '$staged'" > "$RUNNER_TEMP/route-restore-result.json"
           python3 - <<'PY'
           import os,json,pathlib,hashlib
           root=pathlib.Path(os.environ['RUNNER_TEMP']);result=json.loads((root/'route-restore-result.json').read_text())
