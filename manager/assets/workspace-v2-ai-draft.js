@@ -34,7 +34,7 @@
   }
   function renderButton(){
     if(!bound||!manager2())return;
-    let state='idle',label='AI',hint='Проверить готовый ответ AI. Генерация по кнопке «Сформировать заново» доступна отдельно.';
+    let state='idle',label='AI',hint='Подготовить ответ по переписке, исходному посту и фото.';
     if(ready&&currentSnapshot(ready.snapshot)&&ready.expires>Date.now()){
       state=ready.kind;label=ready.should_draft?'AI — Ответ готов':'AI — Рекомендации';
       hint=(state==='prepared'?'Подготовлен автоматически':'Сформирован по нажатию')+(timeLabel(ready.prepared_at)?': '+timeLabel(ready.prepared_at):'')+'. Нажмите, чтобы проверить '+(ready.should_draft?'черновик.':'рекомендации.');
@@ -144,8 +144,9 @@
       const list=addText('ul','aiDraftChecks','');
       for(const check of result.checks){const text=readable(check);if(!text)continue;const item=document.createElement('li');item.textContent=text;list.appendChild(item)}
     }
-    const prepared=result.prepared===true?'Ответ подготовлен заранее. ':'';
-    status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':'Сначала проверьте рекомендации. Новое сообщение пока не подготовлено.');
+    const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
+    status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
+    retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
   }
   function failure(result,action){
     clearBody();view.result=null;
@@ -155,6 +156,7 @@
       status.textContent='Не удалось проверить готовый ответ. Ваш текст и вложения сохранены. Можно сформировать ответ заново.';return;
     }
     if(result?.error==='provider_not_configured'){status.textContent='AI сейчас недоступен. Ваш текст и вложения сохранены.';return}
+    if(result?.error==='provider_timeout'){status.textContent='Подготовка ответа заняла слишком много времени. Нажмите «Повторить подготовку».';return}
     status.textContent='Не удалось подготовить ответ. Ваш текст и вложения сохранены. Можно повторить по кнопке.';
   }
   function validResult(result,saved){
@@ -164,19 +166,29 @@
     if(ready?.kind==='generated'&&ready.expires>Date.now()&&currentSnapshot(ready.snapshot)&&validResult(ready,ready.snapshot)){
       const result=ready;abortStatusRead();abortFlight();view={snapshot:result.snapshot,selection:selection(),result,stale:false};panel.hidden=false;button.setAttribute('aria-expanded','true');renderResult(result);setBusy(false);positionPanel();panel.focus({preventScroll:true});if(watch)scheduleStatus(watch);return;
     }
-    void loadProposal('prepared');
+    void loadProposal('prepared',true);
   }
-  async function loadProposal(action){
+  async function loadProposal(action,generateIfNeeded=false){
     if(!canCompose()||flight)return false;
     abortStatusRead();dismissNotice();
     const saved=snapshot(),savedSelection=selection();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false};
-    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();status.textContent=action==='prepared'?'Проверяем готовый ответ…':'Готовим черновик…';
+    panel.hidden=false;button.setAttribute('aria-expanded','true');clearBody();retry.textContent='Повторить подготовку';status.textContent='Читаем переписку и фото, готовим ответ…';
     const current={ticket:sequence,action,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);positionPanel();panel.focus({preventScroll:true});
     const isCurrent=()=>flight===current&&current.ticket===sequence&&!!view&&currentSnapshot(saved);
     try{
-      const result=await W.request('ai-draft.php',action,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+      const request=kind=>W.request('ai-draft.php',kind,{conversation_id:saved.context.conversationId,latest_message_id:saved.latest},{signal:current.controller?.signal,isCurrent});
+      let result=await request(action);
       if(!isCurrent()){sync();return false}
+      const staleError=['context_changed','context_stale','stale_context','stale_revision','revision_changed'].includes(result?.error);
+      const cacheMiss=result?.ok===true&&result.prepared===false;
+      const needsReply=validResult(result,saved)&&result.prepared===true&&!result.should_draft&&result.next_action!=='no_contact';
+      const cacheUnavailable=Number(result?.http_status)>=500||result?.error==='prepared_unavailable';
+      if(generateIfNeeded&&action==='prepared'&&!staleError&&(cacheMiss||needsReply||cacheUnavailable)){
+        clearReady();action='generate';current.action=action;setBusy(true);
+        result=await request(action);
+        if(!isCurrent()){sync();return false}
+      }
       if(action==='prepared'&&result?.ok===true&&result.prepared===false){clearReady();status.textContent='Готового ответа пока нет. Можно сформировать ответ заново.';return false}
       if(!validResult(result,saved)||action==='prepared'&&result.prepared!==true){if(result?.ok&&result.latest_message_id!==saved.latest)stale();else failure(result,action);return false}
       // Both sources carry server-owned provenance through fresh validation.
@@ -224,11 +236,11 @@
     body=document.createElement('div');body.className='aiDraftBody';panel.appendChild(body);
     const actions=document.createElement('div');actions.className='aiDraftActions';
     insert=document.createElement('button');insert.id='aiDraftInsert';insert.type='button';insert.textContent='Добавить в ответ';insert.hidden=true;actions.appendChild(insert);
-    retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Сформировать заново';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
+    retry=document.createElement('button');retry.id='aiDraftRetry';retry.type='button';retry.textContent='Повторить подготовку';actions.appendChild(retry);panel.appendChild(actions);form.appendChild(panel);
     if(manager2()){
       notice=document.createElement('div');notice.id='aiReadyNotice';notice.className='aiReadyNotice';notice.hidden=true;notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');
       noticeLabel=document.createElement('span');noticeLabel.textContent='AI — Ответ готов';notice.appendChild(noticeLabel);
-      const show=document.createElement('button');show.type='button';show.textContent='Посмотреть';show.addEventListener('click',()=>void loadProposal('prepared'));notice.appendChild(show);
+      const show=document.createElement('button');show.type='button';show.textContent='Посмотреть';show.addEventListener('click',()=>void loadProposal('prepared',true));notice.appendChild(show);
       const hide=document.createElement('button');hide.type='button';hide.textContent='×';hide.setAttribute('aria-label','Скрыть уведомление AI');hide.addEventListener('click',dismissNotice);notice.appendChild(hide);form.appendChild(notice);
       document.addEventListener('visibilitychange',()=>{if(!visible())stopWatching();else sync()});
     }

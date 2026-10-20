@@ -25,24 +25,25 @@ final class ManagerTelegramMediaService
     }
 
     /** Returns a private temporary stream; the caller must close it after serving. */
-    public static function open(array $attachment, ?callable $fetch = null): ?array
+    public static function open(array $attachment, ?callable $fetch = null, int $limit = self::MAX_BYTES, int $timeout = 30): ?array
     {
+        $limit=max(1,min(self::MAX_BYTES,$limit));$timeout=max(1,min(30,$timeout));
         $token = defined('TELEGRAM_BOT_TOKEN') ? trim((string)TELEGRAM_BOT_TOKEN) : '';
         $fileId = (string)($attachment['telegram_file_id'] ?? '');
         if ($token === '' || $fileId === '' || strlen($fileId) > 1024) return null;
-        if ((int)($attachment['size'] ?? 0) > self::MAX_BYTES) throw new RuntimeException('telegram_media_too_large', 413);
-        $fetch = $fetch ?? [self::class, 'request'];
+        if ((int)($attachment['size'] ?? 0) > $limit) throw new RuntimeException('telegram_media_too_large', 413);
+        $fetch = $fetch ?? static fn(string $url,?array $post,int $bytes)=>self::request($url,$post,$bytes,$timeout);
         $info = $fetch('https://api.telegram.org/bot'.$token.'/getFile', ['file_id'=>$fileId], 65536);
         if (!is_resource($info)) return null;
         try { $data = json_decode((string)stream_get_contents($info, 65537), true); } finally { fclose($info); }
         $file = $data['result'] ?? [];
         $path = (string)($file['file_path'] ?? '');
         if (empty($data['ok']) || !preg_match('~^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)+$~D', $path) || str_contains($path, '..')) return null;
-        if ((int)($file['file_size'] ?? 0) > self::MAX_BYTES) throw new RuntimeException('telegram_media_too_large', 413);
-        $stream = $fetch('https://api.telegram.org/file/bot'.$token.'/'.$path, null, self::MAX_BYTES);
+        if ((int)($file['file_size'] ?? 0) > $limit) throw new RuntimeException('telegram_media_too_large', 413);
+        $stream = $fetch('https://api.telegram.org/file/bot'.$token.'/'.$path, null, $limit);
         if (!is_resource($stream)) return null;
         $size = (int)(fstat($stream)['size'] ?? 0);
-        if ($size <= 0 || $size > self::MAX_BYTES) { fclose($stream); return null; }
+        if ($size <= 0 || $size > $limit) { fclose($stream); return null; }
         $probe = (string)fread($stream, 8192);
         rewind($stream);
         $mime = (string)(new finfo(FILEINFO_MIME_TYPE))->buffer($probe);
@@ -52,14 +53,14 @@ final class ManagerTelegramMediaService
         return ['stream'=>$stream, 'size'=>$size, 'mime'=>$inline ? $mime : 'application/octet-stream', 'inline'=>$inline, 'name'=>mb_substr($name, 0, 180)];
     }
 
-    private static function request(string $url, ?array $post, int $limit)
+    private static function request(string $url, ?array $post, int $limit, int $timeout = 30)
     {
         $stream = tmpfile();
         if ($stream === false) return null;
         $ch = curl_init($url);
         $bytes = 0;
         curl_setopt_array($ch, [
-            CURLOPT_CONNECTTIMEOUT=>5, CURLOPT_TIMEOUT=>30,
+            CURLOPT_CONNECTTIMEOUT=>min(5,$timeout), CURLOPT_TIMEOUT=>$timeout,
             CURLOPT_FOLLOWLOCATION=>false, CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
             CURLOPT_SSL_VERIFYPEER=>true, CURLOPT_SSL_VERIFYHOST=>2,
             CURLOPT_WRITEFUNCTION=>static function ($handle, string $chunk) use ($stream, $limit, &$bytes): int {

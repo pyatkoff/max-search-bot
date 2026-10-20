@@ -98,7 +98,8 @@ final class ManagerPreparedReplyService
             // snapshotFor has already committed its short read-only transaction.
             $input = ManagerAiDraftService::prepareInput($snapshot['context'], $knowledge,
                 static fn(): ManagerSelectionSnapshot => ManagerSelectionSnapshot::read($snapshot, $selectionTransport),
-                $snapshot['reference_context'] ?? null);
+                $snapshot['reference_context'] ?? null,
+                isset($snapshot['photo_context'])?static fn(array $context):?array=>$snapshot['photo_context']->read($context):null);
             if (isset($input['error'])) return self::failure('context_unavailable');
             // Network I/O must not expose a now-revoked/edited/expired job.
             $fresh = self::load($pdo, $jobId);
@@ -107,7 +108,7 @@ final class ManagerPreparedReplyService
             return ['ok'=>true,'job_id'=>$jobId,'revision'=>$row['context_revision'],
                 'preparation_scope'=>(int)$row['manager_id'] === 0 ? 'unassigned_waiting' : 'assigned_manager',
                 'latest_message_id'=>(int)$row['latest_message_id'],
-                'context'=>$input['context'],
+                'context'=>$input['context'],'image_inputs'=>$input['images']??[],
                 'company_knowledge'=>['facts'=>$knowledge->facts(),'revision'=>$knowledge->revision()],
                 'instructions'=>ManagerAiDraftService::instructions(),'instruction_revision'=>$row['instruction_revision']];
         } catch (Throwable $ignored) { return self::failure('job_unavailable'); }

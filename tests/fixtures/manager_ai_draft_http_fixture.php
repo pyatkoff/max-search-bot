@@ -78,6 +78,7 @@ final class ManagerAiDraftContextService
             'ok'=>true,'revision'=>$state['revision'],'latest_message_id'=>$state['latest_message_id'],
             'company_knowledge'=>ManagerCompanyKnowledge::forProject('anytour', new DateTimeImmutable('2026-10-18T00:00:00Z')),
             'reference_context'=>(object)['synthetic_revision'=>$state['revision']],
+            'photo_context'=>new class { public function read(array $context): array { return ['context'=>$context,'images'=>[['type'=>'input_image']]]; } },
             'context'=>['conversation_id'=>$conversationId,'as_of_message_id'=>$state['latest_message_id'],
                 'history_incomplete'=>false,'media_unread'=>false,
                 'messages'=>[['id'=>$state['latest_message_id'],'sender_type'=>'customer','text'=>'Нужен отдых на море.']]],
@@ -97,14 +98,16 @@ final class ManagerPreparedReplyService
 
 final class ManagerAiDraftService
 {
-    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null): array
+    public static function generate(array $context, ?callable $provider = null, ?ManagerCompanyKnowledge $knowledge = null, ?callable $selectionReader = null, ?object $references = null, ?callable $photoReader = null): array
     {
         $state = managerAiHttpFixtureState();
         $selection = $selectionReader ? $selectionReader()->forContext($context) : null;
+        $photos = $photoReader ? $photoReader($context) : null;
         managerAiHttpFixtureEvent('provider', ['session_closed'=>session_status() !== PHP_SESSION_ACTIVE,
             'conversation_id'=>$context['conversation_id'],'as_of_message_id'=>$context['as_of_message_id'],
             'knowledge_ids'=>array_column($knowledge?->facts() ?? [], 'id'),
             'reference_revision'=>$references->synthetic_revision ?? null,
+            'photo_reader_received'=>$photoReader!==null,'photo_count'=>count($photos['images']??[]),
             'selection_reader_received'=>$selectionReader!==null, 'selection_count'=>count($selection['selection_snapshots']??[])]);
         if ($state['provider_mode'] === 'throw') {
             throw new RuntimeException('SYNTHETIC_PROVIDER_DETAIL_MUST_STAY_PRIVATE');

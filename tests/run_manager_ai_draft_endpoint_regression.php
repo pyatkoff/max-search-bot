@@ -185,6 +185,8 @@ try {
         && !str_contains($valid['body'],'UNTRUSTED_COMPANY_FACT'));
     managerAiEndpointCheck('endpoint passes source evidence from its fresh authorized snapshot',
         $flow[3]['reference_revision'] === $baseState['revision']);
+    managerAiEndpointCheck('explicit generation reads the server photo context outside the session lock',
+        $flow[3]['photo_reader_received'] && $flow[3]['photo_count']===1 && $flow[3]['session_closed']);
     managerAiEndpointCheck('selection reader is composed outside session lock without posted source capabilities',
         $flow[3]['selection_reader_received']===true && $flow[3]['selection_count']===0 && $flow[3]['session_closed']);
     managerAiEndpointCheck('fresh after snapshot runs with reopened read-and-close session',$flow[4]['session_status'] === PHP_SESSION_NONE);

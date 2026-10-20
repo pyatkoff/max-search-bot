@@ -33,7 +33,7 @@ async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   h.click=async id=>{await h.ids.get(id).dispatch('click');await tick()};
   h.aiCalls=()=>h.calls.filter(call=>call.url==='ai-draft.php');
   h.insert=()=>h.click('aiDraftInsert');
-  h.generate=async()=>{await h.click('aiDraftOpen');await h.click('aiDraftRetry')};
+  h.generate=()=>h.click('aiDraftOpen');
   h.close=()=>h.ids.get('aiDraftPanel').children[0].children[1].dispatch('click');
   return h;
 }
@@ -97,14 +97,28 @@ test('current status access denial clears an open private preview and stops repe
   let deny=false;const h=await harness(data=>data.action==='prepared_status'?response(deny?{ok:false,error:'reply_not_allowed'}:readiness(),deny?403:200):response(prepared()),{manager2:true});await tick();await h.click('aiDraftOpen');deny=true;
   const [timerId,poll]=[...h.aiTimers.entries()].find(([,t])=>t.ms===15000);h.aiTimers.delete(timerId);await poll.fn();await tick();assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('aiDraftPanel').children[2].children.length,0);const count=h.aiCalls().length;h.ai.sync();await tick();assert.equal(h.aiCalls().length,count);assert.equal([...h.aiTimers.values()].filter(t=>t.ms===15000).length,0);assertNoMutations(h);
 });
-for(const unavailable of [false,true])test('cache '+(unavailable?'unavailable':'miss')+' preserves the composer and generates only after an explicit retry',async()=>{
-  const h=await harness(data=>data.action==='prepared'?response(unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},unavailable?503:200):response(generated()));
+for(const unavailable of [false,true])test('cache '+(unavailable?'unavailable':'miss')+' generates on the first click and preserves the composer',async()=>{
+  const pending=deferred();
+  const h=await harness(data=>data.action==='prepared'?response(unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},unavailable?503:200):pending.promise);
   const file={name:'keep.txt'};await h.draft('Свой текст  ');h.setFile(file);await h.click('aiDraftOpen');
   assert.equal(h.ids.get('replyText').value,'Свой текст  ');assert.equal(h.getFile(),file);assert.equal(h.ids.get('aiDraftInsert').hidden,true);
-  assert.match(h.ids.get('aiDraftStatus').textContent,unavailable?/Не удалось проверить готовый ответ/:/Готового ответа пока нет/);
-  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared']);await h.insert();assert.equal(h.aiCalls().length,1);
-  await h.click('aiDraftRetry');assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','generate']);assert.equal(h.ids.get('aiDraftInsert').hidden,false);
-  assert.doesNotMatch(h.ids.get('aiDraftStatus').textContent,/подготовлен заранее/);assert.equal(h.ids.get('replyText').value,'Свой текст  ');assert.equal(h.getFile(),file);assertNoMutations(h);
+  assert.deepEqual(h.aiCalls().map(call=>call.action),['prepared','generate']);assert.equal(h.ids.get('aiDraftOpen').disabled,true);
+  pending.resolve(response(generated()));await tick();assert.equal(h.ids.get('aiDraftInsert').hidden,false);
+  assert.doesNotMatch(h.ids.get('aiDraftStatus').textContent,/Готового ответа пока нет|подготовлен заранее/);
+  assert.equal(h.ids.get('replyText').value,'Свой текст  ');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+test('a prepared check without an answer starts one fresh generation including photos',async()=>{
+  const h=await harness(data=>response(data.action==='prepared'?prepared({should_draft:false,draft:null,next_action:'check_offer'}):generated()));
+  await h.click('aiDraftOpen');assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared','generate']);assert.equal(h.ids.get('aiDraftInsert').hidden,false);assertNoMutations(h);
+});
+test('a no-contact decision explains itself without another model call',async()=>{
+  const h=await harness(()=>response(prepared({should_draft:false,draft:null,next_action:'no_contact',reason:'Турист попросил не писать.'})));
+  await h.click('aiDraftOpen');assert.deepEqual(h.aiCalls().map(c=>c.action),['prepared']);assert.match(h.ids.get('aiDraftStatus').textContent,/Сейчас отвечать не нужно/);assert.equal(h.ids.get('aiDraftInsert').hidden,true);assertNoMutations(h);
+});
+test('fallback generation is discarded after a conversation switch',async()=>{
+  const pending=deferred(),h=await harness(data=>data.action==='prepared'?response({ok:true,prepared:false}):pending.promise);
+  await h.draft('Свой текст');await h.click('aiDraftOpen');await h.C.open(102);pending.resolve(response(generated()));await tick();
+  assert.equal(h.ids.get('aiDraftPanel').hidden,true);assert.equal(h.ids.get('replyText').value,'');assertNoMutations(h);
 });
 test('prepared insertion carries the server identity through validation and edited sending',async()=>{
   const h=await harness(data=>response(data.action==='prepared'?prepared({draft_id:'a'.repeat(32)}):{ok:true,revision:'synthetic-revision-1',latest_message_id:8,draft_id:'a'.repeat(32)}));
@@ -167,7 +181,7 @@ test('late tracked validation cannot associate a different conversation',async()
 test('a recommendation without a draft has no insertion or validation request',async()=>{
   const h=await harness(()=>response(prepared({should_draft:false,draft:null,next_action:'Проверить обещание менеджера'})));
   await h.draft('Свой ответ');await h.click('aiDraftOpen');assert.equal(h.ids.get('aiDraftInsert').hidden,true);
-  await h.insert();assert.equal(h.aiCalls().length,1);assert.equal(h.ids.get('replyText').value,'Свой ответ');assertNoMutations(h);
+  await h.insert();assert.equal(h.aiCalls().length,2);assert.equal(h.ids.get('replyText').value,'Свой ответ');assertNoMutations(h);
 });
 test('server action enums and unavailable/stale errors have readable labels',async()=>{
   for(const [action,label]of Object.entries({clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'})){

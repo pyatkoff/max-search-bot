@@ -118,16 +118,16 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBeUndefined();
   clean(state);
 });
-for(const unavailable of [false,true])test('AI cache '+(unavailable?'unavailable':'miss')+' preserves text and File until explicit regeneration',async({page})=>{
+for(const unavailable of [false,true])test('AI cache '+(unavailable?'unavailable':'miss')+' generates on the first click and preserves text and File',async({page})=>{
   const state=await setup(page),typed='Свой ответ  ';
   state.setAI(async data=>data.action==='prepared'?{body:unavailable?{ok:false,error:'prepared_unavailable'}:{ok:true,prepared:false},status:unavailable?503:200}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id}});
   await page.locator('#replyText').fill(typed);await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   // WebKit may turn the final filled space into NBSP before any AI action.
   // Compare the native value byte-for-byte across cache read and insertion.
   const text=await page.locator('#replyText').inputValue();expect(text.replace(/\u00a0/g,' ')).toBe(typed);
-  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftStatus')).toContainText(unavailable?'Не удалось проверить готовый ответ':'Готового ответа пока нет');
-  await expect(page.locator('#aiDraftInsert')).not.toBeVisible();await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);
-  await page.locator('#aiDraftRetry').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(page.locator('#aiDraftStatus')).not.toContainText('подготовлен заранее');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','generate']);
+  await page.locator('#aiDraftOpen').click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();
+  await expect(page.locator('#replyText')).toHaveValue(text);await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared','generate']);
+  await expect(page.locator('#aiDraftStatus')).not.toContainText('подготовлен заранее');
   await page.locator('#aiDraftInsert').click();await expect(page.locator('#replyText')).toHaveValue(text+'\n'+proposal().draft);expect(state.aiCalls()[2].draft_id).toBe('d'.repeat(32));
   expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('workspaceV2.replySession.v1')).drafts.find(row=>row.id===11).aiDraftId)).toBe('d'.repeat(32));await expect(page.locator('#mediaSelection')).toContainText('keep.txt');clean(state);
 });
