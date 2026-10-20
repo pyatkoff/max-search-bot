@@ -24,6 +24,26 @@ final class ManagerAiDraftContextService
      */
     public static function snapshot(int $conversationId, int $actor): array
     {
+        return self::capture($conversationId, $actor, false);
+    }
+
+    /** Worker-only read scope. Zero means no assigned owner, never a synthetic take. */
+    public static function preparationSnapshot(int $conversationId, int $owner): array
+    {
+        if ($owner > 0) return self::snapshot($conversationId, $owner);
+        if ($owner !== 0) return self::failure('unauthorized');
+        try {
+            $pdo = ConversationDb::connection();
+            if ($pdo->inTransaction()) return self::failure('context_unavailable');
+            $q = $pdo->prepare("SELECT m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id JOIN projects p ON p.id=mp.project_id WHERE m.is_active=1 AND m.role='admin' AND p.is_active=1 AND p.project_key=? ORDER BY m.id LIMIT 1");
+            $q->execute([ProjectConfig::projectId()]);
+            $admin = (int)$q->fetchColumn();
+            return $admin > 0 ? self::capture($conversationId, $admin, true) : self::failure('unauthorized');
+        } catch (Throwable $ignored) { return self::failure('context_unavailable'); }
+    }
+
+    private static function capture(int $conversationId, int $actor, bool $waiting): array
+    {
         if ($conversationId <= 0) return self::failure('invalid_conversation_id');
         if ($actor <= 0) return self::failure('unauthorized');
         $pdo = null;
@@ -47,9 +67,16 @@ final class ManagerAiDraftContextService
             if (!$manager) return self::failure('unauthorized');
             $conversation = ManagerConversationService::visibleConversation($conversationId, $actor);
             if (!$conversation) return self::failure('not_found');
+            if ($waiting) {
+                if (($manager['role'] ?? '') !== 'admin' || ($conversation['status'] ?? '') !== 'waiting_manager'
+                    || $conversation['manager_id'] !== null) return self::failure('reply_not_allowed');
+                $q = $pdo->prepare('SELECT 1 FROM conversations c JOIN projects p ON p.project_key=c.project_key JOIN manager_projects mp ON mp.project_id=p.id WHERE c.id=? AND c.is_test=0 AND c.project_key=? AND p.is_active=1 AND mp.manager_id=?');
+                $q->execute([$conversationId,ProjectConfig::projectId(),$actor]);
+                if (!$q->fetchColumn()) return self::failure('unauthorized');
+            }
             // Admin edit permission is deliberately not reply ownership.
-            if (($conversation['status'] ?? '') !== 'manager'
-                || (int)($conversation['manager_id'] ?? 0) !== $actor) {
+            if (!$waiting && (($conversation['status'] ?? '') !== 'manager'
+                || (int)($conversation['manager_id'] ?? 0) !== $actor)) {
                 return self::failure('reply_not_allowed');
             }
             if (($conversation['channel'] ?? '') === 'max'
@@ -131,6 +158,14 @@ final class ManagerAiDraftContextService
                 'selections_link_unread'=>in_array(true, array_column($messages, 'selections_link_unread'), true)];
             $knowledge = ManagerCompanyKnowledge::forProject((string)$conversation['project_key']);
             $references = ManagerAiDraftReferenceContext::capture($pdo,$conversation,$context);
+            // Evidence continuity permits a ready pre-take draft to be reviewed
+            // by its real new owner. Access/state remain freshly checked above.
+            $preparationRevision = hash('sha256', json_encode([
+                'schema'=>'manager_waiting_preparation_v1',
+                'conversation'=>array_intersect_key($conversation,array_flip(['id','project_key','source_id','channel'])),
+                'source'=>$source, 'context'=>$context, 'company_knowledge'=>$knowledge->revision(),
+                'selection_context_schema'=>1, 'reference_context'=>$references->revision(),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
             $revision = hash('sha256', json_encode([
                 'schema'=>'manager_ai_draft_context_v2', 'actor'=>$actor,
                 'role'=>(string)($manager['role'] ?? ''),
@@ -138,9 +173,10 @@ final class ManagerAiDraftContextService
                 'source'=>$source, 'context'=>$context, 'company_knowledge'=>$knowledge->revision(), 'selection_context_schema'=>1,
                 'reference_context'=>$references->revision(),
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+            if ($waiting) $revision = $preparationRevision;
             $pdo->commit();
             $started = false;
-            return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'company_knowledge'=>$knowledge,
+            return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'preparation_revision'=>$preparationRevision, 'company_knowledge'=>$knowledge,
                 'reference_context'=>$references,
                 'selection_sources'=>array_slice($selectionLinks, -41),
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];

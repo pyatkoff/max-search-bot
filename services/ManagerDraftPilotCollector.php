@@ -24,7 +24,8 @@ final class ManagerDraftPilotCollector
         int $limit = self::MAX_CONVERSATIONS,
         ?string $sinceUtc = null,
         ?callable $snapshot = null,
-        ?string $capturedAtUtc = null
+        ?string $capturedAtUtc = null,
+        bool $includeUnassigned = false
     ): array {
         if (!array_is_list($managerIds) || !$managerIds || count($managerIds) > 2000) {
             return self::failure('invalid_cohort');
@@ -52,9 +53,9 @@ final class ManagerDraftPilotCollector
             if ($snapshot === null) {
                 // Canonical services must authorize against the selected store.
                 if (ConversationDb::connection() !== $pdo) return self::failure('context_unavailable');
-                $snapshot = [ManagerAiDraftContextService::class, 'snapshot'];
+                $snapshot = [ManagerAiDraftContextService::class, $includeUnassigned ? 'preparationSnapshot' : 'snapshot'];
             }
-            $candidates = self::candidatePage($pdo, $driver, $managerIds, $limit, $sinceUtc, $capturedAtUtc);
+            $candidates = self::candidatePage($pdo, $driver, $managerIds, $limit, $sinceUtc, $capturedAtUtc, null, $includeUnassigned);
             $conversations = [];
             $skipped = [];
             $seen = [];
@@ -78,8 +79,9 @@ final class ManagerDraftPilotCollector
                     }
                     // Capture can race a manager reply, test marking or a new
                     // customer message. Never export an obsolete selected row.
-                    $current = self::candidatePage($pdo, $driver, [$actor], 1, $sinceUtc, $capturedAtUtc, $id);
+                    $current = self::candidatePage($pdo, $driver, [$actor], 1, $sinceUtc, $capturedAtUtc, $id, $includeUnassigned);
                     if (count($current) !== 1
+                        || (int)($current[0]['assigned_manager_id'] ?? 0) !== $actor
                         || (int)$current[0]['latest_message_id'] !== $normalized['latest_message_id']
                         || (string)$current[0]['project_key'] !== (string)$candidate['project_key']
                         || (string)$current[0]['channel'] !== (string)$candidate['channel']
@@ -132,7 +134,8 @@ final class ManagerDraftPilotCollector
         int $limit,
         string $sinceUtc,
         string $capturedAtUtc,
-        ?int $conversationId = null
+        ?int $conversationId = null,
+        bool $includeUnassigned = false
     ): array {
         if ($pdo->inTransaction()) throw new RuntimeException('pilot_transaction_unavailable');
         $started = false;
@@ -152,11 +155,12 @@ final class ManagerDraftPilotCollector
                 ."customer_last.id AS last_customer_message_id,customer_last.created_at AS last_customer_message_at,"
                 ."(SELECT MAX(all_messages.id) FROM messages all_messages WHERE all_messages.conversation_id=c.id) AS latest_message_id "
                 ."FROM conversations c JOIN customers cu ON cu.id=c.customer_id "
-                ."JOIN managers m ON m.id=c.manager_id AND m.is_active=1 "
+                ."LEFT JOIN managers m ON m.id=c.manager_id "
                 ."JOIN messages customer_last ON customer_last.id=(SELECT MAX(mc.id) FROM messages mc "
                 ."WHERE mc.conversation_id=c.id AND mc.direction='inbound' AND mc.sender_type='customer' "
                 ."AND COALESCE({$type},'message') NOT IN (?,?,?)) "
-                ."WHERE c.status='manager' AND c.is_test=0 AND c.manager_id IN ({$cohort}) "
+                ."WHERE ((c.status='manager' AND m.is_active=1 AND c.manager_id IN ({$cohort}))"
+                .($includeUnassigned ? " OR (c.status='waiting_manager' AND c.manager_id IS NULL)" : '') .") AND c.is_test=0 "
                 ."AND customer_last.created_at>=? AND customer_last.created_at<=? "
                 ."AND customer_last.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=c.id "
                 ."AND mo.direction='outbound' AND mo.sender_type='manager'),0)"
