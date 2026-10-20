@@ -23,9 +23,13 @@ It receives the same frozen source prefix plus that exact saved result. No
 future messages, current external searches, invented reactions or manager
 answer as a gold label are supplied.
 
-For a ChatGPT worker, selecting the requested model is the worker's obligation.
+For a ChatGPT worker, selecting the requested model and reasoning is the worker's obligation.
 The saved declaration is explicitly `worker_declared`, `provider_verified=false`;
-it does not prove provider identity, token usage or billing. The optional isolated
+it does not prove provider identity, token usage or billing. ChatGPT delegation
+does not expose an API service tier: declare `service_tier=unknown`, preserving
+that unknown value rather than claiming Standard was observed. The profile's
+`default` tier is the explicit setting for the optional direct Responses path.
+The optional isolated
 Responses client has separate request profiles, `store=false`, bounded time and
 bytes, and no retry. No capture, MCP call or default CLI command invokes it.
 

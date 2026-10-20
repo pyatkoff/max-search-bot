@@ -111,6 +111,10 @@ try {
     $reordered=['service_tier'=>'default','model'=>'gpt-6-astra','reasoning_effort'=>'high'];
     $saved=$invoke('save_virtual_reply',['case_id'=>$case,'role'=>'reviewer','claim_token'=>$token,'result'=>$review,'metadata'=>$reordered]);
     virtualMcpCheck('JSON metadata key order does not alter declared reviewer profile',($saved['result']['structuredContent']['saved']??false)===true);
+    $unexposed=['model'=>'gpt-6-astra','reasoning_effort'=>'high','service_tier'=>'unknown'];
+    $saved=$invoke('save_virtual_reply',['case_id'=>$case,'role'=>'reviewer','claim_token'=>$token,'result'=>$review,'metadata'=>$unexposed]);
+    virtualMcpCheck('ChatGPT can honestly record an unexposed service tier',($saved['result']['structuredContent']['saved']??false)===true
+        &&end($calls)===['save',[$case,'reviewer',$token,1,$review,$unexposed]]);
     $reviews=$invoke('list_virtual_reply_reviews',['limit'=>2])['result'];
     virtualMcpCheck('review list contains metadata without transcript or claim material',end($calls)===['reviews',[2]]
         && !str_contains(json_encode($reviews),'Synthetic question') && !str_contains(json_encode($reviews),'claim_token') && !str_contains(json_encode($reviews),'source_scope'));

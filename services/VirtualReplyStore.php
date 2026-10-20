@@ -335,8 +335,9 @@ final class VirtualReplyStore
         $declared=[];
         foreach ($expected as $key=>$value) {
             if (!array_key_exists($key,$metadata)) continue;
-            if (!is_string($metadata[$key]) || $metadata[$key]!==$value) throw new InvalidArgumentException('virtual_reply_profile_mismatch');
-            $declared[$key]=$value;
+            if (!is_string($metadata[$key]) || ($metadata[$key]!==$value
+                && !($key==='service_tier'&&$metadata[$key]==='unknown'))) throw new InvalidArgumentException('virtual_reply_profile_mismatch');
+            $declared[$key]=$metadata[$key];
         }
         return ['profile_source'=>'worker_declared','provider_verified'=>false,'requested_profile'=>$profile,'declared_profile'=>$declared];
     }

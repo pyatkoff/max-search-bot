@@ -130,8 +130,13 @@ $reviewContext=$store->context($caseId,'reviewer',$reviewJob['claim_token'],11);
 storeCheck('later reviewer gets the exact full saved author result',$reviewContext['payload']['author_result']===storeAuthor($source)
     && $reviewContext['profile']===VirtualReplyProtocol::profile('reviewer') && $reviewContext['instructions']===VirtualReplyProtocol::instructions('reviewer'));
 storeCheck('review is unavailable until completed',storeReject(fn()=>$store->review($caseId),'virtual_reply_review_unavailable'));
-$store->save($caseId,'reviewer',$reviewJob['claim_token'],11,storeReview($source),storeMetadata('reviewer'));
+$reviewMetadata=storeMetadata('reviewer');$reviewMetadata['service_tier']='unknown';
+$store->save($caseId,'reviewer',$reviewJob['claim_token'],11,storeReview($source),$reviewMetadata);
 $export=$store->review($caseId);$listed=$store->reviews(10);
+storeCheck('unexposed ChatGPT tier stays unknown rather than becoming requested Standard',
+    $export['review_metadata']['declared_profile']['service_tier']==='unknown'
+    &&$export['review_metadata']['requested_profile']['service_tier']==='default'
+    &&$export['review_metadata']['provider_verified']===false);
 storeCheck('completed review exports exact frozen source and both passes',$export['author_result']===storeAuthor($source)
     && $export['review_result']===storeReview($source) && count($listed['reviews'])===1 && $listed['reviews'][0]['verdict']==='revise'
     && !str_contains(json_encode($listed),'Трое взрослых') && $export['disposition']===['status'=>'unresolved']);
