@@ -1,4 +1,4 @@
-name: Restore reported MAX button 20261020
+name: Inspect MAX event-only markup 20261020
 on:
   push:
     branches: [test/max-post-button-20261020]
@@ -38,62 +38,24 @@ jobs:
           cat > "$RUNNER_TEMP/post-diagnostic.php" <<'PHP'
           <?php
           declare(strict_types=1);
-          ini_set('display_errors','0');ini_set('log_errors','0');
-          $out=['ok'=>false,'state'=>'blocked','target_published_ms'=>1792498928543];
-          try {
+          ini_set('display_errors','0');
+          $out=['ok'=>false,'mode'=>'read_only','database_writes'=>0,'provider_writes'=>0];
+          try{
            $root=getcwd();ob_start();try{require $root.'/config.php';}finally{ob_end_clean();}
            require_once $root.'/services/ChannelPostRuntime.php';
-           $identity=ChannelPostRuntime::identity('max');
-           if(!is_array($identity)||$identity['project_key']!=='anytour'||$identity['bot_key']!=='id9704048781_1_bot')throw new RuntimeException();
-           $registry=new ChannelPostRegistryService();$pdo=ConversationDb::connection();
-           $channel=$registry->channel('anytour','max',$identity['bot_key'],'-77309177991187');
-           if(!$channel||$channel['source_key']!=='max_anytour_spb')throw new RuntimeException();
-           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>'-77309177991187','from'=>1792498928543,'to'=>1792498928543,'count'=>2],null);
-           $messages=$r['data']['messages']??[];
-           if(($r['http']??0)!==200||!empty($r['transport_error'])||count($messages)!==1)throw new RuntimeException();
-           $m=$messages[0];$mid=(string)($m['body']['mid']??'');
-           if(!preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$mid)||(string)($m['recipient']['chat_id']??'')!=='-77309177991187'||($m['recipient']['chat_type']??'')!=='channel'||(int)($m['timestamp']??0)!==1792498928543)throw new RuntimeException();
-           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$current=$r['data']??null;
-           if(($r['http']??0)!==200||!empty($r['transport_error'])||!is_array($current)||($current['body']['mid']??'')!==$mid||(string)($current['recipient']['chat_id']??'')!=='-77309177991187')throw new RuntimeException();
-           $snapshot=ChannelPostIncomingAdapter::maxSnapshot($current);
-           $expectedHash='0d7646f6be129e9a59c516cd20c2fa6001b97e0f35e4667a12b845a9aedd46bf';
-           if(!$snapshot||($snapshot['metadata']['capability']??'')!=='supported'||count($snapshot['attachments'])!==1||ChannelPostIncomingAdapter::contentFingerprint($snapshot)!==$expectedHash||ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::maxSnapshot($m))!==$expectedHash)throw new RuntimeException();
-           $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 1');$q->execute([(int)$channel['id'],$mid]);$id=(int)$q->fetchColumn();
-           $old=$registry->publication($id);
-           if(!$old||(int)$old['version_number']!==1||$old['state']!=='requires_attention'||$old['error_reason']!=='post_changed_since_event'||(int)$old['write_attempts']!==0||$old['source_key']!=='max_anytour_spb')throw new RuntimeException();
-           $prior=$old['snapshot'];
-           $hash=static fn($v)=>hash('sha256',json_encode($v,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
-           $media=static fn($s)=>array_map(static fn($a)=>[$a['type']??'',(string)($a['photo_id']??'')],$s['attachments']??[]);
-           if($hash($prior['text'])!==$hash($snapshot['text'])||$hash($media($prior))!==$hash($media($snapshot))||$hash($prior['metadata']['link']??null)!==$hash($snapshot['metadata']['link']??null))throw new RuntimeException();
-           $canon=static function($v)use(&$canon){if(!is_array($v))return $v;if(!array_is_list($v))ksort($v);foreach($v as &$x)$x=$canon($x);return $v;};
-           $out['markup_object_key_order_only']=$canon($prior['markup']??null)===$canon($snapshot['markup']??null);
-           $shape=static fn($a)=>array_map(static fn($e)=>is_array($e)?['keys'=>array_keys($e),'type'=>in_array($e['type']??'', ['strong','emphasized','monospaced','strikethrough','underline','link','user_mention','heading','bold','italic'],true)?$e['type']:'other','from'=>$e['from']??null,'length'=>$e['length']??null]:gettype($e),is_array($a)?$a:[]);
-           $out['markup_shapes']=['stored'=>$shape($prior['markup']??null),'current'=>$shape($snapshot['markup']??null)];
-           $snapshot['content_hash']=$expectedHash;
-           $observed=(string)(int)floor(microtime(true)*1000);
-           $snapshot['metadata']['observation_kind']='owner_authorized_provider_read';
-           $snapshot['metadata']['observed_at_ms']=$observed;
-           $snapshot['metadata']['source_revision_ms']=$observed;
-           $snapshot['metadata']['source_revision_scope']='provider_read_observation_time';
-           $snapshot['metadata']['source_event_id']='owner-provider-recovery-20261020:'.$id.':'.$expectedHash;
-           $before=$registry->publication($id);
-           if(!$before||(int)$before['version_id']!==(int)$old['version_id']||(int)$before['channel']['config_version']!==(int)$channel['config_version']||$before['state']!=='requires_attention'||(int)$before['write_attempts']!==0)throw new RuntimeException();
-           $out['state']='registration_started';
-           $fresh=$registry->registerPublication('anytour','max',$identity['bot_key'],'-77309177991187',$mid,$snapshot);
-           if(!$fresh||(int)$fresh['publication_id']!==$id||(int)$fresh['version_number']!==2||$fresh['start_payload']!==$old['start_payload']||$fresh['content_hash']!==$expectedHash||$fresh['state']!=='pending'||!empty($fresh['stale_observation'])||!empty($fresh['duplicate_event']))throw new RuntimeException();
-           $out['state']='canonical_operation_started';
-           $result=(new ChannelPostAutomationService($registry))->processPublication('anytour','max',$identity['bot_key'],$id,(int)$fresh['version_id']);
-           $out['state']=$result['state']??'unknown';$out['reason']=$result['reason']??'unknown';
-           $out['receipt']=array_intersect_key((array)($result['receipt']??[]),array_flip(['request_count','write_attempts','http_results','content_preserved','button_verified']));
-           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$after=$r['data']??null;
-           $final=is_array($after)?ChannelPostIncomingAdapter::maxSnapshot($after):null;
-           $url=ChannelPostButtonTransport::buttonUrl($fresh);
-           $out['final_readback']=['same_mid'=>is_array($after)&&($after['body']['mid']??'')===$mid,'same_channel'=>is_array($after)&&(string)($after['recipient']['chat_id']??'')==='-77309177991187','content_preserved'=>is_array($final)&&ChannelPostIncomingAdapter::contentFingerprint($final)===$expectedHash,'only_our_button'=>is_array($final)&&ChannelPostIncomingAdapter::containsOnlyButton($final,$url,(string)$channel['button_text']),'image_count'=>count($final['attachments']??[])];
-           $out['ok']=$out['state']==='sent'&&!in_array(false,$out['final_readback'],true)&&$out['final_readback']['image_count']===1;
-           $out['server_utc']=gmdate('c');
-          }catch(Throwable $ignored){$out['error']='recovery_stopped_no_replay';}
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($out['ok']?0:2);
+           $pdo=ConversationDb::connection();$pdo->exec('START TRANSACTION READ ONLY');
+           $q=$pdo->prepare('SELECT p.external_message_id,v.snapshot_json FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id JOIN post_versions v ON v.publication_id=p.id AND v.version_number=1 WHERE c.platform=? AND c.channel_id=? ORDER BY p.id DESC LIMIT 1');
+           $q->execute(['max','-77309177991187']);$row=$q->fetch();$pdo->rollBack();
+           $old=json_decode((string)$row['snapshot_json'],true);$mid=(string)$row['external_message_id'];
+           if(($old['published_at']??'')!=='2026-10-20 12:22:08')throw new RuntimeException();
+           $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.rawurlencode($mid),[],null);$m=$r['data']??null;
+           if(($r['http']??0)!==200||!is_array($m)||($m['body']['mid']??'')!==$mid)throw new RuntimeException();
+           $cur=ChannelPostIncomingAdapter::maxSnapshot($m);
+           $shape=static function($ee){$out=[];foreach((array)$ee as $e){if(!is_array($e))continue;$type=$e['type']??'';$out[]=['type'=>is_string($type)&&preg_match('/\A[a-z_]{1,40}\z/',$type)?$type:'redacted','from'=>(int)($e['from']??-1),'length'=>(int)($e['length']??-1),'keys'=>array_keys($e)];}return $out;};
+           $out['event_markup']=$shape($old['markup']??null);$out['current_markup']=$shape($cur['markup']??null);
+           $out['ok']=true;
+          }catch(Throwable $e){$out['error']='read_only_markup_probe_failed';}
+          echo json_encode($out,JSON_UNESCAPED_SLASHES),PHP_EOL;exit($out['ok']?0:2);
           PHP
           php -l "$RUNNER_TEMP/post-diagnostic.php"
       - name: Prepare established SSH key
@@ -124,9 +86,9 @@ jobs:
           python3 - <<'PY'
           import json, os
           with open(os.environ['RUNNER_TEMP']+'/post-diagnostic.json') as f: d=json.load(f)
+          assert d['ok'] is True and d['mode']=='read_only'
+          assert d['database_writes']==0 and d['provider_writes']==0
           print(json.dumps(d,sort_keys=True))
-          assert d['ok'] is True and d['state']=='sent'
-          assert d['receipt']['write_attempts']==1 and d['receipt']['button_verified'] is True and d['receipt']['content_preserved'] is True
           PY
       - name: Remove ephemeral diagnostic files
         if: always()
