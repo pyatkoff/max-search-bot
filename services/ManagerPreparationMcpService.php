@@ -272,7 +272,12 @@ final class ManagerPreparationMcpService
                 if ($row['next_attempt_at']!==null) ++$summary['retrying'];
             }
         } catch (Throwable $ignored) {$summary=['available'=>false];}
-        return ['tick'=>$tick,'connections'=>$summary];
+        $reference=['status'=>'unavailable','reason'=>'inspection_failed'];
+        try {
+            require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
+            $reference=ManagerAiDraftReferenceContext::routeCacheHealth();
+        } catch (Throwable $ignored) { /* A directory outage never breaks queue reads. */ }
+        return ['tick'=>$tick,'connections'=>$summary,'travel_reference'=>$reference];
     }
 
     public function deliverPending(): array

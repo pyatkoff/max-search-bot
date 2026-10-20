@@ -54,6 +54,12 @@ final class ManagerAiDraftReferenceContext
         return hash('sha256',json_encode($this->data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     }
 
+    /** Authenticated preparation diagnostics use the exact same reader as drafts. */
+    public static function routeCacheHealth(): array
+    {
+        return self::readRouteCache(dirname(__DIR__).'/tourvisor_routes.json',time())['health'];
+    }
+
     private static function binding(array $context): string
     {
         $messages = [];
@@ -77,18 +83,9 @@ final class ManagerAiDraftReferenceContext
     private static function routes(string $path, array $texts, int $now): array
     {
         $empty = ['status'=>'unavailable','current_price_verified'=>false,'coverage_complete'=>false,'departures'=>[]];
-        $stream = @fopen($path,'rb');
-        if ($stream === false) return $empty;
-        try {
-            $stat = fstat($stream);
-            $raw = stream_get_contents($stream,self::MAX_CACHE_BYTES+1);
-        } finally { fclose($stream); }
-        if (!is_string($raw) || strlen($raw)>self::MAX_CACHE_BYTES) return $empty;
-        try { $cache = json_decode($raw,true,24,JSON_THROW_ON_ERROR); }
-        catch (Throwable $ignored) { return $empty; }
-        if (!is_array($cache) || !is_array($cache['departures'] ?? null)) return $empty;
-        $modified = (int)($stat['mtime'] ?? 0);
-        $stale = $modified<=0 || $modified>$now+300 || $now-$modified>86400;
+        $read = self::readRouteCache($path,$now);
+        if ($read['cache'] === null) return $empty+$read['health'];
+        $cache = $read['cache'];
         $forms = [];
         // Use the existing catalogue's exact canonical/genitive names. These
         // forms only select reference rows; they never change a tourist's needs.
@@ -100,10 +97,43 @@ final class ManagerAiDraftReferenceContext
             }
         } catch (Throwable $ignored) { /* Exact cached names remain usable. */ }
         $data = self::projectRoutes($cache['departures'],$texts,$forms);
-        return ['status'=>'available','source'=>'local_tourvisor_route_cache',
-            'cache_modified_at'=>$modified>0 ? gmdate('Y-m-d\TH:i:s\Z',$modified) : null,
-            'cache_stale'=>$stale,'current_price_verified'=>false,'coverage_complete'=>false,
+        return $read['health']+['current_price_verified'=>false,'coverage_complete'=>false,
             'departures'=>$data['departures'],'departures_truncated'=>$data['truncated']];
+    }
+
+    private static function readRouteCache(string $path, int $now): array
+    {
+        $health = ['status'=>'unavailable','source'=>'local_tourvisor_route_cache',
+            'reason'=>'cache_not_found','cache_size_bytes'=>null,'cache_limit_bytes'=>self::MAX_CACHE_BYTES,
+            'cache_modified_at'=>null,'cache_stale'=>true];
+        clearstatcache(true,$path);
+        $stat = @stat($path);
+        if (!is_array($stat)) return ['health'=>$health,'cache'=>null];
+        $health['cache_size_bytes'] = (int)$stat['size'];
+        $modified = (int)$stat['mtime'];
+        $health['cache_modified_at'] = $modified>0 ? gmdate('Y-m-d\TH:i:s\Z',$modified) : null;
+        $health['cache_stale'] = $modified<=0 || $modified>$now+300 || $now-$modified>86400;
+        if (($stat['mode'] & 0170000)!==0100000) return ['health'=>array_replace($health,['reason'=>'cache_not_regular']),'cache'=>null];
+        if ($stat['size']>self::MAX_CACHE_BYTES) return ['health'=>array_replace($health,['reason'=>'cache_too_large']),'cache'=>null];
+        $stream = @fopen($path,'rb');
+        if ($stream === false) return ['health'=>array_replace($health,['reason'=>'cache_unreadable']),'cache'=>null];
+        try {
+            $stat = fstat($stream);
+            $raw = stream_get_contents($stream,self::MAX_CACHE_BYTES+1);
+        } finally { fclose($stream); }
+        if (!is_string($raw)) return ['health'=>array_replace($health,['reason'=>'cache_read_failed']),'cache'=>null];
+        if (strlen($raw)>self::MAX_CACHE_BYTES) return ['health'=>array_replace($health,['reason'=>'cache_too_large']),'cache'=>null];
+        try { $cache = json_decode($raw,true,24,JSON_THROW_ON_ERROR); }
+        catch (Throwable $ignored) { return ['health'=>array_replace($health,['reason'=>'cache_invalid_json']),'cache'=>null]; }
+        if (!is_array($cache) || !is_array($cache['departures'] ?? null)) return ['health'=>array_replace($health,['reason'=>'cache_invalid_shape']),'cache'=>null];
+        $modified = (int)($stat['mtime'] ?? 0);
+        $health['cache_modified_at'] = $modified>0 ? gmdate('Y-m-d\TH:i:s\Z',$modified) : null;
+        $health['cache_stale'] = $modified<=0 || $modified>$now+300 || $now-$modified>86400;
+        $health['cache_size_bytes'] = strlen($raw);
+        $health['status'] = 'available';
+        $health['reason'] = 'cache_readable';
+        $health['departure_count'] = count($cache['departures']);
+        return ['health'=>$health,'cache'=>$cache];
     }
 
     private static function projectRoutes(array $rows, array $texts, array $forms): array

@@ -273,6 +273,13 @@ that ChatGPT generated or a manager sent a reply.
 `list_pending_replies` includes `preparation_health` under its existing active
 project-admin authorization. It contains the checkpoint plus bounded read-only
 subscription aggregates (active, inactive, expired, unauthorized and retrying).
+Its `travel_reference` summary uses the exact draft cache reader even when there
+are no pending jobs. Fixed reasons distinguish a missing/inaccessible path,
+unreadable/nonregular/overbound file, invalid JSON and invalid shape. Only size,
+limit, modification time, staleness and departure count are exposed; no filesystem
+path, raw cache, credentials or transcript is returned. This read neither refreshes
+the supplier nor repairs runtime data. An unavailable reference is not flight
+unavailability.
 It neither renews subscriptions nor sends callbacks. The same safe aggregates
 are published as `manager_preparation` in production/autopilot diagnostics; their
 capture time must be considered separately from the tick's own timestamps.
