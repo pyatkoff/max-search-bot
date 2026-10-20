@@ -1,16 +1,28 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-10-20T22:35:09+00:00",
+    "generated_at": "2026-10-20T23:39:35+00:00",
     "production": {
-        "sha": "9969f800d19f1de6c7ba0ac26c9bcb0f81b0dab7",
+        "sha": "090cd40344c114257cdaf3289870985d0e9f05c6",
         "branch": "main"
     },
     "manager_mcp_discovery": {
         "sampled_count": 20,
         "recent_attempts": [
             {
-                "at": "2026-10-21T01:34:42+03:00",
+                "at": "2026-10-21T02:38:26+03:00",
+                "http_method": "POST",
+                "credential_header": "bearer",
+                "client_kind": "header_probe",
+                "rpc_method": "absent",
+                "requested_version": "absent",
+                "header_version": "absent",
+                "http_status": 401,
+                "stage": "credentials",
+                "rpc_error": -32001
+            },
+            {
+                "at": "2026-10-21T02:20:10+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -22,7 +34,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:09+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -34,7 +46,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:08+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -46,7 +58,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:07+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -58,7 +70,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:06+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -70,7 +82,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:05+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -82,7 +94,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:04+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -94,7 +106,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:03+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -106,7 +118,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:02+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -118,7 +130,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:41+03:00",
+                "at": "2026-10-21T02:20:01+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -130,7 +142,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:20:00+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -142,7 +154,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:59+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -154,7 +166,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:58+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -166,7 +178,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:58+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -178,7 +190,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:57+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -190,7 +202,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:56+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -202,7 +214,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:40+03:00",
+                "at": "2026-10-21T02:19:55+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -214,7 +226,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:39+03:00",
+                "at": "2026-10-21T02:19:54+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -226,19 +238,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-10-21T01:34:27+03:00",
-                "http_method": "POST",
-                "credential_header": "bearer",
-                "client_kind": "other",
-                "rpc_method": "other",
-                "requested_version": "absent",
-                "header_version": "2026-07-28",
-                "http_status": 200,
-                "stage": "complete",
-                "rpc_error": null
-            },
-            {
-                "at": "2026-10-21T01:34:23+03:00",
+                "at": "2026-10-21T02:18:08+03:00",
                 "http_method": "POST",
                 "credential_header": "bearer",
                 "client_kind": "other",
@@ -255,25 +255,25 @@
         "tick": {
             "available": true,
             "stale": false,
-            "age_seconds": 45,
+            "age_seconds": 10,
             "state": "ok",
             "stage": "complete",
-            "last_started_at": "2026-10-20T22:34:01Z",
-            "last_finished_at": "2026-10-20T22:34:03Z",
-            "last_success_at": "2026-10-20T22:34:03Z",
+            "last_started_at": "2026-10-20T23:39:01Z",
+            "last_finished_at": "2026-10-20T23:39:03Z",
+            "last_success_at": "2026-10-20T23:39:03Z",
             "last_error_at": null,
             "last_error_stage": null,
             "counts": {
                 "candidates": 18,
                 "captured": 18,
-                "inserted": 18,
-                "existing": 0,
+                "inserted": 0,
+                "existing": 18,
                 "skipped": 0,
                 "subscriptions": 1,
-                "accepted": 1,
+                "accepted": 0,
                 "retried": 0,
                 "stopped": 0,
-                "unchanged": 0
+                "unchanged": 1
             }
         },
         "connections": {
@@ -296,13 +296,13 @@
             "current_price_verified": false,
             "coverage_complete": false,
             "dates_available": false,
-            "catalog_synced_at": "2026-10-20T18:31:15Z",
+            "catalog_synced_at": "2026-10-20T23:13:38Z",
             "catalog_stale": false,
             "catalog_rows_truncated": false,
             "matrix_coverage_complete": true,
             "matrix_pair_counts": {
                 "all": 2083,
-                "direct": 284,
+                "direct": 282,
                 "charter": 193,
                 "direct_charter": 166
             },
@@ -334,7 +334,7 @@
             "pending_count": 7,
             "overdue_count": 7,
             "stuck_count": 7,
-            "oldest_wait_seconds": 666757,
+            "oldest_wait_seconds": 670622,
             "routing_blocked_count": 0
         },
         "push": {
@@ -366,9 +366,9 @@
                 "waiting": 6,
                 "assigned_to_others": 110,
                 "load_ms": {
-                    "all": 69,
-                    "mine": 15.3,
-                    "waiting": 69.2
+                    "all": 68.5,
+                    "mine": 15,
+                    "waiting": 64.9
                 },
                 "sample_check": {
                     "ok": true,
@@ -388,9 +388,9 @@
                 "waiting": 6,
                 "assigned_to_others": 111,
                 "load_ms": {
-                    "all": 70.1,
-                    "mine": 5.9,
-                    "waiting": 85.5
+                    "all": 67.9,
+                    "mine": 5.8,
+                    "waiting": 66.2
                 },
                 "sample_check": {
                     "ok": true,
@@ -410,9 +410,9 @@
                 "waiting": 7,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 99.3,
-                    "mine": 44.7,
-                    "waiting": 97.5
+                    "all": 74.5,
+                    "mine": 35.5,
+                    "waiting": 82.2
                 },
                 "sample_check": {
                     "ok": true,
@@ -432,9 +432,9 @@
                 "waiting": 6,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 80.5,
-                    "mine": 334.2,
-                    "waiting": 87.8
+                    "all": 72.5,
+                    "mine": 299.5,
+                    "waiting": 75.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -454,9 +454,9 @@
                 "waiting": 6,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 85,
-                    "mine": 2.5,
-                    "waiting": 87.6
+                    "all": 76.8,
+                    "mine": 3.2,
+                    "waiting": 81.7
                 },
                 "sample_check": {
                     "ok": true,
@@ -476,9 +476,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 86.8,
-                    "mine": 25,
-                    "waiting": 87.3
+                    "all": 79.2,
+                    "mine": 20.6,
+                    "waiting": 74.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -498,9 +498,9 @@
                 "waiting": 7,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 83,
-                    "mine": 55.3,
-                    "waiting": 73.4
+                    "all": 72.8,
+                    "mine": 47.4,
+                    "waiting": 68.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -525,7 +525,7 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-10-20 21:34:56",
+        "since_utc": "2026-10-20 22:39:21",
         "summary": {
             "sessions": 0,
             "raw_sessions": 0,
@@ -560,7 +560,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "9969f800d19f1de6c7ba0ac26c9bcb0f81b0dab7",
+        "sha": "090cd40344c114257cdaf3289870985d0e9f05c6",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -569,7 +569,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-10-20T22:35:09Z"
+        "reported_at": "2026-10-20T23:39:35Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -577,7 +577,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-10-20T22:34:49+00:00",
+        "generated_at": "2026-10-20T23:39:13+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -672,7 +672,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-10-20T22:34:48+00:00",
+        "generated_at": "2026-10-20T23:39:13+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -970,7 +970,7 @@
                 "date": "2026-10-21",
                 "partial": true,
                 "since_utc": "2026-10-20 22:00:00",
-                "until_utc": "2026-10-20 22:34:48",
+                "until_utc": "2026-10-20 23:39:13",
                 "channels": [
                     {
                         "channel": "max",
@@ -1022,10 +1022,10 @@
         "draft_limit_reached": false,
         "message_limit_reached": false,
         "error": null,
-        "generated_at": "2026-10-20T22:34:48Z",
+        "generated_at": "2026-10-20T23:39:13Z",
         "window": {
-            "since": "2026-10-13 22:34:48",
-            "until": "2026-10-20 22:34:48",
+            "since": "2026-10-13 23:39:13",
+            "until": "2026-10-20 23:39:13",
             "timezone": "UTC",
             "days": 7,
             "basis": "persisted_generation_cohort"
@@ -1104,7 +1104,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-10-20T22:35:07+00:00",
+        "generated_at": "2026-10-20T23:39:33+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -1147,14 +1147,14 @@
                 "code_lines": 0
             },
             "tests": {
-                "files": 383,
-                "bytes": 4381409,
-                "code_lines": 44449
+                "files": 385,
+                "bytes": 4399898,
+                "code_lines": 44557
             },
             "tools": {
-                "files": 75,
-                "bytes": 323612,
-                "code_lines": 5089
+                "files": 76,
+                "bytes": 335274,
+                "code_lines": 5253
             }
         },
         "hotspots": [
