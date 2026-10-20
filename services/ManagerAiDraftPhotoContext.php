@@ -36,8 +36,9 @@ final class ManagerAiDraftPhotoContext
     /** Only explicit generation/context reads call this; readiness never downloads. */
     public function read(array $context, ?callable $opener=null): ?array
     {
-        if ($this->actor<=0 || $this->project==='' || !in_array($this->channel,['max','telegram'],true)
-            || !hash_equals($this->binding,self::binding($context))) return null;
+        if ($this->actor<=0 || $this->project==='' || !hash_equals($this->binding,self::binding($context))) return null;
+        // A missing photo transport must never disable the canonical text path.
+        if (!in_array($this->channel,['max','telegram'],true)) return ['context'=>$context,'images'=>[]];
         $images=[];$evidence=[];$read=[];$bytes=0;$started=microtime(true);
         foreach ($this->sources as $position=>$source) {
             $row=$source;unset($row['media_count']);$row['status']='unavailable';

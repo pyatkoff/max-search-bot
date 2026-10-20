@@ -189,6 +189,22 @@ function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
     $startedWith = $preparedReplyPassed;
+
+    foreach (['website','telegram','max'] as $channel) {
+        $pdo=preparedReplyFixture($channel);$sourceBefore=preparedReplySourceState($pdo);
+        $snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
+        $context=ManagerPreparedReplyService::context($job);
+        preparedReplyCheck($channel.' text-only worker context survives the photo capability',
+            ($context['ok']??false)&&($context['image_inputs']??null)===[]&&$context['context']['messages']===ManagerAiDraftService::prepareInput($snapshot['context'],$snapshot['company_knowledge'],null,$snapshot['reference_context'])['context']['messages']
+            &&$pdo->sourceWriteAttempts===0&&preparedReplySourceState($pdo)===$sourceBefore);
+        $calls=0;
+        $reply=ManagerAiDraftService::generate($snapshot['context'],static function($instructions,$payload,$images)use(&$calls):array {
+            ++$calls;if($images!==[])throw new RuntimeException('unexpected image');return preparedReplyProposal();
+        },$snapshot['company_knowledge'],null,$snapshot['reference_context'],
+            static fn(array $normalized):?array=>$snapshot['photo_context']->read($normalized));
+        preparedReplyCheck($channel.' text-only manual generation still invokes its provider once',
+            ($reply['ok']??false)&&$calls===1&&$pdo->sourceWriteAttempts===0&&preparedReplySourceState($pdo)===$sourceBefore);
+    }
     $pdo = preparedReplyFixture();
     $sourceBefore = preparedReplySourceState($pdo);
     $snapshot = preparedReplySnapshot();
