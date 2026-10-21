@@ -145,6 +145,25 @@ question. These are calibration examples, not independent model-quality results.
 Changing these instructions versions untouched work only; active and completed
 jobs retain their existing frozen contracts.
 
+## Service scope versus time in transit
+
+Preserve whether the tourist requests a package, accommodation only or flights
+only. A phrase excluding travel time from the stay length is not evidence that
+air tickets should be removed. If the frozen context leaves both materially
+different meanings possible, ask one short question about that boundary and
+continue independent checks. Explicit service choices and already clear hotel
+night counts do not need confirmation. Ordinary colloquial days/nights wording
+alone must not create an extra question. The same grounding applies to internal
+reason/checks, even when no outgoing draft is generated.
+
+Synthetic calibration: during flight comparison, an unclear stay duration that
+excludes the flight needs scope clarification; an explicit hotel-only request
+with already purchased tickets does not; seven hotel nights with travel time
+explicitly excluded keeps the package; a normal five-to-eight-day package request
+keeps its duration range without a terminology question. These are development
+calibration examples, not new independent model-quality measurements. Existing
+claimed/completed jobs still retain their frozen instructions.
+
 ## Operations
 
 Migration `049_virtual_reply_learning.sql` owns persistent tables. Runtime code
