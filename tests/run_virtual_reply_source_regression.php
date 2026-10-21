@@ -145,6 +145,52 @@ $mismatch=sourceArchive($pdo,17,'customer','Inconsistent source');
 $pdo->prepare('UPDATE telegram_dialogue_messages SET chat_id=201 WHERE id=?')->execute([$mismatch]);
 sourceCheck('archive JSON and relational scope must agree', $reader->snapshot('telegram_archive',$mismatch)===null);
 
+$eligibilityDb=sourceDb(); $eligibilityReader=new VirtualReplySourceReader($eligibilityDb);
+// Synthetic account-service templates and technical probes, never live exports.
+$excludedTexts=[
+    'Тестирую', 'ТЕСТ АРХИВА 42!', 'Тест связи 77',
+    "Код для входа в Ваш аккаунт Telegram: 12345.\nНе давайте код никому, даже если его требуют от имени Telegram!",
+    'Login code: 54321. Do not give this code to anyone, even if they say they are from Telegram!',
+    "  Код\u{00A0}для входа в ваш аккаунт Telegram: 65432.\nНе давайте код никому!",
+];
+$excludedArchive=[];
+foreach($excludedTexts as $i=>$text) {
+    sourceMessage($eligibilityDb,$i+1,'customer',$text);
+    $excludedArchive[]=sourceArchive($eligibilityDb,$i+1,'customer',$text);
+}
+sourceCheck('technical tests and account-login notices are not ordinary learning questions',
+    array_filter(array_map(fn(int $id)=>$eligibilityReader->snapshot('conversation',$id),range(1,count($excludedTexts))))===[]);
+sourceCheck('technical tests and account-login notices are not archive learning questions',
+    array_filter(array_map(fn(int $id)=>$eligibilityReader->snapshot('telegram_archive',$id),$excludedArchive))===[]);
+sourceMessage($eligibilityDb,20,'customer','Нужен тур в Египет на троих');
+$cleanConversation=$eligibilityReader->snapshot('conversation',20);
+sourceCheck('non-tourist service text is also absent from a later ordinary prefix',
+    $cleanConversation!==null && $cleanConversation['evidence_message_ids']===[20]);
+$cleanArchiveId=sourceArchive($eligibilityDb,20,'customer','Нужен тур в Египет на троих');
+$cleanArchive=$eligibilityReader->snapshot('telegram_archive',$cleanArchiveId);
+sourceCheck('non-tourist service text is also absent from a later archive prefix',
+    $cleanArchive!==null && $cleanArchive['evidence_message_ids']===[$cleanArchiveId]);
+$servicePeer=sourceArchive($eligibilityDb,25,'customer','Synthetic service announcement',1792490400,[],'anytour',100,777000);
+$serviceSender=sourceArchive($eligibilityDb,26,'customer','Synthetic service announcement',1792490400,['sender_id'=>'777000']);
+sourceCheck('canonical Telegram service peer is excluded independently of text or normalized role',
+    $eligibilityReader->snapshot('telegram_archive',$servicePeer)===null && $eligibilityReader->snapshot('telegram_archive',$serviceSender)===null);
+$ordinaryPeer=sourceArchive($eligibilityDb,27,'customer','Нужен тур в Египет',1792490400,[],'anytour',100,777001);
+sourceCheck('ordinary private peer is not rejected by a partial identity match',
+    $eligibilityReader->snapshot('telegram_archive',$ordinaryPeer)!==null);
+$travelCounterexamples=[
+    'Нужен ли тест на ковид для Турции?',
+    'Пришлите код бронирования 12345',
+    'Тестирую разные варианты отдыха: Турция или Египет?',
+    'Код для входа в личный кабинет отеля не приходит, что делать?',
+    'Подскажите статус бронирования 777000',
+];
+foreach($travelCounterexamples as $i=>$text) {
+    $id=30+$i;sourceMessage($eligibilityDb,$id,'customer',$text);
+    $archiveId=sourceArchive($eligibilityDb,$id,'customer',$text);
+    sourceCheck('travel and booking counterexample remains eligible '.($i+1),
+        $eligibilityReader->snapshot('conversation',$id)!==null && $eligibilityReader->snapshot('telegram_archive',$archiveId)!==null);
+}
+
 $bounded=sourceDb(); $boundedReader=new VirtualReplySourceReader($bounded);
 for($i=1;$i<=125;$i++) sourceMessage($bounded,$i,'customer','Условие '.$i);
 $cap=$boundedReader->snapshot('conversation',125);
