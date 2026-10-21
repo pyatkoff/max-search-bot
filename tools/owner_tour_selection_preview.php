@@ -4,11 +4,22 @@ if (PHP_SAPI!=='cli') { http_response_code(404);exit; }
 if (!defined('TELEGRAM_OWNER_PREVIEW_LIBRARY')) define('TELEGRAM_OWNER_PREVIEW_LIBRARY',true);
 require_once __DIR__.'/telegram_owner_tour_preview.php';
 
+/** Set only by the separate fixed emphasis entrypoint; the original trio stays immutable. */
+function ownerSelectionEmphasis(): bool
+{
+    return defined('OWNER_SELECTION_EMPHASIS')&&OWNER_SELECTION_EMPHASIS===true;
+}
+
+function ownerSelectionDemoPrefix(): string
+{
+    return ownerSelectionEmphasis()?'owner-emphasis-20261021':'owner-trio-20261021';
+}
+
 /** The three requested visual examples only. Terms are invented and explicitly labelled demo. */
 function ownerSelectionHotels(): array
 {
     $base='https://www.delphinhotel.com/main_pics/pages/big/';
-    return [
+    $hotels=[
         'palace'=>['title'=>'Delphin Palace 5★','price'=>'219 600 ₽ за двоих','room'=>'Стандартный номер',
             'photos'=>[$base.'4003.png',$base.'4042.png','https://www.delphinhotel.com/main_pics/pages/medium/798.png']],
         'imperial'=>['title'=>'Delphin Imperial 5★','price'=>'238 400 ₽ за двоих','room'=>'Улучшенный номер',
@@ -16,17 +27,20 @@ function ownerSelectionHotels(): array
         'be-grand'=>['title'=>'Delphin BE Grand Resort 5★','price'=>'251 900 ₽ за двоих','room'=>'Улучшенный номер',
             'photos'=>[$base.'4407.png',$base.'4391.png',$base.'4376.png']],
     ];
+    return ownerSelectionEmphasis()?['imperial'=>$hotels['imperial']]:$hotels;
 }
 
 function ownerSelectionArguments(array $args): ?string
 {
-    if (!in_array('--confirm-owner-trio',$args,true)) return null;
-    return ownerPreviewArguments(array_map(static fn($arg)=>$arg==='--confirm-owner-trio'?'--confirm-owner-send':$arg,$args));
+    $flag=ownerSelectionEmphasis()?'--confirm-owner-emphasis':'--confirm-owner-trio';
+    if (!in_array($flag,$args,true)) return null;
+    return ownerPreviewArguments(array_map(static fn($arg)=>$arg===$flag?'--confirm-owner-send':$arg,$args));
 }
 
 function ownerSelectionConditions(string $key): string
 {
     $hotel=ownerSelectionHotels()[$key]??null;if ($hotel===null) throw new InvalidArgumentException('Unknown fixed hotel');
+    if (ownerSelectionEmphasis()) return "📅 5–12 июня 2027 · 7 ночей\n✈️ Из Москвы · 2 взрослых\n🛏️ ".$hotel['room']."\n🍽️ Ультра всё включено\nПерелёт, трансфер и страховка включены.";
     return "5–12 июня 2027 · 7 ночей\nИз Москвы · 2 взрослых\n".$hotel['room']."\nУльтра всё включено\nПерелёт, трансфер и страховка включены.";
 }
 
@@ -127,7 +141,7 @@ function ownerSelectionRun(string $expected,string $installed,string $project,ar
         }
         // Inspect every receipt before any new creation, so an unknown earlier attempt stops the entire batch.
         foreach (['telegram','max'] as $channel) foreach (ownerSelectionHotels() as $key=>$hotel) {
-            $id=$channel.'-'.$key;$demo='owner-trio-20261021-'.$id;$path=$directory.'/'.$demo.'.json';
+            $id=$channel.'-'.$key;$demo=ownerSelectionDemoPrefix().'-'.$id;$path=$directory.'/'.$demo.'.json';
             $spec=ownerSelectionHash(['hotel'=>$hotel,'caption'=>ownerSelectionMaxText($key),'telegram'=>ownerSelectionTelegramBody($key)]);
             if (is_link($path)) return array_replace($out,['state'=>'receipt_unavailable']);
             $exists=file_exists($path);$old=umask(0077);$file=@fopen($path,$exists?'r+b':'x+');umask($old);
@@ -239,7 +253,7 @@ if (!defined('OWNER_SELECTION_PREVIEW_OFFLINE_TEST')) {
                 $result=ownerSelectionRun($expected,$installed,ProjectConfig::projectId(),
                     ['telegram'=>defined('TELEGRAM_BOT_TOKEN')?(string)TELEGRAM_BOT_TOKEN:'','max'=>defined('MAX_SEARCH_TOKEN')?(string)MAX_SEARCH_TOKEN:''],
                     ['telegram'=>static fn()=>telegramOwnerPreviewTarget($db),'max'=>static fn()=>ownerPreviewTarget($db)],
-                    ['telegram'=>'telegramOwnerPreviewRequest','max'=>'ownerPreviewRequest'],'/var/www/anytoour/data/owner-tour-selection-preview');
+                    ['telegram'=>'telegramOwnerPreviewRequest','max'=>'ownerPreviewRequest'],ownerSelectionEmphasis()?'/var/www/anytoour/data/owner-tour-card-emphasis-preview':'/var/www/anytoour/data/owner-tour-selection-preview');
             }
         } catch (Throwable $e) { $result['state']='configuration_unavailable'; }
         finally { while(ob_get_level()>$level)ob_end_clean(); }
