@@ -1,1 +1,2 @@
 .tourChoiceSummary{display:grid;gap:4px;min-width:0}.tourChoiceHotel{min-width:0;overflow-wrap:anywhere}.tourChoicePrice{font-weight:700;color:var(--ws-text-secondary,#52606d)}
+.manager2 [data-tour-choices] .leadPanelHint{display:block}

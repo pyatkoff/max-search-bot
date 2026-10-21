@@ -149,7 +149,7 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
   const tourChoices={offers:[{offer_id:501,delivered_at:'2026-10-21 12:00:00',liked_at:'2026-10-21 12:01:00',snapshot:{
     hotel:'Семейный отель у моря',departure:'Москва',date_from:'2026-11-03',date_to:'2026-11-10',nights:7,adults:2,child_ages:[5,5],
     room:'Семейный номер с видом на море',meal:'Всё включено',flights:['ZF 123 · 10:00','ZF 124 · 12:00'],amount:'185000.50',currency:'RUB',price_basis:'party',is_demo:true,price_verified:false,
-    rationale:'Песчаный пляж',compromise:'До моря 400 м'}}],limited:false};
+    rationale:'Песчаный пляж',compromise:'До моря 400 м'}}],limited:true};
   const s=await setup(page);await openLead(page);await expect(page.locator('#leadCard .leadHero')).toHaveCount(1);
   await expect(page.locator('#leadCard [data-tour-choices]')).toHaveCount(0);
   s.setTourChoices(tourChoices);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
@@ -157,9 +157,12 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
   await choices.locator('summary').click();
   await expect(choices.locator('summary .leadReadonly')).toHaveText('Демо · ');
   await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toBeVisible();await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toHaveText('Демонстрационный вариант');
+  await expect(choices.locator('.leadDetailsBody > .leadPanelHint')).toBeVisible();await expect(choices.locator(':scope > .leadPanelHint')).toBeVisible();
   for(const value of ['185 000,50 ₽ за всех','03.11.2026 — 10.11.2026','Возраст детей: 5, 5','Семейный номер с видом на море','Всё включено','ZF 123 · 10:00','актуальность и наличие нужно проверить'])await expect(choices).toContainText(value);
   await expect(page.locator('#messages [data-tour-choices]')).toHaveCount(0);
-  expect(await choices.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await noOverflow(page);
+  await choices.scrollIntoViewIfNeeded();await capture(page,browserName,width,'tour-choice');
+  const size=await choices.evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth,overflow:[...el.querySelectorAll('*')].filter(child=>child.clientWidth>0&&child.scrollWidth>child.clientWidth+1).map(child=>({tag:child.tagName,class:child.className,client:child.clientWidth,scroll:child.scrollWidth})).slice(0,12)}));
+  expect(size.client).toBeGreaterThan(0);expect(size.scroll,JSON.stringify(size)).toBeLessThanOrEqual(size.client+1);await noOverflow(page);
   await showChat(page);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
   await expect(choices.locator('details')).toHaveAttribute('open','');await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toBeVisible();
   await choices.scrollIntoViewIfNeeded();await noOverflow(page);await capture(page,browserName,width,'tour-choice');
