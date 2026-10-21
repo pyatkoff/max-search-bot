@@ -259,17 +259,18 @@ draftCheck('character limit keeps the full UTF-8 boundary text',$boundarySeen &&
 
 // More procedural instructions must still fit the existing transport cap with
 // both context limits reached. This tests delivery/bytes, not model semantics.
-$wireBoundary=['conversation_id'=>17,'as_of_message_id'=>120,'history_incomplete'=>true,'messages'=>[]];
-for ($i=1;$i<=120;$i++) $wireBoundary['messages'][]=['id'=>$i,'sender_type'=>'customer',
-    'text'=>str_repeat('😀',$i===120?373:333)];
+// Synthetic maximum IDs include their full JSON width, not only 1..120.
+$wireBoundary=['conversation_id'=>PHP_INT_MAX,'as_of_message_id'=>PHP_INT_MAX,'history_incomplete'=>true,'messages'=>[]];
+for ($i=0;$i<120;$i++) $wireBoundary['messages'][]=['id'=>PHP_INT_MAX-(119-$i),'sender_type'=>'customer',
+    'text'=>str_repeat('😀',$i===119?373:333)];
 $wireBoundaryBefore=$wireBoundary;$wireBody=[];$wireCalls=0;
-$wireResult=draftResult();$wireResult['history_incomplete']=true;$wireResult['evidence_message_ids']=[120];
+$wireResult=draftResult();$wireResult['history_incomplete']=true;$wireResult['evidence_message_ids']=[PHP_INT_MAX];
 $wireResponse=ManagerAiDraftService::generate($wireBoundary,static function(string $instructions,array $payload) use (&$wireBody,&$wireCalls,$wireResult):array {
     $wireCalls++;$wireBody=ManagerDraftClient::requestBody($instructions,$payload);return $wireResult;
 });
 $wireBytes=json_encode($wireBody,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 $wirePayload=json_decode($wireBody['input'][1]['content'][0]['text']??'null',true);
-draftCheck('full message and four-byte character limits fit the canonical developer request',
+draftCheck('maximum integer IDs with full message and four-byte character limits fit the canonical developer request',
     $wireCalls===1 && $wireResponse===$wireResult && $wireBoundary===$wireBoundaryBefore
     && ($wireBody['input'][0]['role']??null)==='developer'
     && ($wireBody['input'][0]['content'][0]['text']??null)===ManagerAiDraftService::instructions()
