@@ -36,14 +36,15 @@ blocks = run_blocks(OWNER)
 validate, = [b for b in blocks if 'GITHUB_EVENT_PATH' in b]
 send, = [b for b in blocks if 'ssh -o BatchMode=yes' in b]
 guard, = re.findall(r'^    if: (.+)$', OWNER, re.M)
-assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && inputs.confirm_owner_send == true) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && startsWith(github.event.comment.body, '/owner-tour-preview ')))"
-assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send']
+assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover '))))"
+assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery']
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
 assert '${{ github.event.comment.body }}' not in WORKFLOW
 assert 'issue_comment:\n    types: [created]' in WORKFLOW
 assert 'EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}' in OWNER
-assert [line.strip() for line in re.findall(r'^\s*php .+$', send, re.M)] == [COMMAND]
+assert send.count(COMMAND) == 1 and send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-recovery')) == 1
+assert 'case "$owner_mode" in' in send
 assert len(re.findall(r'^\s*ssh ', send, re.M)) == 1 and send.count(REMOTE_DIR) == 1
 assert not re.search(r'\b(?:for|while|until|retry|retries)\b', send)
 assert '${{' not in send and not re.search(r'https?://|--(?:url|user-id|conversation-id)', send)
@@ -62,7 +63,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
     with tempfile.TemporaryDirectory(prefix='max-owner-tour-test-') as temp:
         directory = Path(temp)
         doubles = {
-            'ssh': 'printf "%s\\n" "$*" >> "$SSH_LOG"\n/bin/bash -s -- "${@: -1}"\n',
+            'ssh': 'printf "%s\\n" "$*" >> "$SSH_LOG"\n/bin/bash -s -- "${@: -2:1}" "${@: -1}"\n',
             'git': 'case "$*" in\n"rev-parse HEAD") printf "%s\\n" "$INSTALLED_SHA";;\n"diff --quiet") exit "$UNSTAGED";;\n"diff --cached --quiet") exit "$STAGED";;\n*) exit 90;;\nesac\n',
             'php': 'printf "%s\\n" "$*" >> "$PHP_LOG"\n',
         }
@@ -96,7 +97,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         event_path = directory / 'event.json'
         event_path.write_text(json.dumps(EVENT if event is None else event))
         env = {**os.environ, 'PATH': str(directory) + ':/usr/bin:/bin',
-               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'ACTUAL_MAIN_SHA': SHA,
+               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'ACTUAL_MAIN_SHA': SHA,
                'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
                'GITHUB_SHA': workflow, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(directory / 'output'),
@@ -109,7 +110,9 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
                'PHP_LOG': str(directory / 'php.log'), **(env_changes or {})}
         result = subprocess.run(['/bin/bash', '-c', validate], env=env, capture_output=True, timeout=5)
         if result.returncode == 0:
-            validated, = (directory / 'output').read_text().splitlines()
+            validated, mode = (directory / 'output').read_text().splitlines()
+            assert mode in ['owner_mode=send','owner_mode=recover']
+            env['OWNER_MODE'] = mode.split('=', 1)[1]
             assert re.fullmatch(r'expected_sha=[0-9a-f]{40}', validated)
             env['EXPECTED_SHA'] = validated.split('=', 1)[1]
             result = subprocess.run(['/bin/bash', '-c', send.replace(REMOTE_DIR, 'cd "$PROBE_FIXTURE_CHECKOUT"')],
@@ -162,4 +165,20 @@ for path, value in [(('comment', 'user', 'login'), 'pyatkoff-bot'), (('comment',
 for actor in [{'GITHUB_ACTOR': 'someone'}, {'GITHUB_ACTOR_ID': '1'}]:
     code, ssh, php = execute(env_changes={'GITHUB_EVENT_NAME': 'issue_comment', **actor})
     assert code != 0 and ssh == [] and php == [], actor
+for event_name in ['workflow_dispatch', 'issue_comment']:
+    event = copy.deepcopy(EVENT)
+    event['comment']['body'] = '/owner-tour-preview-recover ' + SHA
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': event_name,
+        'CONFIRM_OWNER_SEND': 'false', 'CONFIRM_OWNER_RECOVERY': 'true'})
+    assert code == 0 and len(ssh) == 1
+    assert php == [f'tools/max_owner_tour_preview.php --expected-sha={SHA} --confirm-owner-recovery']
+for changes in [{'CONFIRM_OWNER_SEND': 'true'}, {'GITHUB_ACTOR': 'another'}, {'GITHUB_ACTOR_ID': '1'}]:
+    code, ssh, php = execute(env_changes={'CONFIRM_OWNER_SEND': 'false', 'CONFIRM_OWNER_RECOVERY': 'true', **changes})
+    assert code != 0 and ssh == [] and php == [], changes
+for body in ['/owner-tour-preview-recover ' + SHA + '\n', '/owner-tour-preview-recover ' + SHA + ' extra',
+             '/owner-tour-preview-recover ' + SHA.upper(), '/owner-tour-preview-recover $(touch /must-not-run)']:
+    event = copy.deepcopy(EVENT)
+    event['comment']['body'] = body
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], body
 print(f'MAX OWNER TOUR WORKFLOW: {cases} actual JSON authorization/fixed shell scenarios PASSED')
