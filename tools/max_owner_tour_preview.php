@@ -42,17 +42,34 @@ function ownerPreviewTarget(PDO $db): ?array
     finally { if ($db->inTransaction()) $db->rollBack(); }
 }
 
-/** Only these provider codes may leave the process; never provider descriptions. */
-function ownerPreviewDecode(string $bytes,int $status,int $curl,int $tls,bool $overflow=false): array
+/** Private error message; fixed-demo edits apply further redaction before bounded public output. */
+function ownerPreviewPrivateMessage($value,string $token,array $redactions=[]): ?string
+{
+    if (!is_string($value)) return null;
+    if ($token!=='') $value=str_replace($token,'[redacted-token]',$value);
+    foreach ($redactions as $id) if (is_string($id)&&$id!=='') $value=str_replace($id,'[redacted-id]',$value);
+    $value=preg_replace('/\bmid\.[A-Za-z0-9_-]+/','[redacted-message]',$value);
+    $value=preg_replace('~(?:[a-z][a-z0-9+.-]{1,15}://|www\.)[^\s<>"\x27]+~iu','[redacted-url]',$value);
+    $value=preg_replace('/[0-9]{5,}/','[redacted-number]',$value);
+    $value=preg_replace('/[\p{C}]+/u',' ',$value);
+    if (!is_string($value)) return null;
+    $value=substr($value,0,2048);
+    while ($value!==''&&preg_match('//u',$value)!==1) $value=substr($value,0,-1);
+    return $value;
+}
+
+/** Allowlisted public codes and separately redacted private error message. */
+function ownerPreviewDecode(string $bytes,int $status,int $curl,int $tls,bool $overflow=false,string $token='',array $redactions=[]): array
 {
     $data=json_decode($bytes,true,64,JSON_BIGINT_AS_STRING);
     $code=is_array($data)?($data['code']??null):null;
     $diagnostic=['http_status'=>max(0,min(599,$status)),'curl_code'=>max(0,min(999,$curl)),
-        'error_category'=>$overflow?'response_too_large':($tls!==0?'tls':($curl!==0?'transport':($status<200||$status>=300?'http_rejected':(!is_array($data)?'invalid_response':'none')))),
+        'error_category'=>$overflow?'response_too_large':($tls!==0?'tls':($curl!==0?'transport':($status<200||$status>=300?'http_rejected':(!is_array($data)?'invalid_response':(($data['success']??null)===false?'provider_rejected':'none'))))),
         'api_code'=>in_array($code,['proto.payload','proto.query','proto.auth','access.denied','chat.not.found','user.not.found',
             'dialog.suspended','error.dialog.suspended','attachment.not.ready','attachment.invalid','message.empty','message.too.long'],true)?$code:null];
     $privateCode=is_string($code)&&preg_match('/\A[a-z][a-z._]{1,63}\z/D',$code)?$code:null;
-    return ['data'=>$diagnostic['error_category']==='none'?$data:null,'diagnostic'=>$diagnostic,'private_api_code'=>$privateCode];
+    $privateMessage=$diagnostic['error_category']!=='none'?ownerPreviewPrivateMessage(is_array($data)?($data['message']??null):null,$token,$redactions):null;
+    return ['data'=>$diagnostic['error_category']==='none'?$data:null,'diagnostic'=>$diagnostic,'private_api_code'=>$privateCode,'private_api_message'=>$privateMessage];
 }
 
 /** Fixed HTTPS origin; bounded/redacted exchange; no redirects, retries or raw logging. */
@@ -71,7 +88,7 @@ function ownerPreviewRequest(string $method,string $path,array $query,?array $bo
     ];
     if ($body!==null) $options[CURLOPT_POSTFIELDS]=json_encode($body,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     curl_setopt_array($ch,$options);curl_exec($ch);
-    $result=ownerPreviewDecode($bytes,(int)curl_getinfo($ch,CURLINFO_HTTP_CODE),curl_errno($ch),(int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT),$overflow);
+    $result=ownerPreviewDecode($bytes,(int)curl_getinfo($ch,CURLINFO_HTTP_CODE),curl_errno($ch),(int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT),$overflow,$token,array_values($query));
     curl_close($ch);return $result;
 }
 
@@ -167,21 +184,141 @@ function ownerPreviewRecoveryHistory(?array $history,array $identity,string $use
     return $out;
 }
 
-/** One separately authorized recovery attempt, permanently blocked by any existing recovery journal. */
+/** Only the historical, definite payload rejection may enter the fixed repair once. */
+function ownerPreviewKnownRejection(string $path,string $originalHash): ?array
+{
+    clearstatcache(true,$path);
+    if (is_link($path)||!is_file($path)||(fileperms($path)&0777)!==0600) return null;
+    $file=@fopen($path,'r+b');
+    if ($file===false) return null;
+    $keep=false;
+    try {
+        if (!flock($file,LOCK_EX|LOCK_NB)) return null;
+        $opened=fstat($file);$current=stat($path);
+        if ($opened===false||$current===false||$opened['ino']!==$current['ino']||$opened['dev']!==$current['dev']) return null;
+        $bytes=stream_get_contents($file,8193);$record=is_string($bytes)&&strlen($bytes)<=8192?json_decode($bytes,true):null;
+        if (!is_array($record)||($record['demo']??null)!=='delphin-imperial-20261021'
+            ||($record['original_receipt_sha256']??null)!==$originalHash||!is_string($record['created_at']??null)) return null;
+        $edit=($record['repair_revision']??null)==='payload-repair-v1'
+            && ownerPreviewMid(['mid'=>$record['message_id']??null])!==null
+            && MaxPrivateAvatarProbe::decimalId($record['verified_owner_id']??null)!==null
+            && MaxPrivateAvatarProbe::decimalId($record['verified_bot_id']??null)!==null
+            && MaxPrivateAvatarProbe::chatId($record['verified_chat_id']??null)!==null;
+        if (!$edit && (($record['state']??null)!=='unknown'
+            ||array_key_exists('message_id',$record)||array_key_exists('repair_revision',$record)||array_key_exists('previous_recovery',$record)
+            ||($record['send_diagnostic']['http_status']??null)!==400||($record['send_diagnostic']['curl_code']??null)!==0
+            ||($record['send_diagnostic']['error_category']??null)!=='http_rejected'||($record['send_diagnostic']['api_code']??null)!=='proto.payload'
+            ||($record['private_api_code']??null)!=='proto.payload')) return null;
+        $keep=true;return ['file'=>$file,'record'=>$record,'hash'=>hash('sha256',$bytes),'edit'=>$edit];
+    } finally { if (!$keep) fclose($file); }
+}
+
+/** Locked replacement is fsynced and atomically installed before a repair POST. */
+function ownerPreviewRepairReservation(string $journal,array $prior,array $receipt)
+{
+    if (!rewind($prior['file'])) return false;
+    $bytes=stream_get_contents($prior['file'],16385);
+    clearstatcache(true,$journal);
+    $opened=fstat($prior['file']);$current=stat($journal);
+    if (!is_string($bytes)||strlen($bytes)>16384||!hash_equals($prior['hash'],hash('sha256',$bytes))||is_link($journal)
+        ||$opened===false||$current===false||$opened['ino']!==$current['ino']||$opened['dev']!==$current['dev']) return false;
+    $temporary=$journal.'.payload-repair-v1.tmp';
+    $old=umask(0077);$file=@fopen($temporary,'x+');umask($old);
+    if ($file===false) return false;
+    $keep=false;
+    try {
+        if (((fstat($file)['mode']??0)&0777)!==0600||!flock($file,LOCK_EX|LOCK_NB)
+            ||!ownerPreviewWrite($file,$receipt+['state'=>'attempt_reserved'])||!ownerPreviewSyncDirectory(dirname($journal))
+            ||!rename($temporary,$journal)||!ownerPreviewSyncDirectory(dirname($journal))) return false;
+        clearstatcache(true,$journal);$keep=true;return $file;
+    } finally { if (!$keep) fclose($file); }
+}
+
+/** Repair outcomes also replace atomically: a torn terminal write cannot erase prior evidence. */
+function ownerPreviewRecoveryWrite(&$file,string $journal,array $receipt,bool $repair): bool
+{
+    if (!$repair) return ownerPreviewWrite($file,$receipt);
+    if (!rewind($file)) return false;
+    $bytes=stream_get_contents($file,16385);
+    if (!is_string($bytes)||strlen($bytes)>16384) return false;
+    $replacement=ownerPreviewRepairReservation($journal,['file'=>$file,'hash'=>hash('sha256',$bytes)],$receipt);
+    if ($replacement===false) return false;
+    fclose($file);$file=$replacement;return true;
+}
+
+/** Edit one durably stored own demo MID. This path can never create a message. */
+function ownerPreviewEdit(array $out,array $receipt,&$file,string $journal,callable $request,string $token,bool $atomic): array
+{
+    $mid=$receipt['message_id'];$user=$receipt['verified_owner_id'];$bot=$receipt['verified_bot_id'];$chat=$receipt['verified_chat_id'];
+    $out['edit_attempted']=false;
+    try {
+    $out['provider_requests']++;
+    $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);
+    $out['readback_diagnostic']=ownerPreviewDiagnostic($response);$message=ownerPreviewData($response);
+    $same=ownerPreviewMid($message)===$mid&&($message['body']['text']??null)===ownerPreviewBody()['text']
+        &&MaxPrivateAvatarProbe::decimalId($message['sender']['user_id']??null)===$bot
+        &&MaxPrivateAvatarProbe::decimalId($message['recipient']['user_id']??null)===$user
+        &&MaxPrivateAvatarProbe::chatId($message['recipient']['chat_id']??null)===$chat&&($message['recipient']['chat_type']??null)==='dialog';
+    if (!$same) return array_replace($out,['state'=>'edit_identity_unverified']);
+    if (ownerPreviewMatches($message,$mid,$user,$bot,$chat)) {
+        $out['ok']=true;$out['state']='verified';
+        ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>'verified']),$atomic);return $out;
+    }
+    if (!ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>'edit_attempt_reserved']),$atomic)) return array_replace($out,['state'=>'recovery_receipt_unavailable']);
+    $out['edit_attempted']=true;$out['provider_requests']++;
+    $response=$request('PUT','/messages',['message_id'=>$mid],ownerPreviewBody(),$token);
+    $out['edit_diagnostic']=ownerPreviewDiagnostic($response);$receipt['edit_diagnostic']=$out['edit_diagnostic'];
+    $receipt['private_api_code']=$response['private_api_code']??null;$receipt['private_api_message']=$response['private_api_message']??null;
+    if ($out['edit_diagnostic']['error_category']!=='none') {
+        $value=ownerPreviewPrivateMessage($response['private_api_message']??null,$token,[$mid,$user,$bot,$chat]);
+        if ($value!==null) {
+            $value=preg_replace('/[0-9]+/','[redacted-number]',$value);
+            $value=preg_replace('/\[Source:.*$/is','[redacted-source]',$value);
+            $out['validation_message']=ownerPreviewPrivateMessage($value,'');
+        }
+    }
+    $out['state']='edit_unverified';
+    ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),$atomic);
+    $out['provider_requests']++;
+    $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);
+    $out['readback_diagnostic']=ownerPreviewDiagnostic($response);
+    $out['ok']=ownerPreviewMatches(ownerPreviewData($response),$mid,$user,$bot,$chat);
+    $out['state']=$out['ok']?'verified':'edit_unverified';
+    ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),$atomic);
+    return $out;
+    } catch (Throwable $e) {
+        $out['state']=$out['edit_attempted']?'edit_unverified':'edit_identity_unverified';
+        if ($out['edit_attempted']) ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),$atomic);
+        return $out;
+    }
+}
+
+/** One recovery, or one fixed repair of its definite historical payload rejection. */
 function ownerPreviewRecoverRun(string $expected,string $installed,string $project,string $token,callable $target,callable $request,string $directory,?int $now=null): array
 {
     $out=['ok'=>false,'state'=>'blocked','send_attempted'=>false,'provider_requests'=>0];
     if (!preg_match('/\A[0-9a-f]{40}\z/D',$expected)||$expected!==$installed||$project!=='anytour'||$token===''||strlen($token)>4096||preg_match('/[\x00-\x20\x7f]/',$token)) return $out;
     $journal=$directory.'/delphin-imperial-20261021-recovery.json';
-    if (file_exists($journal)||is_link($journal)) return array_replace($out,['state'=>'recovery_already_attempted']);
     $original=ownerPreviewOriginal($directory);
     if ($original===null) return array_replace($out,['state'=>'original_receipt_unavailable']);
+    $prior=null;
+    if (file_exists($journal)||is_link($journal)) {
+        $prior=ownerPreviewKnownRejection($journal,$original['hash']);
+        if ($prior===null) return array_replace($out,['state'=>'recovery_already_attempted']);
+    }
+    try {
     $row=$target();
     if (!is_array($row)||(string)($row['id']??'')!=='2'||($row['project_key']??'')!=='anytour'||($row['channel']??'')!=='max'||($row['original_display_name']??'')!=='Pavel'
         ||!in_array($row['status']??'', ['waiting_manager','manager'],true)) return array_replace($out,['state'=>'owner_unavailable']);
     $user=MaxPrivateAvatarProbe::decimalId($row['external_user_id']??null);$alias=MaxPrivateAvatarProbe::chatId($row['conversation_chat_id']??null);$mid=$row['external_message_id']??'';
     if ($user===null||$alias===null||MaxPrivateAvatarProbe::chatId($row['channel_chat_id']??null)!==$alias||MaxPrivateAvatarProbe::decimalId($row['message_sender_id']??null)!==$user
         ||!is_string($mid)||!preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$mid)) return array_replace($out,['state'=>'owner_unavailable']);
+    if (($prior['edit']??false)===true) {
+        $receipt=$prior['record'];$file=$prior['file'];
+        if ($receipt['verified_owner_id']!==$user) return array_replace($out,['state'=>'owner_unavailable']);
+        try { return ownerPreviewEdit($out,$receipt,$file,$journal,$request,$token,true); }
+        finally { if (is_resource($file)) fclose($file); }
+    }
     try {
         $out['provider_requests']++;
         $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);
@@ -200,32 +337,33 @@ function ownerPreviewRecoverRun(string $expected,string $installed,string $proje
         if (!$out['preflight']['complete']) return array_replace($out,['state'=>'recovery_history_unproven']);
         if (ownerPreviewOriginal($directory)!==$original) return array_replace($out,['state'=>'original_receipt_changed']);
     } catch (Throwable $e) { return array_replace($out,['state'=>'recovery_preflight_unavailable']); }
-    $old=umask(0077);$file=@fopen($journal,'x+');umask($old);
+    $receipt=['demo'=>'delphin-imperial-20261021','created_at'=>gmdate('c'),'original_receipt_sha256'=>$original['hash'],'repair_revision'=>'payload-repair-v1','verified_owner_id'=>$user,'verified_bot_id'=>$bot,'verified_chat_id'=>$chat];
+    if ($prior!==null) {
+        $receipt['previous_recovery']=$prior['record'];$receipt['previous_recovery_sha256']=$prior['hash'];
+        $file=ownerPreviewRepairReservation($journal,$prior,$receipt);
+    } else {
+        $old=umask(0077);$file=@fopen($journal,'x+');umask($old);
+    }
     if ($file===false) return array_replace($out,['state'=>'recovery_already_attempted']);
-    $receipt=['demo'=>'delphin-imperial-20261021','created_at'=>gmdate('c'),'original_receipt_sha256'=>$original['hash']];
     try {
-        if (((fstat($file)['mode']??0)&0777)!==0600||!ownerPreviewWrite($file,$receipt+['state'=>'attempt_reserved'])||!ownerPreviewSyncDirectory($directory)||!ownerPreviewSyncDirectory(dirname($directory))) return array_replace($out,['state'=>'recovery_receipt_unavailable']);
+        if (((fstat($file)['mode']??0)&0777)!==0600||!flock($file,LOCK_EX|LOCK_NB)||($prior===null&&!ownerPreviewWrite($file,$receipt+['state'=>'attempt_reserved']))||!ownerPreviewSyncDirectory($directory)||!ownerPreviewSyncDirectory(dirname($directory))) return array_replace($out,['state'=>'recovery_receipt_unavailable']);
         if (ownerPreviewOriginal($directory)!==$original) return array_replace($out,['state'=>'original_receipt_changed']);
         $out['send_attempted']=true;$out['provider_requests']++;
-        $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
+        $response=$request('POST','/messages',['user_id'=>$user],['text'=>ownerPreviewBody()['text']],$token);
         $out['send_diagnostic']=ownerPreviewDiagnostic($response);$receipt['send_diagnostic']=$out['send_diagnostic'];
         $receipt['private_api_code']=$response['private_api_code']??null;
+        $receipt['private_api_message']=$response['private_api_message']??null;
         $sentMid=ownerPreviewMid(ownerPreviewData($response));
-        $out['state']=$sentMid===null?'unknown':'sent_unverified';
+        $out['state']=$sentMid===null?'unknown':'text_created';
         if ($sentMid!==null) $receipt['message_id']=$sentMid;
-        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);
+        if (!ownerPreviewRecoveryWrite($file,$journal,$receipt+['state'=>$out['state']],$prior!==null)) return array_replace($out,['state'=>'recovery_receipt_unavailable']);
         if ($sentMid===null) return $out;
-        $out['provider_requests']++;
-        $response=$request('GET','/messages/'.rawurlencode($sentMid),[],null,$token);
-        $out['readback_diagnostic']=ownerPreviewDiagnostic($response);
-        $out['ok']=ownerPreviewMatches(ownerPreviewData($response),$sentMid,$user,$bot,$chat);
-        $out['state']=$out['ok']?'verified':'sent_unverified';
-        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);
-        return $out;
+        return ownerPreviewEdit($out,$receipt,$file,$journal,$request,$token,$prior!==null);
     } catch (Throwable $e) {
         $out['state']=isset($receipt['message_id'])?'sent_unverified':($out['send_attempted']?'unknown':'recovery_receipt_unavailable');
-        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);return $out;
+        ownerPreviewRecoveryWrite($file,$journal,$receipt+['state'=>$out['state']],$prior!==null);return $out;
     } finally { fclose($file); }
+    } finally { if ($prior!==null&&is_resource($prior['file'])) fclose($prior['file']); }
 }
 
 /** Callables are offline test seams only. The CLI below supplies only fixed production dependencies. */
@@ -258,6 +396,7 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
         $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
         $out['send_diagnostic']=ownerPreviewDiagnostic($response);
         $receipt['private_api_code']=$response['private_api_code']??null;
+        $receipt['private_api_message']=$response['private_api_message']??null;
         $sentMid=ownerPreviewMid(ownerPreviewData($response));
         if (!is_string($sentMid) || !preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$sentMid)) {
             ownerPreviewWrite($file,$receipt+['state'=>'unknown','send_diagnostic'=>$out['send_diagnostic']]);
