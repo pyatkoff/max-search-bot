@@ -103,12 +103,56 @@ block recovery. No pagination, fallback probe or automatic retry follows a block
 Only after those checks does the CLI exclusively create and fsync
 `delphin-imperial-20261021-recovery.json` in the same private directory, recording
 the SHA256 of the unchanged original receipt and a new `created_at`. It rechecks
-the original hash before POST. Any recovery journal, even incomplete/corrupt,
-permanently blocks every later recovery attempt. The fixed demo ID/body/photoURLs
-stay unchanged; the original receipt is never deleted, renamed or rewritten.
-There is one recovery POST at most. Timeout, explicit HTTP400, `unknown` or
-`sent_unverified` never triggers a retry. No further attempt is authorized by
-this mechanism; a returned MID is verified with one bounded GET readback.
+the original hash before POST. Any recovery journal blocks ordinary replay; only
+the exact historical rejection below can enter its fixed continuation. Incomplete
+or corrupt records never permit creation. The demo ID and desired caption/photo
+URLs stay unchanged; the original receipt is never deleted, renamed or rewritten.
+There is one recovery POST at most. Timeout, HTTP400, `unknown` or
+`sent_unverified` never triggers an automatic retry; a returned MID is verified
+with one bounded GET readback. The narrowly gated fixed repair below is a separate
+explicit continuation of a definitive historical validation rejection.
+
+## Fixed continuation after a proven validation rejection
+
+The same owner-only recovery command can continue only the historical journal
+whose state is `unknown`, HTTP status400, curl0 and API code `proto.payload`, with
+no MID, prior revision or nested previous recovery. Its original-receipt hash must
+still match. Transport-unknown, sent, corrupt or concurrently locked records
+cannot create another message. Before creation the same fresh owner «пуст» and
+complete anchored original-to-now history proof must pass again.
+
+The fixed `payload-repair-v1` continuation makes one canonical text-only POST of
+the clearly labelled demo caption. Its MID must be successfully flushed/fsynced
+into the private journal before editing can begin. A GET of that exact MID must
+match the bot, owner, native private chat and exact caption. Only then does one
+PUT add the unchanged full desired photos/button body to that same message,
+followed by one GET readback. A failed PUT cannot create a duplicate postcard.
+There is no speculative payload rewrite or automatic POST retry.
+
+The complete prior journal is retained nested with its exact byte SHA256. The
+old journal is exclusively locked; a private replacement is also locked and
+fsynced, atomically renamed into place and its directory fsynced before POST.
+Repair outcomes also replace atomically so a torn write cannot erase that
+history. Interrupted temporary files block rather than being deleted. Every new
+recovery journal carries the revision immediately. Unknown creation without a
+MID permanently blocks creation, even after HTTP400.
+
+When the journal already contains this revision and its known MID, the same
+explicit owner command becomes edit-only: fixed owner/source checks and GET of
+that exact stored MID come first. Owner text may have changed and history may now
+contain the demo, so the creation-only «пуст»/empty-history predicate is not used.
+If GET already matches the full card, it returns verified with no PUT. Otherwise
+one same-MID PUT/readback can be performed. Missing/foreign/changed-caption MID
+never falls back to POST. No runtime callback/business handler is introduced.
+
+A rejected fixed-demo PUT exposes only a bounded, further sanitized
+`validation_message`: exact token/MID/owner/bot/chat IDs, MID-shaped strings, URLs,
+decimal IDs, control characters and source dumps are removed; the result is at
+most2KiB valid UTF8. Ordinary send/private fields never enter stdout. HTTP200 with
+`success:false` is classified as `provider_rejected` and retains its validation
+message too. Final GET is the authority for the visible card, including after an
+uncertain edit. The normal workflow prints this bounded CLI JSON directly; there
+is no separate output-key filter hiding new edit diagnostics.
 
 The fixed transport uses strict TLS, no redirects, a30-second timeout and a256KiB
 response cap. It accepts canonical `message.mid` as well as `message.body.mid`.
@@ -120,6 +164,9 @@ codes become null publicly. The original receipt/recovery journal privately reta
 only the structured provider code when it matches `[a-z][a-z._]{1,63}` exactly;
 digits, URLs, whitespace and longer values are rejected. This field never enters
 stdout. Provider descriptions, raw bodies/text, IDs, URLs and tokens are never
-logged. The journal also stores sanitized diagnostics plus its private MID/hash.
+publicly logged. On a rejection only the top-level string `message` field may be
+retained privately, capped at2KiB after exact-token/URL/long-digit/control-character
+redaction; nested values and the full response body are never persisted. The
+journal also stores sanitized diagnostics plus its private MID/hash.
 This does not implement callback state, offer binding,
 image upload conversion or general customer recovery.

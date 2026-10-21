@@ -45,7 +45,7 @@ function previewTestRun(array $changes=[],string $failure='',?string $dir=null):
             previewAssert(count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===1,'No automatic second POST');
             if($failure==='throw')throw new RuntimeException('PRIVATE_TOKEN');
             if($failure==='timeout')return null;
-            if($failure==='unknown_code')return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_TOKEN"}',400,0,0);
+            if($failure==='unknown_code')return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"field attachments: PRIVATE_TOKEN https://private.test user991002"}',400,0,0,false,'PRIVATE_TOKEN');
             return ['message'=>['body'=>['mid'=>'mid.sent']]];
         }
         if($path==='/messages/mid.fixture')return ['body'=>['mid'=>'mid.fixture'],
@@ -117,6 +117,11 @@ previewAssert(ownerPreviewMid(['message'=>['mid'=>'mid.canonical']])==='mid.cano
 previewAssert(ownerPreviewDecode('{"code":"proto.payload","message":"PRIVATE_DETAILS"}',400,0,0)['diagnostic']['api_code']==='proto.payload','Fixed safe protocol code remains actionable');
 $privateError=ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_DETAILS"}',400,0,0);
 previewAssert($privateError['private_api_code']==='photo.fetch.failed'&&$privateError['diagnostic']['api_code']===null&&!str_contains(json_encode($privateError['diagnostic']),'photo.fetch.failed'),'Unknown structured code stays private');
+$privateMessage=ownerPreviewDecode(json_encode(['code'=>'proto.payload','message'=>"field attachments: PRIVATE_TOKEN https://private.test/path?key=PRIVATE_TOKEN user 991002\n\x01"],JSON_THROW_ON_ERROR),400,0,0,false,'PRIVATE_TOKEN');
+previewAssert($privateMessage['private_api_message']==='field attachments: [redacted-token] [redacted-url] user [redacted-number] ','Only sanitized provider message field retained');
+previewAssert(!str_contains(json_encode(ownerPreviewDiagnostic($privateMessage)),'field attachments'),'Provider message never enters public diagnostics');
+previewAssert(ownerPreviewDecode('{"message":{"unexpected":"nested"}}',400,0,0)['private_api_message']===null,'Nested fields/full body are never captured as message');
+previewAssert(strlen(ownerPreviewPrivateMessage(str_repeat('я',2048),''))===2048&&preg_match('//u',ownerPreviewPrivateMessage(str_repeat('я',2048),''))===1,'Private message cap is2KiB of valid UTF8');
 foreach (['http://example.test','token123','bad code','Upper.case',str_repeat('a',65)] as $badCode)
     previewAssert(ownerPreviewDecode(json_encode(['code'=>$badCode]),400,0,0)['private_api_code']===null,'Private code rejects URL/digits/whitespace/case/oversize');
 function recoveryTest(string $failure='',?string $dir=null): array {
@@ -128,18 +133,36 @@ function recoveryTest(string $failure='',?string $dir=null): array {
     $before=file_get_contents($dir.'/delphin-imperial-20261021.json');$calls=[];$sha=str_repeat('a',40);
     $anchor=['timestamp'=>1792539801694,'body'=>['mid'=>'mid.fixture','text'=>'Пусто у меня'],
         'sender'=>['user_id'=>'991002'],'recipient'=>['user_id'=>'991099','chat_id'=>'991001','chat_type'=>'dialog']];
-    $request=static function($method,$path,$query,$body,$token)use(&$calls,$failure,$dir,$before,$anchor):?array {
+    $saved=is_file($dir.'/delphin-imperial-20261021-recovery.json')?json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true):null;
+    $edited=($saved['state']??null)==='verified';
+    $request=static function($method,$path,$query,$body,$token)use(&$calls,&$edited,$failure,$dir,$before,$anchor):?array {
         $calls[]=[$method,$path,$query,$body];
         if ($method==='POST') {
             previewAssert(count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===1,'Recovery has one POST maximum');
+            previewAssert($body===['text'=>ownerPreviewBody()['text']],'Creation is canonical text-only, no speculative attachment POST');
             $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
             previewAssert($journal['state']==='attempt_reserved'&&$journal['original_receipt_sha256']===hash('sha256',$before)&&isset($journal['created_at']),'Durable journal bound to old receipt exists before POST');
             previewAssert((fileperms($dir.'/delphin-imperial-20261021-recovery.json')&0777)===0600,'Recovery journal private');
+            if ($failure==='concurrent') {
+                $sha=str_repeat('a',40);
+                $duplicate=ownerPreviewRecoverRun($sha,$sha,'anytour','PRIVATE_TOKEN','previewFixture',static function(){throw new RuntimeException('Concurrent provider call');},$dir,1792541000);
+                previewAssert(!$duplicate['send_attempted']&&$duplicate['provider_requests']===0,'Concurrent activation cannot enter a reserved repair');
+            }
             if ($failure==='throw') throw new RuntimeException('PRIVATE_TOKEN');
             if ($failure==='timeout') return ownerPreviewDecode('',0,28,0);
             if ($failure==='http400') return ownerPreviewDecode('{"code":"attachment.not.ready","message":"PRIVATE_TOKEN"}',400,0,0);
-            if ($failure==='unknown_code') return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_TOKEN"}',400,0,0);
+            if ($failure==='proto_payload') return ownerPreviewDecode('{"code":"proto.payload","message":"PRIVATE_TOKEN"}',400,0,0,false,'PRIVATE_TOKEN');
+            if ($failure==='unknown_code') return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"field attachments: PRIVATE_TOKEN https://private.test user991002"}',400,0,0,false,'PRIVATE_TOKEN');
             return ownerPreviewDecode('{"message":{"mid":"mid.recovered"}}',200,0,0);
+        }
+        if ($method==='PUT') {
+            $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
+            previewAssert(($journal['message_id']??null)==='mid.recovered'&&$journal['state']==='edit_attempt_reserved','MID durable before edit');
+            previewAssert($path==='/messages'&&$query===['message_id'=>'mid.recovered']&&$body===ownerPreviewBody(),'PUT only same exact known demo MID and fixed full body');
+            if ($failure==='edit_rejected') return ownerPreviewDecode(json_encode(['code'=>'proto.payload','message'=>'Invalid attachments[0].payload for mid.recovered owner991002 https://private.test PRIVATE_TOKEN']),400,0,0,false,'PRIVATE_TOKEN',['mid.recovered']);
+            if ($failure==='edit_false') return ownerPreviewDecode('{"success":false,"message":"Invalid attachments payload for mid.recovered PRIVATE_TOKEN"}',200,0,0,false,'PRIVATE_TOKEN',['mid.recovered']);
+            if ($failure==='edit_timeout') return ownerPreviewDecode('',0,28,0);
+            $edited=true;return ownerPreviewDecode('{"success":true}',200,0,0);
         }
         if ($path==='/messages/mid.fixture') {
             if ($failure==='stale') return array_replace($anchor,['timestamp'=>1792539643999]);
@@ -163,10 +186,10 @@ function recoveryTest(string $failure='',?string $dir=null): array {
             if ($failure==='changed_receipt') file_put_contents($dir.'/delphin-imperial-20261021.json',$before.' ');
             return ['messages'=>[$anchor]];
         }
-        if ($failure==='readback') return null;
+        if ($failure==='readback'||$failure==='edit404') return null;
         if ($failure==='readback_throw') throw new RuntimeException('PRIVATE_READBACK');
-        return ['body'=>['mid'=>'mid.recovered','text'=>ownerPreviewBody()['text'],'attachments'=>ownerPreviewBody()['attachments']],
-            'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+        return ['body'=>['mid'=>'mid.recovered','text'=>ownerPreviewBody()['text'],'attachments'=>$edited?ownerPreviewBody()['attachments']:[]],
+            'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>$failure==='edit_wrong_owner'?'991003':'991002','chat_id'=>'991001','chat_type'=>'dialog']];
     };
     $result=ownerPreviewRecoverRun($sha,$sha,'anytour','PRIVATE_TOKEN','previewFixture',$request,$dir,1792541000);
     if ($failure!=='changed_receipt') previewAssert(file_get_contents($dir.'/delphin-imperial-20261021.json')===$before,'Recovery never changes original receipt');
@@ -178,14 +201,18 @@ foreach (['stale','wrong_phrase','wrong_identity','history403','missing_anchor',
     previewAssert(!$out['send_attempted']&&count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===0,'Failed corroboration never recovers: '.$failure);
     previewAssert(!file_exists($dir.'/delphin-imperial-20261021-recovery.json'),'Preflight failures reserve no send');
 }
-foreach (['','timeout','http400','unknown_code','throw','readback','readback_throw'] as $failure) {
+foreach (['','timeout','http400','proto_payload','unknown_code','throw','readback','readback_throw'] as $failure) {
     [$out,$calls,$dir]=recoveryTest($failure);
     previewAssert($out['send_attempted']&&$out['ok']===($failure===''),'Only fully verified recovery reports success');
     $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
-    previewAssert(isset($journal['created_at'])&&in_array($journal['state'],['unknown','verified','sent_unverified'],true),'Recovery keeps created_at and terminal receipt');
-    if ($failure==='unknown_code') previewAssert(($journal['private_api_code']??null)==='photo.fetch.failed'&&!str_contains(json_encode($out),'photo.fetch.failed'),'Private journal retains exact safe unknown code; stdout does not');
+    previewAssert(isset($journal['created_at'])&&in_array($journal['state'],['unknown','verified','sent_unverified','text_created','edit_unverified'],true),'Recovery keeps created_at and terminal receipt');
+    if ($failure==='unknown_code') {
+        previewAssert(($journal['private_api_code']??null)==='photo.fetch.failed'&&!str_contains(json_encode($out),'photo.fetch.failed'),'Private journal retains exact safe unknown code; stdout does not');
+        previewAssert(str_contains($journal['private_api_message']??'','field attachments')&&!str_contains(json_encode($out),'field attachments')&&!str_contains($journal['private_api_message'],'PRIVATE_TOKEN'),'Private message captured in journal only after redaction');
+    }
     [$again,$replayed]=recoveryTest('',$dir);
-    previewAssert($again['state']==='recovery_already_attempted'&&$replayed===[],'Every recovery journal blocks forever, even explicit HTTP400');
+    previewAssert(count(array_filter($replayed,static fn($c)=>$c[0]==='POST'))===0,'Any revision permanently blocks every future POST');
+    if (!isset($journal['message_id'])) previewAssert($again['state']==='recovery_already_attempted'&&$replayed===[],'Unknown text creation blocks all later requests');
     [$old,$replayed]=previewTestRun([],'',$dir);
     previewAssert($old['state']==='already_attempted'&&$replayed===[],'Original sender once guard unchanged after recovery');
 }
@@ -199,4 +226,64 @@ previewAssert(isset($receipt['created_at'])&&$receipt['state']==='unknown','Orig
 [$out,$calls,$dir]=previewTestRun([],'unknown_code');
 $receipt=json_decode(file_get_contents($dir.'/delphin-imperial-20261021.json'),true);
 previewAssert(($receipt['private_api_code']??null)==='photo.fetch.failed'&&!str_contains(json_encode($out),'photo.fetch.failed'),'Original sender also retains safe unknown code privately only');
+previewAssert(str_contains($receipt['private_api_message']??'','field attachments')&&!str_contains(json_encode($out),'field attachments')&&!str_contains($receipt['private_api_message'],'PRIVATE_TOKEN'),'Original receipt also stores only sanitized private error message');
+function legacyRejectionFixture(array $changes=[]): array {
+    [,,$dir]=recoveryTest('missing_anchor');
+    $record=['demo'=>'delphin-imperial-20261021','state'=>'unknown','created_at'=>'2026-10-21T00:20:00+00:00',
+        'original_receipt_sha256'=>hash_file('sha256',$dir.'/delphin-imperial-20261021.json'),
+        'send_diagnostic'=>['http_status'=>400,'curl_code'=>0,'error_category'=>'http_rejected','api_code'=>'proto.payload'],
+        'private_api_code'=>'proto.payload'];
+    $record=array_replace_recursive($record,$changes);$bytes=json_encode($record)."\n";
+    $path=$dir.'/delphin-imperial-20261021-recovery.json';file_put_contents($path,$bytes);chmod($path,0600);
+    return [$dir,$record,$bytes];
+}
+foreach ([['state'=>'sent_unverified','message_id'=>'mid.old'],['state'=>'verified'],['send_diagnostic'=>['http_status'=>0,'curl_code'=>28]],
+          ['send_diagnostic'=>['curl_code'=>28]],['send_diagnostic'=>['http_status'=>500]],['send_diagnostic'=>['api_code'=>'attachment.not.ready']],
+          ['repair_revision'=>'payload-repair-v1'],['message_id'=>null],['original_receipt_sha256'=>str_repeat('0',64)]] as $changes) {
+    [$dir,$record,$bytes]=legacyRejectionFixture($changes);
+    [$out,$calls]=recoveryTest('',$dir);
+    previewAssert($out['state']==='recovery_already_attempted'&&$calls===[],'Only exact legacy400/curl0/proto.payload/noMID may continue');
+    previewAssert(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json')===$bytes,'Ineligible prior journal never changes');
+}
+[$dir,$record,$bytes]=legacyRejectionFixture();
+$lock=fopen($dir.'/delphin-imperial-20261021-recovery.json','r+');flock($lock,LOCK_EX);
+[$out,$calls]=recoveryTest('',$dir);
+previewAssert($out['state']==='recovery_already_attempted'&&$calls===[],'Concurrent locked legacy journal blocks before provider');
+fclose($lock);
+[$out,$calls]=recoveryTest('concurrent',$dir);
+$journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
+previewAssert($out['ok']&&$journal['repair_revision']==='payload-repair-v1'&&$journal['state']==='verified'&&$journal['message_id']==='mid.recovered','Exact legacy rejection creates text then edits once and persists verified MID');
+previewAssert($journal['previous_recovery']===$record&&$journal['previous_recovery_sha256']===hash('sha256',$bytes),'Full prior journal retained immutably nested with exact byte hash');
+[$again,$calls]=recoveryTest('',$dir);
+previewAssert($again['ok']&&count($calls)===1&&$calls[0][0]==='GET','Completed same-MID resume reads back without PUT or POST');
+[$dir,$record,$bytes]=legacyRejectionFixture();
+[$out,$calls]=recoveryTest('missing_anchor',$dir);
+previewAssert(!$out['send_attempted']&&file_get_contents($dir.'/delphin-imperial-20261021-recovery.json')===$bytes,'Repair still needs complete fresh anchored history');
+foreach (['timeout','proto_payload','readback'] as $failure) {
+    [$dir,$record,$bytes]=legacyRejectionFixture();
+    [$out,$calls]=recoveryTest($failure,$dir);
+    $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
+    previewAssert(!$out['ok']&&$journal['previous_recovery']===$record,'Uncertain/failed repair retains original rejection evidence');
+    [$again,$calls]=recoveryTest('',$dir);
+    previewAssert(count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===0,'Any attempted repair revision blocks future creation, including same400');
+    if (!isset($journal['message_id'])) previewAssert($again['state']==='recovery_already_attempted'&&$calls===[],'Unknown creation without MID never resumes');
+}
+[$dir,$record,$bytes]=legacyRejectionFixture();
+file_put_contents($dir.'/delphin-imperial-20261021-recovery.json.payload-repair-v1.tmp','crash residue');
+[$out,$calls]=recoveryTest('',$dir);
+previewAssert(!$out['send_attempted']&&file_get_contents($dir.'/delphin-imperial-20261021-recovery.json')===$bytes,'Interrupted reservation fails closed and keeps prior record intact');
+foreach (['edit_rejected','edit_false','edit_timeout'] as $failure) {
+    [$dir]=legacyRejectionFixture();
+    [$out,$calls]=recoveryTest($failure,$dir);
+    previewAssert(!$out['ok']&&$out['edit_attempted']&&count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===1&&count(array_filter($calls,static fn($c)=>$c[0]==='PUT'))===1,'One text creation, one same-MID edit on rejection/timeout');
+    if ($failure!=='edit_timeout') previewAssert(str_contains($out['validation_message']??'','Invalid attachments')&&!str_contains($out['validation_message'],'mid.recovered')&&!str_contains($out['validation_message'],'991002')&&!str_contains($out['validation_message'],'PRIVATE_TOKEN')&&!str_contains($out['validation_message'],'https:'),'Bounded validator message retains field and strips private identifiers');
+    [$out,$calls]=recoveryTest('wrong_phrase',$dir);
+    previewAssert($out['ok']&&$calls[0][0]==='GET'&&$calls[0][1]==='/messages/mid.recovered'&&count(array_filter($calls,static fn($c)=>$c[0]==='POST'||$c[1]==='/messages'&&$c[0]==='GET'))===0,'Edit resume ignores newer owner phrase/history and never creates');
+}
+[$dir]=legacyRejectionFixture();
+[,,$dir]=recoveryTest('edit_rejected',$dir);
+foreach (['edit404','edit_wrong_owner'] as $failure) {
+    [$out,$calls]=recoveryTest($failure,$dir);
+    previewAssert(!$out['ok']&&!$out['edit_attempted']&&count($calls)===1&&$calls[0][0]==='GET','Missing/foreign known MID cannot fall back to PUT or POST');
+}
 echo "OWNER TOUR PREVIEW: $checks PASS\n";
