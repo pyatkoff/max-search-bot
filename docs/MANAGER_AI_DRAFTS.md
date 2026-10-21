@@ -175,6 +175,41 @@ every draft. Only supported selection links may be read on explicit generation;
 attachments/other links stay unread. Current page observations are not send-time
 versions and historical offers are not presented as current availability.
 
+When the customer asks for help choosing, the instructions call for a short
+comparison using the customer's priorities and the facts actually supplied.
+Different dates, room plans or included services can be compared as explicit
+tradeoffs; a lower number alone does not establish better value. Missing data
+requires a specific manager check, not invented hotel features, a fixed quota of
+alternatives or another full questionnaire.
+
+A request to arrange an explicitly selected option retains that option and its
+remaining barrier in `reason`/`checks`. A question about that option does not
+cancel the choice. Comparing it with another option for the same trip reopens
+the choice; a separate trip does not cancel it. Supplied documents or a promise
+to pay do not establish a final choice, payment or an action performed by AI.
+The existing stop, company-fact and unread-source rules still apply.
+
+Neutral development situations for reviewing this instruction candidate:
+
+| Situation | Expected boundary |
+| --- | --- |
+| Two described hotels differ in the customer's stated beach and room priorities | Give a concise factual comparison without inventing a third option. |
+| A lower quote uses different dates or excludes flights | Explain the difference before calling it cheaper or equivalent. |
+| The customer names hotels but only unread links contain their details | Retain the choices and give a concrete source check without fabricating a ranking. |
+| The customer selects a tour and asks to proceed, with one unresolved flight detail | Keep the selected tour and the detail; do not restart the needs questionnaire. |
+| After selecting a hotel, the customer asks about its room | Answer the supported question without treating the selection as cancelled. |
+| Documents are prepared but another hotel is still being considered for that trip | Keep the choice open and do not report a payment or reservation. |
+| A selected trip is followed by a separate request for a different holiday | Keep the trips and their choices separate. |
+| The customer declines the current trip and mentions a possible later holiday | Respect the stop; a future intention is not a completed sale. |
+
+These are review criteria for an unmeasured instruction candidate. Existing
+synthetic tests check delivery through the canonical developer instruction and
+the unchanged context/request limits; injected responses do not evaluate model
+judgment. Historical development inputs and criteria remain private. Any future
+authorized provider-backed evaluation must explicitly request Standard
+`service_tier="default"` and record the observed tier separately. The manager
+panel's Fast profile remains unchanged.
+
 `no_contact` is advice about the proposed message, not a status change or a
 permanent prohibition. This slice does not implement timed follow-up scoring,
 automatic tour selection, weight fine-tuning, personal style learning or autonomous sends.
