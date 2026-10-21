@@ -54,6 +54,43 @@ creation. Source changes and corrupt, mismatched or unsafe receipts stop work.
 Temporary downloaded files are removed; receipts and historical native messages
 are retained. All older text/visual modes and their receipts remain unchanged.
 
+## Fixed observed-listing owner trial
+
+`tools/owner_tour_live_quote_trial.php` adds one separately authorized real-listing
+example for the same two independently verified private owner conversations.
+Invoke only `/owner-tour-live-quote-trial <installed-main-SHA>` on issue 55, or the
+equivalent exact-SHA workflow input. Its CLI accepts only
+`--expected-sha=<installed-main-SHA> --confirm-owner-live-quote`.
+
+The literal source is a public FUN&SUN search observed on 2026-10-21 at 19:54 UTC:
+Grand Park Lara 5*, Lara, departure 05 June 2027 from Moscow, seven nights,
+Standard / 2AD, Ultra All Inclusive, 242154 RUB for the party. The source URL,
+row and observation time are archived in `ownerLiveQuoteSource`. This is an
+observed listing, not a selected-flight quotation, final fare, booking or a
+personal travel requirement. The displayed end date is calculated from seven
+nights; the card explicitly says return date, flights, availability and mandatory
+supplements remain to be checked. `is_demo=false`, `price_verified=false`, empty
+flight/inclusion arrays and the unverified-price footer preserve that distinction.
+
+Its three fixed genuine hotel images come from the official Corendon Grand Park
+home, beach and Standard Room galleries. The room image remains illustrative.
+Only these three literal Corendon assets are added to the bounded downloader;
+redirects, arbitrary URLs and image type/size/TLS limits remain unchanged.
+
+This uses the existing two-channel preparation/native-proof/delivery-binding
+runner with the separate ID `owner-live-quote-20261021-grand-park` and private
+directory `/var/www/anytoour/data/owner-tour-live-quote-trial`. All old fixed modes,
+IDs, content, receipts and creation hashes remain unchanged. Creation is permitted
+only from the observation time until 21:54 UTC the same day; this operational
+window is not a price-validity guarantee. The guard runs before downloads or
+preparation and again before durable POST reservation. Expired known-MID receipts
+still allow read/proof/rebinding without another POST; unknown outcomes remain
+blocked. Changing IDs or deleting receipts must never be used to replay a send.
+
+This trial does not expose or implement a general manager composer. An actual
+owner press, rather than this delivery, is required to prove the natural choice
+and Manager2 path for the new listing.
+
 ## Remaining delivery work
 
 The general manager sender is a separate bounded implementation. Existing

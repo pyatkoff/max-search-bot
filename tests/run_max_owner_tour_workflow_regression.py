@@ -36,8 +36,8 @@ blocks = run_blocks(OWNER)
 validate, = [b for b in blocks if 'GITHUB_EVENT_PATH' in b]
 send, = [b for b in blocks if 'ssh -o BatchMode=yes' in b]
 guard, = re.findall(r'^    if: (.+)$', OWNER, re.M)
-assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true || inputs.confirm_owner_trio == true || inputs.confirm_owner_emphasis == true || inputs.confirm_owner_choice == true || inputs.confirm_owner_photo_choice == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ') || startsWith(github.event.comment.body, '/owner-tour-choice-trial ') || startsWith(github.event.comment.body, '/owner-tour-photo-choice-trial '))))"
-assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants', 'confirm_owner_telegram', 'confirm_owner_trio', 'confirm_owner_emphasis', 'confirm_owner_choice', 'confirm_owner_photo_choice']
+assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true || inputs.confirm_owner_trio == true || inputs.confirm_owner_emphasis == true || inputs.confirm_owner_choice == true || inputs.confirm_owner_photo_choice == true || inputs.confirm_owner_live_quote == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ') || startsWith(github.event.comment.body, '/owner-tour-choice-trial ') || startsWith(github.event.comment.body, '/owner-tour-photo-choice-trial ') || startsWith(github.event.comment.body, '/owner-tour-live-quote-trial '))))"
+assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants', 'confirm_owner_telegram', 'confirm_owner_trio', 'confirm_owner_emphasis', 'confirm_owner_choice', 'confirm_owner_photo_choice', 'confirm_owner_live_quote']
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
 assert 'timeout-minutes: 20' in OWNER  # Bounded fixed six-message batch and nine MAX image uploads.
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
@@ -112,7 +112,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         event_path = directory / 'event.json'
         event_path.write_text(json.dumps(EVENT if event is None else event))
         env = {**os.environ, 'PATH': str(directory) + ':/usr/bin:/bin',
-               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'CONFIRM_OWNER_TRIO': 'false', 'CONFIRM_OWNER_EMPHASIS': 'false', 'CONFIRM_OWNER_CHOICE': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'false', 'ACTUAL_MAIN_SHA': SHA,
+               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'CONFIRM_OWNER_TRIO': 'false', 'CONFIRM_OWNER_EMPHASIS': 'false', 'CONFIRM_OWNER_CHOICE': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'false', 'CONFIRM_OWNER_LIVE_QUOTE': 'false', 'ACTUAL_MAIN_SHA': SHA,
                'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
                'GITHUB_SHA': workflow, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(directory / 'output'),
@@ -126,7 +126,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         result = subprocess.run(['/bin/bash', '-c', validate], env=env, capture_output=True, timeout=5)
         if result.returncode == 0:
             validated, mode = (directory / 'output').read_text().splitlines()
-            assert mode in ['owner_mode=send','owner_mode=recover','owner_mode=compare','owner_mode=variants','owner_mode=telegram','owner_mode=trio','owner_mode=emphasis','owner_mode=choice','owner_mode=photo-choice']
+            assert mode in ['owner_mode=send','owner_mode=recover','owner_mode=compare','owner_mode=variants','owner_mode=telegram','owner_mode=trio','owner_mode=emphasis','owner_mode=choice','owner_mode=photo-choice','owner_mode=live-quote']
             env['OWNER_MODE'] = mode.split('=', 1)[1]
             assert re.fullmatch(r'expected_sha=[0-9a-f]{40}', validated)
             env['EXPECTED_SHA'] = validated.split('=', 1)[1]
@@ -409,10 +409,54 @@ for body in ['/owner-tour-photo-choice-trial ' + SHA + '\n', '/owner-tour-photo-
     code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
     assert code != 0 and ssh == [] and php == [], body
 
-# Every pair of nine confirmation flags fails before SSH/secrets.
+# Live quotes use one separate fixed entrypoint; none of the nine older modes can select it.
+live_quote = copy.deepcopy(EVENT)
+live_quote['comment']['body'] = '/owner-tour-live-quote-trial ' + SHA
+LIVE_QUOTE_COMMAND = COMMAND.replace('max_owner_tour_preview.php', 'owner_tour_live_quote_trial.php').replace('--confirm-owner-send', '--confirm-owner-live-quote')
+assert send.count(LIVE_QUOTE_COMMAND) == 1
+for path in ['tools/owner_tour_live_quote_trial.php', 'tests/fixtures/owner_live_quote_trial.php']:
+    assert "      - '" + path + "'" in WORKFLOW
+assert 'run: php tests/fixtures/owner_live_quote_trial.php' in WORKFLOW
+assert WORKFLOW.index('run: php tests/run_owner_tour_photo_choice_trial_regression.php') < WORKFLOW.index('run: php tests/fixtures/owner_live_quote_trial.php')
+assert WORKFLOW.count("startsWith(github.event.comment.body, '/owner-tour-live-quote-trial ')") == 2
+for event_name in ['workflow_dispatch', 'issue_comment']:
+    code, ssh, php = execute(event=live_quote, env_changes={'GITHUB_EVENT_NAME': event_name,
+        'CONFIRM_OWNER_SEND': 'false', 'CONFIRM_OWNER_LIVE_QUOTE': 'true'})
+    assert code == 0 and len(ssh) == 1
+    assert php == [f'tools/owner_tour_live_quote_trial.php --expected-sha={SHA} --confirm-owner-live-quote']
+for changes in [{'GITHUB_ACTOR': 'another'}, {'GITHUB_ACTOR_ID': '1'}, {'ACTUAL_MAIN_SHA': 'b' * 40},
+                {'GITHUB_REF': 'refs/heads/feature'}, {'REPOSITORY_READ_TOKEN': ''}, {'READ_API_STATUS': '302'},
+                {'GITHUB_WORKFLOW_REF': 'pyatkoff/max-search-bot/.github/workflows/max-owner-tour-preview.yml@refs/heads/feature'}]:
+    code, ssh, php = execute(event=live_quote, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_LIVE_QUOTE': 'true', **changes})
+    assert code != 0 and ssh == [] and php == [], changes
+for kwargs in [{'installed': 'b' * 40}, {'unstaged': 1}, {'staged': 1}]:
+    code, ssh, php = execute(event=live_quote, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_LIVE_QUOTE': 'true'}, **kwargs)
+    assert code != 0 and len(ssh) == 1 and php == [], kwargs
+for path, value in [(('comment', 'user', 'login'), 'pyatkoff-bot'), (('comment', 'user', 'id'), 1),
+                    (('sender', 'id'), 1), (('issue', 'number'), 56), (('issue', 'pull_request'), {}),
+                    (('action',), 'edited')]:
+    event = copy.deepcopy(live_quote)
+    node = event
+    for key in path[:-1]: node = node[key]
+    node[path[-1]] = value
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], (path, value)
+for body in ['/owner-tour-live-quote-trial ' + SHA + '\n', '/owner-tour-live-quote-trial ' + SHA + ' extra',
+             '/owner-tour-live-quote-trial ' + SHA.upper(), '/owner-tour-live-quote-trial $(touch /must-not-run)',
+             '/owner-tour-live-quote-trial ' + SHA + ' --chat-id=3', '/owner-tour-preview-live-quote ' + SHA,
+             '/owner-tour-live-quote-trial ' + SHA + '\n/owner-tour-photo-choice-trial ' + SHA,
+             '/owner-tour-photo-choice-trial ' + SHA + ' /owner-tour-live-quote-trial ' + SHA]:
+    event = copy.deepcopy(live_quote)
+    event['comment']['body'] = body
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], body
+
+# Every pair of ten confirmation flags fails before SSH/secrets.
 flags = ['CONFIRM_OWNER_SEND', 'CONFIRM_OWNER_RECOVERY', 'CONFIRM_OWNER_COMPARISON',
          'CONFIRM_OWNER_VARIANTS', 'CONFIRM_OWNER_TELEGRAM', 'CONFIRM_OWNER_TRIO',
-         'CONFIRM_OWNER_EMPHASIS', 'CONFIRM_OWNER_CHOICE', 'CONFIRM_OWNER_PHOTO_CHOICE']
+         'CONFIRM_OWNER_EMPHASIS', 'CONFIRM_OWNER_CHOICE', 'CONFIRM_OWNER_PHOTO_CHOICE', 'CONFIRM_OWNER_LIVE_QUOTE']
 for index, first in enumerate(flags):
     for second in flags[index + 1:]:
         changes = {flag: 'false' for flag in flags}
