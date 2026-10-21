@@ -47,6 +47,13 @@ and permitted Telegram archive scopes. Empty starts/callbacks, test dialogs and
 non-customer service events are excluded. A snapshot contains at most 120
 messages and 40,000 text characters. Personal identifiers are redacted before
 storage; raw scoped hashes detect edits without exposing source identity.
+Standalone technical test probes and the explicit Russian/English Telegram
+account-login notification templates are also excluded, including from retained
+prefixes: old private-chat imports may label them as customer messages. This is
+a narrow content boundary, not a general spam classifier; travel tests, booking
+references and substantive questions remain eligible. Discovery cursors still
+advance over excluded rows. Existing captured copies are invalidated/purged by
+the ordinary bounded reconciliation and claim/context/save/read rechecks.
 Raw prefix lengths are checked before loading values, with at most 262,144
 length units (at most 1 MiB of UTF-8) in the retained suffix. Oversized earlier
 metadata shortens the prefix and marks history incomplete. A question that cannot

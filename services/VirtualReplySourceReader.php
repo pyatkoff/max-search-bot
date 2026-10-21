@@ -254,8 +254,15 @@ final class VirtualReplySourceReader
 
     private function hasText(string $text): bool
     {
-        return preg_match('//u', $text) === 1 && preg_match('/[^\s\pZ\pC]/u', $text) === 1
-            && preg_match('~\A\s*/start(?:\s+\S+)?\s*\z~iu', $text) !== 1;
+        if (preg_match('//u', $text) !== 1 || preg_match('/[^\s\pZ\pC]/u', $text) !== 1
+            || preg_match('~\A\s*/start(?:\s+\S+)?\s*\z~iu', $text) === 1) return false;
+        // Legacy imports label private service peers as customers. Reject the
+        // explicit non-tourist content at both question and prefix boundaries.
+        if (preg_match('~\A\s*(?:тестирую|тест(?:\s+(?:архива|связи))?(?:\s+[0-9]{1,8})?)[.!…\s]*\z~iu', $text) === 1) return false;
+        $login = preg_match('~\A\s*(?:Код\s+для\s+входа\s+в\s+(?:ваш\s+)?аккаунт\s+Telegram|Login\s+code)\s*:\s*[0-9]{4,8}\b~iu', $text) === 1;
+        $telegram = preg_match('~\bTelegram\b~i', $text) === 1;
+        $warning = preg_match('~(?:Не\s+давайте\s+код\s+никому|Do\s+not\s+give\s+this\s+code\s+to\s+anyone)~iu', $text) === 1;
+        return !$login || !$telegram || !$warning;
     }
 
     private function archiveRecord(array $row): ?array
