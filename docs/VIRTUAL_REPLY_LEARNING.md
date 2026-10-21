@@ -9,6 +9,20 @@ This flow is separate from ordinary prepared replies and `messages`. It does not
 send, mark read, assign a manager, change shifts, route leads, or invoke a model
 in message intake. Archive imports are replay data, not new live conversations.
 
+## Shared policy and implementation boundaries
+
+`TourConsultationPolicy` owns the common tourist-intent and consultation rules.
+`ManagerAiDraftService` and both `VirtualReplyProtocol` roles consume the same
+policy text; role-specific evidence, output schemas and operational permissions
+remain separate. A shared policy edit therefore changes all affected instruction
+revisions. Active/completed virtual attempts retain their frozen contracts;
+ordinary prepared work retains its existing revision/freshness fences.
+
+This closes the previous gap in which a validated virtual lesson did not update
+the ordinary draft instruction. Source filtering remains specific to private
+learning; it is not copied into message intake. Publishing instructions still
+requires separate runtime verification and does not prove improved model quality.
+
 ## Roles
 
 | Role | Model | Reasoning | Tier |
@@ -96,7 +110,11 @@ prepared queue continue to represent ordinary manager replies only.
 5. `save_virtual_reply` saves the exact result and declared model, reasoning and
    tier. A reviewer cannot save an author's result or cite unseen messages.
 6. Read metadata using `list_virtual_reply_reviews`; inspect individual cases
-   privately using `get_virtual_reply_review`.
+   privately using `get_virtual_reply_review`. Unresolved `revise` and
+   `insufficient_context` findings are ordered oldest first before the page
+   limit; a `pass` is not a finding requiring resolution. The additive
+   `requires_disposition` flag identifies those unresolved findings. Remaining
+   reviews are newest first. Listing does not record a disposition automatically.
 7. After the development pass, `record_virtual_reply_lesson` records `rejected`,
    `duplicate` or `applied` with the reason and validation. Applied lessons require
    a same-repository PR URL; the worker must verify its merged/deployed state and
@@ -181,6 +199,40 @@ new dates were requested; a question about a specific flight can use `check_offe
 and retain facts already supported by the context. These are instruction
 calibrations, not a new model-quality benchmark. Frozen active/completed jobs
 retain their original contracts.
+
+## Next quality checks and completion criteria
+
+These are explicit next steps, not measurements already completed. Continue the
+existing reviewer-first worker loop and its per-role UTC quota; do not create a
+new schedule, call a paid provider, or reopen expired/unknown claims.
+
+1. Preserve whole-episode independence. Adjacent prefixes, repeated imports and
+   continuations of one trip are related evidence, not independent successes.
+   A stable private source/episode grouping is needed before claiming automatic
+   diverse sampling: current discovery priority is recent-first FIFO, not a
+   representative sample. Fresh capture must continue before historical replay.
+2. Reserve unseen whole episodes for control evaluation before reading them for
+   development. Keep proposer examples, validation examples and final controls
+   distinct. Compare current and previous instruction versions on the same
+   bounded prefix with blind answer order and independent review; any control
+   inspected to design a repair becomes development material. This needs a
+   separate bounded implementation using normal permission/quota/provenance
+   fences; no control run is claimed by this documentation change.
+3. Cover necessary clarification, useful factual response, concrete comparison,
+   budget/placement compromises, unread evidence and no-contact decisions.
+   Record unnecessary questions, lost constraints, unsupported claims and
+   useful-next-action judgments with their denominators and episode counts.
+   A batch of clarification-only answers prompts a sampling/usefulness audit;
+   it does not itself prove that the questions were wrong.
+4. Close the transfer loop for each accepted lesson: shared instruction/knowledge
+   owner, separate-case and counterexample validation, exact-head CI, installed
+   version, actual relevant runtime observation, then private disposition.
+   Old unresolved findings need explicit missing evidence or a concrete repair;
+   new pass reviews must not be treated as lessons requiring disposition.
+
+An initial comparison can support only a bounded result for its specified cases.
+Model acceptance rate, number of claims, deployed prompt text and a manager reply
+are not substitutes for measured improvement or proof of whole-archive coverage.
 
 ## Operations
 

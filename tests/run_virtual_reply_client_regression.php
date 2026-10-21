@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__).'/ai/VirtualReplyClient.php';
+require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
 
 $passed=0;$failed=0;
 function virtualCheck(string $name,bool $ok): void
@@ -56,6 +57,23 @@ virtualCheck('untrusted payload stays in user message',$author['input'][1]['role
 virtualCheck('frozen supplied instructions are not silently replaced',VirtualReplyClient::requestBody('reviewer','FROZEN_REVIEW_INSTRUCTION',[])['input'][0]['content'][0]['text']==='FROZEN_REVIEW_INSTRUCTION');
 virtualCheck('revision is stable and separates both roles',VirtualReplyProtocol::revision('author')===VirtualReplyProtocol::revision('author')
     && strlen(VirtualReplyProtocol::revision('author'))===64 && VirtualReplyProtocol::revision('author')!==VirtualReplyProtocol::revision('reviewer'));
+$policy=TourConsultationPolicy::instructions();
+$ordinary=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),$payload);
+foreach (['ordinary'=>$ordinary,'author'=>$author,'reviewer'=>$reviewer] as $role=>$request) {
+    $system=$request['input'][0]['content'][0]['text'];
+    virtualCheck($role.' provider envelope consumes the exact shared policy once',substr_count($system,$policy)===1);
+    virtualCheck($role.' policy is not injected into source data',json_decode($request['input'][1]['content'][0]['text'],true)===($role==='reviewer'?['context'=>$payload,'answer'=>virtualAuthor()]:$payload));
+}
+foreach (['author','reviewer'] as $role) {
+    $contract=['role'=>$role,'instructions'=>VirtualReplyProtocol::instructions($role),'profile'=>VirtualReplyProtocol::profile($role),'schema'=>VirtualReplyProtocol::schema($role)];
+    $encode=static fn(array $value):string=>json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+    virtualCheck($role.' revision covers the complete shared instruction payload',VirtualReplyProtocol::revision($role)===hash('sha256',$encode($contract)));
+    $contract['instructions']=str_replace($policy,'',$contract['instructions']);
+    virtualCheck($role.' contract without the shared policy has a different revision',VirtualReplyProtocol::revision($role)!==hash('sha256',$encode($contract)));
+}
+virtualCheck('ordinary instruction revision also changes with shared policy',hash('sha256',ManagerAiDraftService::instructions())!==hash('sha256',str_replace($policy,'',ManagerAiDraftService::instructions())));
+virtualCheck('frozen caller contract stays exact after current shared policy is loaded',VirtualReplyClient::requestBody('author','FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY',$payload)['input'][0]['content'][0]['text']==='FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY');
+
 foreach (['AUTHOR','judge','','author/../reviewer'] as $role) {
     virtualCheck('reject unknown role '.json_encode($role),virtualReject(static fn()=>VirtualReplyClient::requestBody($role,'test',[])));
 }

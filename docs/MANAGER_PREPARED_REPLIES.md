@@ -126,30 +126,28 @@ still separate genuinely independent trips and clarify only an ambiguous link,
 not the entire intake. These are prompt rules, not proof of a future model result;
 the manager remains the reviewer and sender.
 
-Owner feedback on 2026-10-20 also prefers a short, context-supported confirmation
-over restarting intake. An available current post naming Moscow supports the
-question "Вылет из Москвы рассматриваете?", including when the customer changes
-the destination or period without discussing departure. It does not establish
-an agreed departure. Without that source hint, Moscow is not a default; an explicit
-customer departure such as Saint Petersburg always takes precedence.
+Shared business principles are owned by `TourConsultationPolicy`. Both ordinary
+manager drafts and private virtual authors/reviewers consume that same text.
+Role-specific sources, company-fact verification, photo/selection handling,
+output schemas and permission boundaries remain separate. The complete returned
+instructions participate in ordinary and virtual instruction revisions.
 
-A current post for two adults or a couple enquiry supports "Вдвоём планируете
-поехать?" rather than "Сколько человек?" when party is unknown. For a honeymoon,
-departure and an unknown budget are usually more useful next questions than an
-open headcount question. Couple wording remains a hypothesis: it establishes
-neither two confirmed adults, a room plan nor absence of children. Explicit solo,
-family, child and known-party details override it. An unknown budget may be a
-comfortable range or upper bound; do not demand an exact amount or block an
-independent answer with budget intake.
+Explicit tourist wording takes priority over a publication. A click alone neither
+establishes the subject of an enquiry nor justifies a departure/party confirmation;
+empty start/click entries remain silent. Use a post only where the message links
+the request to it. Preserve known conditions, necessary ambiguities and verified
+route coverage. Egypt and Turkish resorts use all-inclusive as a working default;
+explicit different meals and city stays such as Istanbul remain distinct.
 
-Anonymized wording examples from that feedback (not newly saved replies):
+Synthetic calibration examples, not observed model-quality results:
 
-| Request and source evidence | Useful next wording |
+| Request and source evidence | Next step |
 | --- | --- |
-| Honeymoon, several destinations, current post departs Moscow; budget unknown | «Вылет из Москвы рассматриваете? В какую сумму хотели бы уложиться вдвоём?» |
-| Egypt in July, 5-star first-line requirement, current post for two adults; party/budget unknown | «Вдвоём планируете поехать? В какую сумму хотели бы уложиться?» |
-| Customer explicitly departs Saint Petersburg in January; post for two adults, party/budget unknown | «Вдвоём планируете поехать? Какой бюджет на поездку рассматриваете?» |
-| Indonesia around January 5, explicitly one adult, current post departs Moscow | «Вылет из Москвы рассматриваете? На сколько ночей планируете поездку?» |
+| Explicit Lisbon stay; essential conditions known | Prepare the requested selection without an optional city/beach fork. |
+| Honeymoon; origin and budget unknown | Use a pair as a working hypothesis and ask only material missing conditions. |
+| Tourist requests Egypt; unrelated Phuket post entry | Preserve Egypt; do not confirm the post's departure or hotel just because of the click. |
+| Explicit Saint Petersburg departure and three adults | Preserve both; no repeated departure or child question. |
+| Egypt package, ordinary six-to-nine-day range | Keep the range and working all-inclusive default without a terminology or meal question. |
 
 These prompt rules do not mutate booking fields or prove future generation quality.
 They do not authorize rewriting completed jobs: normal instruction/context revision
