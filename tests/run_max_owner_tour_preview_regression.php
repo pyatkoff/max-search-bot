@@ -45,6 +45,7 @@ function previewTestRun(array $changes=[],string $failure='',?string $dir=null):
             previewAssert(count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===1,'No automatic second POST');
             if($failure==='throw')throw new RuntimeException('PRIVATE_TOKEN');
             if($failure==='timeout')return null;
+            if($failure==='unknown_code')return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_TOKEN"}',400,0,0);
             return ['message'=>['body'=>['mid'=>'mid.sent']]];
         }
         if($path==='/messages/mid.fixture')return ['body'=>['mid'=>'mid.fixture'],
@@ -114,6 +115,10 @@ previewAssert(ownerPreviewDecode('{}',200,0,20)['diagnostic']['error_category']=
 previewAssert(ownerPreviewDecode('{}',200,0,0,true)['diagnostic']['error_category']==='response_too_large','Overflow fails closed');
 previewAssert(ownerPreviewMid(['message'=>['mid'=>'mid.canonical']])==='mid.canonical','Canonical message.mid fallback');
 previewAssert(ownerPreviewDecode('{"code":"proto.payload","message":"PRIVATE_DETAILS"}',400,0,0)['diagnostic']['api_code']==='proto.payload','Fixed safe protocol code remains actionable');
+$privateError=ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_DETAILS"}',400,0,0);
+previewAssert($privateError['private_api_code']==='photo.fetch.failed'&&$privateError['diagnostic']['api_code']===null&&!str_contains(json_encode($privateError['diagnostic']),'photo.fetch.failed'),'Unknown structured code stays private');
+foreach (['http://example.test','token123','bad code','Upper.case',str_repeat('a',65)] as $badCode)
+    previewAssert(ownerPreviewDecode(json_encode(['code'=>$badCode]),400,0,0)['private_api_code']===null,'Private code rejects URL/digits/whitespace/case/oversize');
 function recoveryTest(string $failure='',?string $dir=null): array {
     $dir=$dir??sys_get_temp_dir().'/max-owner-recovery-'.bin2hex(random_bytes(8));
     if (!is_dir($dir)) {
@@ -133,6 +138,7 @@ function recoveryTest(string $failure='',?string $dir=null): array {
             if ($failure==='throw') throw new RuntimeException('PRIVATE_TOKEN');
             if ($failure==='timeout') return ownerPreviewDecode('',0,28,0);
             if ($failure==='http400') return ownerPreviewDecode('{"code":"attachment.not.ready","message":"PRIVATE_TOKEN"}',400,0,0);
+            if ($failure==='unknown_code') return ownerPreviewDecode('{"code":"photo.fetch.failed","message":"PRIVATE_TOKEN"}',400,0,0);
             return ownerPreviewDecode('{"message":{"mid":"mid.recovered"}}',200,0,0);
         }
         if ($path==='/messages/mid.fixture') {
@@ -172,11 +178,12 @@ foreach (['stale','wrong_phrase','wrong_identity','history403','missing_anchor',
     previewAssert(!$out['send_attempted']&&count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===0,'Failed corroboration never recovers: '.$failure);
     previewAssert(!file_exists($dir.'/delphin-imperial-20261021-recovery.json'),'Preflight failures reserve no send');
 }
-foreach (['','timeout','http400','throw','readback','readback_throw'] as $failure) {
+foreach (['','timeout','http400','unknown_code','throw','readback','readback_throw'] as $failure) {
     [$out,$calls,$dir]=recoveryTest($failure);
     previewAssert($out['send_attempted']&&$out['ok']===($failure===''),'Only fully verified recovery reports success');
     $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
     previewAssert(isset($journal['created_at'])&&in_array($journal['state'],['unknown','verified','sent_unverified'],true),'Recovery keeps created_at and terminal receipt');
+    if ($failure==='unknown_code') previewAssert(($journal['private_api_code']??null)==='photo.fetch.failed'&&!str_contains(json_encode($out),'photo.fetch.failed'),'Private journal retains exact safe unknown code; stdout does not');
     [$again,$replayed]=recoveryTest('',$dir);
     previewAssert($again['state']==='recovery_already_attempted'&&$replayed===[],'Every recovery journal blocks forever, even explicit HTTP400');
     [$old,$replayed]=previewTestRun([],'',$dir);
@@ -189,4 +196,7 @@ previewAssert($out['state']==='recovery_already_attempted'&&$calls===[],'Corrupt
 [$out,$calls,$dir]=previewTestRun([],'timeout');
 $receipt=json_decode(file_get_contents($dir.'/delphin-imperial-20261021.json'),true);
 previewAssert(isset($receipt['created_at'])&&$receipt['state']==='unknown','Original unknown receipt now preserves created_at');
+[$out,$calls,$dir]=previewTestRun([],'unknown_code');
+$receipt=json_decode(file_get_contents($dir.'/delphin-imperial-20261021.json'),true);
+previewAssert(($receipt['private_api_code']??null)==='photo.fetch.failed'&&!str_contains(json_encode($out),'photo.fetch.failed'),'Original sender also retains safe unknown code privately only');
 echo "OWNER TOUR PREVIEW: $checks PASS\n";

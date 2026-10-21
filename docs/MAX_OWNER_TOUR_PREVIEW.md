@@ -116,7 +116,10 @@ Receipts written by the updated sender retain `created_at` across outcome change
 the historical receipt without it is not backfilled. Public diagnostics expose
 only bounded HTTP/curl numbers, fixed error categories and an explicit safe API
 code allowlist (including `proto.payload` and `attachment.not.ready`). Unknown
-codes become null; provider descriptions, raw bodies/text, IDs, URLs and tokens
-are never logged. The recovery journal stores only those sanitized diagnostics
-plus its private MID/hash. This does not implement callback state, offer binding,
+codes become null publicly. The original receipt/recovery journal privately retain
+only the structured provider code when it matches `[a-z][a-z._]{1,63}` exactly;
+digits, URLs, whitespace and longer values are rejected. This field never enters
+stdout. Provider descriptions, raw bodies/text, IDs, URLs and tokens are never
+logged. The journal also stores sanitized diagnostics plus its private MID/hash.
+This does not implement callback state, offer binding,
 image upload conversion or general customer recovery.

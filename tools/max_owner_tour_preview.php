@@ -51,7 +51,8 @@ function ownerPreviewDecode(string $bytes,int $status,int $curl,int $tls,bool $o
         'error_category'=>$overflow?'response_too_large':($tls!==0?'tls':($curl!==0?'transport':($status<200||$status>=300?'http_rejected':(!is_array($data)?'invalid_response':'none')))),
         'api_code'=>in_array($code,['proto.payload','proto.query','proto.auth','access.denied','chat.not.found','user.not.found',
             'dialog.suspended','error.dialog.suspended','attachment.not.ready','attachment.invalid','message.empty','message.too.long'],true)?$code:null];
-    return ['data'=>$diagnostic['error_category']==='none'?$data:null,'diagnostic'=>$diagnostic];
+    $privateCode=is_string($code)&&preg_match('/\A[a-z][a-z._]{1,63}\z/D',$code)?$code:null;
+    return ['data'=>$diagnostic['error_category']==='none'?$data:null,'diagnostic'=>$diagnostic,'private_api_code'=>$privateCode];
 }
 
 /** Fixed HTTPS origin; bounded/redacted exchange; no redirects, retries or raw logging. */
@@ -208,6 +209,7 @@ function ownerPreviewRecoverRun(string $expected,string $installed,string $proje
         $out['send_attempted']=true;$out['provider_requests']++;
         $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
         $out['send_diagnostic']=ownerPreviewDiagnostic($response);$receipt['send_diagnostic']=$out['send_diagnostic'];
+        $receipt['private_api_code']=$response['private_api_code']??null;
         $sentMid=ownerPreviewMid(ownerPreviewData($response));
         $out['state']=$sentMid===null?'unknown':'sent_unverified';
         if ($sentMid!==null) $receipt['message_id']=$sentMid;
@@ -255,6 +257,7 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
         $out['send_attempted']=true;$out['provider_requests']++;
         $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
         $out['send_diagnostic']=ownerPreviewDiagnostic($response);
+        $receipt['private_api_code']=$response['private_api_code']??null;
         $sentMid=ownerPreviewMid(ownerPreviewData($response));
         if (!is_string($sentMid) || !preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$sentMid)) {
             ownerPreviewWrite($file,$receipt+['state'=>'unknown','send_diagnostic'=>$out['send_diagnostic']]);
