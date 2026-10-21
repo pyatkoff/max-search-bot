@@ -11,10 +11,13 @@ on:
       - 'tools/telegram_owner_tour_preview.php'
       - 'tools/owner_tour_selection_preview.php'
       - 'tools/owner_tour_card_emphasis_preview.php'
+      - 'tools/owner_tour_choice_trial.php'
+      - 'services/TourChoiceService.php'
       - 'tests/run_max_owner_tour_preview_regression.php'
       - 'tests/run_telegram_owner_tour_preview_regression.php'
       - 'tests/run_owner_tour_selection_preview_regression.php'
       - 'tests/run_owner_tour_card_emphasis_preview_regression.php'
+      - 'tests/run_owner_tour_choice_trial_regression.php'
       - 'tests/run_max_owner_tour_workflow_regression.py'
       - '.github/workflows/max-owner-tour-preview.yml'
   workflow_dispatch:
@@ -53,8 +56,15 @@ on:
         type: boolean
         required: true
         default: false
+
       confirm_owner_emphasis:
         description: Send the fixed Imperial emoji comparison to both verified owner private chats once each
+        type: boolean
+        required: true
+        default: false
+
+      confirm_owner_choice:
+        description: Send two fixed demo text cards with saved likes to the independently verified owner chats once
         type: boolean
         required: true
         default: false
@@ -68,7 +78,7 @@ concurrency:
 
 jobs:
   regression:
-    if: github.event_name != 'issue_comment' || (github.repository == 'pyatkoff/max-search-bot' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ')))
+    if: github.event_name != 'issue_comment' || (github.repository == 'pyatkoff/max-search-bot' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ') || startsWith(github.event.comment.body, '/owner-tour-choice-trial ')))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -86,11 +96,13 @@ jobs:
         run: php tests/run_owner_tour_selection_preview_regression.php
       - name: Verify fixed owner emphasis comparison and separate once receipts
         run: php tests/run_owner_tour_card_emphasis_preview_regression.php
+      - name: Verify fixed owner choice snapshots and permanent send receipts
+        run: php tests/run_owner_tour_choice_trial_regression.php
       - name: Verify fixed manual workflow command and stop gates
         run: python3 tests/run_max_owner_tour_workflow_regression.py
 
   owner-send:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true || inputs.confirm_owner_trio == true || inputs.confirm_owner_emphasis == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis '))))
+    if: github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true || inputs.confirm_owner_trio == true || inputs.confirm_owner_emphasis == true || inputs.confirm_owner_choice == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ') || startsWith(github.event.comment.body, '/owner-tour-choice-trial '))))
     needs: regression
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -106,6 +118,7 @@ jobs:
           CONFIRM_OWNER_TELEGRAM: ${{ inputs.confirm_owner_telegram }}
           CONFIRM_OWNER_TRIO: ${{ inputs.confirm_owner_trio }}
           CONFIRM_OWNER_EMPHASIS: ${{ inputs.confirm_owner_emphasis }}
+          CONFIRM_OWNER_CHOICE: ${{ inputs.confirm_owner_choice }}
           REPOSITORY_READ_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -130,11 +143,11 @@ jobs:
                       or os.environ.get('GITHUB_ACTOR') != owner['login']
                       or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
                   raise SystemExit(2)
-              command = re.fullmatch(r'/owner-tour-preview(-recover|-compare|-variants|-telegram|-trio|-emphasis)? ([0-9a-f]{40})', comment.get('body', ''))
+              command = re.fullmatch(r'/(owner-tour-preview(?:-recover|-compare|-variants|-telegram|-trio|-emphasis)?|owner-tour-choice-trial) ([0-9a-f]{40})', comment.get('body', ''))
               if command is None:
                   raise SystemExit(2)
               expected = command.group(2)
-              mode = {'-recover': 'recover', '-compare': 'compare', '-variants': 'variants', '-telegram': 'telegram', '-trio': 'trio', '-emphasis': 'emphasis', None: 'send'}[command.group(1)]
+              mode = {'owner-tour-preview-recover': 'recover', 'owner-tour-preview-compare': 'compare', 'owner-tour-preview-variants': 'variants', 'owner-tour-preview-telegram': 'telegram', 'owner-tour-preview-trio': 'trio', 'owner-tour-preview': 'send', 'owner-tour-preview-emphasis': 'emphasis', 'owner-tour-choice-trial': 'choice'}[command.group(1)]
           elif os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
               send = os.environ.get('CONFIRM_OWNER_SEND') == 'true'
               recover = os.environ.get('CONFIRM_OWNER_RECOVERY') == 'true'
@@ -143,13 +156,14 @@ jobs:
               telegram = os.environ.get('CONFIRM_OWNER_TELEGRAM') == 'true'
               trio = os.environ.get('CONFIRM_OWNER_TRIO') == 'true'
               emphasis = os.environ.get('CONFIRM_OWNER_EMPHASIS') == 'true'
-              if sum([send, recover, compare, variants, telegram, trio, emphasis]) != 1:
+              choice = os.environ.get('CONFIRM_OWNER_CHOICE') == 'true'
+              if sum([send, recover, compare, variants, telegram, trio, emphasis, choice]) != 1:
                   raise SystemExit(2)
               expected = os.environ.get('EXPECTED_SHA', '')
-              mode = 'emphasis' if emphasis else ('trio' if trio else ('telegram' if telegram else ('variants' if variants else ('compare' if compare else ('recover' if recover else 'send')))))
+              mode = 'choice' if choice else ('emphasis' if emphasis else ('trio' if trio else ('telegram' if telegram else ('variants' if variants else ('compare' if compare else ('recover' if recover else 'send'))))))
           else:
               raise SystemExit(2)
-          if mode in ['recover', 'compare', 'variants', 'telegram', 'trio', 'emphasis'] and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
+          if mode in ['recover', 'compare', 'variants', 'telegram', 'trio', 'emphasis', 'choice'] and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
               raise SystemExit(2)
           if not re.fullmatch(r'[0-9a-f]{40}', expected) or expected != os.environ.get('GITHUB_SHA'):
               raise SystemExit(2)
@@ -205,7 +219,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
-          [[ "$OWNER_MODE" == send || "$OWNER_MODE" == recover || "$OWNER_MODE" == compare || "$OWNER_MODE" == variants || "$OWNER_MODE" == telegram || "$OWNER_MODE" == trio || "$OWNER_MODE" == emphasis ]] || exit 2
+          [[ "$OWNER_MODE" == send || "$OWNER_MODE" == recover || "$OWNER_MODE" == compare || "$OWNER_MODE" == variants || "$OWNER_MODE" == telegram || "$OWNER_MODE" == trio || "$OWNER_MODE" == emphasis || "$OWNER_MODE" == choice ]] || exit 2
           ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
             bash -s -- "$EXPECTED_SHA" "$OWNER_MODE" <<'REMOTE'
           set -euo pipefail
@@ -224,6 +238,7 @@ jobs:
             telegram) php tools/telegram_owner_tour_preview.php --expected-sha="$expected_sha" --confirm-owner-telegram ;;
             trio) php tools/owner_tour_selection_preview.php --expected-sha="$expected_sha" --confirm-owner-trio ;;
             emphasis) php tools/owner_tour_card_emphasis_preview.php --expected-sha="$expected_sha" --confirm-owner-emphasis ;;
+            choice) php tools/owner_tour_choice_trial.php --expected-sha="$expected_sha" --confirm-owner-choice ;;
             *) exit 2 ;;
           esac
           REMOTE

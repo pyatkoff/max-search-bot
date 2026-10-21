@@ -1,5 +1,15 @@
 # Product Contract
 
+## Owner clarification — tour choices, 2026-10-21
+
+The agreed immediate path is native cards in Telegram/MAX → an explicitly liked
+offer with its exact sent conditions → that preference in the existing Manager2
+customer card. Preserve each offer version, whole-party amount/currency, demo
+marker, rationale and material compromise. A preference is not a booking or
+proof of a current final price. See `docs/TOUR_CHOICES.md` for implementation and
+the next bounded sequence: shareable selection, selected-offer flight/price
+verification, measured interest and evidence-backed dialogue learning.
+
 This document keeps durable product decisions out of issue comments and chat history.
 
 ## Primary outcome

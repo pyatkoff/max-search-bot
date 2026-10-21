@@ -10,6 +10,7 @@ require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/SalesPipelineService.php';
 require_once __DIR__ . '/CallbackGeneration.php';
 require_once __DIR__ . '/ManagerHandoffCancellationViewService.php';
+require_once __DIR__ . '/TourChoiceService.php';
 
 class ManagerConversationService
 {
@@ -21,6 +22,7 @@ class ManagerConversationService
             || ($row['last_sender_type'] ?? '') !== 'customer') return $text;
         $metadata = json_decode((string)($row['last_metadata_json'] ?? ''), true);
         if (!is_array($metadata) || ($metadata['type'] ?? '') !== 'callback') return $text;
+        if (str_starts_with($text, 'tour_like_')) return 'Нажата кнопка «Нравится»';
         return CallbackGeneration::base($text) === 'show_tours'
             ? 'Нажата кнопка «Показать туры»'
             : $text;
@@ -248,6 +250,12 @@ class ManagerConversationService
         $detail=['conversation'=>$conversation,'messages'=>$messages,'has_manager_reply'=>(bool)$q->fetchColumn(),
             'history'=>['has_more'=>$hasMore,'before_id'=>$messages?(int)$messages[0]['id']:0,'page_size'=>$limit,'mode'=>$beforeId>0?'older':'latest'],
             'handoff_cancellation'=>ManagerHandoffCancellationViewService::fromVisibleContext($conversation)];
+        // Only after the existing visibility check; an optional panel failure
+        // must not make the customer's conversation unavailable.
+        if ($beforeId === 0) {
+            try { $detail['tour_choices'] = ['available'=>true] + TourChoiceService::forConversation($pdo, $conversationId); }
+            catch (Throwable $ignored) { $detail['tour_choices'] = ['available'=>false,'offers'=>[],'limited'=>false]; }
+        }
         // HTTP callers defer this until hydration succeeds. Existing direct
         // detail callers retain their bounded latest-page read behaviour.
         if($markRead&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);

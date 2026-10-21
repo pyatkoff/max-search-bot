@@ -46,6 +46,10 @@ class ManagerMessageMediaService
                     'phone_manual'=>'Клиент выбрал ручной ввод телефона',
                 ];
                 $message['service_action']=['type'=>'callback','label'=>$labels[CallbackGeneration::base($raw)]??'Клиент нажал кнопку','raw_payload'=>$raw];
+                if (str_starts_with($raw, 'tour_like_')) {
+                    $message['text'] = 'Нажата кнопка «Нравится»';
+                    $message['service_action'] = ['type'=>'callback','label'=>'Нажата кнопка «Нравится»'];
+                }
             }
             if(!empty($media['linked_message'])) $message['linked_message']=$media['linked_message'];
             $attachments = $media['attachments'];
