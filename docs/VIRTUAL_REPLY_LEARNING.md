@@ -35,6 +35,23 @@ payload/result purge, without resetting consumed quotas or unknown attempts.
 This changes neither message intake nor dialogue visibility, routing or demo
 interactions. Manual owner tests remain explicit separate work.
 
+Explicitly adult children or relatives count as adults. Preliminary selection or
+price comparison does not require their exact ages without a concrete, confirmed
+age condition. Preserve known ages; clarify an unknown minor's age or genuinely
+ambiguous age category briefly when needed for calculation, while retaining any
+independent useful answer. This does not forbid age/date-of-birth collection when
+actually needed, for example to book or check a confirmed offer condition.
+
+Synthetic calibration examples for source review, not a model-quality run:
+
+| Context | Expected boundary |
+| --- | --- |
+| Children are explicitly adults, age 22 | Count adults; do not request their ages again for preliminary room/price comparison. |
+| A child is 15 | Preserve the known age for calculation; do not ask again. |
+| A minor is mentioned without an age | Ask their age briefly when needed to calculate. |
+| Only “children” is stated, with no age category | Clarify whether they are adults or minors; do not infer either category. |
+| A verified offer has a specific age eligibility rule | Request only the age information needed to check that rule. |
+
 ## Roles
 
 | Role | Model | Reasoning | Tier |
