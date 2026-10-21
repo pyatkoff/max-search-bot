@@ -26,8 +26,11 @@ final class ManagerDraftPilotCollector
         ?string $sinceUtc = null,
         ?callable $snapshot = null,
         ?string $capturedAtUtc = null,
-        bool $includeUnassigned = false
+        bool $includeUnassigned = false,
+        ?array $selection = null
     ): array {
+        if ($selection !== null && (!in_array($selection['lane'] ?? null, ['waiting','due','active'], true)
+            || !is_int($selection['after_id'] ?? null) || $selection['after_id'] < 0)) return self::failure('invalid_selection');
         if (!array_is_list($managerIds) || !$managerIds || count($managerIds) > 2000) {
             return self::failure('invalid_cohort');
         }
@@ -56,7 +59,7 @@ final class ManagerDraftPilotCollector
                 if (ConversationDb::connection() !== $pdo) return self::failure('context_unavailable');
                 $snapshot = [ManagerAiDraftContextService::class, $includeUnassigned ? 'preparationSnapshot' : 'snapshot'];
             }
-            $candidates = self::candidatePage($pdo, $driver, $managerIds, $limit, $sinceUtc, $capturedAtUtc, null, $includeUnassigned);
+            $candidates = self::candidatePage($pdo, $driver, $managerIds, $limit, $sinceUtc, $capturedAtUtc, null, $includeUnassigned, $selection);
             $conversations = [];
             $skipped = [];
             $seen = [];
@@ -80,7 +83,7 @@ final class ManagerDraftPilotCollector
                     }
                     // Capture can race a manager reply, test marking or a new
                     // customer message. Never export an obsolete selected row.
-                    $current = self::candidatePage($pdo, $driver, [$actor], 1, $sinceUtc, $capturedAtUtc, $id, $includeUnassigned);
+                    $current = self::candidatePage($pdo, $driver, [$actor], 1, $sinceUtc, $capturedAtUtc, $id, $includeUnassigned, $selection);
                     if (count($current) !== 1
                         || (int)($current[0]['assigned_manager_id'] ?? 0) !== $actor
                         || (int)$current[0]['latest_message_id'] !== $normalized['latest_message_id']
@@ -108,7 +111,7 @@ final class ManagerDraftPilotCollector
                 'ok'=>true,
                 'schema'=>'manager_draft_pilot_v1',
                 'captured_at_utc'=>$capturedAtUtc,
-                'since_utc'=>$sinceUtc,
+                'since_utc'=>$selection === null ? $sinceUtc : null,
                 'authorized_manager_ids'=>$managerIds,
                 'limit'=>$limit,
                 'candidate_count'=>count($candidates),
@@ -116,6 +119,7 @@ final class ManagerDraftPilotCollector
                 'skipped_count'=>array_sum($skipped),
                 'skipped_by_reason'=>$skipped,
                 'conversations'=>$conversations,
+                'next_cursor'=>$selection === null || count($candidates) < $limit ? 0 : (int)end($candidates)['conversation_id'],
                 'unknowns'=>[
                     'outside_selected_page'=>'not_reviewed',
                     'media_and_link_contents'=>'not_read',
@@ -136,7 +140,8 @@ final class ManagerDraftPilotCollector
         string $sinceUtc,
         string $capturedAtUtc,
         ?int $conversationId = null,
-        bool $includeUnassigned = false
+        bool $includeUnassigned = false,
+        ?array $selection = null
     ): array {
         if ($pdo->inTransaction()) throw new RuntimeException('pilot_transaction_unavailable');
         $started = false;
@@ -152,6 +157,8 @@ final class ManagerDraftPilotCollector
                 ? "JSON_UNQUOTE(JSON_EXTRACT({$metadata},'$.type'))"
                 : "JSON_EXTRACT({$metadata},'$.type')";
             $cohort = implode(',', array_fill(0, count($managerIds), '?'));
+            $waiting = "customer_last.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=c.id AND mo.direction='outbound' AND mo.sender_type='manager'),0)";
+            $due = "EXISTS (SELECT 1 FROM lead_tasks t WHERE t.conversation_id=c.id AND t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<=? AND (t.assigned_manager_id IS NULL OR t.assigned_manager_id=c.manager_id))";
             $sql = "SELECT c.id AS conversation_id,c.manager_id AS assigned_manager_id,c.project_key,c.source_id,c.channel,"
                 ."customer_last.id AS last_customer_message_id,customer_last.created_at AS last_customer_message_at,"
                 ."(SELECT MAX(all_messages.id) FROM messages all_messages WHERE all_messages.conversation_id=c.id) AS latest_message_id "
@@ -162,14 +169,26 @@ final class ManagerDraftPilotCollector
                 ."AND COALESCE({$type},'message') NOT IN (?,?,?)) "
                 ."WHERE ((c.status='manager' AND m.is_active=1 AND c.manager_id IN ({$cohort}))"
                 .($includeUnassigned ? " OR (c.status='waiting_manager' AND c.manager_id IS NULL)" : '') .") AND c.is_test=0 "
-                .'AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' '
-                ."AND customer_last.created_at>=? AND customer_last.created_at<=? "
-                ."AND customer_last.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=c.id "
-                ."AND mo.direction='outbound' AND mo.sender_type='manager'),0)"
-                .($conversationId !== null ? ' AND c.id=?' : '')
-                .' ORDER BY COALESCE(c.last_message_at,c.started_at) DESC,c.id DESC LIMIT '.min(self::MAX_CONVERSATIONS, $limit);
-            $args = array_merge(['callback','start','bot_started'], $managerIds, [$sinceUtc,$capturedAtUtc]);
-            if ($conversationId !== null) $args[] = $conversationId;
+                .'AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' ';
+            $args = array_merge(['callback','start','bot_started'], $managerIds);
+            if ($selection === null) {
+                $sql .= "AND customer_last.created_at>=? AND customer_last.created_at<=? AND {$waiting}";
+                array_push($args, $sinceUtc, $capturedAtUtc);
+            } else {
+                // Preparation has its own bounded rotating lanes; the one-off
+                // pilot retains its original recent/unanswered read contract.
+                $sql .= "AND c.project_key=? AND customer_last.created_at<=? AND ";
+                array_push($args, ProjectConfig::projectId(), $capturedAtUtc);
+                if ($selection['lane'] === 'waiting') $sql .= $waiting;
+                else {
+                    $sql .= "NOT ({$waiting}) AND ".($selection['lane'] === 'active' ? "NOT ({$due})" : $due);
+                    $args[] = $capturedAtUtc;
+                }
+                if ($conversationId === null) { $sql .= ' AND c.id>?'; $args[] = $selection['after_id']; }
+            }
+            if ($conversationId !== null) { $sql .= ' AND c.id=?'; $args[] = $conversationId; }
+            $sql .= $selection === null ? ' ORDER BY COALESCE(c.last_message_at,c.started_at) DESC,c.id DESC' : ' ORDER BY c.id';
+            $sql .= ' LIMIT '.min(self::MAX_CONVERSATIONS, $limit);
             $q = $pdo->prepare($sql);
             $q->execute($args);
             $rows = $q->fetchAll(PDO::FETCH_ASSOC);

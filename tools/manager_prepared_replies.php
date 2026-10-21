@@ -33,10 +33,13 @@ try {
     $cohort=array_map('intval',$q->fetchAll(PDO::FETCH_COLUMN));
     if (!$cohort) throw new RuntimeException('empty_cohort');
     $stage='collection';
-    $batch=ManagerDraftPilotCollector::collect($pdo,$cohort,20,null,null,null,true);
-    if (empty($batch['ok'])) throw new RuntimeException('collection_failed');
+    $batch=ManagerPreparedReplyService::collectAndEnqueue($cohort);
+    if (empty($batch['ok'])) {
+        if (($batch['stage']??null)==='enqueue') $stage='enqueue';
+        throw new RuntimeException('preparation_incomplete');
+    }
     $stage='enqueue';
-    $queued=ManagerPreparedReplyService::enqueue($batch['conversations']);
+    $queued=$batch['queue'];
     $stage='delivery';
     $delivered=$service->deliverPending();
     // Aggregate counters only; snapshots and proposals never go to cron logs.

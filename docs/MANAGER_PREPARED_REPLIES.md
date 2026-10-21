@@ -49,18 +49,32 @@ not verified current prices, availability, booking consent or instructions.
 
 ## Queue and freshness
 
-`ManagerDraftPilotCollector` reads up to twenty recent candidates within seventy-two
-hours. They must be non-test, either assigned to active managers in manager status
-or unassigned in `waiting_manager`, with a genuine inbound customer message after
-the last recorded manager reply. Callback,
-start and bot-started events are excluded. Off-shift assigned owners remain eligible.
-Assigned snapshots enforce owner/project/source visibility and delivery restrictions;
-the collector never calls ordinary detail polling or changes read markers.
-Unassigned preparation uses a separate read-only project-administrator scope. The
-queue stores owner zero, never assigns that administrator or enables manual
-generation, insertion or sending without reply ownership. No migration or routing
-policy change is involved. Ordinary self-service/wizard and closed states remain
-outside this waiting-for-a-human queue.
+The existing subscription-gated cron collects at most20 candidates per pass through
+`ManagerPreparedReplyService::collectAndEnqueue` and the canonical collector. It
+reserves10 places for clients awaiting a human reply,5 for arrived open tasks and5
+for other active assigned clients; unused places return to the busy lanes. Each
+lane progresses by conversation ID and wraps at its end. Three versioned private
+project cursor rows in migration050 preserve progress across cron invocations;
+compare-and-set prevents a slower overlapping pass from rewinding progress. This
+is scan metadata for the existing queue, not another generation or task store.
+Neither a bounded pass nor its counters claim that every client has fresh analysis.
+
+Preparation is not restricted to the former72-hour tail: an older waiting client,
+an arrived reminder or an answered active client can need fresh advice. Closed,
+self-service, test and exact internal-owner demo conversations remain excluded.
+The same genuine inbound-message filter rejects callback/start/bot-started-only
+entries. Due tasks must be open, have arrived and belong to the actual assigned
+owner (or have no task assignee). Future/completed/other-owner tasks do not elevate
+a client. Source/project/owner/delivery visibility is rechecked through canonical
+snapshots and after capture; off-shift active owners remain eligible. The original
+one-off pilot `collect` default keeps its bounded recent/unanswered contract.
+Collector reads never hydrate ordinary HTTP detail or mark messages read.
+
+Assigned snapshots enforce owner/project/source visibility and delivery restrictions.
+Unassigned waiting preparation uses the same separate read-only project-admin
+scope and owner zero, without assignment or manual-send authority. No reminder,
+message, unread marker, shift, routing rule, model profile, budget or schedule is
+changed. Opening the assistant does not collect or generate work.
 
 An already-ready unassigned proposal can be reviewed after a real manager takes
 the conversation. A separate evidence digest must still match every source
@@ -79,8 +93,13 @@ operational bound under independently concurrent collectors; canonical cron uses
 
 Pending work expires after an hour. Completed results remain available for an hour
 after preparation and are returned only for a freshly matching context/instruction
-revision and current authorization. Existing expired identities are not automatically
-regenerated without a context or instruction change. Active pending inventory skips
+revision and current authorization. Ordinary enqueue calls do not silently regenerate expired identities. The scheduled
+collector can renew an expired unchanged result as a new deterministic immutable
+job, preserving the old proposal and feedback provenance. Concurrent/repeated
+passes share the active job and its original TTL. A validated unchanged
+`no_contact` proposal is not regenerated merely because time passed; changed
+source/context/instructions can establish new work. No result or frozen worker
+contract is overwritten, and an expired worker cannot complete the renewed job. Active pending inventory skips
 obvious owner/status/latest-message changes; fine-grained source access is checked
 again before exposing context or completing work. Stale or revoked jobs may remain
 private metadata until their bounded expiry. These are read-time checks, not a send
