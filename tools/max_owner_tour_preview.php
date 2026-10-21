@@ -632,7 +632,7 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
     finally { fclose($file); }
 }
 
-if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')) {
+if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')&&!defined('MAX_OWNER_PREVIEW_LIBRARY')) {
     ini_set('display_errors','0');
     $result=['ok'=>false,'state'=>'invalid_arguments','send_attempted'=>false,'provider_requests'=>0];
     $args=array_slice($argv,1);$expected=ownerPreviewArguments($args);$recovery=false;$comparison=false;$variants=false;

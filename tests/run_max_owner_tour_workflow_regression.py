@@ -36,8 +36,8 @@ blocks = run_blocks(OWNER)
 validate, = [b for b in blocks if 'GITHUB_EVENT_PATH' in b]
 send, = [b for b in blocks if 'ssh -o BatchMode=yes' in b]
 guard, = re.findall(r'^    if: (.+)$', OWNER, re.M)
-assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants '))))"
-assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants']
+assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram '))))"
+assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants', 'confirm_owner_telegram']
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
 assert 'timeout-minutes: 8' in OWNER  # Fixed3downloads/reservations/uploads plus same-MID proof/PUT/readback.
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
@@ -47,6 +47,8 @@ assert 'EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}' in OWNER
 assert send.count(COMMAND) == 1 and send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-recovery')) == 1
 assert send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-comparison')) == 1
 assert send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-variants')) == 1
+TELEGRAM_COMMAND = COMMAND.replace('max_owner_tour_preview.php', 'telegram_owner_tour_preview.php').replace('--confirm-owner-send', '--confirm-owner-telegram')
+assert send.count(TELEGRAM_COMMAND) == 1
 assert 'case "$owner_mode" in' in send
 assert len(re.findall(r'^\s*ssh ', send, re.M)) == 1 and send.count(REMOTE_DIR) == 1
 assert not re.search(r'\b(?:for|while|until|retry|retries)\b', send)
@@ -100,7 +102,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         event_path = directory / 'event.json'
         event_path.write_text(json.dumps(EVENT if event is None else event))
         env = {**os.environ, 'PATH': str(directory) + ':/usr/bin:/bin',
-               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'ACTUAL_MAIN_SHA': SHA,
+               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'ACTUAL_MAIN_SHA': SHA,
                'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
                'GITHUB_SHA': workflow, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(directory / 'output'),
@@ -114,7 +116,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         result = subprocess.run(['/bin/bash', '-c', validate], env=env, capture_output=True, timeout=5)
         if result.returncode == 0:
             validated, mode = (directory / 'output').read_text().splitlines()
-            assert mode in ['owner_mode=send','owner_mode=recover','owner_mode=compare','owner_mode=variants']
+            assert mode in ['owner_mode=send','owner_mode=recover','owner_mode=compare','owner_mode=variants','owner_mode=telegram']
             env['OWNER_MODE'] = mode.split('=', 1)[1]
             assert re.fullmatch(r'expected_sha=[0-9a-f]{40}', validated)
             env['EXPECTED_SHA'] = validated.split('=', 1)[1]
@@ -230,6 +232,32 @@ for changes in [{'CONFIRM_OWNER_SEND': 'true'}, {'CONFIRM_OWNER_RECOVERY': 'true
 for body in ['/owner-tour-preview-variants ' + SHA + '\n', '/owner-tour-preview-variants ' + SHA + ' extra',
              '/owner-tour-preview-variants $(touch /must-not-run)']:
     event = copy.deepcopy(variants)
+    event['comment']['body'] = body
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], body
+telegram = copy.deepcopy(EVENT)
+telegram['comment']['body'] = '/owner-tour-preview-telegram ' + SHA
+for event_name in ['workflow_dispatch', 'issue_comment']:
+    code, ssh, php = execute(event=telegram, env_changes={'GITHUB_EVENT_NAME': event_name,
+        'CONFIRM_OWNER_SEND': 'false', 'CONFIRM_OWNER_TELEGRAM': 'true'})
+    assert code == 0 and len(ssh) == 1
+    assert php == [f'tools/telegram_owner_tour_preview.php --expected-sha={SHA} --confirm-owner-telegram']
+for changes in [{'CONFIRM_OWNER_SEND': 'true'}, {'CONFIRM_OWNER_RECOVERY': 'true'},
+                {'CONFIRM_OWNER_COMPARISON': 'true'}, {'CONFIRM_OWNER_VARIANTS': 'true'},
+                {'GITHUB_ACTOR': 'another'}, {'GITHUB_ACTOR_ID': '1'}, {'ACTUAL_MAIN_SHA': 'b' * 40}]:
+    code, ssh, php = execute(event=telegram, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_TELEGRAM': 'true', **changes})
+    assert code != 0 and ssh == [] and php == [], changes
+for path, value in [(('comment', 'user', 'id'), 1), (('sender', 'id'), 1), (('issue', 'number'), 56), (('action',), 'edited')]:
+    event = copy.deepcopy(telegram)
+    node = event
+    for key in path[:-1]: node = node[key]
+    node[path[-1]] = value
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], (path, value)
+for body in ['/owner-tour-preview-telegram ' + SHA + '\n', '/owner-tour-preview-telegram ' + SHA + ' extra',
+             '/owner-tour-preview-telegram $(touch /must-not-run)']:
+    event = copy.deepcopy(telegram)
     event['comment']['body'] = body
     code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
     assert code != 0 and ssh == [] and php == [], body
