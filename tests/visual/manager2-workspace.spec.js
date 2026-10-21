@@ -155,12 +155,13 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
   s.setTourChoices(tourChoices);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
   const choices=page.locator('#leadCard [data-tour-choices]');await expect(choices).toBeVisible();
   await choices.locator('summary').click();
-  await expect(choices.locator('.leadReadonly')).toBeVisible();await expect(choices.locator('.leadReadonly')).toHaveText('Демонстрационный вариант');
+  await expect(choices.locator('summary .leadReadonly')).toHaveText('Демо · ');
+  await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toBeVisible();await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toHaveText('Демонстрационный вариант');
   for(const value of ['185 000,50 ₽ за всех','03.11.2026 — 10.11.2026','Возраст детей: 5, 5','Семейный номер с видом на море','Всё включено','ZF 123 · 10:00','актуальность и наличие нужно проверить'])await expect(choices).toContainText(value);
   await expect(page.locator('#messages [data-tour-choices]')).toHaveCount(0);
   expect(await choices.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await noOverflow(page);
   await showChat(page);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
-  await expect(choices.locator('details')).toHaveAttribute('open','');await expect(choices.locator('.leadReadonly')).toBeVisible();
+  await expect(choices.locator('details')).toHaveAttribute('open','');await expect(choices.locator('.leadDetailsBody > .leadReadonly')).toBeVisible();
   await choices.scrollIntoViewIfNeeded();await noOverflow(page);await capture(page,browserName,width,'tour-choice');
   await showChat(page);await openLead(page,12);await showCard(page);await expect(page.locator('#leadCard [data-tour-choices]')).toHaveCount(0);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
