@@ -168,5 +168,36 @@ publicly logged. On a rejection only the top-level string `message` field may be
 retained privately, capped at2KiB after exact-token/URL/long-digit/control-character
 redaction; nested values and the full response body are never persisted. The
 journal also stores sanitized diagnostics plus its private MID/hash.
-This does not implement callback state, offer binding,
-image upload conversion or general customer recovery.
+This does not implement callback state, offer binding or general customer recovery.
+
+## Reuse MAX image tokens for the existing demo
+
+The first same-MID full-body edit was rejected with `Failed to upload image.`
+The owner already has the text demo; further formatting uses that exact stored
+MID only. After its owner/bot/private-chat/caption GET proof, missing images are
+downloaded from the three existing literal official hotel URLs. Each download is
+strict TLS with system CA, no redirects,15-second timeout and5MiB cap, stored as
+a mode0600 temporary file in the private journal directory. Actual bytes are
+sniffed as JPEG/PNG (maximum7680×7680); file extensions and response Content-Type
+are not trusted. The two `.png` source URLs actually serve JPEG bytes, so these
+are uploaded with JPEG MIME/name. Owned temporary files are always removed.
+
+Each missing image reserves `POST /uploads?type=image` on the fixed MAX API
+origin. Only that API request carries bot Authorization. The returned signed URL
+must be HTTPS on exact `iu.oneme.ru`, path `/uploadImage`, no userinfo/fragment or
+non443 port. This narrow allowlist follows the documented image endpoint; other
+hosts fail closed. The multipart request uses field `data`, strict TLS/no
+redirects,30-second timeout and64KiB response cap, with no bot Authorization or
+manually supplied multipart Content-Type. No helper creates a message.
+
+A successful upload must return exactly one `photos.<opaque-id>.token` string.
+No recursive/query/prefetched-token fallback is used. Each bounded opaque token
+is flushed/fsynced privately before proceeding; partial successes are reused on
+manual same-MID resume. The journal cap is64KiB including newline, consistent
+across parsing and atomic replacements; each token is at most4096 bytes and8192
+JSON-encoded bytes. No token/upload URL enters stdout; media tokens are also
+redacted before error-message truncation. The final PUT keeps the caption/button
+and replaces the three image URL payloads with stored token payloads, then reads
+back the same MID. `attachment.not.ready` can require a later explicit edit-only
+resume using those same tokens; there is no automatic retry or re-creation.
+The workflow allows8minutes for bounded download/reserve/upload/edit operations.

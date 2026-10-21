@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - 'tools/max_owner_tour_preview.php'
+      - 'tools/max_owner_preview_images.php'
       - 'tests/run_max_owner_tour_preview_regression.php'
       - 'tests/run_max_owner_tour_workflow_regression.py'
       - '.github/workflows/max-owner-tour-preview.yml'
@@ -55,7 +56,7 @@ jobs:
     if: github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover '))))
     needs: regression
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Validate exact installed main SHA before loading credentials
         id: authorize

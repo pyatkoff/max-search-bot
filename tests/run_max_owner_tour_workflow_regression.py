@@ -39,7 +39,7 @@ guard, = re.findall(r'^    if: (.+)$', OWNER, re.M)
 assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover '))))"
 assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery']
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
-assert 'timeout-minutes: 5' in OWNER  # Up to six bounded30-second provider calls plus SSH.
+assert 'timeout-minutes: 8' in OWNER  # Fixed3downloads/reservations/uploads plus same-MID proof/PUT/readback.
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
 assert '${{ github.event.comment.body }}' not in WORKFLOW
 assert 'issue_comment:\n    types: [created]' in WORKFLOW
