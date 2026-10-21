@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -11,10 +11,15 @@ try{
     foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
     $pdo->exec('CREATE TABLE managers(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
     $pdo->exec('CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY) ENGINE=InnoDB');
-    foreach(['043_manager_ai_draft_feedback.sql','044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql','046_manager_preparation_events.sql','047_prepared_reply_feedback.sql','048_manager_assistant_decisions.sql','049_virtual_reply_learning.sql']as $name){
+    foreach(['043_manager_ai_draft_feedback.sql','044_manager_prepared_replies.sql','045_manager_preparation_oauth.sql','046_manager_preparation_events.sql','047_prepared_reply_feedback.sql','048_manager_assistant_decisions.sql','049_virtual_reply_learning.sql','050_manager_preparation_cursors.sql']as $name){
         $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/'.$name));
         echo 'PASS native MySQL forward migration '.$name."\n";
     }
+    $pdo->exec("INSERT INTO manager_preparation_cursors VALUES('anytour','waiting',42,7)");
+    $cursorBefore=$pdo->query('SELECT * FROM manager_preparation_cursors')->fetchAll();
+    $pdo->exec(file_get_contents(dirname(__DIR__,2).'/migrations/050_manager_preparation_cursors.sql'));
+    if($pdo->query('SELECT * FROM manager_preparation_cursors')->fetchAll()!==$cursorBefore)throw new RuntimeException('preparation_cursor_migration_retry_changed_data');
+    echo "PASS native MySQL preparation cursor migration retry preserves progress\n";
     $pdo->exec('INSERT INTO managers VALUES(1)');
     $pdo->exec('INSERT INTO conversations VALUES(1)');
     $feedback=$pdo->prepare('INSERT INTO manager_ai_drafts (draft_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,proposal_json,created_at,preparation_job_id) VALUES(?,?,?,?,?,?,?,?,?,?)');
