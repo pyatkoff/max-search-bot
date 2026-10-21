@@ -68,6 +68,17 @@ test('late status401 after account change cannot expire the next session or anno
   pending.resolve(response({ok:false,error:'unauthorized'},401));await tick();
   assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('aiReadyNotice').hidden,true);assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');assertNoMutations(h);
 });
+test('expiry sync hides the notice before a throttled timer without touching the composer',async()=>{
+  const h=await harness(()=>response(readiness()),{manager2:true});await tick();
+  const file={name:'keep.txt'};await h.draft('Мой ответ');h.setFile(file);
+  const reply=h.ids.get('replyText');reply.focus();reply.setSelectionRange(1,5,'backward');reply.scrollTop=17;
+  assert.equal(h.ids.get('aiReadyNotice').hidden,false);const requests=h.aiCalls().length;
+  h.advanceAiClock(3601000); // Simulate a sleeping tab without firing any timer.
+  h.ai.syncPreferences();assert.equal(h.ids.get('aiReadyNotice').hidden,true);
+  h.ai.sync();assert.equal(h.ids.get('aiDraftOpen').textContent,'AI');
+  assert.equal(h.aiCalls().length,requests);assert.equal(reply.value,'Мой ответ');assert.equal(h.getFile(),file);
+  assert.equal(h.document.activeElement,reply);assert.deepEqual([reply.selectionStart,reply.selectionEnd,reply.selectionDirection,reply.scrollTop],[1,5,'backward',17]);assertNoMutations(h);
+});
 test('expiry clears a ready button even after the bounded observer has stopped',async()=>{
   const h=await harness(()=>response(readiness()),{manager2:true});await tick();h.advanceAiClock(600001);
   const poll=[...h.aiTimers.values()].find(t=>t.ms===15000);await poll.fn();await tick();assert.equal(h.aiCalls().length,1);
