@@ -8,7 +8,7 @@ $checks=0;
 function check($value): void { global $checks; $checks++;if (!$value) throw new RuntimeException('assertion '.$checks); }
 $row=['id'=>'2','project_key'=>'anytour','channel'=>'max','original_display_name'=>'Pavel','status'=>'manager',
     'external_user_id'=>'123','conversation_chat_id'=>'-123','channel_chat_id'=>'-123','message_sender_id'=>'123','external_message_id'=>'mid.owner'];
-$identity=['timestamp'=>1792540200000,'body'=>['mid'=>'mid.owner','text'=>'Пусто у меня'],'sender'=>['user_id'=>'123'],'recipient'=>['chat_type'=>'dialog','chat_id'=>'456','user_id'=>'789']];
+$identity=['timestamp'=>1792539801694,'body'=>['mid'=>'mid.owner','text'=>'Пусто у меня'],'sender'=>['user_id'=>'123'],'recipient'=>['chat_type'=>'dialog','chat_id'=>'456','user_id'=>'789']];
 $message=['timestamp'=>1792539644000,'sender'=>['user_id'=>'789'],'recipient'=>['user_id'=>'123','chat_id'=>'456','chat_type'=>'dialog'],
     'body'=>['text'=>ownerPreviewBody()['text'],'attachments'=>ownerPreviewBody()['attachments']]];
 function inspect(array $row,array $identity,array $history,int $status=200): array {
@@ -42,7 +42,7 @@ check($r['inspection']==='inconclusive' && $r['matching_messages']===0);
 check($r['window_may_be_truncated'] && $r['matching_messages']===100);
 [$r,$calls]=inspect($row,array_replace_recursive($identity,['body'=>['text'=>'Другая фраза']]),['messages'=>[$message]]);
 check(count($calls)===1 && !$r['owner_inbound_contains_empty'] && $r['inspection']==='inconclusive');
-[$r,$calls]=inspect($row,array_replace($identity,['timestamp'=>1792540058999]),['messages'=>[$message]]);
+[$r,$calls]=inspect($row,array_replace($identity,['timestamp'=>1792539643999]),['messages'=>[$message]]);
 check(count($calls)===1 && !$r['owner_inbound_fresh']);
 [$r]=inspect($row,$identity,['messages'=>[array_replace($message,['timestamp'=>1792539674001])]]);
 check(!$r['all_returned_within_window'] && !$r['window_not_truncated'] && $r['inspection']==='inconclusive');

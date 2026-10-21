@@ -25,7 +25,7 @@ jobs:
           test "$GITHUB_EVENT_NAME" = 'push'
           test "$GITHUB_ACTOR" = 'pyatkoff'
           test "$GITHUB_ACTOR_ID" = '226193297'
-          test "$(git rev-parse HEAD^)" = "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD^)" = '9d5c2649d5cbec61478b3b776f4a730ba5d85179'
           test "$GITHUB_REF" = 'refs/heads/analysis/max-owner-preview-window-20261020'
           git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
           test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"

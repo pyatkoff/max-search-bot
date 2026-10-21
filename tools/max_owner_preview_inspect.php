@@ -64,7 +64,7 @@ function previewInspectRun(array $row,string $token,callable $get): array
     $out['owner_inbound_timestamp_ms']=previewInspectTimestamp($identity['timestamp']??null);
     $text=$identity['body']['text']??null;
     $out['owner_inbound_contains_empty']=is_string($text) && preg_match('/пуст/ui',$text)===1;
-    $out['owner_inbound_fresh']=$out['owner_inbound_timestamp_ms']!==null && $out['owner_inbound_timestamp_ms']>=1792540059000;
+    $out['owner_inbound_fresh']=$out['owner_inbound_timestamp_ms']!==null && $out['owner_inbound_timestamp_ms']>=1792539644000;
     if (!$out['owner_inbound_contains_empty'] || !$out['owner_inbound_fresh']) return $out;
     $out['provider_requests']++;
     $history=$get('history',$chat,$token);$out['history_status']=(int)$history['status'];
