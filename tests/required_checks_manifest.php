@@ -52,6 +52,8 @@ return [
         'php tests/run_tour_choice_regression.php',
         'php tests/run_tour_choice_dispatch_regression.php',
         'php tests/run_owner_tour_choice_trial_regression.php',
+        'php tests/run_tour_offer_card_renderer_regression.php',
+        'php tests/run_owner_tour_photo_choice_trial_regression.php',
         'node tests/run_manager_tour_choices_regression.js',
         'php tests/run_dialogue_controller_regression.php',
         'php tests/run_callback_controller_regression.php',
