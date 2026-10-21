@@ -32,7 +32,7 @@ function trioRun(string $failure='',?string $directory=null,array $changes=[]): 
         trioAssert($method==='sendRichMessage'&&$body['chat_id']==='881001'&&count($images)===3,'Only a three-photo native card to independently proved Telegram owner');
         $key=null;foreach (ownerSelectionHotels() as $candidate=>$hotel) if ($hotel['title']===$body['rich_message']['blocks'][1]['text'][0]['text']) $key=$candidate;
         trioAssert($key!==null,'Only fixed catalog hotel can be sent');
-        $record=json_decode(file_get_contents($directory.'/owner-trio-20261021-telegram-'.$key.'.json'),true);
+        $record=json_decode(file_get_contents($directory.'/'.ownerSelectionDemoPrefix().'-telegram-'.$key.'.json'),true);
         trioAssert($record['post_reserved']===true&&$record['state']==='post_reserved'&&strlen($record['post_sha256'])===64,'Durable per-card reservation precedes Telegram message POST');
         if ($key==='imperial'&&in_array($failure,['tg_timeout','tg_reject','tg_throw'],true)) {
             if ($failure==='tg_throw') throw new RuntimeException('PRIVATE_TOKEN');
@@ -55,7 +55,7 @@ function trioRun(string $failure='',?string $directory=null,array $changes=[]): 
         trioAssert($method==='POST'&&$path==='/messages'&&$query===['user_id'=>'772001'],'MAX creates only in the separately proved owner chat');
         $key=null;foreach (ownerSelectionHotels() as $candidate=>$hotel) if ($body['text']===ownerSelectionMaxText($candidate,true)) $key=$candidate;
         trioAssert($key!==null,'Only fixed native MAX caption is sent');
-        $record=json_decode(file_get_contents($directory.'/owner-trio-20261021-max-'.$key.'.json'),true);
+        $record=json_decode(file_get_contents($directory.'/'.ownerSelectionDemoPrefix().'-max-'.$key.'.json'),true);
         trioAssert($record['post_reserved']===true&&$record['state']==='post_reserved'&&count($record['image_tokens'])===3,'All source-bound image tokens and permanent reservation are durable before MAX POST');
         if ($key==='imperial'&&$failure==='max_timeout') return ['data'=>null,'diagnostic'=>['http_status'=>0,'error_category'=>'transport']];
         return ['data'=>['body'=>['mid'=>'mid.trio_'.$key]],'diagnostic'=>$diagnostic];
@@ -78,6 +78,7 @@ function trioRun(string $failure='',?string $directory=null,array $changes=[]): 
     return [$out,$calls,$directory,$downloads,$uploadCount];
 }
 function trioSends(array $calls): int { return count(array_filter($calls,static fn($call)=>$call[0]==='telegram'&&$call[1]==='sendRichMessage'||$call[0]==='max'&&$call[1]==='POST'&&$call[2]==='/messages')); }
+if (defined('OWNER_SELECTION_FIXTURE_LIBRARY')) return;
 $sha=str_repeat('a',40);trioAssert(ownerSelectionArguments(['--expected-sha='.$sha,'--confirm-owner-trio'])===$sha,'Only exact fixed batch activation is accepted');
 foreach ([[],['--expected-sha='.$sha,'--confirm-owner-trio','--chat-id=1'],['--expected-sha='.$sha,'--confirm-owner-trio','--confirm-owner-telegram']] as $args) trioAssert(ownerSelectionArguments($args)===null,'No arbitrary recipient or mixed mode input');
 $source=file_get_contents(dirname(__DIR__).'/tools/owner_tour_selection_preview.php');

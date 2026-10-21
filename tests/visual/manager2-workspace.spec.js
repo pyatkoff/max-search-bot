@@ -144,7 +144,7 @@ async function readyBeforeMetadata(page,state,action){
   expect(state.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(1);
 }
 
-for(const width of [390,1440])test('Manager2 saved tour choice stays in the client card at '+width,async({page})=>{
+for(const width of [390,1440])test('Manager2 saved tour choice stays in the client card at '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});
   const tourChoices={offers:[{offer_id:501,delivered_at:'2026-10-21 12:00:00',liked_at:'2026-10-21 12:01:00',snapshot:{
     hotel:'Семейный отель у моря',departure:'Москва',date_from:'2026-11-03',date_to:'2026-11-10',nights:7,adults:2,child_ages:[5,5],
@@ -161,6 +161,7 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
   expect(await choices.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await noOverflow(page);
   await showChat(page);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
   await expect(choices.locator('details')).toHaveAttribute('open','');await expect(choices.locator('.leadReadonly')).toBeVisible();
+  await choices.scrollIntoViewIfNeeded();await noOverflow(page);await capture(page,browserName,width,'tour-choice');
   await showChat(page);await openLead(page,12);await showCard(page);await expect(page.locator('#leadCard [data-tour-choices]')).toHaveCount(0);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
