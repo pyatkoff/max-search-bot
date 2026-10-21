@@ -334,6 +334,10 @@ final class VirtualReplyStore
             if (!$old) throw new RuntimeException('virtual_reply_storage_unavailable');
             $this->sampling->attach($old,$snapshot);
             if ($old['state']==='active' && $old['source_revision']===$snapshot['source_revision'] && $this->retainContracts($old['case_id'])) return ['captured'=>false,'invalidated'=>false,'case_id'=>$old['case_id']];
+            if ($old['state']!=='active'||$old['source_revision']!==$snapshot['source_revision']) {
+                require_once __DIR__.'/VirtualReplyControlStore.php';
+                VirtualReplyControlStore::invalidateSource($this->pdo,$old['case_id']);
+            }
             $caseId=bin2hex(random_bytes(32));
             $this->execute('DELETE FROM virtual_reply_jobs WHERE case_id=?',[$old['case_id']]);
             $this->execute('UPDATE virtual_reply_cases SET case_id=?,source_revision=?,state=?,payload_json=?,evidence_ids_json=?,mode=?,reference_time=?,lesson_state=\'unresolved\',lesson_decision_json=NULL,lesson_updated_at=NULL,updated_at=? WHERE id=?',
@@ -354,6 +358,8 @@ final class VirtualReplyStore
         return $this->transaction(function() use ($row): bool {
             $current=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?'.$this->lock(),[$row['case_id'],'anytour']);
             if (!$current || $current['state']!=='active') return false;
+            require_once __DIR__.'/VirtualReplyControlStore.php';
+            VirtualReplyControlStore::invalidateSource($this->pdo,$row['case_id']);
             $now=$this->now();
             $this->execute('UPDATE virtual_reply_cases SET state=?,payload_json=NULL,evidence_ids_json=NULL,lesson_state=\'unresolved\',lesson_decision_json=NULL,lesson_updated_at=NULL,updated_at=? WHERE case_id=?',['invalidated',$now,$row['case_id']]);
             $this->execute('UPDATE virtual_reply_jobs SET status=?,claim_token_sha256=NULL,claimed_by=NULL,lease_expires_at=NULL,result_json=NULL,result_sha256=NULL,metadata_json=NULL,updated_at=? WHERE case_id=?',['invalidated',$now,$row['case_id']]);

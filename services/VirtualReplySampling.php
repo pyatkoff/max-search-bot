@@ -184,6 +184,10 @@ final class VirtualReplySampling
         }
         $this->execute('UPDATE virtual_reply_sampling_groups SET cohort=?,identity_complete=?,exposed_at=?,last_author_claimed_at=?,created_at=?,updated_at=? WHERE group_key=?',
             [$cohort,(int)$complete,$seen,$last,$first,$now,$target]);
+        if ($cohort!=='reserved') {
+            require_once __DIR__.'/VirtualReplyControlStore.php';
+            foreach ($keys as $key) VirtualReplyControlStore::invalidateGroup($this->pdo,$key);
+        }
         return $target;
     }
 

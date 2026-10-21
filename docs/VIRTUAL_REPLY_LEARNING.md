@@ -312,6 +312,64 @@ An initial comparison can support only a bounded result for its specified cases.
 Model acceptance rate, number of claims, deployed prompt text and a manager reply
 are not substitutes for measured improvement or proof of whole-archive coverage.
 
+## Explicit paired control protocol
+
+Migration `052_virtual_reply_controls.sql` stores a separately registered bounded
+experiment. Registration freezes two distinct supported author contracts and an
+independent reviewer rubric before allocating at most 20 previously unused
+reserved whole groups. The normal capture path never registers an experiment.
+The provider-free administrator command accepts local contract JSON files:
+
+```
+php tools/virtual_reply_learning.php control-register baseline.json candidate.json 1 admin_id
+php tools/virtual_reply_learning.php control-status
+```
+
+Each contract has the exact `role`, `instructions`, `profile`, `schema` and
+`instruction_revision` returned by
+`VirtualReplyControlProtocol::authorContract(instructions)`. Pin the baseline to
+the actual previously deployed instruction, not a rewritten imitation, and pin
+the candidate before generation. Registration validates hashes, schema and model
+profile; it does not verify GitHub/deployment provenance for the operator. The
+operator must record that separate evidence. Invalid files are rejected before
+configuration/database access. Output contains only safe aggregates, run IDs and
+revisions. No CLI operation calls a provider.
+
+The seven existing MCP tools retain their default learning behavior. Explicit
+`claim_virtual_replies(purpose="control", role=...)` allocates only registered
+control jobs. Context/save routes each opaque job ID to its own store; a control
+failure never falls back to the ordinary queue. Each author receives the same
+frozen source prefix and evidence with one frozen contract. The private random
+A/B mapping is fixed at registration. A reviewer becomes available only after
+both exact author results are saved and at least 60 seconds have elapsed after
+the later completion. It receives only the original prefix, exact A/B results,
+evidence and its independent contract/profile, with no version mapping, author
+profiles, completion times, future conversation or manager gold answer.
+
+Use separate Sol-low author agents and an independent Astra-high reviewer agent,
+each with no inherited conversation. Never review an answer generated during the
+same worker pass. Control claims use the existing 200-per-role/UTC-day ledger;
+both authors consume a slot. Unknown outcomes exclude the pair permanently and
+are never retried or refunded. Current instruction changes alone do not replace
+frozen control contracts. Source changes, deleted/revoked evidence or group
+contamination purge both arms, review, private mapping and tokens. Normal source
+capture/reconciliation and alias merges invoke the same purge boundary, and
+every control read/save/claim rechecks source validity. Technical failures do not
+masquerade as deletion.
+
+`list_virtual_reply_reviews(purpose="control")` lists aggregate run status;
+supplying its `run_id` returns paired metrics. Count unnecessary questions, lost
+constraints and unsupported claims, plus useful next actions, with matched
+denominators, distinct groups, unknown/invalidated/incomplete exclusions and
+unassessable metrics. A null assessment excludes both arms from that metric's
+denominator. Duplicate groups cannot inflate a report. A registered run, deployed
+protocol or successful synthetic pair is not an observed model-quality gain.
+
+The connected tool catalog must actually advertise the optional `purpose` and
+`run_id` inputs before a worker uses them. If it does not, report that exact
+connection refresh blocker without bypassing OAuth or simulating a run. The
+ordinary seven-tool learning loop and source capture can continue independently.
+
 ## Operations
 
 Migrations `049_virtual_reply_learning.sql` and `051_virtual_reply_sampling.sql`

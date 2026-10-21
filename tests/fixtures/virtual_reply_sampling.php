@@ -262,7 +262,9 @@ function samplingUnresolvedExposureAssertions(PDO $pdo,callable $check): void
     $fresh=samplingCase($pdo,2);$claim=$store->claim('author',7,1);
     $check('unresolved invalidated legacy identities block new holdout enrollment but do not block ordinary fresh learning',
         $fresh['cohort']==='development' && count($claim['jobs'])===1 && $claim['jobs'][0]['case_id']===$fresh['case_id']
-        && ($claim['sampling']['legacy_unresolved_exposure']??0)===1 && $claim['daily_used']===1);
+        && ($claim['sampling']['legacy_unresolved_exposure']??0)===1
+        && ($claim['sampling']['reservation_blocked_reason']??null)==='legacy_unresolved_exposure'
+        && $claim['sampling']['author_blocked_reason']===null && $claim['daily_used']===1);
 }
 
 /** Compatibility and schema failure checks need their own databases, never reset native DDL. */
