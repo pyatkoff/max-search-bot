@@ -170,11 +170,19 @@ $cleanArchiveId=sourceArchive($eligibilityDb,20,'customer','Нужен тур в
 $cleanArchive=$eligibilityReader->snapshot('telegram_archive',$cleanArchiveId);
 sourceCheck('non-tourist service text is also absent from a later archive prefix',
     $cleanArchive!==null && $cleanArchive['evidence_message_ids']===[$cleanArchiveId]);
+$servicePeer=sourceArchive($eligibilityDb,25,'customer','Synthetic service announcement',1792490400,[],'anytour',100,777000);
+$serviceSender=sourceArchive($eligibilityDb,26,'customer','Synthetic service announcement',1792490400,['sender_id'=>'777000']);
+sourceCheck('canonical Telegram service peer is excluded independently of text or normalized role',
+    $eligibilityReader->snapshot('telegram_archive',$servicePeer)===null && $eligibilityReader->snapshot('telegram_archive',$serviceSender)===null);
+$ordinaryPeer=sourceArchive($eligibilityDb,27,'customer','Нужен тур в Египет',1792490400,[],'anytour',100,777001);
+sourceCheck('ordinary private peer is not rejected by a partial identity match',
+    $eligibilityReader->snapshot('telegram_archive',$ordinaryPeer)!==null);
 $travelCounterexamples=[
     'Нужен ли тест на ковид для Турции?',
     'Пришлите код бронирования 12345',
     'Тестирую разные варианты отдыха: Турция или Египет?',
     'Код для входа в личный кабинет отеля не приходит, что делать?',
+    'Подскажите статус бронирования 777000',
 ];
 foreach($travelCounterexamples as $i=>$text) {
     $id=30+$i;sourceMessage($eligibilityDb,$id,'customer',$text);

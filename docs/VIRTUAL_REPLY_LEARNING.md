@@ -47,6 +47,8 @@ and permitted Telegram archive scopes. Empty starts/callbacks, test dialogs and
 non-customer service events are excluded. A snapshot contains at most 120
 messages and 40,000 text characters. Personal identifiers are redacted before
 storage; raw scoped hashes detect edits without exposing source identity.
+Telegram's [service-notification peer](https://core.telegram.org/constructor/updateServiceNotification)
+is excluded by its canonical identity, independently of wording or legacy role.
 Standalone technical test probes and the explicit Russian/English Telegram
 account-login notification templates are also excluded, including from retained
 prefixes: old private-chat imports may label them as customer messages. This is
