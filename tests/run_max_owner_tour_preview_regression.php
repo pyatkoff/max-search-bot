@@ -430,4 +430,72 @@ $record['image_sources'][1]=hash('sha256',ownerPreviewBody()['attachments'][1]['
 file_put_contents($dir.'/delphin-imperial-compact-compare-20261021.json',json_encode($record)."\n");
 [$out,$calls]=comparisonTest('',$dir);
 previewAssert(!$out['ok']&&!$out['send_attempted']&&count($calls)===1,'A stale night source cannot verify or recreate the comparison');
+
+function variantsTest(string $failure='',?string $dir=null): array {
+    if ($dir===null) { [$_,$_,$dir]=comparisonTest(); }
+    $paths=['delphin-imperial-20261021.json','delphin-imperial-20261021-recovery.json','delphin-imperial-compact-compare-20261021.json'];
+    $before=array_map(static fn($path)=>file_get_contents($dir.'/'.$path),$paths);$calls=[];
+    $request=static function($method,$path,$query,$body,$token)use(&$calls,$failure,$dir):?array {
+        $calls[]=[$method,$path,$query,$body];
+        if ($method==='POST') {
+            previewAssert($path==='/messages'&&$query===['user_id'=>'991002'],'Variants only send native messages to the fixed proved owner');
+            $variant=$body['text']===ownerPreviewComparisonBody('compact')['text']?'compact':'price-first';
+            previewAssert($body['text']===ownerPreviewComparisonBody($variant)['text']&&$body['format']==='html','Only the two fixed native captions can be sent');
+            $record=json_decode(file_get_contents($dir.'/delphin-imperial-native-'.$variant.'-20261021.json'),true);
+            previewAssert(($record['post_reserved']??null)===true&&$record['post_body_sha256']===hash('sha256',json_encode($body,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)),'Exact variant body reserved durably before provider creation');
+            previewAssert(array_column(array_slice($body['attachments'],0,3),'payload')===[['token'=>'PRIVATE_DAY_TOKEN'],['token'=>'PRIVATE_BEACH_TOKEN'],['token'=>'PRIVATE_ROOM_TOKEN']],'All three genuine comparison photos reused without uploads');
+            if ($failure==='timeout'||($failure==='second_timeout'&&$variant==='price-first')) return ownerPreviewDecode('',0,28,0);
+            return ['message'=>['mid'=>'mid.native-'.$variant]];
+        }
+        previewAssert($method==='GET'&&$query===[]&&$body===null,'Variants have only exact-MID readbacks besides their one POST each');
+        $mid=substr($path,strlen('/messages/'));$variant=str_replace('mid.native-','',$mid);
+        if ($mid==='mid.recovered') $message=['body'=>['mid'=>$mid,'text'=>ownerPreviewBody()['text'],'attachments'=>ownerPreviewBody()['attachments']]];
+        elseif ($mid==='mid.comparison') $message=['body'=>['mid'=>$mid,'text'=>$failure==='source_caption'?'changed':ownerPreviewComparisonText(),'markup'=>ownerPreviewComparisonMarkup(),'attachments'=>ownerPreviewComparisonBody()['attachments']]];
+        else {
+            previewAssert(in_array($variant,['compact','price-first'],true),'Readback cannot probe arbitrary messages');
+            $message=['body'=>['mid'=>$mid,'text'=>ownerPreviewComparisonText($variant),'markup'=>$failure==='markup'?[]:ownerPreviewComparisonMarkup($variant),'attachments'=>ownerPreviewComparisonBody($variant)['attachments']]];
+        }
+        return $message+['sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+    };
+    $sha=str_repeat('a',40);$out=ownerPreviewVariantsRun($sha,$sha,'anytour','PRIVATE_TOKEN','previewFixture',$request,$dir);
+    previewAssert(array_map(static fn($path)=>file_get_contents($dir.'/'.$path),$paths)===$before,'All three historical receipts remain byte-identical');
+    previewAssert(!str_contains(json_encode($out),'PRIVATE_')&&!str_contains(json_encode($out),'991002')&&!str_contains(json_encode($out),'mid.'),'Paired result leaks no tokens or native identity');
+    previewAssert(count(array_filter($calls,static fn($call)=>$call[0]==='PUT'||$call[1]==='/uploads'))===0,'Variants neither edit old messages nor upload media');
+    return [$out,$calls,$dir];
+}
+previewAssert(ownerPreviewVariantsArguments(['--expected-sha='.$sha,'--confirm-owner-variants'])===$sha,'Pair has one exact fixed activation');
+foreach ([['--expected-sha='.$sha,'--confirm-owner-variants','--confirm-owner-send'],['--expected-sha='.$sha,'--confirm-owner-variants','--variant=other'],['--expected-sha='.$sha,'--confirm-owner-comparison']] as $args)
+    previewAssert(ownerPreviewVariantsArguments($args)===null,'Mixed or arbitrary arguments cannot activate pair');
+$variantBodies=[ownerPreviewComparisonBody('compact'),ownerPreviewComparisonBody('price-first')];
+previewAssert(str_contains(strip_tags($variantBodies[0]['text']),"Улучшенный номер\nУльтра всё включено\n\n238 400 ₽ за двоих"),'Compact caption splits room and meal with total price below');
+previewAssert(str_contains(strip_tags($variantBodies[1]['text']),"Турция, Лара\n238 400 ₽ за двоих\n\n5–12 июня 2027"),'Price-first caption shows total before trip conditions');
+foreach (['compact','price-first'] as $variant) {
+    $body=ownerPreviewComparisonBody($variant);
+    previewAssert($body['attachments']===ownerPreviewComparisonBody()['attachments']&&substr_count($body['text'],'<b>')===2,'Only native caption ordering differs, not photos or button');
+    previewAssert(str_contains($body['text'],'Демо: даты, цена и условия — пример.')&&str_contains($body['text'],'Фото номера — пример интерьера отеля.'),'Each card keeps demo and room caveats inside the message');
+    $message=$semantic;$message['body']['text']=ownerPreviewComparisonText($variant);$message['body']['markup']=ownerPreviewComparisonMarkup($variant);
+    previewAssert(ownerPreviewComparisonMatches($message,'mid.comparison','991002','991099','991001',$variant),'Exact native text and bold spans verify chosen variant');
+    previewAssert(!ownerPreviewComparisonMatches($message,'mid.comparison','991002','991099','991001',$variant==='compact'?'price-first':'compact'),'One variant cannot verify another');
+}
+foreach (['','timeout','second_timeout','markup','source_caption'] as $failure) {
+    [$out,$calls,$dir]=variantsTest($failure);$posts=count(array_filter($calls,static fn($call)=>$call[0]==='POST'));
+    previewAssert($out['ok']===($failure==='')&&$posts===match($failure){'','second_timeout'=>2,'source_caption'=>0,default=>1},'Pair stops on uncertainty and creates no extra variant');
+    [$again,$calls]=variantsTest('',$dir);
+    $reposts=count(array_filter($calls,static fn($call)=>$call[0]==='POST'));
+    previewAssert($reposts===match($failure){'markup'=>1,'source_caption'=>2,default=>0},'Known MID is read-only; only a never-attempted second card can continue');
+    previewAssert($again['ok']===in_array($failure,['','markup','source_caption'],true),'Unknown creation remains blocked across explicit resumes');
+}
+foreach (['source_hash','owner','photo','body_hash','unknown','malformed','mode','symlink'] as $failure) {
+    [$_,$_,$dir]=comparisonTest();$path=$dir.'/delphin-imperial-compact-compare-20261021.json';$record=json_decode(file_get_contents($path),true);
+    if ($failure==='source_hash') $record['source_recovery_sha256']=str_repeat('b',64);
+    elseif ($failure==='owner') $record['verified_owner_id']='991003';
+    elseif ($failure==='photo') $record['image_sources'][1]=hash('sha256',ownerPreviewBody()['attachments'][1]['payload']['url']);
+    elseif ($failure==='body_hash') $record['post_body_sha256']=str_repeat('b',64);
+    elseif ($failure==='unknown') $record['state']='unknown';
+    file_put_contents($path,$failure==='malformed'?'{':json_encode($record)."\n");
+    if ($failure==='mode') chmod($path,0644);
+    if ($failure==='symlink') { rename($path,$path.'.saved');symlink($path.'.saved',$path); }
+    [$out,$calls]=variantsTest('',$dir);
+    previewAssert(!$out['ok']&&!$out['send_attempted']&&count($calls)===1,'Untrusted comparison cache blocks pair before any message creation: '.$failure);
+}
 echo "OWNER TOUR PREVIEW: $checks PASS\n";
