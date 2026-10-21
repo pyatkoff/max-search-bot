@@ -124,15 +124,21 @@ storeCheck('an already saved answer cannot be overwritten',storeReject(fn()=>$st
 $technical=json_decode(storeJob($pdo,$caseId,'author')['metadata_json'],true);
 storeCheck('worker declaration is never presented as provider proof',$technical['profile_source']==='worker_declared'
     && $technical['provider_verified']===false && $technical['requested_profile']===VirtualReplyProtocol::profile('author'));
+$pdo->prepare('UPDATE virtual_reply_jobs SET instruction_revision=?,instructions=? WHERE case_id=?')->execute([str_repeat('e',64),'FROZEN_PREVIOUS_INSTRUCTIONS',$caseId]);
 $time+=59;storeCheck('reviewer has an actual delayed independent pass',$store->claim('reviewer',9,20)['jobs']===[]);
 $time++;$reviewClaim=$store->claim('reviewer',11,20);$reviewJob=$reviewClaim['jobs'][0];
 $reviewContext=$store->context($caseId,'reviewer',$reviewJob['claim_token'],11);
 storeCheck('later reviewer gets the exact full saved author result',$reviewContext['payload']['author_result']===storeAuthor($source)
-    && $reviewContext['profile']===VirtualReplyProtocol::profile('reviewer') && $reviewContext['instructions']===VirtualReplyProtocol::instructions('reviewer'));
+    && $reviewContext['profile']===VirtualReplyProtocol::profile('reviewer') && $reviewContext['instructions']==='FROZEN_PREVIOUS_INSTRUCTIONS'
+    && $reviewContext['result_schema']===VirtualReplyProtocol::schema('reviewer'));
 storeCheck('review is unavailable until completed',storeReject(fn()=>$store->review($caseId),'virtual_reply_review_unavailable'));
 $reviewMetadata=storeMetadata('reviewer');$reviewMetadata['service_tier']='unknown';
 $store->save($caseId,'reviewer',$reviewJob['claim_token'],11,storeReview($source),$reviewMetadata);
 $export=$store->review($caseId);$listed=$store->reviews(10);
+storeCheck('completed evidence retains its frozen instructions after a lesson changes current rules',
+    $export['contracts']['author']['instructions']==='FROZEN_PREVIOUS_INSTRUCTIONS'
+    &&$export['contracts']['reviewer']['instruction_revision']===str_repeat('e',64)
+    &&storeFirst($pdo,'conversation',$source)['case_id']===$caseId);
 storeCheck('unexposed ChatGPT tier stays unknown rather than becoming requested Standard',
     $export['review_metadata']['declared_profile']['service_tier']==='unknown'
     &&$export['review_metadata']['requested_profile']['service_tier']==='default'
@@ -201,8 +207,34 @@ storeCheck('new UTC day only opens a new quota row, never retries unknown jobs',
     && $next['jobs'][0]['case_id']!==$lease['case_id']);
 $drift=$next['jobs'][0];$driftCase=$bounded->query("SELECT source_id FROM virtual_reply_cases WHERE case_id='".$drift['case_id']."'")->fetchColumn();
 $bounded->prepare('UPDATE virtual_reply_jobs SET instruction_revision=? WHERE case_id=? AND role=?')->execute([str_repeat('f',64),$drift['case_id'],'author']);
-storeCheck('protocol drift invalidates and recaptures instead of mixing validation versions',storeReject(fn()=>$boundedStore->context($drift['case_id'],'author',$drift['claim_token'],5),'virtual_reply_source_changed')
-    && storeFirst($bounded,'conversation',(int)$driftCase)['case_id']!==$drift['case_id']);
+storeCheck('claimed author retains its exact contract and attempt after instruction drift',
+    $boundedStore->context($drift['case_id'],'author',$drift['claim_token'],5)['instruction_revision']===str_repeat('f',64)
+    &&storeFirst($bounded,'conversation',(int)$driftCase)['case_id']===$drift['case_id']);
+$boundedStore->save($drift['case_id'],'author',$drift['claim_token'],5,storeAuthor((int)$driftCase),storeMetadata('author'));
+storeCheck('claimed author can finish its known frozen schema without a new attempt',
+    storeJob($bounded,$drift['case_id'],'author')['status']==='completed');
+$bounded->prepare('UPDATE virtual_reply_jobs SET instruction_revision=? WHERE case_id=? AND role=?')->execute([str_repeat('f',64),$lease['case_id'],'author']);
+storeReject(fn()=>$boundedStore->context($lease['case_id'],'author',$lease['claim_token'],5));
+storeCheck('unknown attempt stays terminal and retained after instruction drift',
+    storeJob($bounded,$lease['case_id'],'author')['status']==='unknown'
+    &&storeFirst($bounded,'conversation',1)['case_id']===$lease['case_id']);
+$untouched=$bounded->query("SELECT c.case_id,c.source_id FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE j.role='author' AND j.status='pending' ORDER BY c.id LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$bounded->prepare('UPDATE virtual_reply_jobs SET instruction_revision=? WHERE case_id=? AND role=?')->execute([str_repeat('f',64),$untouched['case_id'],'author']);
+$boundedStore->claim('author',5,1);
+storeCheck('only untouched pending author work is recaptured under new instructions',
+    storeFirst($bounded,'conversation',(int)$untouched['source_id'])['case_id']!==$untouched['case_id']);
+$now+=60;
+$bounded->prepare('UPDATE virtual_reply_jobs SET schema_json=? WHERE case_id=? AND role=?')->execute(['{"type":"object"}',$drift['case_id'],'reviewer']);
+$unsupported=$boundedStore->claim('reviewer',5,1);
+storeCheck('unsupported frozen review schema blocks before claiming without losing its author',
+    $unsupported['jobs']===[]&&$unsupported['unsupported_contracts']===1
+    &&storeJob($bounded,$drift['case_id'],'author')['status']==='completed');
+$bounded->prepare('UPDATE virtual_reply_jobs SET schema_json=?,profile_json=? WHERE case_id=? AND role=?')->execute([
+    json_encode(VirtualReplyProtocol::schema('reviewer')),json_encode(['model'=>'weaker']),$drift['case_id'],'reviewer']);
+$unsupported=$boundedStore->claim('reviewer',5,1);
+storeCheck('unsupported frozen review model blocks before claiming without resetting work',
+    $unsupported['jobs']===[]&&$unsupported['unsupported_contracts']===1
+    &&storeJob($bounded,$drift['case_id'],'reviewer')['status']==='pending');
 $outside=0;foreach ($boundedReader->calls as $call) if ($call[0]==='snapshot') $outside++;
 storeCheck('all source checks are outside store transactions',$outside>200 && !$bounded->inTransaction());
 storeCheck('invalid input cannot broaden source or claim scope',storeReject(fn()=>$store->capture('other','history',10),'invalid_virtual_reply_source')

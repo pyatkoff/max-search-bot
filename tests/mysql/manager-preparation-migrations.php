@@ -89,6 +89,11 @@ try{
         ||$virtualReview['author_metadata']['requested_profile']!==VirtualReplyProtocol::profile('author')
         ||$virtualReview['review_metadata']['requested_profile']!==VirtualReplyProtocol::profile('reviewer'))throw new RuntimeException('virtual_native_frozen_result_or_profile_changed');
     echo "PASS native MySQL virtual author and independent Astra review preserve exact frozen results and unknown actual tier\n";
+    $pdo->prepare('UPDATE virtual_reply_jobs SET instruction_revision=? WHERE case_id=?')->execute([str_repeat('9',64),$virtualCase]);
+    if($virtualStore->review($virtualCase)['author_result']!==$authorResult)throw new RuntimeException('virtual_native_instruction_change_lost_evidence');
+    $virtualStore->disposition($virtualCase,['status'=>'applied','reason'=>'Synthetic instruction correction',
+        'change_url'=>'https://github.com/pyatkoff/max-search-bot/pull/123','validation'=>'Synthetic separate-case and counterexample checks'],1);
+    echo "PASS native MySQL instruction drift preserves completed lesson evidence and disposition\n";
     $virtualTables=['virtual_reply_cases'=>'id','virtual_reply_jobs'=>'case_id,role',
         'virtual_reply_cursors'=>'project_key,source_kind,lane','virtual_reply_quotas'=>'project_key,day_utc,role'];
     $virtualBefore=[];

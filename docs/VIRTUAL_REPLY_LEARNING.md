@@ -23,6 +23,13 @@ It receives the same frozen source prefix plus that exact saved result. No
 future messages, current external searches, invented reactions or manager
 answer as a gold label are supplied.
 
+Changing current instructions does not erase claimed attempts, saved answers,
+reviews or lesson provenance. Those jobs retain their frozen contracts; only
+untouched pending author work can be recreated under new instructions. A frozen
+profile/schema that the current worker cannot support is explicitly blocked
+before a new claim, preserving the existing evidence. Source edits, deletions
+and revoked permissions still invalidate and purge dependent private content.
+
 For a ChatGPT worker, selecting the requested model and reasoning is the worker's obligation.
 The saved declaration is explicitly `worker_declared`, `provider_verified=false`;
 it does not prove provider identity, token usage or billing. ChatGPT delegation

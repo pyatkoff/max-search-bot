@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS virtual_reply_jobs (
     claimed_by BIGINT UNSIGNED NULL,
     lease_expires_at DATETIME NULL,
     profile_json TEXT NOT NULL,
+    schema_json TEXT NOT NULL,
     instructions MEDIUMTEXT NOT NULL,
     instruction_revision CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     result_json MEDIUMTEXT NULL,

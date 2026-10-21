@@ -90,7 +90,7 @@ final class VirtualReplyStore
         $this->admin($adminId);
         $limit=$this->limit($limit,20);
         $this->expire();
-        $now=$this->now(); $day=substr($now,0,10); $jobs=[];
+        $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;
         $recent=gmdate('Y-m-d\TH:i:s\Z',$this->at($now)-self::RECENT_WINDOW_SECONDS);
         $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
             ['anytour','active',$role,'pending',$now,$recent]);
@@ -98,6 +98,8 @@ final class VirtualReplyStore
             if (count($jobs)>=$limit) break;
             $fresh=$this->refresh($candidate);
             if ($fresh===null) continue;
+            $contract=$this->job($fresh['case_id'],$role);
+            if (!$contract||!$this->supportedContract($contract,$role)) {$unsupported++;continue;}
             $token=bin2hex(random_bytes(32));
             $claimed=$this->transaction(function() use ($fresh,$role,$adminId,$token,$now,$day): ?array {
                 $this->insertIgnore('virtual_reply_quotas',['project_key'=>'anytour','day_utc'=>$day,'role'=>$role,'used_count'=>0,'updated_at'=>$now]);
@@ -122,7 +124,7 @@ final class VirtualReplyStore
             if ($claimed!==null) $jobs[]=$claimed;
             elseif ($this->used($role,$day)>=self::DAILY_LIMIT) break;
         }
-        return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day)];
+        return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day),'unsupported_contracts'=>$unsupported];
     }
 
     public function context(string $caseId,string $role,string $token,int $adminId): array
@@ -133,6 +135,7 @@ final class VirtualReplyStore
         $this->expire();
         $job=$this->job($caseId,$role);
         $this->ownedJob($job,$token,$adminId,false);
+        if (!$this->supportedContract($job,$role)) throw new RuntimeException('virtual_reply_contract_unavailable');
         $payload=$this->decode($case['payload_json']);
         if ($role==='reviewer') {
             $author=$this->job($caseId,'author');
@@ -141,7 +144,7 @@ final class VirtualReplyStore
         }
         return ['case_id'=>$caseId,'role'=>$role,'profile'=>$this->decode($job['profile_json']),
             'instructions'=>$job['instructions'],'instruction_revision'=>$job['instruction_revision'],
-            'result_schema'=>VirtualReplyProtocol::schema($role),
+            'result_schema'=>$this->decode($job['schema_json']),
             'payload'=>$payload,'evidence_message_ids'=>$this->decode($case['evidence_ids_json']),
             'source'=>$this->sourceMetadata($case)];
     }
@@ -151,6 +154,8 @@ final class VirtualReplyStore
         $this->outsideTransaction();
         $this->credentials($caseId,$role,$token,$adminId);
         $case=$this->freshCase($caseId);
+        $contract=$this->job($caseId,$role);
+        if (!$contract||!$this->supportedContract($contract,$role)) throw new RuntimeException('virtual_reply_contract_unavailable');
         $canonical=VirtualReplyProtocol::validate($role,$result,$this->decode($case['evidence_ids_json']));
         if ($role==='author' && $canonical['history_incomplete']!==($this->decode($case['payload_json'])['history_incomplete'] ?? null)) {
             throw new InvalidArgumentException('virtual_reply_history_mismatch');
@@ -213,6 +218,7 @@ final class VirtualReplyStore
         return ['case_id'=>$caseId,'source'=>$this->sourceMetadata($case),'payload'=>$this->decode($case['payload_json']),
             'author_result'=>$this->decode($author['result_json']),'review_result'=>$this->decode($reviewer['result_json']),
             'author_metadata'=>$this->decode($author['metadata_json']),'review_metadata'=>$this->decode($reviewer['metadata_json']),
+            'contracts'=>['author'=>$this->contractMetadata($author),'reviewer'=>$this->contractMetadata($reviewer)],
             'disposition'=>$case['lesson_decision_json']===null?['status'=>'unresolved']:$this->decode($case['lesson_decision_json'])];
     }
 
@@ -263,7 +269,7 @@ final class VirtualReplyStore
     {
         $snapshot=$this->snapshot($row['source_kind'],(int)$row['source_id']);
         if ($snapshot===null) {$this->invalidate($row);return null;}
-        if ($snapshot['source_revision']!==$row['source_revision'] || $row['state']!=='active' || !$this->currentContracts($row['case_id'])) {
+        if ($snapshot['source_revision']!==$row['source_revision'] || $row['state']!=='active' || !$this->retainContracts($row['case_id'])) {
             $this->storeSnapshot($snapshot);return null;
         }
         $current=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?',[$row['case_id'],'anytour']);
@@ -302,7 +308,7 @@ final class VirtualReplyStore
                 'source_kind'=>$snapshot['source_kind'],'source_id'=>$snapshot['source_id'],'state'=>'invalidated','created_at'=>$now,'updated_at'=>$now]);
             $old=$this->one('SELECT * FROM virtual_reply_cases WHERE project_key=? AND source_kind=? AND source_id=?'.$this->lock(),['anytour',$snapshot['source_kind'],$snapshot['source_id']]);
             if (!$old) throw new RuntimeException('virtual_reply_storage_unavailable');
-            if ($old['state']==='active' && $old['source_revision']===$snapshot['source_revision'] && $this->currentContracts($old['case_id'])) return ['captured'=>false,'invalidated'=>false,'case_id'=>$old['case_id']];
+            if ($old['state']==='active' && $old['source_revision']===$snapshot['source_revision'] && $this->retainContracts($old['case_id'])) return ['captured'=>false,'invalidated'=>false,'case_id'=>$old['case_id']];
             $caseId=bin2hex(random_bytes(32));
             $this->execute('DELETE FROM virtual_reply_jobs WHERE case_id=?',[$old['case_id']]);
             $this->execute('UPDATE virtual_reply_cases SET case_id=?,source_revision=?,state=?,payload_json=?,evidence_ids_json=?,mode=?,reference_time=?,lesson_state=\'unresolved\',lesson_decision_json=NULL,lesson_updated_at=NULL,updated_at=? WHERE id=?',
@@ -311,8 +317,8 @@ final class VirtualReplyStore
                 // The reviewer contract is frozen now, while its availability
                 // stays far in the future until a completed author is saved.
                 $available=$role==='author'?$now:'9999-12-31 23:59:59';
-                $this->execute('INSERT INTO virtual_reply_jobs (case_id,role,status,available_at,profile_json,instructions,instruction_revision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
-                    [$caseId,$role,'pending',$available,$this->encode(VirtualReplyProtocol::profile($role)),VirtualReplyProtocol::instructions($role),VirtualReplyProtocol::revision($role),$now,$now]);
+                $this->execute('INSERT INTO virtual_reply_jobs (case_id,role,status,available_at,profile_json,schema_json,instructions,instruction_revision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
+                    [$caseId,$role,'pending',$available,$this->encode(VirtualReplyProtocol::profile($role)),$this->encode(VirtualReplyProtocol::schema($role)),VirtualReplyProtocol::instructions($role),VirtualReplyProtocol::revision($role),$now,$now]);
             }
             return ['captured'=>true,'invalidated'=>$old['state']==='active','case_id'=>$caseId];
         });
@@ -368,6 +374,22 @@ final class VirtualReplyStore
             if (!$job || $job['instruction_revision']!==VirtualReplyProtocol::revision($role)) return false;
         }
         return true;
+    }
+    private function retainContracts(string $caseId): bool {
+        $author=$this->job($caseId,'author');
+        if (!$author) return false;
+        // A claimed attempt and its evidence are immutable even after new rules.
+        // Only untouched pending work can be rebuilt under the current contract.
+        if ($author['status']!=='pending'||$author['claimed_at']!==null) return true;
+        return $this->currentContracts($caseId);
+    }
+    private function supportedContract(array $job,string $role): bool {
+        return $this->decode($job['profile_json'])===VirtualReplyProtocol::profile($role)
+            &&$this->decode($job['schema_json'])===VirtualReplyProtocol::schema($role);
+    }
+    private function contractMetadata(array $job): array {
+        return ['profile'=>$this->decode($job['profile_json']),'schema'=>$this->decode($job['schema_json']),
+            'instructions'=>$job['instructions'],'instruction_revision'=>$job['instruction_revision']];
     }
     private function outsideTransaction(): void {if ($this->pdo->inTransaction()) throw new RuntimeException('virtual_reply_source_recheck_in_transaction');}
     private function boundedText($value,int $maximum): bool {
