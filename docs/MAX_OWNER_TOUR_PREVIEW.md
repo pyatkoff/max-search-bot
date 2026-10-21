@@ -407,6 +407,8 @@ MAX retains its native three-photo mosaic and message button.
 
 Only `tools/owner_tour_card_emphasis_preview.php` enables the fixed emphasis
 profile and accepts `--confirm-owner-emphasis` with the exact installed SHA.
+Its sole owner activation is `/owner-tour-preview-emphasis <installed-main-sha>`
+or dispatch with only `confirm_owner_emphasis=true`, preserving all existing guards.
 Without its constant the entire original trio catalog, content, command,
 receipt prefix and directory remain unchanged. The new two receipts use prefix
 `owner-emphasis-20261021` in external mode0700 directory
