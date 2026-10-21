@@ -66,6 +66,24 @@ async function bounded(page){
   await page.locator('#sendReply').scrollIntoViewIfNeeded();expect(await page.locator('#sendReply').evaluate(node=>node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height+1);
 }
 async function capture(page,browserName,viewport){const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-draft-${browserName}-${viewport.width}-${viewport.height}-preview.png`)})}
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('AI expired readiness hides before a delayed timer and preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const state=await setup(page,{readiness:true});
+  const reply=page.locator('#replyText'),notice=page.locator('.aiReadyNotice');
+  await expect(page.locator('#aiDraftOpen')).toHaveText('AI — Ответ готов');await expect(notice).toBeVisible();
+  await reply.fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
+  await reply.evaluate(node=>{node.focus();node.setSelectionRange(1,5,'backward');window.aiExpiryFile=document.querySelector('#replyFile').files[0]});
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+  const prefix=`ai-expiry-${browserName}-${viewport.width}-${viewport.height}`;
+  await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-before.png')});
+  const calls=state.statusCalls().length;
+  await page.evaluate(()=>{const now=Date.now()+3600001;Date.now=()=>now;WorkspaceV2AiDraft.syncPreferences();WorkspaceV2AiDraft.sync()});
+  await expect(page.locator('#aiDraftOpen')).toHaveText('AI');await expect(notice).not.toBeVisible();
+  await expect(reply).toBeFocused();await expect(reply).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
+  expect(await reply.evaluate(node=>[node.selectionStart,node.selectionEnd,node.selectionDirection,document.querySelector('#replyFile').files[0]===window.aiExpiryFile])).toEqual([1,5,'backward',true]);
+  expect(state.statusCalls().length).toBe(calls);expect(state.aiCalls()).toEqual([]);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  await page.screenshot({animations:'disabled',path:path.join(directory,prefix+'-after.png')});clean(state);
+});
 for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet and fits the composer '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const state=await setup(page,{readiness:true});
   const button=page.locator('#aiDraftOpen'),notice=page.locator('.aiReadyNotice');
