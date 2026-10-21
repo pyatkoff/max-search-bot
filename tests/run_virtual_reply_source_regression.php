@@ -14,18 +14,19 @@ function sourceCheck(string $name, bool $ok): void {
 function sourceDb(): PDO {
     $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     $pdo->exec('CREATE TABLE projects(project_key TEXT PRIMARY KEY,is_active INTEGER);
-        CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT);
+        CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT,customer_id INTEGER,customer_channel_id INTEGER);
+        CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
         CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
         CREATE TABLE telegram_dialogue_messages(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,account_id INTEGER,chat_id INTEGER,message_id INTEGER,version_at INTEGER,source_kind TEXT,is_deleted INTEGER,record_json TEXT);
         CREATE TABLE telegram_archive_accounts(project_key TEXT,bot_key TEXT,account_id INTEGER,connection_id TEXT,approved INTEGER,provider_enabled INTEGER,manager_id INTEGER);
         CREATE TABLE telegram_dialogue_connections(project_key TEXT,bot_key TEXT,connection_id TEXT,account_id INTEGER,is_enabled INTEGER);
         INSERT INTO projects VALUES ("anytour",1),("other",1);
-        INSERT INTO conversations VALUES (1,"anytour",0,"telegram"),(2,"other",0,"telegram"),(3,"anytour",1,"max");
+        INSERT INTO conversations(id,project_key,is_test,channel) VALUES (101,"anytour",0,"telegram"),(2,"other",0,"telegram"),(3,"anytour",1,"max");
         INSERT INTO telegram_archive_accounts VALUES ("anytour","archive",100,"current",1,1,7);
         INSERT INTO telegram_dialogue_connections VALUES ("anytour","archive","current",100,1);');
     return $pdo;
 }
-function sourceMessage(PDO $pdo, int $id, string $sender, string $text, array $meta=[], string $at='2026-10-20 10:00:00', int $conversation=1): void {
+function sourceMessage(PDO $pdo, int $id, string $sender, string $text, array $meta=[], string $at='2026-10-20 10:00:00', int $conversation=101): void {
     $pdo->prepare('INSERT INTO messages VALUES (?,?,?,?,?,?,?)')->execute([$id,$conversation,$sender==='customer'?'inbound':'outbound',$sender,$text,json_encode($meta,JSON_THROW_ON_ERROR),$at]);
 }
 function sourceArchive(PDO $pdo, int $native, string $sender, string $text, int $created=1792490400, array $extra=[], string $project='anytour', int $account=100, int $chat=200): int {
@@ -220,6 +221,45 @@ foreach (['snapshot'=>static fn()=>$missingReader->snapshot('conversation',1),
     try {$call();} catch (RuntimeException $error) {$safeFailure=$error->getMessage()==='virtual_reply_source_unavailable'&&$error->getPrevious()===null;}
     sourceCheck('technical '.$operation.' failure cannot masquerade as deletion or empty success',$safeFailure&&!$missing->inTransaction());
 }
+
+$internalDb=sourceDb();$internalReader=new VirtualReplySourceReader($internalDb);
+$internalDb->exec('INSERT INTO conversations VALUES(1,"anytour",0,"telegram",11,71),(4,"anytour",0,"max",12,72);
+    INSERT INTO customer_channels VALUES(71,11,"anytour","telegram","91001","91001"),(72,12,"anytour","max","91002","91002")');
+// The MAX internal coordinate is2; keep the pre-existing other-project
+// counterexample distinct before creating that exact synthetic scope.
+$internalDb->exec('UPDATE conversations SET id=202 WHERE id=2; UPDATE conversations SET id=2 WHERE id=4');
+sourceMessage($internalDb,200,'customer','Synthetic internal demo',[], '2026-10-20 10:00:00',1);
+sourceMessage($internalDb,201,'customer','Synthetic internal demo',[], '2026-10-20 10:00:00',2);
+sourceMessage($internalDb,202,'customer','Alex asks about a holiday gift card');
+sourceMessage($internalDb,203,'customer','Later synthetic internal demo',[], '2026-10-20 10:01:00',1);
+$internalBefore=(int)$internalDb->query('SELECT total_changes()')->fetchColumn();
+sourceCheck('ordinary owner questions are excluded before both discovery limits and private snapshots',
+    $internalReader->snapshot('conversation',200)===null && $internalReader->snapshot('conversation',201)===null
+    && $internalReader->snapshot('conversation',202)!==null
+    && $internalReader->scan('conversation',199,1)===['source_ids'=>[202],'last_id'=>202,'has_more'=>false]
+    && $internalReader->recent('conversation',1)===['source_ids'=>[202],'last_id'=>202,'has_more'=>false]
+    && (int)$internalDb->query('SELECT total_changes()')->fetchColumn()===$internalBefore);
+$internalDb->exec("UPDATE conversations SET channel='website' WHERE id=1; UPDATE conversations SET channel='telegram' WHERE id=2");
+sourceCheck('the same numeric IDs in other channels are not classified as owner dialogues',
+    $internalReader->snapshot('conversation',200)!==null && $internalReader->snapshot('conversation',201)!==null);
+$internalDb->exec("UPDATE conversations SET channel='telegram' WHERE id=1");
+$ownerArchive=sourceArchive($internalDb,1,'customer','Synthetic internal demo',1792490400,[],'anytour',100,91001);
+$touristArchive=sourceArchive($internalDb,2,'customer','Alex asks about a holiday gift card',1792490400,[],'anytour',100,92002);
+$ownerArchiveLate=sourceArchive($internalDb,3,'customer','Later synthetic internal demo',1792490460,[],'anytour',100,91001);
+sourceCheck('only the canonically bound owner archive peer is excluded within an approved account',
+    $internalReader->snapshot('telegram_archive',$ownerArchive)===null
+    && $internalReader->snapshot('telegram_archive',$touristArchive)!==null
+    && $internalReader->scan('telegram_archive',0,1)===['source_ids'=>[$touristArchive],'last_id'=>$touristArchive,'has_more'=>false]
+    && $internalReader->recent('telegram_archive',1)===['source_ids'=>[$touristArchive],'last_id'=>$touristArchive,'has_more'=>false]);
+$internalDb->exec("UPDATE customer_channels SET external_user_id='091001',external_chat_id='091001' WHERE id=71");
+sourceCheck('archive peer equality preserves leading zeros instead of numeric coercion',
+    $internalReader->snapshot('telegram_archive',$ownerArchive)!==null);
+$internalDb->exec("UPDATE customer_channels SET external_user_id='91001',external_chat_id='91001' WHERE id=71");
+$internalDb->exec('UPDATE customer_channels SET customer_id=99 WHERE id=71');
+sourceCheck('an unbound peer identity cannot blacklist an unrelated archive chat',
+    $internalReader->snapshot('telegram_archive',$ownerArchive)!==null);
+$badAlias=false;try{InternalOwnerDialogueScope::conversationSql('c;invalid');}catch(InvalidArgumentException $error){$badAlias=true;}
+sourceCheck('internal SQL helpers refuse caller-controlled alias syntax',$badAlias);
 
 echo "Virtual reply source regression: {$passed} passed, {$failed} failed\n";
 exit($failed ? 1 : 0);

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/InternalOwnerDialogueScope.php';
 
 /** Bounded, read-only source snapshots. Never calls a provider or a sender. */
 final class VirtualReplySourceReader
@@ -25,8 +26,8 @@ final class VirtualReplySourceReader
         $limit = min(self::MAX_SCAN, $limit);
         try {
             $sql = $source === 'conversation'
-                ? 'SELECT m.id FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE c.project_key=? AND p.is_active=1 AND c.is_test=0 AND m.id>? ORDER BY m.id LIMIT '
-                : 'SELECT m.id FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.project_key=? AND p.is_active=1 AND m.id>? ORDER BY m.id LIMIT ';
+                ? 'SELECT m.id FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE c.project_key=? AND p.is_active=1 AND c.is_test=0 AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' AND m.id>? ORDER BY m.id LIMIT '
+                : 'SELECT m.id FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.project_key=? AND p.is_active=1 AND NOT '.InternalOwnerDialogueScope::archiveSql('m').' AND m.id>? ORDER BY m.id LIMIT ';
             $q = $this->pdo->prepare($sql.($limit + 1));
             $q->execute(['anytour', $afterId]);
             $ids = array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN));
@@ -46,8 +47,8 @@ final class VirtualReplySourceReader
             // Archive SQL has no created_at column; its import ID is explicitly
             // discovery order, never a claim that imported history is fresh.
             $sql = $source === 'conversation'
-                ? 'SELECT m.id FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE c.project_key=? AND p.is_active=1 AND c.is_test=0 ORDER BY m.id DESC LIMIT '
-                : 'SELECT m.id FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.project_key=? AND p.is_active=1 ORDER BY m.id DESC LIMIT ';
+                ? 'SELECT m.id FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE c.project_key=? AND p.is_active=1 AND c.is_test=0 AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' ORDER BY m.id DESC LIMIT '
+                : 'SELECT m.id FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.project_key=? AND p.is_active=1 AND NOT '.InternalOwnerDialogueScope::archiveSql('m').' ORDER BY m.id DESC LIMIT ';
             $q = $this->pdo->prepare($sql.($limit + 1));
             $q->execute(['anytour']);
             $ids = array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN));
@@ -86,7 +87,7 @@ final class VirtualReplySourceReader
 
     private function conversation(int $id): ?array
     {
-        $q = $this->pdo->prepare('SELECT m.*,c.project_key,c.is_test,c.channel AS scope_channel FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE m.id=? AND c.project_key=? AND c.is_test=0 AND p.is_active=1');
+        $q = $this->pdo->prepare('SELECT m.*,c.project_key,c.is_test,c.channel AS scope_channel FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE m.id=? AND c.project_key=? AND c.is_test=0 AND p.is_active=1 AND NOT '.InternalOwnerDialogueScope::conversationSql('c'));
         $q->execute([$id, 'anytour']);
         $question = $q->fetch(PDO::FETCH_ASSOC);
         if (!$question) return null;
@@ -126,7 +127,7 @@ final class VirtualReplySourceReader
 
     private function archive(int $id): ?array
     {
-        $q = $this->pdo->prepare('SELECT m.* FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.id=? AND m.project_key=? AND p.is_active=1');
+        $q = $this->pdo->prepare('SELECT m.* FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.id=? AND m.project_key=? AND p.is_active=1 AND NOT '.InternalOwnerDialogueScope::archiveSql('m'));
         $q->execute([$id, 'anytour']);
         $question = $q->fetch(PDO::FETCH_ASSOC);
         if (!$question || (int)$question['is_deleted'] !== 0) return null;

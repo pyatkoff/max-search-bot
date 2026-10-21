@@ -85,10 +85,10 @@ INSERT INTO managers VALUES(1,'owner','Synthetic manager','manager','',1,1),(2,'
 INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2);
 INSERT INTO customers VALUES(10,'Synthetic customer','PRIVATE PHONE','PRIVATE EMAIL');
 INSERT INTO manager_customer_names VALUES(10,'Synthetic working label',1);
-INSERT INTO conversations VALUES(1,10,'anytour',0,'telegram','','','','manager','new',1,'2026-10-19 10:00:00','2026-10-19 10:01:00',NULL,'PRIVATE CHAT',0);
+INSERT INTO conversations VALUES(1,10,'anytour',0,'website','','','','manager','new',1,'2026-10-19 10:00:00','2026-10-19 10:01:00',NULL,'PRIVATE CHAT',0);
 INSERT INTO manager_conversation_reads VALUES(1,1,1,'2026-10-19 10:00:00');
-INSERT INTO messages VALUES(1,1,'outbound','manager','Здравствуйте!','2026-10-19 10:00:00','telegram',NULL,'PRIVATE','PRIVATE');
-INSERT INTO messages VALUES(2,1,'inbound','customer','Подберите тур в Турцию на двоих, бюджет 200000 рублей.','2026-10-19 10:01:00','telegram',NULL,'PRIVATE','PRIVATE');
+INSERT INTO messages VALUES(1,1,'outbound','manager','Здравствуйте!','2026-10-19 10:00:00','website',NULL,'PRIVATE','PRIVATE');
+INSERT INTO messages VALUES(2,1,'inbound','customer','Подберите тур в Турцию на двоих, бюджет 200000 рублей.','2026-10-19 10:01:00','website',NULL,'PRIVATE','PRIVATE');
 INSERT INTO lead_tasks VALUES(1,1,'Проверить варианты','2000-01-01 10:00:00','open',0,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 INSERT INTO lead_tasks VALUES(2,1,'Проверить перелёт',NULL,'open',1,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
 INSERT INTO lead_tasks VALUES(3,1,'Уже сделано',NULL,'done',0,1,1,'2026-10-19 10:00:00',NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00');
@@ -146,7 +146,7 @@ try {
 
     foreach ([
         'edited transcript'=>"UPDATE messages SET text='Нужны другие даты' WHERE id=2",
-        'new message'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Поменялся бюджет','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'new message'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Поменялся бюджет','2026-10-19 10:02:00','website',NULL,'PRIVATE','PRIVATE')",
         'expired proposal'=>"UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'",
         'old instructions'=>"UPDATE manager_prepared_replies SET instruction_revision='".str_repeat('0',64)."'",
         'corrupt proposal'=>"UPDATE manager_prepared_replies SET proposal_sha256='".str_repeat('0',64)."'",
