@@ -164,6 +164,24 @@ keeps its duration range without a terminology question. These are development
 calibration examples, not new independent model-quality measurements. Existing
 claimed/completed jobs still retain their frozen instructions.
 
+## Concrete comparisons versus general explanations
+
+Choose `next_action` for the material work still needed. A concrete request to
+compare dates, hotels or other offer conditions usually requires `check_offer`
+or `prepare_selection` when the working conditions are available. Listing future
+checks alongside a generic price explanation does not complete that comparison
+as `answer_question`. Either action can be appropriate; a useful grounded draft
+may accompany it, while no useful text means no outgoing draft. A theoretical
+pricing question or a prediction of future price changes alone does not mandate
+a selection. Ask only a genuinely missing essential condition.
+
+Synthetic calibration: comparing a package on adjacent departure dates requires
+actual price checks; asking whether prices might fall next month does not prove
+new dates were requested; a question about a specific flight can use `check_offer`
+and retain facts already supported by the context. These are instruction
+calibrations, not a new model-quality benchmark. Frozen active/completed jobs
+retain their original contracts.
+
 ## Operations
 
 Migration `049_virtual_reply_learning.sql` owns persistent tables. Runtime code
