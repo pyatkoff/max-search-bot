@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiDraftContextService.php';
+require_once __DIR__.'/InternalOwnerDialogueScope.php';
 
 /**
  * One-off private pilot input. Returns bounded, redacted context in memory only.
@@ -161,6 +162,7 @@ final class ManagerDraftPilotCollector
                 ."AND COALESCE({$type},'message') NOT IN (?,?,?)) "
                 ."WHERE ((c.status='manager' AND m.is_active=1 AND c.manager_id IN ({$cohort}))"
                 .($includeUnassigned ? " OR (c.status='waiting_manager' AND c.manager_id IS NULL)" : '') .") AND c.is_test=0 "
+                .'AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' '
                 ."AND customer_last.created_at>=? AND customer_last.created_at<=? "
                 ."AND customer_last.id>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=c.id "
                 ."AND mo.direction='outbound' AND mo.sender_type='manager'),0)"

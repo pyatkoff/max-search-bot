@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiDraftContextService.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
+require_once __DIR__.'/InternalOwnerDialogueScope.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -69,7 +70,7 @@ final class ManagerPreparedReplyService
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction()) return self::failure('queue_unavailable');
             $q = $pdo->prepare("SELECT job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,created_at,expires_at FROM manager_prepared_replies j WHERE project_key=? AND status='pending' AND created_at<=? AND expires_at>? AND instruction_revision=?"
-                ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
+                ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
                 .' AND latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id) ORDER BY created_at,job_id LIMIT '.$limit);
             $now = self::utc(time());
             $q->execute([ProjectConfig::projectId(),$now,$now,self::instructionRevision()]);
@@ -201,7 +202,7 @@ final class ManagerPreparedReplyService
 
     private static function projectFor(PDO $pdo, int $cid, int $actor): ?string
     {
-        $q = $pdo->prepare('SELECT project_key FROM conversations WHERE id=? AND is_test=0 AND '.($actor === 0 ? "manager_id IS NULL AND status='waiting_manager'" : "manager_id=? AND status='manager'"));
+        $q = $pdo->prepare('SELECT c.project_key FROM conversations c WHERE c.id=? AND c.is_test=0 AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' AND '.($actor === 0 ? "c.manager_id IS NULL AND c.status='waiting_manager'" : "c.manager_id=? AND c.status='manager'"));
         $q->execute($actor === 0 ? [$cid] : [$cid,$actor]);
         $project = $q->fetchColumn();
         return self::project($project) && $project === ProjectConfig::projectId() ? $project : null;
