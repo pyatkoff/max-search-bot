@@ -18,12 +18,13 @@ final class PreparedReplyStatement extends PDOStatement
 
 final class PreparedReplyPdo extends PDO
 {
-    public const TABLES = ['manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
+    public const TABLES = ['manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
     public static bool $mysqlFixture = false;
     public bool $guard = false;
     public int $sourceWriteAttempts = 0;
     public int $cacheWrites = 0;
     public array $executed = [];
+    public ?Closure $beforeCursorUpdate = null;
 
     public function __construct()
     {
@@ -58,11 +59,14 @@ final class PreparedReplyPdo extends PDO
     public function observe(string $sql): void
     {
         if (!$this->guard) return;
+        if ($this->beforeCursorUpdate !== null && str_starts_with($sql, 'UPDATE manager_preparation_cursors SET')) {
+            $callback=$this->beforeCursorUpdate; $this->beforeCursorUpdate=null; $callback($this);
+        }
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
             && in_array($sql, ['SET TRANSACTION ISOLATION LEVEL REPEATABLE READ','SET TRANSACTION READ ONLY'], true)) return;
-        if (preg_match('/\A\s*(?:INSERT(?:\s+OR\s+IGNORE)?\s+INTO|UPDATE|DELETE\s+FROM)\s+manager_prepared_replies\b/i', $sql)) {
+        if (preg_match('/\A\s*(?:INSERT(?:\s+(?:OR\s+)?IGNORE)?\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_prepared_replies|manager_preparation_cursors)\b/i', $sql)) {
             ++$this->cacheWrites;
             return;
         }
@@ -120,6 +124,8 @@ CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,
 CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT,channel TEXT,metadata_json TEXT,sender_id TEXT,external_message_id TEXT);
 CREATE INDEX idx_messages_conversation ON messages(conversation_id,id);
 CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_message_id INTEGER,updated_at TEXT,PRIMARY KEY(manager_id,conversation_id));
+CREATE TABLE lead_tasks(id INTEGER PRIMARY KEY,conversation_id INTEGER,assigned_manager_id INTEGER,status TEXT,due_at_utc TEXT);
+CREATE TABLE manager_preparation_cursors(project_key VARCHAR(64),lane VARCHAR(10),after_id INTEGER NOT NULL,version INTEGER NOT NULL,PRIMARY KEY(project_key,lane));
 CREATE TABLE manager_prepared_replies(job_id CHAR(64) PRIMARY KEY,conversation_id INTEGER NOT NULL,manager_id INTEGER NOT NULL,project_key TEXT NOT NULL,context_revision CHAR(64) NOT NULL,instruction_revision CHAR(64) NOT NULL,latest_message_id INTEGER NOT NULL,status TEXT NOT NULL,proposal_json TEXT,proposal_sha256 CHAR(64),created_at TEXT NOT NULL,prepared_at TEXT,expires_at TEXT);
 INSERT INTO projects VALUES(1,'anytour','Synthetic project',1),(2,'other','Other project',1);
 INSERT INTO managers VALUES(1,'owner','PRIVATE manager','manager','PRIVATE@example.test',1,1),(2,'admin','PRIVATE admin','admin','',1,1),(3,'outside','Outside project','admin','',1,1);
@@ -135,6 +141,7 @@ INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите ту�
         // The production cache migration has a BIGINT UNSIGNED conversation FK
         // and binary bounded proposal storage; exercise those actual constraints.
         $schema = str_replace('CREATE TABLE conversations(id INTEGER PRIMARY KEY', 'CREATE TABLE conversations(id BIGINT UNSIGNED PRIMARY KEY', $schema);
+        $schema = preg_replace('/CREATE TABLE manager_preparation_cursors\([^;]+;/s', '', $schema);
         $schema = preg_replace('/CREATE TABLE manager_prepared_replies\([^;]+;/s', '', $schema);
         $schema = preg_replace('/(CREATE TABLE [^;]+\));/s', '$1 ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;', $schema);
         if (!is_string($schema)) throw new RuntimeException('invalid_mysql_fixture_schema');
@@ -142,6 +149,7 @@ INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите ту�
         if (!is_string($migration)) throw new RuntimeException('missing_mysql_fixture_migration');
         $pdo->exec($schema);
         $pdo->exec($migration);
+        $pdo->exec(file_get_contents(dirname(__DIR__).'/migrations/050_manager_preparation_cursors.sql'));
     } else {
         $pdo->exec($schema);
     }
@@ -156,7 +164,7 @@ INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите ту�
 function preparedReplySourceState(PreparedReplyPdo $pdo): array
 {
     $state = [];
-    foreach (['projects','manager_projects','managers','customers','manager_customer_names','conversations','conversation_sources','manager_group_members','conversation_events','messages','manager_conversation_reads'] as $table) {
+    foreach (['lead_tasks','projects','manager_projects','managers','customers','manager_customer_names','conversations','conversation_sources','manager_group_members','conversation_events','messages','manager_conversation_reads'] as $table) {
         $state[$table] = $pdo->query('SELECT * FROM '.$table)->fetchAll();
     }
     return $state;
@@ -186,6 +194,89 @@ function preparedReplyQueue(array $snapshot): string
     $queued = ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)]);
     if (($queued['ok'] ?? false) !== true || count($queued['job_ids'] ?? []) !== 1) throw new RuntimeException('FAIL enqueue fixture');
     return $queued['job_ids'][0];
+}
+
+/** Same native fixtures execute this on SQLite and CI MySQL. */
+function preparedReplyCoverage(): void
+{
+    $pdo = preparedReplyFixture();
+    $pdo->mutate('DELETE FROM messages; DELETE FROM conversations');
+    $seed = static function(int $id, bool $answered, bool $due = false) use (&$pdo): void {
+        $pdo->prepare("INSERT INTO conversations VALUES(?,10,'anytour',0,'telegram','','','','manager','new',1,'2020-01-01 10:00:00','2020-01-01 10:01:00',NULL,'synthetic',0)")->execute([$id]);
+        $pdo->prepare("INSERT INTO messages VALUES(?,?,'inbound','customer','Нужен тур','2020-01-01 10:00:00','telegram',NULL,'synthetic','synthetic')")->execute([$id*10,$id]);
+        if ($answered) $pdo->prepare("INSERT INTO messages VALUES(?,?,'outbound','manager','Уточняю условия','2020-01-01 10:01:00','telegram',NULL,'synthetic','synthetic')")->execute([$id*10+1,$id]);
+        if ($due) $pdo->prepare("INSERT INTO lead_tasks VALUES(?,?,1,'open','2020-01-02 10:00:00')")->execute([$id,$id]);
+    };
+    // Fixtures, not service writes. Dates deliberately exceed the old72h tail.
+    $pdo->guard = false;
+    foreach (range(1001,1045) as $id) $seed($id,false);
+    foreach (range(2001,2009) as $id) $seed($id,true,true);
+    foreach (range(3001,3014) as $id) $seed($id,true);
+    $pdo->guard = true;
+    $before = preparedReplySourceState($pdo);
+    $first = ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('scheduled preparation has a20-candidate bound', ($first['ok']??false) && $first['candidate_count']===20 && $first['exported_count']===20);
+    $ids = array_map('intval',$pdo->query('SELECT conversation_id FROM manager_prepared_replies ORDER BY conversation_id')->fetchAll(PDO::FETCH_COLUMN));
+    preparedReplyCheck('waiting,existing due,and answered active clients all advance in firstpass', $ids===array_merge(range(1001,1010),range(2001,2005),range(3001,3005)));
+    for ($pass=0;$pass<7;$pass++) {
+        $batch = ManagerPreparedReplyService::collectAndEnqueue([1]);
+        preparedReplyCheck('rotation retains each bounded pass', ($batch['ok']??false) && $batch['candidate_count']<=20 && $batch['exported_count']<=20);
+    }
+    $ids = array_map('intval',$pdo->query('SELECT conversation_id FROM manager_prepared_replies ORDER BY conversation_id')->fetchAll(PDO::FETCH_COLUMN));
+    preparedReplyCheck('all68eligible clients eventually enter existingqueue without repeated fresh jobs', $ids===array_merge(range(1001,1045),range(2001,2009),range(3001,3014)));
+    preparedReplyCheck('rotation uses only3versioned projectcursor rows', (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_cursors')->fetchColumn()===3 && (int)$pdo->query('SELECT MIN(version) FROM manager_preparation_cursors')->fetchColumn()===8);
+    preparedReplyCheck('coverage does not change tasks,messages,assignment,readmarkers or businessdata', preparedReplySourceState($pdo)===$before && $pdo->sourceWriteAttempts===0);
+
+    // Eligibility is still source/owner scoped in every lane, before and after capture.
+    $pdo->mutate("UPDATE conversations SET status='closed' WHERE id=3001; UPDATE conversations SET is_test=1 WHERE id=3002; UPDATE conversations SET project_key='other' WHERE id=3003; UPDATE conversations SET manager_id=3 WHERE id=3004; UPDATE lead_tasks SET status='done' WHERE conversation_id=2001; UPDATE lead_tasks SET due_at_utc='2099-01-01 00:00:00' WHERE conversation_id=2002; UPDATE lead_tasks SET assigned_manager_id=3 WHERE conversation_id=2003");
+    $page=ManagerDraftPilotCollector::collect($pdo,[1],20,null,null,null,true,['lane'=>'due','after_id'=>0]);
+    preparedReplyCheck('only arrived open tasks belonging to actual owner are due', ($page['ok']??false) && array_column($page['conversations'],'conversation_id')===range(2004,2009));
+    $page=ManagerDraftPilotCollector::collect($pdo,[1],20,null,null,null,true,['lane'=>'active','after_id'=>0]);
+    $active=array_column($page['conversations'],'conversation_id');
+    preparedReplyCheck('closed,test,otherproject,otherowner are excluded and future tasks stay ordinaryactive', ($page['ok']??false) && $active===array_merge(range(2001,2003),range(3005,3014)));
+    $pdo->mutate("INSERT INTO conversation_sources VALUES(99,'Synthetic restricted',1,999,'none',NULL,NULL); UPDATE conversations SET source_id=99 WHERE id=3005");
+    $page=ManagerDraftPilotCollector::collect($pdo,[1],20,null,null,null,true,['lane'=>'active','after_id'=>0]);
+    preparedReplyCheck('expanded active scan keeps canonical source visibility fence', ($page['ok']??false) && !in_array(3005,array_column($page['conversations'],'conversation_id'),true));
+    $bad=ManagerDraftPilotCollector::collect($pdo,[1],20,null,null,null,true,['lane'=>'active','after_id'=>-1]);
+    preparedReplyCheck('invalid rotating cursor failsclosed', ($bad['ok']??true)===false);
+
+    $pdo = preparedReplyFixture();
+    $pdo->mutate('DELETE FROM messages; DELETE FROM conversations');
+    $pdo->guard=false;
+    foreach (range(1001,1015) as $id) $seed($id,false);
+    $pdo->guard=true;
+    $filled=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('unused due and active slots fill with remaining waiting clients', ($filled['ok']??false) && $filled['candidate_count']===15 && $filled['queue']['inserted']===15);
+    $pdo->beforeCursorUpdate=static function(PreparedReplyPdo $db): void {
+        $db->mutate("UPDATE manager_preparation_cursors SET after_id=999,version=version+1 WHERE lane='waiting'");
+    };
+    $competing=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    $cursor=$pdo->query("SELECT after_id,version FROM manager_preparation_cursors WHERE lane='waiting'")->fetch(PDO::FETCH_ASSOC);
+    preparedReplyCheck('late pass cannot overwrite a competing newer cursor version', ($competing['ok']??false) && (int)$cursor['after_id']===999 && (int)$cursor['version']===2);
+
+    $pdo = preparedReplyFixture(); $snapshot = preparedReplySnapshot(); $job = preparedReplyQueue($snapshot);
+    ManagerPreparedReplyService::complete($job,$snapshot['revision'],preparedReplyProposal());
+    $pdo->mutate("UPDATE manager_prepared_replies SET created_at='2020-01-01 00:00:00',prepared_at='2020-01-01 00:00:01',expires_at='2020-01-01 01:00:01'");
+    $old = $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
+    $renewed = ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)],true);
+    $new = $renewed['job_ids'][0]??'';
+    preparedReplyCheck('scheduled expired result renews as a distinct immutable job', ($renewed['inserted']??0)===1 && $new!==$job && count(ManagerPreparedReplyService::pending()['jobs'])===1);
+    $q=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);
+    preparedReplyCheck('renewal preserves original proposal and source provenance', $q->fetchAll()===$old);
+    $again=ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)],true);
+    preparedReplyCheck('repeated scheduled pass shares the same live renewal', ($again['inserted']??-1)===0 && ($again['job_ids']??[])===[$new] && (int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===2);
+    preparedReplyCheck('old expired worker cannot finish after renewal', !ManagerPreparedReplyService::context($job)['ok'] && !ManagerPreparedReplyService::complete($job,$snapshot['revision'],preparedReplyProposal())['ok']);
+    preparedReplyCheck('current renewal can complete normally', ManagerPreparedReplyService::complete($new,$snapshot['revision'],preparedReplyProposal())['ok'] && ManagerPreparedReplyService::prepared(101,1,$snapshot)['prepared']);
+
+    $pdo=preparedReplyFixture();$snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
+    $hold=preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'no_contact','reason'=>'Исходящий ответ не нужен.']);
+    preparedReplyCheck('synthetic no_contact result validates', ManagerPreparedReplyService::complete($job,$snapshot['revision'],$hold)['ok']);
+    $pdo->mutate("UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'");
+    $kept=ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)],true);
+    preparedReplyCheck('expired unchanged no_contact is not silently regenerated', ($kept['inserted']??-1)===0 && ($kept['job_ids']??[])===[$job]);
+    $pdo->mutate("UPDATE messages SET text='Новые даты поездки' WHERE id=2");$changed=preparedReplySnapshot();
+    $fresh=ManagerPreparedReplyService::enqueue([preparedReplyRow($changed)],true);
+    preparedReplyCheck('new conditions invalidate no_contact rather than creating permanent exclusion', ($fresh['inserted']??0)===1 && ($fresh['job_ids'][0]??'')!==$job);
 }
 
 function preparedReplyRun(): void
@@ -379,6 +470,7 @@ function preparedReplyRun(): void
     preparedReplyCheck('all cache operations finish without source writes or transaction leakage', $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
     preparedReplySelectionRun();
     preparedReplyWaitingRun();
+    preparedReplyCoverage();
     echo 'Manager prepared replies'.(PreparedReplyPdo::$mysqlFixture ? ' (MySQL)' : '').': '.($preparedReplyPassed - $startedWith)." checks passed\n";
 }
 

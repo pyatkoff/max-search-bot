@@ -53,16 +53,17 @@ class ProjectAccessService {public static function initializeReadOnly(){}}
 class ProjectConfig {public static function projectId(){return 'anytour';}}
 class ManagerPreparationMcpService {public function hasActiveSubscriptions(){return !is_file(__DIR__.'/waiting');}public function deliverPending(){return ['subscriptions'=>1,'accepted'=>0,'retried'=>0,'stopped'=>0,'unchanged'=>1];}}
 class ManagerDraftPilotCollector {public static function collect($pdo,$cohort,$limit){return ['ok'=>true,'candidate_count'=>0,'exported_count'=>0,'conversations'=>[]];}}
-class ManagerPreparedReplyService {public static function enqueue($rows){return ['ok'=>true,'inserted'=>0,'existing'=>0,'skipped'=>0];}}
+class ManagerPreparedReplyService {public static function collectAndEnqueue($cohort){if(is_file(__DIR__.'/enqueuefail'))return ['ok'=>false,'stage'=>'enqueue'];if(is_file(__DIR__.'/collectionfail'))return ['ok'=>false];return ['ok'=>true,'candidate_count'=>0,'exported_count'=>0,'queue'=>['ok'=>true,'inserted'=>0,'existing'=>0,'skipped'=>0]];}}
 PHP;
     file_put_contents($app.'/config.php',$fixture);
     $checkpoint=$tmp.'/max-search-bot-private-logs/manager_preparation_health.json';
-    foreach (['ok'=>0,'waiting'=>0,'fail'=>1] as $mode=>$expected) {
+    foreach (['ok'=>0,'waiting'=>0,'collectionfail'=>1,'enqueuefail'=>1,'fail'=>1] as $mode=>$expected) {
         if ($mode!=='ok') file_put_contents($app.'/'.$mode,'1');
         $out=[];$code=-1;exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/manager_prepared_replies.php').' tick 2>&1',$out,$code);
         $row=json_decode((string)file_get_contents($checkpoint),true);
-        $state=['ok'=>'ok','waiting'=>'awaiting_connection','fail'=>'failed'][$mode];
+        $state=['ok'=>'ok','waiting'=>'awaiting_connection','collectionfail'=>'failed','enqueuefail'=>'failed','fail'=>'failed'][$mode];
         healthCheck('real CLI records '.$mode.' without exposing private error',$code===$expected && ($row['state']??null)===$state && !str_contains(implode("\n",$out),'PRIVATE'));
+        if (in_array($mode,['collectionfail','enqueuefail'],true)) healthCheck('real CLI distinguishes '.$mode,($row['stage']??null)===($mode==='enqueuefail'?'enqueue':'collection'));
         if ($mode==='fail') healthCheck('real CLI catches configuration failure at bootstrap',($row['stage']??null)==='bootstrap');
         if ($mode!=='ok') unlink($app.'/'.$mode);
     }

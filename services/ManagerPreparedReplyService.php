@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ManagerAiDraftContextService.php';
 require_once __DIR__.'/ManagerAiDraftService.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ManagerDraftPilotCollector.php';
 
 /** Private work metadata and reviewed proposals; never a transcript or delivery queue. */
 final class ManagerPreparedReplyService
@@ -16,7 +17,7 @@ final class ManagerPreparedReplyService
     private const FIELDS = ['ok','should_draft','draft','next_action','reason','checks','evidence_message_ids','history_incomplete'];
 
     /** Rows come from the canonical bounded collector, but all bindings are rechecked here. */
-    public static function enqueue(array $candidateRows): array
+    public static function enqueue(array $candidateRows, bool $renewExpired = false): array
     {
         if (!array_is_list($candidateRows) || count($candidateRows) > self::MAX_BATCH) return self::failure('invalid_batch');
         $out = ['ok'=>true,'inserted'=>0,'existing'=>0,'skipped'=>0,'job_ids'=>[]];
@@ -38,8 +39,15 @@ final class ManagerPreparedReplyService
                 }
                 $instruction = self::instructionRevision();
                 $id = hash('sha256', json_encode(['manager_prepared_reply_v1',$cid,$actor,$project,$revision,$instruction], JSON_THROW_ON_ERROR));
-                if (self::load($pdo, $id) !== null) {
-                    ++$out['existing']; $out['job_ids'][] = $id; continue;
+                // A renewal is a new immutable work item, never an overwrite of
+                // the old result/provenance. Only the scheduled collector opts in.
+                $previous = self::latestBinding($pdo, $cid, $actor, $project, $revision, $instruction);
+                if ($previous !== null) {
+                    if (!$renewExpired || (self::timestamp($previous['expires_at']) ?? PHP_INT_MAX) > time()
+                        || self::noContact($previous, $snapshot)) {
+                        ++$out['existing']; $out['job_ids'][] = $previous['job_id']; continue;
+                    }
+                    $id = hash('sha256', json_encode(['manager_prepared_renewal_v1',$id,$previous['job_id']], JSON_THROW_ON_ERROR));
                 }
                 $now = time();
                 try {
@@ -59,6 +67,65 @@ final class ManagerPreparedReplyService
                 }
             }
             return $out;
+        } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
+    }
+
+    /** Existing cron's bounded preparation pass; no model, send or task mutation. */
+    public static function collectAndEnqueue(array $managerIds, ?string $capturedAtUtc = null): array
+    {
+        try {
+            $pdo = ConversationDb::connection();
+            if ($pdo->inTransaction()) return self::failure('queue_unavailable');
+            $project = ProjectConfig::projectId();
+            if (!self::project($project)) return self::failure('queue_unavailable');
+            $q = $pdo->prepare('SELECT lane,after_id,version FROM manager_preparation_cursors WHERE project_key=?');
+            $q->execute([$project]);
+            $states = [];
+            foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                if (!in_array($row['lane'], ['waiting','due','active'], true)
+                    || filter_var($row['after_id'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>0]]) === false
+                    || filter_var($row['version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) === false) return self::failure('queue_unavailable');
+                $states[$row['lane']] = ['after_id'=>(int)$row['after_id'],'version'=>(int)$row['version']];
+            }
+            $candidates = 0; $rows = []; $pages = [];
+            $capture = static function(string $lane, int $limit, bool $wrap) use ($pdo,$managerIds,$capturedAtUtc,&$pages,&$states,&$candidates,&$rows): void {
+                $cursor = $pages[$lane]['next_cursor'] ?? $states[$lane]['after_id'] ?? 0;
+                $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>$lane,'after_id'=>$cursor]);
+                if (empty($page['ok'])) throw new RuntimeException('collection_failed');
+                if ($wrap && $cursor > 0 && $page['candidate_count'] === 0) {
+                    $page = ManagerDraftPilotCollector::collect($pdo,$managerIds,$limit,null,null,$capturedAtUtc,true,['lane'=>$lane,'after_id'=>0]);
+                    if (empty($page['ok'])) throw new RuntimeException('collection_failed');
+                }
+                $candidates += $page['candidate_count'];
+                array_push($rows, ...$page['conversations']);
+                $pages[$lane] = $page;
+            };
+            // Reserve progress for every lane even under a continuously busy
+            // waiting queue. Reuse spare capacity without exceeding20 candidate captures.
+            foreach (['waiting'=>10,'due'=>5,'active'=>5] as $lane=>$quota) $capture($lane,$quota,true);
+            foreach (['waiting','due','active'] as $lane) {
+                if ($candidates >= self::MAX_BATCH) break;
+                if ($pages[$lane]['next_cursor'] > 0) $capture($lane,self::MAX_BATCH-$candidates,false);
+            }
+            // A race can move a client between lanes; enqueue each binding once.
+            $unique = [];
+            foreach ($rows as $row) $unique[$row['conversation_id']] = $row;
+            $queued = self::enqueue(array_values($unique), true);
+            if (empty($queued['ok'])) return $queued + ['stage'=>'enqueue'];
+            foreach ($pages as $lane=>$page) {
+                $old = $states[$lane] ?? null;
+                if ($old === null) {
+                    $ignore = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? 'INSERT IGNORE' : 'INSERT OR IGNORE';
+                    $q = $pdo->prepare($ignore.' INTO manager_preparation_cursors (project_key,lane,after_id,version) VALUES (?,?,?,1)');
+                    $q->execute([$project,$lane,$page['next_cursor']]);
+                } else {
+                    // Compare-and-set keeps a slower overlapping scan from
+                    // moving a newer cursor backwards, including after wrap.
+                    $q = $pdo->prepare('UPDATE manager_preparation_cursors SET after_id=?,version=version+1 WHERE project_key=? AND lane=? AND version=?');
+                    $q->execute([$page['next_cursor'],$project,$lane,$old['version']]);
+                }
+            }
+            return ['ok'=>true,'candidate_count'=>$candidates,'exported_count'=>count($unique),'queue'=>$queued];
         } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
     }
 
@@ -206,6 +273,24 @@ final class ManagerPreparedReplyService
         $q->execute($actor === 0 ? [$cid] : [$cid,$actor]);
         $project = $q->fetchColumn();
         return self::project($project) && $project === ProjectConfig::projectId() ? $project : null;
+    }
+
+    private static function latestBinding(PDO $pdo, int $cid, int $actor, string $project, string $revision, string $instruction): ?array
+    {
+        $q = $pdo->prepare('SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND manager_id=? AND project_key=? AND context_revision=? AND instruction_revision=? ORDER BY created_at DESC,job_id DESC LIMIT 1');
+        $q->execute([$cid,$actor,$project,$revision,$instruction]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        return $row && self::validRow($row) ? $row : null;
+    }
+
+    private static function noContact(array $row, array $snapshot): bool
+    {
+        $json = $row['proposal_json'] ?? null;
+        if ($row['status'] !== 'ready' || !is_string($json) || strlen($json)>self::MAX_PROPOSAL_BYTES
+            || !self::revision($row['proposal_sha256'] ?? null) || !hash_equals($row['proposal_sha256'],hash('sha256',$json))) return false;
+        $proposal = json_decode($json,true);
+        return is_array($proposal) && ($proposal['next_action'] ?? null) === 'no_contact'
+            && self::validatedJson($proposal,$snapshot) === $json;
     }
 
     private static function load(PDO $pdo, string $id): ?array
