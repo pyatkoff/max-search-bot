@@ -110,7 +110,11 @@ prepared queue continue to represent ordinary manager replies only.
 5. `save_virtual_reply` saves the exact result and declared model, reasoning and
    tier. A reviewer cannot save an author's result or cite unseen messages.
 6. Read metadata using `list_virtual_reply_reviews`; inspect individual cases
-   privately using `get_virtual_reply_review`.
+   privately using `get_virtual_reply_review`. Unresolved `revise` and
+   `insufficient_context` findings are ordered oldest first before the page
+   limit; a `pass` is not a finding requiring resolution. The additive
+   `requires_disposition` flag identifies those unresolved findings. Remaining
+   reviews are newest first. Listing does not record a disposition automatically.
 7. After the development pass, `record_virtual_reply_lesson` records `rejected`,
    `duplicate` or `applied` with the reason and validation. Applied lessons require
    a same-repository PR URL; the worker must verify its merged/deployed state and
