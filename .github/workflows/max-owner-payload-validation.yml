@@ -1,0 +1,95 @@
+name: Fixed invalid-target MAX payload validation
+
+on:
+  push:
+    branches: [analysis/max-owner-payload-validation-20261021]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EXPECTED_SHA: 888d2baba1cc0fa9fb3e53aa64d65348a007d0bd
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify source and current main before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_ACTOR" = 'pyatkoff'
+          test "$GITHUB_ACTOR_ID" = '226193297'
+          test "$GITHUB_REF" = 'refs/heads/analysis/max-owner-payload-validation-20261021'
+          test "$GITHUB_WORKFLOW_REF" = 'pyatkoff/max-search-bot/.github/workflows/max-owner-payload-validation.yml@refs/heads/analysis/max-owner-payload-validation-20261021'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_SHA"
+          git diff --quiet
+          git diff --cached --quiet
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          php -l tools/max_owner_payload_validation.php
+          php tools/max_owner_payload_validation.php --self-test
+      - name: Probe only the fixed invalid message target with pinned SSH
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          SSH_HOST_KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private_dir="$(mktemp -d "$RUNNER_TEMP/max-payload-validation.XXXXXX")"
+          echo "MAX_PAYLOAD_PRIVATE_DIR=$private_dir" >> "$GITHUB_ENV"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$private_dir/key"; else printf '%s\n' "$raw" | tr -d '\r' > "$private_dir/key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$private_dir/key"
+          fi
+          chmod 600 "$private_dir/key"
+          ssh-keygen -y -f "$private_dir/key" >/dev/null
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[A-Za-z_][A-Za-z0-9_.-]*$ ]]
+          printf '%s %s\n' "$DEPLOY_HOST" "$SSH_HOST_KEY" > "$private_dir/known_hosts"
+          chmod 600 "$private_dir/known_hosts"
+          ssh_opts=(-i "$private_dir/key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$private_dir/known_hosts" -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o LogLevel=ERROR)
+          timeout 45 ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; git diff --quiet; git diff --cached --quiet; php -d display_errors=0 -d log_errors=0 /dev/stdin; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; git diff --quiet; git diff --cached --quiet" < tools/max_owner_payload_validation.php > "$private_dir/result.json" 2> "$private_dir/stderr.txt"
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          python3 - "$private_dir/result.json" <<'PY'
+          import json,re,sys
+          value=json.load(open(sys.argv[1]))
+          allowed={'state','requests','post_requests','fixed_invalid_target','probe_get','probe_put','request_body_sha256'}
+          assert type(value) is dict and set(value)<=allowed
+          assert value.get('state') in {'blocked','inconclusive','configuration_unavailable','payload_rejected','target_rejected','unexpected_put_success'}
+          assert type(value.get('requests')) is int and 0<=value['requests']<=2
+          assert value.get('post_requests')==0 and value.get('fixed_invalid_target') is True
+          if 'request_body_sha256' in value: assert re.fullmatch('[0-9a-f]{64}',value['request_body_sha256'])
+          for key in ('probe_get','probe_put'):
+              if key not in value: continue
+              item=value[key]
+              assert type(item) is dict and set(item)=={'http_status','curl_code','tls_verified','response_complete','json_object','api_code','message','message_sha256'}
+              assert type(item['http_status']) is int and 0<=item['http_status']<=599
+              assert type(item['curl_code']) is int and 0<=item['curl_code']<=999
+              for flag in ('tls_verified','response_complete','json_object'): assert type(item[flag]) is bool
+              assert item['api_code'] is None or item['api_code'] in {'proto.payload','proto.query','proto.auth','access.denied','chat.not.found','user.not.found','message.not.found','attachment.not.ready'}
+              assert item['message_sha256'] is None or re.fullmatch('[0-9a-f]{64}',item['message_sha256'])
+              message=item['message']
+              assert message is None or type(message) is str and len(message.encode())<=2048 and not re.search(r'(?:[a-z][a-z0-9+.-]{1,15}://|www\.|\d{5,}|[\x00-\x1f\x7f])',message,re.I)
+          print(json.dumps(value,separators=(',',':'),ensure_ascii=False))
+          PY
+      - name: Remove private runner files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${MAX_PAYLOAD_PRIVATE_DIR:-}" in "$RUNNER_TEMP"/max-payload-validation.*) ;; *) exit 0;; esac
+          rm -f "$MAX_PAYLOAD_PRIVATE_DIR/key" "$MAX_PAYLOAD_PRIVATE_DIR/known_hosts" "$MAX_PAYLOAD_PRIVATE_DIR/result.json" "$MAX_PAYLOAD_PRIVATE_DIR/stderr.txt"
+          rmdir "$MAX_PAYLOAD_PRIVATE_DIR"
