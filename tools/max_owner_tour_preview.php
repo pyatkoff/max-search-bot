@@ -42,30 +42,65 @@ function ownerPreviewTarget(PDO $db): ?array
     finally { if ($db->inTransaction()) $db->rollBack(); }
 }
 
-/** Fixed HTTPS origin; bounded/redacted exchange; no redirects, automatic retry or raw logging. */
-function ownerPreviewRequest(string $method,string $path,array $query,?array $body,string $token): ?array
+/** Only these provider codes may leave the process; never provider descriptions. */
+function ownerPreviewDecode(string $bytes,int $status,int $curl,int $tls,bool $overflow=false): array
+{
+    $data=json_decode($bytes,true,64,JSON_BIGINT_AS_STRING);
+    $code=is_array($data)?($data['code']??null):null;
+    $diagnostic=['http_status'=>max(0,min(599,$status)),'curl_code'=>max(0,min(999,$curl)),
+        'error_category'=>$overflow?'response_too_large':($tls!==0?'tls':($curl!==0?'transport':($status<200||$status>=300?'http_rejected':(!is_array($data)?'invalid_response':'none')))),
+        'api_code'=>in_array($code,['proto.payload','proto.query','proto.auth','access.denied','chat.not.found','user.not.found',
+            'dialog.suspended','error.dialog.suspended','attachment.not.ready','attachment.invalid','message.empty','message.too.long'],true)?$code:null];
+    return ['data'=>$diagnostic['error_category']==='none'?$data:null,'diagnostic'=>$diagnostic];
+}
+
+/** Fixed HTTPS origin; bounded/redacted exchange; no redirects, retries or raw logging. */
+function ownerPreviewRequest(string $method,string $path,array $query,?array $body,string $token): array
 {
     $url='https://platform-api2.max.ru'.$path.($query?'?'.http_build_query($query):'');
-    $bytes='';
-    $ch=curl_init($url);
+    $bytes='';$overflow=false;$ch=curl_init($url);
     $options=MaxTlsConfig::strictCurlOptions()+[
-        CURLOPT_CUSTOMREQUEST=>$method,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,
-        CURLOPT_FOLLOWLOCATION=>false,CURLOPT_MAXREDIRS=>0,
-        CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
+        CURLOPT_CUSTOMREQUEST=>$method,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>30,
+        CURLOPT_FOLLOWLOCATION=>false,CURLOPT_MAXREDIRS=>0,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
         CURLOPT_HTTPHEADER=>['Authorization: '.$token,'Content-Type: application/json'],
-        CURLOPT_WRITEFUNCTION=>static function($ch,string $part) use (&$bytes): int {
-            if (strlen($bytes)+strlen($part)>65536) return 0;
+        CURLOPT_WRITEFUNCTION=>static function($ch,string $part) use (&$bytes,&$overflow): int {
+            if (strlen($bytes)+strlen($part)>262144) { $overflow=true;return 0; }
             $bytes.=$part;return strlen($part);
         },
     ];
     if ($body!==null) $options[CURLOPT_POSTFIELDS]=json_encode($body,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     curl_setopt_array($ch,$options);curl_exec($ch);
-    $status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);
-    $ok=curl_errno($ch)===0 && (int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT)===0 && $status>=200 && $status<300;
-    curl_close($ch);
-    if (!$ok) return null;
-    $data=json_decode($bytes,true,512,JSON_BIGINT_AS_STRING);
-    return is_array($data)?$data:null;
+    $result=ownerPreviewDecode($bytes,(int)curl_getinfo($ch,CURLINFO_HTTP_CODE),curl_errno($ch),(int)curl_getinfo($ch,CURLINFO_SSL_VERIFYRESULT),$overflow);
+    curl_close($ch);return $result;
+}
+
+/** Legacy array/null responses remain supported only for existing offline fixtures. */
+function ownerPreviewData(?array $response): ?array
+{
+    return isset($response['diagnostic'])?($response['data']??null):$response;
+}
+function ownerPreviewDiagnostic(?array $response): array
+{
+    return $response['diagnostic']??['http_status'=>0,'curl_code'=>0,'error_category'=>'unavailable','api_code'=>null];
+}
+function ownerPreviewMid(?array $message): ?string
+{
+    $message=$message['message']??$message;
+    $mid=$message['body']['mid']??$message['mid']??null;
+    return is_string($mid)&&preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$mid)?$mid:null;
+}
+function ownerPreviewMatches(?array $check,string $mid,string $user,string $bot,string $chat): bool
+{
+    $attachments=$check['body']['attachments']??[];$images=0;$keyboards=[];
+    foreach ((array)$attachments as $attachment) {
+        if (($attachment['type']??null)==='image') $images++;
+        elseif (($attachment['type']??null)==='inline_keyboard') $keyboards[]=$attachment['payload']['buttons']??null;
+    }
+    return ownerPreviewMid($check)===$mid && ($check['body']['text']??null)===ownerPreviewBody()['text']
+        && MaxPrivateAvatarProbe::decimalId($check['sender']['user_id']??null)===$bot
+        && MaxPrivateAvatarProbe::decimalId($check['recipient']['user_id']??null)===$user
+        && MaxPrivateAvatarProbe::chatId($check['recipient']['chat_id']??null)===$chat && ($check['recipient']['chat_type']??null)==='dialog'
+        && $images===3 && count((array)$attachments)===4 && $keyboards===[[[['type'=>'message','text'=>'Нравится']]]];
 }
 
 function ownerPreviewWrite($file,array $receipt): bool
@@ -83,6 +118,114 @@ function ownerPreviewSyncDirectory(string $path): bool
     finally { fclose($directory); }
 }
 
+function ownerPreviewRecoveryArguments(array $args): ?string
+{
+    if (!in_array('--confirm-owner-recovery',$args,true)) return null;
+    return ownerPreviewArguments(array_map(static fn($arg)=>$arg==='--confirm-owner-recovery'?'--confirm-owner-send':$arg,$args));
+}
+
+/** Fixed original receipt is read, never rewritten by recovery. */
+function ownerPreviewOriginal(string $directory): ?array
+{
+    $path=$directory.'/delphin-imperial-20261021.json';
+    if (is_link($directory)||!is_dir($directory)||(fileperms($directory)&0777)!==0700
+        ||is_link($path)||!is_file($path)||(fileperms($path)&0777)!==0600) return null;
+    $bytes=@file_get_contents($path,false,null,0,4097);
+    $receipt=is_string($bytes)&&strlen($bytes)<=4096?json_decode($bytes,true):null;
+    return is_array($receipt)&&($receipt['demo']??null)==='delphin-imperial-20261021'&&($receipt['state']??null)==='unknown'
+        ? ['hash'=>hash('sha256',$bytes)]:null;
+}
+
+function ownerPreviewTimestamp($value): ?int
+{
+    if (is_string($value)&&preg_match('/\A[0-9]{1,13}\z/D',$value)) $value=(int)$value;
+    return is_int($value)&&$value>0&&$value<=4102444800000?$value:null;
+}
+
+/** Empty/private-incomplete history is never proof: the just-verified owner MID must occur exactly once. */
+function ownerPreviewRecoveryHistory(?array $history,array $identity,string $user,string $bot,string $chat,int $upper): array
+{
+    $out=['complete'=>false,'messages'=>0,'anchor_found'=>false,'bot_messages'=>0,'media_messages'=>0,'suspect_messages'=>0];
+    $messages=$history['messages']??null;
+    if (!is_array($messages)||!array_is_list($messages)||count($messages)>=100) return $out;
+    $out['messages']=count($messages);$anchors=0;
+    foreach ($messages as $message) {
+        $timestamp=ownerPreviewTimestamp($message['timestamp']??null);
+        $sender=MaxPrivateAvatarProbe::decimalId($message['sender']['user_id']??null);
+        if (!is_array($message)||$timestamp===null||$timestamp<1792539612000||$timestamp>$upper
+            ||MaxPrivateAvatarProbe::chatId($message['recipient']['chat_id']??null)!==$chat
+            ||($message['recipient']['chat_type']??null)!=='dialog') { $out['suspect_messages']++;continue; }
+        // Optional/foreign recipient.user_id must never hide evidence of a same-chat bot send.
+        if ($sender===$bot||($message['sender']['is_bot']??false)===true) $out['bot_messages']++;
+        if (($message['body']['attachments']??[])!==[]) $out['media_messages']++;
+        if ($sender!==$user||isset($message['recipient']['user_id'])&&MaxPrivateAvatarProbe::decimalId($message['recipient']['user_id'])!==$bot) $out['suspect_messages']++;
+        if ($sender===$user&&ownerPreviewMid($message)===ownerPreviewMid($identity)&&$timestamp===ownerPreviewTimestamp($identity['timestamp']??null)) $anchors++;
+    }
+    $out['anchor_found']=$anchors===1;
+    $out['complete']=$out['anchor_found']&&$out['bot_messages']===0&&$out['media_messages']===0&&$out['suspect_messages']===0;
+    return $out;
+}
+
+/** One separately authorized recovery attempt, permanently blocked by any existing recovery journal. */
+function ownerPreviewRecoverRun(string $expected,string $installed,string $project,string $token,callable $target,callable $request,string $directory,?int $now=null): array
+{
+    $out=['ok'=>false,'state'=>'blocked','send_attempted'=>false,'provider_requests'=>0];
+    if (!preg_match('/\A[0-9a-f]{40}\z/D',$expected)||$expected!==$installed||$project!=='anytour'||$token===''||strlen($token)>4096||preg_match('/[\x00-\x20\x7f]/',$token)) return $out;
+    $journal=$directory.'/delphin-imperial-20261021-recovery.json';
+    if (file_exists($journal)||is_link($journal)) return array_replace($out,['state'=>'recovery_already_attempted']);
+    $original=ownerPreviewOriginal($directory);
+    if ($original===null) return array_replace($out,['state'=>'original_receipt_unavailable']);
+    $row=$target();
+    if (!is_array($row)||(string)($row['id']??'')!=='2'||($row['project_key']??'')!=='anytour'||($row['channel']??'')!=='max'||($row['original_display_name']??'')!=='Pavel'
+        ||!in_array($row['status']??'', ['waiting_manager','manager'],true)) return array_replace($out,['state'=>'owner_unavailable']);
+    $user=MaxPrivateAvatarProbe::decimalId($row['external_user_id']??null);$alias=MaxPrivateAvatarProbe::chatId($row['conversation_chat_id']??null);$mid=$row['external_message_id']??'';
+    if ($user===null||$alias===null||MaxPrivateAvatarProbe::chatId($row['channel_chat_id']??null)!==$alias||MaxPrivateAvatarProbe::decimalId($row['message_sender_id']??null)!==$user
+        ||!is_string($mid)||!preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$mid)) return array_replace($out,['state'=>'owner_unavailable']);
+    try {
+        $out['provider_requests']++;
+        $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);
+        $out['request_diagnostic']=ownerPreviewDiagnostic($response);$identity=ownerPreviewData($response);
+        $chat=MaxPrivateAvatarProbe::chatId($identity['recipient']['chat_id']??null);$bot=MaxPrivateAvatarProbe::decimalId($identity['recipient']['user_id']??null);
+        $timestamp=ownerPreviewTimestamp($identity['timestamp']??null);$text=$identity['body']['text']??null;
+        if (ownerPreviewMid($identity)!==$mid||MaxPrivateAvatarProbe::decimalId($identity['sender']['user_id']??null)!==$user||($identity['recipient']['chat_type']??null)!=='dialog'||$chat===null||$bot===null
+            ||$timestamp===null||$timestamp<1792539644000||!is_string($text)||preg_match('/пуст/ui',$text)!==1) return array_replace($out,['state'=>'recovery_owner_unverified']);
+        $upper=($now??time())*1000;
+        if ($timestamp>$upper) return array_replace($out,['state'=>'recovery_owner_unverified']);
+        $out['provider_requests']++;
+        // MAX: from is the upper boundary, to is the lower boundary, in Unix milliseconds.
+        $response=$request('GET','/messages',['chat_id'=>$chat,'from'=>$upper,'to'=>1792539612000,'count'=>100],null,$token);
+        $out['request_diagnostic']=ownerPreviewDiagnostic($response);
+        $out['preflight']=ownerPreviewRecoveryHistory(ownerPreviewData($response),$identity,$user,$bot,$chat,$upper);
+        if (!$out['preflight']['complete']) return array_replace($out,['state'=>'recovery_history_unproven']);
+        if (ownerPreviewOriginal($directory)!==$original) return array_replace($out,['state'=>'original_receipt_changed']);
+    } catch (Throwable $e) { return array_replace($out,['state'=>'recovery_preflight_unavailable']); }
+    $old=umask(0077);$file=@fopen($journal,'x+');umask($old);
+    if ($file===false) return array_replace($out,['state'=>'recovery_already_attempted']);
+    $receipt=['demo'=>'delphin-imperial-20261021','created_at'=>gmdate('c'),'original_receipt_sha256'=>$original['hash']];
+    try {
+        if (((fstat($file)['mode']??0)&0777)!==0600||!ownerPreviewWrite($file,$receipt+['state'=>'attempt_reserved'])||!ownerPreviewSyncDirectory($directory)||!ownerPreviewSyncDirectory(dirname($directory))) return array_replace($out,['state'=>'recovery_receipt_unavailable']);
+        if (ownerPreviewOriginal($directory)!==$original) return array_replace($out,['state'=>'original_receipt_changed']);
+        $out['send_attempted']=true;$out['provider_requests']++;
+        $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
+        $out['send_diagnostic']=ownerPreviewDiagnostic($response);$receipt['send_diagnostic']=$out['send_diagnostic'];
+        $sentMid=ownerPreviewMid(ownerPreviewData($response));
+        $out['state']=$sentMid===null?'unknown':'sent_unverified';
+        if ($sentMid!==null) $receipt['message_id']=$sentMid;
+        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);
+        if ($sentMid===null) return $out;
+        $out['provider_requests']++;
+        $response=$request('GET','/messages/'.rawurlencode($sentMid),[],null,$token);
+        $out['readback_diagnostic']=ownerPreviewDiagnostic($response);
+        $out['ok']=ownerPreviewMatches(ownerPreviewData($response),$sentMid,$user,$bot,$chat);
+        $out['state']=$out['ok']?'verified':'sent_unverified';
+        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);
+        return $out;
+    } catch (Throwable $e) {
+        $out['state']=isset($receipt['message_id'])?'sent_unverified':($out['send_attempted']?'unknown':'recovery_receipt_unavailable');
+        ownerPreviewWrite($file,$receipt+['state'=>$out['state']]);return $out;
+    } finally { fclose($file); }
+}
+
 /** Callables are offline test seams only. The CLI below supplies only fixed production dependencies. */
 function ownerPreviewRun(string $expected,string $installed,string $project,string $token,callable $target,callable $request,string $directory): array
 {
@@ -98,41 +241,32 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
     $mid=$row['external_message_id']??'';
     if ($user===null || $alias===null || MaxPrivateAvatarProbe::chatId($row['channel_chat_id']??null)!==$alias || MaxPrivateAvatarProbe::decimalId($row['message_sender_id']??null)!==$user || !is_string($mid) || !preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$mid)) return array_replace($out,['state'=>'owner_unavailable']);
     $out['provider_requests']++;
-    $identity=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);
+    $identity=ownerPreviewData($request('GET','/messages/'.rawurlencode($mid),[],null,$token));
     $chat=MaxPrivateAvatarProbe::chatId($identity['recipient']['chat_id']??null);
     $bot=MaxPrivateAvatarProbe::decimalId($identity['recipient']['user_id']??null);
-    if (($identity['body']['mid']??null)!==$mid || MaxPrivateAvatarProbe::decimalId($identity['sender']['user_id']??null)!==$user || ($identity['recipient']['chat_type']??null)!=='dialog' || $chat===null || $bot===null) return array_replace($out,['state'=>'identity_unverified']);
+    if (ownerPreviewMid($identity)!==$mid || MaxPrivateAvatarProbe::decimalId($identity['sender']['user_id']??null)!==$user || ($identity['recipient']['chat_type']??null)!=='dialog' || $chat===null || $bot===null) return array_replace($out,['state'=>'identity_unverified']);
     // A durable exclusive receipt is created before the sole POST. Its existence blocks all later attempts, even after a crash/timeout.
     if (is_link($directory) || (!is_dir($directory) && !@mkdir($directory,0700)) || (fileperms($directory)&0777)!==0700 || !ownerPreviewSyncDirectory(dirname($directory))) return array_replace($out,['state'=>'receipt_unavailable']);
     $old=umask(0077);$file=@fopen($path,'x+');umask($old);
     if ($file===false) return array_replace($out,['state'=>'already_attempted']);
+    $receipt=['demo'=>'delphin-imperial-20261021','created_at'=>gmdate('c')];
     try {
-        if (((fstat($file)['mode']??0)&0777)!==0600 || !ownerPreviewWrite($file,['demo'=>'delphin-imperial-20261021','state'=>'attempt_reserved','created_at'=>gmdate('c')]) || !ownerPreviewSyncDirectory($directory)) return array_replace($out,['state'=>'receipt_unavailable']);
+        if (((fstat($file)['mode']??0)&0777)!==0600 || !ownerPreviewWrite($file,$receipt+['state'=>'attempt_reserved']) || !ownerPreviewSyncDirectory($directory)) return array_replace($out,['state'=>'receipt_unavailable']);
         $out['send_attempted']=true;$out['provider_requests']++;
-        $sent=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
-        $sent=$sent['message']??$sent;
-        $sentMid=$sent['body']['mid']??null;
+        $response=$request('POST','/messages',['user_id'=>$user],ownerPreviewBody(),$token);
+        $out['send_diagnostic']=ownerPreviewDiagnostic($response);
+        $sentMid=ownerPreviewMid(ownerPreviewData($response));
         if (!is_string($sentMid) || !preg_match('/\A(?:mid\.)?[A-Za-z0-9_-]{1,200}\z/D',$sentMid)) {
-            ownerPreviewWrite($file,['demo'=>'delphin-imperial-20261021','state'=>'unknown']);
+            ownerPreviewWrite($file,$receipt+['state'=>'unknown','send_diagnostic'=>$out['send_diagnostic']]);
             return array_replace($out,['state'=>'unknown']);
         }
         // Keep the private provider receipt even if subsequent verification fails. No replay.
-        ownerPreviewWrite($file,['demo'=>'delphin-imperial-20261021','state'=>'sent_unverified','message_id'=>$sentMid]);
+        ownerPreviewWrite($file,$receipt+['state'=>'sent_unverified','message_id'=>$sentMid,'send_diagnostic'=>$out['send_diagnostic']]);
         $out['provider_requests']++;
-        $check=$request('GET','/messages/'.rawurlencode($sentMid),[],null,$token);
-        $attachments=$check['body']['attachments']??[];
-        $images=0;$keyboards=[];
-        foreach ((array)$attachments as $attachment) {
-            if (($attachment['type']??null)==='image') $images++;
-            elseif (($attachment['type']??null)==='inline_keyboard') $keyboards[]=$attachment['payload']['buttons']??null;
-        }
-        $verified=($check['body']['mid']??null)===$sentMid && ($check['body']['text']??null)===ownerPreviewBody()['text']
-            && MaxPrivateAvatarProbe::decimalId($check['sender']['user_id']??null)===$bot
-            && MaxPrivateAvatarProbe::decimalId($check['recipient']['user_id']??null)===$user
-            && MaxPrivateAvatarProbe::chatId($check['recipient']['chat_id']??null)===$chat && ($check['recipient']['chat_type']??null)==='dialog'
-            && $images===3 && count((array)$attachments)===4 && $keyboards===[[[['type'=>'message','text'=>'Нравится']]]];
+        $check=ownerPreviewData($request('GET','/messages/'.rawurlencode($sentMid),[],null,$token));
+        $verified=ownerPreviewMatches($check,$sentMid,$user,$bot,$chat);
         $out['ok']=$verified;$out['state']=$verified?'verified':'sent_unverified';
-        ownerPreviewWrite($file,['demo'=>'delphin-imperial-20261021','state'=>$out['state'],'message_id'=>$sentMid]);
+        ownerPreviewWrite($file,$receipt+['state'=>$out['state'],'message_id'=>$sentMid,'send_diagnostic'=>$out['send_diagnostic']]);
         return $out;
     } catch (Throwable $e) { return array_replace($out,['state'=>$out['send_attempted']?'unknown':'receipt_unavailable']); }
     finally { fclose($file); }
@@ -141,7 +275,8 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
 if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')) {
     ini_set('display_errors','0');
     $result=['ok'=>false,'state'=>'invalid_arguments','send_attempted'=>false,'provider_requests'=>0];
-    $expected=ownerPreviewArguments(array_slice($argv,1));
+    $args=array_slice($argv,1);$expected=ownerPreviewArguments($args);$recovery=false;
+    if ($expected===null) { $expected=ownerPreviewRecoveryArguments($args);$recovery=$expected!==null; }
     if ($expected!==null) {
         $level=ob_get_level();ob_start();
         try {
@@ -153,7 +288,8 @@ if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')) {
                 require_once $root.'/services/ConversationDb.php';
                 require_once $root.'/services/ProjectConfig.php';
                 $db=ConversationDb::connection();
-                $result=ownerPreviewRun($expected,$installed,ProjectConfig::projectId(),defined('MAX_SEARCH_TOKEN')?(string)MAX_SEARCH_TOKEN:'',static fn()=>ownerPreviewTarget($db),'ownerPreviewRequest','/var/www/anytoour/data/max-owner-tour-preview');
+                $run=$recovery?'ownerPreviewRecoverRun':'ownerPreviewRun';
+                $result=$run($expected,$installed,ProjectConfig::projectId(),defined('MAX_SEARCH_TOKEN')?(string)MAX_SEARCH_TOKEN:'',static fn()=>ownerPreviewTarget($db),'ownerPreviewRequest','/var/www/anytoour/data/max-owner-tour-preview');
             }
         } catch (Throwable $e) { $result['state']='configuration_unavailable'; }
         finally { while(ob_get_level()>$level)ob_end_clean(); }

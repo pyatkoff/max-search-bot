@@ -102,4 +102,91 @@ previewAssert(!$out['send_attempted']&&count($calls)===1,'Nonprivate receipt dir
 $bad=$dir.'-link';symlink($dir,$bad);
 [$out,$calls]=previewTestRun([],'',$bad);
 previewAssert(!$out['send_attempted'],'Symlink directory is never used for receipt');
+previewAssert(ownerPreviewRecoveryArguments(['--expected-sha='.$sha,'--confirm-owner-recovery'])===$sha,'Recovery requires its own explicit confirmation');
+previewAssert(ownerPreviewRecoveryArguments(['--expected-sha='.$sha,'--confirm-owner-send'])===null,'Ordinary confirmation cannot authorize recovery');
+foreach ([['code'=>'attachment.not.ready','message'=>'PRIVATE_TOKEN'],['code'=>'PRIVATE_TOKEN','message'=>'991002']] as $error) {
+    $decoded=ownerPreviewDecode(json_encode($error),400,0,0);
+    previewAssert($decoded['data']===null&&$decoded['diagnostic']['http_status']===400,'HTTP errors cannot masquerade as success');
+    previewAssert(!str_contains(json_encode($decoded['diagnostic']),'PRIVATE_')&&!str_contains(json_encode($decoded['diagnostic']),'991002'),'Never print provider message/unknown code');
+}
+previewAssert(ownerPreviewDecode('',0,28,0)['diagnostic']['error_category']==='transport','Timeout has bounded curl category');
+previewAssert(ownerPreviewDecode('{}',200,0,20)['diagnostic']['error_category']==='tls','TLS verification failure fails closed');
+previewAssert(ownerPreviewDecode('{}',200,0,0,true)['diagnostic']['error_category']==='response_too_large','Overflow fails closed');
+previewAssert(ownerPreviewMid(['message'=>['mid'=>'mid.canonical']])==='mid.canonical','Canonical message.mid fallback');
+previewAssert(ownerPreviewDecode('{"code":"proto.payload","message":"PRIVATE_DETAILS"}',400,0,0)['diagnostic']['api_code']==='proto.payload','Fixed safe protocol code remains actionable');
+function recoveryTest(string $failure='',?string $dir=null): array {
+    $dir=$dir??sys_get_temp_dir().'/max-owner-recovery-'.bin2hex(random_bytes(8));
+    if (!is_dir($dir)) {
+        mkdir($dir,0700);file_put_contents($dir.'/delphin-imperial-20261021.json',json_encode(['demo'=>'delphin-imperial-20261021','state'=>'unknown']));
+        chmod($dir.'/delphin-imperial-20261021.json',0600);
+    }
+    $before=file_get_contents($dir.'/delphin-imperial-20261021.json');$calls=[];$sha=str_repeat('a',40);
+    $anchor=['timestamp'=>1792539801694,'body'=>['mid'=>'mid.fixture','text'=>'Пусто у меня'],
+        'sender'=>['user_id'=>'991002'],'recipient'=>['user_id'=>'991099','chat_id'=>'991001','chat_type'=>'dialog']];
+    $request=static function($method,$path,$query,$body,$token)use(&$calls,$failure,$dir,$before,$anchor):?array {
+        $calls[]=[$method,$path,$query,$body];
+        if ($method==='POST') {
+            previewAssert(count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===1,'Recovery has one POST maximum');
+            $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
+            previewAssert($journal['state']==='attempt_reserved'&&$journal['original_receipt_sha256']===hash('sha256',$before)&&isset($journal['created_at']),'Durable journal bound to old receipt exists before POST');
+            previewAssert((fileperms($dir.'/delphin-imperial-20261021-recovery.json')&0777)===0600,'Recovery journal private');
+            if ($failure==='throw') throw new RuntimeException('PRIVATE_TOKEN');
+            if ($failure==='timeout') return ownerPreviewDecode('',0,28,0);
+            if ($failure==='http400') return ownerPreviewDecode('{"code":"attachment.not.ready","message":"PRIVATE_TOKEN"}',400,0,0);
+            return ownerPreviewDecode('{"message":{"mid":"mid.recovered"}}',200,0,0);
+        }
+        if ($path==='/messages/mid.fixture') {
+            if ($failure==='stale') return array_replace($anchor,['timestamp'=>1792539643999]);
+            if ($failure==='wrong_phrase') return array_replace_recursive($anchor,['body'=>['text'=>'другое']]);
+            if ($failure==='wrong_identity') return array_replace_recursive($anchor,['sender'=>['user_id'=>'1']]);
+            return $anchor;
+        }
+        if ($path==='/messages') {
+            previewAssert($query===['chat_id'=>'991001','from'=>1792541000000,'to'=>1792539612000,'count'=>100],'Fixed full send-to-now history request');
+            if ($failure==='history403') return ownerPreviewDecode('{}',403,0,0);
+            if ($failure==='missing_anchor') return ['messages'=>[]];
+            if ($failure==='truncated') return ['messages'=>array_fill(0,100,$anchor)];
+            if ($failure==='out_of_window') return ['messages'=>[$anchor,array_replace($anchor,['timestamp'=>1792541000001])]];
+            if ($failure==='bad_anchor_time') return ['messages'=>[array_replace($anchor,['timestamp'=>1792539801695])]];
+            if ($failure==='media') return ['messages'=>[array_replace_recursive($anchor,['body'=>['attachments'=>[['type'=>'image']]]])]];
+            if ($failure==='suspect') return ['messages'=>[$anchor,array_replace_recursive($anchor,['sender'=>['user_id'=>'333']])]];
+            if ($failure==='bot') {
+                $bot=array_replace_recursive($anchor,['sender'=>['user_id'=>'991099'],'body'=>['mid'=>'mid.other']]);unset($bot['recipient']['user_id']);
+                return ['messages'=>[$anchor,$bot]];
+            }
+            if ($failure==='changed_receipt') file_put_contents($dir.'/delphin-imperial-20261021.json',$before.' ');
+            return ['messages'=>[$anchor]];
+        }
+        if ($failure==='readback') return null;
+        if ($failure==='readback_throw') throw new RuntimeException('PRIVATE_READBACK');
+        return ['body'=>['mid'=>'mid.recovered','text'=>ownerPreviewBody()['text'],'attachments'=>ownerPreviewBody()['attachments']],
+            'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+    };
+    $result=ownerPreviewRecoverRun($sha,$sha,'anytour','PRIVATE_TOKEN','previewFixture',$request,$dir,1792541000);
+    if ($failure!=='changed_receipt') previewAssert(file_get_contents($dir.'/delphin-imperial-20261021.json')===$before,'Recovery never changes original receipt');
+    previewAssert(!str_contains(json_encode($result),'PRIVATE_')&&!str_contains(json_encode($result),'991002'),'Recovery output redacted');
+    return [$result,$calls,$dir];
+}
+foreach (['stale','wrong_phrase','wrong_identity','history403','missing_anchor','truncated','out_of_window','bad_anchor_time','media','suspect','bot','changed_receipt'] as $failure) {
+    [$out,$calls,$dir]=recoveryTest($failure);
+    previewAssert(!$out['send_attempted']&&count(array_filter($calls,static fn($c)=>$c[0]==='POST'))===0,'Failed corroboration never recovers: '.$failure);
+    previewAssert(!file_exists($dir.'/delphin-imperial-20261021-recovery.json'),'Preflight failures reserve no send');
+}
+foreach (['','timeout','http400','throw','readback','readback_throw'] as $failure) {
+    [$out,$calls,$dir]=recoveryTest($failure);
+    previewAssert($out['send_attempted']&&$out['ok']===($failure===''),'Only fully verified recovery reports success');
+    $journal=json_decode(file_get_contents($dir.'/delphin-imperial-20261021-recovery.json'),true);
+    previewAssert(isset($journal['created_at'])&&in_array($journal['state'],['unknown','verified','sent_unverified'],true),'Recovery keeps created_at and terminal receipt');
+    [$again,$replayed]=recoveryTest('',$dir);
+    previewAssert($again['state']==='recovery_already_attempted'&&$replayed===[],'Every recovery journal blocks forever, even explicit HTTP400');
+    [$old,$replayed]=previewTestRun([],'',$dir);
+    previewAssert($old['state']==='already_attempted'&&$replayed===[],'Original sender once guard unchanged after recovery');
+}
+[$out,$calls,$dir]=recoveryTest('missing_anchor');
+file_put_contents($dir.'/delphin-imperial-20261021-recovery.json','corrupt');
+[$out,$calls]=recoveryTest('',$dir);
+previewAssert($out['state']==='recovery_already_attempted'&&$calls===[],'Corrupt recovery journal still blocks all provider requests');
+[$out,$calls,$dir]=previewTestRun([],'timeout');
+$receipt=json_decode(file_get_contents($dir.'/delphin-imperial-20261021.json'),true);
+previewAssert(isset($receipt['created_at'])&&$receipt['state']==='unknown','Original unknown receipt now preserves created_at');
 echo "OWNER TOUR PREVIEW: $checks PASS\n";

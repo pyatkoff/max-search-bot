@@ -67,3 +67,56 @@ receipt/provider message first; do not delete the receipt or change the demo ID
 to obtain a second attempt. Public logs contain only bounded status/counts.
 No message deletion is part of rollback. Removing this auxiliary code leaves the
 private once-receipt intact and sends no further messages.
+
+## One separately authorized owner recovery
+
+The original attempt returned `unknown`. The owner reported no visible card; a
+verified owner inbound containing «пуст» was observed at 2026-10-20 23:43:21.694 UTC.
+A read-only query of the original attempt window returned no messages. That
+bounded observation alone does not authorize replay or prove the private history
+is complete. The original receipt remains untouched and continues to block the
+ordinary send command.
+
+After reviewed merge/deploy and exact installed-main verification, the owner can
+explicitly authorize **one additional attempt total** with the exact issue55 command
+`/owner-tour-preview-recover <installed-main-sha>`. Manual workflow dispatch can
+instead set `confirm_owner_recovery=true` and `confirm_owner_send=false`; both true
+is rejected. Recovery requires the same permanent owner login/ID even on dispatch.
+The installed fixed CLI command is:
+
+```sh
+php tools/max_owner_tour_preview.php --expected-sha=<installed-main-sha> --confirm-owner-recovery
+```
+
+Recovery requires the original private receipt to be valid `unknown`, with private
+file/directory modes and no symlinks. It verifies the same fixed owner binding and
+latest saved inbound MID against MAX: owner sender, native private chat, text
+containing «пуст», timestamp after the original attempt (23:40:44 UTC).
+One GET then covers 2026-10-20 23:40:12 UTC through the current server time, count100.
+MAX documents `from` as the upper and `to` as the lower boundary, in milliseconds.
+There must be fewer than100 messages, every timestamp inside that window, and
+exactly one copy of the just-verified inbound MID with its exact timestamp.
+Empty results, a missing anchor, any bot message (including one without optional
+recipient user ID), media, foreign sender/recipient, malformed item or truncation
+block recovery. No pagination, fallback probe or automatic retry follows a block.
+
+Only after those checks does the CLI exclusively create and fsync
+`delphin-imperial-20261021-recovery.json` in the same private directory, recording
+the SHA256 of the unchanged original receipt and a new `created_at`. It rechecks
+the original hash before POST. Any recovery journal, even incomplete/corrupt,
+permanently blocks every later recovery attempt. The fixed demo ID/body/photoURLs
+stay unchanged; the original receipt is never deleted, renamed or rewritten.
+There is one recovery POST at most. Timeout, explicit HTTP400, `unknown` or
+`sent_unverified` never triggers a retry. No further attempt is authorized by
+this mechanism; a returned MID is verified with one bounded GET readback.
+
+The fixed transport uses strict TLS, no redirects, a30-second timeout and a256KiB
+response cap. It accepts canonical `message.mid` as well as `message.body.mid`.
+Receipts written by the updated sender retain `created_at` across outcome changes;
+the historical receipt without it is not backfilled. Public diagnostics expose
+only bounded HTTP/curl numbers, fixed error categories and an explicit safe API
+code allowlist (including `proto.payload` and `attachment.not.ready`). Unknown
+codes become null; provider descriptions, raw bodies/text, IDs, URLs and tokens
+are never logged. The recovery journal stores only those sanitized diagnostics
+plus its private MID/hash. This does not implement callback state, offer binding,
+image upload conversion or general customer recovery.
