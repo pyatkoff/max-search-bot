@@ -68,7 +68,7 @@ try {
 
     $listed=$service->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],1,$connection)['result']['tools'];
     $virtual=array_values(array_filter($listed,static fn(array $tool): bool=>in_array($tool['name'],VirtualReplyMcpAdapter::NAMES,true)));
-    virtualMcpCheck('seven separate virtual tools are discoverable',array_column($virtual,'name')===VirtualReplyMcpAdapter::NAMES && count($listed)===10);
+    virtualMcpCheck('seven learning tools and explicit control registration are discoverable',array_column($virtual,'name')===VirtualReplyMcpAdapter::NAMES && count($listed)===11);
     foreach ($virtual as $tool) {
         virtualMcpCheck('strict scoped schema '.$tool['name'],$tool['inputSchema']['additionalProperties']===false
             && $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['queue:read','prepared:write']]]
@@ -143,7 +143,8 @@ try {
         'claim_virtual_replies'=>['role'=>'author'],'get_virtual_reply_context'=>$claimArgs,
         'save_virtual_reply'=>$claimArgs+['result'=>$author,'metadata'=>$metadata('author')],
         'list_virtual_reply_reviews'=>[],'get_virtual_reply_review'=>['case_id'=>$case],
-        'record_virtual_reply_lesson'=>['case_id'=>$case,'decision'=>$decision]];
+        'record_virtual_reply_lesson'=>['case_id'=>$case,'decision'=>$decision],
+        'register_virtual_reply_control'=>[]]; // Access is checked before even malformed registration input.
     foreach ($valid as $name=>$args) {
         foreach ([0,2,3] as $admin) {
             $before=count($calls); $denied=$invoke($name,$args,$admin);

@@ -93,10 +93,10 @@ final class VirtualReplyStore
         $this->admin($adminId);
         $limit=$this->limit($limit,20);
         $this->expire();
-        $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;
+        $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;$backfill=null;
         $recent=gmdate('Y-m-d\TH:i:s\Z',$this->at($now)-self::RECENT_WINDOW_SECONDS);
         if ($role==='author' && $this->sampling->available()) {
-            foreach ($this->sampling->pendingBackfill(100) as $row) $this->refresh($row);
+            $backfill=$this->samplingBackfill();
             $candidates=$this->sampling->authorCandidates($now,$recent,100);
         } else {
             $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
@@ -134,8 +134,9 @@ final class VirtualReplyStore
             if ($claimed!==null) $jobs[]=$claimed;
             elseif ($this->used($role,$day)>=self::DAILY_LIMIT) break;
         }
+        $sampling=$this->sampling->status();if ($backfill!==null) $sampling['backfill']=$backfill;
         return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day),'unsupported_contracts'=>$unsupported,
-            'sampling'=>$this->sampling->status()];
+            'sampling'=>$sampling];
     }
 
     public function context(string $caseId,string $role,string $token,int $adminId): array
@@ -277,6 +278,34 @@ final class VirtualReplyStore
         });
     }
 
+    /** Active snapshots and identity-only tombstones share a 100-row backfill budget. */
+    private function samplingBackfill(): array
+    {
+        $active=$this->sampling->pendingBackfill(100);
+        foreach ($active as $row) $this->refresh($row);
+        $result=['limit'=>100,'active_checked'=>count($active),'exposure_checked'=>0,'exposure_linked'=>0,
+            'exposure_reader_available'=>is_callable([$this->reader,'exposureIdentity'])];
+        $remaining=100-count($active);
+        if ($remaining===0 || !$result['exposure_reader_available']) return $result;
+        $cursor=$this->cursor('_exposure','backfill_v1')??0;
+        $rows=$this->sampling->pendingExposureBackfill($cursor,$remaining);
+        if (!$rows && $cursor>0) $rows=$this->sampling->pendingExposureBackfill(0,$remaining);
+        foreach ($rows as $row) {
+            // Outside transactions, like full source rechecks. Technical errors
+            // propagate; null leaves the unresolved-exposure fence intact.
+            $identity=$this->reader->exposureIdentity($row['source_kind'],(int)$row['source_id']);
+            $result['exposure_checked']++;
+            if ($identity!==null) {
+                if (!is_array($identity)) throw new RuntimeException('virtual_reply_source_unavailable');
+                $linked=$this->transaction(fn():bool=>$this->sampling->attachLegacyExposure($row,$identity));
+                $result['exposure_linked']+=(int)$linked;
+            }
+            $cursor=(int)$row['id'];
+        }
+        $this->advanceCursor('_exposure','backfill_v1',$rows?$cursor:0,false);
+        return $result;
+    }
+
     private function freshCase(string $caseId): array
     {
         $row=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?',[$caseId,'anytour']);
@@ -334,6 +363,10 @@ final class VirtualReplyStore
             if (!$old) throw new RuntimeException('virtual_reply_storage_unavailable');
             $this->sampling->attach($old,$snapshot);
             if ($old['state']==='active' && $old['source_revision']===$snapshot['source_revision'] && $this->retainContracts($old['case_id'])) return ['captured'=>false,'invalidated'=>false,'case_id'=>$old['case_id']];
+            if ($old['state']!=='active'||$old['source_revision']!==$snapshot['source_revision']) {
+                require_once __DIR__.'/VirtualReplyControlStore.php';
+                VirtualReplyControlStore::invalidateSource($this->pdo,$old['case_id']);
+            }
             $caseId=bin2hex(random_bytes(32));
             $this->execute('DELETE FROM virtual_reply_jobs WHERE case_id=?',[$old['case_id']]);
             $this->execute('UPDATE virtual_reply_cases SET case_id=?,source_revision=?,state=?,payload_json=?,evidence_ids_json=?,mode=?,reference_time=?,lesson_state=\'unresolved\',lesson_decision_json=NULL,lesson_updated_at=NULL,updated_at=? WHERE id=?',
@@ -354,6 +387,8 @@ final class VirtualReplyStore
         return $this->transaction(function() use ($row): bool {
             $current=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?'.$this->lock(),[$row['case_id'],'anytour']);
             if (!$current || $current['state']!=='active') return false;
+            require_once __DIR__.'/VirtualReplyControlStore.php';
+            VirtualReplyControlStore::invalidateSource($this->pdo,$row['case_id']);
             $now=$this->now();
             $this->execute('UPDATE virtual_reply_cases SET state=?,payload_json=NULL,evidence_ids_json=NULL,lesson_state=\'unresolved\',lesson_decision_json=NULL,lesson_updated_at=NULL,updated_at=? WHERE case_id=?',['invalidated',$now,$row['case_id']]);
             $this->execute('UPDATE virtual_reply_jobs SET status=?,claim_token_sha256=NULL,claimed_by=NULL,lease_expires_at=NULL,result_json=NULL,result_sha256=NULL,metadata_json=NULL,updated_at=? WHERE case_id=?',['invalidated',$now,$row['case_id']]);

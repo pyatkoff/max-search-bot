@@ -262,6 +262,17 @@ blocks new reserve enrollment separately. `legacy_unresolved_exposure` and
 not wait for unreadable invalidated sources; a zero reserve can be the correct
 outcome, and source permissions must not be bypassed to populate it.
 
+Author allocation shares a bounded 100-row maintenance budget between active
+legacy attachment and rotating identity-only recovery of invalidated legacy
+rows. Recovery reads permitted project/channel identity metadata and only a
+bounded archive bot-key scalar needed for the existing per-bot permission check.
+It never reloads message text, media or frozen source payloads. Only complete,
+unambiguous aliases can link an old exposure into development evidence; source
+status, purged content, frozen jobs, unknown outcomes and quotas stay intact.
+Missing/revoked/ambiguous identities remain unresolved. Noncanonical or oversized
+archive permission metadata fails closed; technical failures remain errors. The
+claim's aggregate `sampling.backfill` reports actual bounded progress.
+
 Only a reliably linked, complete live prefix beginning after enrollment, with no
 known exposure or legacy alias, can enter the deterministic roughly one-in-five
 reserve. A historical, incomplete, old or newly ambiguous prefix, exposure, or
@@ -293,9 +304,9 @@ new schedule, call a paid provider, or reopen expired/unknown claims.
    Compare frozen current and previous instruction versions on the same bounded
    prefix with blind answer order and independent review. Any control inspected
    to design a repair becomes development material. Paired registration,
-   allocation and review need a separate bounded implementation using normal
+   allocation and review use the separate bounded protocol below with normal
    permission/quota/provenance fences; ordinary review jobs are not that control
-   channel. No paired control run is claimed by sampling or this document.
+   channel. No paired control run is claimed by deployed software or this document.
 3. Cover necessary clarification, useful factual response, concrete comparison,
    budget/placement compromises, unread evidence and no-contact decisions.
    Record unnecessary questions, lost constraints, unsupported claims and
@@ -312,9 +323,76 @@ An initial comparison can support only a bounded result for its specified cases.
 Model acceptance rate, number of claims, deployed prompt text and a manager reply
 are not substitutes for measured improvement or proof of whole-archive coverage.
 
+## Explicit paired control protocol
+
+Migration `052_virtual_reply_controls.sql` stores a separately registered bounded
+experiment. Registration freezes two distinct supported author contracts and an
+independent reviewer rubric before allocating at most 20 previously unused
+reserved whole groups. The normal capture path never registers an experiment.
+The provider-free administrator command accepts local contract JSON files:
+
+```
+php tools/virtual_reply_learning.php control-register baseline.json candidate.json 1 admin_id
+php tools/virtual_reply_learning.php control-status
+```
+
+Each contract has the exact `role`, `instructions`, `profile`, `schema` and
+`instruction_revision` returned by
+`VirtualReplyControlProtocol::authorContract(instructions)`. Pin the baseline to
+the actual previously deployed instruction, not a rewritten imitation, and pin
+the candidate before generation. Registration validates hashes, schema and model
+profile; it does not verify GitHub/deployment provenance for the operator. The
+operator must record that separate evidence. Invalid files are rejected before
+configuration/database access. Output contains only safe aggregates, run IDs and
+revisions. No CLI operation calls a provider.
+
+The seven existing MCP tools retain their default learning behavior. The separate
+active-admin OAuth tool `register_virtual_reply_control` accepts those two exact
+contracts plus a bounded limit. It makes registration possible through the
+connection without remote shell access. Verify prior/current deployment and
+instruction provenance separately before calling it; registration itself makes
+no model call. No normal capture or claim automatically registers an experiment.
+The existing MCP HTTP request limit of 196,608 bytes still applies to the complete
+registration request, independently of the adapter's additional contract limits.
+Explicit
+`claim_virtual_replies(purpose="control", role=...)` allocates only registered
+control jobs. Context/save routes each opaque job ID to its own store; a control
+failure never falls back to the ordinary queue. Each author receives the same
+frozen source prefix and evidence with one frozen contract. The private random
+A/B mapping is fixed at registration. A reviewer becomes available only after
+both exact author results are saved and at least 60 seconds have elapsed after
+the later completion. It receives only the original prefix, exact A/B results,
+evidence and its independent contract/profile, with no version mapping, author
+profiles, completion times, future conversation or manager gold answer.
+
+Use separate Sol-low author agents and an independent Astra-high reviewer agent,
+each with no inherited conversation. Never review an answer generated during the
+same worker pass. Control claims use the existing 200-per-role/UTC-day ledger;
+both authors consume a slot. Unknown outcomes exclude the pair permanently and
+are never retried or refunded. Current instruction changes alone do not replace
+frozen control contracts. Source changes, deleted/revoked evidence or group
+contamination purge both arms, review, private mapping and tokens. Normal source
+capture/reconciliation and alias merges invoke the same purge boundary, and
+every control read/save/claim rechecks source validity. Technical failures do not
+masquerade as deletion.
+
+`list_virtual_reply_reviews(purpose="control")` lists aggregate run status;
+supplying its `run_id` returns paired metrics. Count unnecessary questions, lost
+constraints and unsupported claims, plus useful next actions, with matched
+denominators, distinct groups, unknown/invalidated/incomplete exclusions and
+unassessable metrics. A null assessment excludes both arms from that metric's
+denominator. Duplicate groups cannot inflate a report. A registered run, deployed
+protocol or successful synthetic pair is not an observed model-quality gain.
+
+The connected tool catalog must actually advertise `register_virtual_reply_control`
+and the optional `purpose`/`run_id` inputs before a worker uses them. If it does not, report that exact
+connection refresh blocker without bypassing OAuth or simulating a run. The
+ordinary seven-tool learning loop and source capture can continue independently.
+
 ## Operations
 
-Migrations `049_virtual_reply_learning.sql` and `051_virtual_reply_sampling.sql`
+Migrations `049_virtual_reply_learning.sql`, `051_virtual_reply_sampling.sql` and
+`052_virtual_reply_controls.sql`
 own the learning tables. Runtime code does not create schema. No additional cron
 is installed by this change. The CLI
 has two explicit, bounded, provider-free maintenance operations:

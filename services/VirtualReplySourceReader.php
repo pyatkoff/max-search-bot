@@ -86,6 +86,82 @@ final class VirtualReplySourceReader
         }
     }
 
+    /**
+     * Identity-only repair for a previously captured exposure. This does not
+     * make a deleted, internal, test or nonquestion row eligible for capture.
+     * The caller owns the existing-case restriction; no discovery occurs here.
+     */
+    public function exposureIdentity(string $source, int $sourceId): ?array
+    {
+        if (!$this->validSource($source) || $sourceId < 1 || !$this->currentProject() || $this->pdo->inTransaction()) return null;
+        $started=false;
+        try {
+            $driver=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+            if ($driver==='mysql') {
+                $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+                $this->pdo->exec('SET TRANSACTION READ ONLY');
+            } elseif ($driver!=='sqlite') return null;
+            $this->pdo->beginTransaction();$started=true;
+            $identity=$source==='conversation'?$this->conversationExposureIdentity($sourceId):$this->archiveExposureIdentity($sourceId);
+            $this->pdo->commit();$started=false;
+            return $identity;
+        } catch (Throwable $ignored) {
+            throw new RuntimeException('virtual_reply_source_unavailable');
+        } finally {
+            if ($started && $this->pdo->inTransaction()) {
+                try {$this->pdo->rollBack();} catch (Throwable $ignored) {}
+            }
+        }
+    }
+
+    private function conversationExposureIdentity(int $id): ?array
+    {
+        // No text, metadata, media, source payload or external identity leaves
+        // this lookup. The same strict binding owns live/archive alias joins.
+        $q=$this->pdo->prepare('SELECT m.conversation_id,c.customer_id,c.channel,ch.external_user_id,ch.external_chat_id FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key LEFT JOIN customer_channels ch ON ch.id=c.customer_channel_id AND ch.customer_id=c.customer_id AND ch.project_key=c.project_key AND ch.channel=c.channel WHERE m.id=? AND c.project_key=? AND p.is_active=1');
+        $q->execute([$id,'anytour']);$binding=$q->fetch(PDO::FETCH_ASSOC);
+        if (!$binding) return null;
+        return VirtualReplySamplingIdentity::conversation((int)$binding['conversation_id'],
+            isset($binding['customer_id'])?(int)$binding['customer_id']:null,(string)$binding['channel'],
+            array_filter([$binding['external_user_id']??null,$binding['external_chat_id']??null],static fn($v):bool=>is_string($v)&&$v!==''),'');
+    }
+
+    private function archiveExposureIdentity(int $id): ?array
+    {
+        // Bound work before JSON parsing or token scans, in the same fresh
+        // read-only snapshot. Even an invalid/oversized body never leaves SQL.
+        $q=$this->pdo->prepare('SELECT LENGTH(m.record_json) AS raw_units FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.id=? AND m.project_key=? AND p.is_active=1');
+        $q->execute([$id,'anytour']);$size=$q->fetch(PDO::FETCH_ASSOC);
+        if (!$size || $size['raw_units']===null || (int)$size['raw_units']<0 || (int)$size['raw_units']>self::MAX_RAW_UNITS) return null;
+        // The sole payload projection is the bot identity needed by the same
+        // current permission fence as ordinary capture. Never fetch the JSON.
+        $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        $valid=$mysql?"CASE WHEN JSON_VALID(m.record_json)=1 THEN JSON_TYPE(m.record_json)='OBJECT' ELSE 0 END"
+            :"CASE WHEN json_valid(m.record_json)=1 THEN json_type(m.record_json)='object' ELSE 0 END";
+        $type=$mysql?"CASE WHEN JSON_VALID(m.record_json)=1 THEN JSON_TYPE(JSON_EXTRACT(m.record_json,'$.bot_key')) ELSE NULL END"
+            :"CASE WHEN json_valid(m.record_json)=1 THEN json_type(m.record_json,'$.bot_key') ELSE NULL END";
+        $bot=$mysql?"CASE WHEN JSON_VALID(m.record_json)=1 THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(m.record_json,'$.bot_key'))='STRING' AND LENGTH(JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.bot_key')))<=96 THEN JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.bot_key')) ELSE NULL END ELSE NULL END"
+            :"CASE WHEN json_valid(m.record_json)=1 THEN CASE WHEN json_type(m.record_json,'$.bot_key')='text' AND LENGTH(json_extract(m.record_json,'$.bot_key'))<=96 THEN json_extract(m.record_json,'$.bot_key') ELSE NULL END ELSE NULL END";
+        $tokens="LENGTH(m.record_json)-LENGTH(REPLACE(m.record_json,'\"bot_key\"',''))";
+        $escaped=$mysql?"LOCATE(CONCAT(CHAR(92),'u'),m.record_json)":"instr(m.record_json,char(92)||'u')";
+        $q=$this->pdo->prepare('SELECT m.account_id,m.chat_id,m.source_kind,'.$valid.' AS permission_record_valid,'.$type.' AS permission_bot_type,'.$bot.' AS permission_bot_key,'.$tokens.' AS permission_bot_token_units,'.$escaped.' AS permission_unicode_escape FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE m.id=? AND m.project_key=? AND p.is_active=1');
+        $q->execute([$id,'anytour']);$row=$q->fetch(PDO::FETCH_ASSOC);
+        if (!$row || (int)$row['permission_record_valid']!==1 || !in_array($row['source_kind'],['business_message','desktop_import'],true)) return null;
+        $type=$row['permission_bot_type'];$botKey=$row['permission_bot_key'];
+        $isString=$type===($mysql?'STRING':'text') && is_string($botKey);
+        $isNull=$type===null || $type===($mysql?'NULL':'null');
+        if (!$isString && !$isNull) return null;
+        // SQL engines and PHP can choose different duplicate JSON keys. Only
+        // canonical, unambiguous bot metadata is safe for permission repair.
+        // The archive writer already uses JSON_UNESCAPED_UNICODE.
+        if ((int)$row['permission_bot_token_units']!==($type===null?0:9) || (int)$row['permission_unicode_escape']!==0) return null;
+        // A business capture needs its exact bot. Desktop history has no bot
+        // origin, but a declared bot still needs its own current permission.
+        if ($row['source_kind']==='business_message' && (!$isString || $botKey==='')) return null;
+        $permission=$this->archivePermissions((string)$row['account_id'],$isString&&$botKey!==''?$botKey:null);
+        return $permission?VirtualReplySamplingIdentity::archive((string)$row['chat_id'],''):null;
+    }
+
     private function conversation(int $id): ?array
     {
         $q = $this->pdo->prepare('SELECT m.*,c.project_key,c.is_test,c.channel AS scope_channel FROM messages m JOIN conversations c ON c.id=m.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE m.id=? AND c.project_key=? AND c.is_test=0 AND p.is_active=1 AND NOT '.InternalOwnerDialogueScope::conversationSql('c'));
@@ -152,15 +228,8 @@ final class VirtualReplySourceReader
         $reference = max($created, $version);
         // Current approval grants the selected account's stored history. Old
         // connection IDs are evidence, not a replacement for current permission.
-        $sql = 'SELECT a.bot_key,a.account_id,a.connection_id,a.approved,a.provider_enabled,a.manager_id,c.is_enabled,c.account_id AS connected_account FROM telegram_archive_accounts a JOIN telegram_dialogue_connections c ON c.project_key=a.project_key AND c.bot_key=a.bot_key AND c.connection_id=a.connection_id WHERE a.project_key=? AND a.account_id=? AND a.approved=1 AND a.provider_enabled=1 AND c.is_enabled=1 AND c.account_id=a.account_id';
-        $args = ['anytour', (string)$question['account_id']];
-        if (is_string($record['bot_key'] ?? null) && $record['bot_key'] !== '') {
-            $sql .= ' AND a.bot_key=?';
-            $args[] = $record['bot_key'];
-        }
-        $q = $this->pdo->prepare($sql.' ORDER BY a.bot_key,a.connection_id');
-        $q->execute($args);
-        $permission = $q->fetchAll(PDO::FETCH_ASSOC);
+        $permission=$this->archivePermissions((string)$question['account_id'],
+            is_string($record['bot_key']??null)&&$record['bot_key']!==''?$record['bot_key']:null);
         if (!$permission) return null;
         // Native IDs preserve Telegram order even when desktop history arrives
         // after fresh messages and therefore has newer database row IDs.
@@ -195,6 +264,15 @@ final class VirtualReplySourceReader
             ['source_id'=>$id, 'source_order'=>'telegram_native_message_id', 'native_message_id'=>(string)$question['message_id']]);
         if ($result!==null) $result['sampling']=VirtualReplySamplingIdentity::archive((string)$question['chat_id'],(string)$record['text']);
         return $result;
+    }
+
+    private function archivePermissions(string $account,?string $botKey): array
+    {
+        $sql='SELECT a.bot_key,a.account_id,a.connection_id,a.approved,a.provider_enabled,a.manager_id,c.is_enabled,c.account_id AS connected_account FROM telegram_archive_accounts a JOIN telegram_dialogue_connections c ON c.project_key=a.project_key AND c.bot_key=a.bot_key AND c.connection_id=a.connection_id WHERE a.project_key=? AND a.account_id=? AND a.approved=1 AND a.provider_enabled=1 AND c.is_enabled=1 AND c.account_id=a.account_id';
+        $args=['anytour',$account];
+        if ($botKey!==null) {$sql.=' AND a.bot_key=?';$args[]=$botKey;}
+        $q=$this->pdo->prepare($sql.' ORDER BY a.bot_key,a.connection_id');$q->execute($args);
+        return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function result(string $source, int $id, string $scope, int $reference, string $mode, array $rows, array $eligibility,

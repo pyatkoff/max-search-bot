@@ -57,24 +57,8 @@ final class VirtualReplySampling
         $author=$this->one('SELECT status,claimed_at FROM virtual_reply_jobs WHERE case_id=? AND role=?',[$case['case_id'],'author']);
         $claimed=is_string($author['claimed_at']??null)?$author['claimed_at']:null;
         $exposed=(int)$meta['legacy']===1 || $claimed!==null || ($author!==null && $author['status']!=='pending');
-        $keys=$sample['identity_keys'];$groups=[];
-        if (is_string($meta['group_key']??null)) $groups[]=$meta['group_key'];
-        foreach ($this->aliases($keys) as $alias) $groups[]=$alias['group_key'];
-        $groups=array_values(array_unique($groups));sort($groups,SORT_STRING);
-        if (!$groups) {
-            $group=hash('sha256','virtual_reply_sampling_group_v1|'.$keys[0]);
-            $reserve=$this->reserveEligible($case,$snapshot,$sample,$exposed,$now)
-                && hexdec(substr($group,0,8))%5===0;
-            $this->insertIgnore('virtual_reply_sampling_groups',['group_key'=>$group,'project_key'=>'anytour','cohort'=>$reserve?'reserved':'development',
-                'identity_complete'=>(int)$sample['identity_complete'],'created_at'=>$now,'updated_at'=>$now]);
-            $groups=[$group];
-        }
-        $target=$groups[0];
-        foreach ($keys as $key) $this->insertIgnore('virtual_reply_sampling_aliases',['project_key'=>'anytour','identity_key'=>$key,'group_key'=>$target]);
-        foreach ($this->aliases($keys) as $alias) $groups[]=$alias['group_key'];
-        $groups=array_values(array_unique($groups));sort($groups,SORT_STRING);
         $eligible=$this->reserveEligible($case,$snapshot,$sample,$exposed,$now);
-        $target=$this->merge($groups,$exposed,$sample['identity_complete'],$eligible,$now);
+        $target=$this->link($meta['group_key']??null,$sample,$exposed,$eligible,$now);
         $this->execute('UPDATE virtual_reply_case_sampling SET group_key=?,kind=?,identity_complete=? WHERE case_id=?',
             [$target,$sample['kind'],(int)$sample['identity_complete'],$case['case_id']]);
         if ($claimed!==null) $this->importClaim($target,substr($claimed,0,10),$sample['kind']==='social',$claimed);
@@ -85,6 +69,35 @@ final class VirtualReplySampling
         if (!$this->enabled) return [];
         $limit=min(100,max(1,$limit));
         return $this->rows('SELECT c.* FROM virtual_reply_cases c LEFT JOIN virtual_reply_case_sampling s ON s.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND (s.case_id IS NULL OR s.group_key IS NULL) ORDER BY c.id LIMIT '.$limit,['anytour','active']);
+    }
+
+    /** Hash-only metadata recovery; invalidated source contents are never fetched. */
+    public function pendingExposureBackfill(int $afterId,int $limit): array
+    {
+        if (!$this->enabled) return [];
+        $limit=min(100,max(1,$limit));
+        return $this->rows('SELECT c.id,c.case_id,c.project_key,c.source_kind,c.source_id,c.state FROM virtual_reply_cases c JOIN virtual_reply_case_sampling s ON s.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND s.legacy=1 AND s.group_key IS NULL AND c.id>? ORDER BY c.id LIMIT '.$limit,
+            ['anytour','invalidated',max(0,$afterId)]);
+    }
+
+    /** Only links a proven old exposure; never revives its source or attempts. */
+    public function attachLegacyExposure(array $case,array $identity): bool
+    {
+        if (!$this->enabled) return false;
+        if (!$this->pdo->inTransaction()) throw new RuntimeException('virtual_reply_sampling_transaction_required');
+        $sample=$this->identity($identity);
+        if ($sample['kind']!=='substantive') throw new RuntimeException('virtual_reply_sampling_unavailable');
+        if (!$sample['identity_complete']) return false;
+        $current=$this->one('SELECT id,case_id,source_kind,source_id,state FROM virtual_reply_cases WHERE project_key=? AND case_id=?'.$this->lock(),['anytour',$case['case_id']]);
+        if (!$current || $current['state']!=='invalidated' || $current['source_kind']!==$case['source_kind'] || (int)$current['source_id']!==(int)$case['source_id']) return false;
+        $meta=$this->one('SELECT * FROM virtual_reply_case_sampling WHERE case_id=?'.$this->lock(),[$current['case_id']]);
+        if (!$meta || (int)$meta['legacy']!==1 || $meta['group_key']!==null) return false;
+        $author=$this->one('SELECT claimed_at FROM virtual_reply_jobs WHERE case_id=? AND role=?'.$this->lock(),[$current['case_id'],'author']);
+        $claimed=is_string($author['claimed_at']??null)?$author['claimed_at']:null;
+        $target=$this->link(null,$sample,true,false,$this->now());
+        $this->execute('UPDATE virtual_reply_case_sampling SET group_key=?,identity_complete=1 WHERE case_id=?',[$target,$current['case_id']]);
+        if ($claimed!==null) $this->importClaim($target,substr($claimed,0,10),$meta['kind']==='social',$claimed);
+        return true;
     }
 
     public function authorCandidates(string $now,string $recent,int $limit): array
@@ -145,11 +158,36 @@ final class VirtualReplySampling
     {
         if (!array_key_exists('sampling',$snapshot)) return ['identity_keys'=>[hash('sha256','virtual_reply_sampling_legacy_v1|'.$snapshot['source_kind'].'|'.($snapshot['source_scope']??'').'|'.$snapshot['source_id'])],
             'identity_complete'=>false,'kind'=>'substantive'];
-        $s=$snapshot['sampling'];
-        if (!is_array($s) || !is_array($s['identity_keys']??null) || !array_is_list($s['identity_keys']) || count($s['identity_keys'])<1 || count($s['identity_keys'])>8
+        return $this->identity($snapshot['sampling']);
+    }
+
+    private function identity($s): array
+    {
+        if (!is_array($s) || count($s)!==3 || array_diff(array_keys($s),['identity_keys','identity_complete','kind'])!==[]
+            || !is_array($s['identity_keys']??null) || !array_is_list($s['identity_keys']) || count($s['identity_keys'])<1 || count($s['identity_keys'])>8
             || !is_bool($s['identity_complete']??null) || !in_array($s['kind']??null,['substantive','social'],true)) throw new RuntimeException('virtual_reply_sampling_unavailable');
         foreach ($s['identity_keys'] as $key) if (!is_string($key)||preg_match('/\A[a-f0-9]{64}\z/D',$key)!==1) throw new RuntimeException('virtual_reply_sampling_unavailable');
         $s['identity_keys']=array_values(array_unique($s['identity_keys']));sort($s['identity_keys'],SORT_STRING);return $s;
+    }
+
+    /** Common conservative alias merger for snapshots and hash-only old exposures. */
+    private function link(?string $existing,array $sample,bool $exposed,bool $eligible,string $now): string
+    {
+        $keys=$sample['identity_keys'];$groups=$existing===null?[]:[$existing];
+        foreach ($this->aliases($keys) as $alias) $groups[]=$alias['group_key'];
+        $groups=array_values(array_unique($groups));sort($groups,SORT_STRING);
+        if (!$groups) {
+            $group=hash('sha256','virtual_reply_sampling_group_v1|'.$keys[0]);
+            $reserve=$eligible && hexdec(substr($group,0,8))%5===0;
+            $this->insertIgnore('virtual_reply_sampling_groups',['group_key'=>$group,'project_key'=>'anytour','cohort'=>$reserve?'reserved':'development',
+                'identity_complete'=>(int)$sample['identity_complete'],'created_at'=>$now,'updated_at'=>$now]);
+            $groups=[$group];
+        }
+        $target=$groups[0];
+        foreach ($keys as $key) $this->insertIgnore('virtual_reply_sampling_aliases',['project_key'=>'anytour','identity_key'=>$key,'group_key'=>$target]);
+        foreach ($this->aliases($keys) as $alias) $groups[]=$alias['group_key'];
+        $groups=array_values(array_unique($groups));sort($groups,SORT_STRING);
+        return $this->merge($groups,$exposed,$sample['identity_complete'],$eligible,$now);
     }
 
     private function aliases(array $keys): array
@@ -184,6 +222,10 @@ final class VirtualReplySampling
         }
         $this->execute('UPDATE virtual_reply_sampling_groups SET cohort=?,identity_complete=?,exposed_at=?,last_author_claimed_at=?,created_at=?,updated_at=? WHERE group_key=?',
             [$cohort,(int)$complete,$seen,$last,$first,$now,$target]);
+        if ($cohort!=='reserved') {
+            require_once __DIR__.'/VirtualReplyControlStore.php';
+            foreach ($keys as $key) VirtualReplyControlStore::invalidateGroup($this->pdo,$key);
+        }
         return $target;
     }
 
