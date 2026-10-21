@@ -258,3 +258,27 @@ offsets agree. Missing, shifted, duplicate or different formatting does not veri
 See [MAX text formatting](https://dev.max.ru/docs-api/use-cases/sending-messages/text-formatting)
 and the [official MessageBody/MarkupElement schema](https://github.com/max-messenger/api-schema/blob/main/schema.yaml).
 Native photo layout and the visual result still require inspection in MAX.
+
+## Native examples only: compact and price-first
+
+Owner correction,2026-10-21: approve only implementable native messages directly
+in the bots, never an image-generation mockup presented as a native-card promise.
+The exact owner-only command `/owner-tour-preview-variants <installed-main-sha>`
+(or only `confirm_owner_variants=true`) sends two fixed MAX captions: compact
+room/meal lines, then price-first. Both use the same real day/beach/room photos,
+native bold title/total price, demo/room caveats and one native Нравится button.
+No font size, CSS spacing, button colour or photo-mosaic layout is promised.
+
+The existing verified comparison receipt is read-only, bounded/private and bound
+to the original recovery hash, owner/bot/chat, exact source hashes and token-bearing
+body hash. Its exact known MID must still match by GET. All three cached tokens
+are reused; no new download/upload is needed. Historical receipts/messages stay
+unchanged. Each new variant has its own fixed once receipt:
+`delphin-imperial-native-compact-20261021.json` and
+`delphin-imperial-native-price-first-20261021.json`.
+The same durable pre-POST reservation, known-MID GET-only resume and unknown-send
+stop apply independently. The pair stops on the first unverified result. Rerunning
+a verified first variant reads it back and may continue the not-yet-attempted
+second variant; it never creates another first card. No recipient/content/variant
+CLI input or arbitrary sender is introduced. Telegram identity is not inferred;
+delivery there requires an independently verified owner private dialogue.
