@@ -100,6 +100,7 @@ function photoChoiceRun(string $failure = '', ?string $directory = null, array $
     photoChoiceAssert(!str_contains(json_encode($out),'PRIVATE_') && !str_contains(json_encode($out),'881001') && !str_contains(json_encode($out),'tour_like_') && !str_contains(json_encode($out),'photo-token-'), 'Public result omits credentials, owner IDs, callback capabilities and image tokens');
     return [$out,$calls,$directory,$writes];
 }
+if (!defined('OWNER_PHOTO_CHOICE_FIXTURE_LIBRARY')) {
 $sha = str_repeat('a',40);
 photoChoiceAssert(ownerPhotoChoiceArguments(['--expected-sha='.$sha,'--confirm-owner-photo-choice']) === $sha, 'Fixed photo trial activation parses');
 foreach ([[],['--expected-sha='.$sha,'--confirm-owner-photo-choice','--chat-id=1'],['--expected-sha='.$sha,'--confirm-owner-photo-choice','--confirm-owner-choice'],['--expected-sha='.$sha,'--confirm-owner-send']] as $args)
@@ -161,3 +162,12 @@ foreach (['json','flag','callback','posthash','native_mid'] as $corruption) {
 photoChoiceAssert(!$again['ok'] && photoChoiceSends($calls) === 0 && $writes === [], 'Receipt symlink cannot redirect writes or authorize sends'); unlink($path);
 foreach ($directories as $directory) if (is_dir($directory)) { foreach (glob($directory.'/*') ?: [] as $path) unlink($path); foreach (glob($directory.'/.owner-preview-image-*') ?: [] as $path) unlink($path); rmdir($directory); }
 echo "OWNER TOUR PHOTO CHOICE: $checks checks PASSED\n";
+$fixtureOutput = []; $fixtureCode = 0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/owner_photo_choice_explicit_spec.php').' 2>&1', $fixtureOutput, $fixtureCode);
+echo implode(PHP_EOL, $fixtureOutput).PHP_EOL;
+if ($fixtureCode !== 0) throw new RuntimeException('Explicit owner photo-choice specification regression failed');
+$liveOutput = []; $liveCode = 0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/owner_live_quote_trial.php').' 2>&1', $liveOutput, $liveCode);
+echo implode(PHP_EOL, $liveOutput).PHP_EOL;
+if ($liveCode !== 0) throw new RuntimeException('Fixed owner live-quote regression failed');
+}

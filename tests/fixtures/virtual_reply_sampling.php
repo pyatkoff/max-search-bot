@@ -29,12 +29,16 @@ function samplingSchema(PDO $pdo,bool $withSampling=true): void
 final class SamplingFixtureReader
 {
     public array $rows=[];
+    public array $snapshotCalls=[];
+    public array $exposureCalls=[];
+    public bool $exposureFailure=false;
     public function add(int $id,string $group,array $options=[]): void
     {
         $source=$options['source']??'conversation';
         $this->rows[$source.':'.$id]=array_replace(['id'=>$id,'group'=>$group,'source'=>$source,
             'aliases'=>[hash('sha256','synthetic:'.$group)],'complete'=>false,'text'=>'Египет на двоих',
-            'kind'=>'substantive','at'=>'2026-10-21T19:00:00Z','mode'=>'live','incomplete'=>false,'reconstructed'=>false],$options);
+            'kind'=>'substantive','at'=>'2026-10-21T19:00:00Z','mode'=>'live','incomplete'=>false,'reconstructed'=>false,
+            'snapshot_allowed'=>true,'identity_allowed'=>true],$options);
     }
     public function recent(string $source,int $limit): array { return $this->scan($source,0,$limit); }
     public function scan(string $source,int $after,int $limit): array
@@ -45,7 +49,8 @@ final class SamplingFixtureReader
     }
     public function snapshot(string $source,int $id): ?array
     {
-        $r=$this->rows[$source.':'.$id]??null;if (!$r) return null;
+        $this->snapshotCalls[]=[$source,$id];
+        $r=$this->rows[$source.':'.$id]??null;if (!$r || !$r['snapshot_allowed']) return null;
         $messages=[['id'=>$id,'sender_type'=>'tourist','text'=>$r['text'],'created_at'=>$r['at']]];
         if (isset($r['first_at'])) array_unshift($messages,['id'=>$id+100000,'sender_type'=>'tourist','text'=>'Предыдущий запрос','created_at'=>$r['first_at']]);
         $payload=['messages'=>$messages,'history_incomplete'=>$r['incomplete'],
@@ -57,6 +62,15 @@ final class SamplingFixtureReader
             'evidence_message_ids'=>array_column($messages,'id'),
             'sampling'=>['identity_keys'=>$r['aliases'],'identity_complete'=>$r['complete'],'kind'=>$r['kind']]];
     }
+    public function exposureIdentity(string $source,int $id): ?array
+    {
+        $this->exposureCalls[]=[$source,$id];
+        if ($this->exposureFailure) throw new RuntimeException('virtual_reply_source_unavailable');
+        $r=$this->rows[$source.':'.$id]??null;
+        if (!$r || !$r['identity_allowed']) return null;
+        return ['identity_keys'=>$r['aliases'],'identity_complete'=>$r['complete'],'kind'=>'substantive'];
+    }
+
 }
 
 function samplingResult(int $source): array
@@ -98,6 +112,8 @@ function samplingAssertions(PDO $pdo,callable $check): void
     samplingQuotaAssertions($pdo,$check);
     samplingSocialAssertions($pdo,$check);
     samplingUnresolvedExposureAssertions($pdo,$check);
+    samplingExposureBackfillAssertions($pdo,$check);
+    samplingExposureRotationAssertions($pdo,$check);
     samplingResetFixture($pdo);
 }
 
@@ -265,6 +281,106 @@ function samplingUnresolvedExposureAssertions(PDO $pdo,callable $check): void
         && ($claim['sampling']['legacy_unresolved_exposure']??0)===1
         && ($claim['sampling']['reservation_blocked_reason']??null)==='legacy_unresolved_exposure'
         && $claim['sampling']['author_blocked_reason']===null && $claim['daily_used']===1);
+}
+
+/** Simulate 049 tombstones arriving at 051, without resetting their frozen attempts. */
+function samplingForgetGroups(PDO $pdo): void
+{
+    $pdo->exec('UPDATE virtual_reply_case_sampling SET legacy=1,group_key=NULL');
+    foreach (['virtual_reply_sampling_claims','virtual_reply_sampling_aliases','virtual_reply_sampling_groups'] as $table) $pdo->exec('DELETE FROM '.$table);
+}
+
+function samplingExposureBackfillAssertions(PDO $pdo,callable $check): void
+{
+    samplingResetFixture($pdo);$now=strtotime('2026-10-21T19:00:00Z');$reader=new SamplingFixtureReader();
+    $reader->add(1,'filtered-old-exposure',['complete'=>true]);
+    $store=new VirtualReplyStore($pdo,$reader,static function()use(&$now):int{return $now;});samplingCaptureAll($store);
+    $oldClaim=$store->claim('author',7,1)['jobs'][0];$now+=901;$store->claim('reviewer',7,1);
+    $reader->rows['conversation:1']['snapshot_allowed']=false;$store->reconcile(100);
+    // A retained unknown lease remains terminal even when its source was already purged.
+    samplingExecute($pdo,'UPDATE virtual_reply_jobs SET status=? WHERE case_id=? AND role=?',['unknown',$oldClaim['case_id'],'author']);
+    samplingForgetGroups($pdo);
+    $reader->add(2,'active-legacy');samplingCaptureAll($store);
+    samplingExecute($pdo,'UPDATE virtual_reply_case_sampling SET legacy=1,group_key=NULL WHERE case_id=?',[samplingCase($pdo,2)['case_id']]);
+    samplingExecute($pdo,'UPDATE virtual_reply_quotas SET used_count=200 WHERE project_key=? AND day_utc=? AND role=?',['anytour','2026-10-21','author']);
+    $beforeCases=samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id');
+    $beforeJobs=samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role');
+    $beforeQuotas=samplingQuery($pdo,'SELECT * FROM virtual_reply_quotas ORDER BY day_utc,role');
+    $reader->snapshotCalls=[];$reader->exposureCalls=[];
+    $result=$store->claim('author',8,1);$old=samplingCase($pdo,1);
+    $check('known filtered legacy exposure links through hash metadata without recapturing private source or changing frozen attempts',
+        $result['jobs']===[] && $result['daily_used']===200 && $result['sampling']['legacy_unresolved_exposure']===0
+        && $result['sampling']['backfill']['active_checked']===1 && $result['sampling']['backfill']['exposure_checked']===1
+        && $result['sampling']['backfill']['exposure_linked']===1 && $reader->exposureCalls===[['conversation',1]]
+        && !in_array(['conversation',1],$reader->snapshotCalls,true) && $old['state']==='invalidated' && $old['payload_json']===null
+        && $beforeCases===samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id')
+        && $beforeJobs===samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role')
+        && $beforeQuotas===samplingQuery($pdo,'SELECT * FROM virtual_reply_quotas ORDER BY day_utc,role'));
+    $ledger=samplingQuery($pdo,'SELECT * FROM virtual_reply_sampling_claims WHERE group_key=?',[$old['group_key']]);
+    $check('identity-only legacy resolution stays development and imports the original consumed author day without refund',
+        $old['cohort']==='development' && count($ledger)===1 && $ledger[0]['day_utc']==='2026-10-21'
+        && $ledger[0]['claimed_at']==='2026-10-21 19:00:00' && $result['daily_used']===200
+        && samplingQuery($pdo,'SELECT status FROM virtual_reply_jobs WHERE case_id=? AND role=?',[$oldClaim['case_id'],'author'])[0]['status']==='unknown');
+    $reader->add(3,'new-control-after-proof',['complete'=>true,'aliases'=>[samplingReservedAlias('new-after-exposure-proof')],'at'=>gmdate('Y-m-d\TH:i:s\Z',$now)]);
+    $capture=$store->capture('conversation','history',100);
+    $check('resolved proven legacy identities unblock enrollment only for later complete unseen groups',
+        $capture['sampling']['legacy_unresolved_exposure']===0 && $capture['sampling']['reservation_blocked_reason']===null
+        && samplingCase($pdo,3)['cohort']==='reserved' && samplingCase($pdo,1)['cohort']==='development');
+    $sampler=new VirtualReplySampling($pdo,static fn():int=>$now);$pdo->beginTransaction();
+    try {$changed=$sampler->attachLegacyExposure(samplingCase($pdo,2),['identity_keys'=>[hash('sha256','forged-active')],'identity_complete'=>true,'kind'=>'substantive']);$pdo->commit();}
+    catch(Throwable $error){$pdo->rollBack();throw $error;}
+    $check('identity-only recovery refuses active or already linked cases',$changed===false && samplingCase($pdo,2)['cohort']==='development');
+}
+
+function samplingExposureRotationAssertions(PDO $pdo,callable $check): void
+{
+    samplingResetFixture($pdo);$now=strtotime('2026-10-21T19:00:00Z');$reader=new SamplingFixtureReader();
+    for ($i=1;$i<=110;$i++) $reader->add($i,'exposure-rotation-'.$i,['complete'=>$i>=101,'identity_allowed'=>$i>=101]);
+    // A known but incomplete identity is no authority to remove the old fence.
+    $reader->rows['conversation:2']['identity_allowed']=true;
+    $store=new VirtualReplyStore($pdo,$reader,static fn():int=>$now);samplingCaptureAll($store);
+    for ($i=1;$i<=105;$i++) $reader->rows['conversation:'.$i]['snapshot_allowed']=false;
+    $store->reconcile(100);$store->reconcile(100);samplingForgetGroups($pdo);
+    samplingExecute($pdo,'INSERT INTO virtual_reply_quotas (project_key,day_utc,role,used_count,updated_at) VALUES (?,?,?,?,?)',['anytour','2026-10-21','author',200,'2026-10-21 19:00:00']);
+    $beforeCases=samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id');
+    $beforeJobs=samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role');
+    $first=$store->claim('author',7,1);$second=$store->claim('author',7,1);
+    $check('active and inactive metadata backfills share a real one-hundred-row call bound',
+        $first['sampling']['backfill']['active_checked']===5 && $first['sampling']['backfill']['exposure_checked']===95
+        && $first['sampling']['backfill']['exposure_linked']===0 && $first['sampling']['legacy_unresolved_exposure']===105
+        && $first['sampling']['legacy_pending']===0 && $first['daily_used']===200);
+    $check('unresolvable early tombstones cannot starve later proven identities and incomplete bindings keep the fence',
+        $second['sampling']['backfill']['active_checked']===0 && $second['sampling']['backfill']['exposure_checked']===10
+        && $second['sampling']['backfill']['exposure_linked']===5 && $second['sampling']['legacy_unresolved_exposure']===100
+        && $second['sampling']['reservation_blocked_reason']==='legacy_unresolved_exposure'
+        && samplingCase($pdo,2)['group_key']===null && samplingCase($pdo,101)['cohort']==='development'
+        && $beforeCases===samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id')
+        && $beforeJobs===samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role'));
+    $reader->exposureCalls=[];$third=$store->claim('author',7,1);
+    $check('the metadata cursor wraps without recapturing unresolved content',
+        $third['sampling']['backfill']['exposure_checked']===100 && count($reader->exposureCalls)===100
+        && $reader->exposureCalls[0]===['conversation',1] && $third['sampling']['legacy_unresolved_exposure']===100);
+    $beforeMaps=samplingQuery($pdo,'SELECT * FROM virtual_reply_case_sampling ORDER BY case_id');
+    $reader->exposureFailure=true;
+    $failed=samplingFails(static fn()=>$store->claim('author',7,1),'virtual_reply_source_unavailable');
+    $check('technical identity lookup failure propagates without source invalidation or quota refund',
+        $failed && $beforeMaps===samplingQuery($pdo,'SELECT * FROM virtual_reply_case_sampling ORDER BY case_id')
+        && $beforeCases===samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id')
+        && $beforeJobs===samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role')
+        && (int)$pdo->query("SELECT used_count FROM virtual_reply_quotas WHERE role='author'")->fetchColumn()===200);
+    $withoutIdentity=new class($reader) {
+        public function __construct(private SamplingFixtureReader $reader) {}
+        public function recent(string $source,int $limit):array {return $this->reader->recent($source,$limit);}
+        public function scan(string $source,int $after,int $limit):array {return $this->reader->scan($source,$after,$limit);}
+        public function snapshot(string $source,int $id):?array {return $this->reader->snapshot($source,$id);}
+    };
+    $compat=new VirtualReplyStore($pdo,$withoutIdentity,static fn():int=>$now);$skipped=$compat->claim('author',7,1);
+    $check('older injected readers without identity recovery leave the exposure fence intact',
+        $skipped['sampling']['backfill']['exposure_reader_available']===false && $skipped['sampling']['backfill']['exposure_checked']===0
+        && $skipped['sampling']['legacy_unresolved_exposure']===100 && $skipped['daily_used']===200
+        && $beforeCases===samplingQuery($pdo,'SELECT * FROM virtual_reply_cases ORDER BY id')
+        && $beforeJobs===samplingQuery($pdo,'SELECT * FROM virtual_reply_jobs ORDER BY case_id,role'));
+
 }
 
 /** Compatibility and schema failure checks need their own databases, never reset native DDL. */

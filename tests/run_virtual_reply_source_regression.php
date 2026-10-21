@@ -45,6 +45,18 @@ function sourceArchiveEdit(PDO $pdo, int $id, array $patch): void {
         ->execute([json_encode($record,JSON_THROW_ON_ERROR),$record['version_at'],(int)$record['is_deleted'],$id]);
 }
 
+/** Fail if the identity lookup materializes content instead of scalar permission metadata. */
+final class SourceIdentityOnlyStatement extends PDOStatement {
+    protected function __construct() {}
+    public function fetch(int $mode=PDO::FETCH_DEFAULT,int $orientation=PDO::FETCH_ORI_NEXT,int $offset=0): mixed {
+        $row=parent::fetch($mode,$orientation,$offset);
+        if (is_array($row) && array_intersect(['record_json','text','metadata_json','payload_json'],array_keys($row))) {
+            throw new RuntimeException('source_payload_materialized');
+        }
+        return $row;
+    }
+}
+
 ProjectConfig::resetForTests(['id'=>'anytour']);
 $pdo=sourceDb(); $reader=new VirtualReplySourceReader($pdo);
 sourceMessage($pdo,1,'customer','Египет, трое взрослых, до 250 тысяч за всех',[], '2026-10-20 09:58:00');
@@ -300,6 +312,171 @@ sourceCheck('a substantive request is not a social-only message because it conta
     && VirtualReplySamplingIdentity::kind('Спасибо! 🙏')==='social');
 sourceCheck('negative archive chats cannot claim private-person identity completeness',
     !VirtualReplySamplingIdentity::archive('-300','Египет')['identity_complete']);
+
+// Exposure repair reads entity identity only, including when all content is
+// inaccessible. A minimal schema deliberately has no message text/payload.
+$identityDb=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$identityDb->exec('CREATE TABLE projects(project_key TEXT PRIMARY KEY,is_active INTEGER);
+    CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT,customer_id INTEGER,customer_channel_id INTEGER);
+    CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
+    CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER);
+    INSERT INTO projects VALUES ("anytour",1),("other",1);
+    INSERT INTO conversations VALUES (1,"anytour",0,"telegram",11,71),(2,"anytour",1,"max",12,72),(3,"other",0,"telegram",13,73);
+    INSERT INTO customer_channels VALUES (71,11,"anytour","telegram","91001","91001"),(72,12,"anytour","max","91002","91002"),(73,13,"other","telegram","91003","91003");
+    INSERT INTO messages VALUES (1,1),(2,2),(3,3),(4,99);');
+$identityReader=new VirtualReplySourceReader($identityDb);$identityWrites=(int)$identityDb->query('SELECT total_changes()')->fetchColumn();
+$ownerIdentity=$identityReader->exposureIdentity('conversation',1);
+$testIdentity=$identityReader->exposureIdentity('conversation',2);
+sourceCheck('identity-only exposure repair maps previously captured internal/test scope without reading source text or payload',
+    $ownerIdentity===VirtualReplySamplingIdentity::conversation(1,11,'telegram',['91001','91001'],'')
+    && $testIdentity===VirtualReplySamplingIdentity::conversation(2,12,'max',['91002','91002'],'')
+    && $ownerIdentity['kind']==='substantive' && (int)$identityDb->query('SELECT total_changes()')->fetchColumn()===$identityWrites
+    && !$identityDb->inTransaction());
+sourceCheck('identity-only exposure values contain only hashes, completeness and unknown substantive classification',
+    array_keys($ownerIdentity)===['identity_keys','identity_complete','kind']
+    && array_filter($ownerIdentity['identity_keys'],static fn($key):bool=>!is_string($key)||preg_match('/\A[a-f0-9]{64}\z/D',$key)!==1)===[]
+    && !str_contains(json_encode($ownerIdentity,JSON_THROW_ON_ERROR),'91001'));
+sourceCheck('identity-only scope excludes foreign, missing and orphaned rows without source discovery',
+    $identityReader->exposureIdentity('conversation',3)===null && $identityReader->exposureIdentity('conversation',4)===null
+    && $identityReader->exposureIdentity('conversation',99)===null && $identityReader->exposureIdentity('invalid',1)===null
+    && $identityReader->exposureIdentity('conversation',0)===null);
+$identityDb->exec('UPDATE customer_channels SET customer_id=99 WHERE id=71');
+$unboundIdentity=$identityReader->exposureIdentity('conversation',1);
+sourceCheck('identity-only repair cannot invent a peer alias from a mismatched channel/customer binding',
+    !$unboundIdentity['identity_complete'] && count($unboundIdentity['identity_keys'])===2
+    && array_intersect($unboundIdentity['identity_keys'],VirtualReplySamplingIdentity::archive('91001','')['identity_keys'])===[]);
+$identityDb->exec('UPDATE customer_channels SET customer_id=11,external_user_id="091001" WHERE id=71');
+$ambiguousIdentity=$identityReader->exposureIdentity('conversation',1);
+sourceCheck('identity-only repair preserves canonical positive Telegram peer matching',
+    !$ambiguousIdentity['identity_complete']
+    && array_intersect($ambiguousIdentity['identity_keys'],VirtualReplySamplingIdentity::archive('91001','')['identity_keys'])===[]);
+$identityDb->exec('UPDATE projects SET is_active=0 WHERE project_key="anytour"');
+sourceCheck('inactive projects deny identity-only exposure repair', $identityReader->exposureIdentity('conversation',1)===null);
+$identityDb->exec('UPDATE projects SET is_active=1 WHERE project_key="anytour"');
+ProjectConfig::resetForTests(['id'=>'other']);
+sourceCheck('wrong current project cannot inspect AnyTour exposure identities',$identityReader->exposureIdentity('conversation',1)===null);
+ProjectConfig::resetForTests(['id'=>'anytour']);
+$identityDb->beginTransaction();
+sourceCheck('identity-only recheck refuses a caller snapshot without closing it',
+    $identityReader->exposureIdentity('conversation',1)===null && $identityDb->inTransaction());$identityDb->rollBack();
+
+$excludedDb=sourceDb();$excludedReader=new VirtualReplySourceReader($excludedDb);
+$excludedDb->exec('UPDATE conversations SET customer_id=22,customer_channel_id=81 WHERE id=101;
+    INSERT INTO customer_channels VALUES (81,22,"anytour","telegram","300","300")');
+sourceMessage($excludedDb,1,'customer','Already deleted',['is_deleted'=>true]);
+sourceMessage($excludedDb,2,'manager','Nonquestion');
+sourceMessage($excludedDb,3,'customer','/start link',['type'=>'start']);
+$excludedIdentity=$excludedReader->exposureIdentity('conversation',1);
+sourceCheck('permitted deleted/filtered/nonquestion identities map without making their snapshots eligible',
+    $excludedIdentity!==null && $excludedReader->exposureIdentity('conversation',2)===$excludedIdentity
+    && $excludedReader->exposureIdentity('conversation',3)===$excludedIdentity
+    && $excludedReader->snapshot('conversation',1)===null && $excludedReader->snapshot('conversation',2)===null
+    && $excludedReader->snapshot('conversation',3)===null);
+$excludedDb->exec('DELETE FROM messages WHERE id=1');
+sourceCheck('hard-deleted exposure sources cannot synthesize an identity from a former source ID',
+    $excludedReader->exposureIdentity('conversation',1)===null);
+$identityDb->exec('DROP TABLE customer_channels');$identityFailure=false;
+try {$identityReader->exposureIdentity('conversation',1);} catch (RuntimeException $error) {
+    $identityFailure=$error->getMessage()==='virtual_reply_source_unavailable' && $error->getPrevious()===null;
+}
+sourceCheck('technical identity lookup failures are sanitized and never masquerade as missing sources',
+    $identityFailure && !$identityDb->inTransaction());
+$archiveIdentityFailure=false;
+try {$identityReader->exposureIdentity('telegram_archive',1);} catch (RuntimeException $error) {
+    $archiveIdentityFailure=$error->getMessage()==='virtual_reply_source_unavailable' && $error->getPrevious()===null;
+}
+sourceCheck('archive identity entity-query failures are sanitized rather than treated as a missing exposure',
+    $archiveIdentityFailure && !$identityDb->inTransaction());
+
+$archiveIdentityDb=sourceDb();$archiveIdentityReader=new VirtualReplySourceReader($archiveIdentityDb);
+$archiveIdentityDb->exec('INSERT INTO conversations VALUES (1,"anytour",0,"telegram",11,71);
+    INSERT INTO customer_channels VALUES (71,11,"anytour","telegram","91001","91001")');
+$deletedArchive=sourceArchive($archiveIdentityDb,1,'customer','Deleted synthetic content',1792490400,['is_deleted'=>true]);
+$managerArchive=sourceArchive($archiveIdentityDb,2,'manager','Manager synthetic content');
+$startArchive=sourceArchive($archiveIdentityDb,3,'customer','/start synthetic');
+$ownerArchive=sourceArchive($archiveIdentityDb,4,'customer','Internal synthetic content',1792490400,[],'anytour',100,91001);
+$serviceArchive=sourceArchive($archiveIdentityDb,5,'customer','Service synthetic content',1792490400,[],'anytour',100,777000);
+$otherProjectArchive=sourceArchive($archiveIdentityDb,6,'customer','Other project synthetic content',1792490400,[],'other');
+$otherBotArchive=sourceArchive($archiveIdentityDb,7,'customer','Other bot synthetic content',1792490400,['bot_key'=>'unapproved']);
+$desktopArchive=sourceArchive($archiveIdentityDb,8,'customer','Desktop synthetic content',1792490400,['source_kind'=>'desktop_import','bot_key'=>null]);
+$withoutBotArchive=sourceArchive($archiveIdentityDb,9,'customer','No bot synthetic content',1792490400,['bot_key'=>null]);
+sourceCheck('identity repair does not make deleted, nonquestion, internal or service archive content eligible',
+    $archiveIdentityReader->snapshot('telegram_archive',$deletedArchive)===null
+    && $archiveIdentityReader->snapshot('telegram_archive',$managerArchive)===null
+    && $archiveIdentityReader->snapshot('telegram_archive',$startArchive)===null
+    && $archiveIdentityReader->snapshot('telegram_archive',$ownerArchive)===null
+    && $archiveIdentityReader->snapshot('telegram_archive',$serviceArchive)===null);
+$archiveIdentityDb->setAttribute(PDO::ATTR_STATEMENT_CLASS,[SourceIdentityOnlyStatement::class]);
+$archiveWrites=(int)$archiveIdentityDb->query('SELECT total_changes()')->fetchColumn();
+$archiveKnown=VirtualReplySamplingIdentity::archive('200','');
+sourceCheck('approved archive exposure identity reads scalar permission metadata and returns only stable hashes',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===$archiveKnown
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$managerArchive)===$archiveKnown
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$startArchive)===$archiveKnown
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$ownerArchive)===VirtualReplySamplingIdentity::archive('91001','')
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$serviceArchive)===VirtualReplySamplingIdentity::archive('777000','')
+    && (int)$archiveIdentityDb->query('SELECT total_changes()')->fetchColumn()===$archiveWrites && !$archiveIdentityDb->inTransaction());
+sourceCheck('archive identity permission uses the exact row bot and cannot cross projects or synthesize missing rows',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$otherBotArchive)===null
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$otherProjectArchive)===null
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',99999)===null);
+sourceCheck('desktop archive identity can use approved account history while business identity requires an exact bot',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$desktopArchive)===$archiveKnown
+    && $archiveIdentityReader->exposureIdentity('telegram_archive',$withoutBotArchive)===null);
+foreach (['approved','provider_enabled'] as $flag) {
+    $archiveIdentityDb->exec('UPDATE telegram_archive_accounts SET '.$flag.'=0');
+    sourceCheck('archive exposure identity requires current account '.$flag,
+        $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===null
+        && $archiveIdentityReader->exposureIdentity('telegram_archive',$desktopArchive)===null);
+    $archiveIdentityDb->exec('UPDATE telegram_archive_accounts SET '.$flag.'=1');
+}
+$archiveIdentityDb->exec('UPDATE telegram_dialogue_connections SET is_enabled=0');
+sourceCheck('archive exposure identity requires the enabled approved current connection',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===null);
+$archiveIdentityDb->exec('UPDATE telegram_dialogue_connections SET is_enabled=1,account_id=999');
+sourceCheck('archive exposure identity rejects a current connection bound to a different account',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===null);
+$archiveIdentityDb->exec('UPDATE telegram_dialogue_connections SET account_id=100');
+$archiveIdentityDb->exec('UPDATE projects SET is_active=0 WHERE project_key="anytour"');
+sourceCheck('inactive archive project cannot expose repair identity',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===null);
+$archiveIdentityDb->exec('UPDATE projects SET is_active=1 WHERE project_key="anytour"');
+$invalidBotRecords=['{','null','[]','{"bot_key":null}','{"bot_key":12}','{"bot_key":true}',
+    '{"bot_key":{}}','{"bot_key":[]}','{"bot_key":""}',json_encode(['bot_key'=>str_repeat('a',97)],JSON_THROW_ON_ERROR)];
+$invalidResults=[];
+foreach ($invalidBotRecords as $record) {
+    $archiveIdentityDb->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE id=?')->execute([$record,$deletedArchive]);
+    $invalidResults[]=$archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive);
+}
+sourceCheck('invalid JSON, nonobject records and invalid/nonstring/oversized required bot metadata fail closed',
+    $invalidResults===array_fill(0,count($invalidBotRecords),null));
+$duplicates=['{"bot_key":"archive","bot_key":"unapproved"}','{"bot_key":"unapproved","bot_key":"archive"}',
+    '{"bot_key":"archive","nested":{"bot_key":"unapproved"}}',
+    '{"bot_key":"archive","bot_\\u006bey":"unapproved"}',
+    '{"bot_\\u006bey":"unapproved","bot_key":"archive"}'];
+$duplicateResults=[];
+foreach ($duplicates as $record) {
+    $archiveIdentityDb->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE id=?')->execute([$record,$deletedArchive]);
+    $duplicateResults[]=$archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive);
+}
+sourceCheck('duplicate bot keys in either order and escaped/nested aliases cannot widen archive permissions',
+    $duplicateResults===array_fill(0,count($duplicates),null));
+$archiveIdentityDb->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE id=?')->execute(['{"bot_key":"archive","text":"unfetched"}',$deletedArchive]);
+sourceCheck('exact approved bot permission survives unrelated private text fields without returning them',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===$archiveKnown);
+$archiveIdentityDb->exec('DELETE FROM telegram_dialogue_messages WHERE id='.$deletedArchive);
+sourceCheck('hard-deleted archive exposure rows remain unresolved',
+    $archiveIdentityReader->exposureIdentity('telegram_archive',$deletedArchive)===null);
+$archiveIdentityDb->exec('DROP TABLE telegram_archive_accounts');$permissionFailure=false;
+try {$archiveIdentityReader->exposureIdentity('telegram_archive',$managerArchive);} catch (RuntimeException $error) {
+    $permissionFailure=$error->getMessage()==='virtual_reply_source_unavailable' && $error->getPrevious()===null;
+}
+sourceCheck('technical archive permission failures stay sanitized and close the fresh identity transaction',
+    $permissionFailure && !$archiveIdentityDb->inTransaction());
+
+require_once __DIR__.'/fixtures/virtual_reply_exposure.php';
+$sharedExposure=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+virtualReplyExposureAssertions($sharedExposure,'sourceCheck');
 
 echo "Virtual reply source regression: {$passed} passed, {$failed} failed\n";
 exit($failed ? 1 : 0);

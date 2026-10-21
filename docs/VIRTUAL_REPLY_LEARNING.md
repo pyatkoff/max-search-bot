@@ -262,6 +262,17 @@ blocks new reserve enrollment separately. `legacy_unresolved_exposure` and
 not wait for unreadable invalidated sources; a zero reserve can be the correct
 outcome, and source permissions must not be bypassed to populate it.
 
+Author allocation shares a bounded 100-row maintenance budget between active
+legacy attachment and rotating identity-only recovery of invalidated legacy
+rows. Recovery reads permitted project/channel identity metadata and only a
+bounded archive bot-key scalar needed for the existing per-bot permission check.
+It never reloads message text, media or frozen source payloads. Only complete,
+unambiguous aliases can link an old exposure into development evidence; source
+status, purged content, frozen jobs, unknown outcomes and quotas stay intact.
+Missing/revoked/ambiguous identities remain unresolved. Noncanonical or oversized
+archive permission metadata fails closed; technical failures remain errors. The
+claim's aggregate `sampling.backfill` reports actual bounded progress.
+
 Only a reliably linked, complete live prefix beginning after enrollment, with no
 known exposure or legacy alias, can enter the deterministic roughly one-in-five
 reserve. A historical, incomplete, old or newly ambiguous prefix, exposure, or
@@ -293,9 +304,9 @@ new schedule, call a paid provider, or reopen expired/unknown claims.
    Compare frozen current and previous instruction versions on the same bounded
    prefix with blind answer order and independent review. Any control inspected
    to design a repair becomes development material. Paired registration,
-   allocation and review need a separate bounded implementation using normal
+   allocation and review use the separate bounded protocol below with normal
    permission/quota/provenance fences; ordinary review jobs are not that control
-   channel. No paired control run is claimed by sampling or this document.
+   channel. No paired control run is claimed by deployed software or this document.
 3. Cover necessary clarification, useful factual response, concrete comparison,
    budget/placement compromises, unread evidence and no-contact decisions.
    Record unnecessary questions, lost constraints, unsupported claims and

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/fixtures/virtual_reply_controls.php';
+require_once dirname(__DIR__).'/fixtures/virtual_reply_exposure.php';
 $pdo=null;$safe=false;
 $tables=['virtual_reply_control_jobs','virtual_reply_control_cases','virtual_reply_control_runs',
     'virtual_reply_case_sampling','virtual_reply_sampling_claims','virtual_reply_sampling_aliases','virtual_reply_sampling_groups',
@@ -17,6 +18,10 @@ try{
     samplingSchema($pdo);controlStoreSchema($pdo);
     controlStoreAssertions($pdo,static function(string $name,bool $ok):void{
         if(!$ok)throw new RuntimeException('control_assertion_failed');
+        echo 'PASS native MySQL '.$name."\n";
+    });
+    virtualReplyExposureAssertions($pdo,static function(string $name,bool $ok):void{
+        if(!$ok)throw new RuntimeException('exposure_assertion_failed');
         echo 'PASS native MySQL '.$name."\n";
     });
 }catch(Throwable $error){

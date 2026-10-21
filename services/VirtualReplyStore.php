@@ -93,10 +93,10 @@ final class VirtualReplyStore
         $this->admin($adminId);
         $limit=$this->limit($limit,20);
         $this->expire();
-        $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;
+        $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;$backfill=null;
         $recent=gmdate('Y-m-d\TH:i:s\Z',$this->at($now)-self::RECENT_WINDOW_SECONDS);
         if ($role==='author' && $this->sampling->available()) {
-            foreach ($this->sampling->pendingBackfill(100) as $row) $this->refresh($row);
+            $backfill=$this->samplingBackfill();
             $candidates=$this->sampling->authorCandidates($now,$recent,100);
         } else {
             $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
@@ -134,8 +134,9 @@ final class VirtualReplyStore
             if ($claimed!==null) $jobs[]=$claimed;
             elseif ($this->used($role,$day)>=self::DAILY_LIMIT) break;
         }
+        $sampling=$this->sampling->status();if ($backfill!==null) $sampling['backfill']=$backfill;
         return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day),'unsupported_contracts'=>$unsupported,
-            'sampling'=>$this->sampling->status()];
+            'sampling'=>$sampling];
     }
 
     public function context(string $caseId,string $role,string $token,int $adminId): array
@@ -275,6 +276,34 @@ final class VirtualReplyStore
                 [$canonical['status'],$this->encode($stored),$now,$now,$caseId]);
             return ['case_id'=>$caseId,'disposition'=>$stored,'duplicate'=>false];
         });
+    }
+
+    /** Active snapshots and identity-only tombstones share a 100-row backfill budget. */
+    private function samplingBackfill(): array
+    {
+        $active=$this->sampling->pendingBackfill(100);
+        foreach ($active as $row) $this->refresh($row);
+        $result=['limit'=>100,'active_checked'=>count($active),'exposure_checked'=>0,'exposure_linked'=>0,
+            'exposure_reader_available'=>is_callable([$this->reader,'exposureIdentity'])];
+        $remaining=100-count($active);
+        if ($remaining===0 || !$result['exposure_reader_available']) return $result;
+        $cursor=$this->cursor('_exposure','backfill_v1')??0;
+        $rows=$this->sampling->pendingExposureBackfill($cursor,$remaining);
+        if (!$rows && $cursor>0) $rows=$this->sampling->pendingExposureBackfill(0,$remaining);
+        foreach ($rows as $row) {
+            // Outside transactions, like full source rechecks. Technical errors
+            // propagate; null leaves the unresolved-exposure fence intact.
+            $identity=$this->reader->exposureIdentity($row['source_kind'],(int)$row['source_id']);
+            $result['exposure_checked']++;
+            if ($identity!==null) {
+                if (!is_array($identity)) throw new RuntimeException('virtual_reply_source_unavailable');
+                $linked=$this->transaction(fn():bool=>$this->sampling->attachLegacyExposure($row,$identity));
+                $result['exposure_linked']+=(int)$linked;
+            }
+            $cursor=(int)$row['id'];
+        }
+        $this->advanceCursor('_exposure','backfill_v1',$rows?$cursor:0,false);
+        return $result;
     }
 
     private function freshCase(string $caseId): array
