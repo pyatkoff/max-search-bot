@@ -30,7 +30,7 @@
   function dismissNotice(){dismissedNotices.add(noticeKey());if(dismissedNotices.size>100)dismissedNotices.delete(dismissedNotices.values().next().value);hideNotice(true)}
   function syncPreferences(){
     if(!notice)return;
-    hideNotice(!manager2()||!visible()||!ready||ready.kind!=='prepared'||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
+    hideNotice(!manager2()||!visible()||!ready||ready.kind!=='prepared'||ready.expires<=Date.now()||!ready.should_draft||!currentSnapshot(ready.snapshot)||!panel.hidden||dismissedNotices.has(noticeKey())||window.WorkspaceV2PersonalWorkspace?.showAiReadyNotice?.()===false);
   }
   function renderButton(){
     if(!bound||!manager2())return;

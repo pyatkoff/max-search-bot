@@ -341,6 +341,8 @@ contracts plus a bounded limit. It makes registration possible through the
 connection without remote shell access. Verify prior/current deployment and
 instruction provenance separately before calling it; registration itself makes
 no model call. No normal capture or claim automatically registers an experiment.
+The existing MCP HTTP request limit of 196,608 bytes still applies to the complete
+registration request, independently of the adapter's additional contract limits.
 Explicit
 `claim_virtual_replies(purpose="control", role=...)` allocates only registered
 control jobs. Context/save routes each opaque job ID to its own store; a control
