@@ -394,3 +394,24 @@ general sending, message edits/deletion, prepared replies, business database
 writes, wizard state, offer binding, saved choices or Manager2 handlers.
 Both buttons remain preview-only. API/native-content verification and the owner's
 visual acceptance are separate outcomes.
+
+## Separately requested emoji emphasis example
+
+The owner's actual desktop Telegram screenshot prompted a restrained emphasis
+comparison: one Imperial card per channel, with calendar/flight/room/meal emoji
+on the four condition lines. Native bold remains limited to hotel and total;
+there is no decorative underline. The price and both bold spans precede every
+emoji, preserving the proven BMP/UTF-16 offset equivalence for MAX formatting.
+Telegram retains its native slideshow, footer and same-message preview button;
+MAX retains its native three-photo mosaic and message button.
+
+Only `tools/owner_tour_card_emphasis_preview.php` enables the fixed emphasis
+profile and accepts `--confirm-owner-emphasis` with the exact installed SHA.
+Without its constant the entire original trio catalog, content, command,
+receipt prefix and directory remain unchanged. The new two receipts use prefix
+`owner-emphasis-20261021` in external mode0700 directory
+`/var/www/anytoour/data/owner-tour-card-emphasis-preview`; old receipts are never
+read, edited or reset by this profile. It reuses the same independent identities,
+durable pre-POST reservations, exact native verification and no-replay rules.
+Dates/prices/conditions remain demo and room photos illustrative. This is still
+visual approval only, with no saved-like or Manager2 business implementation.
