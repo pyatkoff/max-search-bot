@@ -332,4 +332,102 @@ foreach (['download','download_mime','upload_host','upload_malformed','upload_pa
 $opaque='PRIVATE_IMAGE_TOKEN_sensitive+/=';
 $decoded=ownerPreviewDecode(json_encode(['code'=>'proto.payload','message'=>'Invalid token '.$opaque.' '.str_repeat('tail',800)]),400,0,0,false,'PRIVATE_TOKEN',[$opaque]);
 previewAssert(!str_contains($decoded['private_api_message'],$opaque)&&strlen($decoded['private_api_message'])<=2048,'Image tokens redacted before bounded error truncation');
+// The owner explicitly requested a second card for comparison; the old card/receipts stay intact.
+function comparisonFixture(): string {
+    [$dir,$record]=legacyRejectionFixture();
+    $record=array_replace($record,['state'=>'verified','repair_revision'=>'payload-repair-v1','message_id'=>'mid.recovered',
+        'verified_owner_id'=>'991002','verified_bot_id'=>'991099','verified_chat_id'=>'991001',
+        'image_tokens'=>['PRIVATE_DAY_TOKEN','PRIVATE_NIGHT_TOKEN','PRIVATE_ROOM_TOKEN']]);
+    file_put_contents($dir.'/delphin-imperial-20261021-recovery.json',json_encode($record)."\n");return $dir;
+}
+function comparisonTest(string $failure='',?string $dir=null): array {
+    $dir=$dir??comparisonFixture();$sha=str_repeat('a',40);$calls=[];$downloads=[];
+    $source=$dir.'/delphin-imperial-20261021-recovery.json';$before=file_get_contents($source);$original=file_get_contents($dir.'/delphin-imperial-20261021.json');
+    $request=static function($method,$path,$query,$body,$token)use(&$calls,$failure,$dir,$source,$before):?array {
+        $calls[]=[$method,$path,$query,$body];
+        if ($path==='/messages/mid.recovered') return ['body'=>['mid'=>'mid.recovered','text'=>$failure==='source_caption'?'Changed caption':ownerPreviewBody()['text'],'attachments'=>ownerPreviewBody()['attachments']],
+            'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>$failure==='source_owner'?'991003':'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+        if ($path==='/uploads') {
+            previewAssert($method==='POST'&&$query===['type'=>'image']&&$body===null,'Comparison reserves only one fixed image upload');
+            return ownerPreviewDecode('{"url":"https://iu.oneme.ru/uploadImage?token=signed"}',200,0,0);
+        }
+        if ($method==='POST') {
+            $record=json_decode(file_get_contents($dir.'/delphin-imperial-compact-compare-20261021.json'),true);
+            previewAssert($path==='/messages'&&$query===['user_id'=>'991002']&&$body['format']==='html'&&$body['text']===ownerPreviewComparisonBody()['text'],'One comparison POST targets only the proved owner and fixed HTML');
+            previewAssert(($record['post_reserved']??null)===true&&$record['state']==='post_reserved'&&isset($record['post_body_sha256']),'Comparison once reservation and wire hash durable before POST');
+            previewAssert(array_column(array_slice($body['attachments'],0,3),'payload')===[['token'=>'PRIVATE_DAY_TOKEN'],['token'=>'PRIVATE_BEACH_TOKEN'],['token'=>'PRIVATE_ROOM_TOKEN']],'Comparison reuses day/room and never reuses night as beach');
+            previewAssert(file_get_contents($source)===$before,'Source history remains byte-identical before comparison POST');
+            if ($failure==='concurrent') {
+                $duplicate=ownerPreviewComparisonRun(str_repeat('a',40),str_repeat('a',40),'anytour','PRIVATE_TOKEN','previewFixture',static function(){throw new RuntimeException('No concurrent provider calls');},$dir);
+                previewAssert(!$duplicate['send_attempted']&&$duplicate['provider_requests']===0,'Concurrent comparison cannot create another card');
+            }
+            if ($failure==='timeout') return ownerPreviewDecode('',0,28,0);
+            if ($failure==='throw') throw new RuntimeException('PRIVATE_TOKEN');
+            if ($failure==='rejected') return ownerPreviewDecode('{"code":"proto.payload","message":"Invalid formatting for mid.comparison owner991002 https://private.test PRIVATE_BEACH_TOKEN PRIVATE_TOKEN [Source: dump]"}',400,0,0,false,'PRIVATE_TOKEN',['PRIVATE_BEACH_TOKEN']);
+            return ownerPreviewDecode('{"message":{"mid":"mid.comparison"}}',200,0,0);
+        }
+        previewAssert($method==='GET'&&$path==='/messages/mid.comparison','Comparison readback uses only its own durable MID');
+        if ($failure==='readback') return null;
+        return ['body'=>['mid'=>'mid.comparison','text'=>ownerPreviewComparisonText(),'markup'=>$failure==='markup'?[]:ownerPreviewComparisonMarkup(),'attachments'=>ownerPreviewComparisonBody()['attachments']],
+            'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+    };
+    $transfers=['download'=>static function($index,$directory,$comparison)use(&$downloads) {
+        $downloads[]=$index;previewAssert($index===1&&$comparison===true,'Only the new official beach is downloaded, in comparison mode');
+        $path=$directory.'/.owner-preview-image-'.$index.'-'.bin2hex(random_bytes(8)).'.tmp';file_put_contents($path,'offline-jpeg');chmod($path,0600);return ['path'=>$path,'mime'=>'image/jpeg'];
+    },'upload'=>static function($url,$image)use($failure) {
+        previewAssert(ownerPreviewUploadUrl($url)&&$image['mime']==='image/jpeg','Comparison uses canonical signed image host and sniffed JPEG');
+        return $failure==='upload'?ownerPreviewDecode('{}',500,0,0):ownerPreviewDecode('{"photos":{"opaque-beach":{"token":"PRIVATE_BEACH_TOKEN"}}}',200,0,0);
+    }];
+    $out=ownerPreviewComparisonRun($sha,$sha,'anytour','PRIVATE_TOKEN','previewFixture',$request,$dir,null,$transfers);
+    previewAssert(file_get_contents($source)===$before&&file_get_contents($dir.'/delphin-imperial-20261021.json')===$original,'Comparison preserves both old private receipts byte-for-byte');
+    previewAssert(!str_contains(json_encode($out),'PRIVATE_')&&!str_contains(json_encode($out),'991002')&&!str_contains(json_encode($out),'mid.'),'Comparison result contains no tokens or provider IDs');
+    previewAssert(count(array_filter($calls,static fn($call)=>$call[0]==='PUT'))===0,'Comparison never edits the previous card');
+    return [$out,$calls,$dir,$downloads];
+}
+previewAssert(ownerPreviewComparisonArguments(['--expected-sha='.$sha,'--confirm-owner-comparison'])===$sha,'Comparison has its own explicit confirmation');
+foreach ([['--expected-sha='.$sha,'--confirm-owner-send'],['--expected-sha='.$sha,'--confirm-owner-comparison','--confirm-owner-recovery']] as $args)
+    previewAssert(ownerPreviewComparisonArguments($args)===null,'Other or mixed confirmations cannot activate comparison');
+$compact=ownerPreviewComparisonBody();
+previewAssert($compact['format']==='html'&&substr_count($compact['text'],'<b>')===2&&strip_tags($compact['text'])===ownerPreviewComparisonText(),'Only title and total price use native HTML bold');
+previewAssert(ownerPreviewComparisonMarkup()===[['type'=>'strong','from'=>0,'length'=>19],['type'=>'strong','from'=>120,'length'=>18]],'Independent literal character offsets cover only the hotel title and total price');
+previewAssert(preg_match('/[\x{10000}-\x{10ffff}]/u',ownerPreviewComparisonText())===0,'Fixed caption has no non-BMP offset ambiguity');
+previewAssert(str_contains($compact['text'],'Демо: даты, цена и условия — пример.')&&str_contains($compact['text'],'Фото номера — пример интерьера отеля.'),'Compact demo facts and room caveat remain clear');
+previewAssert($compact['attachments'][0]===ownerPreviewBody()['attachments'][0]&&$compact['attachments'][2]===ownerPreviewBody()['attachments'][2]&&$compact['attachments'][1]['payload']['url']==='https://www.delphinhotel.com/main_pics/pages/big/4325.png','Fixed official beach replaces night only in the new card');
+$semantic=['body'=>['mid'=>'mid.comparison','text'=>ownerPreviewComparisonText(),'markup'=>array_reverse(ownerPreviewComparisonMarkup()),'attachments'=>$compact['attachments']],
+    'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+previewAssert(ownerPreviewComparisonMatches($semantic,'mid.comparison','991002','991099','991001'),'Plain readback plus unordered exact strong spans matches HTML request');
+foreach (['missing','offset','length','type','duplicate','extra','raw_html','wrong_owner'] as $failure) {
+    $bad=$semantic;
+    if ($failure==='missing') $bad['body']['markup']=[];
+    elseif ($failure==='offset') $bad['body']['markup'][0]['from']++;
+    elseif ($failure==='length') $bad['body']['markup'][0]['length']++;
+    elseif ($failure==='type') $bad['body']['markup'][0]['type']='emphasized';
+    elseif ($failure==='duplicate') $bad['body']['markup'][1]=$bad['body']['markup'][0];
+    elseif ($failure==='extra') $bad['body']['markup'][0]['unexpected']=true;
+    elseif ($failure==='raw_html') $bad['body']['text']=$compact['text'];
+    else $bad['recipient']['user_id']='991003';
+    previewAssert(!ownerPreviewComparisonMatches($bad,'mid.comparison','991002','991099','991001'),'Wrong markup/text/owner cannot verify compact card: '.$failure);
+}
+foreach (['','concurrent','timeout','throw','rejected','readback','markup'] as $failure) {
+    [$out,$calls,$dir,$downloads]=comparisonTest($failure);
+    previewAssert($out['send_attempted']&&$out['ok']===in_array($failure,['','concurrent'],true)&&$downloads===[1],'Comparison performs exactly one requested creation and one beach upload');
+    if ($failure==='rejected') previewAssert(str_contains($out['validation_message']??'','Invalid formatting')&&!str_contains($out['validation_message'],'mid.')&&!str_contains($out['validation_message'],'991002')&&!str_contains($out['validation_message'],'https:')&&!str_contains($out['validation_message'],'dump'),'Comparison exposes only bounded field-level rejection after identifier/token/source redaction');
+    [$again,$replay]=comparisonTest('',$dir);
+    previewAssert(!$again['send_attempted']&&count(array_filter($replay,static fn($call)=>$call[0]!=='GET'))===0,'Any attempted comparison permanently blocks another POST/upload');
+    $saved=json_decode(file_get_contents($dir.'/delphin-imperial-compact-compare-20261021.json'),true);
+    previewAssert(isset($saved['message_id'])?$again['ok']:$again['state']==='comparison_already_attempted','Known comparison resumes readback; unknown creation never replays');
+}
+foreach (['source_caption','source_owner'] as $failure) {
+    [$out,$calls,$dir]=comparisonTest($failure);
+    previewAssert(!$out['send_attempted']&&count($calls)===1&&!file_exists($dir.'/delphin-imperial-compact-compare-20261021.json'),'Unproved old card blocks comparison before preparation');
+}
+[$out,$calls,$dir]=comparisonTest('upload');
+previewAssert(!$out['send_attempted']&&$out['state']==='image_preparation_unverified','Failed beach upload creates no comparison message');
+[$out,$calls]=comparisonTest('',$dir);
+previewAssert($out['ok']&&$out['send_attempted'],'Explicit resume after pre-send image failure can make the one comparison');
+$record=json_decode(file_get_contents($dir.'/delphin-imperial-compact-compare-20261021.json'),true);
+$record['image_sources'][1]=hash('sha256',ownerPreviewBody()['attachments'][1]['payload']['url']);
+file_put_contents($dir.'/delphin-imperial-compact-compare-20261021.json',json_encode($record)."\n");
+[$out,$calls]=comparisonTest('',$dir);
+previewAssert(!$out['ok']&&!$out['send_attempted']&&count($calls)===1,'A stale night source cannot verify or recreate the comparison');
 echo "OWNER TOUR PREVIEW: $checks PASS\n";

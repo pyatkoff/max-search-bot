@@ -24,6 +24,52 @@ function ownerPreviewBody(): array
         ]];
 }
 
+function ownerPreviewComparisonArguments(array $args): ?string
+{
+    if (!in_array('--confirm-owner-comparison',$args,true)) return null;
+    return ownerPreviewArguments(array_map(static fn($arg)=>$arg==='--confirm-owner-comparison'?'--confirm-owner-send':$arg,$args));
+}
+
+function ownerPreviewComparisonText(): string
+{
+    return "Delphin Imperial 5★ · Турция, Лара\n5–12 июня 2027 · 7 ночей\nМосква · 2 взрослых\nУлучшенный номер · Ультра всё включено\n\n238 400 ₽ за двоих\nПерелёт, трансфер и страховка включены.\n\nДемо: даты, цена и условия — пример.\nФото номера — пример интерьера отеля.";
+}
+
+/** Fixed text contains BMP characters only, so codepoint and UTF-16 offsets coincide. */
+function ownerPreviewComparisonMarkup(): array
+{
+    $text=ownerPreviewComparisonText();$spans=[];
+    foreach (['Delphin Imperial 5★','238 400 ₽ за двоих'] as $bold) {
+        $spans[]=['type'=>'strong','from'=>preg_match_all('/./us',substr($text,0,strpos($text,$bold))),'length'=>preg_match_all('/./us',$bold)];
+    }
+    return $spans;
+}
+
+function ownerPreviewComparisonBody(): array
+{
+    $body=ownerPreviewBody();
+    $body['text']=str_replace(['Delphin Imperial 5★','238 400 ₽ за двоих'],['<b>Delphin Imperial 5★</b>','<b>238 400 ₽ за двоих</b>'],ownerPreviewComparisonText());
+    $body['format']='html';
+    $body['attachments'][1]['payload']['url']='https://www.delphinhotel.com/main_pics/pages/big/4325.png';
+    return $body;
+}
+
+/** MAX readback contains plain text and strong spans, rather than the submitted HTML. */
+function ownerPreviewComparisonMatches(?array $message,string $mid,string $user,string $bot,string $chat): bool
+{
+    if (($message['body']['text']??null)!==ownerPreviewComparisonText()) return false;
+    $markup=$message['body']['markup']??null;$expected=ownerPreviewComparisonMarkup();
+    if (!is_array($markup)||count($markup)!==2) return false;
+    foreach ($markup as $span) {
+        if (!is_array($span)||count($span)!==3) return false;
+        $match=array_search(['type'=>$span['type']??null,'from'=>$span['from']??null,'length'=>$span['length']??null],$expected,true);
+        if ($match===false) return false;
+        unset($expected[$match]);
+    }
+    $message['body']['text']=ownerPreviewBody()['text'];
+    return $expected===[]&&ownerPreviewMatches($message,$mid,$user,$bot,$chat);
+}
+
 /** No transcript text, arbitrary recipient lookup, business write or open transaction escapes. */
 function ownerPreviewTarget(PDO $db): ?array
 {
@@ -57,6 +103,16 @@ function ownerPreviewPrivateMessage($value,string $token,array $redactions=[]): 
     $value=substr($value,0,2048);
     while ($value!==''&&preg_match('//u',$value)!==1) $value=substr($value,0,-1);
     return $value;
+}
+
+/** Only a pre-redacted provider message about the fixed public demo may reach stdout. */
+function ownerPreviewValidationMessage($value,string $token,array $redactions): ?string
+{
+    $value=ownerPreviewPrivateMessage($value,$token,$redactions);
+    if ($value===null) return null;
+    $value=preg_replace('/[0-9]+/','[redacted-number]',$value);
+    $value=preg_replace('/\[Source:.*$/is','[redacted-source]',$value);
+    return ownerPreviewPrivateMessage($value,'');
 }
 
 /** Allowlisted public codes and separately redacted private error message. */
@@ -282,12 +338,8 @@ function ownerPreviewEdit(array $out,array $receipt,&$file,string $journal,calla
     $out['edit_diagnostic']=ownerPreviewDiagnostic($response);$receipt['edit_diagnostic']=$out['edit_diagnostic'];
     $receipt['private_api_code']=$response['private_api_code']??null;$receipt['private_api_message']=$response['private_api_message']??null;
     if ($out['edit_diagnostic']['error_category']!=='none') {
-        $value=ownerPreviewPrivateMessage($response['private_api_message']??null,$token,[$mid,$user,$bot,$chat]);
-        if ($value!==null) {
-            $value=preg_replace('/[0-9]+/','[redacted-number]',$value);
-            $value=preg_replace('/\[Source:.*$/is','[redacted-source]',$value);
-            $out['validation_message']=ownerPreviewPrivateMessage($value,'');
-        }
+        $value=ownerPreviewValidationMessage($response['private_api_message']??null,$token,[$mid,$user,$bot,$chat]);
+        if ($value!==null) $out['validation_message']=$value;
     }
     $out['state']='edit_unverified';
     ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),$atomic);
@@ -379,6 +431,91 @@ function ownerPreviewRecoverRun(string $expected,string $installed,string $proje
 }
 
 /** Callables are offline test seams only. The CLI below supplies only fixed production dependencies. */
+/** A separately requested comparison card; every old message and receipt remains unchanged. */
+function ownerPreviewComparisonRun(string $expected,string $installed,string $project,string $token,callable $target,callable $request,string $directory,?int $now=null,?array $transfers=null): array
+{
+    $out=['ok'=>false,'state'=>'blocked','send_attempted'=>false,'provider_requests'=>0];
+    if (!preg_match('/\A[0-9a-f]{40}\z/D',$expected)||$expected!==$installed||$project!=='anytour'||$token===''||strlen($token)>4096||preg_match('/[\x00-\x20\x7f]/',$token)) return $out;
+    $original=ownerPreviewOriginal($directory);
+    $sourcePath=$directory.'/delphin-imperial-20261021-recovery.json';
+    $source=$original!==null?ownerPreviewKnownRejection($sourcePath,$original['hash']):null;
+    if ($source===null) return array_replace($out,['state'=>'source_receipt_unavailable']);
+    $file=null;
+    try {
+        $prior=$source['record'];$row=$target();$user=is_array($row)?MaxPrivateAvatarProbe::decimalId($row['external_user_id']??null):null;
+        $alias=is_array($row)?MaxPrivateAvatarProbe::chatId($row['conversation_chat_id']??null):null;
+        if (($source['edit']??false)!==true||($prior['state']??null)!=='verified'||$user===null||$alias===null
+            ||(string)($row['id']??'')!=='2'||($row['project_key']??null)!=='anytour'||($row['channel']??null)!=='max'
+            ||($row['original_display_name']??null)!=='Pavel'||!in_array($row['status']??null,['waiting_manager','manager'],true)
+            ||MaxPrivateAvatarProbe::chatId($row['channel_chat_id']??null)!==$alias||MaxPrivateAvatarProbe::decimalId($row['message_sender_id']??null)!==$user
+            ||$prior['verified_owner_id']!==$user) return array_replace($out,['state'=>'owner_unavailable']);
+        $oldMid=$prior['message_id'];$bot=$prior['verified_bot_id'];$chat=$prior['verified_chat_id'];
+        $oldTokens=$prior['image_tokens']??null;
+        if (!is_array($oldTokens)||count($oldTokens)!==3) return array_replace($out,['state'=>'source_receipt_unavailable']);
+        foreach ([0,1,2] as $index) if (!ownerPreviewImageToken($oldTokens[$index]??null)) return array_replace($out,['state'=>'source_receipt_unavailable']);
+        $out['provider_requests']++;
+        $response=$request('GET','/messages/'.rawurlencode($oldMid),[],null,$token);$out['readback_diagnostic']=ownerPreviewDiagnostic($response);
+        if (!ownerPreviewMatches(ownerPreviewData($response),$oldMid,$user,$bot,$chat)) return array_replace($out,['state'=>'source_card_unverified']);
+        $journal=$directory.'/delphin-imperial-compact-compare-20261021.json';
+        if (is_link($journal)) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        $exists=file_exists($journal);$old=umask(0077);$file=@fopen($journal,$exists?'r+b':'x+');umask($old);
+        if ($file===false||((fstat($file)['mode']??0)&0777)!==0600||!flock($file,LOCK_EX|LOCK_NB)) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        clearstatcache(true,$journal);$opened=fstat($file);$current=stat($journal);
+        if ($opened===false||$current===false||$opened['ino']!==$current['ino']||$opened['dev']!==$current['dev']) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        $body=ownerPreviewComparisonBody();
+        if ($exists) {
+            $bytes=stream_get_contents($file,65537);$receipt=is_string($bytes)&&strlen($bytes)<=65536?json_decode($bytes,true):null;
+            if (!is_array($receipt)||($receipt['demo']??null)!=='delphin-imperial-compact-compare-20261021'
+                ||($receipt['source_recovery_sha256']??null)!==$source['hash']||($receipt['source_message_id']??null)!==$oldMid
+                ||($receipt['verified_owner_id']??null)!==$user||($receipt['verified_bot_id']??null)!==$bot||($receipt['verified_chat_id']??null)!==$chat
+                ||!is_string($receipt['created_at']??null)) return array_replace($out,['state'=>'comparison_already_attempted']);
+            if (array_key_exists('message_id',$receipt)) {
+                $mid=ownerPreviewMid(['mid'=>$receipt['message_id']]);
+                if ($mid===null||($receipt['post_reserved']??null)!==true) return array_replace($out,['state'=>'comparison_already_attempted']);
+                foreach ([0,1,2] as $index) {
+                    if (!ownerPreviewImageToken($receipt['image_tokens'][$index]??null)||($receipt['image_sources'][$index]??null)!==hash('sha256',$body['attachments'][$index]['payload']['url'])) return array_replace($out,['state'=>'comparison_already_attempted']);
+                    $body['attachments'][$index]['payload']=['token'=>$receipt['image_tokens'][$index]];
+                }
+                if (($receipt['post_body_sha256']??null)!==hash('sha256',json_encode($body,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))) return array_replace($out,['state'=>'comparison_already_attempted']);
+                $out['provider_requests']++;
+                $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);$out['readback_diagnostic']=ownerPreviewDiagnostic($response);
+                $out['ok']=ownerPreviewComparisonMatches(ownerPreviewData($response),$mid,$user,$bot,$chat);$out['state']=$out['ok']?'verified':'sent_unverified';
+                ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),true);return $out;
+            }
+            if (array_key_exists('post_reserved',$receipt)) return array_replace($out,['state'=>'comparison_already_attempted']);
+            if (!in_array($receipt['state']??null,['preparing','images_prepared'],true)) return array_replace($out,['state'=>'comparison_already_attempted']);
+        } else {
+            $receipt=['demo'=>'delphin-imperial-compact-compare-20261021','state'=>'preparing','created_at'=>gmdate('c',$now??time()),
+                'source_recovery_sha256'=>$source['hash'],'source_message_id'=>$oldMid,'verified_owner_id'=>$user,'verified_bot_id'=>$bot,'verified_chat_id'=>$chat,
+                'source_photo_sources'=>array_map(static fn($attachment)=>hash('sha256',$attachment['payload']['url']),array_slice(ownerPreviewBody()['attachments'],0,3)),
+                'image_tokens'=>[0=>$oldTokens[0],2=>$oldTokens[2]],'image_sources'=>[0=>hash('sha256',$body['attachments'][0]['payload']['url']),2=>hash('sha256',$body['attachments'][2]['payload']['url'])]];
+            if (!ownerPreviewWrite($file,$receipt)||!ownerPreviewSyncDirectory($directory)||!ownerPreviewSyncDirectory(dirname($directory))) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        }
+        $body=ownerPreviewPrepareImages($receipt,$file,$journal,$request,$token,true,$out,$transfers,true);
+        if ($body===null) return array_replace($out,['state'=>'image_preparation_unverified']);
+        if (ownerPreviewOriginal($directory)!==$original||hash_file('sha256',$sourcePath)!==$source['hash']) return array_replace($out,['state'=>'source_receipt_changed']);
+        $receipt['post_reserved']=true;$receipt['post_body_sha256']=hash('sha256',json_encode($body,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+        if (!ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>'post_reserved']),true)) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        $out['send_attempted']=true;$out['provider_requests']++;
+        $response=$request('POST','/messages',['user_id'=>$user],$body,$token);
+        $out['send_diagnostic']=ownerPreviewDiagnostic($response);$receipt['send_diagnostic']=$out['send_diagnostic'];
+        $receipt['private_api_code']=$response['private_api_code']??null;$receipt['private_api_message']=$response['private_api_message']??null;
+        if ($out['send_diagnostic']['error_category']!=='none') {
+            $value=ownerPreviewValidationMessage($response['private_api_message']??null,$token,array_merge([$oldMid,$user,$bot,$chat],array_values($receipt['image_tokens'])));
+            if ($value!==null) $out['validation_message']=$value;
+        }
+        $mid=ownerPreviewMid(ownerPreviewData($response));$out['state']=$mid===null?'unknown':'sent_unverified';
+        if ($mid!==null) $receipt['message_id']=$mid;
+        if (!ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),true)) return array_replace($out,['state'=>'comparison_receipt_unavailable']);
+        if ($mid===null) return $out;
+        $out['provider_requests']++;
+        $response=$request('GET','/messages/'.rawurlencode($mid),[],null,$token);$out['readback_diagnostic']=ownerPreviewDiagnostic($response);
+        $out['ok']=ownerPreviewComparisonMatches(ownerPreviewData($response),$mid,$user,$bot,$chat);$out['state']=$out['ok']?'verified':'sent_unverified';
+        ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>$out['state']]),true);return $out;
+    } catch (Throwable $e) { return array_replace($out,['state'=>$out['send_attempted']?'unknown':'comparison_receipt_unavailable']); }
+    finally { if (is_resource($file)) fclose($file);fclose($source['file']); }
+}
+
 function ownerPreviewRun(string $expected,string $installed,string $project,string $token,callable $target,callable $request,string $directory): array
 {
     $out=['ok'=>false,'state'=>'blocked','send_attempted'=>false,'provider_requests'=>0];
@@ -429,8 +566,9 @@ function ownerPreviewRun(string $expected,string $installed,string $project,stri
 if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')) {
     ini_set('display_errors','0');
     $result=['ok'=>false,'state'=>'invalid_arguments','send_attempted'=>false,'provider_requests'=>0];
-    $args=array_slice($argv,1);$expected=ownerPreviewArguments($args);$recovery=false;
+    $args=array_slice($argv,1);$expected=ownerPreviewArguments($args);$recovery=false;$comparison=false;
     if ($expected===null) { $expected=ownerPreviewRecoveryArguments($args);$recovery=$expected!==null; }
+    if ($expected===null) { $expected=ownerPreviewComparisonArguments($args);$comparison=$expected!==null; }
     if ($expected!==null) {
         $level=ob_get_level();ob_start();
         try {
@@ -442,7 +580,7 @@ if (!defined('MAX_OWNER_PREVIEW_OFFLINE_TEST')) {
                 require_once $root.'/services/ConversationDb.php';
                 require_once $root.'/services/ProjectConfig.php';
                 $db=ConversationDb::connection();
-                $run=$recovery?'ownerPreviewRecoverRun':'ownerPreviewRun';
+                $run=$comparison?'ownerPreviewComparisonRun':($recovery?'ownerPreviewRecoverRun':'ownerPreviewRun');
                 $result=$run($expected,$installed,ProjectConfig::projectId(),defined('MAX_SEARCH_TOKEN')?(string)MAX_SEARCH_TOKEN:'',static fn()=>ownerPreviewTarget($db),'ownerPreviewRequest','/var/www/anytoour/data/max-owner-tour-preview');
             }
         } catch (Throwable $e) { $result['state']='configuration_unavailable'; }

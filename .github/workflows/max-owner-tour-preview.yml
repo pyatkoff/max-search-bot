@@ -27,6 +27,11 @@ on:
         type: boolean
         required: true
         default: false
+      confirm_owner_comparison:
+        description: Send the separately requested compact comparison card once
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -37,7 +42,7 @@ concurrency:
 
 jobs:
   regression:
-    if: github.event_name != 'issue_comment' || (github.repository == 'pyatkoff/max-search-bot' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ')))
+    if: github.event_name != 'issue_comment' || (github.repository == 'pyatkoff/max-search-bot' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ')))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -53,7 +58,7 @@ jobs:
         run: python3 tests/run_max_owner_tour_workflow_regression.py
 
   owner-send:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover '))))
+    if: github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare '))))
     needs: regression
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -64,6 +69,7 @@ jobs:
           EXPECTED_SHA: ${{ inputs.expected_sha }}
           CONFIRM_OWNER_SEND: ${{ inputs.confirm_owner_send }}
           CONFIRM_OWNER_RECOVERY: ${{ inputs.confirm_owner_recovery }}
+          CONFIRM_OWNER_COMPARISON: ${{ inputs.confirm_owner_comparison }}
           REPOSITORY_READ_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -88,21 +94,22 @@ jobs:
                       or os.environ.get('GITHUB_ACTOR') != owner['login']
                       or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
                   raise SystemExit(2)
-              command = re.fullmatch(r'/owner-tour-preview(-recover)? ([0-9a-f]{40})', comment.get('body', ''))
+              command = re.fullmatch(r'/owner-tour-preview(-recover|-compare)? ([0-9a-f]{40})', comment.get('body', ''))
               if command is None:
                   raise SystemExit(2)
               expected = command.group(2)
-              mode = 'recover' if command.group(1) else 'send'
+              mode = {'-recover': 'recover', '-compare': 'compare', None: 'send'}[command.group(1)]
           elif os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
               send = os.environ.get('CONFIRM_OWNER_SEND') == 'true'
               recover = os.environ.get('CONFIRM_OWNER_RECOVERY') == 'true'
-              if send == recover:
+              compare = os.environ.get('CONFIRM_OWNER_COMPARISON') == 'true'
+              if sum([send, recover, compare]) != 1:
                   raise SystemExit(2)
               expected = os.environ.get('EXPECTED_SHA', '')
-              mode = 'recover' if recover else 'send'
+              mode = 'compare' if compare else ('recover' if recover else 'send')
           else:
               raise SystemExit(2)
-          if mode == 'recover' and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
+          if mode in ['recover', 'compare'] and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
               raise SystemExit(2)
           if not re.fullmatch(r'[0-9a-f]{40}', expected) or expected != os.environ.get('GITHUB_SHA'):
               raise SystemExit(2)
@@ -158,7 +165,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
-          [[ "$OWNER_MODE" == send || "$OWNER_MODE" == recover ]] || exit 2
+          [[ "$OWNER_MODE" == send || "$OWNER_MODE" == recover || "$OWNER_MODE" == compare ]] || exit 2
           ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
             bash -s -- "$EXPECTED_SHA" "$OWNER_MODE" <<'REMOTE'
           set -euo pipefail
@@ -172,6 +179,7 @@ jobs:
           case "$owner_mode" in
             send) php tools/max_owner_tour_preview.php --expected-sha="$expected_sha" --confirm-owner-send ;;
             recover) php tools/max_owner_tour_preview.php --expected-sha="$expected_sha" --confirm-owner-recovery ;;
+            compare) php tools/max_owner_tour_preview.php --expected-sha="$expected_sha" --confirm-owner-comparison ;;
             *) exit 2 ;;
           esac
           REMOTE
