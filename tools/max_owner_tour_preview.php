@@ -117,11 +117,14 @@ function ownerPreviewMatches(?array $check,string $mid,string $user,string $bot,
         if (($attachment['type']??null)==='image') $images++;
         elseif (($attachment['type']??null)==='inline_keyboard') $keyboards[]=$attachment['payload']['buttons']??null;
     }
+    $buttons=$keyboards[0]??null;$row=is_array($buttons)?($buttons[0]??null):null;$button=is_array($row)?($row[0]??null):null;
+    $like=count($keyboards)===1&&is_array($buttons)&&count($buttons)===1&&is_array($row)&&count($row)===1
+        &&is_array($button)&&count($button)===2&&($button['type']??null)==='message'&&($button['text']??null)==='Нравится';
     return ownerPreviewMid($check)===$mid && ($check['body']['text']??null)===ownerPreviewBody()['text']
         && MaxPrivateAvatarProbe::decimalId($check['sender']['user_id']??null)===$bot
         && MaxPrivateAvatarProbe::decimalId($check['recipient']['user_id']??null)===$user
         && MaxPrivateAvatarProbe::chatId($check['recipient']['chat_id']??null)===$chat && ($check['recipient']['chat_type']??null)==='dialog'
-        && $images===3 && count((array)$attachments)===4 && $keyboards===[[[['type'=>'message','text'=>'Нравится']]]];
+        && $images===3 && count((array)$attachments)===4 && $like;
 }
 
 function ownerPreviewWrite($file,array $receipt): bool

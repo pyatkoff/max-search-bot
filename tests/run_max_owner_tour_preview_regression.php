@@ -70,6 +70,14 @@ foreach([[],['--confirm-owner-send'],['--expected-sha='.$sha],['--expected-sha='
 $body=ownerPreviewBody();
 previewAssert(count($body['attachments'])===4,'Three fixed photos plus one keyboard');
 previewAssert($body['attachments'][3]['payload']['buttons']===[[['type'=>'message','text'=>'Нравится']]],'Native text button, no callback payload');
+$readback=['body'=>['mid'=>'mid.semantic','text'=>$body['text'],'attachments'=>$body['attachments']],
+    'sender'=>['user_id'=>'991099'],'recipient'=>['user_id'=>'991002','chat_id'=>'991001','chat_type'=>'dialog']];
+$readback['body']['attachments'][3]['payload']['buttons']=[[['text'=>'Нравится','type'=>'message']]];
+previewAssert(ownerPreviewMatches($readback,'mid.semantic','991002','991099','991001'),'Native reversed associative key order is the same one-button card');
+foreach ([[['text'=>'Другое','type'=>'message']],[['text'=>'Нравится','type'=>'callback']],[['text'=>'Нравится','type'=>'message'],['text'=>'Нравится','type'=>'message']]] as $row) {
+    $bad=$readback;$bad['body']['attachments'][3]['payload']['buttons']=[$row];
+    previewAssert(!ownerPreviewMatches($bad,'mid.semantic','991002','991099','991001'),'Wrong label/type or extra keyboard cell is rejected');
+}
 previewAssert(str_contains($body['text'],'демонстрационные')&&str_contains($body['text'],'238 400 ₽ за двоих'),'Clearly labelled demo price');
 $called=false;$out=ownerPreviewRun($sha,str_repeat('b',40),'anytour','PRIVATE_TOKEN',static function()use(&$called){$called=true;},static fn()=>null,'/never-created');
 previewAssert(!$called&&!$out['send_attempted'],'Provenance failure has no lookup/send');
