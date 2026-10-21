@@ -36,7 +36,13 @@ function ownerPreviewDownloadImage(int $index,string $directory,bool $comparison
 /** Shared bounded downloader; callers select literal official gallery sources, never CLI URLs. */
 function ownerPreviewDownloadOfficialImage(string $url,int $index,string $directory): ?array
 {
-    if (!in_array($index,[0,1,2],true)||!preg_match('~\Ahttps://www\.delphinhotel\.com/main_pics/pages/(?:medium|big)/[0-9]+\.(?:png|jpg)\z~D',$url)) return null;
+    $grandPark=[
+        'https://www.corendonhotels.com.tr/storage/slides/March2026/ZuI2cGTDetugSWKhnE93.jpg',
+        'https://www.corendonhotels.com.tr/storage/pages/May2026/iX5LgEU46J2oOMC8VFjS.jpg',
+        'https://www.corendonhotels.com.tr/storage/rooms/March2026/hJ0wq9HCId31KoXNb6MI.jpg',
+    ];
+    if (!in_array($index,[0,1,2],true)||(!preg_match('~\Ahttps://www\.delphinhotel\.com/main_pics/pages/(?:medium|big)/[0-9]+\.(?:png|jpg)\z~D',$url)
+        && !in_array($url,$grandPark,true))) return null;
     $path=$directory.'/.owner-preview-image-'.$index.'-'.bin2hex(random_bytes(8)).'.tmp';
     $old=umask(0077);$file=@fopen($path,'x+');umask($old);
     if ($file===false) return null;
