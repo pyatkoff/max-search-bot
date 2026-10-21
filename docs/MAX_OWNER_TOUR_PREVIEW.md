@@ -282,3 +282,46 @@ a verified first variant reads it back and may continue the not-yet-attempted
 second variant; it never creates another first card. No recipient/content/variant
 CLI input or arbitrary sender is introduced. Telegram identity is not inferred;
 delivery there requires an independently verified owner private dialogue.
+
+## Owner Telegram examples after recognition
+
+The owner confirmed sending the requested recognition text. The read-only AnyTour
+context returned that exact new inbound in the existing Telegram test conversation
+at2026-10-21 15:12:01UTC. `telegram_owner_tour_preview.php` binds that fixed internal
+conversation/message, project, channel, sender and timestamp with one read-only
+SELECT; no MAX-native ID or name search supplies a Telegram recipient. The
+transaction ends before getMe(anyru_bot) and getChat(private) prove the native bot
+and saved private user/chat equality. Credentials remain in installed config.
+
+After normal publication gates, the exact owner issue55 activation is
+`/owner-tour-preview-telegram <installed-main-sha>`; dispatch alternatively uses
+only `confirm_owner_telegram=true`. All prior owner/SHA/workflow guards remain.
+The fixed command sends two native `sendRichMessage` examples, collage and
+slideshow, using the three unchanged official photo sources, native bold hotel
+and total price, conditions, demo/room footer and one Нравится inline preview
+button. The button is an appearance demonstration, not persisted tour selection;
+its fixed preview callback has no new business handler. Existing inbound handling
+only applies if the owner presses it. No Manager2/search/wizard integration.
+
+Current official Telegram API documents these native blocks and the same-message
+keyboard: [sendRichMessage](https://core.telegram.org/bots/api#sendrichmessage),
+[InputRichBlockCollage](https://core.telegram.org/bots/api#inputrichblockcollage),
+[InputRichBlockSlideshow](https://core.telegram.org/bots/api#inputrichblockslideshow).
+Each photo is downloaded through the existing bounded official-source helper and
+uploaded as sniffed JPEG/PNG multipart data, not passed as a misleading URL suffix.
+All3 owned temporary files are removed. Layout/rendering remains a client check.
+
+Mode0600 fixed receipts in external mode0700
+`/var/www/anytoour/data/telegram-owner-tour-preview` reserve each layout before its
+single POST with an fsynced body/photo hash and native owner/bot binding. Unknown,
+incomplete, invalid or concurrent receipts block creation, including HTTP400.
+Verified receipts are skipped without another POST; a never-attempted second
+layout can continue. No automatic fallback/retry, arbitrary sender or write to
+the ordinary prepared-reply queue is introduced. Telegram returns the created
+Message directly; verification checks its native private chat/bot/MID, layout,
+3photo blocks, exact text/bold/footer and keyboard. This is creation-response
+verification, not a separate GET of message history or visual acceptance.
+Only those required native response fields are retained in the private receipt,
+without profile names/handles. Equivalent string/list rich-text encodings are
+compared semantically with exact text and bold. A known-MID unverified response
+can be rechecked locally from that immutable creation evidence; it cannot resend.
