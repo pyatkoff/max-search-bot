@@ -325,3 +325,72 @@ Only those required native response fields are retained in the private receipt,
 without profile names/handles. Equivalent string/list rich-text encodings are
 compared semantically with exact text and bold. A known-MID unverified response
 can be rechecked locally from that immutable creation evidence; it cannot resend.
+
+## Three-hotel comparison in both owner chats
+
+After the real MAX/Telegram screenshots, the owner requested the next visual
+comparison on three different hotels. This remains a demonstration for visual
+approval, not approval to add Manager2 selection sending or saved likes.
+The fixed batch contains six native messages: three MAX photo mosaics and three
+Telegram slideshows, each with its own hotel, three genuine official hotel photos,
+native bold title/total price, conditions and one **Нравится** preview button.
+Price follows the hotel title without an extra empty line. Dates, price and
+conditions are explicitly labelled demonstration data; room photographs remain
+illustrative hotel interiors rather than proof of the selected room category.
+The client controls mosaic geometry and slideshow rendering.
+
+Fixed source provenance is the official factsheet gallery for
+[Palace](https://www.delphinhotel.com/delphin-palace-factsheet-en),
+[Imperial](https://www.delphinhotel.com/delphin-imperial-factsheet-en), and
+[BE Grand](https://www.delphinhotel.com/delphin-be-grand-resort-factsheet-en).
+Their day/beach/room source IDs are respectively `4003 / 4042 / 798`,
+`2996 / 4270 / 709`, and `4407 / 4391 / 4376`. Palace room798 is also the
+official standard direct sea-view room page's hero. Imperial4270 replaces only
+this new batch's beach source: its sea crosses the centre of the frame, rather
+than disappearing above the native mosaic crop. Existing4325 examples stay intact.
+
+The exact owner issue55 activation is
+`/owner-tour-preview-trio <installed-main-sha>`; dispatch alternatively uses only
+`confirm_owner_trio=true`. All confirmation flags are mutually exclusive. The
+existing trusted-main, owner identity, fresh main-ref, exact installed SHA and
+clean checkout guards apply before this sole fixed command:
+
+```sh
+php tools/owner_tour_selection_preview.php --expected-sha=<installed-main-sha> --confirm-owner-trio
+```
+
+There is no recipient, hotel, URL, text or format CLI input. Both channel
+identities must be proved before the batch can create a message. MAX reuses the
+fixed read-only owner lookup and verifies its saved inbound MID against the exact
+native sender/private recipient, as in the original preview. Telegram retains
+the independently observed recognition message and getMe(anyru_bot)/getChat(private)
+proof. Native IDs are bound separately; neither channel supplies the other's ID.
+No legacy receipt or recovery journal is needed to authorize this new batch.
+
+Six fixed private once receipts live in the mode0700 external directory
+`/var/www/anytoour/data/owner-tour-selection-preview`; files are mode0600.
+All original MAX send/recovery/comparison/variant and Telegram format-example
+messages and receipts remain unchanged. Each new receipt binds its fixed hotel,
+channel, owner/bot and source-aware request. MAX image tokens belong only to
+their exact official source URLs; each successful upload is persisted privately.
+Image download, MIME sniffing, signed MAX upload-origin checks, strict TLS,
+response caps and redacted transport diagnostics retain the existing boundaries.
+Owned temporary photos are removed.
+
+A durable reservation precedes each message POST. Any attempted POST, including
+timeout, exception or rejection, permanently prevents another creation for that
+card. An uncertain result stops the batch; there is no automatic fallback, retry
+or schedule. A known MAX MID permits GET-only verification. Telegram verifies the
+returned created Message, retaining only fields needed for that verification;
+cached evidence can be rechecked without another POST. Verified predecessors can
+be skipped when explicitly continuing never-attempted cards. Corrupt, incomplete,
+concurrent or identity/content-mismatched receipts never authorize a new send.
+Removing the auxiliary code is a code rollback only: never delete receipts or
+messages to obtain another attempt.
+
+The owner workflow allows twenty minutes for this bounded batch while individual
+request/download timeouts remain unchanged. This does not add shell loops,
+general sending, message edits/deletion, prepared replies, business database
+writes, wizard state, offer binding, saved choices or Manager2 handlers.
+Both buttons remain preview-only. API/native-content verification and the owner's
+visual acceptance are separate outcomes.

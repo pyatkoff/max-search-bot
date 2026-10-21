@@ -30,6 +30,13 @@ function ownerPreviewDownloadImage(int $index,string $directory,bool $comparison
 {
     if (!in_array($index,[0,1,2],true)) return null;
     $url=($comparison?ownerPreviewComparisonBody():ownerPreviewBody())['attachments'][$index]['payload']['url'];
+    return ownerPreviewDownloadOfficialImage($url,$index,$directory);
+}
+
+/** Shared bounded downloader; callers select literal official gallery sources, never CLI URLs. */
+function ownerPreviewDownloadOfficialImage(string $url,int $index,string $directory): ?array
+{
+    if (!in_array($index,[0,1,2],true)||!preg_match('~\Ahttps://www\.delphinhotel\.com/main_pics/pages/(?:medium|big)/[0-9]+\.(?:png|jpg)\z~D',$url)) return null;
     $path=$directory.'/.owner-preview-image-'.$index.'-'.bin2hex(random_bytes(8)).'.tmp';
     $old=umask(0077);$file=@fopen($path,'x+');umask($old);
     if ($file===false) return null;

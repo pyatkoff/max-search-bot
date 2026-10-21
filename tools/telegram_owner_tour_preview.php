@@ -86,12 +86,12 @@ function telegramOwnerPreviewText($value,bool $bold=false,int $depth=0): ?array
 }
 
 /** Compare returned native content, allowing Telegram's photo IDs and dimensions only. */
-function telegramOwnerPreviewMatches(?array $message,string $user,string $bot,string $variant): bool
+function telegramOwnerPreviewMatches(?array $message,string $user,string $bot,string $variant,?array $wanted=null): bool
 {
     if (MaxPrivateAvatarProbe::decimalId($message['message_id']??null)===null
         ||MaxPrivateAvatarProbe::decimalId($message['chat']['id']??null)!==$user||($message['chat']['type']??null)!=='private'
         ||MaxPrivateAvatarProbe::decimalId($message['from']['id']??null)!==$bot||($message['from']['is_bot']??null)!==true) return false;
-    $wanted=telegramOwnerPreviewBody($variant);$actual=$message['rich_message']['blocks']??null;
+    $wanted=$wanted??telegramOwnerPreviewBody($variant);$actual=$message['rich_message']['blocks']??null;
     if (!is_array($actual)||count($actual)!==5||($actual[0]['type']??null)!==$variant||!is_array($actual[0]['blocks']??null)||count($actual[0]['blocks'])!==3) return false;
     foreach ($actual[0]['blocks'] as $block) {
         if (($block['type']??null)!=='photo'||!is_array($block['photo']??null)||count($block['photo'])<1) return false;
@@ -166,7 +166,7 @@ function telegramOwnerPreviewRun(string $expected,string $installed,string $proj
     finally { foreach ($images as $image) @unlink($image['path']); }
 }
 
-if (!defined('TELEGRAM_OWNER_PREVIEW_OFFLINE_TEST')) {
+if (!defined('TELEGRAM_OWNER_PREVIEW_OFFLINE_TEST')&&!defined('TELEGRAM_OWNER_PREVIEW_LIBRARY')) {
     ini_set('display_errors','0');$result=['ok'=>false,'state'=>'invalid_arguments','send_attempted'=>false,'provider_requests'=>0];
     $expected=telegramOwnerPreviewArguments(array_slice($argv,1));
     if ($expected!==null) {
