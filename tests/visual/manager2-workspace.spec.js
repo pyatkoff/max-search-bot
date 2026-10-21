@@ -7,10 +7,10 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null}={}){
   const pushProtocol=lifecycle(7);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
-  let authenticated=!anonymous,subscribed=false;
+  let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
   let lifecycleHandler=null,stateHandler=null,readHandler=null;const conversationOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
@@ -62,7 +62,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
       if(data.action==='me')return reply({ok:true,manager,csrf:'synthetic-csrf',projects:[{project_key:'anytour',display_name:'AnyTour'}]});
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:2},mine:{count:2}}});
-      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null});
+      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.map(m=>({...m})),delivery_failure:null,...(currentTourChoices&&Number(data.conversation_id)===11?{tour_choices:currentTourChoices}:{})});
       if((['take','release','close','reopen'].includes(data.action)&&lifecycleHandler)||(data.action==='lifecycle_state'&&stateHandler)){
         expect(data.csrf).toBe('synthetic-csrf');const result=await (data.action==='lifecycle_state'?stateHandler:lifecycleHandler)(data);
         if(result.abort)return route.abort('failed').catch(()=>{});
@@ -108,7 +108,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -143,6 +143,27 @@ async function readyBeforeMetadata(page,state,action){
   expect(state.metadataPending()).toBe(1);
   expect(state.calls.filter(call=>call.path==='/manager/api.php'&&call.action==='detail')).toHaveLength(1);
 }
+
+for(const width of [390,1440])test('Manager2 saved tour choice stays in the client card at '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});
+  const tourChoices={offers:[{offer_id:501,delivered_at:'2026-10-21 12:00:00',liked_at:'2026-10-21 12:01:00',snapshot:{
+    hotel:'Семейный отель у моря',departure:'Москва',date_from:'2026-11-03',date_to:'2026-11-10',nights:7,adults:2,child_ages:[5,5],
+    room:'Семейный номер с видом на море',meal:'Всё включено',flights:['ZF 123 · 10:00','ZF 124 · 12:00'],amount:'185000.50',currency:'RUB',price_basis:'party',is_demo:true,price_verified:false,
+    rationale:'Песчаный пляж',compromise:'До моря 400 м'}}],limited:false};
+  const s=await setup(page);await openLead(page);await expect(page.locator('#leadCard .leadHero')).toHaveCount(1);
+  await expect(page.locator('#leadCard [data-tour-choices]')).toHaveCount(0);
+  s.setTourChoices(tourChoices);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
+  const choices=page.locator('#leadCard [data-tour-choices]');await expect(choices).toBeVisible();
+  await choices.locator('summary').click();
+  await expect(choices.locator('.leadReadonly')).toBeVisible();await expect(choices.locator('.leadReadonly')).toHaveText('Демонстрационный вариант');
+  for(const value of ['185 000,50 ₽ за всех','03.11.2026 — 10.11.2026','Возраст детей: 5, 5','Семейный номер с видом на море','Всё включено','ZF 123 · 10:00','актуальность и наличие нужно проверить'])await expect(choices).toContainText(value);
+  await expect(page.locator('#messages [data-tour-choices]')).toHaveCount(0);
+  expect(await choices.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);await noOverflow(page);
+  await showChat(page);expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await showCard(page);
+  await expect(choices.locator('details')).toHaveAttribute('open','');await expect(choices.locator('.leadReadonly')).toBeVisible();
+  await showChat(page);await openLead(page,12);await showCard(page);await expect(page.locator('#leadCard [data-tour-choices]')).toHaveCount(0);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
   for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page})=>{

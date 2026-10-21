@@ -394,3 +394,47 @@ general sending, message edits/deletion, prepared replies, business database
 writes, wizard state, offer binding, saved choices or Manager2 handlers.
 Both buttons remain preview-only. API/native-content verification and the owner's
 visual acceptance are separate outcomes.
+
+## Separately authorized saved-choice trial
+
+After the visual examples, the owner authorized trying the card → saved choice →
+Manager2 path. `tools/owner_tour_choice_trial.php` is a separate fixed functional
+trial, not a rewrite or replay of any historical photo card. It creates exactly
+two new **text** cards: one in each independently proved owner private dialogue.
+The already delivered mosaics/slideshows and their receipts remain immutable.
+
+The fixed Delphin Palace example preserves 5–12 June2027,7nights, Moscow,
+2adults, standard room, ultra-all-inclusive and219600RUB for the whole party.
+All conditions and flights are labelled demonstration/unverified; no availability,
+final-price or booking claim is made. The purpose is the real **Нравится** callback.
+
+The existing trusted-main workflow gains only the exact owner command
+`/owner-tour-choice-trial <installed-main-sha>`, or the mutually exclusive
+`confirm_owner_choice=true` dispatch flag. It runs this fixed command after the
+same owner/default-branch/fresh-main/installed-SHA/clean-checkout checks:
+
+```sh
+php tools/owner_tour_choice_trial.php --expected-sha=<installed-main-sha> --confirm-owner-choice
+```
+
+There is no recipient, hotel, text, callback or offer input. Read-only owner
+targets and `ownerSelectionIdentity` prove both channels before any DB snapshot or
+native creation. `TourChoiceService::prepare` stores immutable conditions before
+the message POST. The returned capability belongs to that exact stored offer;
+MAX uses a native callback button and Telegram uses inline callback data.
+Only verified native creation/readback permits `recordDelivered` with the exact
+message/chat IDs. A real later callback must pass the ordinary conversation,
+channel, user, capability and native-envelope checks before the choice is saved.
+This command does not synthesize a click or write a like on the owner's behalf.
+
+The separate mode0700 directory `/var/www/anytoour/data/owner-tour-choice-trial`
+contains mode0600 once receipts. Explicit `unprepared` receipts let a never-sent
+second channel continue after the first channel's known-MID binding recovery.
+Prepared receipts have no attempt evidence. Every native POST is permanently
+fsynced as reserved first; reservation plus an unknown result never permits a
+second creation. A known MAX MID allows GET-only verification; Telegram retains
+only the required native creation fields privately. A temporary DB delivery-write
+failure can therefore retry the same verified binding without preparing another
+offer or resending that message. Corrupt states, altered flags, foreign receipts,
+unsafe files and mismatched native content fail closed. There are no images,
+uploads, message edits, deletions, ordinary-customer sends or scheduled actions.

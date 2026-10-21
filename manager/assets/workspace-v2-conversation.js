@@ -295,12 +295,14 @@ async function refreshVisible(){
     }
     if(Number(d.conversation?.id)!==target){setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
     const previous=S.detail,c=d.conversation;d.messages=window.WorkspaceV2History?.applyLatest(d)||d.messages||[];const changed=JSON.stringify(previous.messages||[])!==JSON.stringify(d.messages||[]),failureChanged=JSON.stringify(previous.delivery_failure||null)!==JSON.stringify(d.delivery_failure||null);
+    const choicesChanged=JSON.stringify(previous.tour_choices||null)!==JSON.stringify(d.tour_choices||null);
     const actionsChanged=accessLost||failureChanged||JSON.stringify([previous.conversation.manager_id,previous.conversation.status,previous.conversation.manager_name])!==JSON.stringify([c.manager_id,c.status,c.manager_name]);
     const selectedText=captureMessageSelection($('messages'));accessLost=false;S.detail={...d,lead:previous.lead};setRefreshStatus();renderHeader(c);window.WorkspaceV2ConversationSearch?.setState('ready');
     if(changed){const box=$('messages'),top=box.scrollTop,atBottom=window.WorkspaceV2Jump?.isFollowingLatest()??(box.scrollHeight-box.clientHeight-top<=48);renderMessages(d.messages||[],{stickToBottom:atBottom,preserveScroll:!atBottom,selectionSnapshot:selectedText});if(!atBottom&&!window.WorkspaceV2Jump)box.scrollTop=top}
     if(!changed)restoreMessageSelection(selectedText);
     if(failureChanged)renderDeliveryFailure(d.delivery_failure||null);
     if(actionsChanged)renderActions(c);
+    if(choicesChanged)window.WorkspaceV2TourChoices?.enhanceCard(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
     window.WorkspaceV2Inbox?.markRead(target);return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}

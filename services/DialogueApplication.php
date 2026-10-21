@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/DialogueController.php';
+require_once dirname(__DIR__) . '/actions/callbacks/TourChoiceCallbackAction.php';
 
 class DialogueApplication
 {
@@ -59,6 +60,7 @@ class DialogueApplication
         if ($type === 'callback') {
             $callbackId = (string)($incoming['callback_id'] ?? '');
             call_user_func($this->callbackAcknowledger, $callbackId, $incoming);
+            if (TourChoiceCallbackAction::handle($incoming)) return true;
             if ($this->customCallbackHandler) {
                 call_user_func($this->callbackHandler, $this->legacyQuery($incoming), $incoming);
             } else {

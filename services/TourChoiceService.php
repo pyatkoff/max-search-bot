@@ -1,0 +1,261 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Private, append-only sent-offer snapshots and customer choices.
+ * No transport, AI, routing, schema creation or booking side effects.
+ * The sender must verify delivery before recording its native message/chat IDs.
+ */
+final class TourChoiceService
+{
+    private const PREPARED = 'tour_offer_prepared';
+    private const DELIVERED = 'tour_offer_delivered';
+    private const LIKED = 'tour_offer_liked';
+
+    public static function handles(string $payload): bool
+    {
+        return strpos($payload, 'tour_like_') === 0;
+    }
+
+    /** Called by a trusted sender before delivery, never with customer-posted JSON. */
+    public static function prepare(PDO $pdo, int $conversationId, array $snapshot): array
+    {
+        $snapshot = self::normalize($snapshot);
+        if ($conversationId <= 0 || $snapshot === null) return self::error('invalid_offer');
+        self::begin($pdo);
+        try {
+            $conversation = self::conversation($pdo, $conversationId, true);
+            if ($conversation === null) { $pdo->rollBack(); return self::error('unavailable'); }
+            $token = bin2hex(random_bytes(12));
+            $payload = ['schema'=>1, 'snapshot'=>$snapshot, 'binding'=>self::binding($conversation), 'token_hash'=>hash('sha256', $token)];
+            $id = self::append($pdo, $conversationId, self::PREPARED, 'system', null, $payload);
+            $pdo->commit();
+            return ['ok'=>true, 'offer_id'=>$id, 'callback_data'=>'tour_like_'.$id.'_'.$token];
+        } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+    }
+
+    /** An unconfirmed/failed send must never call this method. */
+    public static function recordDelivered(PDO $pdo, int $offerId, string $nativeMid, string $nativeChatId): array
+    {
+        if (!self::nativeId($nativeMid) || !self::nativeId($nativeChatId)) return self::error('invalid_receipt');
+        $offer = self::offer($pdo, $offerId);
+        if ($offer === null) return self::error('unavailable');
+        self::begin($pdo);
+        try {
+            $conversation = self::conversation($pdo, $offer['conversation_id'], true);
+            if ($conversation === null || self::binding($conversation) !== $offer['payload']['binding']) { $pdo->rollBack(); return self::error('unavailable'); }
+            if ($conversation['channel'] === 'telegram' && $nativeChatId !== $conversation['external_user_id']) { $pdo->rollBack(); return self::error('invalid_receipt'); }
+            $receipt = ['offer_id'=>$offerId, 'native_mid'=>$nativeMid, 'native_chat_id'=>$nativeChatId];
+            $previous = self::related($pdo, $offer['conversation_id'], self::DELIVERED, $offerId);
+            if ($previous !== null) {
+                $same = $previous['payload'] === $receipt;
+                $pdo->rollBack();
+                return $same ? ['ok'=>true, 'changed'=>false] : self::error('receipt_mismatch');
+            }
+            self::append($pdo, $offer['conversation_id'], self::DELIVERED, 'system', null, $receipt);
+            $pdo->commit();
+            return ['ok'=>true, 'changed'=>true];
+        } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+    }
+
+    /** Accept only the normalized callback plus the original native envelope. */
+    public static function like(PDO $pdo, array $incoming): array
+    {
+        $payload = $incoming['callback_data'] ?? null;
+        if (($incoming['type'] ?? '') !== 'callback' || !is_string($payload)
+            || !preg_match('/\Atour_like_([1-9][0-9]{0,18})_([a-f0-9]{24})\z/D', $payload, $match)
+            || (string)(int)$match[1] !== $match[1]) return self::error('invalid_callback');
+        $offerId = (int)$match[1];
+        $offer = self::offer($pdo, $offerId);
+        $native = self::nativeCallback($incoming);
+        if ($offer === null || $native === null || !hash_equals($offer['payload']['token_hash'], hash('sha256', $match[2]))) return self::error('unavailable');
+        self::begin($pdo);
+        try {
+            // Every mutation locks the owning conversation first. This also
+            // serializes duplicate callbacks without a second idempotency store.
+            $conversation = self::conversation($pdo, $offer['conversation_id'], true);
+            $binding = $offer['payload']['binding'];
+            $user = is_array($incoming['user'] ?? null) ? $incoming['user'] : [];
+            if ($conversation === null || self::binding($conversation) !== $binding
+                || ($incoming['project_key'] ?? null) !== $binding['project_key']
+                || ($incoming['platform'] ?? null) !== $binding['channel']
+                || (string)($user['external_user_id'] ?? '') !== $binding['external_user_id']
+                || (string)($user['chat_id'] ?? '') !== $binding['external_chat_id']) { $pdo->rollBack(); return self::error('unavailable'); }
+            $delivery = self::related($pdo, $offer['conversation_id'], self::DELIVERED, $offerId);
+            if ($delivery === null || $delivery['payload'] !== ['offer_id'=>$offerId, 'native_mid'=>$native['mid'], 'native_chat_id'=>$native['chat']]) { $pdo->rollBack(); return self::error('unavailable'); }
+            $previous = self::related($pdo, $offer['conversation_id'], self::LIKED, $offerId);
+            if ($previous !== null) {
+                $pdo->rollBack();
+                return ['ok'=>true, 'changed'=>false, 'conversation_id'=>$offer['conversation_id'], 'offer'=>self::projection($offer, $delivery, $previous)];
+            }
+            $id = self::append($pdo, $offer['conversation_id'], self::LIKED, 'customer', $binding['external_user_id'], ['offer_id'=>$offerId]);
+            $liked = ['id'=>$id, 'created_at'=>gmdate('Y-m-d H:i:s')];
+            $pdo->commit();
+            return ['ok'=>true, 'changed'=>true, 'conversation_id'=>$offer['conversation_id'], 'offer'=>self::projection($offer, $delivery, $liked)];
+        } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+    }
+
+    /** Caller must first pass existing Manager conversation visibility checks.
+     * Recent explicit choices take precedence over newer unliked offers.
+     */
+    public static function forConversation(PDO $pdo, int $conversationId, int $limit = 20): array
+    {
+        if ($conversationId <= 0) return ['offers'=>[], 'limited'=>false];
+        $limit = max(1, min(20, $limit));
+        $q = $pdo->prepare('SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? ORDER BY id DESC LIMIT '.($limit + 1));
+        $q->execute([$conversationId, self::LIKED]);
+        $likeRows = $q->fetchAll(PDO::FETCH_ASSOC);
+        $likes = [];
+        foreach ($likeRows as $row) {
+            $p = self::decode($row['payload_json']);
+            if (is_int($p['offer_id'] ?? null) && $p['offer_id'] > 0 && !isset($likes[$p['offer_id']])) $likes[$p['offer_id']] = $row;
+        }
+        $q->execute([$conversationId, self::DELIVERED]);
+        $deliveryRows = $q->fetchAll(PDO::FETCH_ASSOC);
+        $ids = array_keys($likes);
+        foreach ($deliveryRows as $row) {
+            $p = self::decode($row['payload_json']);
+            if (is_int($p['offer_id'] ?? null) && $p['offer_id'] > 0 && !in_array($p['offer_id'], $ids, true)) $ids[] = $p['offer_id'];
+        }
+        $limited = count($ids) > $limit || count($likeRows) > $limit || count($deliveryRows) > $limit;
+        $ids = array_slice($ids, 0, $limit);
+        if ($ids === []) return ['offers'=>[], 'limited'=>$limited];
+        $slots = implode(',', array_fill(0, count($ids), '?'));
+        $q = $pdo->prepare('SELECT id,conversation_id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? AND id IN ('.$slots.')');
+        $q->execute(array_merge([$conversationId, self::PREPARED], $ids));
+        $offers = [];
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) { $offer = self::decodedOffer($row); if ($offer !== null) $offers[$offer['id']] = $offer; }
+        $q = $pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? AND CAST(JSON_EXTRACT(payload_json,'$.offer_id') AS CHAR) IN (".$slots.') ORDER BY id ASC LIMIT 20');
+        $q->execute(array_merge([$conversationId, self::DELIVERED], array_map('strval', $ids)));
+        $deliveries = [];
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $row['payload'] = self::decode($row['payload_json']);
+            $id = $row['payload']['offer_id'] ?? null;
+            if (is_int($id) && !isset($deliveries[$id])) $deliveries[$id] = $row;
+        }
+        $out = [];
+        foreach ($ids as $id) if (isset($offers[$id], $deliveries[$id])) $out[] = self::projection($offers[$id], $deliveries[$id], $likes[$id] ?? null);
+        return ['offers'=>$out, 'limited'=>$limited];
+    }
+
+    public static function normalize(array $input): ?array
+    {
+        $out = [];
+        foreach (['hotel'=>191, 'departure'=>160, 'room'=>300, 'meal'=>160] as $key=>$max) {
+            $value = self::text($input[$key] ?? null, $max);
+            if ($value === null || $value === '') return null;
+            $out[$key] = $value;
+        }
+        foreach (['date_from', 'date_to'] as $key) {
+            $value = $input[$key] ?? null;
+            if (!is_string($value) || !preg_match('/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/D', $value, $date)
+                || !checkdate((int)$date[2], (int)$date[3], (int)$date[1])) return null;
+            $out[$key] = $value;
+        }
+        if ($out['date_to'] <= $out['date_from']) return null;
+        foreach (['nights'=>60, 'adults'=>20] as $key=>$max) { if (!is_int($input[$key] ?? null) || $input[$key] < 1 || $input[$key] > $max) return null; $out[$key] = $input[$key]; }
+        $ages = $input['child_ages'] ?? [];
+        if (!is_array($ages) || count($ages) > 12 || array_values($ages) !== $ages) return null;
+        foreach ($ages as $age) if (!is_int($age) || $age < 0 || $age > 17) return null;
+        $out['child_ages'] = $ages;
+        $amount = $input['amount'] ?? null;
+        if (!is_string($amount) || !preg_match('/\A(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?\z/D', $amount) || (float)$amount <= 0) return null;
+        if (!in_array($input['currency'] ?? null, ['RUB','EUR','USD'], true) || ($input['price_basis'] ?? null) !== 'party'
+            || !is_bool($input['is_demo'] ?? null) || (array_key_exists('price_verified', $input) && $input['price_verified'] !== false)) return null;
+        $out += ['amount'=>$amount, 'currency'=>$input['currency'], 'price_basis'=>'party', 'is_demo'=>$input['is_demo'], 'price_verified'=>false];
+        $flights = $input['flights'] ?? [];
+        if (!is_array($flights) || count($flights) > 6 || array_values($flights) !== $flights) return null;
+        $out['flights'] = [];
+        foreach ($flights as $flight) { $text = self::text($flight, 300); if ($text === null || $text === '') return null; $out['flights'][] = $text; }
+        foreach (['rationale','compromise'] as $key) { $text = self::text($input[$key] ?? '', 600); if ($text === null) return null; $out[$key] = $text; }
+        return $out;
+    }
+
+    private static function projection(array $offer, array $delivery, ?array $like): array
+    {
+        return ['offer_id'=>$offer['id'], 'snapshot'=>$offer['payload']['snapshot'], 'delivered_at'=>$delivery['created_at'], 'liked_at'=>$like['created_at'] ?? null];
+    }
+
+    private static function begin(PDO $pdo): void
+    {
+        if ($pdo->inTransaction()) throw new LogicException('Tour choice requires its own transaction');
+        $pdo->beginTransaction();
+    }
+
+    private static function conversation(PDO $pdo, int $id, bool $lock): ?array
+    {
+        $suffix = $lock && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+        $q = $pdo->prepare('SELECT c.id,c.project_key,c.channel,c.external_chat_id,c.status,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=?'.$suffix);
+        $q->execute([$id]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row) || !in_array($row['status'], ['ai','waiting_manager','manager'], true) || !in_array($row['channel'], ['max','telegram'], true)) return null;
+        foreach (['project_key','external_chat_id','external_user_id'] as $key) if (!self::nativeId((string)($row[$key] ?? ''))) return null;
+        return $row;
+    }
+
+    private static function binding(array $conversation): array
+    {
+        return ['project_key'=>(string)$conversation['project_key'], 'channel'=>(string)$conversation['channel'], 'external_chat_id'=>(string)$conversation['external_chat_id'], 'external_user_id'=>(string)$conversation['external_user_id']];
+    }
+
+    private static function offer(PDO $pdo, int $id): ?array
+    {
+        if ($id <= 0) return null;
+        $q = $pdo->prepare('SELECT id,conversation_id,payload_json,created_at FROM conversation_events WHERE id=? AND event_type=?');
+        $q->execute([$id, self::PREPARED]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) ? self::decodedOffer($row) : null;
+    }
+
+    private static function decodedOffer(array $row): ?array
+    {
+        $p = self::decode($row['payload_json']);
+        if (($p['schema'] ?? null) !== 1 || !is_array($p['snapshot'] ?? null) || self::normalize($p['snapshot']) !== $p['snapshot']
+            || !is_array($p['binding'] ?? null) || array_keys($p['binding']) !== ['project_key','channel','external_chat_id','external_user_id']
+            || !is_string($p['token_hash'] ?? null) || !preg_match('/\A[a-f0-9]{64}\z/D', $p['token_hash'])) return null;
+        return ['id'=>(int)$row['id'], 'conversation_id'=>(int)$row['conversation_id'], 'payload'=>$p, 'created_at'=>(string)$row['created_at']];
+    }
+
+    private static function related(PDO $pdo, int $conversationId, string $type, int $offerId): ?array
+    {
+        $q = $pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? AND CAST(JSON_EXTRACT(payload_json,'$.offer_id') AS CHAR)=? ORDER BY id ASC LIMIT 1");
+        $q->execute([$conversationId, $type, (string)$offerId]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) return null;
+        $row['payload'] = self::decode($row['payload_json']);
+        return $row;
+    }
+
+    private static function append(PDO $pdo, int $conversationId, string $type, string $actorType, ?string $actorId, array $payload): int
+    {
+        $q = $pdo->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,actor_id,payload_json,created_at) VALUES (?,?,?,?,?,?)');
+        $q->execute([$conversationId, $type, $actorType, $actorId, json_encode($payload, JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), gmdate('Y-m-d H:i:s')]);
+        return (int)$pdo->lastInsertId();
+    }
+
+    private static function nativeCallback(array $incoming): ?array
+    {
+        $raw = $incoming['raw'] ?? null;
+        $user = (string)($incoming['user']['external_user_id'] ?? '');
+        if (!is_array($raw)) return null;
+        if (($incoming['platform'] ?? '') === 'telegram') {
+            $q = $raw['callback_query'] ?? [];
+            $message = $q['message'] ?? [];
+            if (($q['data'] ?? null) !== ($incoming['callback_data'] ?? null) || (string)($q['from']['id'] ?? '') !== $user
+                || ($message['chat']['type'] ?? '') !== 'private' || (string)($message['chat']['id'] ?? '') !== $user) return null;
+            $mid = (string)($message['message_id'] ?? ''); $chat = (string)$message['chat']['id'];
+        } elseif (($incoming['platform'] ?? '') === 'max') {
+            $q = $raw['callback'] ?? []; $message = $raw['message'] ?? [];
+            if (($q['payload'] ?? null) !== ($incoming['callback_data'] ?? null) || (string)($q['user']['user_id'] ?? $q['user']['id'] ?? '') !== $user
+                || ($message['recipient']['chat_type'] ?? '') !== 'dialog') return null;
+            $mid = (string)($message['body']['mid'] ?? ''); $chat = (string)($message['recipient']['chat_id'] ?? '');
+        } else return null;
+        return self::nativeId($mid) && self::nativeId($chat) ? ['mid'=>$mid, 'chat'=>$chat] : null;
+    }
+
+    private static function nativeId(string $value): bool { return $value !== '' && strlen($value) <= 191 && preg_match('/[\x00-\x20\x7f]/', $value) === 0; }
+    private static function text($value, int $max): ?string { if (!is_string($value) || preg_match('//u', $value) !== 1 || preg_match('/[\x00-\x1f\x7f]/u', $value)) return null; $value = trim($value); return preg_match_all('/./us', $value) <= $max ? $value : null; }
+    private static function decode($value): ?array { if (!is_string($value) || strlen($value) > 16384) return null; $data = json_decode($value, true); return is_array($data) ? $data : null; }
+    private static function error(string $code): array { return ['ok'=>false, 'error'=>$code]; }
+}
