@@ -1,0 +1,108 @@
+name: Fixed private owner card shape probe
+
+on:
+  push:
+    branches: [analysis/max-owner-card-shape-20261021]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EXPECTED_SHA: dcc246dd5f18c2ccf30c66c1726bcd6ce31d7cef
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify source and current main before credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_ACTOR" = 'pyatkoff'
+          test "$GITHUB_ACTOR_ID" = '226193297'
+          test "$GITHUB_REF" = 'refs/heads/analysis/max-owner-card-shape-20261021'
+          test "$GITHUB_WORKFLOW_REF" = 'pyatkoff/max-search-bot/.github/workflows/max-owner-card-shape.yml@refs/heads/analysis/max-owner-card-shape-20261021'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD^)" = "$EXPECTED_SHA"
+          git diff --quiet
+          git diff --cached --quiet
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          php -l tools/max_owner_card_shape_probe.php
+      - name: GET only the existing fixed owner demo shape with pinned SSH
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          SSH_HOST_KEY: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXxjWqpuN07MTGcXrRnshpTX3KKK/wvQeaYl03RY8DA'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          private_dir="$(mktemp -d "$RUNNER_TEMP/max-card-shape.XXXXXX")"
+          echo "MAX_CARD_SHAPE_PRIVATE_DIR=$private_dir" >> "$GITHUB_ENV"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$private_dir/key"; else printf '%s\n' "$raw" | tr -d '\r' > "$private_dir/key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$private_dir/key"
+          fi
+          chmod 600 "$private_dir/key"
+          ssh-keygen -y -f "$private_dir/key" >/dev/null
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9][A-Za-z0-9.-]*$ ]]
+          [[ "$DEPLOY_USER" =~ ^[A-Za-z_][A-Za-z0-9_.-]*$ ]]
+          printf '%s %s\n' "$DEPLOY_HOST" "$SSH_HOST_KEY" > "$private_dir/known_hosts"
+          chmod 600 "$private_dir/known_hosts"
+          ssh_opts=(-i "$private_dir/key" -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$private_dir/known_hosts" -o BatchMode=yes -o IdentitiesOnly=yes -o ForwardAgent=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o LogLevel=ERROR)
+          timeout 45 ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; git diff --quiet; git diff --cached --quiet; php -d display_errors=0 -d log_errors=0 /dev/stdin; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; git diff --quiet; git diff --cached --quiet" < tools/max_owner_card_shape_probe.php > "$private_dir/result.json" 2> "$private_dir/stderr.txt"
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          test "$(git rev-parse refs/remotes/origin/main)" = "$EXPECTED_SHA"
+          python3 - "$private_dir/result.json" <<'PY'
+          import json,sys
+          value=json.load(open(sys.argv[1]))
+          flags={'mid_matches','bot_matches','chat_matches','recipient_user_id_present','recipient_user_id_matches','caption_matches','strict_card_matches','identity_matches','shape_truncated'}
+          counts={'attachments_count','image_count','keyboard_count'}
+          allowed={'state','requests','request_diagnostic','attachment_types','keyboards'}|flags|counts
+          assert type(value) is dict and set(value)<=allowed
+          assert value['state'] in {'blocked','inconclusive','identity_mismatch','complete'}
+          assert type(value['requests']) is int and value['requests'] in {0,1}
+          for key in flags&set(value): assert type(value[key]) is bool
+          for key in counts&set(value): assert type(value[key]) is int and 0<=value[key]<=1000
+          if 'request_diagnostic' in value:
+              d=value['request_diagnostic']
+              assert type(d) is dict and set(d)=={'http_status','curl_code','error_category','api_code'}
+              assert type(d['http_status']) is int and 0<=d['http_status']<=599
+              assert type(d['curl_code']) is int and 0<=d['curl_code']<=999
+              assert d['error_category'] in {'none','unavailable','transport','tls','http_rejected','provider_rejected','response_too_large','invalid_response'}
+              assert d['api_code'] is None or d['api_code'] in {'proto.payload','proto.query','proto.auth','access.denied','chat.not.found','user.not.found','dialog.suspended','error.dialog.suspended','attachment.not.ready','attachment.invalid','message.empty','message.too.long'}
+          if 'attachment_types' in value:
+              assert type(value['attachment_types']) is list and len(value['attachment_types'])<=20
+              assert set(value['attachment_types'])<={'image','video','audio','file','inline_keyboard','sticker','contact','location','share','other'}
+          for k in value.get('keyboards',[]):
+              assert set(k)=={'rows_count','buttons_count','buttons'}
+              for c in ('rows_count','buttons_count'): assert type(k[c]) is int and 0<=k[c]<=1000
+              assert type(k['buttons']) is list and len(k['buttons'])<=96
+              for b in k['buttons']:
+                  assert set(b)=={'row_index','button_index','fields','has_other_fields','type','label_equals_like','intent'}
+                  assert type(b['row_index']) is int and 0<=b['row_index']<12
+                  assert type(b['button_index']) is int and 0<=b['button_index']<8
+                  assert type(b['fields']) is list and set(b['fields'])<={'type','text','intent','payload','url','user_id','contact_id','mini_app','web_app','request_id'}
+                  assert type(b['has_other_fields']) is bool and type(b['label_equals_like']) is bool
+                  assert b['type'] in {'message','callback','link','request_contact','request_geo_location','open_app','chatbot','other'}
+                  assert b['intent'] is None or b['intent'] in {'default','positive','negative','other'}
+          assert value['state']!='complete' or value.get('identity_matches') is True
+          print(json.dumps(value,separators=(',',':')))
+          PY
+      - name: Remove private runner files
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "${MAX_CARD_SHAPE_PRIVATE_DIR:-}" in "$RUNNER_TEMP"/max-card-shape.*) ;; *) exit 0;; esac
+          rm -f "$MAX_CARD_SHAPE_PRIVATE_DIR/key" "$MAX_CARD_SHAPE_PRIVATE_DIR/known_hosts" "$MAX_CARD_SHAPE_PRIVATE_DIR/result.json" "$MAX_CARD_SHAPE_PRIVATE_DIR/stderr.txt"
+          rmdir "$MAX_CARD_SHAPE_PRIVATE_DIR"
