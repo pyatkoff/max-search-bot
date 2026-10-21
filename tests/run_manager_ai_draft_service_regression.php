@@ -427,13 +427,17 @@ draftCheck('metadata observer never expands the eight-field manager result',$ser
     && count($serviceResult)===8 && count($observed)===1);
 
 $prompt=ManagerAiDraftService::instructions();
+draftCheck('actual provider receives current shared policy once',substr_count($captured[0],TourConsultationPolicy::instructions())===1 && substr_count($prompt,TourConsultationPolicy::instructions())===1);
 draftCheck('date correction retains known city, party and budget rather than restarting intake',
     str_contains($prompt,'Поправка даты, месяца или сезона в продолжающемся подборе заменяет период')
     && str_contains($prompt,'Не спрашивай город заново только из-за перехода с мая на март')
     && str_contains($prompt,'Разделяй явно самостоятельные поездки'));
-draftCheck('post context anchors enquiry but never booking consent, budget or current prices',
+draftCheck('post is supplementary only when related and never booking consent, budget or current prices',
     str_contains($prompt,'origin_posts — сохранённые сервером версии публикаций')
-    && str_contains($prompt,'цена поста не равна личному бюджету')
+    && str_contains($prompt,'Цена поста не равна личному бюджету')
+    && str_contains($prompt,'Сам переход по посту не доказывает предмет запроса')
+    && !str_contains($prompt,'Переход по конкретному посту задаёт предмет обращения')
+    && !str_contains($prompt,'смена страны/периода этому не мешает')
     && str_contains($prompt,'не подменяй неизвестный новый пост старым'));
 draftCheck('directory evidence includes regular routes without inventing live availability',
     str_contains($prompt,'регулярные варианты нельзя исключать только из-за charter=false')
