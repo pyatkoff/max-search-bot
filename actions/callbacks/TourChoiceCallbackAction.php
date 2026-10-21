@@ -36,10 +36,12 @@ class TourChoiceCallbackAction
             } catch (Throwable $ignored) {
                 // The preference is already durable; a push failure must not replay it.
             }
+        } elseif (!empty($result['ok']) && (int)($result['conversation_id'] ?? 0) > 0) {
+            self::feedback($incoming, 'Этот вариант уже сохранён. Менеджер видит ваш выбор.', $feedback);
         } elseif (empty($result['ok'])) {
             self::feedback($incoming, 'Не удалось сохранить выбор. Попробуйте нажать «Нравится» ещё раз.', $feedback);
         }
-        // A duplicate remains acknowledged without another message or manager push.
+        // Repeated presses report the saved state without another save or manager push.
         return true;
     }
 

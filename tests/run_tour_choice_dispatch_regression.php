@@ -33,7 +33,8 @@ choiceDispatchCheck('one durable preference emits one manager notification',$not
 choiceDispatchCheck('truthful confirmation follows save and targets the current callback chat', $feedback === [
     ['telegram',77,'✅ Выбор сохранён. Менеджер увидит этот тур и его условия.',1]]);
 TourChoiceCallbackAction::handle($incoming,$save,$notify,$respond);
-choiceDispatchCheck('duplicate preference does not send another manager notification or message',$notified===[17] && count($feedback)===1);
+choiceDispatchCheck('duplicate preference reports its saved state without another manager notification',$notified===[17]
+    && count($feedback)===2 && end($feedback)[2]==='Этот вариант уже сохранён. Менеджер видит ваш выбор.');
 TourChoiceCallbackAction::handle($incoming,static fn()=>['ok'=>false,'changed'=>false],$notify,$respond);
 choiceDispatchCheck('rejected preference does not notify',$notified===[17]);
 choiceDispatchCheck('rejected preference gives a retry response without claiming success', end($feedback)[2] === 'Не удалось сохранить выбор. Попробуйте нажать «Нравится» ещё раз.');
