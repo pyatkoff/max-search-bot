@@ -201,3 +201,60 @@ and replaces the three image URL payloads with stored token payloads, then reads
 back the same MID. `attachment.not.ready` can require a later explicit edit-only
 resume using those same tokens; there is no automatic retry or re-creation.
 The workflow allows8minutes for bounded download/reserve/upload/edit operations.
+
+## Separately requested compact comparison card
+
+After reviewing the original card, the owner explicitly requested a second card
+to compare the appearance. This is a separate fixed demonstration, not a retry of
+either historical unknown send. The original plain card, its once-receipt and
+the complete recovery journal remain byte-for-byte unchanged.
+
+After the normal review/CI/deploy gates, the same authenticated owner may create
+one exact issue55 comment `/owner-tour-preview-compare <installed-main-sha>` or
+dispatch with only `confirm_owner_comparison=true`. The installed command is
+`php tools/max_owner_tour_preview.php --expected-sha=<installed-main-sha>
+--confirm-owner-comparison`. Existing owner/SHA/event guards apply; confirmations
+are mutually exclusive. The comparison accepts no text, photo or recipient input.
+
+Its fixed caption moves the demo notice below the offer and uses native HTML bold
+only for the hotel title and total price. Dates, departure, two adults, room,
+Ultra All Inclusive, included flight/transfer/insurance and the illustrative-room
+caveat remain explicit. The three images are day facade, beach and room; one
+native **Нравится** message button remains. The beach image is the verified
+[official Imperial factsheet gallery](https://www.delphinhotel.com/delphin-imperial-factsheet-en)
+image `https://www.delphinhotel.com/main_pics/pages/big/4325.png`. Its bytes are
+JPEG, so the existing sniffed MIME/filename handling still applies.
+
+Before any upload or message creation, the CLI requires the existing fixed
+recovery journal to be verified, with `payload-repair-v1`, its known MID and three
+bounded cached tokens. It GETs that exact old MID and proves the unchanged old
+caption, owner/bot/native private chat, three images and one button. The legacy
+unlabelled token positions come only from that fixed prior implementation's
+source order:2996.png,1823.jpg,709.png. The comparison copies only day index0 and
+room index2. It records the old journal's exact byte hash and the three legacy
+source-URL hashes privately; the night token is never assigned to the beach.
+
+The mode0600 fixed receipt
+`/var/www/anytoour/data/max-owner-tour-preview/delphin-imperial-compact-compare-20261021.json`
+stores tokens with SHA256 hashes of their exact desired source URLs. Only the
+missing beach is downloaded/uploaded; each successful token is durably persisted.
+An explicit later activation can resume a pre-send upload failure. Source/hash,
+identity, cache and file-lock failures never authorize a send.
+
+Before its single `POST /messages`, the CLI atomically flushes/fsyncs a permanent
+`post_reserved` marker and exact token-bearing request-body hash. Any attempted
+POST, including400, timeout or an exception, permanently prevents another POST.
+A result without a durably saved MID remains unknown. A stored new MID allows
+only GET readback; no edit, upload or second creation is performed. Verification
+binds that MID to the recorded source-aware request, owner/bot/chat, exact visible
+caption, exactly three images and the one message button. The previous card is
+never edited by this mode.
+
+MAX returns formatted text as plain `body.text` plus `body.markup`; raw `<b>` tags
+are not expected in GET. Readback requires exactly the two `strong` spans with
+strict numeric offsets/lengths, independent of associative/span ordering. The
+fixed caption uses only BMP characters, for which Unicode codepoint and UTF-16
+offsets agree. Missing, shifted, duplicate or different formatting does not verify.
+See [MAX text formatting](https://dev.max.ru/docs-api/use-cases/sending-messages/text-formatting)
+and the [official MessageBody/MarkupElement schema](https://github.com/max-messenger/api-schema/blob/main/schema.yaml).
+Native photo layout and the visual result still require inspection in MAX.

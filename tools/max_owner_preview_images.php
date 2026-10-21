@@ -26,10 +26,10 @@ function ownerPreviewUploadedToken(?array $data): ?string
 }
 
 /** Fixed official sources only; no bot credentials, redirects or MAX CA overrides. */
-function ownerPreviewDownloadImage(int $index,string $directory): ?array
+function ownerPreviewDownloadImage(int $index,string $directory,bool $comparison=false): ?array
 {
     if (!in_array($index,[0,1,2],true)) return null;
-    $url=ownerPreviewBody()['attachments'][$index]['payload']['url'];
+    $url=($comparison?ownerPreviewComparisonBody():ownerPreviewBody())['attachments'][$index]['payload']['url'];
     $path=$directory.'/.owner-preview-image-'.$index.'-'.bin2hex(random_bytes(8)).'.tmp';
     $old=umask(0077);$file=@fopen($path,'x+');umask($old);
     if ($file===false) return null;
@@ -70,15 +70,21 @@ function ownerPreviewUploadImage(string $url,array $image): array
 }
 
 /** Called only after exact known-MID owner/demo proof. Persist each successful token before PUT. */
-function ownerPreviewPrepareImages(array &$receipt,&$file,string $journal,callable $request,string $token,bool $atomic,array &$out,?array $transfers=null): ?array
+function ownerPreviewPrepareImages(array &$receipt,&$file,string $journal,callable $request,string $token,bool $atomic,array &$out,?array $transfers=null,bool $comparison=false): ?array
 {
     $tokens=$receipt['image_tokens']??[];
     if (!is_array($tokens)||count($tokens)>3) return null;
     foreach ($tokens as $index=>$value) if (!in_array($index,[0,1,2],true)||!ownerPreviewImageToken($value)) return null;
+    $body=$comparison?ownerPreviewComparisonBody():ownerPreviewBody();
+    $sources=$receipt['image_sources']??[];
+    if ($comparison) {
+        if (!is_array($sources)||array_keys($sources)!==array_keys($tokens)) return null;
+        foreach ($tokens as $index=>$value) if (($sources[$index]??null)!==hash('sha256',$body['attachments'][$index]['payload']['url'])) return null;
+    }
     $download=$transfers['download']??'ownerPreviewDownloadImage';$upload=$transfers['upload']??'ownerPreviewUploadImage';
     foreach ([0,1,2] as $index) {
         if (isset($tokens[$index])) continue;
-        $out['image_stage']='download';$image=$download($index,dirname($journal));
+        $out['image_stage']='download';$image=$download($index,dirname($journal),$comparison);
         if (!is_array($image)||!is_string($image['path']??null)||dirname($image['path'])!==dirname($journal)
             ||!preg_match('/\A\.owner-preview-image-[012]-[a-f0-9]{16}\.tmp\z/D',basename($image['path']))) return null;
         try {
@@ -92,10 +98,10 @@ function ownerPreviewPrepareImages(array &$receipt,&$file,string $journal,callab
             $uploaded=ownerPreviewUploadedToken(ownerPreviewData($response));
             if ($uploaded===null) return null;
             $tokens[$index]=$uploaded;$receipt['image_tokens']=$tokens;$out['image_stage']='persist';
+            if ($comparison) { $sources[$index]=hash('sha256',$body['attachments'][$index]['payload']['url']);$receipt['image_sources']=$sources; }
             if (!ownerPreviewRecoveryWrite($file,$journal,array_replace($receipt,['state'=>'images_prepared']),$atomic)) return null;
         } finally { @unlink($image['path']); }
     }
-    $body=ownerPreviewBody();
     foreach ([0,1,2] as $index) $body['attachments'][$index]['payload']=['token'=>$tokens[$index]];
     $out['image_stage']='ready';$out['images_prepared']=3;return $body;
 }
