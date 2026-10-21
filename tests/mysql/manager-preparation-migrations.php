@@ -35,21 +35,24 @@ try{
     require_once dirname(__DIR__,2).'/services/VirtualReplyStore.php';
     $virtualReader=new class($pdo){
         public string $text='Египет, трое взрослых';
+        public int $lastId=1;
         private PDO $pdo;
         public function __construct(PDO $pdo){$this->pdo=$pdo;}
         public function recent(string $source,int $limit):array{return $this->scan($source,0,$limit);}
         public function scan(string $source,int $after,int $limit):array{
-            $ids=$source==='conversation'&&$after<1&&$limit>0?[1]:[];
-            return ['source_ids'=>$ids,'last_id'=>$ids?1:$after,'has_more'=>false];
+            $ids=$source==='conversation'&&$limit>0?array_values(array_filter(range(1,$this->lastId),static fn(int $id):bool=>$id>$after)):[];
+            $selected=array_slice($ids,0,$limit);
+            return ['source_ids'=>$selected,'last_id'=>$selected?end($selected):$after,'has_more'=>count($ids)>$limit];
         }
         public function snapshot(string $source,int $id):?array{
             if($this->pdo->inTransaction())throw new RuntimeException('virtual_fixture_recheck_in_transaction');
-            if($source!=='conversation'||$id!==1)return null;
+            if($source!=='conversation'||$id<1||$id>$this->lastId)return null;
+            $text=$id===1?$this->text:'Synthetic triage question '.$id;
             return ['project_key'=>'anytour','source_kind'=>$source,'source_id'=>$id,
-                'source_revision'=>hash('sha256',$this->text),'reference_time'=>'2026-10-20T10:00:00Z','mode'=>'live',
-                'evidence_message_ids'=>[1],'payload'=>['messages'=>[['id'=>1,'sender_type'=>'tourist','text'=>$this->text,
+                'source_revision'=>hash('sha256',$text),'reference_time'=>'2026-10-20T10:00:00Z','mode'=>'live',
+                'evidence_message_ids'=>[$id],'payload'=>['messages'=>[['id'=>$id,'sender_type'=>'tourist','text'=>$text,
                     'created_at'=>'2026-10-20T10:00:00Z']],'history_incomplete'=>false,
-                    'cutoff'=>['source_id'=>1,'reference_time'=>'2026-10-20T10:00:00Z']]];
+                    'cutoff'=>['source_id'=>$id,'reference_time'=>'2026-10-20T10:00:00Z']]];
         }
     };
     $virtualNow=1792490400;
@@ -112,6 +115,40 @@ try{
         ||$virtualStore->reviews(10)['reviews']!==[]
         ||json_decode($currentVirtual['payload_json'],true,64,JSON_THROW_ON_ERROR)['messages'][0]['text']!==$virtualReader->text)throw new RuntimeException('virtual_native_source_change_not_purged');
     echo "PASS native MySQL source revision change purges previous results and recaptures current context\n";
+    // The recaptured source 1 and these new cases use fresh lifecycle attempts;
+    // the original frozen results above are never rewritten for this fixture.
+    $virtualReader->lastId=32;
+    if($virtualStore->capture('conversation','fresh',100)['captured']!==31)throw new RuntimeException('virtual_native_triage_capture_failed');
+    for($batch=0;$batch<2;$batch++)foreach($virtualStore->claim('author',1,20)['jobs']as $job){
+        $context=$virtualStore->context($job['case_id'],'author',$job['claim_token'],1);
+        $result=$authorResult;$result['evidence_message_ids']=[$context['source']['id']];
+        $virtualStore->save($job['case_id'],'author',$job['claim_token'],1,$result,$authorMetadata);
+        $virtualNow++;
+    }
+    $virtualNow+=60;$triageCases=[];
+    for($batch=0;$batch<2;$batch++)foreach($virtualStore->claim('reviewer',1,20)['jobs']as $job){
+        $context=$virtualStore->context($job['case_id'],'reviewer',$job['claim_token'],1);$id=$context['source']['id'];
+        $result=$reviewerResult;
+        if(in_array($id,[2,3,4,5,6,32],true))$result=['ok'=>true,'verdict'=>$id===3?'insufficient_context':'revise',
+            'issues'=>[['category'=>'context','severity'=>'minor','explanation'=>'Synthetic bounded context finding.','evidence_message_ids'=>[$id]]],
+            'corrected_draft'=>null,'lesson_candidate'=>null];
+        $virtualStore->save($job['case_id'],'reviewer',$job['claim_token'],1,$result,
+            ['model'=>'gpt-6-astra','reasoning_effort'=>'high','service_tier'=>'unknown']);
+        $triageCases[$id]=$job['case_id'];$virtualNow++;
+    }
+    if(count($triageCases)!==32)throw new RuntimeException('virtual_native_triage_lifecycle_incomplete');
+    foreach([4=>'rejected',5=>'duplicate',6=>'applied']as $id=>$status)$virtualStore->disposition($triageCases[$id],
+        ['status'=>$status,'reason'=>'Synthetic reviewed disposition.','change_url'=>$status==='rejected'?null:'https://github.com/pyatkoff/max-search-bot/pull/123',
+            'validation'=>'Synthetic separate-case validation.'],1);
+    $triagePage=$virtualStore->reviews(20);$triageAll=$virtualStore->reviews(100);
+    $triageOrder=array_merge([2,3,32],range(31,4),[1]);
+    if(array_column($triagePage['reviews'],'source_id')!==array_slice($triageOrder,0,20)
+        ||$triagePage['has_more']!==true||array_column($triageAll['reviews'],'source_id')!==$triageOrder
+        ||$triageAll['has_more']!==false||$virtualStore->reviews(20)!==$triagePage)throw new RuntimeException('virtual_native_triage_order_or_page_failed');
+    if(array_column($triageAll['reviews'],'requires_disposition')!==array_merge([true,true,true],array_fill(0,29,false))
+        ||array_column(array_slice($triageAll['reviews'],0,3),'verdict')!==['revise','insufficient_context','revise']
+        ||$triageAll['reviews'][3]['disposition']['status']!=='unresolved')throw new RuntimeException('virtual_native_triage_metadata_failed');
+    echo "PASS native MySQL oldest unresolved findings precede twenty-five newer passes with stable pages and disposition metadata\n";
     $client=str_repeat('a',48);$family=str_repeat('b',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')->execute([$client,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('c',64),time()]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);

@@ -191,7 +191,11 @@ final class VirtualReplyStore
     {
         $this->outsideTransaction();
         $limit=$this->limit($limit,100);
-        $rows=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? ORDER BY CASE WHEN c.lesson_state=\'unresolved\' THEN 0 ELSE 1 END,j.completed_at DESC,c.id DESC LIMIT '.($limit+1),['anytour','active','reviewer','completed']);
+        $verdict=$this->driver==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(j.result_json,'$.verdict'))":"JSON_EXTRACT(j.result_json,'$.verdict')";
+        $finding="c.lesson_state='unresolved' AND ".$verdict." IN ('revise','insufficient_context')";
+        // A pass has no lesson to resolve. Rank actual findings before LIMIT;
+        // oldest first prevents newer reviews from indefinitely hiding them.
+        $rows=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? ORDER BY CASE WHEN '.$finding.' THEN 0 ELSE 1 END,CASE WHEN '.$finding.' THEN j.completed_at END ASC,CASE WHEN '.$finding.' THEN c.id END ASC,j.completed_at DESC,c.id DESC LIMIT '.($limit+1),['anytour','active','reviewer','completed']);
         $reviews=[];
         foreach (array_slice($rows,0,$limit) as $row) {
             $fresh=$this->refresh($row);
@@ -202,6 +206,7 @@ final class VirtualReplyStore
             $reviews[]=['case_id'=>$fresh['case_id'],'source_kind'=>$fresh['source_kind'],'source_id'=>(int)$fresh['source_id'],
                 'mode'=>$fresh['mode'],'reference_time'=>$fresh['reference_time'],'author_completed_at'=>$author['completed_at'],
                 'review_completed_at'=>$reviewer['completed_at'],'verdict'=>$result['verdict'],
+                'requires_disposition'=>$fresh['lesson_state']==='unresolved' && in_array($result['verdict'],['revise','insufficient_context'],true),
                 'disposition'=>['status'=>$fresh['lesson_state'],'updated_at'=>$fresh['lesson_updated_at']]];
         }
         return ['reviews'=>$reviews,'has_more'=>count($rows)>$limit];

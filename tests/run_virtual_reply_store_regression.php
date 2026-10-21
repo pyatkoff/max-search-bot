@@ -11,8 +11,8 @@ function storeCheck(string $name,bool $ok): void {
 function storeReject(callable $call,?string $code=null): bool {
     try {$call();return false;} catch (Throwable $error) {return $code===null || $error->getMessage()===$code;}
 }
-function storeDb(): PDO {
-    $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+function storeDb(?PDO $pdo=null): PDO {
+    $pdo=$pdo ?? new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     $pdo->exec('PRAGMA foreign_keys=ON');
     // Execute the actual migration, translating only MySQL DDL syntax.
     $sql=(string)file_get_contents(__DIR__.'/../migrations/049_virtual_reply_learning.sql');
@@ -26,6 +26,17 @@ function storeDb(): PDO {
     $sql=preg_replace('/,\s*\)/',"\n)",$sql);
     $pdo->exec($sql);
     return $pdo;
+}
+final class ReviewDialectFixturePdo extends PDO {
+    public string $reviewDriver='sqlite';
+    public function __construct() {
+        parent::__construct('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+        // Exercise the MySQL scalar-unquoting branch without claiming a live MySQL integration check.
+        $this->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value,1);
+    }
+    public function getAttribute(int $attribute): mixed {
+        return $attribute===PDO::ATTR_DRIVER_NAME?$this->reviewDriver:parent::getAttribute($attribute);
+    }
 }
 final class StoreFixtureReader {
     public array $values=[];
@@ -262,6 +273,54 @@ storeCheck('recent real questions take priority over older captured archive back
 $historyClaim=$priorityStore->claim('author',7,1)['jobs'][0];
 storeCheck('historical backlog remains available after recent work',
     $priorityStore->context($historyClaim['case_id'],'author',$historyClaim['claim_token'],7)['source']['id']===1);
+
+// More than one MCP page of newer passes must not hide older actionable reviews.
+$triageDb=storeDb(new ReviewDialectFixturePdo());$triageReader=new StoreFixtureReader($triageDb);$triageNow=1792490400;
+$triageStore=new VirtualReplyStore($triageDb,$triageReader,static function()use(&$triageNow):int{return $triageNow;});
+for ($id=1;$id<=31;$id++) $triageReader->put('conversation',$id,'Synthetic triage question '.$id);
+$triageStore->capture('conversation','history',100);
+for ($batch=0;$batch<2;$batch++) foreach ($triageStore->claim('author',7,20)['jobs'] as $job) {
+    $context=$triageStore->context($job['case_id'],'author',$job['claim_token'],7);
+    $triageStore->save($job['case_id'],'author',$job['claim_token'],7,storeAuthor($context['source']['id']),storeMetadata('author'));
+    $triageNow++;
+}
+$triageNow+=60;$triageCases=[];
+for ($batch=0;$batch<2;$batch++) foreach ($triageStore->claim('reviewer',8,20)['jobs'] as $job) {
+    $context=$triageStore->context($job['case_id'],'reviewer',$job['claim_token'],8);$id=$context['source']['id'];
+    $result=storeReview($id);
+    if ($id===2) {$result['verdict']='insufficient_context';$result['corrected_draft']=null;}
+    elseif ($id>=6 && $id<=30) $result=['ok'=>true,'verdict'=>'pass','issues'=>[],'corrected_draft'=>null,'lesson_candidate'=>null];
+    $triageStore->save($job['case_id'],'reviewer',$job['claim_token'],8,$result,storeMetadata('reviewer'));
+    $triageCases[$id]=$job['case_id'];$triageNow++;
+}
+foreach ([3=>'rejected',4=>'duplicate',5=>'applied'] as $id=>$status) $triageStore->disposition($triageCases[$id],
+    ['status'=>$status,'reason'=>'Synthetic reviewed disposition.','change_url'=>$status==='rejected'?null:'https://github.com/pyatkoff/max-search-bot/pull/123',
+        'validation'=>'Synthetic separate-case validation.'],7);
+$beforeTriage=$triageDb->query('SELECT case_id,lesson_state,lesson_decision_json FROM virtual_reply_cases ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+$beforeResults=$triageDb->query('SELECT case_id,result_json FROM virtual_reply_jobs ORDER BY case_id,role')->fetchAll(PDO::FETCH_ASSOC);
+foreach (['sqlite','mysql'] as $dialect) {
+    $triageDb->reviewDriver=$dialect;
+    $dialectStore=new VirtualReplyStore($triageDb,$triageReader,static function()use(&$triageNow):int{return $triageNow;});
+    $page=$dialectStore->reviews(20);$all=$dialectStore->reviews(100);
+    storeCheck($dialect.' review ordering puts oldest unresolved revise and insufficient context before over twenty newer passes',
+        array_column(array_slice($page['reviews'],0,3),'source_id')===[1,2,31] && count($page['reviews'])===20 && $page['has_more']===true);
+    storeCheck($dialect.' remaining passes and resolved reviews keep newest-first order',
+        array_column($all['reviews'],'source_id')===array_merge([1,2,31],range(30,3)) && $all['has_more']===false);
+    storeCheck($dialect.' triage metadata distinguishes findings from undecided passes and resolved findings',
+        array_column($all['reviews'],'requires_disposition')===array_merge([true,true,true],array_fill(0,28,false))
+        && $all['reviews'][3]['disposition']['status']==='unresolved');
+}
+storeCheck('listing reviews preserves canonical results and recorded dispositions',
+    $triageDb->query('SELECT case_id,lesson_state,lesson_decision_json FROM virtual_reply_cases ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$beforeTriage
+    && $triageDb->query('SELECT case_id,result_json FROM virtual_reply_jobs ORDER BY case_id,role')->fetchAll(PDO::FETCH_ASSOC)===$beforeResults);
+$triageReader->values['conversation'][1]=null;$revokedPage=$triageStore->reviews(20);
+storeCheck('prioritized findings still recheck revoked source permission and preserve bounded-page metadata',
+    !in_array(1,array_column($revokedPage['reviews'],'source_id'),true) && $revokedPage['reviews'][0]['source_id']===2
+    && count($revokedPage['reviews'])===19 && $revokedPage['has_more']===true
+    && storeFirst($triageDb,'conversation',1)['state']==='invalidated' && storeFirst($triageDb,'conversation',1)['payload_json']===null
+    && storeJob($triageDb,$triageCases[1],'reviewer')['result_json']===null
+    && storeJob($triageDb,$triageCases[1],'reviewer')['claim_token_sha256']===null);
+storeCheck('a later listing fills its page after the revoked finding was purged',count($triageStore->reviews(20)['reviews'])===20);
 
 echo "Virtual reply store regression: {$passed} passed, {$failed} failed\n";
 exit($failed?1:0);
