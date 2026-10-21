@@ -126,6 +126,25 @@ fixtures, Actions artifacts, cron logs and diagnostics. Public change reports
 use synthetic regressions and aggregate outcomes. This is an application-level
 improvement process; it does not train model weights.
 
+## Explicit destination and optional itinerary changes
+
+A named destination city or resort starts the requested selection; an optional
+city-plus-beach or multi-stop alternative is not a missing mandatory condition.
+When essential conditions are present but verified offers are not, the virtual
+author can return no outgoing text with `prepare_selection` and concrete checks.
+This does not claim that any search has run. Needed questions remain appropriate
+for an arrival airport without a chosen destination, multiple places, conflicting
+requirements or missing essential conditions. Country-only requests can still
+need a city/resort question. Reviewer instructions use the same boundary.
+
+Synthetic calibration examples: an explicit Madrid city stay with dates, party,
+origin and budget can proceed to selection; a Faro arrival with no chosen resort
+can require a location question; a Portugal-only request can require a resort
+question; an explicit destination with no budget can still require a budget
+question. These are calibration examples, not independent model-quality results.
+Changing these instructions versions untouched work only; active and completed
+jobs retain their existing frozen contracts.
+
 ## Operations
 
 Migration `049_virtual_reply_learning.sql` owns persistent tables. Runtime code
