@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-10-21T01:04:09+00:00",
+    "generated_at": "2026-10-21T01:19:24+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -33,6 +33,6 @@
         "drop_points": [],
         "flags": []
     },
-    "since_utc": "2026-10-21 00:04:09",
+    "since_utc": "2026-10-21 00:19:24",
     "public_redacted": true
 }
