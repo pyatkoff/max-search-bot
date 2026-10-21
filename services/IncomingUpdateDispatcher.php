@@ -31,14 +31,14 @@ class IncomingUpdateDispatcher
         ConversationRecorder::inbound($incoming);
         ConversationAttributionService::syncByChat($platform,$chatId);
         MetrikaConversionGoalService::customerActivity($platform,$chatId,$type);
-        if (SourceHandlingService::handle($incoming)) {
-            DiagnosticLogger::log('incoming_dispatch','source_handling',['platform'=>$platform,'type'=>$type],$chatId);
-            return true;
-        }
         // Preferences are independent of AI/manager ownership. The application
         // acknowledges the native callback and the action preserves routing/state.
         if ($type === 'callback' && str_starts_with((string)($incoming['callback_data'] ?? ''), 'tour_like_')) {
             return $this->application->dispatch($incoming);
+        }
+        if (SourceHandlingService::handle($incoming)) {
+            DiagnosticLogger::log('incoming_dispatch','source_handling',['platform'=>$platform,'type'=>$type],$chatId);
+            return true;
         }
         $ownership = ConversationControlService::statusByChat($platform, $chatId);
         if ($ownership && in_array((string)$ownership['status'], ['waiting_manager','manager'], true)) {
