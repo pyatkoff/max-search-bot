@@ -83,6 +83,8 @@ if ($mode==='control-register') {
 
 try {
     require_once dirname(__DIR__).'/config.php';
+    require_once dirname(__DIR__).'/services/ProjectConfig.php';
+    require_once dirname(__DIR__).'/services/ConversationDb.php';
     if (ProjectConfig::projectId()!=='anytour') throw new RuntimeException();
     if (in_array($mode,['capture','reconcile'],true)) {
         require_once dirname(__DIR__).'/services/VirtualReplyStore.php';

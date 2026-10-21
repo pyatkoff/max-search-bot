@@ -39,9 +39,16 @@ try {
     file_put_contents($fixture.'/config.php',<<<'CONFIG'
 <?php
 file_put_contents(__DIR__.'/config-loaded','yes');
-final class ProjectConfig { public static function projectId():string { return is_file(__DIR__.'/other-project')?'other':'anytour'; } }
-final class ConversationDb { public static function connection():PDO { return new PDO('sqlite::memory:'); } }
+define('SYNTHETIC_CONFIG_ONLY',true);
 CONFIG);
+    file_put_contents($fixture.'/services/ProjectConfig.php',<<<'PROJECT'
+<?php
+final class ProjectConfig { public static function projectId():string { return is_file(dirname(__DIR__).'/other-project')?'other':'anytour'; } }
+PROJECT);
+    file_put_contents($fixture.'/services/ConversationDb.php',<<<'DATABASE'
+<?php
+final class ConversationDb { public static function connection():PDO { return new PDO('sqlite::memory:'); } }
+DATABASE);
     file_put_contents($fixture.'/services/VirtualReplyStore.php',<<<'STORE'
 <?php
 final class VirtualReplyStore {
