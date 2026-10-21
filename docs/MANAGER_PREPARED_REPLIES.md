@@ -1,5 +1,12 @@
 # Prepared replies through ChatGPT
 
+The owner's fixed bot demo dialogues are internal work. Automatic collection and
+prepared-reply enqueue/list/context/save/cache reads exclude the exact scoped
+identities owned by `InternalOwnerDialogueScope`, including already-issued jobs.
+The predicate runs before the candidate limit; it is not a name or message-text
+filter. Chats remain visible and their messages, status, ownership and `is_test`
+flag are untouched. Explicit manual AI/demo context remains usable.
+
 The owner requested analysis and prepared replies in ChatGPT without separate
 model API calls. The first private read-only pilot reviewed seven real conversations:
 one clarification draft, three manager checks and three cases needing no new text.

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','conversations','managers'];
+$pdo=null;$safe=false;$tables=['virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -149,6 +149,31 @@ try{
         ||array_column(array_slice($triageAll['reviews'],0,3),'verdict')!==['revise','insufficient_context','revise']
         ||$triageAll['reviews'][3]['disposition']['status']!=='unresolved')throw new RuntimeException('virtual_native_triage_metadata_failed');
     echo "PASS native MySQL oldest unresolved findings precede twenty-five newer passes with stable pages and disposition metadata\n";
+    // Extend only this disposable fixture after the migration/lifecycle checks.
+    // Peers are synthetic; no transcript or native production identity is used.
+    require_once dirname(__DIR__,2).'/services/InternalOwnerDialogueScope.php';
+    $pdo->exec('ALTER TABLE conversations ADD project_key VARCHAR(64),ADD channel VARCHAR(32),ADD customer_id BIGINT UNSIGNED,ADD customer_channel_id BIGINT UNSIGNED');
+    $pdo->exec('CREATE TABLE customer_channels(id BIGINT UNSIGNED PRIMARY KEY,customer_id BIGINT UNSIGNED,project_key VARCHAR(64),channel VARCHAR(32),external_user_id VARCHAR(191),external_chat_id VARCHAR(191)) ENGINE=InnoDB');
+    $pdo->exec('CREATE TABLE telegram_dialogue_messages(id BIGINT UNSIGNED PRIMARY KEY,project_key VARCHAR(64),account_id BIGINT UNSIGNED,chat_id BIGINT UNSIGNED) ENGINE=InnoDB');
+    $pdo->exec("UPDATE conversations SET project_key='anytour',channel='telegram',customer_id=11,customer_channel_id=71 WHERE id=1;
+        INSERT INTO conversations VALUES(2,'anytour','max',12,72),(101,'anytour','telegram',13,NULL),(102,'other','telegram',14,NULL);
+        INSERT INTO customer_channels VALUES(71,11,'anytour','telegram','91001','91011'),(72,12,'anytour','max','93001','93011');
+        INSERT INTO telegram_dialogue_messages VALUES(1,'anytour',50001,91001),(2,'anytour',50001,92002),(3,'anytour',50001,91011),(4,'other',50001,91001),(5,'anytour',50001,93001)");
+    $internalConversation=InternalOwnerDialogueScope::conversationSql('c');
+    if(array_map('intval',$pdo->query('SELECT c.id FROM conversations c WHERE NOT '.$internalConversation.' ORDER BY c.id')->fetchAll(PDO::FETCH_COLUMN))!==[101,102])throw new RuntimeException('internal_native_conversation_scope_failed');
+    $contrasts="(SELECT 1 AS id,'other' AS project_key,'telegram' AS channel UNION ALL SELECT 1,'anytour','max' UNION ALL SELECT 2,'anytour','telegram') c";
+    if((int)$pdo->query('SELECT COUNT(*) FROM '.$contrasts.' WHERE NOT '.$internalConversation)->fetchColumn()!==3)throw new RuntimeException('internal_native_scope_contrasts_failed');
+    echo "PASS native MySQL internal conversation predicate preserves other project/channel tuples\n";
+    $internalArchive=InternalOwnerDialogueScope::archiveSql('m');
+    $eligibleArchive='SELECT m.id FROM telegram_dialogue_messages m WHERE NOT '.$internalArchive.' ORDER BY m.id';
+    if(array_map('intval',$pdo->query($eligibleArchive.' LIMIT 1')->fetchAll(PDO::FETCH_COLUMN))!==[2]
+        ||array_map('intval',$pdo->query($eligibleArchive)->fetchAll(PDO::FETCH_COLUMN))!==[2,4,5])throw new RuntimeException('internal_native_archive_scope_or_limit_failed');
+    foreach(["customer_id=99","channel='max'","project_key='other'","external_user_id='091001',external_chat_id='091011'"]as $mismatch){
+        $pdo->exec('UPDATE customer_channels SET '.$mismatch.' WHERE id=71');
+        if(array_map('intval',$pdo->query($eligibleArchive)->fetchAll(PDO::FETCH_COLUMN))!==[1,2,3,4,5])throw new RuntimeException('internal_native_archive_binding_failed');
+        $pdo->exec("UPDATE customer_channels SET customer_id=11,channel='telegram',project_key='anytour',external_user_id='91001',external_chat_id='91011' WHERE id=71");
+    }
+    echo "PASS native MySQL correlated archive CAST scope excludes only bound owner peers before LIMIT\n";
     $client=str_repeat('a',48);$family=str_repeat('b',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_clients VALUES(?,?,?,?)')->execute([$client,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('c',64),time()]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);
@@ -163,6 +188,13 @@ try{
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_tokens')->fetchColumn()!==0)throw new RuntimeException('grant_cascade_failed');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()!==0)throw new RuntimeException('assistant_manager_cascade_failed');
     echo "PASS native OAuth family cascade and bounded event BLOB roundtrip\n";
-}catch(Throwable $ignored){fwrite(STDERR,"FAIL native preparation migrations\n");exit(1);}finally{
+}catch(Throwable $error){
+    // Never print exception text, SQL, values or connection details in CI.
+    $state=$error instanceof PDOException?(string)($error->errorInfo[0]??$error->getCode()):'';
+    $driver=$error instanceof PDOException?(string)($error->errorInfo[1]??''):'';
+    $state=preg_match('/\A[A-Z0-9]{5}\z/D',$state)===1?$state:'unknown';
+    $driver=preg_match('/\A[0-9]{1,10}\z/D',$driver)===1?$driver:'unknown';
+    fwrite(STDERR,"FAIL native preparation migrations sqlstate=$state driver=$driver\n");exit(1);
+}finally{
     if($safe&&$pdo instanceof PDO)foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
 }

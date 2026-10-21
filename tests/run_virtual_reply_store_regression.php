@@ -322,5 +322,44 @@ storeCheck('prioritized findings still recheck revoked source permission and pre
     && storeJob($triageDb,$triageCases[1],'reviewer')['claim_token_sha256']===null);
 storeCheck('a later listing fills its page after the revoked finding was purged',count($triageStore->reviews(20)['reviews'])===20);
 
+// Real reader revocation of a newly classified internal dialogue uses the
+// existing purge path; it neither requeues unknown work nor resets quota.
+$internalDb=storeDb();$internalDb->exec('CREATE TABLE projects(project_key TEXT PRIMARY KEY,is_active INTEGER);
+    CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT);
+    CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
+    INSERT INTO projects VALUES("anytour",1);
+    INSERT INTO conversations VALUES(1,"anytour",0,"website"),(101,"anytour",0,"telegram");
+    INSERT INTO messages VALUES(1,1,"inbound","customer","Synthetic demo","{}","2026-10-20 10:00:00"),
+        (2,101,"inbound","customer","Synthetic tourist question","{}","2026-10-20 10:00:00")');
+$internalReader=new VirtualReplySourceReader($internalDb);$internalNow=1792490400;
+$internalStore=new VirtualReplyStore($internalDb,$internalReader,static function()use(&$internalNow):int{return $internalNow;});
+$internalStore->capture('conversation','fresh',20);$internalCases=[];
+foreach($internalStore->claim('author',7,20)['jobs'] as $job){
+    $context=$internalStore->context($job['case_id'],'author',$job['claim_token'],7);$id=$context['source']['id'];
+    $internalStore->save($job['case_id'],'author',$job['claim_token'],7,storeAuthor($id),storeMetadata('author'));
+    $internalCases[$id]=$job['case_id'];
+}
+$internalNow+=60;
+foreach($internalStore->claim('reviewer',8,20)['jobs'] as $job){
+    $context=$internalStore->context($job['case_id'],'reviewer',$job['claim_token'],8);$id=$context['source']['id'];
+    $internalStore->save($job['case_id'],'reviewer',$job['claim_token'],8,storeReview($id),storeMetadata('reviewer'));
+}
+$quotaBefore=$internalDb->query('SELECT * FROM virtual_reply_quotas ORDER BY role')->fetchAll(PDO::FETCH_ASSOC);
+$internalDb->exec('UPDATE conversations SET channel="telegram" WHERE id=1');
+$messagesBefore=$internalDb->query('SELECT * FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+$reconciled=$internalStore->reconcile(20);$ownerCase=storeFirst($internalDb,'conversation',1);
+storeCheck('bounded reconciliation purges captured owner context and results while retaining ordinary tourists',
+    $reconciled['checked']===2 && $reconciled['invalidated']===1 && $ownerCase['state']==='invalidated'
+    && $ownerCase['payload_json']===null && $ownerCase['evidence_ids_json']===null
+    && storeJob($internalDb,$internalCases[1],'author')['result_json']===null
+    && storeJob($internalDb,$internalCases[1],'reviewer')['result_json']===null
+    && storeJob($internalDb,$internalCases[1],'author')['claim_token_sha256']===null
+    && array_column($internalStore->reviews(20)['reviews'],'source_id')===[2]
+    && storeJob($internalDb,$internalCases[2],'author')['status']==='completed');
+storeCheck('internal scope reconciliation preserves source messages and consumed role quotas',
+    $internalDb->query('SELECT * FROM virtual_reply_quotas ORDER BY role')->fetchAll(PDO::FETCH_ASSOC)===$quotaBefore
+    && $internalDb->query('SELECT * FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$messagesBefore
+    && $internalStore->claim('author',7,20)['jobs']===[]);
+
 echo "Virtual reply store regression: {$passed} passed, {$failed} failed\n";
 exit($failed?1:0);

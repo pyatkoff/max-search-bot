@@ -19,9 +19,21 @@ revisions. Active/completed virtual attempts retain their frozen contracts;
 ordinary prepared work retains its existing revision/freshness fences.
 
 This closes the previous gap in which a validated virtual lesson did not update
-the ordinary draft instruction. Source filtering remains specific to private
-learning; it is not copied into message intake. Publishing instructions still
+the ordinary draft instruction. Learning-specific content/noise filters stay separate from message intake. The
+shared internal-owner exclusion also fences automatic preparation, as described
+below. Publishing instructions still
 requires separate runtime verification and does not prove improved model quality.
+
+The fixed, owner-confirmed bot demo dialogues are internal work, not tourist
+questions. `InternalOwnerDialogueScope` owns their exact project/channel/
+conversation scope. The reader filters them before discovery limits and again
+on snapshots; Telegram archive exclusion follows only the same bound private
+channel identity, not every peer in an approved account. Normal tourists named
+like the owner or asking about cards remain eligible. Existing captured internal
+cases are removed through bounded source reconciliation and its normal private
+payload/result purge, without resetting consumed quotas or unknown attempts.
+This changes neither message intake nor dialogue visibility, routing or demo
+interactions. Manual owner tests remain explicit separate work.
 
 ## Roles
 

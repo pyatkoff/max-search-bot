@@ -126,10 +126,10 @@ INSERT INTO managers VALUES(1,'owner','PRIVATE manager','manager','PRIVATE@examp
 INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2);
 INSERT INTO customers VALUES(10,'PRIVATE customer','79995554433','PRIVATE@example.test');
 INSERT INTO manager_customer_names VALUES(10,'PRIVATE working label',1);
-INSERT INTO conversations VALUES(1,10,'anytour',0,'telegram','','','','manager','new',1,'2026-10-19 10:00:00','2026-10-19 10:01:00',NULL,'PRIVATE external chat',0);
-INSERT INTO manager_conversation_reads VALUES(1,1,1,'2026-10-19 10:00:00');
-INSERT INTO messages VALUES(1,1,'outbound','manager','Здравствуйте!','2026-10-19 10:00:00','telegram',NULL,'PRIVATE','PRIVATE');
-INSERT INTO messages VALUES(2,1,'inbound','customer','Подберите тур в Турцию на двоих, бюджет 200000 рублей.','2026-10-19 10:01:00','telegram',NULL,'PRIVATE','PRIVATE');
+INSERT INTO conversations VALUES(101,10,'anytour',0,'telegram','','','','manager','new',1,'2026-10-19 10:00:00','2026-10-19 10:01:00',NULL,'PRIVATE external chat',0);
+INSERT INTO manager_conversation_reads VALUES(1,101,1,'2026-10-19 10:00:00');
+INSERT INTO messages VALUES(1,101,'outbound','manager','Здравствуйте!','2026-10-19 10:00:00','telegram',NULL,'PRIVATE','PRIVATE');
+INSERT INTO messages VALUES(2,101,'inbound','customer','Подберите тур в Турцию на двоих, бюджет 200000 рублей.','2026-10-19 10:01:00','telegram',NULL,'PRIVATE','PRIVATE');
 ";
     if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
         // The production cache migration has a BIGINT UNSIGNED conversation FK
@@ -145,7 +145,10 @@ INSERT INTO messages VALUES(2,1,'inbound','customer','Подберите тур 
     } else {
         $pdo->exec($schema);
     }
-    if ($channel !== 'telegram') $pdo->prepare('UPDATE conversations SET channel=?')->execute([$channel]);
+    if ($channel !== 'telegram') {
+        $pdo->prepare('UPDATE conversations SET channel=?')->execute([$channel]);
+        $pdo->prepare('UPDATE messages SET channel=?')->execute([$channel]);
+    }
     $pdo->guard = true;
     return $pdo;
 }
@@ -161,12 +164,12 @@ function preparedReplySourceState(PreparedReplyPdo $pdo): array
 
 function preparedReplySnapshot(int $actor = 1): array
 {
-    return ManagerAiDraftContextService::snapshot(1, $actor);
+    return ManagerAiDraftContextService::snapshot(101, $actor);
 }
 
 function preparedReplyRow(array $snapshot, array $changes = []): array
 {
-    return array_replace(['conversation_id'=>1,'manager_id'=>1,'project_key'=>'anytour',
+    return array_replace(['conversation_id'=>101,'manager_id'=>1,'project_key'=>'anytour',
         'context_revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']], $changes);
 }
 
@@ -189,6 +192,29 @@ function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
     $startedWith = $preparedReplyPassed;
+
+    foreach (['telegram'=>1,'max'=>2] as $channel=>$internalId) {
+        foreach (['pending','ready'] as $state) {
+            $pdo=preparedReplyFixture($channel);$snapshot=preparedReplySnapshot();$job=preparedReplyQueue($snapshot);
+            $proposal=preparedReplyProposal();
+            if ($state==='ready') ManagerPreparedReplyService::complete($job,$snapshot['revision'],$proposal);
+            // A previously issued row remains present, but its now-internal
+            // identity is rechecked independently of the frozen revision.
+            $pdo->mutate("UPDATE conversations SET id=$internalId WHERE id=101; UPDATE messages SET conversation_id=$internalId WHERE conversation_id=101; UPDATE manager_conversation_reads SET conversation_id=$internalId WHERE conversation_id=101; UPDATE manager_prepared_replies SET conversation_id=$internalId WHERE job_id='$job'");
+            $ownerSnapshot=ManagerAiDraftContextService::snapshot($internalId,1);
+            $ownerRevision=$ownerSnapshot['revision'];
+            $pdo->mutate("UPDATE manager_prepared_replies SET context_revision='$ownerRevision' WHERE job_id='$job'");
+            $before=preparedReplySourceState($pdo);$writes=$pdo->cacheWrites;
+            $queued=ManagerPreparedReplyService::enqueue([array_replace(preparedReplyRow($ownerSnapshot),['conversation_id'=>$internalId])]);
+            preparedReplyCheck($channel.' internal owner '.$state.' cache is excluded without disabling manual context or hiding the dialogue',
+                ($ownerSnapshot['ok']??false) && $queued['skipped']===1 && $queued['job_ids']===[]
+                && ManagerPreparedReplyService::pending(20)['jobs']===[]
+                && !ManagerPreparedReplyService::context($job)['ok']
+                && !ManagerPreparedReplyService::complete($job,$ownerRevision,$proposal)['ok']
+                && !ManagerPreparedReplyService::prepared($internalId,1,$ownerSnapshot)['prepared']
+                && $pdo->cacheWrites===$writes && $pdo->sourceWriteAttempts===0 && preparedReplySourceState($pdo)===$before);
+        }
+    }
 
     foreach (['website','telegram','max'] as $channel) {
         $pdo=preparedReplyFixture($channel);$sourceBefore=preparedReplySourceState($pdo);
@@ -235,10 +261,10 @@ function preparedReplyRun(): void
     $conflict = ManagerPreparedReplyService::complete($job, $snapshot['revision'], preparedReplyProposal(['draft'=>'Другой текст ответа.']));
     preparedReplyCheck('conflicting retry does not replace a ready reply', ($conflict['ok'] ?? false) === false && $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll() === $readyRows);
     $writes = $pdo->cacheWrites;
-    $ready = ManagerPreparedReplyService::prepared(1, 1, $snapshot);
+    $ready = ManagerPreparedReplyService::prepared(101, 1, $snapshot);
     preparedReplyCheck('fresh owner can retrieve exact prepared reply and cutoff', ($ready['ok'] ?? false) === true && ($ready['prepared'] ?? false) === true && $ready['proposal'] === $proposal && $ready['revision'] === $snapshot['revision'] && $ready['latest_message_id'] === 2 && $ready['job_id'] === $job && $ready['preparation_source'] === 'chatgpt_assistant');
     preparedReplyCheck('read retrieval changes no cache or conversation state', $pdo->cacheWrites === $writes && preparedReplySourceState($pdo) === $sourceBefore && $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
-    preparedReplyCheck('admin visibility cannot read another manager prepared reply', (ManagerPreparedReplyService::prepared(1, 2, $snapshot)['prepared'] ?? false) === false && (ManagerPreparedReplyService::prepared(1, 3, $snapshot)['prepared'] ?? false) === false);
+    preparedReplyCheck('admin visibility cannot read another manager prepared reply', (ManagerPreparedReplyService::prepared(101, 2, $snapshot)['prepared'] ?? false) === false && (ManagerPreparedReplyService::prepared(101, 3, $snapshot)['prepared'] ?? false) === false);
     preparedReplyCheck('completed jobs are absent from pending work', (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === []);
 
     foreach (['edit','metadata_edit','new_customer','manager_reply','reassignment','source_revoke','project_revoke','project_inactive','inactive_manager','status_closed','max_suspended','test_conversation'] as $change) {
@@ -253,15 +279,15 @@ function preparedReplyRun(): void
         $sql = match ($change) {
             'edit'=>"UPDATE messages SET text='Исправленный запрос: нужен только отель.' WHERE id=2",
             'metadata_edit'=>"UPDATE messages SET metadata_json='{\"edited_at\":\"2026-10-19 10:02:00\"}' WHERE id=2",
-            'new_customer'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Теперь бюджет 150000.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
-            'manager_reply'=>"INSERT INTO messages VALUES(3,1,'outbound','manager','Уточните даты.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+            'new_customer'=>"INSERT INTO messages VALUES(3,101,'inbound','customer','Теперь бюджет 150000.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+            'manager_reply'=>"INSERT INTO messages VALUES(3,101,'outbound','manager','Уточните даты.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
             'reassignment'=>'UPDATE conversations SET manager_id=2',
             'source_revoke'=>'DELETE FROM manager_group_members',
             'project_revoke'=>'DELETE FROM manager_projects WHERE manager_id=1',
             'project_inactive'=>'UPDATE projects SET is_active=0 WHERE id=1',
             'inactive_manager'=>'UPDATE managers SET is_active=0 WHERE id=1',
             'status_closed'=>"UPDATE conversations SET status='closed'",
-            'max_suspended'=>"INSERT INTO conversation_events VALUES(1,1,'manager_message_failed','manager','{\"category\":\"suspended\"}','2026-10-19 10:02:00')",
+            'max_suspended'=>"INSERT INTO conversation_events VALUES(1,101,'manager_message_failed','manager','{\"category\":\"suspended\"}','2026-10-19 10:02:00')",
             'test_conversation'=>'UPDATE conversations SET is_test=1',
         };
         $pdo->mutate($sql);
@@ -269,9 +295,9 @@ function preparedReplyRun(): void
         $cacheBefore = $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();
         $writes = $pdo->cacheWrites;
         preparedReplyCheck($change.' invalidates '.$stage.' context and completion even without client refresh', (ManagerPreparedReplyService::context($job)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($job, $original['revision'], $proposal)['ok'] ?? false) === false);
-        $stale = ManagerPreparedReplyService::prepared(1, 1, $original);
+        $stale = ManagerPreparedReplyService::prepared(101, 1, $original);
         $current = preparedReplySnapshot();
-        $fresh = ManagerPreparedReplyService::prepared(1, 1, $current);
+        $fresh = ManagerPreparedReplyService::prepared(101, 1, $current);
         preparedReplyCheck($change.' prevents '.$stage.' stale cache retrieval with old or current snapshot', ($stale['prepared'] ?? false) === false && ($fresh['prepared'] ?? false) === false);
         preparedReplyCheck($change.' '.$stage.' refusal does not mutate source or cache', $pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll() === $cacheBefore && preparedReplySourceState($pdo) === $sourceAfter && $pdo->sourceWriteAttempts === 0 && $pdo->cacheWrites === $writes && !$pdo->inTransaction());
       }
@@ -301,7 +327,7 @@ function preparedReplyRun(): void
     ManagerPreparedReplyService::complete($job, $snapshot['revision'], preparedReplyProposal());
     $pdo->mutate("UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'");
     $writes = $pdo->cacheWrites;
-    preparedReplyCheck('expired ready reply is unavailable and reads do not refresh its TTL', (ManagerPreparedReplyService::prepared(1, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
+    preparedReplyCheck('expired ready reply is unavailable and reads do not refresh its TTL', (ManagerPreparedReplyService::prepared(101, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
     $requeued = ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot)]);
     preparedReplyCheck('unchanged expired context does not silently schedule regeneration', ($requeued['ok'] ?? false) === true && ($requeued['inserted'] ?? -1) === 0 && (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === []);
 
@@ -329,7 +355,7 @@ function preparedReplyRun(): void
         }
         $pdo->guard = true;
         $writes = $pdo->cacheWrites;
-        preparedReplyCheck($corruption.' is not exposed or repaired by cache retrieval', (ManagerPreparedReplyService::prepared(1, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes && $pdo->sourceWriteAttempts === 0);
+        preparedReplyCheck($corruption.' is not exposed or repaired by cache retrieval', (ManagerPreparedReplyService::prepared(101, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes && $pdo->sourceWriteAttempts === 0);
     }
 
     $pdo = preparedReplyFixture();
@@ -346,10 +372,10 @@ function preparedReplyRun(): void
     }
     $job = preparedReplyQueue($snapshot);
     $hold = preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'check_offer','reason'=>'До ответа нужно проверить условия предложения.','checks'=>['Проверить актуальные условия предложения.']]);
-    preparedReplyCheck('a human-check decision is retained without inventing customer text', (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === true && (ManagerPreparedReplyService::prepared(1, 1, $snapshot)['proposal'] ?? null) === $hold);
+    preparedReplyCheck('a human-check decision is retained without inventing customer text', (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === true && (ManagerPreparedReplyService::prepared(101, 1, $snapshot)['proposal'] ?? null) === $hold);
     ProjectConfig::resetForTests(['id'=>'other', 'brand'=>['name'=>'Other project']]);
     $writes = $pdo->cacheWrites;
-    preparedReplyCheck('a different runtime project cannot enumerate or complete another project work', (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === [] && (ManagerPreparedReplyService::context($job)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === false && (ManagerPreparedReplyService::prepared(1, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
+    preparedReplyCheck('a different runtime project cannot enumerate or complete another project work', (ManagerPreparedReplyService::pending(20)['jobs'] ?? null) === [] && (ManagerPreparedReplyService::context($job)['ok'] ?? false) === false && (ManagerPreparedReplyService::complete($job, $snapshot['revision'], $hold)['ok'] ?? false) === false && (ManagerPreparedReplyService::prepared(101, 1, $snapshot)['prepared'] ?? false) === false && $pdo->cacheWrites === $writes);
     preparedReplyCheck('all cache operations finish without source writes or transaction leakage', $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
     preparedReplySelectionRun();
     preparedReplyWaitingRun();
@@ -368,7 +394,7 @@ function preparedReplyWaitingFixture(): array
 {
     $pdo = preparedReplyFixture();
     $pdo->mutate("UPDATE conversations SET manager_id=NULL,status='waiting_manager'");
-    $snapshot = ManagerAiDraftContextService::preparationSnapshot(1,0);
+    $snapshot = ManagerAiDraftContextService::preparationSnapshot(101,0);
     $queued = ManagerPreparedReplyService::enqueue([preparedReplyRow($snapshot,['manager_id'=>0])]);
     if (empty($snapshot['ok']) || empty($queued['job_ids'][0])) throw new RuntimeException('FAIL waiting fixture captures and queues real unassigned enquiry');
     return [$pdo,$snapshot,$queued['job_ids'][0]];
@@ -378,7 +404,7 @@ function preparedReplyWaitingRun(): void
 {
     [$pdo,$waiting,$job] = preparedReplyWaitingFixture();
     $sourceBefore = preparedReplySourceState($pdo);
-    preparedReplyCheck('unassigned preparation does not grant manual reply rights to manager or admin', empty(ManagerAiDraftContextService::snapshot(1,1)['ok']) && empty(ManagerAiDraftContextService::snapshot(1,2)['ok']));
+    preparedReplyCheck('unassigned preparation does not grant manual reply rights to manager or admin', empty(ManagerAiDraftContextService::snapshot(101,1)['ok']) && empty(ManagerAiDraftContextService::snapshot(101,2)['ok']));
     $pending = ManagerPreparedReplyService::pending(20);
     $context = ManagerPreparedReplyService::context($job);
     preparedReplyCheck('worker can read current waiting enquiry without assigning an administrator', ($pending['jobs'][0]['manager_id'] ?? -1) === 0 && ($context['ok'] ?? false) && $context['preparation_scope'] === 'unassigned_waiting' && $context['revision'] === $waiting['revision'] && preparedReplySourceState($pdo) === $sourceBefore);
@@ -387,16 +413,16 @@ function preparedReplyWaitingRun(): void
     preparedReplyCheck('cron opt-in includes waiting inbound enquiries while old pilot scope is unchanged', ($ordinary['exported_count'] ?? -1) === 0 && ($both['exported_count'] ?? 0) === 1 && $both['conversations'][0]['assigned_manager_id'] === 0 && $both['conversations'][0]['revision'] === $waiting['revision'] && preparedReplySourceState($pdo) === $sourceBefore && $pdo->sourceWriteAttempts === 0);
     $proposal = preparedReplyProposal();
     preparedReplyCheck('unassigned private proposal saves without customer or ownership writes', (ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok'] ?? false) && preparedReplySourceState($pdo) === $sourceBefore && $pdo->sourceWriteAttempts === 0);
-    preparedReplyCheck('waiting proposal does not bypass composer ownership', !(ManagerPreparedReplyService::prepared(1,1,$waiting)['prepared'] ?? false) && !(ManagerPreparedReplyService::prepared(1,2,$waiting)['prepared'] ?? false));
+    preparedReplyCheck('waiting proposal does not bypass composer ownership', !(ManagerPreparedReplyService::prepared(101,1,$waiting)['prepared'] ?? false) && !(ManagerPreparedReplyService::prepared(101,2,$waiting)['prepared'] ?? false));
     $pdo->mutate("UPDATE conversations SET manager_id=1,status='manager'");
     $taken = preparedReplySnapshot();
-    $ready = ManagerPreparedReplyService::prepared(1,1,$taken);
+    $ready = ManagerPreparedReplyService::prepared(101,1,$taken);
     preparedReplyCheck('real take retains identical evidence but creates an owner-specific insertion revision', $taken['preparation_revision'] === $waiting['revision'] && $taken['revision'] !== $waiting['revision'] && ($ready['proposal'] ?? null) === $proposal && $ready['revision'] === $taken['revision'] && $ready['latest_message_id'] === 2);
-    preparedReplyCheck('take invalidates old worker completion and old client revision', !(ManagerPreparedReplyService::context($job)['ok'] ?? false) && !(ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok'] ?? false) && !(ManagerPreparedReplyService::prepared(1,1,$waiting)['prepared'] ?? false));
-    preparedReplyCheck('another visible administrator cannot consume the new owner draft', !(ManagerPreparedReplyService::prepared(1,2,$taken)['prepared'] ?? false) && !(ManagerPreparedReplyService::prepared(1,3,$taken)['prepared'] ?? false));
+    preparedReplyCheck('take invalidates old worker completion and old client revision', !(ManagerPreparedReplyService::context($job)['ok'] ?? false) && !(ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok'] ?? false) && !(ManagerPreparedReplyService::prepared(101,1,$waiting)['prepared'] ?? false));
+    preparedReplyCheck('another visible administrator cannot consume the new owner draft', !(ManagerPreparedReplyService::prepared(101,2,$taken)['prepared'] ?? false) && !(ManagerPreparedReplyService::prepared(101,3,$taken)['prepared'] ?? false));
 
     [$pdo,$waiting,$job] = preparedReplyWaitingFixture();
-    $pdo->mutate("INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,'manager',lead_stage_key,1,started_at,last_message_at,closed_at,'OTHER PRIVATE',is_test FROM conversations WHERE id=1; INSERT INTO messages VALUES(3,2,'inbound','customer','Нужен тур на двоих','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE'); UPDATE managers SET is_working=0 WHERE id=1");
+    $pdo->mutate("INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,'manager',lead_stage_key,1,started_at,last_message_at,closed_at,'OTHER PRIVATE',is_test FROM conversations WHERE id=101; INSERT INTO messages VALUES(3,2,'inbound','customer','Нужен тур на двоих','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE'); UPDATE managers SET is_working=0 WHERE id=1");
     $mixed = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,null,true);
     $owners = array_column($mixed['conversations'] ?? [],'assigned_manager_id'); sort($owners);
     preparedReplyCheck('one bounded cron batch includes waiting and assigned off-shift enquiries', ($mixed['candidate_count'] ?? 0) === 2 && ($mixed['exported_count'] ?? 0) === 2 && $owners === [0,1] && $pdo->sourceWriteAttempts === 0);
@@ -404,7 +430,7 @@ function preparedReplyWaitingRun(): void
         'callback'=>"UPDATE messages SET metadata_json='{\"type\":\"callback\"}' WHERE id=2",
         'bot_started'=>"UPDATE messages SET metadata_json='{\"type\":\"bot_started\"}' WHERE id=2",
         'no_customer_text'=>"DELETE FROM messages WHERE sender_type='customer'",
-        'already_answered'=>"INSERT INTO messages VALUES(3,1,'outbound','manager','Уже ответили','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'already_answered'=>"INSERT INTO messages VALUES(3,101,'outbound','manager','Уже ответили','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
     ] as $case=>$sql) {
         [$pdo,$waiting,$job] = preparedReplyWaitingFixture(); $pdo->mutate($sql);
         $batch = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,null,true);
@@ -414,8 +440,8 @@ function preparedReplyWaitingRun(): void
     foreach ([
         'source_text'=>"UPDATE messages SET text='Теперь нужен только отель' WHERE id=2",
         'source_metadata'=>"UPDATE messages SET metadata_json='{\"edited_at\":\"changed\"}' WHERE id=2",
-        'new_customer'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Бюджет изменился','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
-        'manager_reply'=>"INSERT INTO messages VALUES(3,1,'outbound','manager','Отправленные варианты','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'new_customer'=>"INSERT INTO messages VALUES(3,101,'inbound','customer','Бюджет изменился','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'manager_reply'=>"INSERT INTO messages VALUES(3,101,'outbound','manager','Отправленные варианты','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
         'different_source'=>"UPDATE conversations SET source_id=999",
         'expired_cache'=>"UPDATE manager_prepared_replies SET expires_at='2000-01-01 00:00:00'",
         'revoked_owner'=>'DELETE FROM manager_projects WHERE manager_id=1',
@@ -425,7 +451,7 @@ function preparedReplyWaitingRun(): void
         $pdo->mutate("UPDATE conversations SET manager_id=1,status='manager'");
         $pdo->mutate($sql);
         $current = preparedReplySnapshot();
-        preparedReplyCheck($case.' prevents stale waiting-draft carryover after take', !(ManagerPreparedReplyService::prepared(1,1,$current)['prepared'] ?? false) && $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
+        preparedReplyCheck($case.' prevents stale waiting-draft carryover after take', !(ManagerPreparedReplyService::prepared(101,1,$current)['prepared'] ?? false) && $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
     }
     foreach ([
         'admin_revoked'=>'DELETE FROM manager_projects WHERE manager_id=2',
@@ -468,7 +494,7 @@ function preparedReplySelectionRun(): void
     preparedReplyCheck('explicit worker reread makes a new observation rather than reusing a page cache', $reads === 2);
     $proposal = preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'check_offer','reason'=>'Сопоставить два номера и подтвердить цену.','checks'=>['Проверить единицу цены и наличие.'],'evidence_message_ids'=>[1,2]]);
     $saved = ManagerPreparedReplyService::complete($job, $snapshot['revision'], $proposal);
-    $ready = ManagerPreparedReplyService::prepared(1, 1, $snapshot);
+    $ready = ManagerPreparedReplyService::prepared(101, 1, $snapshot);
     preparedReplyCheck('card-informed eight-field proposal saves without persisting page contents', ($saved['ok'] ?? false) && ($ready['proposal'] ?? null) === $proposal && !str_contains(json_encode($pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll()), 'Synthetic Hotel') && $pdo->sourceWriteAttempts === 0);
 
     foreach (['failure','exception','unavailable','office','unsupported'] as $case) {
@@ -489,7 +515,7 @@ function preparedReplySelectionRun(): void
 
     foreach ([
         'message_edit'=>"UPDATE messages SET text='Варианты https://qui-quo.ru/BBBB-0002' WHERE id=1",
-        'new_inbound'=>"INSERT INTO messages VALUES(3,1,'inbound','customer','Другие даты.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
+        'new_inbound'=>"INSERT INTO messages VALUES(3,101,'inbound','customer','Другие даты.','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
         'manager_reassigned'=>'UPDATE conversations SET manager_id=2',
         'manager_revoked'=>'DELETE FROM manager_projects WHERE manager_id=1',
         'closed'=>"UPDATE conversations SET status='closed'",

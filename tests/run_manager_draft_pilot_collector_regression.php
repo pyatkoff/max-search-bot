@@ -144,7 +144,7 @@ function draftPilotConversation(DraftPilotCollectorPdo $pdo, int $id, array $ove
 {
     $row = array_replace([
         'id'=>$id, 'customer_id'=>10, 'project_key'=>'anytour', 'source_id'=>0,
-        'channel'=>'telegram', 'entry_channel'=>'', 'attribution_region'=>'', 'attribution_campaign'=>'',
+        'channel'=>$id===1?'website':'telegram', 'entry_channel'=>'', 'attribution_region'=>'', 'attribution_campaign'=>'',
         'status'=>'manager', 'lead_stage_key'=>'new', 'manager_id'=>1,
         'started_at'=>'2026-10-19 09:00:00', 'last_message_at'=>'2026-10-19 10:00:00',
         'closed_at'=>null, 'external_chat_id'=>'PRIVATE external chat', 'is_test'=>0,
@@ -156,7 +156,7 @@ function draftPilotMessage(DraftPilotCollectorPdo $pdo, int $id, int $cid, array
 {
     $row = array_replace([
         'id'=>$id, 'conversation_id'=>$cid, 'direction'=>'inbound', 'sender_type'=>'customer',
-        'text'=>'Подскажите варианты на октябрь', 'created_at'=>'2026-10-19 10:00:00', 'channel'=>'telegram',
+        'text'=>'Подскажите варианты на октябрь', 'created_at'=>'2026-10-19 10:00:00', 'channel'=>$cid===1?'website':'telegram',
         'metadata_json'=>null, 'sender_id'=>'PRIVATE sender', 'external_message_id'=>'PRIVATE message',
     ], $overrides);
     $pdo->prepare('INSERT INTO messages VALUES('.implode(',', array_fill(0, count($row), '?')).')')->execute(array_values($row));
@@ -165,7 +165,7 @@ function draftPilotMessage(DraftPilotCollectorPdo $pdo, int $id, int $cid, array
 function draftPilotPending(DraftPilotCollectorPdo $pdo, int $id, array $conversation = [], array $message = []): void
 {
     draftPilotConversation($pdo, $id, $conversation);
-    draftPilotMessage($pdo, $id * 100 + 1, $id, $message);
+    draftPilotMessage($pdo, $id * 100 + 1, $id, array_replace(['channel'=>$conversation['channel'] ?? ($id===1?'website':'telegram')],$message));
 }
 
 function draftPilotBusinessState(DraftPilotCollectorPdo $pdo): array
@@ -475,6 +475,23 @@ try {
         $result === ['ok'=>false,'error'=>'context_unavailable'] && $pdo->inTransaction()
         && $pdo->commits === 0 && $pdo->rollbacks === 0);
     $pdo->rollBack();
+
+    $pdo = draftPilotFixture();
+    $pdo->exec("UPDATE conversations SET channel='telegram',last_message_at='2026-10-19 11:59:00' WHERE id=1; UPDATE messages SET channel='telegram' WHERE conversation_id=1");
+    draftPilotPending($pdo,2,['channel'=>'max','last_message_at'=>'2026-10-19 11:58:00']);
+    draftPilotPending($pdo,3,['channel'=>'telegram','last_message_at'=>'2026-10-19 11:00:00'],['text'=>'Alex asks about a holiday gift card']);
+    $state = draftPilotBusinessState($pdo);
+    $result = draftPilotCapture($pdo,[1],1);
+    draftPilotCheck('fixed internal owner scopes cannot crowd a real tourist out of the bounded candidate page',
+        $result['candidate_count']===1 && draftPilotIds($result)===[3] && draftPilotBusinessState($pdo)===$state);
+    $pdo->exec("UPDATE conversations SET channel='website' WHERE id=1; UPDATE conversations SET channel='telegram' WHERE id=2; UPDATE messages SET channel='website' WHERE conversation_id=1; UPDATE messages SET channel='telegram' WHERE conversation_id=2");
+    $result = draftPilotCapture($pdo);
+    draftPilotCheck('same numeric conversations in different channels and normal cards wording remain eligible',
+        draftPilotIds($result)===[1,2,3]);
+    $predicate=InternalOwnerDialogueScope::conversationSql('c');
+    $pdo->exec("UPDATE conversations SET channel='telegram',project_key='other' WHERE id=1");
+    draftPilotCheck('fixed owner classification is project bound rather than a global numeric ID ban',
+        (int)$pdo->query('SELECT COUNT(*) FROM conversations c WHERE c.id=1 AND NOT '.$predicate)->fetchColumn()===1);
 
     echo 'Manager draft pilot collector: '.$passed." checks passed\n";
 } catch (Throwable $error) {
