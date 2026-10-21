@@ -8,7 +8,8 @@ require_once __DIR__.'/VirtualReplyProtocol.php';
 final class VirtualReplyMcpAdapter
 {
     public const NAMES = ['capture_virtual_replies','claim_virtual_replies','get_virtual_reply_context',
-        'save_virtual_reply','list_virtual_reply_reviews','get_virtual_reply_review','record_virtual_reply_lesson'];
+        'save_virtual_reply','list_virtual_reply_reviews','get_virtual_reply_review','record_virtual_reply_lesson',
+        'register_virtual_reply_control'];
 
     public function __construct(private PDO $pdo, private $store = null, private $clock = null, private $controlStore = null) {}
 
@@ -19,6 +20,11 @@ final class VirtualReplyMcpAdapter
         $purpose=['type'=>'string','enum'=>['learning','control'],'default'=>'learning'];
         $id=['type'=>'string','pattern'=>'^[a-f0-9]{64}$'];
         $claim=['case_id'=>$id,'role'=>$role,'claim_token'=>$id];
+        $contract=['type'=>'object','properties'=>[
+            'role'=>['type'=>'string','enum'=>['author']],
+            'instructions'=>['type'=>'string','minLength'=>1,'maxLength'=>60000],
+            'profile'=>['type'=>'object'],'schema'=>['type'=>'object'],'instruction_revision'=>$id],
+            'required'=>['role','instructions','profile','schema','instruction_revision'],'additionalProperties'=>false];
         $definitions=[
             ['capture_virtual_replies','Capture bounded real questions into a separate private learning queue and reconcile existing snapshots. No model calls, no customer sends. Fresh lane starts from recent messages; history lane is a separate archive replay.',
                 ['source'=>['type'=>'string','enum'=>['conversation','telegram_archive']],
@@ -45,6 +51,8 @@ final class VirtualReplyMcpAdapter
                     'validation'=>['type'=>'string','minLength'=>1,'maxLength'=>2000]],
                     'required'=>['status','reason','change_url','validation'],'additionalProperties'=>false]],
                 ['case_id','decision'],false],
+            ['register_virtual_reply_control','Explicitly register up to 20 previously unused reserved groups for a blind paired control. Freeze distinct baseline and candidate author contracts before generation. Verify actual instruction deployment provenance separately. No model calls, quota reset, source disclosure or customer sends; normal capture never registers a control.',
+                ['baseline_contract'=>$contract,'candidate_contract'=>$contract,'limit'=>$limit],['baseline_contract','candidate_contract'],false],
         ];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly]) {
@@ -59,7 +67,7 @@ final class VirtualReplyMcpAdapter
     {
         if ($admin<=0 || !in_array($name,self::NAMES,true)) throw new InvalidArgumentException();
         $limit=static function(array $args): int {
-            $value=$args['limit']??20;
+            $value=array_key_exists('limit',$args)?$args['limit']:20;
             if (!is_int($value)||$value<1||$value>20) throw new InvalidArgumentException();
             return $value;
         };
@@ -112,6 +120,17 @@ final class VirtualReplyMcpAdapter
                     ||($decision['status']==='applied'&&$decision['change_url']===null)
                     ||($decision['status']==='rejected'&&$decision['change_url']!==null)) throw new InvalidArgumentException();
                 $data=$this->invoke('disposition',[self::id($args,'case_id'),$decision,$admin]);break;
+            case 'register_virtual_reply_control':
+                self::keys($args,['baseline_contract','candidate_contract','limit']);
+                $count=$limit($args);
+                $baseline=$args['baseline_contract']??null;$candidate=$args['candidate_contract']??null;
+                if (!is_array($baseline)||array_is_list($baseline)||!is_array($candidate)||array_is_list($candidate)
+                    ||strlen(json_encode([$baseline,$candidate],JSON_THROW_ON_ERROR))>524288) throw new InvalidArgumentException();
+                require_once __DIR__.'/VirtualReplyControlProtocol.php';
+                VirtualReplyControlProtocol::validateAuthorContract($baseline);
+                VirtualReplyControlProtocol::validateAuthorContract($candidate);
+                if ($baseline['instruction_revision']===$candidate['instruction_revision']) throw new InvalidArgumentException();
+                $data=$this->invokeControl('register',[$baseline,$candidate,$count,$admin]);break;
             default: throw new InvalidArgumentException();
         }
         if (!is_array($data)) throw new RuntimeException('invalid_virtual_reply_result');

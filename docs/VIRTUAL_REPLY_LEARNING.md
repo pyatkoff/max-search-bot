@@ -335,7 +335,13 @@ operator must record that separate evidence. Invalid files are rejected before
 configuration/database access. Output contains only safe aggregates, run IDs and
 revisions. No CLI operation calls a provider.
 
-The seven existing MCP tools retain their default learning behavior. Explicit
+The seven existing MCP tools retain their default learning behavior. The separate
+active-admin OAuth tool `register_virtual_reply_control` accepts those two exact
+contracts plus a bounded limit. It makes registration possible through the
+connection without remote shell access. Verify prior/current deployment and
+instruction provenance separately before calling it; registration itself makes
+no model call. No normal capture or claim automatically registers an experiment.
+Explicit
 `claim_virtual_replies(purpose="control", role=...)` allocates only registered
 control jobs. Context/save routes each opaque job ID to its own store; a control
 failure never falls back to the ordinary queue. Each author receives the same
@@ -365,14 +371,15 @@ unassessable metrics. A null assessment excludes both arms from that metric's
 denominator. Duplicate groups cannot inflate a report. A registered run, deployed
 protocol or successful synthetic pair is not an observed model-quality gain.
 
-The connected tool catalog must actually advertise the optional `purpose` and
-`run_id` inputs before a worker uses them. If it does not, report that exact
+The connected tool catalog must actually advertise `register_virtual_reply_control`
+and the optional `purpose`/`run_id` inputs before a worker uses them. If it does not, report that exact
 connection refresh blocker without bypassing OAuth or simulating a run. The
 ordinary seven-tool learning loop and source capture can continue independently.
 
 ## Operations
 
-Migrations `049_virtual_reply_learning.sql` and `051_virtual_reply_sampling.sql`
+Migrations `049_virtual_reply_learning.sql`, `051_virtual_reply_sampling.sql` and
+`052_virtual_reply_controls.sql`
 own the learning tables. Runtime code does not create schema. No additional cron
 is installed by this change. The CLI
 has two explicit, bounded, provider-free maintenance operations:

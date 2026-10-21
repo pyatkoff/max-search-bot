@@ -50,6 +50,7 @@ try {
     $blindReview=['ok'=>true,'assessable'=>true,'answers'=>['A'=>$scores,'B'=>$scores],
         'issues'=>[],'limitations'=>[],'preference'=>'tie'];
     $authorContract=VirtualReplyControlProtocol::authorContract('EXACT FROZEN SYNTHETIC AUTHOR INSTRUCTIONS');
+    $candidateContract=VirtualReplyControlProtocol::authorContract('EXACT DISTINCT SYNTHETIC CANDIDATE INSTRUCTIONS');
     $reviewerContract=VirtualReplyControlProtocol::reviewerContract();
     $frozen=static function(string $role) use ($authorContract,$reviewerContract,$source,$answer,$alternative):array {
         $contract=$role==='author'?$authorContract:$reviewerContract;
@@ -72,11 +73,12 @@ try {
             default=>throw new RuntimeException('unexpected_normal_operation'),
         };
     };
-    $control=static function(string $operation,array $args) use (&$controlCalls,&$failure,$authorId,$reviewerId,$token,$frozen):mixed {
+    $control=static function(string $operation,array $args) use (&$controlCalls,&$failure,$authorId,$reviewerId,$token,$frozen,$runId):mixed {
         $controlCalls[]=[$operation,$args];
         if ($failure===$operation) throw new RuntimeException('virtual_reply_control_claim_unavailable');
         return match ($operation) {
             'owns'=>in_array($args[0],[$authorId,$reviewerId],true),
+            'register'=>['purpose'=>'control','run_id'=>$runId,'registered_cases'=>1,'requested_cases'=>$args[2]],
             'claim'=>['purpose'=>'control','jobs'=>[['case_id'=>$args[0]==='author'?$authorId:$reviewerId,
                 'role'=>$args[0],'claim_token'=>$token]],'daily_limit'=>200,'daily_used'=>200],
             'context'=>$frozen($args[1]),'save'=>['purpose'=>'control','status'=>'completed','duplicate'=>false],
@@ -88,7 +90,12 @@ try {
     };
     $adapter=new VirtualReplyMcpAdapter($pdo,$normal,null,$control);
     $tools=VirtualReplyMcpAdapter::tools();$byName=array_column($tools,null,'name');
-    controlMcpCheck('paired controls retain exactly the seven existing virtual tools',array_column($tools,'name')===VirtualReplyMcpAdapter::NAMES&&count($tools)===7);
+    $previousNames=['capture_virtual_replies','claim_virtual_replies','get_virtual_reply_context','save_virtual_reply',
+        'list_virtual_reply_reviews','get_virtual_reply_review','record_virtual_reply_lesson'];
+    controlMcpCheck('explicit registration appends one tool while preserving the seven existing tool names',
+        array_column($tools,'name')===VirtualReplyMcpAdapter::NAMES&&count($tools)===8
+        &&array_slice(array_column($tools,'name'),0,7)===$previousNames
+        &&$tools[7]['name']==='register_virtual_reply_control');
     foreach ($tools as $tool) {
         $schema=$tool['inputSchema'];$hasPurpose=in_array($tool['name'],['claim_virtual_replies','list_virtual_reply_reviews'],true);
         controlMcpCheck('strict control discovery boundary '.$tool['name'],$schema['additionalProperties']===false
@@ -105,9 +112,22 @@ try {
         array_keys($byName['list_virtual_reply_reviews']['inputSchema']['properties'])===['limit','purpose','run_id']
         &&$byName['list_virtual_reply_reviews']['inputSchema']['properties']['run_id']===['type'=>'string','pattern'=>'^[a-f0-9]{64}$']
         &&!in_array('run_id',$byName['list_virtual_reply_reviews']['inputSchema']['required'],true));
-    controlMcpCheck('control registration and private version mapping are not new MCP inputs',
-        !str_contains(json_encode($tools),'baseline_contract')&&!str_contains(json_encode($tools),'candidate_contract')
-        &&!str_contains(json_encode($tools),'order_json')&&!str_contains(json_encode($tools),'access_token'));
+    $registration=$byName['register_virtual_reply_control'];$registrationSchema=$registration['inputSchema'];
+    controlMcpCheck('registration has a strict explicit two-contract input rather than an implicit model job',
+        array_keys($registrationSchema['properties'])===['baseline_contract','candidate_contract','limit']
+        &&$registrationSchema['required']===['baseline_contract','candidate_contract']
+        &&$registrationSchema['additionalProperties']===false&&!$registration['annotations']['readOnlyHint']
+        &&$registrationSchema['properties']['limit']===['type'=>'integer','minimum'=>1,'maximum'=>20]);
+    foreach (['baseline_contract','candidate_contract'] as $key) {
+        $schema=$registrationSchema['properties'][$key];
+        controlMcpCheck('each frozen author contract has exactly five mandatory fields '.$key,
+            $schema['type']==='object'&&$schema['additionalProperties']===false
+            &&$schema['required']===['role','instructions','profile','schema','instruction_revision']
+            &&array_keys($schema['properties'])===$schema['required']);
+    }
+    controlMcpCheck('registration does not add a token, private mapping or source-selection bypass',
+        !str_contains(json_encode($tools),'order_json')&&!str_contains(json_encode($tools),'access_token')
+        &&!array_key_exists('case_id',$registrationSchema['properties'])&&!array_key_exists('group_key',$registrationSchema['properties']));
     controlMcpCheck('discovery invokes neither private queue',$normalCalls===[]&&$controlCalls===[]);
 
     $adapter->call('capture_virtual_replies',['source'=>'telegram_archive','lane'=>'fresh','limit'=>2],17);
@@ -120,6 +140,59 @@ try {
         $adapter->call('list_virtual_reply_reviews',['limit'=>2]+$optional,17);
         controlMcpCheck('normal review metadata remains on its existing queue '.json_encode($optional),
             end($normalCalls)===['reviews',[2]]&&$controlCalls===[]);
+    }
+    $registrationArgs=['baseline_contract'=>$authorContract,'candidate_contract'=>$candidateContract,'limit'=>2];
+    $before=count($normalCalls);
+    $registered=$adapter->call('register_virtual_reply_control',$registrationArgs,17);
+    controlMcpCheck('only explicit registration forwards both exact frozen contracts and authenticated admin',
+        end($controlCalls)===['register',[$authorContract,$candidateContract,2,17]]&&count($normalCalls)===$before
+        &&$registered['purpose']==='control'&&$registered['run_id']===$runId&&$registered['registered_cases']===1);
+    controlMcpCheck('registration returns aggregate provenance without hidden source or arm content',
+        !str_contains(json_encode($registered),'profile')&&!str_contains(json_encode($registered),'instructions')
+        &&!str_contains(json_encode($registered),'payload')&&!str_contains(json_encode($registered),'claim_token')
+        &&!str_contains(json_encode($registered),'order')&&!str_contains(json_encode($registered),'messages'));
+    $adapter->call('register_virtual_reply_control',['baseline_contract'=>$authorContract,'candidate_contract'=>$candidateContract],17);
+    controlMcpCheck('registration default stays bounded at twenty',end($controlCalls)===['register',[$authorContract,$candidateContract,20,17]]);
+    $invalidRegistrations=[[],['baseline_contract'=>$authorContract],
+        ['baseline_contract'=>null,'candidate_contract'=>$candidateContract],
+        ['baseline_contract'=>[],'candidate_contract'=>$candidateContract],
+        ['baseline_contract'=>'instructions','candidate_contract'=>$candidateContract],
+        ['baseline_contract'=>$authorContract,'candidate_contract'=>null],
+        ['baseline_contract'=>$authorContract,'candidate_contract'=>$authorContract],
+        $registrationArgs+['project_key'=>'other'],$registrationArgs+['group_key'=>$ordinaryId],
+        $registrationArgs+['claim_token'=>$token],$registrationArgs+['purpose'=>'control']];
+    foreach (['baseline_contract','candidate_contract'] as $slot) {
+        $original=$registrationArgs[$slot];
+        $bad=$original;$bad['instruction_revision']=str_repeat('0',64);
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;$bad['instructions'].=' Mutated after freezing.';
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;$bad['role']='reviewer';
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;$bad['profile']['model']='weaker-model';
+        $bad['instruction_revision']=VirtualReplyControlProtocol::contractRevision('author',$bad['instructions'],$bad['schema'],$bad['profile']);
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;$bad['schema']['additionalProperties']=true;
+        $bad['instruction_revision']=VirtualReplyControlProtocol::contractRevision('author',$bad['instructions'],$bad['schema'],$bad['profile']);
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;$bad['order']=['A'=>'baseline','B'=>'candidate'];
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+        $bad=$original;unset($bad['schema']);
+        $invalidRegistrations[]=array_replace($registrationArgs,[$slot=>$bad]);
+    }
+    foreach ([null,0,21,'1',true] as $badLimit) $invalidRegistrations[]=array_replace($registrationArgs,['limit'=>$badLimit]);
+    $largeBaseline=VirtualReplyControlProtocol::authorContract(str_repeat('🌍',60000));
+    $largeCandidate=VirtualReplyControlProtocol::authorContract(str_repeat('🌎',60000));
+    controlMcpCheck('oversize registration fixture has individually valid frozen contracts',
+        VirtualReplyControlProtocol::validateAuthorContract($largeBaseline)===$largeBaseline
+        &&VirtualReplyControlProtocol::validateAuthorContract($largeCandidate)===$largeCandidate
+        &&strlen(json_encode([$largeBaseline,$largeCandidate],JSON_THROW_ON_ERROR))>524288);
+    $invalidRegistrations[]=['baseline_contract'=>$largeBaseline,'candidate_contract'=>$largeCandidate];
+    foreach ($invalidRegistrations as $index=>$args) {
+        $before=[count($normalCalls),count($controlCalls)];
+        controlMcpCheck('invalid registration is rejected before source selection or persistence '.$index,
+            controlMcpReject(fn()=>$adapter->call('register_virtual_reply_control',$args,17))
+            &&[count($normalCalls),count($controlCalls)]===$before);
     }
     foreach (['author','reviewer'] as $role) {
         $before=count($normalCalls);
@@ -198,13 +271,17 @@ try {
                 controlMcpReject(fn()=>$adapter->call($name,$valid+['purpose'=>$badPurpose],17))
                 &&[count($normalCalls),count($controlCalls)]===$before);
         }
-        foreach ([0,21,'1',true] as $badLimit) {
+        foreach ([null,0,21,'1',true] as $badLimit) {
             $before=[count($normalCalls),count($controlCalls)];
             controlMcpCheck('control purpose retains the existing per-call bound '.$name.'/'.json_encode($badLimit),
                 controlMcpReject(fn()=>$adapter->call($name,$valid+['purpose'=>'control','limit'=>$badLimit],17))
                 &&[count($normalCalls),count($controlCalls)]===$before);
         }
     }
+    $before=[count($normalCalls),count($controlCalls)];
+    controlMcpCheck('an explicit null capture bound cannot become the default limit',
+        controlMcpReject(fn()=>$adapter->call('capture_virtual_replies',['source'=>'conversation','lane'=>'fresh','limit'=>null],17))
+        &&[count($normalCalls),count($controlCalls)]===$before);
     foreach (['get_virtual_reply_context'=>['case_id'=>$authorId,'role'=>'author','claim_token'=>$token],
         'get_virtual_reply_review'=>['case_id'=>$reviewerId],
         'record_virtual_reply_lesson'=>['case_id'=>$reviewerId,'decision'=>$decision]] as $name=>$valid) {
@@ -243,7 +320,8 @@ try {
     $rowsBefore=[];foreach(['messages','manager_prepared_replies','manager_preparation_events']as$table)$rowsBefore[$table]=$auth->query('SELECT * FROM '.$table)->fetchAll();
     $changesBefore=(int)$auth->query('SELECT total_changes()')->fetchColumn();
     foreach (['claim_virtual_replies'=>['role'=>'author','purpose'=>'control'],
-        'list_virtual_reply_reviews'=>['purpose'=>'control']] as $name=>$args) {
+        'list_virtual_reply_reviews'=>['purpose'=>'control'],
+        'register_virtual_reply_control'=>[]] as $name=>$args) {
         foreach ([0,2,3,4] as $admin) {
             $before=$auth->controlProbes;
             controlMcpCheck('control purpose requires the active AnyTour admin and bound OAuth '.$name.'/'.$admin,
@@ -262,6 +340,15 @@ try {
     controlMcpCheck('authorized control status preserves explicit old-schema unavailability',
         $auth->controlProbes>$before&&$data===['ok'=>true,'project_key'=>'anytour','purpose'=>'control','status'=>'migration_unavailable']
         &&json_decode($available['result']['content'][0]['text'],true)===$data&&$serviceCalls===[]);
+    $before=$auth->controlProbes;
+    $invalid=$call('register_virtual_reply_control',[]);
+    controlMcpCheck('authorized malformed registration is rejected before private storage',
+        ($invalid['error']['code']??null)===-32602&&$auth->controlProbes===$before&&$serviceCalls===[]);
+    $unavailable=$call('register_virtual_reply_control',$registrationArgs);
+    controlMcpCheck('unavailable control registration never falls through to ordinary preparation',
+        ($unavailable['error']['code']??null)===-32603&&!isset($unavailable['result'])
+        &&!str_contains(json_encode($unavailable),'EXACT')&&!str_contains(json_encode($unavailable),'storage_unavailable')
+        &&$auth->controlProbes>$before&&$serviceCalls===[]);
     $auth->controlHook=static function()use(&$connected):void{$connected=false;};
     $revoked=$call('list_virtual_reply_reviews',['purpose'=>'control']);$connected=true;
     controlMcpCheck('OAuth revoked during a control read withholds its complete result',
