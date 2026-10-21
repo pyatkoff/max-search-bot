@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/VirtualReplySamplingIdentity.php';
 
 /** Bounded, read-only source snapshots. Never calls a provider or a sender. */
 final class VirtualReplySourceReader
@@ -120,9 +121,20 @@ final class VirtualReplySourceReader
                 $at, $metadata, $unavailable);
         }
         $scope = 'conversation:'.(int)$question['conversation_id'];
-        return $this->result('conversation', $id, $scope, $reference, 'live', $rows,
+        $result=$this->result('conversation', $id, $scope, $reference, 'live', $rows,
             ['project_key'=>'anytour', 'is_active'=>1, 'is_test'=>0, 'channel'=>(string)$question['scope_channel']],
             $messages, $incomplete, $reconstructed, $edited > $created, ['source_id'=>$id, 'source_order'=>'database_message_id']);
+        if ($result!==null) {
+            $q=$this->pdo->prepare('SELECT c.customer_id,c.channel,ch.external_user_id,ch.external_chat_id FROM conversations c LEFT JOIN customer_channels ch ON ch.id=c.customer_channel_id AND ch.customer_id=c.customer_id AND ch.project_key=c.project_key AND ch.channel=c.channel WHERE c.id=? AND c.project_key=?');
+            $q->execute([(int)$question['conversation_id'],'anytour']);
+            $binding=$q->fetch(PDO::FETCH_ASSOC);
+            if (!$binding) throw new RuntimeException('virtual_reply_source_unavailable');
+            $result['sampling']=VirtualReplySamplingIdentity::conversation((int)$question['conversation_id'],
+                isset($binding['customer_id'])?(int)$binding['customer_id']:null,(string)$binding['channel'],
+                array_filter([$binding['external_user_id']??null,$binding['external_chat_id']??null],static fn($v):bool=>is_string($v)&&$v!==''),
+                (string)$question['text']);
+        }
+        return $result;
     }
 
     private function archive(int $id): ?array
@@ -176,11 +188,13 @@ final class VirtualReplySourceReader
             $messages[] = $this->message((int)$row['id'], (string)($item['sender_type'] ?? 'unknown'), $text, $at, $item, $unavailable);
         }
         $scope = 'telegram_archive:'.(string)$question['account_id'].':'.(string)$question['chat_id'];
-        return $this->result('telegram_archive', $id, $scope, $reference,
+        $result=$this->result('telegram_archive', $id, $scope, $reference,
             $question['source_kind'] === 'desktop_import' ? 'historical_replay' : 'live', $rows,
             ['project_key'=>'anytour', 'is_active'=>1, 'capture_permissions'=>$permission],
             $messages, $incomplete, $reconstructed, $version > $created,
             ['source_id'=>$id, 'source_order'=>'telegram_native_message_id', 'native_message_id'=>(string)$question['message_id']]);
+        if ($result!==null) $result['sampling']=VirtualReplySamplingIdentity::archive((string)$question['chat_id'],(string)$record['text']);
+        return $result;
     }
 
     private function result(string $source, int $id, string $scope, int $reference, string $mode, array $rows, array $eligibility,

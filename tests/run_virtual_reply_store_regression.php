@@ -325,10 +325,11 @@ storeCheck('a later listing fills its page after the revoked finding was purged'
 // Real reader revocation of a newly classified internal dialogue uses the
 // existing purge path; it neither requeues unknown work nor resets quota.
 $internalDb=storeDb();$internalDb->exec('CREATE TABLE projects(project_key TEXT PRIMARY KEY,is_active INTEGER);
-    CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT);
+    CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,is_test INTEGER,channel TEXT,customer_id INTEGER,customer_channel_id INTEGER);
+    CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
     CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
     INSERT INTO projects VALUES("anytour",1);
-    INSERT INTO conversations VALUES(1,"anytour",0,"website"),(101,"anytour",0,"telegram");
+    INSERT INTO conversations(id,project_key,is_test,channel) VALUES(1,"anytour",0,"website"),(101,"anytour",0,"telegram");
     INSERT INTO messages VALUES(1,1,"inbound","customer","Synthetic demo","{}","2026-10-20 10:00:00"),
         (2,101,"inbound","customer","Synthetic tourist question","{}","2026-10-20 10:00:00")');
 $internalReader=new VirtualReplySourceReader($internalDb);$internalNow=1792490400;

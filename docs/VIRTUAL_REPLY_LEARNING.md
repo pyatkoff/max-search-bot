@@ -129,9 +129,12 @@ prepared queue continue to represent ordinary manager replies only.
 2. `claim_virtual_replies(role, limit)` reserves work before generation. Limits:
    20 per call and 200 claims per role per UTC day. This is a protective sampling
    limit, not a claim that every incoming question has already been processed.
-   Questions from the last 48 hours precede older pending cases, preserving FIFO
-   order within each group so the historical replay backlog cannot displace new
-   questions merely because it was captured first.
+   Questions from the last 48 hours precede older pending cases. With migration
+   051 installed, select one representative per private whole-dialogue group
+   before the bounded candidate limit: within the freshness class prefer a
+   substantive question, then the latest eligible prefix. Across groups prefer
+   those least recently sampled. This prevents neighboring prefixes from
+   displacing other dialogues. Fresh capture still precedes historical replay.
 3. `get_virtual_reply_context` returns frozen instructions, required profile,
    source prefix and evidence for the exact claim.
 4. Run the author on Sol low, or a separate reviewer on Astra high. Pass only
@@ -229,24 +232,70 @@ and retain facts already supported by the context. These are instruction
 calibrations, not a new model-quality benchmark. Frozen active/completed jobs
 retain their original contracts.
 
+## Whole-dialogue sampling and unseen reserves
+
+Migration `051_virtual_reply_sampling.sql` adds hash-only metadata outside the
+frozen payload and source revision. Group conservatively by conversation and
+validated customer identity. A bound positive private Telegram peer can connect
+live conversations with permitted archive copies across accounts. Group chats,
+malformed or uncertain bindings cannot establish an unseen private-person
+cohort. This is whole-dialogue grouping, not semantic trip segmentation or proof
+that every copy in every source has been discovered.
+
+Allocate at most one author claim per group per UTC day atomically with the
+existing role quota. Completed and unknown attempts retain the consumed slot;
+merging aliases does not refund role quota or reopen a job. Social-only greetings
+and acknowledgments have a separate maximum of 20 groups per UTC day within the
+same author quota. They remain eligible; substantive requests containing thanks
+are not classified as social-only. New metadata never rebuilds an existing
+claimed/completed contract, result or lesson decision.
+
+Existing cases are marked legacy by the forward migration. A bounded attachment
+pass links their identities before new author allocation; while active unmapped
+cases remain, the additive `sampling.author_blocked_reason` reports
+`legacy_backfill_pending`. Capture and eligible independent reviews continue.
+Legacy material is development evidence, including old unclaimed cases. Prior
+author claims import their already consumed group/day slots. Any unmapped legacy
+exposure, including an invalidated row whose identity cannot currently be read,
+blocks new reserve enrollment separately. `legacy_unresolved_exposure` and
+`reservation_blocked_reason` expose this limitation. Ordinary author work need
+not wait for unreadable invalidated sources; a zero reserve can be the correct
+outcome, and source permissions must not be bypassed to populate it.
+
+Only a reliably linked, complete live prefix beginning after enrollment, with no
+known exposure or legacy alias, can enter the deterministic roughly one-in-five
+reserve. A historical, incomplete, old or newly ambiguous prefix, exposure, or
+merging previously distinct groups demotes any affected reserve to contaminated
+development evidence. Ordinary author/reviewer allocation, context, private
+review and lesson operations cannot disclose reserved groups. Anonymous group
+exposure and consumed quota metadata survive source invalidation; private source
+content/results retain their existing purge rules. Reserving a group alone does
+not run a control experiment or prove independent model improvement.
+
+Capture/reconciliation/claim responses expose aggregate `sampling` status and
+counts. A fully absent 051 schema reports `migration_unavailable` for rolling
+compatibility; a partial or broken schema is a technical failure. Production
+acceptance requires `sampling.status=enabled`, zero pending/checksum failures,
+preserved quotas and actual installed source behavior.
+
 ## Next quality checks and completion criteria
 
 These are explicit next steps, not measurements already completed. Continue the
 existing reviewer-first worker loop and its per-role UTC quota; do not create a
 new schedule, call a paid provider, or reopen expired/unknown claims.
 
-1. Preserve whole-episode independence. Adjacent prefixes, repeated imports and
-   continuations of one trip are related evidence, not independent successes.
-   A stable private source/episode grouping is needed before claiming automatic
-   diverse sampling: current discovery priority is recent-first FIFO, not a
-   representative sample. Fresh capture must continue before historical replay.
-2. Reserve unseen whole episodes for control evaluation before reading them for
-   development. Keep proposer examples, validation examples and final controls
-   distinct. Compare current and previous instruction versions on the same
-   bounded prefix with blind answer order and independent review; any control
-   inspected to design a repair becomes development material. This needs a
-   separate bounded implementation using normal permission/quota/provenance
-   fences; no control run is claimed by this documentation change.
+1. Verify installed whole-dialogue grouping and diverse selection, including
+   linked copies and contamination. Related prefixes are not independent
+   successes. Grouping remains conservative and does not establish whole-archive
+   discovery or statistical representativeness.
+2. Use reserved whole groups for a separately registered control evaluation.
+   Keep proposer examples, validation examples and final controls distinct.
+   Compare frozen current and previous instruction versions on the same bounded
+   prefix with blind answer order and independent review. Any control inspected
+   to design a repair becomes development material. Paired registration,
+   allocation and review need a separate bounded implementation using normal
+   permission/quota/provenance fences; ordinary review jobs are not that control
+   channel. No paired control run is claimed by sampling or this document.
 3. Cover necessary clarification, useful factual response, concrete comparison,
    budget/placement compromises, unread evidence and no-contact decisions.
    Record unnecessary questions, lost constraints, unsupported claims and
@@ -265,8 +314,9 @@ are not substitutes for measured improvement or proof of whole-archive coverage.
 
 ## Operations
 
-Migration `049_virtual_reply_learning.sql` owns persistent tables. Runtime code
-does not create schema. No additional cron is installed by this change. The CLI
+Migrations `049_virtual_reply_learning.sql` and `051_virtual_reply_sampling.sql`
+own the learning tables. Runtime code does not create schema. No additional cron
+is installed by this change. The CLI
 has two explicit, bounded, provider-free maintenance operations:
 
 ```
@@ -279,3 +329,9 @@ Its output contains only aggregate counters. A deployed table/client/profile is
 not proof that a scheduled worker is connected, that Astra actually ran, or that
 all historical/new dialogs have been processed. Confirm these separately with
 private saved jobs and actual worker execution evidence before reporting them.
+
+Release shared publication coordination promptly after the mandatory exact-head
+CI, deploy/diagnostic/provenance gates and minimal relevant runtime verification.
+Remaining private author/reviewer saves are separate work and must not hold the
+publisher. Quota exhaustion or a pending private control experiment is reported
+truthfully; neither justifies bypassing gates or delaying unrelated publication.
