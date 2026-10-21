@@ -261,5 +261,45 @@ sourceCheck('an unbound peer identity cannot blacklist an unrelated archive chat
 $badAlias=false;try{InternalOwnerDialogueScope::conversationSql('c;invalid');}catch(InvalidArgumentException $error){$badAlias=true;}
 sourceCheck('internal SQL helpers refuse caller-controlled alias syntax',$badAlias);
 
+// Synthetic whole-dialogue identities are private metadata, not source evidence.
+$groupDb=sourceDb();$groupReader=new VirtualReplySourceReader($groupDb);
+sourceMessage($groupDb,901,'customer','Египет на двоих');
+$unboundGroup=$groupReader->snapshot('conversation',901);
+$groupDb->exec('INSERT INTO customer_channels VALUES(81,22,"anytour","telegram","300","300");
+    UPDATE conversations SET customer_id=22,customer_channel_id=81 WHERE id=101');
+$boundGroup=$groupReader->snapshot('conversation',901);
+$archiveGroupId=sourceArchive($groupDb,31,'customer','А на десять ночей?',1792490400,[], 'anytour',100,300);
+$archiveGroup=$groupReader->snapshot('telegram_archive',$archiveGroupId);
+sourceCheck('validated live and archive peers share a whole-dialogue alias',
+    count(array_intersect($boundGroup['sampling']['identity_keys'],$archiveGroup['sampling']['identity_keys']))===1
+    && $boundGroup['sampling']['identity_complete'] && $archiveGroup['sampling']['identity_complete']);
+sourceCheck('group backfill leaves frozen payload and raw source revision untouched',
+    $unboundGroup['source_revision']===$boundGroup['source_revision'] && $unboundGroup['payload']===$boundGroup['payload']
+    && $unboundGroup['sampling']['identity_keys']!==$boundGroup['sampling']['identity_keys']);
+sourceMessage($groupDb,902,'customer','Спасибо!');
+$neighborGroup=$groupReader->snapshot('conversation',902);
+sourceCheck('neighboring questions retain their dialogue aliases with narrow social classification',
+    $neighborGroup['sampling']['identity_keys']===$boundGroup['sampling']['identity_keys']
+    && $neighborGroup['sampling']['kind']==='social' && $boundGroup['sampling']['kind']==='substantive');
+$groupDb->exec('INSERT INTO telegram_archive_accounts VALUES("anytour","archive",101,"second",1,1,7);
+    INSERT INTO telegram_dialogue_connections VALUES("anytour","archive","second",101,1)');
+$otherAccountId=sourceArchive($groupDb,31,'customer','А на десять ночей?',1792490400,[], 'anytour',101,300);
+sourceCheck('the same private archive peer is stable across approved accounts and import order',
+    $groupReader->snapshot('telegram_archive',$otherAccountId)['sampling']['identity_keys']===$archiveGroup['sampling']['identity_keys']);
+$groupDb->exec("UPDATE customer_channels SET external_user_id='0300' WHERE id=81");
+$ambiguousGroup=$groupReader->snapshot('conversation',901);
+sourceCheck('ambiguous or noncanonical bindings cannot link or reserve a private peer',
+    !$ambiguousGroup['sampling']['identity_complete']
+    && array_intersect($ambiguousGroup['sampling']['identity_keys'],$archiveGroup['sampling']['identity_keys'])===[]);
+sourceCheck('group identity values are hashes outside the model payload',
+    !array_key_exists('sampling',$boundGroup['payload'])
+    && array_filter($boundGroup['sampling']['identity_keys'],static fn(string $v):bool=>preg_match('/\A[a-f0-9]{64}\z/D',$v)!==1)===[]);
+sourceCheck('a substantive request is not a social-only message because it contains a greeting or thanks',
+    VirtualReplySamplingIdentity::kind('Спасибо, а сколько стоит?')==='substantive'
+    && VirtualReplySamplingIdentity::kind('Здравствуйте, нужен тур на море')==='substantive'
+    && VirtualReplySamplingIdentity::kind('Спасибо! 🙏')==='social');
+sourceCheck('negative archive chats cannot claim private-person identity completeness',
+    !VirtualReplySamplingIdentity::archive('-300','Египет')['identity_complete']);
+
 echo "Virtual reply source regression: {$passed} passed, {$failed} failed\n";
 exit($failed ? 1 : 0);

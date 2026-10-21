@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__.'/VirtualReplyProtocol.php';
 require_once __DIR__.'/VirtualReplySourceReader.php';
+require_once __DIR__.'/VirtualReplySampling.php';
 
 /** Private two-pass lifecycle. No schema creation, provider calls or message delivery. */
 final class VirtualReplyStore
@@ -15,6 +16,7 @@ final class VirtualReplyStore
     private object $reader;
     private $clock;
     private string $driver;
+    private VirtualReplySampling $sampling;
 
     public function __construct(PDO $pdo, $reader=null, $clock=null)
     {
@@ -25,6 +27,7 @@ final class VirtualReplyStore
         if (!in_array($this->driver,['mysql','sqlite'],true) || !is_callable($this->clock)) {
             throw new InvalidArgumentException('invalid_virtual_reply_dependencies');
         }
+        $this->sampling=new VirtualReplySampling($this->pdo,$this->clock);
     }
 
     public function capture(string $source,string $lane,int $limit): array
@@ -55,7 +58,7 @@ final class VirtualReplyStore
             $result['invalidated']+=(int)$stored['invalidated'];
         }
         $result['cursor']=$this->advanceCursor($source,$lane,max(0,$scan['last_id']));
-        return $result;
+        return $result+['sampling'=>$this->sampling->status()];
     }
 
     /** Bounded rotation also revisits invalidated sources when permission returns. */
@@ -80,7 +83,7 @@ final class VirtualReplyStore
         }
         // Rotation may intentionally move backwards after wrapping.
         $this->advanceCursor('_all','reconcile',$rows?$cursor:0,false);
-        return $result;
+        return $result+['sampling'=>$this->sampling->status()];
     }
 
     public function claim(string $role,int $adminId,int $limit): array
@@ -92,12 +95,18 @@ final class VirtualReplyStore
         $this->expire();
         $now=$this->now(); $day=substr($now,0,10); $jobs=[];$unsupported=0;
         $recent=gmdate('Y-m-d\TH:i:s\Z',$this->at($now)-self::RECENT_WINDOW_SECONDS);
-        $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
-            ['anytour','active',$role,'pending',$now,$recent]);
+        if ($role==='author' && $this->sampling->available()) {
+            foreach ($this->sampling->pendingBackfill(100) as $row) $this->refresh($row);
+            $candidates=$this->sampling->authorCandidates($now,$recent,100);
+        } else {
+            $candidates=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND j.available_at<=? ORDER BY CASE WHEN c.reference_time>=? THEN 0 ELSE 1 END,j.available_at,c.id LIMIT 100',
+                ['anytour','active',$role,'pending',$now,$recent]);
+        }
         foreach ($candidates as $candidate) {
             if (count($jobs)>=$limit) break;
             $fresh=$this->refresh($candidate);
             if ($fresh===null) continue;
+            if (!$this->sampling->readable($fresh['case_id'])) continue;
             $contract=$this->job($fresh['case_id'],$role);
             if (!$contract||!$this->supportedContract($contract,$role)) {$unsupported++;continue;}
             $token=bin2hex(random_bytes(32));
@@ -114,6 +123,7 @@ final class VirtualReplyStore
                     if (!$author || $author['status']!=='completed' || $author['completed_at']===null
                         || $this->at((string)$author['completed_at'])+self::REVIEW_DELAY_SECONDS>$this->at($now)) return null;
                 }
+                if ($role==='author' && !$this->sampling->claimAuthor($fresh,$now)) return null;
                 $expires=$this->date($this->at($now)+($role==='author'?900:1800));
                 $this->execute('UPDATE virtual_reply_jobs SET status=?,claim_token_sha256=?,claimed_by=?,lease_expires_at=?,claimed_at=?,updated_at=? WHERE case_id=? AND role=? AND status=?',
                     ['running',hash('sha256',$token),$adminId,$expires,$now,$now,$fresh['case_id'],$role,'pending']);
@@ -124,7 +134,8 @@ final class VirtualReplyStore
             if ($claimed!==null) $jobs[]=$claimed;
             elseif ($this->used($role,$day)>=self::DAILY_LIMIT) break;
         }
-        return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day),'unsupported_contracts'=>$unsupported];
+        return ['role'=>$role,'jobs'=>$jobs,'daily_limit'=>self::DAILY_LIMIT,'daily_used'=>$this->used($role,$day),'unsupported_contracts'=>$unsupported,
+            'sampling'=>$this->sampling->status()];
     }
 
     public function context(string $caseId,string $role,string $token,int $adminId): array
@@ -135,6 +146,7 @@ final class VirtualReplyStore
         $this->expire();
         $job=$this->job($caseId,$role);
         $this->ownedJob($job,$token,$adminId,false);
+        if (!$this->sampling->readable($caseId)) throw new RuntimeException('virtual_reply_holdout_reserved');
         if (!$this->supportedContract($job,$role)) throw new RuntimeException('virtual_reply_contract_unavailable');
         $payload=$this->decode($case['payload_json']);
         if ($role==='reviewer') {
@@ -154,6 +166,7 @@ final class VirtualReplyStore
         $this->outsideTransaction();
         $this->credentials($caseId,$role,$token,$adminId);
         $case=$this->freshCase($caseId);
+        if (!$this->sampling->readable($caseId)) throw new RuntimeException('virtual_reply_holdout_reserved');
         $contract=$this->job($caseId,$role);
         if (!$contract||!$this->supportedContract($contract,$role)) throw new RuntimeException('virtual_reply_contract_unavailable');
         $canonical=VirtualReplyProtocol::validate($role,$result,$this->decode($case['evidence_ids_json']));
@@ -195,11 +208,12 @@ final class VirtualReplyStore
         $finding="c.lesson_state='unresolved' AND ".$verdict." IN ('revise','insufficient_context')";
         // A pass has no lesson to resolve. Rank actual findings before LIMIT;
         // oldest first prevents newer reviews from indefinitely hiding them.
-        $rows=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? ORDER BY CASE WHEN '.$finding.' THEN 0 ELSE 1 END,CASE WHEN '.$finding.' THEN j.completed_at END ASC,CASE WHEN '.$finding.' THEN c.id END ASC,j.completed_at DESC,c.id DESC LIMIT '.($limit+1),['anytour','active','reviewer','completed']);
+        $rows=$this->rows('SELECT c.* FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND '.$this->sampling->reviewPredicate('c').' ORDER BY CASE WHEN '.$finding.' THEN 0 ELSE 1 END,CASE WHEN '.$finding.' THEN j.completed_at END ASC,CASE WHEN '.$finding.' THEN c.id END ASC,j.completed_at DESC,c.id DESC LIMIT '.($limit+1),['anytour','active','reviewer','completed']);
         $reviews=[];
         foreach (array_slice($rows,0,$limit) as $row) {
             $fresh=$this->refresh($row);
             if ($fresh===null) continue;
+            if (!$this->sampling->readable($fresh['case_id'])) continue;
             $author=$this->job($fresh['case_id'],'author'); $reviewer=$this->job($fresh['case_id'],'reviewer');
             if (!$author || !$reviewer || $reviewer['status']!=='completed' || $reviewer['result_json']===null) continue;
             $result=$this->decode($reviewer['result_json']);
@@ -217,6 +231,7 @@ final class VirtualReplyStore
         $this->outsideTransaction();
         $this->caseId($caseId);
         $case=$this->freshCase($caseId);
+        if (!$this->sampling->readable($caseId)) throw new RuntimeException('virtual_reply_holdout_reserved');
         $author=$this->job($caseId,'author'); $reviewer=$this->job($caseId,'reviewer');
         if (!$author || !$reviewer || $author['status']!=='completed' || $reviewer['status']!=='completed'
             || $author['result_json']===null || $reviewer['result_json']===null) throw new RuntimeException('virtual_reply_review_unavailable');
@@ -243,6 +258,7 @@ final class VirtualReplyStore
             || ($decision['status']==='rejected' && $url!==null)) throw new InvalidArgumentException('invalid_virtual_reply_disposition');
         $canonical=['status'=>$decision['status'],'reason'=>$decision['reason'],'change_url'=>$url,'validation'=>$decision['validation']];
         $case=$this->freshCase($caseId); $now=$this->now();
+        if (!$this->sampling->readable($caseId)) throw new RuntimeException('virtual_reply_holdout_reserved');
         return $this->transaction(function() use ($caseId,$case,$canonical,$adminId,$now): array {
             $current=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?'.$this->lock(),[$caseId,'anytour']);
             $reviewer=$this->job($caseId,'reviewer',true);
@@ -277,6 +293,9 @@ final class VirtualReplyStore
         if ($snapshot['source_revision']!==$row['source_revision'] || $row['state']!=='active' || !$this->retainContracts($row['case_id'])) {
             $this->storeSnapshot($snapshot);return null;
         }
+        if ($this->sampling->available()) $this->transaction(function() use ($row,$snapshot): array {
+            $this->sampling->attach($row,$snapshot);return [];
+        });
         $current=$this->one('SELECT * FROM virtual_reply_cases WHERE case_id=? AND project_key=?',[$row['case_id'],'anytour']);
         return $current && $current['state']==='active' && $current['source_revision']===$snapshot['source_revision'] ? $current : null;
     }
@@ -313,6 +332,7 @@ final class VirtualReplyStore
                 'source_kind'=>$snapshot['source_kind'],'source_id'=>$snapshot['source_id'],'state'=>'invalidated','created_at'=>$now,'updated_at'=>$now]);
             $old=$this->one('SELECT * FROM virtual_reply_cases WHERE project_key=? AND source_kind=? AND source_id=?'.$this->lock(),['anytour',$snapshot['source_kind'],$snapshot['source_id']]);
             if (!$old) throw new RuntimeException('virtual_reply_storage_unavailable');
+            $this->sampling->attach($old,$snapshot);
             if ($old['state']==='active' && $old['source_revision']===$snapshot['source_revision'] && $this->retainContracts($old['case_id'])) return ['captured'=>false,'invalidated'=>false,'case_id'=>$old['case_id']];
             $caseId=bin2hex(random_bytes(32));
             $this->execute('DELETE FROM virtual_reply_jobs WHERE case_id=?',[$old['case_id']]);

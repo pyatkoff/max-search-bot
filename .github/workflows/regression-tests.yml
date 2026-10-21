@@ -101,6 +101,7 @@ jobs:
         run: |
           php tests/run_manager_prepared_reply_regression.php
           php tests/mysql/manager-preparation-migrations.php
+          php tests/mysql/virtual-reply-sampling.php
 
   oauth:
     needs: change-scope
