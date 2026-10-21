@@ -13,6 +13,9 @@ function choiceDispatchCheck(string $name, bool $ok): void {
 }
 $payload = 'tour_like_17_'.str_repeat('a', 24);
 $incoming = IncomingMessage::callback('telegram', 77, 77, 'choice-cb', $payload);
+$nextAction = 'Можно отметить другие варианты или написать вопрос.';
+$genericSaved = "✅ Выбор сохранён.\nМенеджер увидит этот тур и его условия.\n".$nextAction;
+$genericDuplicate = "Этот вариант уже сохранён.\n".$nextAction;
 $saved = []; $notified = []; $feedback = [];
 $save = static function(array $value) use (&$saved): array {
     $saved[] = $value;
@@ -31,10 +34,10 @@ choiceDispatchCheck('choice is handled',TourChoiceCallbackAction::handle($incomi
 choiceDispatchCheck('project is assigned by server configuration',$saved[0]['project_key']===ProjectConfig::projectId());
 choiceDispatchCheck('one durable preference emits one manager notification',$notified===[17]);
 choiceDispatchCheck('truthful confirmation follows save and targets the current callback chat', $feedback === [
-    ['telegram',77,'✅ Выбор сохранён. Менеджер увидит этот тур и его условия.',1]]);
+    ['telegram',77,$genericSaved,1]]);
 TourChoiceCallbackAction::handle($incoming,$save,$notify,$respond);
 choiceDispatchCheck('duplicate preference reports its saved state without another manager notification',$notified===[17]
-    && count($feedback)===2 && end($feedback)[2]==='Этот вариант уже сохранён. Менеджер видит ваш выбор.');
+    && count($feedback)===2 && end($feedback)[2]===$genericDuplicate);
 TourChoiceCallbackAction::handle($incoming,static fn()=>['ok'=>false,'changed'=>false],$notify,$respond);
 choiceDispatchCheck('rejected preference does not notify',$notified===[17]);
 choiceDispatchCheck('rejected preference gives a retry response without claiming success', end($feedback)[2] === 'Не удалось сохранить выбор. Попробуйте нажать «Нравится» ещё раз.');
@@ -43,7 +46,7 @@ choiceDispatchCheck('storage failure is contained without another dialogue actio
 choiceDispatchCheck('storage exception cannot produce a saved confirmation', end($feedback)[2] === 'Не удалось сохранить выбор. Попробуйте нажать «Нравится» ещё раз.');
 choiceDispatchCheck('notification failure does not replay or fail the saved preference',TourChoiceCallbackAction::handle(
     $incoming,static fn()=>['ok'=>true,'changed'=>true,'conversation_id'=>17],static fn()=>throw new RuntimeException('synthetic push failure'),$respond));
-choiceDispatchCheck('push failure cannot conceal a successfully saved preference', end($feedback)[2] === '✅ Выбор сохранён. Менеджер увидит этот тур и его условия.');
+choiceDispatchCheck('push failure cannot conceal a successfully saved preference', end($feedback)[2] === $genericSaved);
 $order=[];
 TourChoiceCallbackAction::handle($incoming,
     static function() use (&$order): array {$order[]='save'; return ['ok'=>true,'changed'=>true,'conversation_id'=>17];},
@@ -51,19 +54,41 @@ TourChoiceCallbackAction::handle($incoming,
     static function() use (&$order): void {$order[]='feedback'; throw new RuntimeException('synthetic transport failure');});
 choiceDispatchCheck('confirmation transport failure preserves save and independent manager notification', $order===['save','feedback','notify']);
 
-// Exercise the actual request-scoped messenger default for both transports.
+// Dynamic labels come only from the saved snapshot, escaped for both default transports.
+$hotel = 'A&B <b>Отель</b> "5★"';
+$escapedHotel = 'A&amp;B &lt;b&gt;Отель&lt;/b&gt; &quot;5★&quot;';
+$namedSaved = "✅ Сохранён вариант: ".$escapedHotel.".\nМенеджер увидит этот тур и его условия.\n".$nextAction;
+$namedDuplicate = "Этот вариант уже сохранён: ".$escapedHotel.".\n".$nextAction;
 foreach (['telegram','max'] as $channel) {
     $requests=[];
     $messenger = $channel==='telegram'
         ? new TelegramMessengerAdapter(static function($method,$body) use (&$requests): bool {$requests[]=[$method,$body]; return true;})
         : new MaxMessengerAdapter(static function($chatId,$text) use (&$requests): bool {$requests[]=[$chatId,$text]; return true;});
     IntegrationRegistry::useMessenger($messenger);
-    $value=$incoming; $value['platform']=$channel;
-    TourChoiceCallbackAction::handle($value,static fn()=>['ok'=>true,'changed'=>true,'conversation_id'=>17],static fn()=>null);
+    $value=$incoming; $value['platform']=$channel; $value['offer']=['snapshot'=>['hotel'=>'Untrusted callback hotel']];
+    TourChoiceCallbackAction::handle($value,static fn()=>['ok'=>true,'changed'=>true,'conversation_id'=>17,'offer'=>['snapshot'=>['hotel'=>$hotel]]],static fn()=>null);
     choiceDispatchCheck('default confirmation uses the current '.$channel.' transport exactly once', count($requests)===1);
     choiceDispatchCheck('default confirmation reaches only the current '.$channel.' chat', $channel==='telegram'
-        ? $requests[0][0]==='sendMessage' && $requests[0][1]['chat_id']===77 && $requests[0][1]['text']==='✅ Выбор сохранён. Менеджер увидит этот тур и его условия.'
-        : $requests[0] === [77,'✅ Выбор сохранён. Менеджер увидит этот тур и его условия.']);
+        ? $requests[0][0]==='sendMessage' && $requests[0][1]['chat_id']===77 && $requests[0][1]['text']===$namedSaved && $requests[0][1]['parse_mode']==='HTML'
+        : $requests[0] === [77,$namedSaved]);
+    $duplicatePushes=0;
+    TourChoiceCallbackAction::handle($value,static fn()=>['ok'=>true,'changed'=>false,'conversation_id'=>17,'offer'=>['snapshot'=>['hotel'=>$hotel]]],
+        static function()use(&$duplicatePushes):void{++$duplicatePushes;});
+    choiceDispatchCheck('default duplicate names the same escaped hotel and next action on '.$channel, count($requests)===2 && ($channel==='telegram'
+        ? $requests[1][1]['text']===$namedDuplicate && $requests[1][1]['parse_mode']==='HTML' : $requests[1]===[77,$namedDuplicate]));
+    choiceDispatchCheck('named duplicate never notifies the manager again on '.$channel, $duplicatePushes===0);
+}
+foreach ([null,'',[],str_repeat('Ж',192),"Invalid\nHotel","Invalid\xffHotel"] as $invalidHotel) foreach ([true,false] as $changed) {
+    $messages=[]; $value=$incoming; $value['offer']=['snapshot'=>['hotel'=>'Untrusted callback hotel']];
+    TourChoiceCallbackAction::handle($value,static fn()=>['ok'=>true,'changed'=>$changed,'conversation_id'=>17,'offer'=>['snapshot'=>['hotel'=>$invalidHotel]]],static fn()=>null,
+        static function(array $value,string $text)use(&$messages):void{$messages[]=$text;});
+    choiceDispatchCheck('invalid or absent canonical hotel uses bounded generic feedback', $messages===[$changed?$genericSaved:$genericDuplicate]);
+}
+foreach (['invalid',new stdClass(),['snapshot'=>'invalid'],['snapshot'=>new stdClass()]] as $invalidOffer) {
+    $messages=[]; $pushes=0;
+    TourChoiceCallbackAction::handle($incoming,static fn()=>['ok'=>true,'changed'=>true,'conversation_id'=>17,'offer'=>$invalidOffer],
+        static function()use(&$pushes):void{++$pushes;},static function(array $value,string $text)use(&$messages):void{$messages[]=$text;});
+    choiceDispatchCheck('malformed saved-offer shape keeps generic feedback and independent push', $messages===[$genericSaved] && $pushes===1);
 }
 IntegrationRegistry::useMessenger(new TelegramMessengerAdapter(static fn()=>true));
 
