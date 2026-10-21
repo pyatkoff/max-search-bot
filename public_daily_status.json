@@ -1,16 +1,16 @@
 {
     "ok": true,
-    "generated_at": "2026-10-21T17:58:10+00:00",
+    "generated_at": "2026-10-21T18:06:55+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 60,
-        "raw_sessions": 60,
+        "sessions": 61,
+        "raw_sessions": 61,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 60,
+            "resolved": 61,
             "unresolved": 0
         },
         "started": 45,
@@ -18,20 +18,20 @@
         "tours_opened": 18,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 2,
-        "manager_requested": 51,
-        "manager_replied": 36,
+        "manager_requested": 52,
+        "manager_replied": 37,
         "customer_replied_after_manager": 15,
         "phone_received": 0,
         "manager_response": {
-            "answered_in_90s": 2,
+            "answered_in_90s": 3,
             "answered_after_90s": 34,
             "still_unanswered": 0,
-            "measured_responses": 36,
-            "avg_seconds": 7747,
+            "measured_responses": 37,
+            "avg_seconds": 7538,
             "max_seconds": 44661
         },
         "drop_points": {
-            "manager_replied": 21,
+            "manager_replied": 22,
             "customer_replied_after_manager": 15,
             "manager_requested": 15,
             "tours_opened": 6,
@@ -43,13 +43,13 @@
             "repeated_callback_input": 2
         },
         "calendar_day": {
-            "conversations_started": 46,
+            "conversations_started": 47,
             "needs_collected_from_started": 18,
             "tours_opened_from_started": 12,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 1,
-            "manager_requested": 41,
-            "manager_replied": 29,
+            "manager_requested": 42,
+            "manager_replied": 30,
             "customer_replied_after_manager": 10
         }
     },
