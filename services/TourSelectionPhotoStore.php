@@ -29,10 +29,12 @@ final class TourSelectionPhotoStore
         return ['url'=>$url,'host'=>strtolower($host)];
     }
 
-    public static function image(string $publication,int $card,int $photo,string $url): array
+    public static function image(string $publication,int $card,int $photo,string $url,?callable $download=null): array
     {
         if (!preg_match('/\A[a-f0-9]{32}\z/D',$publication) || $card<0 || $card>=20 || $photo<0 || $photo>=3 || self::source($url)===null) throw new RuntimeException('invalid_photo');
-        $root=dirname(DiagnosticLogger::filePath()).'/tour-selection-photos';
+        $log=DiagnosticLogger::filePath();
+        if ($log==='' || $log[0]!=='/') throw new RuntimeException('photo_storage_unavailable');
+        $root=dirname($log).'/tour-selection-photos';
         if (is_link($root) || (!is_dir($root) && !mkdir($root,0700)) || !chmod($root,0700)) throw new RuntimeException('photo_storage_unavailable');
         $key=hash('sha256',$publication.':'.$card.':'.$photo.':'.$url);$base=$root.'/'.$key;
         if (is_link($base.'.lock')) throw new RuntimeException('photo_storage_unavailable');
@@ -47,7 +49,9 @@ final class TourSelectionPhotoStore
             }
             // Hard bound on retained private material; no opportunistic removal of sent photos.
             if (count(glob($root.'/*.bin')?:[])>=1024) throw new RuntimeException('photo_capacity');
-            $bytes=self::download($url);$size=getimagesizefromstring($bytes);$mime=(new finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
+            $bytes=$download?$download($url):self::download($url);
+            if (!is_string($bytes) || $bytes==='' || strlen($bytes)>self::MAX_BYTES) throw new RuntimeException('invalid_photo');
+            $size=getimagesizefromstring($bytes);$mime=(new finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
             if (!$size || !in_array($mime,['image/jpeg','image/png'],true) || ($size['mime']??'')!==$mime || $size[0]<100 || $size[1]<100 || $size[0]>12000 || $size[1]>12000 || $size[0]*$size[1]>24000000) throw new RuntimeException('invalid_photo');
             $meta=['source_hash'=>hash('sha256',$url),'sha256'=>hash('sha256',$bytes),'mime'=>$mime,'bytes'=>strlen($bytes),'width'=>$size[0],'height'=>$size[1]];
             self::write($base.'.bin',$bytes);self::write($base.'.json',json_encode($meta,JSON_THROW_ON_ERROR));

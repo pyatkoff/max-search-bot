@@ -133,4 +133,22 @@ deliveryCheck('long native cards fail preview instead of silently truncating con
 foreach (['127.0.0.1','10.1.2.3','169.254.169.254','100.64.1.1','192.168.1.1','198.18.0.1','203.0.113.1','224.0.0.1','::1','::ffff:127.0.0.1'] as $ip) deliveryCheck('source address rejects '.$ip,!TourSelectionPhotoStore::publicAddress($ip));
 deliveryCheck('globally routable IPv4 passes address classification',TourSelectionPhotoStore::publicAddress('8.8.8.8'));
 foreach (['http://photos.example.org/a.jpg','https://127.0.0.1/a.jpg','https://foo.local/a.jpg','https://a.example.org:443/a.jpg','https://u:p@a.example.org/a.jpg','https://a.example.org/a.jpg#fragment',"https://a.example.org/\\@localhost"] as $url) deliveryCheck('unsafe photo source rejected',TourSelectionPhotoStore::source($url)===null);
+// Real private filesystem bytes and failure boundary, with no network access.
+$photoDirectory=sys_get_temp_dir().'/tour-selection-photos-fixture-'.bin2hex(random_bytes(8));mkdir($photoDirectory,0700);$downloads=0;
+$download=static function(string $url) use (&$downloads):string {$downloads++;return file_get_contents(dirname(__DIR__).'/assets/owner-tour-cards/compact-v1/cover.jpg');};
+try {
+    DiagnosticLogger::setFile(dirname(__DIR__).'/unsafe-public-test.log');$blocked=false;
+    try {TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);} catch (RuntimeException $e) {$blocked=$e->getMessage()==='photo_storage_unavailable';}
+    deliveryCheck('unavailable private path never falls back to the public checkout',$blocked&&$downloads===0&&!is_dir(dirname(__DIR__).'/tour-selection-photos'));
+    DiagnosticLogger::setFile($photoDirectory.'/events.log');
+    $image=TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);
+    $repeat=TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);
+    deliveryCheck('actual JPEG bytes are retained privately and reused without another download',$downloads===1&&$repeat['sha256']===$image['sha256']&&hash_file('sha256',$image['path'])===$image['sha256']&&(fileperms($image['path'])&0777)===0600&&str_starts_with($image['path'],$photoDirectory.'/'));
+    file_put_contents($image['path'],'corrupted');$blocked=false;
+    try {TourSelectionPhotoStore::image(str_repeat('a',32),0,0,'https://photos.example.org/cover.jpg',$download);} catch (RuntimeException $e) {$blocked=true;}
+    deliveryCheck('changed frozen image bytes fail closed without source refresh',$blocked&&$downloads===1);
+} finally {
+    DiagnosticLogger::setFile('');
+    $remove=static function(string $path) use (&$remove):void {if (is_link($path)||is_file($path)) {unlink($path);return;}foreach (scandir($path)?:[] as $part) if ($part!=='.'&&$part!=='..') $remove($path.'/'.$part);rmdir($path);};$remove($photoDirectory);
+}
 echo "TOTAL {$checks} | PASS {$checks} | FAIL 0\n";
