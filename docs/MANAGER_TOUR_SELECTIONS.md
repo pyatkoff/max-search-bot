@@ -5,7 +5,8 @@ Coordination: issue #55, source claim 6335241336.
 
 ## First implementation slice: editable draft
 
-Manager2 adds «Подборка» to the current conversation header. Its separate editor
+Manager2 adds «Подборка» to the current conversation header (inside its actions
+menu on phones, preserving the client-name/card action). Its separate editor
 supports up to 20 manually entered offers, party/child ages, departure/date/nights,
 room/meal, total party price/currency, recommendation, compromise and source.
 Managers can reorder, exclude, restore or remove offers. Existing reply text and

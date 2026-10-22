@@ -37,11 +37,15 @@ function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draf
 function activate(){if(context&&!current())suspend()}
 function sync(c){
   if(context&&!current())suspend();
-  const root=document.querySelector('.conversationTitleRow');if(!root)return;
+  // Keep the narrow client-name row available to the existing client-card action.
+  // The stable conversation menu survives lifecycle action redraws.
+  const mobile=window.matchMedia('(max-width:740px)').matches;
+  const root=mobile?document.querySelector('.m2ConversationMenu>div'):document.querySelector('.conversationTitleRow');if(!root)return;
   let button=$('tourSelectionOpen');
   if(!actor()||Number(c?.id)!==Number(S.current)){button?.remove();return}
   if(!button){button=document.createElement('button');button.id='tourSelectionOpen';button.type='button';button.className='tsOpen';button.textContent='Подборка';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','tourSelectionDialog');root.appendChild(button)}
-  button.onclick=()=>open(c);
+  if(button.parentElement!==root)root.appendChild(button);
+  button.onclick=()=>{const menu=button.closest('details');if(menu)menu.open=false;void open(c)};
   if(context&&current()&&(c.status==='closed'||!(S.manager?.role==='admin'||Number(c.manager_id)===actor()))&&canEdit){canEdit=false;clearTimeout(timer);controls();status('Доступ к редактированию изменился. Ваши правки сохранены отдельно.',true)}
 }
 function ensure(){
@@ -58,7 +62,7 @@ function ensure(){
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;restore();ensure();returnFocus=$('tourSelectionOpen');
+  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Только черновик';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -152,5 +156,6 @@ async function reconcile(){
   controls();recovery('pending');status(result?.ok?'Подтверждение ещё не найдено. Можно повторить тот же запрос с защитой от дублей.':error(result),true);
   if(result?.ok&&!result.found&&validSnapshot(result.selection)&&result.selection.can_edit){const button=document.createElement('button');button.type='button';button.textContent='Повторить это сохранение';button.onclick=()=>{if(pending&&!busy&&current())void submit(pending)};$('tsRecovery').appendChild(button)}
 }
+window.addEventListener('resize',()=>{if(S.detail?.conversation)sync(S.detail.conversation)});
 window.WorkspaceV2TourSelection={sync,activate,suspend,open,close};
 })();
