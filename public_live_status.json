@@ -1,47 +1,42 @@
 {
     "ok": true,
-    "generated_at": "2026-10-22T16:51:02+00:00",
+    "generated_at": "2026-10-22T18:38:30+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 20,
-        "raw_sessions": 20,
+        "sessions": 14,
+        "raw_sessions": 14,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 20,
+            "resolved": 14,
             "unresolved": 0
         },
-        "started": 14,
-        "needs_collected": 7,
-        "tours_opened": 5,
+        "started": 9,
+        "needs_collected": 3,
+        "tours_opened": 3,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 1,
-        "manager_requested": 20,
-        "manager_replied": 14,
-        "customer_replied_after_manager": 8,
+        "manager_requested": 14,
+        "manager_replied": 13,
+        "customer_replied_after_manager": 5,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 14,
-            "still_unanswered": 1,
-            "measured_responses": 14,
-            "avg_seconds": 5632,
-            "max_seconds": 55354
+            "answered_after_90s": 13,
+            "still_unanswered": 0,
+            "measured_responses": 13,
+            "avg_seconds": 1546,
+            "max_seconds": 5852
         },
         "drop_points": {
-            "customer_replied_after_manager": 8,
-            "manager_requested": 6,
-            "manager_replied": 6
+            "manager_replied": 8,
+            "customer_replied_after_manager": 5,
+            "manager_requested": 1
         },
-        "flags": {
-            "repeated_callback_input": 1,
-            "manager_requested_no_reply": 1,
-            "left_waiting_queue_without_manager_reply": 1,
-            "manager_taken_no_reply": 1
-        }
+        "flags": []
     },
-    "since_utc": "2026-10-22 15:51:02",
+    "since_utc": "2026-10-22 17:38:30",
     "public_redacted": true
 }
