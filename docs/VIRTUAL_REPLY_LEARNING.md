@@ -413,3 +413,19 @@ CI, deploy/diagnostic/provenance gates and minimal relevant runtime verification
 Remaining private author/reviewer saves are separate work and must not hold the
 publisher. Quota exhaustion or a pending private control experiment is reported
 truthfully; neither justifies bypassing gates or delaying unrelated publication.
+
+## Holiday and leave windows
+
+An explicit holiday, leave or availability window is the initial boundary of the
+whole trip, without a formal request to confirm the same limit. It is not a pair
+of already chosen flight dates. Keep a departure-date range as departures, an
+open start date open, and ask when the period's meaning is unclear or duration
+and travel time conflict with it. This boundary is owned by the shared
+`TourConsultationPolicy`, including ordinary draft and both virtual roles.
+
+Synthetic development calibration (not a quality benchmark): a 12–20 November
+leave window needs no reconfirmation; a 12–14 November departure range with eight
+nights does not impose a 14 November return; "starting 12 November" has no known
+end; a four-day window with nine requested nights needs conflict clarification;
+a date range without a clear departure/stay meaning can need a short question.
+Existing active/completed jobs keep their frozen instruction bytes and revision.
