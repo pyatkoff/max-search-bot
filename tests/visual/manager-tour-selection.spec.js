@@ -10,7 +10,8 @@ async function fixture(page,options={}){
   let publication=null,creations=0;const heldPhotos=[];
   await page.route(/\/manager\/tour-selection-photo\.php\?/,async route=>{
     if(options.holdPhotos)await new Promise(resolve=>heldPhotos.push(resolve));
-    return options.photoError?route.fulfill({status:404,body:''}):route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',(['cover','beach','room'][Number(new URL(route.request().url()).searchParams.get('photo'))]||'cover')+'.jpg'))});
+    const headers={'Cache-Control':'private, no-store'};
+    return options.photoError?route.fulfill({status:404,headers,body:''}):route.fulfill({contentType:'image/jpeg',headers,body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',(['cover','beach','room'][Number(new URL(route.request().url()).searchParams.get('photo'))]||'cover')+'.jpg'))});
   });
   await page.route('**/manager/tour-selections-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
@@ -125,14 +126,17 @@ test('selection lost creation response checks saved result without another send'
 
 test('selection unknown creation prevents another send after reopening',async({page})=>{
   const s=await fixture(page,{draft:completeDraft(),sendMode:'unknown'});await open(page);await page.locator('#tsPreview').click();await page.locator('#tsSend').click();await expect(page.locator('.tsDeliveryState')).toContainText('Результат неизвестен');await expect(page.locator('#tsSend')).toBeDisabled();
-  await page.locator('#tsClose').click();s.holdPhotos();await open(page);await page.locator('#tsPreview').click();await expect.poll(()=>s.heldPhotos()).toBe(3);
-  // Reopening renders three new authenticated photo GETs. UNKNOWN disables Send
-  // before these images finish, so disabledSend is not an image-ready barrier.
+  await page.locator('#tsClose').click();s.holdPhotos();await open(page);await page.locator('#tsPreview').click();
+  const photosReady=()=>page.locator('.tsPhotos img').evaluateAll(images=>images.length===3&&images.every(img=>img.complete&&img.naturalWidth>0));
+  // A browser may reuse decoded images in the same document. Otherwise hold
+  // and identify all three new authenticated GETs before allowing completion.
+  await expect.poll(async()=>s.heldPhotos()===3||(s.heldPhotos()===0&&await photosReady())).toBe(true);
   const photoRequests=[...s.pending].filter(r=>new URL(r.url()).pathname==='/manager/tour-selection-photo.php');
-  expect(photoRequests.map(r=>({method:r.method(),conversation:new URL(r.url()).searchParams.get('conversation_id'),photo:new URL(r.url()).searchParams.get('photo')})).sort((a,b)=>a.photo.localeCompare(b.photo))).toEqual([0,1,2].map(photo=>({method:'GET',conversation:'11',photo:String(photo)})));
+  if(s.heldPhotos()===3)expect(photoRequests.map(r=>({method:r.method(),conversation:new URL(r.url()).searchParams.get('conversation_id'),photo:new URL(r.url()).searchParams.get('photo')})).sort((a,b)=>a.photo.localeCompare(b.photo))).toEqual([0,1,2].map(photo=>({method:'GET',conversation:'11',photo:String(photo)})));
+  else {expect(photoRequests).toEqual([]);expect(await photosReady()).toBe(true)}
   await expect(page.locator('#tsSend')).toBeDisabled();expect(s.creations()).toBe(1);expect(s.calls.filter(x=>x.action==='send')).toHaveLength(1);
   s.releasePhotos();
-  await expect.poll(()=>page.locator('.tsPhotos img').evaluateAll(images=>images.length===3&&images.every(img=>img.complete&&img.naturalWidth>0))).toBe(true);
+  await expect.poll(photosReady).toBe(true);
   await expect.poll(()=>[...s.pending].filter(r=>new URL(r.url()).pathname==='/manager/tour-selection-photo.php').map(r=>r.url())).toEqual([]);
   await expect.poll(()=>s.pending.size).toBeLessThanOrEqual(2);
   await expect(page.locator('.tsDeliveryState')).toContainText('Результат неизвестен');await expect(page.locator('#tsSend')).toBeDisabled();expect(s.creations()).toBe(1);expect(s.calls.filter(x=>x.action==='send')).toHaveLength(1);clean(s,deliveryActions);
