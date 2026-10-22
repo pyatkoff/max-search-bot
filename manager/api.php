@@ -33,12 +33,12 @@ if($action==='login'){
     $m=ManagerAuthService::authenticate((string)($data['login']??''),(string)($data['password']??''));
     if(!$m) out(['ok'=>false,'error'=>'invalid_credentials'],401);
     session_regenerate_id(true); $_SESSION['manager_id']=(int)$m['id'];
-    out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
+    out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 }
 
 $m=ManagerHttp::requireManager();
 $isAdmin=ManagerHttp::isAdmin($m);
-if($action==='me') out(['ok'=>true,'manager'=>$m,'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
+if($action==='me') out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 ManagerHttp::requireCsrf($data);
 
 if($action==='logout'){ $_SESSION=[]; session_destroy(); out(['ok'=>true]); }
@@ -119,7 +119,15 @@ if($action==='detail'){
     }
 
     $d['delivery_failure']=ManagerDeliveryStateService::activeFailure($conversationId);
-    if($beforeId===0)ManagerReadService::markRead((int)$m['id'],$conversationId,$lastPageMessageId);
+    $capturedSupervisor=!empty($d['supervisor_read']);
+    if($capturedSupervisor){
+        $fresh=ManagerConversationService::visibleConversation($conversationId,(int)$m['id'],true);
+        if(!$fresh)out(['ok'=>false,'error'=>'not_found'],404);
+        foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$d['conversation'][$key])out(['ok'=>false,'error'=>'context_stale'],409);
+    }
+    $supervisor=(int)($d['conversation']['manager_id']??0)!==(int)$m['id']&&ManagerSupervisorAccessService::canRead((int)$m['id'],$d['conversation']);
+    $d['supervisor_read']=$supervisor;
+    if($beforeId===0&&!$supervisor&&!$capturedSupervisor)ManagerReadService::markRead((int)$m['id'],$conversationId,$lastPageMessageId);
     out(['ok'=>true]+$d);
 }
 if($action==='take'){

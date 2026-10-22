@@ -28,6 +28,29 @@ final class ManagerAiDraftContextService
         return self::capture($conversationId, $actor, false);
     }
 
+    /** Viewer authorization is separate from the unchanged canonical owner revision. */
+    public static function viewerSnapshot(int $conversationId,int $viewer): array
+    {
+        $own=self::snapshot($conversationId,$viewer);
+        if(!empty($own['ok']))return $own+['owner_id'=>$viewer,'supervisor_read'=>false];
+        if(!in_array($own['error']??'',['reply_not_allowed','not_found'],true))return $own;
+        try{
+            $scopes=ManagerSupervisorAccessService::scopes($viewer);
+            $c=ManagerConversationService::visibleConversation($conversationId,$viewer,true);
+            if(!$c||!ManagerSupervisorAccessService::permits($scopes,$c))return $own;
+            $owner=(int)($c['manager_id']??0);
+            if($owner<=0||$owner===$viewer||$c['status']!=='manager')return $own;
+            $snapshot=self::snapshot($conversationId,$owner);
+            if(empty($snapshot['ok']))return $snapshot;
+            $fresh=ManagerConversationService::visibleConversation($conversationId,$viewer,true);
+            $after=ManagerSupervisorAccessService::scopes($viewer);
+            if(!$fresh||$fresh['manager_id']!=$owner||$fresh['status']!=='manager'||!ManagerSupervisorAccessService::permits($after,$fresh)
+                ||$after!==$scopes||array_intersect_key($fresh,array_flip(['project_key','source_id','channel','status','manager_id']))!==array_intersect_key($c,array_flip(['project_key','source_id','channel','status','manager_id'])))return self::failure('reply_not_allowed');
+            return $snapshot+['owner_id'=>$owner,'viewer_id'=>$viewer,'supervisor_read'=>true,
+                'viewer_access_revision'=>hash('sha256',json_encode($after,JSON_THROW_ON_ERROR))];
+        }catch(Throwable $ignored){return self::failure('context_unavailable');}
+    }
+
     /** Worker-only read scope. Zero means no assigned owner, never a synthetic take. */
     public static function preparationSnapshot(int $conversationId, int $owner): array
     {

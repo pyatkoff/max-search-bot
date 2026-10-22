@@ -18,9 +18,11 @@ final class PreparedReplyStatement extends PDOStatement
 
 final class PreparedReplyPdo extends PDO
 {
-    public const TABLES = ['manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
+    public const TABLES = ['manager_supervision_sources','manager_supervision','admin_audit_log','manager_assignments','lead_stage_history','manager_preparation_cursors','lead_tasks','manager_prepared_replies','manager_conversation_reads','messages','conversation_events','manager_group_members','conversation_sources','conversations','manager_customer_names','customers','manager_projects','managers','projects'];
     public static bool $mysqlFixture = false;
     public bool $guard = false;
+    public bool $supervisorWrites = false;
+    public ?Closure $beforeSupervisorAudit = null;
     public int $sourceWriteAttempts = 0;
     public int $cacheWrites = 0;
     public array $executed = [];
@@ -72,6 +74,10 @@ final class PreparedReplyPdo extends PDO
             && in_array($sql, ['SET TRANSACTION ISOLATION LEVEL REPEATABLE READ','SET TRANSACTION READ ONLY'], true)) return;
         if (preg_match('/\A\s*(?:INSERT(?:\s+(?:OR\s+)?IGNORE)?\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_prepared_replies|manager_preparation_cursors)\b/i', $sql)) {
             ++$this->cacheWrites;
+            return;
+        }
+        if($this->supervisorWrites && preg_match('/\A\s*(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:manager_supervision(?:_sources)?|admin_audit_log)\b/i',$sql)){
+            if($this->beforeSupervisorAudit!==null && str_starts_with($sql,'INSERT INTO admin_audit_log')){$callback=$this->beforeSupervisorAudit;$this->beforeSupervisorAudit=null;$callback();}
             return;
         }
         ++$this->sourceWriteAttempts;
@@ -414,6 +420,8 @@ function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
     $startedWith = $preparedReplyPassed;
+    require_once __DIR__.'/support/manager-supervision-regression.php';
+    managerSupervisorRegression();
     preparedReplyReferenceRecovery();
     preparedReplyReconciliationBoundaries();
 
@@ -758,6 +766,8 @@ function preparedReplySelectionRun(): void
         preparedReplyCheck($case.' during page read cannot expose stale card/transcript context', ($out['ok'] ?? true) === false && !isset($out['context']) && !str_contains(json_encode($out), 'Synthetic Hotel') && $pdo->sourceWriteAttempts === 0 && !$pdo->inTransaction());
     }
 }
+
+if(defined('MANAGER_PREPARED_FIXTURE_ONLY'))return;
 
 try {
     preparedReplyRun();

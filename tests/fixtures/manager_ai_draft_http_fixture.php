@@ -60,6 +60,13 @@ final class ManagerConversationAccessPolicy
 
 final class ManagerAiDraftContextService
 {
+    public static function viewerSnapshot(int $conversationId,int $viewer): array
+    {
+        $s=self::snapshot($conversationId,$viewer);if(empty($s['ok']))return $s;
+        $state=managerAiHttpFixtureState();
+        return $s+['owner_id'=>!empty($state['supervisor_read'])?8:$viewer,'supervisor_read'=>!empty($state['supervisor_read'])]+(!empty($state['supervisor_read'])?['viewer_access_revision'=>str_repeat('e',64)]:[]);
+    }
+
     public static function snapshot(int $conversationId, int $managerId): array
     {
         // Re-read the backing file every time: a cached pre-provider snapshot
