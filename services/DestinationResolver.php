@@ -21,9 +21,9 @@ class DestinationResolver
         $current = MaxSearchApi::getAiSearchContext($chatId);
         $old = self::getStored($chatId);
 
-        $country = null;
-        if (!empty($current['country'])) $country = self::findCountryByName($current['country']);
-        if (!$country && $destinationText !== '') $country = self::findCountryInText($destinationText);
+        $currentCountry = !empty($current['country']) ? self::findCountryByName($current['country']) : null;
+        $mentionedCountry = $destinationText !== '' ? self::findCountryInText($destinationText) : null;
+        $country = self::selectCountryCandidate($currentCountry, $mentionedCountry, $destinationText);
 
         $countryId = $country ? (int)$country['UF_CID'] : 0;
         $region = $destinationText !== '' ? self::findRegionInText($destinationText, $countryId) : null;
@@ -142,6 +142,52 @@ class DestinationResolver
         }
 
         return $text;
+    }
+
+    /**
+     * A newly mentioned country may replace an already saved one only when the
+     * tourist clearly chooses it. A negative mention or a neutral comparison is
+     * evidence about preference, not permission to rewrite the active search.
+     */
+    private static function selectCountryCandidate($currentCountry, $mentionedCountry, $text)
+    {
+        if (!is_array($mentionedCountry) || empty($mentionedCountry['UF_NAME'])) return $currentCountry;
+
+        $mentionedName = (string)$mentionedCountry['UF_NAME'];
+        if (self::isCountryMentionNegated((string)$text, $mentionedName)) return $currentCountry;
+
+        if (!is_array($currentCountry) || empty($currentCountry['UF_NAME'])) return $mentionedCountry;
+        if (self::norm((string)$currentCountry['UF_NAME']) === self::norm($mentionedName)) return $currentCountry;
+
+        return self::hasExplicitCountryChoiceIntent((string)$text, $mentionedName)
+            ? $mentionedCountry
+            : $currentCountry;
+    }
+
+    private static function isCountryMentionNegated($text, $countryName)
+    {
+        $normText = self::norm($text);
+        $normName = self::norm($countryName);
+        if ($normName === '' || !self::containsName($normText, $normName)) return false;
+        $quoted = preg_quote($normName, '/');
+
+        return (bool)preg_match('/(?:^|\s)(?:не|кроме|исключ(?:ить|ите|аем)|только\s+не)\s+' . $quoted . '(?:\s|$)/u', $normText)
+            || (bool)preg_match('/(?:^|\s)' . $quoted . '\s+(?:не\s+хочу|не\s+хотим|не\s+подходит)(?:\s|$)/u', $normText);
+    }
+
+    private static function hasExplicitCountryChoiceIntent($text, $countryName)
+    {
+        $normText = self::norm($text);
+        $normName = self::norm($countryName);
+        if ($normName === '' || !self::containsName($normText, $normName)) return false;
+        if ($normText === $normName) return true;
+
+        if (preg_match('/(?:^|\s)(?:давайте|теперь|лучше|хочу|хотим|выбираю|выбираем|нужен|нужна|нужно|поедем|летим|тогда)(?:\s|$)/u', $normText)) {
+            return true;
+        }
+
+        $quoted = preg_quote($normName, '/');
+        return (bool)preg_match('/(?:^|\s)(?:в|на)\s+' . $quoted . '(?:\s|$)/u', $normText);
     }
 
     private static function findCountryInText($text) { $rows=self::allRows(self::$countryHL,['UF_CID','UF_NAME']); $norm=self::norm($text); $best=null;$bestLen=0; foreach($rows as $row){$name=self::norm($row['UF_NAME']??'');if($name!==''&&self::containsName($norm,$name)&&mb_strlen($name,'UTF-8')>$bestLen){$best=$row;$bestLen=mb_strlen($name,'UTF-8');}} return $best; }
