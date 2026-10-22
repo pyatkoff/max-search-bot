@@ -4,6 +4,9 @@ on:
   push:
     branches: ['m2-preview/**']
     paths:
+      - '.github/browser-qa/**'
+      - 'tools/browser_qa_environment.json'
+      - 'tools/browser_qa_environment.js'
       - 'manager/**'
       - 'manager2/**'
       - 'tests/visual/**'
@@ -12,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: manager2-preview-${{ github.event_name == 'push' && github.ref || github.run_id }}
@@ -21,36 +25,28 @@ jobs:
   preview-smoke:
     name: preview-smoke / ${{ matrix.browser }}
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --init --shm-size=1g
+    defaults:
+      run:
+        shell: "/opt/manager2-qa/run {0}"
     timeout-minutes: 8
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
+    env:
+      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      TZ: UTC
     steps:
       - name: Checkout test branch
         uses: actions/checkout@v4
-      - name: Setup PHP for real Manager shell
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Cache pinned npm and browser downloads
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ~/.cache/ms-playwright
-          key: manager2-preview-${{ runner.os }}-${{ runner.arch }}-node22-playwright1.55.0-${{ matrix.browser }}
-      - name: Install pinned browser including system dependencies
-        env:
-          BROWSER: ${{ matrix.browser }}
-        run: |
-          npm install --prefer-offline --no-save --package-lock=false @playwright/test@1.55.0
-          npx playwright install --with-deps "$BROWSER"
+      - name: Verify the prepared native runtime
+        run: node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Start local synthetic fixture server
         run: |
           set -euo pipefail

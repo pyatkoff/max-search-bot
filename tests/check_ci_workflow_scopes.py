@@ -63,6 +63,43 @@ plan_guard=next(step for step in plan_steps if step.get('name')=='Require the im
 plan_download=next(step for step in plan_steps if step.get('name')=='Read exact current selection plan')
 check(plan_download['with']=={'artifact-ids':'${{ needs.selection.outputs.plan-id }}','merge-multiple':True,'path':'.'},'failed-only rerun reads original immutable artifact, not a fabricated attempt name')
 check(plan_steps.index(plan_guard)<plan_steps.index(plan_download),'empty ID cannot fall through to download every artifact')
+prepared=json.loads((root/'tools/browser_qa_environment.json').read_text())
+native_jobs={
+    'workspace-v2-visual-qa.yml':['selection','browser-parts','firefox-history','firefox-notifications','oauth-browser','tour-browser'],
+    'channel-post-context.yml':['browser'],
+    'workspace-sound.yml':['sound'],
+    'workspace-photo-viewer.yml':['photo-opening'],
+    'manager-personal-capacity.yml':['capacity'],
+    'manager2-preview.yml':['preview-smoke'],
+    'manager2-browser-measurement.yml':['browser'],
+    'telegram-dialogue-archive.yml':['setup-browser'],
+}
+for name,jobs in native_jobs.items():
+    document=load(name)
+    check(document['permissions']['contents']=='read' and document['permissions']['packages']=='read',name+' only reads source/packages')
+    for job_name in jobs:
+        job=document['jobs'][job_name]
+        check(job['container']['image']==prepared['image'] and job['env']['QA_BROWSER_IMAGE']==prepared['image'],name+'/'+job_name+' must use the committed digest')
+        check(job['container']['credentials']=={'username':'${{ github.actor }}','password':'${{ secrets.GITHUB_TOKEN }}'},name+'/'+job_name+' only uses the built-in registry credential')
+        check(job['container']['options']=='--init --shm-size=1g',name+'/'+job_name+' preserves browser process/shared-memory support')
+        steps=job['steps']
+        checkout=next(i for i,s in enumerate(steps) if s.get('uses')=='actions/checkout@v4')
+        check(steps[checkout+1].get('run')=='node /opt/manager2-qa/verify-runtime.js --require-source',name+'/'+job_name+' must verify the actual runtime immediately after checkout')
+        check(all(s.get('shell',job['defaults']['run']['shell'])=='/opt/manager2-qa/run {0}' for s in steps if 'run' in s),name+'/'+job_name+' cannot bypass the prepared native shell')
+        check(not any(s.get('uses','').startswith(('actions/setup-node@','shivammathur/setup-php@','actions/cache@')) for s in steps),name+'/'+job_name+' must not provision another runtime/cache')
+        commands='\n'.join(s.get('run','') for s in steps)
+        check(not any(command in commands for command in ['apt-get','npm install','npm ci','playwright install']),name+'/'+job_name+' must not reinstall OS/browser/packages')
+    events=document.get('on',document.get(True))
+    for event in ['pull_request','push']:
+        if event in events:
+            paths=events[event]['paths']
+            for source in ['.github/browser-qa/run','tools/browser_qa_environment.json','tools/browser_qa_environment.js']:
+                check(any(fnmatch.fnmatchcase(source,pattern) for pattern in paths),name+' skips a prepared environment change: '+source)
+check(set(load('manager2-preview.yml').get('on',load('manager2-preview.yml').get(True)))=={'push','workflow_dispatch'},'preview remains a separate non-release workflow')
+builder=load('browser-qa-environment.yml')['jobs']['image']
+builder_names=[s.get('name') for s in builder['steps']]
+check(builder_names.index('Verify PHP and native Chromium Firefox WebKit before publication')<builder_names.index('Publish and record the immutable environment digest'),'unverified native environment cannot be published')
+check(builder['permissions']=={'contents':'read','packages':'write'},'only the separate environment builder may publish a package')
 for value in ['123','', '0','01','1,2','foreign','-1']:
     result=subprocess.run(['bash','-e','-c',plan_guard['run']],env={**os.environ,'PLAN_ARTIFACT_ID':value},capture_output=True).returncode
     check((result==0)==(value=='123'),'plan artifact ID guard rejected wrong value: '+value)

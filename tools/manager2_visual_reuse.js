@@ -79,6 +79,7 @@ function provenance(env) {
     repository:env.GITHUB_REPOSITORY,prNumber:String(env.QA_PR_NUMBER||''),
     workflow:WORKFLOW,execution:{node:process.version,platform:process.platform,arch:process.arch,
       imageOS:env.ImageOS||'',imageVersion:env.ImageVersion||''}};
+  p.execution=require('./browser_qa_environment.js').fromEnvironment(env,p.execution);
   check(SHA.test(p.testedSha||'')&&SHA.test(p.headSha||'')&&ID.test(p.runId)&&ID.test(p.runAttempt), 'Exact current SHA/run provenance is required');
   check(p.repository==='pyatkoff/max-search-bot', 'Unexpected repository');
   check(p.prNumber===''||ID.test(p.prNumber), 'Invalid pull request identity');

@@ -67,7 +67,9 @@ const HARNESS_CI_EXEMPTIONS = Object.freeze([
 // leaf outside exempt synthetic selftests; no additional exemptions introduced.
 // Re-audited the manual-groups native reading-intent readiness helper separately:
 // imports and all post-action assertions unchanged; still the same 344 entries.
-const reviewedHarnessDigest = '58ae391278994592e88daada5e812bb7d2e7d73fdb64e1cc601cd404bc97281d';
+// Re-audited the CI-only workflow contract guard for prepared-image wiring.
+// Native specs/fixtures and leaf imports are unchanged; no new exemptions.
+const reviewedHarnessDigest = 'ce2528921c4e0a97504e3f7d6c0dd1835d58098c78c4bb650b057e618858f504';
 const registryDigest = hash({SCHEMA,TOOLCHAIN,LEAF_SPECS,HARNESS_CI_EXEMPTIONS,reviewedHarnessDigest,PART_COUNT,PART_ZERO,chromium:allSpecs('chromium'),webkit:allSpecs('webkit'),
   firefoxHistory:{spec:'tests/visual/manager-transcript-history.spec.js',grep:'older transport'},
   firefoxNotifications:['tests/visual/workspace-notification-diagnostics.spec.js','tests/visual/manager-browser-push-state.spec.js']});

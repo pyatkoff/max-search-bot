@@ -5,6 +5,9 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
+      - '.github/browser-qa/**'
+      - 'tools/browser_qa_environment.json'
+      - 'tools/browser_qa_environment.js'
       - 'tools/measure_manager2_browser.js'
       - 'tools/fixtures/manager2_browser_measurement.js'
       - 'tests/visual/fixtures/personal-workspace.js'
@@ -19,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 # Read-only evidence has its own group; it cannot cancel a deployment.
 concurrency:
@@ -61,20 +65,25 @@ jobs:
         engine: [chromium, webkit]
         width: ['390', '430', '768', '1440', '390-short']
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --init --shm-size=1g
+    defaults:
+      run:
+        shell: "/opt/manager2-qa/run {0}"
     timeout-minutes: 20
+    env:
+      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      TZ: UTC
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Install pinned engine and native dependencies
-        env:
-          ENGINE: ${{ matrix.engine }}
-        run: |
-          npm install --no-save --package-lock=false @playwright/test@1.55.0
-          npx playwright install --with-deps "$ENGINE"
+      - name: Verify the prepared native runtime
+        run: node /opt/manager2-qa/verify-runtime.js --require-source
       - uses: actions/download-artifact@v4
         with:
           name: manager2-measurement-input-${{ github.sha }}
