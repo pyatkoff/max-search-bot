@@ -91,6 +91,45 @@ This trial does not expose or implement a general manager composer. An actual
 owner press, rather than this delivery, is required to prove the natural choice
 and Manager2 path for the new listing.
 
+## Compact native visual revision
+
+The owner-approved `compact-v1` revision uses the existing photo-choice mode:
+`/owner-tour-photo-choice-trial <installed-main-SHA> compact-v1`. The optional
+workflow input `card_revision` accepts only that exact value with photo-choice;
+the ten existing modes and every old no-suffix command keep their old behavior.
+Its fixed CLI is `tools/owner_tour_compact_choice_trial.php
+--expected-sha=<installed-main-SHA> --confirm-owner-photo-choice
+--revision=compact-v1`. It accepts no recipient, content, source URL or other
+revision. HTTP access returns 404.
+
+This is a new visual example using the historical Grand Park conditions, with
+`is_demo=true`, `price_verified=false`, no flight/inclusion claims and a short
+explicit demo footer. It is not a refreshed quotation. Source observation remains
+in the historical live-quote entrypoint. The new layout shows departure date and
+nights, without presenting a calculated return as confirmed; title, whole-party
+price, four icons and genuine choice callback remain. Substantive rationale or
+compromises are not hidden by the renderer. The compact footer is permitted only
+for explicit demos; normal real-offer rendering and its unverified notice remain
+byte-preserved when no layout is supplied.
+
+Three genuine official Grand Park photographs are bundled under
+`assets/owner-tour-cards/compact-v1/` with their source URLs, original/output
+SHA256, dimensions and reproducible framing command in `sources.json`. Cover and
+beach are horizontal centre crops to 1440×1080, with no stretching, padding,
+retouching or generated content; the 800×600 room is copied byte for byte. This
+provides three 4:3 inputs instead of relying on Telegram's blurred aspect filler.
+Client presentation still requires observation in the actual bot. The installed
+CLI verifies source binding, output hash, JPEG MIME, dimensions and bounds before
+copying fixed assets to mode-0600 private upload files. Production needs no image
+processing extension or executable for this fixed example.
+
+Its separate ID `owner-card-compact-20261022-grand-park` and private directory
+`/var/www/anytoour/data/owner-tour-compact-choice-trial` reuse the existing native
+identity/proof/receipt/delivery-binding owner. Historical visual and live-quote
+receipts are never edited or replayed. Creation with an unknown result remains
+blocked; known MIDs permit verification/rebinding only. The new owner messages
+do not synthesize a like or prove a natural Manager2 saved choice.
+
 ## Remaining delivery work
 
 The general manager sender is a separate bounded implementation. Existing

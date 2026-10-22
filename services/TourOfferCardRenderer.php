@@ -21,6 +21,8 @@ final class TourOfferCardRenderer
             throw new InvalidArgumentException('Invalid offer callback');
         }
         $presentation = self::presentation($presentation);
+        $compact = ($presentation['layout'] ?? null) === 'compact-v1';
+        if ($compact && !$snapshot['is_demo']) throw new InvalidArgumentException('Compact example requires explicit demo conditions');
         $title = $snapshot['hotel'];
         $destination = $presentation['destination'] === '' ? '' : ' · '.$presentation['destination'];
         $heading = $title.$destination;
@@ -28,7 +30,7 @@ final class TourOfferCardRenderer
         $basis = $partySize === 1 ? 'за одного' : ($partySize === 2 ? 'за двоих' : 'за '.$partySize.' '.self::plural($partySize, ['человек','человека','человек']));
         $price = self::amount($snapshot['amount']).' '.['RUB'=>'₽', 'EUR'=>'€', 'USD'=>'$'][$snapshot['currency']].' '.$basis;
         $conditions = [
-            '📅 '.self::dates($snapshot['date_from'], $snapshot['date_to']).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
+            '📅 '.($compact ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
             '✈️ '.$snapshot['departure'].' · '.self::party($snapshot),
             '🛏️ '.$snapshot['room'],
             '🍽️ '.$snapshot['meal'],
@@ -39,9 +41,9 @@ final class TourOfferCardRenderer
         if ($snapshot['rationale'] !== '') $details .= "\n\nПочему этот вариант: ".$snapshot['rationale'];
         if ($snapshot['compromise'] !== '') $details .= "\n\nУчесть: ".$snapshot['compromise'];
         $footer = [];
-        if ($snapshot['is_demo']) $footer[] = 'Демо: даты, цена и условия — пример.';
-        $footer[] = 'Актуальность цены не проверена.';
-        if ($presentation['room_illustrative']) $footer[] = 'Фото номера — пример интерьера отеля.';
+        if ($snapshot['is_demo']) $footer[] = $compact ? 'Демо: цена и условия — пример.' : 'Демо: даты, цена и условия — пример.';
+        if (!$compact) $footer[] = 'Актуальность цены не проверена.';
+        if ($presentation['room_illustrative']) $footer[] = $compact ? 'Фото номера — пример интерьера.' : 'Фото номера — пример интерьера отеля.';
         $footer = implode("\n", $footer);
         $plain = $heading."\n".$price."\n".$details."\n\n".$footer;
         $photos = [];
@@ -76,8 +78,9 @@ final class TourOfferCardRenderer
 
     private static function presentation(array $input): array
     {
-        if (array_diff(array_keys($input), ['destination','inclusions','photos','room_illustrative']) !== []
+        if (array_diff(array_keys($input), ['destination','inclusions','photos','room_illustrative','layout']) !== []
             || !is_bool($input['room_illustrative'] ?? null)) throw new InvalidArgumentException('Invalid offer presentation');
+        if (array_key_exists('layout', $input) && $input['layout'] !== 'compact-v1') throw new InvalidArgumentException('Invalid card layout');
         $destination = self::text($input['destination'] ?? '', 200, true);
         $inclusions = $input['inclusions'] ?? [];
         if (!is_array($inclusions) || !array_is_list($inclusions) || count($inclusions) > 6) throw new InvalidArgumentException('Invalid included services');
@@ -91,7 +94,9 @@ final class TourOfferCardRenderer
                 || !self::photoUrl($photo['url'] ?? null)) throw new InvalidArgumentException('Invalid photo source');
             $photos[$index] = ['role'=>$role, 'url'=>$photo['url']];
         }
-        return ['destination'=>$destination, 'inclusions'=>$inclusions, 'photos'=>$photos, 'room_illustrative'=>$input['room_illustrative']];
+        $result = ['destination'=>$destination, 'inclusions'=>$inclusions, 'photos'=>$photos, 'room_illustrative'=>$input['room_illustrative']];
+        if (array_key_exists('layout', $input)) $result['layout'] = $input['layout'];
+        return $result;
     }
 
     private static function photoUrl($url): bool
@@ -125,6 +130,7 @@ final class TourOfferCardRenderer
         $months = [1=>'января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
         [$fy,$fm,$fd] = array_map('intval', explode('-', $from));
         [$ty,$tm,$td] = array_map('intval', explode('-', $to));
+        if ($from === $to) return $fd.' '.$months[$fm].' '.$fy;
         if ($fy === $ty && $fm === $tm) return $fd.'–'.$td.' '.$months[$tm].' '.$ty;
         if ($fy === $ty) return $fd.' '.$months[$fm].' — '.$td.' '.$months[$tm].' '.$ty;
         return $fd.' '.$months[$fm].' '.$fy.' — '.$td.' '.$months[$tm].' '.$ty;

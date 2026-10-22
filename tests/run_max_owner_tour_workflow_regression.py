@@ -37,13 +37,14 @@ validate, = [b for b in blocks if 'GITHUB_EVENT_PATH' in b]
 send, = [b for b in blocks if 'ssh -o BatchMode=yes' in b]
 guard, = re.findall(r'^    if: (.+)$', OWNER, re.M)
 assert guard == "github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' && ((github.event_name == 'workflow_dispatch' && (inputs.confirm_owner_send == true || inputs.confirm_owner_recovery == true || inputs.confirm_owner_comparison == true || inputs.confirm_owner_variants == true || inputs.confirm_owner_telegram == true || inputs.confirm_owner_trio == true || inputs.confirm_owner_emphasis == true || inputs.confirm_owner_choice == true || inputs.confirm_owner_photo_choice == true || inputs.confirm_owner_live_quote == true)) || (github.event_name == 'issue_comment' && github.event.issue.number == 55 && !github.event.issue.pull_request && github.event.comment.user.login == 'pyatkoff' && github.event.comment.user.id == 226193297 && (startsWith(github.event.comment.body, '/owner-tour-preview ') || startsWith(github.event.comment.body, '/owner-tour-preview-recover ') || startsWith(github.event.comment.body, '/owner-tour-preview-compare ') || startsWith(github.event.comment.body, '/owner-tour-preview-variants ') || startsWith(github.event.comment.body, '/owner-tour-preview-telegram ') || startsWith(github.event.comment.body, '/owner-tour-preview-trio ') || startsWith(github.event.comment.body, '/owner-tour-preview-emphasis ') || startsWith(github.event.comment.body, '/owner-tour-choice-trial ') || startsWith(github.event.comment.body, '/owner-tour-photo-choice-trial ') || startsWith(github.event.comment.body, '/owner-tour-live-quote-trial '))))"
-assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants', 'confirm_owner_telegram', 'confirm_owner_trio', 'confirm_owner_emphasis', 'confirm_owner_choice', 'confirm_owner_photo_choice', 'confirm_owner_live_quote']
+assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], re.M) == ['expected_sha', 'confirm_owner_send', 'confirm_owner_recovery', 'confirm_owner_comparison', 'confirm_owner_variants', 'confirm_owner_telegram', 'confirm_owner_trio', 'confirm_owner_emphasis', 'confirm_owner_choice', 'confirm_owner_photo_choice', 'confirm_owner_live_quote', 'card_revision']
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
 assert 'timeout-minutes: 20' in OWNER  # Bounded fixed six-message batch and nine MAX image uploads.
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
 assert '${{ github.event.comment.body }}' not in WORKFLOW
 assert 'issue_comment:\n    types: [created]' in WORKFLOW
 assert 'EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}' in OWNER
+assert 'OWNER_REVISION: ${{ steps.authorize.outputs.owner_revision }}' in OWNER
 assert send.count(COMMAND) == 1 and send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-recovery')) == 1
 assert send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-comparison')) == 1
 assert send.count(COMMAND.replace('--confirm-owner-send','--confirm-owner-variants')) == 1
@@ -72,13 +73,14 @@ EVENT = {'repository': {'full_name': 'pyatkoff/max-search-bot', 'default_branch'
 cases = 0
 
 
-def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, event=None, env_changes=None):
+def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, event=None, env_changes=None,
+            shell_revision=None, remote_revision=None):
     global cases
     cases += 1
     with tempfile.TemporaryDirectory(prefix='max-owner-tour-test-') as temp:
         directory = Path(temp)
         doubles = {
-            'ssh': 'printf "%s\\n" "$*" >> "$SSH_LOG"\n/bin/bash -s -- "${@: -2:1}" "${@: -1}"\n',
+            'ssh': 'printf "%s\\n" "$*" >> "$SSH_LOG"\nrevision="${@: -1}"\nif [[ -v REMOTE_REVISION ]]; then revision="$REMOTE_REVISION"; fi\nif [[ -z "$revision" ]]; then\n/bin/bash -s -- "${@: -3:1}" "${@: -2:1}"\nelse\n/bin/bash -s -- "${@: -3:1}" "${@: -2:1}" "$revision"\nfi\n',
             'git': 'case "$*" in\n"rev-parse HEAD") printf "%s\\n" "$INSTALLED_SHA";;\n"diff --quiet") exit "$UNSTAGED";;\n"diff --cached --quiet") exit "$STAGED";;\n*) exit 90;;\nesac\n',
             'php': 'printf "%s\\n" "$*" >> "$PHP_LOG"\n',
         }
@@ -113,7 +115,7 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         event_path.write_text(json.dumps(EVENT if event is None else event))
         env = {**os.environ, 'PATH': str(directory) + ':/usr/bin:/bin',
                'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'CONFIRM_OWNER_TRIO': 'false', 'CONFIRM_OWNER_EMPHASIS': 'false', 'CONFIRM_OWNER_CHOICE': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'false', 'CONFIRM_OWNER_LIVE_QUOTE': 'false', 'ACTUAL_MAIN_SHA': SHA,
-               'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
+               'CARD_REVISION': '', 'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
                'GITHUB_SHA': workflow, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(directory / 'output'),
                'GITHUB_REF': 'refs/heads/main', 'GITHUB_REPOSITORY': 'pyatkoff/max-search-bot',
@@ -125,9 +127,13 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
                'PHP_LOG': str(directory / 'php.log'), **(env_changes or {})}
         result = subprocess.run(['/bin/bash', '-c', validate], env=env, capture_output=True, timeout=5)
         if result.returncode == 0:
-            validated, mode = (directory / 'output').read_text().splitlines()
+            validated, mode, revision = (directory / 'output').read_text().splitlines()
             assert mode in ['owner_mode=send','owner_mode=recover','owner_mode=compare','owner_mode=variants','owner_mode=telegram','owner_mode=trio','owner_mode=emphasis','owner_mode=choice','owner_mode=photo-choice','owner_mode=live-quote']
             env['OWNER_MODE'] = mode.split('=', 1)[1]
+            assert revision in ['owner_revision=', 'owner_revision=compact-v1']
+            env['OWNER_REVISION'] = revision.split('=', 1)[1] if shell_revision is None else shell_revision
+            if remote_revision is not None:
+                env['REMOTE_REVISION'] = remote_revision
             assert re.fullmatch(r'expected_sha=[0-9a-f]{40}', validated)
             env['EXPECTED_SHA'] = validated.split('=', 1)[1]
             result = subprocess.run(['/bin/bash', '-c', send.replace(REMOTE_DIR, 'cd "$PROBE_FIXTURE_CHECKOUT"')],
@@ -408,6 +414,83 @@ for body in ['/owner-tour-photo-choice-trial ' + SHA + '\n', '/owner-tour-photo-
     event['comment']['body'] = body
     code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
     assert code != 0 and ssh == [] and php == [], body
+
+# Compact presentation is one literal revision of photo-choice, not an eleventh mode.
+compact_choice = copy.deepcopy(photo_choice)
+compact_choice['comment']['body'] += ' compact-v1'
+COMPACT_CHOICE_COMMAND = PHOTO_CHOICE_COMMAND.replace('owner_tour_photo_choice_trial.php', 'owner_tour_compact_choice_trial.php') + ' --revision=compact-v1'
+assert send.count(COMPACT_CHOICE_COMMAND) == 1
+for path in ['tools/owner_tour_compact_choice_trial.php', 'tests/fixtures/owner_compact_choice_trial.php', 'assets/owner-tour-cards/compact-v1/**']:
+    assert "      - '" + path + "'" in WORKFLOW
+assert 'run: php tests/fixtures/owner_compact_choice_trial.php' in WORKFLOW
+assert 'confirm_owner_compact' not in WORKFLOW and "mode = 'compact'" not in validate
+for event_name in ['workflow_dispatch', 'issue_comment']:
+    code, ssh, php = execute(event=compact_choice, env_changes={'GITHUB_EVENT_NAME': event_name,
+        'CONFIRM_OWNER_SEND': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': 'compact-v1'})
+    assert code == 0 and len(ssh) == 1
+    assert php == [f'tools/owner_tour_compact_choice_trial.php --expected-sha={SHA} --confirm-owner-photo-choice --revision=compact-v1']
+# The comment itself, not a dispatch-only environment value, selects the revision.
+code, ssh, php = execute(event=compact_choice, env_changes={'GITHUB_EVENT_NAME': 'issue_comment', 'CARD_REVISION': 'other'})
+assert code == 0 and php == [f'tools/owner_tour_compact_choice_trial.php --expected-sha={SHA} --confirm-owner-photo-choice --revision=compact-v1']
+code, ssh, php = execute(event=photo_choice, env_changes={'GITHUB_EVENT_NAME': 'issue_comment', 'CARD_REVISION': 'compact-v1'})
+assert code == 0 and php == [f'tools/owner_tour_photo_choice_trial.php --expected-sha={SHA} --confirm-owner-photo-choice']
+for revision in ['compact-v2', 'COMPACT-V1', 'compact-v1 ', ' compact-v1', 'compact-v1\n',
+                 '--chat-id=3', '$(touch /must-not-run)']:
+    code, ssh, php = execute(event=compact_choice, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': revision})
+    assert code != 0 and ssh == [] and php == [], revision
+for flag in ['CONFIRM_OWNER_SEND', 'CONFIRM_OWNER_RECOVERY', 'CONFIRM_OWNER_COMPARISON', 'CONFIRM_OWNER_VARIANTS',
+             'CONFIRM_OWNER_TELEGRAM', 'CONFIRM_OWNER_TRIO', 'CONFIRM_OWNER_EMPHASIS', 'CONFIRM_OWNER_CHOICE', 'CONFIRM_OWNER_LIVE_QUOTE']:
+    code, ssh, php = execute(env_changes={'CONFIRM_OWNER_SEND': 'false', flag: 'true', 'CARD_REVISION': 'compact-v1'})
+    assert code != 0 and ssh == [] and php == [], flag
+for body in ['/owner-tour-photo-choice-trial ' + SHA + ' compact-v1\n',
+             '/owner-tour-photo-choice-trial ' + SHA + ' compact-v1 extra',
+             '/owner-tour-photo-choice-trial ' + SHA + ' compact-v1 compact-v1',
+             '/owner-tour-photo-choice-trial ' + SHA + ' compact-v2',
+             '/owner-tour-photo-choice-trial ' + SHA + ' --revision=compact-v1',
+             '/owner-tour-photo-choice-trial ' + SHA + ' compact-v1\n/owner-tour-live-quote-trial ' + SHA]:
+    event = copy.deepcopy(compact_choice)
+    event['comment']['body'] = body
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], body
+for command in ['owner-tour-preview', 'owner-tour-preview-recover', 'owner-tour-preview-compare',
+                'owner-tour-preview-variants', 'owner-tour-preview-telegram', 'owner-tour-preview-trio',
+                'owner-tour-preview-emphasis', 'owner-tour-choice-trial', 'owner-tour-live-quote-trial']:
+    event = copy.deepcopy(compact_choice)
+    event['comment']['body'] = '/' + command + ' ' + SHA + ' compact-v1'
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], command
+for changes in [{'CONFIRM_OWNER_SEND': 'true'}, {'CONFIRM_OWNER_LIVE_QUOTE': 'true'},
+                {'GITHUB_ACTOR': 'another'}, {'GITHUB_ACTOR_ID': '1'}, {'ACTUAL_MAIN_SHA': 'b' * 40},
+                {'GITHUB_REF': 'refs/heads/feature'}, {'REPOSITORY_READ_TOKEN': ''}, {'READ_API_STATUS': '302'}]:
+    code, ssh, php = execute(event=compact_choice, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': 'compact-v1', **changes})
+    assert code != 0 and ssh == [] and php == [], changes
+for path, value in [(('comment', 'user', 'login'), 'pyatkoff-bot'), (('comment', 'user', 'id'), 1),
+                    (('sender', 'id'), 1), (('issue', 'number'), 56), (('issue', 'pull_request'), {}),
+                    (('action',), 'edited')]:
+    event = copy.deepcopy(compact_choice)
+    node = event
+    for key in path[:-1]: node = node[key]
+    node[path[-1]] = value
+    code, ssh, php = execute(event=event, env_changes={'GITHUB_EVENT_NAME': 'issue_comment'})
+    assert code != 0 and ssh == [] and php == [], (path, value)
+for kwargs in [{'installed': 'b' * 40}, {'unstaged': 1}, {'staged': 1}]:
+    code, ssh, php = execute(event=compact_choice, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': 'compact-v1'}, **kwargs)
+    assert code != 0 and len(ssh) == 1 and php == [], kwargs
+# Local and remote shell guards independently reject injected or cross-mode selectors.
+for revision in ['compact-v2', 'compact-v1\n', '$(touch /must-not-run)']:
+    code, ssh, php = execute(event=compact_choice, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': 'compact-v1'}, shell_revision=revision)
+    assert code != 0 and ssh == [] and php == [], revision
+    code, ssh, php = execute(event=compact_choice, env_changes={'CONFIRM_OWNER_SEND': 'false',
+        'CONFIRM_OWNER_PHOTO_CHOICE': 'true', 'CARD_REVISION': 'compact-v1'}, remote_revision=revision)
+    assert code != 0 and len(ssh) == 1 and php == [], revision
+code, ssh, php = execute(shell_revision='compact-v1')
+assert code != 0 and ssh == [] and php == []
+code, ssh, php = execute(remote_revision='compact-v1')
+assert code != 0 and len(ssh) == 1 and php == []
 
 # Live quotes use one separate fixed entrypoint; none of the nine older modes can select it.
 live_quote = copy.deepcopy(EVENT)

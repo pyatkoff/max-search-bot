@@ -170,4 +170,8 @@ $liveOutput = []; $liveCode = 0;
 exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/owner_live_quote_trial.php').' 2>&1', $liveOutput, $liveCode);
 echo implode(PHP_EOL, $liveOutput).PHP_EOL;
 if ($liveCode !== 0) throw new RuntimeException('Fixed owner live-quote regression failed');
+$compactOutput = []; $compactCode = 0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/owner_compact_choice_trial.php').' 2>&1', $compactOutput, $compactCode);
+echo implode(PHP_EOL, $compactOutput).PHP_EOL;
+if ($compactCode !== 0) throw new RuntimeException('Compact owner card regression failed');
 }

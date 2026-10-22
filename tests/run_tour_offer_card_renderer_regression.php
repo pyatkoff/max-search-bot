@@ -89,4 +89,10 @@ foreach (['http://www.delphinhotel.com/a.png','https://user:pass@www.delphinhote
 }
 $presentation = cardPresentation();array_pop($presentation['photos']);cardReject(cardSnapshot(),$presentation,$callback,'Incomplete photo sets cannot impersonate the three-photo format');
 $presentation = cardPresentation();$presentation['photos'][2]['role']='cover';cardReject(cardSnapshot(),$presentation,$callback,'Photo roles must retain cover/beach/room order');
+$compact = TourOfferCardRenderer::render(cardSnapshot(['rationale'=>'Подходит семье.','compromise'=>'До пляжа 400 м.']),cardPresentation(['layout'=>'compact-v1']),$callback);
+cardAssert(str_contains($compact['plain_text'],'С 5 июня 2027 · 7 ночей') && !str_contains($compact['plain_text'],'5–12 июня')
+    && str_contains($compact['plain_text'],'Почему этот вариант: Подходит семье.') && str_contains($compact['plain_text'],'Учесть: До пляжа 400 м.'),
+    'Compact layout omits a computed return without dropping substantive rationale or compromises');
+cardReject(cardSnapshot(['is_demo'=>false]),cardPresentation(['layout'=>'compact-v1']),$callback,'Compact visual samples cannot remove the unverified-price notice from a real offer');
+foreach (['other','',false] as $layout) cardReject(cardSnapshot(),cardPresentation(['layout'=>$layout]),$callback,'Only the fixed compact revision is an accepted layout');
 echo "TOUR OFFER CARD RENDERER: $checks checks PASSED\n";
