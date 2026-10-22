@@ -94,6 +94,9 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
   await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toHaveValue('Мой ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');
   expect(state.aiCalls()).toEqual([]);expect(state.statusCalls().length).toBeGreaterThan(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+  // A readable title does not imply the native mobile slide has finished.
+  // Measure the final conversation position, preserving every geometry assertion.
+  if(width<=740)await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>Math.round(el.getBoundingClientRect().left))).toBe(0);
   for(const locator of [button,notice,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-ready-${browserName}-${width}.png`)});
   await notice.getByRole('button',{name:'Посмотреть'}).click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(notice).not.toBeVisible();expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);

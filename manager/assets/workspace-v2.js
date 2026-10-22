@@ -34,6 +34,7 @@ function showAuthRecovery(message=''){
   window.WorkspaceV2PersonalWorkspace?.suspend();
 window.WorkspaceV2InternalNotes?.suspend();
   window.WorkspaceV2Assistant?.suspend();
+  window.WorkspaceV2TourSelection?.suspend();
   S.authExpired=true;
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
@@ -76,6 +77,7 @@ function applyIdentity(me){
   window.WorkspaceV2PersonalWorkspace?.activate(S.manager?.id);
 window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
   window.WorkspaceV2Assistant?.activate(S.manager?.id);
+  window.WorkspaceV2TourSelection?.activate(S.manager?.id);
   window.WorkspaceV2Media?.init();window.WorkspaceV2Media?.configure(S.csrf,S.current||0);
   if(S.manager){$('managerName').textContent=(S.manager.display_name||S.manager.login);const adminLink=$('adminLink');if(adminLink)adminLink.classList.toggle('hidden',S.manager.role!=='admin')}
 }
