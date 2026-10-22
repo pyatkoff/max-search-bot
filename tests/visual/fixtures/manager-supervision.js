@@ -8,7 +8,7 @@ module.exports=({test,expect})=>{
   async function setup(page,{admin=false}={}){
     const calls=[],errors=[],unexpected=[];let mode='success',grant=null;
     page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',async route=>{
-      const req=route.request(),url=new URL(req.url());const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
+      const req=route.request(),url=new URL(req.url());const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify({viewer_id:4,...body})});
       if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
       if(req.method()==='GET'&&url.pathname==='/manager2/analytics.php')return route.fulfill({contentType:'text/html',body:shell});
       if(req.method()==='GET'&&url.pathname.startsWith('/manager/assets/'))return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(sourceRoot,url.pathname.slice(1)))});
@@ -22,6 +22,7 @@ module.exports=({test,expect})=>{
       if(d.action==='scope')return json({ok:true,scopes:[scope],managers:[{id:9,name:'Ответственный менеджер'}]});
       if(d.action==='analytics'){
         if(mode==='wait')return;
+        if(mode==='account')return json({...result(),viewer_id:9});
         if(mode==='denied')return json({ok:false,error:'forbidden'},403);
         if(mode==='error')return json({ok:false,error:'analytics_unavailable'},503);
         if(mode==='empty')return json({...result(),totals:Object.fromEntries(Object.keys(result().totals).map(k=>[k,0])),rows:[],by_manager:[],has_more:false,next_cursor:null});
@@ -40,6 +41,9 @@ module.exports=({test,expect})=>{
     s.setMode('empty');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('данных нет');await expect(page.locator('#analyticsMore')).toBeHidden();
     s.setMode('error');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('Не удалось');await expect(page.locator('#analyticsReport')).toBeHidden();
     s.setMode('denied');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('отозван');await expect(page.locator('#analyticsApp')).toBeHidden();expect(s.calls.some(c=>['send','take','generate','validate','decision','set'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+  });
+  test('Supervisor analytics never renders a different logged-in account response',async({page})=>{
+    const s=await setup(page);s.setMode('account');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsApp')).toBeHidden();await expect(page.locator('#analyticsRows .dialogue')).toHaveCount(0);await expect(page.locator('#analyticsLogin')).toBeVisible();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
   });
   test('Supervisor access command is explicit, exact account/source and readback before another write',async({page})=>{
     const s=await setup(page,{admin:true});await page.locator('#supervisorAdmin summary').click();await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('synthetic-manager · №4');await page.locator('#grantSources input').check();await page.locator('#grantEnabled').check();await page.locator('#grantSave').click();await expect(page.locator('#grantSave')).toBeDisabled();const sent=s.calls.filter(c=>c.action==='set');expect(sent).toHaveLength(1);expect(sent[0]).toMatchObject({manager_id:4,project_id:1,source_ids:[11],enabled:true,expected_version:0});await page.locator('#grantRead').click();await expect(page.locator('#grantIdentity')).toContainText('версия прав 1');await expect(page.locator('#grantSources input')).toBeChecked();await expect(page.locator('#grantEnabled')).toBeChecked();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
