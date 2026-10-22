@@ -97,6 +97,9 @@ for(const width of [390,430,768,1440])test('AI automatic readiness stays quiet a
   // A readable title does not imply the native mobile slide has finished.
   // Measure the final conversation position, preserving every geometry assertion.
   if(width<=740)await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>Math.round(el.getBoundingClientRect().left))).toBe(0);
+  // Bounds describe the settled responsive pane, not an intermediate transform.
+  // Keep the same viewport limits; wait for the actual native transition.
+  await expect.poll(()=>page.locator('#conversationZone').evaluate(node=>node.getAnimations({subtree:true}).filter(animation=>animation.playState==='running').length)).toBe(0);
   for(const locator of [button,notice,page.locator('#sendReply')]){const box=await locator.boundingBox();expect(box.x).toBeGreaterThanOrEqual(-1);expect(box.x+box.width).toBeLessThanOrEqual(width+1);expect(box.y+box.height).toBeLessThanOrEqual(901)}
   const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,`ai-ready-${browserName}-${width}.png`)});
   await notice.getByRole('button',{name:'Посмотреть'}).click();await expect(page.locator('#aiDraftInsert')).toBeEnabled();await expect(notice).not.toBeVisible();expect(state.aiCalls().map(call=>call.action)).toEqual(['prepared']);clean(state);
