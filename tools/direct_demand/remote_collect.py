@@ -1,4 +1,4 @@
-"""Bounded read-only Direct demand export; intended for SSH stdin, stdlib only.
+"""Bounded read-only Direct account inventory; intended for SSH stdin, stdlib only.
 
 No installed application imports, local database access, server file writes, or
 advertising mutations. Credentials are read only from the verified project's .env.
@@ -27,11 +27,12 @@ from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHand
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 REPOSITORY = 'pyatkoff/yandex-direct-autopilot'
 LOGIN = 'anytour2024tp'
-CAMPAIGNS = (714260445, 714320748)
 FIRST = '2026-09-23'
 LAST = '2026-10-22'
 BASE = 'https://api.direct.yandex.com/json/v501/'
-FIELDS = ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query', 'Impressions', 'Clicks', 'Cost')
+FIELDS = ('CampaignId', 'AdNetworkType', 'Impressions', 'Clicks', 'Cost')
+STATES = ('ARCHIVED', 'CONVERTED', 'ENDED', 'OFF', 'ON', 'SUSPENDED')
+CONFIG_PAGE_SIZE = 1000
 PAGE_SIZE = 10000
 MAX_ROWS = 100000
 MAX_RESPONSE = 8 * 1024 * 1024
@@ -183,37 +184,6 @@ def number(value, integer=False, nullable=True):
     return parsed
 
 
-def parse_tsv(body, campaign_ids, first, last, *, max_rows=PAGE_SIZE):
-    """Keep API cell strings exactly; validate nulls, scope and numeric bounds."""
-    try:
-        text = body.decode('utf-8-sig') if isinstance(body, bytes) else body
-        reader = csv.DictReader(io.StringIO(text), delimiter='\t', strict=True)
-        if reader.fieldnames != list(FIELDS):
-            fail('REPORT_COLUMNS_MISMATCH')
-        rows = []
-        for row in reader:
-            if len(rows) >= max_rows or set(row) != set(FIELDS) or any(v is None for v in row.values()):
-                fail('REPORT_ROW_SHAPE_OR_LIMIT')
-            day = date.fromisoformat(row['Date'])
-            if day.isoformat() != row['Date'] or not first <= row['Date'] <= last:
-                fail('REPORT_DATE_OUT_OF_SCOPE')
-            if positive_id(row['CampaignId']) not in campaign_ids:
-                fail('REPORT_CAMPAIGN_OUT_OF_SCOPE')
-            positive_id(row['AdGroupId'], nullable=True)
-            positive_id(row['AdId'], nullable=True)
-            if not isinstance(row['Query'], str) or len(row['Query']) > 4096:
-                fail('REPORT_QUERY_MALFORMED')
-            number(row['Impressions'], integer=True)
-            number(row['Clicks'], integer=True)
-            number(row['Cost'])
-            rows.append(dict(row))
-        return rows
-    except SafeError:
-        raise
-    except (ValueError, UnicodeError, csv.Error, TypeError):
-        fail('REPORT_PARSE_FAILED')
-
-
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, msg, headers, newurl):
         fail('API_REDIRECT_REFUSED')
@@ -302,173 +272,217 @@ class API:
                 continue
             try:
                 error = json.loads(body.decode('utf-8-sig')).get('error', {})
-                detail = str(error.get('error_detail', ''))[:500]
-                detail = detail.replace(self.headers['Authorization'].removeprefix('Bearer '), '[REDACTED]')
-                self.errors.append({'service': service, 'http_status': status, 'code': error.get('error_code'), 'detail': detail})
+                raw_code = str(error.get('error_code', ''))
+                code = raw_code if re.fullmatch(r'[0-9]{1,10}', raw_code) else 'UNAVAILABLE'
+                self.errors.append({'service': service, 'http_status': int(status), 'code': code})
             except (UnicodeError, ValueError, AttributeError, TypeError):
-                self.errors.append({'service': service, 'http_status': status, 'code': 'NON_JSON_ERROR'})
+                self.errors.append({'service': service, 'http_status': int(status), 'code': 'NON_JSON_ERROR'})
             fail('API_READ_REJECTED')
         fail('API_RETRY_EXHAUSTED')
 
 
-def campaign_configuration(api):
+
+def inventory(api):
+    rows, seen, pages, offset = [], set(), [], 0
+    complete = False
+    problem = None
     fields = ['CounterIds', 'BiddingStrategy', 'PriorityGoals', 'AttributionModel', 'PackageBiddingStrategy']
-    response, request_id = api.post('campaigns', {'method': 'get', 'params': {
-        'SelectionCriteria': {'Ids': list(CAMPAIGNS)},
-        'FieldNames': ['Id', 'Name', 'Type', 'State', 'Status', 'TimeZone', 'Currency'],
-        'TextCampaignFieldNames': fields, 'UnifiedCampaignFieldNames': fields}})
-    result = response.get('result')
-    rows = result.get('Campaigns') if isinstance(result, dict) else None
-    if not isinstance(rows, list) or result.get('LimitedBy') is not None or len(rows) != len(CAMPAIGNS):
-        fail('EXACT_CAMPAIGN_CONFIGURATION_UNAVAILABLE')
-    ids = []
-    for row in rows:
-        if not isinstance(row, dict) or type(row.get('Id')) is not int or row['Id'] not in CAMPAIGNS:
-            fail('CAMPAIGN_CONFIGURATION_SCOPE_MISMATCH')
-        if row.get('Type') not in {'TEXT_CAMPAIGN', 'UNIFIED_CAMPAIGN'}:
-            fail('CAMPAIGN_CONFIGURATION_TYPE_UNSUPPORTED')
-        ids.append(row['Id'])
-    if len(set(ids)) != len(CAMPAIGNS):
-        fail('CAMPAIGN_CONFIGURATION_DUPLICATE')
-    rows = sorted(rows, key=lambda row: row['Id'])
-    return {'at_utc': stamp(), 'campaigns': rows, 'sha256': sha(rows), 'request_id': request_id}
-
-
-def export_queries(api, output):
-    seen = set()
-    for campaign_id in CAMPAIGNS:
-        scope = {'campaign_id': campaign_id, 'complete': False, 'rows': 0, 'pages': [], 'problem': None}
-        output['coverage']['campaigns'].append(scope)
-        offset = 0
-        while True:
-            # Reserve one probe request at the cap to distinguish exact cap from truncation.
-            params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST,
-                       'Filter': [{'Field': 'CampaignId', 'Operator': 'IN', 'Values': [str(campaign_id)]}]},
-                      'FieldNames': list(FIELDS), 'ReportType': 'SEARCH_QUERY_PERFORMANCE_REPORT',
-                      'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
-                      'Page': {'Limit': PAGE_SIZE, 'Offset': offset},
-                      'OrderBy': [{'Field': name, 'SortOrder': 'ASCENDING'}
-                                  for name in ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query')]}
-            params['ReportName'] = 'AnyTour-demand-' + sha(params)[:32]
-            try:
-                body, request_id = api.post('reports', {'params': params}, report=True)
-                rows = parse_tsv(body, {campaign_id}, FIRST, LAST)
-                page_keys = [tuple(row[field] for field in FIELDS[:5]) for row in rows]
-                if len(set(page_keys)) != len(page_keys) or any(key in seen for key in page_keys):
-                    fail('DUPLICATE_OR_DRIFTING_REPORT_PAGE')
-                if len(output['raw_rows']) + len(rows) > MAX_ROWS:
-                    fail('TOTAL_ROW_LIMIT_REACHED')
-                seen.update(page_keys)
-                output['raw_rows'].extend(rows)
-                scope['rows'] += len(rows)
-                scope['pages'].append({'offset': offset, 'rows': len(rows), 'request_id': request_id})
-                print(json.dumps({'stage': 'report_page', 'campaign_id': campaign_id,
-                                  'page': len(scope['pages']), 'rows': len(rows)}, separators=(',', ':')), file=sys.stderr, flush=True)
-                if len(rows) < PAGE_SIZE:
-                    scope['complete'] = True
-                    break
-                offset += PAGE_SIZE
-                if offset > MAX_ROWS:
-                    fail('TOTAL_ROW_LIMIT_REACHED')
-            except SafeError as exc:
-                scope['problem'] = exc.code
-                output['problems'].append(exc.code)
+    for _ in range(100):
+        try:
+            response, request_id = api.post('campaigns', {'method': 'get', 'params': {
+                'SelectionCriteria': {'States': list(STATES)},
+                'FieldNames': ['Id', 'Name', 'Type', 'State', 'Status', 'TimeZone', 'Currency'],
+                'TextCampaignFieldNames': fields, 'UnifiedCampaignFieldNames': fields,
+                'Page': {'Limit': CONFIG_PAGE_SIZE, 'Offset': offset}}})
+            result = response.get('result')
+            page = result.get('Campaigns') if isinstance(result, dict) else None
+            if not isinstance(page, list) or len(page) > CONFIG_PAGE_SIZE:
+                fail('CAMPAIGN_PAGE_MALFORMED')
+            new_ids = []
+            for item in page:
+                if not isinstance(item, dict) or type(item.get('Id')) is not int or item['Id'] <= 0:
+                    fail('CAMPAIGN_ID_MALFORMED')
+                if item['Id'] in seen or item['Id'] in new_ids:
+                    fail('CAMPAIGN_PAGE_DUPLICATE_OR_DRIFT')
+                if item.get('State') not in STATES:
+                    fail('CAMPAIGN_STATE_NOT_REQUESTED')
+                new_ids.append(item['Id'])
+            if len(rows) + len(page) > MAX_ROWS:
+                fail('CAMPAIGN_INVENTORY_LIMIT')
+            rows.extend(page); seen.update(new_ids)
+            pages.append({'offset': offset, 'rows': len(page), 'request_id': request_id})
+            limited = result.get('LimitedBy')
+            if limited is None:
+                complete = True
                 break
-    output['coverage']['pagination_complete'] = (
-        len(output['coverage']['campaigns']) == len(CAMPAIGNS)
-        and all(row['complete'] for row in output['coverage']['campaigns']))
+            if type(limited) is not int or limited != offset + len(page) or not page:
+                fail('CAMPAIGN_CURSOR_INCONSISTENT')
+            offset = limited
+        except SafeError as exc:
+            problem = exc.code
+            break
+    else:
+        problem = 'CAMPAIGN_PAGE_BUDGET_REACHED'
+    rows.sort(key=lambda item: item['Id'])
+    return {'at_utc': stamp(), 'campaigns': rows, 'sha256': sha(rows),
+            'pages': pages, 'complete': complete, 'problem': problem,
+            'states_requested': list(STATES), 'archived_and_converted_explicitly_included': True,
+            'configuration_fields_scope': 'COMMON_ALL_TYPES_TEXT_AND_UNIFIED_STRATEGY_FIELDS_PORTFOLIO_POINTERS'}
+
+
+def parse_stats(body, max_rows=PAGE_SIZE):
+    try:
+        text = body.decode('utf-8-sig') if isinstance(body, bytes) else body
+        reader = csv.DictReader(io.StringIO(text), delimiter='\t', strict=True)
+        if reader.fieldnames != list(FIELDS):
+            fail('STATS_COLUMNS_MISMATCH')
+        rows, keys = [], set()
+        for row in reader:
+            if len(rows) >= max_rows or set(row) != set(FIELDS) or any(value is None for value in row.values()):
+                fail('STATS_ROW_SHAPE_OR_LIMIT')
+            positive_id(row['CampaignId'])
+            surface = row['AdNetworkType']
+            if not isinstance(surface, str) or not re.fullmatch(r'[A-Z_]{1,64}', surface):
+                fail('STATS_SURFACE_MALFORMED')
+            number(row['Impressions'], integer=True); number(row['Clicks'], integer=True); number(row['Cost'])
+            key = (row['CampaignId'], surface)
+            if key in keys:
+                fail('STATS_PAGE_DUPLICATE')
+            keys.add(key); rows.append(dict(row))
+        return rows
+    except SafeError:
+        raise
+    except (ValueError, UnicodeError, csv.Error, TypeError):
+        fail('STATS_PARSE_FAILED')
+
+
+def account_stats(api, result):
+    rows, seen, pages, offset = result['raw_stats'], set(), [], 0
+    coverage = result['stats_coverage']
+    for _ in range(101):
+        params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST},
+                  'FieldNames': list(FIELDS), 'ReportType': 'CAMPAIGN_PERFORMANCE_REPORT',
+                  'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
+                  'Page': {'Limit': PAGE_SIZE, 'Offset': offset},
+                  'OrderBy': [{'Field': 'CampaignId', 'SortOrder': 'ASCENDING'},
+                              {'Field': 'AdNetworkType', 'SortOrder': 'ASCENDING'}]}
+        params['ReportName'] = 'AnyTour-account-inventory-' + sha(params)[:24]
+        try:
+            body, request_id = api.post('reports', {'params': params}, report=True)
+            page = parse_stats(body)
+            keys = {(row['CampaignId'], row['AdNetworkType']) for row in page}
+            if keys & seen:
+                fail('STATS_DRIFT_OR_DUPLICATE_PAGE')
+            if len(rows) + len(page) > MAX_ROWS:
+                fail('STATS_TOTAL_ROW_LIMIT')
+            rows.extend(page); seen.update(keys)
+            pages.append({'offset': offset, 'rows': len(page), 'request_id': request_id})
+            if len(page) < PAGE_SIZE:
+                coverage['complete'] = True
+                break
+            offset += PAGE_SIZE
+        except SafeError as exc:
+            coverage['problem'] = exc.code
+            break
+    else:
+        coverage['problem'] = 'STATS_PAGE_BUDGET_REACHED'
+    coverage['pages'] = pages
+    result['campaign_ids_with_search_impressions'] = sorted({int(row['CampaignId']) for row in rows
+        if row['AdNetworkType'] == 'SEARCH' and number(row['Impressions']) is not None
+        and number(row['Impressions']) > 0})
+    result['campaign_ids_with_search_clicks'] = sorted({int(row['CampaignId']) for row in rows
+        if row['AdNetworkType'] == 'SEARCH' and number(row['Clicks']) is not None
+        and number(row['Clicks']) > 0})
 
 
 def self_test():
-    """Meaningful offline parser, null, scope, bounds and credential tests."""
     header = '\t'.join(FIELDS) + '\n'
-    row = ['2026-10-01', '714260445', '10', '--', 'отель с аквапарком', '12', '0', '0.00']
-    assert parse_tsv(header + '\t'.join(row) + '\n', {714260445}, FIRST, LAST)[0]['AdId'] == '--'
-    assert number('--') is None and number('0') == Decimal(0)
-    assert number('1.25') == Decimal('1.25')
+    valid = header + '123\tSEARCH\t12\t0\t0.00\n456\tAD_NETWORK\t--\t--\t--\n'
+    assert len(parse_stats(valid)) == 2 and parse_stats(valid)[1]['Cost'] == '--'
     rejected = 0
-    cases = []
-    for index, value in ((0, '2026-09-22'), (1, '999'), (2, '1.5'), (5, 'NaN'),
-                         (6, '-1'), (6, '1.2'), (7, '1e9999')):
-        broken = row.copy(); broken[index] = value
-        cases.append(header + '\t'.join(broken) + '\n')
-    cases.extend([header.replace('Cost', 'Unknown') + '\t'.join(row) + '\n',
-                  header + '\t'.join(row[:-1]) + '\n'])
-    for case in cases:
+    for bad in (valid.replace('12\t0', '-1\t0'), valid.replace('0.00', 'NaN'),
+                valid.replace('Cost', 'Wrong'), valid + '123\tSEARCH\t1\t1\t1\n'):
         try:
-            parse_tsv(case, {714260445}, FIRST, LAST)
+            parse_stats(bad)
         except SafeError:
             rejected += 1
         else:
-            raise AssertionError('invalid report accepted')
-    try:
-        parse_tsv(header + '\t'.join(row) + '\n', {714260445}, FIRST, LAST, max_rows=0)
-    except SafeError:
-        rejected += 1
-    else:
-        raise AssertionError('row limit bypassed')
-    assert origin_matches('git@github.com:pyatkoff/yandex-direct-autopilot.git')
-    assert not origin_matches('https://github.com/other/yandex-direct-autopilot.git')
-    assert parse_env('READ_ONLY=true\nYANDEX_DIRECT_CLIENT_LOGIN=anytour2024tp\nYANDEX_OAUTH_TOKEN="FAKE_TEST_TOKEN"\nDB_PASSWORD=ignored') == 'FAKE_TEST_TOKEN'
-    print(json.dumps({'self_test': 'passed', 'rejected_invalid_cases': rejected, 'network_called': False}))
+            raise AssertionError('bad statistics accepted')
+    class Fake:
+        def post(self, service, payload, report=False):
+            assert service == 'campaigns' and payload['method'] == 'get'
+            params = payload['params']
+            assert set(params['SelectionCriteria']['States']) == set(STATES)
+            offset = params['Page']['Offset']
+            if offset == 0:
+                return {'result': {'Campaigns': [{'Id': 1, 'State': 'ARCHIVED'}], 'LimitedBy': 1}}, 'fake1'
+            assert offset == 1
+            return {'result': {'Campaigns': [{'Id': 2, 'State': 'CONVERTED'}]}}, 'fake2'
+    inv = inventory(Fake())
+    assert inv['complete'] and len(inv['campaigns']) == 2 and len(inv['pages']) == 2
+    assert not inv['problem']
+    print(json.dumps({'self_test': 'passed', 'invalid_stats_rejected': rejected,
+                      'archived_converted_pagination': 'passed', 'network_called': False}))
 
 
 def main():
     if sys.argv[1:] == ['--self-test']:
-        self_test()
-        return 0
+        self_test(); return 0
     if sys.argv[1:]:
-        print(json.dumps({'status': 'FAILED', 'problems': ['ARGUMENTS_NOT_SUPPORTED']}))
-        return 2
+        print(json.dumps({'status': 'FAILED', 'problems': ['ARGUMENTS_NOT_SUPPORTED']})); return 2
     started = time.monotonic()
-    output = {'schema': 1, 'status': 'FAILED', 'started_at_utc': stamp(),
-              'client_login': LOGIN, 'campaign_ids': list(CAMPAIGNS), 'date1': FIRST, 'date2': LAST,
-              'read_only': True, 'production_changes': False, 'server_files_written': False,
-              'database_opened': False, 'conversions_requested': False,
-              'configuration_scope': 'CAMPAIGNS_GET_FIELDS_ONLY_PORTFOLIO_POINTERS_NOT_RESOLVED',
+    result = {'schema': 1, 'status': 'FAILED', 'started_at_utc': stamp(), 'client_login': LOGIN,
+              'scope': 'ALL_ACCESSIBLE_CAMPAIGNS_OF_EXACT_CLIENT_LOGIN', 'date1': FIRST, 'date2': LAST,
+              'stats_granularity': 'PERIOD_TOTAL_BY_CAMPAIGN_AND_AD_NETWORK_TYPE',
+              'read_only': True, 'database_opened': False, 'server_files_written': False,
+              'production_changes': False, 'conversions_requested': False,
               'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
-              'coverage': {'campaigns': [], 'pagination_complete': False,
-                           'all_market_queries': False, 'includes_current_calendar_day': True,
-                           'scope': 'DIRECT_EXPOSED_ROWS_FOR_TWO_EXACT_CAMPAIGNS',
-                           'pagination_not_atomic_snapshot': True},
               'config_before': None, 'config_after': None, 'config_unchanged': None,
-              'raw_rows': [], 'problems': []}
+              'raw_stats': [], 'stats_coverage': {'complete': False, 'problem': None, 'pages': []},
+              'campaign_ids_with_search_impressions': [], 'campaign_ids_with_search_clicks': [],
+              'problems': []}
     api = None
-    def timeout_handler(signum, frame):
+    def alarm(signum, frame):
         fail('TOTAL_TIME_BUDGET_REACHED')
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(TOTAL_SECONDS)
+    signal.signal(signal.SIGALRM, alarm); signal.alarm(TOTAL_SECONDS)
     try:
         token, installed_sha = credentials()
-        output['verified_project_sha'] = installed_sha
+        result['verified_project_sha'] = installed_sha
         api = API(token, started + TOTAL_SECONDS - 5)
-        output['config_before'] = campaign_configuration(api)
-        output['campaign_timezones'] = {str(row['Id']): row.get('TimeZone')
-                                     for row in output['config_before']['campaigns']}
-        export_queries(api, output)
-        output['config_after'] = campaign_configuration(api)
-        output['config_unchanged'] = output['config_before']['sha256'] == output['config_after']['sha256']
-        if not output['config_unchanged']:
-            output['problems'].append('CAMPAIGN_CONFIGURATION_CHANGED_DURING_COLLECTION')
-        output['status'] = 'COLLECTED' if output['coverage']['pagination_complete'] and not output['problems'] else 'PARTIAL'
+        result['config_before'] = inventory(api)
+        account_stats(api, result)
+        result['config_after'] = inventory(api)
+        result['config_unchanged'] = result['config_before']['sha256'] == result['config_after']['sha256']
+        for inv in (result['config_before'], result['config_after']):
+            if not inv['complete']:
+                result['problems'].append(inv['problem'] or 'INVENTORY_INCOMPLETE')
+        if not result['stats_coverage']['complete']:
+            result['problems'].append(result['stats_coverage']['problem'] or 'STATS_INCOMPLETE')
+        if not result['config_unchanged']:
+            result['problems'].append('CAMPAIGN_CONFIGURATION_CHANGED_DURING_COLLECTION')
+        ids = {item['Id'] for item in result['config_before']['campaigns'] + result['config_after']['campaigns']}
+        result['stats_campaign_ids_outside_inventory'] = sorted({int(row['CampaignId']) for row in result['raw_stats']} - ids)
+        if result['stats_campaign_ids_outside_inventory']:
+            result['problems'].append('STATS_CAMPAIGNS_OUTSIDE_INVENTORY')
+        result['status'] = 'COLLECTED' if not result['problems'] else 'PARTIAL'
     except SafeError as exc:
-        output['problems'].append(exc.code)
-        output['status'] = 'PARTIAL' if output['raw_rows'] else 'FAILED'
+        result['problems'].append(exc.code)
+        result['status'] = 'PARTIAL' if result['raw_stats'] or result['config_before'] else 'FAILED'
     except Exception:
-        output['problems'].append('COLLECTION_RUNTIME_OR_SCHEMA_FAILURE')
-        output['status'] = 'PARTIAL' if output['raw_rows'] else 'FAILED'
+        result['problems'].append('INVENTORY_RUNTIME_OR_SCHEMA_FAILURE')
+        result['status'] = 'PARTIAL' if result['raw_stats'] or result['config_before'] else 'FAILED'
     finally:
         signal.alarm(0)
-    output['finished_at_utc'] = stamp()
-    output['http_attempts'] = api.calls if api else 0
-    output['api_errors'] = api.errors if api else []
-    output['row_count'] = len(output['raw_rows'])
-    output['elapsed_seconds'] = round(time.monotonic() - started, 2)
-    output['problems'] = sorted(set(output['problems']))
-    print(json.dumps({'stage': 'finished', 'status': output['status'], 'rows': output['row_count'],
-                      'http_attempts': output['http_attempts']}, separators=(',', ':')), file=sys.stderr)
-    print(json.dumps(output, ensure_ascii=False, separators=(',', ':'), allow_nan=False))
-    return 0 if output['status'] == 'COLLECTED' else 2
+    result['finished_at_utc'] = stamp()
+    result['http_attempts'] = api.calls if api else 0
+    result['api_errors'] = api.errors if api else []
+    result['stats_row_count'] = len(result['raw_stats'])
+    result['elapsed_seconds'] = round(time.monotonic() - started, 2)
+    result['problems'] = sorted(set(result['problems']))
+    print(json.dumps({'stage': 'finished', 'status': result['status'], 'stats_rows': result['stats_row_count'],
+                      'http_attempts': result['http_attempts']}, separators=(',', ':')), file=sys.stderr)
+    print(json.dumps(result, ensure_ascii=False, separators=(',', ':'), allow_nan=False))
+    return 0 if result['status'] == 'COLLECTED' else 2
 
 
 if __name__ == '__main__':
