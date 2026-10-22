@@ -132,6 +132,15 @@ do not synthesize a like or prove a natural Manager2 saved choice.
 
 ## Remaining delivery work
 
+The Manager2 native sender is implemented by `ManagerTourSelectionDeliveryService`
+and `TourSelectionNativeTransport`; see `MANAGER_TOUR_SELECTIONS.md` for its
+immutable quote/receipt, private photo intake and explicit manager-send contract.
+Its `departure-v1` layout preserves normal real-price and room-image notices
+while displaying departure plus nights. Additional quoted conditions belong to
+the saved snapshot, not transient presentation-only input. Historical fixed
+trials and their once receipts remain unchanged. General natural-use evidence
+must be reported separately from the older owner's accepted format.
+
 The general manager sender is a separate bounded implementation. Existing
 `sendMedia` intentionally sends one file per message and is not a three-photo
 offer sender. Before exposing a manager composer, connect manager authorization,

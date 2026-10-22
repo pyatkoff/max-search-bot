@@ -25,38 +25,54 @@ final class TourChoiceService
         if ($conversationId <= 0 || $snapshot === null) return self::error('invalid_offer');
         self::begin($pdo);
         try {
-            $conversation = self::conversation($pdo, $conversationId, true);
-            if ($conversation === null) { $pdo->rollBack(); return self::error('unavailable'); }
-            $token = bin2hex(random_bytes(12));
-            $payload = ['schema'=>1, 'snapshot'=>$snapshot, 'binding'=>self::binding($conversation), 'token_hash'=>hash('sha256', $token)];
-            $id = self::append($pdo, $conversationId, self::PREPARED, 'system', null, $payload);
+            $result = self::prepareInTransaction($pdo,$conversationId,$snapshot);
+            if (!$result['ok']) { $pdo->rollBack(); return $result; }
             $pdo->commit();
-            return ['ok'=>true, 'offer_id'=>$id, 'callback_data'=>'tour_like_'.$id.'_'.$token];
+            return $result;
         } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+    }
+
+    /** Trusted application composition: the caller owns commit/rollback. */
+    public static function prepareInTransaction(PDO $pdo,int $conversationId,array $snapshot): array
+    {
+        if (!$pdo->inTransaction()) throw new LogicException('Offer preparation requires an owning transaction');
+        $snapshot=self::normalize($snapshot);
+        if ($conversationId<=0 || $snapshot===null) return self::error('invalid_offer');
+        $conversation=self::conversation($pdo,$conversationId,true);
+        if ($conversation===null) return self::error('unavailable');
+        $token=bin2hex(random_bytes(12));
+        $payload=['schema'=>1,'snapshot'=>$snapshot,'binding'=>self::binding($conversation),'token_hash'=>hash('sha256',$token)];
+        $id=self::append($pdo,$conversationId,self::PREPARED,'system',null,$payload);
+        return ['ok'=>true,'offer_id'=>$id,'callback_data'=>'tour_like_'.$id.'_'.$token];
+    }
+
+    /** Delivery, one transcript row and the creation receipt commit together. */
+    public static function recordDeliveredInTransaction(PDO $pdo,int $offerId,string $nativeMid,string $nativeChatId): array
+    {
+        if (!$pdo->inTransaction()) throw new LogicException('Offer delivery requires an owning transaction');
+        if (!self::nativeId($nativeMid) || !self::nativeId($nativeChatId)) return self::error('invalid_receipt');
+        $offer=self::offer($pdo,$offerId);
+        if ($offer===null) return self::error('unavailable');
+        $conversation=self::conversation($pdo,$offer['conversation_id'],true);
+        if ($conversation===null || self::binding($conversation)!==$offer['payload']['binding']) return self::error('unavailable');
+        if ($conversation['channel']==='telegram' && $nativeChatId!==$conversation['external_user_id']) return self::error('invalid_receipt');
+        $receipt=['offer_id'=>$offerId,'native_mid'=>$nativeMid,'native_chat_id'=>$nativeChatId];
+        $previous=self::related($pdo,$offer['conversation_id'],self::DELIVERED,$offerId);
+        if ($previous!==null) return $previous['payload']===$receipt?['ok'=>true,'changed'=>false]:self::error('receipt_mismatch');
+        self::append($pdo,$offer['conversation_id'],self::DELIVERED,'system',null,$receipt);
+        return ['ok'=>true,'changed'=>true];
     }
 
     /** An unconfirmed/failed send must never call this method. */
     public static function recordDelivered(PDO $pdo, int $offerId, string $nativeMid, string $nativeChatId): array
     {
         if (!self::nativeId($nativeMid) || !self::nativeId($nativeChatId)) return self::error('invalid_receipt');
-        $offer = self::offer($pdo, $offerId);
-        if ($offer === null) return self::error('unavailable');
         self::begin($pdo);
         try {
-            $conversation = self::conversation($pdo, $offer['conversation_id'], true);
-            if ($conversation === null || self::binding($conversation) !== $offer['payload']['binding']) { $pdo->rollBack(); return self::error('unavailable'); }
-            if ($conversation['channel'] === 'telegram' && $nativeChatId !== $conversation['external_user_id']) { $pdo->rollBack(); return self::error('invalid_receipt'); }
-            $receipt = ['offer_id'=>$offerId, 'native_mid'=>$nativeMid, 'native_chat_id'=>$nativeChatId];
-            $previous = self::related($pdo, $offer['conversation_id'], self::DELIVERED, $offerId);
-            if ($previous !== null) {
-                $same = $previous['payload'] === $receipt;
-                $pdo->rollBack();
-                return $same ? ['ok'=>true, 'changed'=>false] : self::error('receipt_mismatch');
-            }
-            self::append($pdo, $offer['conversation_id'], self::DELIVERED, 'system', null, $receipt);
-            $pdo->commit();
-            return ['ok'=>true, 'changed'=>true];
-        } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
+            $result=self::recordDeliveredInTransaction($pdo,$offerId,$nativeMid,$nativeChatId);
+            if (!$result['ok'] || !$result['changed']) $pdo->rollBack(); else $pdo->commit();
+            return $result;
+        } catch (Throwable $e) {if ($pdo->inTransaction()) $pdo->rollBack();throw $e;}
     }
 
     /** Accept only the normalized callback plus the original native envelope. */
@@ -154,6 +170,10 @@ final class TourChoiceService
             $out[$key] = $value;
         }
         if ($out['date_to'] <= $out['date_from']) return null;
+        if (array_key_exists('date_to_basis',$input)) {
+            if ($input['date_to_basis']!=='lodging_estimate') return null;
+            $out['date_to_basis']='lodging_estimate';
+        }
         foreach (['nights'=>60, 'adults'=>20] as $key=>$max) { if (!is_int($input[$key] ?? null) || $input[$key] < 1 || $input[$key] > $max) return null; $out[$key] = $input[$key]; }
         $ages = $input['child_ages'] ?? [];
         if (!is_array($ages) || count($ages) > 12 || array_values($ages) !== $ages) return null;
@@ -169,6 +189,17 @@ final class TourChoiceService
         $out['flights'] = [];
         foreach ($flights as $flight) { $text = self::text($flight, 300); if ($text === null || $text === '') return null; $out['flights'][] = $text; }
         foreach (['rationale','compromise'] as $key) { $text = self::text($input[$key] ?? '', 600); if ($text === null) return null; $out[$key] = $text; }
+        if (array_key_exists('quoted_details',$input)) {
+            require_once __DIR__.'/ManagerTourSelectionDraft.php';
+            $details=$input['quoted_details'];
+            $keys=['destination','source_label','source_url','observed_at','flights','inclusions','constraints','photos'];
+            if (!is_array($details) || array_diff(array_keys($details),$keys)) return null;
+            $draft=ManagerTourSelectionDraft::normalize(['title'=>'','intro'=>'','offers'=>[
+                ['id'=>str_repeat('0',32),'selected'=>true]+$details,
+            ]]);
+            if ($draft===null) return null;
+            $out['quoted_details']=array_intersect_key($draft['offers'][0],array_flip($keys));
+        }
         return $out;
     }
 
@@ -256,6 +287,6 @@ final class TourChoiceService
 
     private static function nativeId(string $value): bool { return $value !== '' && strlen($value) <= 191 && preg_match('/[\x00-\x20\x7f]/', $value) === 0; }
     private static function text($value, int $max): ?string { if (!is_string($value) || preg_match('//u', $value) !== 1 || preg_match('/[\x00-\x1f\x7f]/u', $value)) return null; $value = trim($value); return preg_match_all('/./us', $value) <= $max ? $value : null; }
-    private static function decode($value): ?array { if (!is_string($value) || strlen($value) > 16384) return null; $data = json_decode($value, true); return is_array($data) ? $data : null; }
+    private static function decode($value): ?array { if (!is_string($value) || strlen($value) > 65536) return null; $data = json_decode($value, true); return is_array($data) ? $data : null; }
     private static function error(string $code): array { return ['ok'=>false, 'error'=>$code]; }
 }

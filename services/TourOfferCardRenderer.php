@@ -30,13 +30,17 @@ final class TourOfferCardRenderer
         $basis = $partySize === 1 ? 'за одного' : ($partySize === 2 ? 'за двоих' : 'за '.$partySize.' '.self::plural($partySize, ['человек','человека','человек']));
         $price = self::amount($snapshot['amount']).' '.['RUB'=>'₽', 'EUR'=>'€', 'USD'=>'$'][$snapshot['currency']].' '.$basis;
         $conditions = [
-            '📅 '.($compact ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
+            '📅 '.($compact || ($presentation['layout'] ?? '') === 'departure-v1' ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
             '✈️ '.$snapshot['departure'].' · '.self::party($snapshot),
             '🛏️ '.$snapshot['room'],
             '🍽️ '.$snapshot['meal'],
         ];
         foreach ($snapshot['flights'] as $flight) $conditions[] = 'Перелёт: '.$flight;
         foreach ($presentation['inclusions'] as $inclusion) $conditions[] = $inclusion;
+        $quoted = $snapshot['quoted_details'] ?? [];
+        foreach (['flights'=>'Перелёт и багаж','inclusions'=>'Включено','constraints'=>'Уточнить'] as $key=>$label) {
+            if (($quoted[$key] ?? '') !== '') $conditions[] = $label.': '.$quoted[$key];
+        }
         $details = implode("\n", $conditions);
         if ($snapshot['rationale'] !== '') $details .= "\n\nПочему этот вариант: ".$snapshot['rationale'];
         if ($snapshot['compromise'] !== '') $details .= "\n\nУчесть: ".$snapshot['compromise'];
@@ -80,7 +84,7 @@ final class TourOfferCardRenderer
     {
         if (array_diff(array_keys($input), ['destination','inclusions','photos','room_illustrative','layout']) !== []
             || !is_bool($input['room_illustrative'] ?? null)) throw new InvalidArgumentException('Invalid offer presentation');
-        if (array_key_exists('layout', $input) && $input['layout'] !== 'compact-v1') throw new InvalidArgumentException('Invalid card layout');
+        if (array_key_exists('layout', $input) && !in_array($input['layout'], ['compact-v1','departure-v1'], true)) throw new InvalidArgumentException('Invalid card layout');
         $destination = self::text($input['destination'] ?? '', 200, true);
         $inclusions = $input['inclusions'] ?? [];
         if (!is_array($inclusions) || !array_is_list($inclusions) || count($inclusions) > 6) throw new InvalidArgumentException('Invalid included services');

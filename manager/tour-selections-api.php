@@ -3,9 +3,11 @@ declare(strict_types=1);
 require_once dirname(__DIR__).'/config.php';
 require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionService.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionDeliveryService.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
+session_write_close();
 $id=$data['conversation_id']??null; $action=$data['action']??null;
 if (!is_int($id) || $id<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
 try {
@@ -13,6 +15,10 @@ try {
         'get'=>ManagerTourSelectionService::get((int)$manager['id'],$id),
         'save'=>ManagerTourSelectionService::save((int)$manager['id'],$id,$data),
         'operation'=>ManagerTourSelectionService::operation((int)$manager['id'],$id,is_string($data['operation_id']??null)?$data['operation_id']:''),
+        'prepare'=>is_int($data['version']??null)?ManagerTourSelectionDeliveryService::prepare((int)$manager['id'],$id,$data['version']):['ok'=>false,'error'=>'invalid_version'],
+        'history'=>ManagerTourSelectionDeliveryService::history((int)$manager['id'],$id),
+        'publication'=>ManagerTourSelectionDeliveryService::get((int)$manager['id'],$id,is_string($data['publication_id']??null)?$data['publication_id']:''),
+        'send'=>is_int($data['card_index']??null)?ManagerTourSelectionDeliveryService::send((int)$manager['id'],$id,is_string($data['publication_id']??null)?$data['publication_id']:'',$data['card_index']):['ok'=>false,'error'=>'invalid_card'],
         default=>['ok'=>false,'error'=>'unknown_action'],
     };
 } catch (Throwable $e) {
