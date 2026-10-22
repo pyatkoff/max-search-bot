@@ -54,6 +54,25 @@ function harness(){
 const deferred=()=>{let resolve;return{promise:new Promise(r=>resolve=r),resolve}};
 const tests=[];function test(name,run){tests.push({name,run})}
 
+test('assistant return delegates loaded-history preservation to the canonical conversation owner',async()=>{
+  const h=harness();h.A.activate(7);await h.A.open(101);await h.click('#assistantConversation');
+  assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);
+  assert.equal(h.opened[0].opts.preserveHistory,true);
+  assert.equal(h.opened[0].opts.preserveMessageScroll,true);assert.equal(h.opened[0].opts.preserveAttachment,true);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+
+test('opening a conversation dismisses its menu but explicit Close restores the opener',async()=>{
+  const h=harness();h.A.activate(7);h.A.bind();
+  const button=h.$('assistantClientOpen'),menu={open:false};button.closest=()=>menu;button.focus();
+  await h.A.open(101);await h.click('#assistantConversation');assert.equal(menu.open,false,'Navigation must not reopen the menu over the retained history');
+  button.focus();await h.A.open(101);await h.click('#assistantClose');assert.equal(menu.open,true);assert.equal(h.document.activeElement,button);h.onlyReads();
+});
+
+for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'push'],['inbox',101,'push'],['lead',101,'push']])test('assistant navigation preserves the canonical history boundary '+screen+' '+id,async()=>{
+  const h=harness();h.window.WorkspaceV2Mobile={getScreen:()=>screen};h.A.activate(7);await h.A.open(id);await h.click('#assistantConversation');assert.equal(h.opened[0].opts.mobileHistory,mode);h.onlyReads();
+});
+
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
   const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen').disabled,false);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });
