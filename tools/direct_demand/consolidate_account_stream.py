@@ -12,6 +12,7 @@ import sys
 FIELDS = ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query', 'Impressions', 'Clicks', 'Cost')
 MAX_ROWS = 1000000
 MAX_LINE_BYTES = 64 * 1024 * 1024
+NULLS = {'', '--'}
 
 
 def digest(value):
@@ -61,8 +62,49 @@ def validate_row(row, ids, first, last):
     return tuple(row[field] for field in FIELDS[:5])
 
 
+def duplicate_diagnostics(rows):
+    """Visible dimensions need not identify a native API row; never deduplicate."""
+    key_fields = FIELDS[:5]
+    groups = {}
+    exact_rows = set()
+    null_counts = {field: 0 for field in key_fields}
+    for row in rows:
+        key = tuple(row[field] for field in key_fields)
+        entry = groups.setdefault(key, {'rows': 0, 'metrics': set()})
+        entry['rows'] += 1
+        entry['metrics'].add(tuple(row[field] for field in FIELDS[5:]))
+        exact_rows.add(tuple(row[field] for field in FIELDS))
+        for field in key_fields:
+            null_counts[field] += row[field] in NULLS
+    duplicate_keys = {key for key, entry in groups.items() if entry['rows'] > 1}
+    metric_totals = {field: Decimal(0) for field in FIELDS[5:]}
+    metric_nulls = {field: 0 for field in FIELDS[5:]}
+    for row in rows:
+        if tuple(row[field] for field in key_fields) not in duplicate_keys:
+            continue
+        for field in FIELDS[5:]:
+            if row[field] in NULLS:
+                metric_nulls[field] += 1
+            else:
+                metric_totals[field] += Decimal(row[field])
+    return {'key_fields': list(key_fields), 'native_rows': len(rows),
+            'unique_visible_keys': len(groups), 'duplicate_groups': len(duplicate_keys),
+            'rows_in_duplicate_groups': sum(groups[key]['rows'] for key in duplicate_keys),
+            'extra_rows_beyond_unique_keys': len(rows) - len(groups),
+            'exact_duplicate_extra_rows': len(rows) - len(exact_rows),
+            'groups_with_differing_metrics': sum(len(groups[key]['metrics']) > 1 for key in duplicate_keys),
+            'maximum_visible_key_multiplicity': max((entry['rows'] for entry in groups.values()), default=0),
+            'metrics_in_duplicate_groups': {field: str(value) for field, value in metric_totals.items()},
+            'null_metrics_in_duplicate_groups': metric_nulls, 'null_dimension_rows': null_counts,
+            'all_api_rows_preserved': True, 'deduplicated': False,
+            'native_row_order_preserved': True,
+            'row_identity': 'SOURCE_CAPTURE_DIGEST_PLUS_ZERO_BASED_RAW_ROWS_INDEX'}
+
+
+
 def consolidate(stream):
     header, summary, before, after = None, None, None, None
+    captured_diagnostics = None
     raw_rows, problems, seen = [], [], set()
     batches, current_pages, current_rows = [], [], 0
     campaign_rows = {}
@@ -84,14 +126,22 @@ def consolidate(stream):
                 header = event
                 ids = header.get('campaign_ids')
                 require(isinstance(ids, list) and ids and len(ids) == len(set(ids))
-                        and all(type(v) is int and v > 0 for v in ids), 'STREAM_SCOPE_MALFORMED')
+                        and ids == [715091398], 'STREAM_SCOPE_MALFORMED')
                 require(header.get('client_login') == 'anytour2024tp' and header.get('read_only') is True
                         and header.get('production_changes') is False, 'STREAM_AUTHORITY_MISMATCH')
-                require(type(header.get('page_size')) is int and 1 <= header['page_size'] <= 50000,
+                require(header.get('page_size') == 50000,
                         'STREAM_PAGE_LIMIT_MALFORMED')
                 require(header.get('batch_size') == 1 and header.get('max_rows') == MAX_ROWS,
                         'STREAM_LIMIT_CONTRACT_MISMATCH')
+                require(header.get('scope') == 'SINGLE_UNPAGINATED_NATIVE_API_RESPONSE'
+                        and header.get('single_response_capture') is True
+                        and header.get('duplicate_policy') == 'PRESERVE_NATIVE_ROWS_WITHIN_SINGLE_RESPONSE_ONLY'
+                        and header.get('query_network_type') == 'SEARCH'
+                        and header.get('report_type') == 'SEARCH_QUERY_PERFORMANCE_REPORT'
+                        and header.get('cost_basis') == 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
+                        'STREAM_CAPTURE_CONTRACT_MISMATCH')
                 first, last = header.get('date1'), header.get('date2')
+                require((first, last) == ('2026-09-23', '2026-10-22'), 'STREAM_CAPTURE_PERIOD_MISMATCH')
                 require(isinstance(first, str) and isinstance(last, str)
                         and date.fromisoformat(first).isoformat() == first
                         and date.fromisoformat(last).isoformat() == last and first <= last,
@@ -128,21 +178,23 @@ def consolidate(stream):
                 data = event.get('data')
                 require(isinstance(data, list) and len(data) <= header['page_size']
                         and event.get('rows') == len(data), 'STREAM_PAGE_ROW_COUNT_MISMATCH')
-                require(event.get('offset') == len(current_pages) * header['page_size'], 'STREAM_PAGE_OFFSET_MISMATCH')
+                require(event.get('offset') == 0 and not current_pages and not batches, 'STREAM_SINGLE_RESPONSE_ONLY')
+                require(isinstance(event.get('api_response_body_sha256'), str)
+                        and re.fullmatch(r'[0-9a-f]{64}', event['api_response_body_sha256']),
+                        'STREAM_BODY_RECEIPT_MALFORMED')
                 require(not current_pages or current_pages[-1]['rows'] == header['page_size'], 'STREAM_PAGE_AFTER_TERMINATOR')
                 require(event.get('rows_sha256') == digest(data), 'STREAM_PAGE_DIGEST_MISMATCH')
                 require(len(raw_rows) + len(data) <= MAX_ROWS, 'STREAM_TOTAL_ROW_LIMIT')
-                page_keys = set()
                 for row in data:
-                    key = validate_row(row, set(expected_batches[index]), first, last)
-                    require(key not in seen and key not in page_keys, 'STREAM_DUPLICATE_QUERY_ROW')
-                    page_keys.add(key)
-                seen.update(page_keys)
+                    validate_row(row, set(expected_batches[index]), first, last)
+                captured_diagnostics = duplicate_diagnostics(data)
+                require(event.get('duplicate_visible_keys') == captured_diagnostics,
+                        'STREAM_DUPLICATE_DIAGNOSTICS_MISMATCH')
                 raw_rows.extend(data)
                 current_rows += len(data)
                 for row in data:
                     campaign_rows[row['CampaignId']] += 1
-                current_pages.append({k: event[k] for k in ('offset', 'rows', 'request_id', 'rows_sha256')})
+                current_pages.append({k: event[k] for k in ('offset', 'rows', 'request_id', 'rows_sha256', 'api_response_body_sha256')})
                 continue
             if kind == 'batch_coverage':
                 index = len(batches)
@@ -166,6 +218,10 @@ def consolidate(stream):
                 require(summary.get('config_before') == before and summary.get('config_after') == after,
                         'STREAM_FINAL_CONFIGURATION_MISMATCH')
                 require(summary.get('status') in {'COLLECTED', 'PARTIAL', 'FAILED'}, 'STREAM_FINAL_STATUS_INVALID')
+                require(summary.get('duplicate_visible_keys') == captured_diagnostics,
+                        'STREAM_FINAL_DUPLICATE_DIAGNOSTICS_MISMATCH')
+                require(summary.get('report_response_count') == (1 if raw_rows or current_pages or batches and batches[0]['pages'] else 0),
+                        'STREAM_FINAL_RESPONSE_COUNT_MISMATCH')
                 if summary['status'] == 'COLLECTED':
                     require(len(batches) == len(expected_batches) and all(b.get('complete') for b in batches)
                             and before is not None and after is not None
@@ -182,6 +238,9 @@ def consolidate(stream):
     result = {**(header or {}), **(summary or {})}
     result['raw_rows'] = raw_rows
     result['row_count'] = len(raw_rows)
+    result['raw_rows_sha256'] = digest(raw_rows)
+    result['raw_response_checksum_scope'] = 'COLLECTOR_RECORDED_API_BYTES_NOT_REVERIFIED_ON_RUNNER'
+    result['duplicate_visible_keys'] = captured_diagnostics
     result['stream_lines'] = stream_lines
     result['stream_validated'] = not problems
     result['problems'] = sorted(set(problems + list(result.get('problems', []))))
@@ -189,10 +248,12 @@ def consolidate(stream):
         result['status'] = 'PARTIAL' if raw_rows else 'FAILED'
     pagination_complete = bool(not problems and summary and summary.get('status') == 'COLLECTED')
     result['coverage'] = {
-        'scope': 'REPAIR_OF_INCOMPLETE_BATCH_ONLY',
+        'scope': 'SINGLE_UNPAGINATED_NATIVE_API_RESPONSE',
+        'native_rows_preserved': True, 'deduplicated': False,
+        'single_response_capture': True,
         'pagination_complete': pagination_complete, 'data_complete': pagination_complete,
         'all_market_queries': False,
-        'pagination_not_atomic_snapshot': True, 'batches': batches,
+        'pagination_not_atomic_snapshot': False, 'batches': batches,
         'campaigns': [{'campaign_id': int(cid), 'rows': count,
                        'complete': pagination_complete} for cid, count in campaign_rows.items()]}
     if before:

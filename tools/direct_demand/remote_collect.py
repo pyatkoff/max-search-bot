@@ -27,7 +27,7 @@ from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHand
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 REPOSITORY = 'pyatkoff/yandex-direct-autopilot'
 LOGIN = 'anytour2024tp'
-CAMPAIGN_IDS = (713555035, 713747091, 713757657, 713759213, 713759214, 714260445, 714320748, 715091398, 715091443, 715096911, 715109284, 715137003, 715137014, 715331883)
+CAMPAIGN_IDS = (715091398,)
 FIRST = '2026-09-23'
 LAST = '2026-10-22'
 BASE = 'https://api.direct.yandex.com/json/v501/'
@@ -357,59 +357,86 @@ def campaign_configuration(api):
             'read_problems': read_problems}
 
 
-def collect_batches(api, state):
-    """Keep one page plus its predecessor in memory; runner checks global keys."""
-    for index, start in enumerate(range(0, len(CAMPAIGN_IDS), BATCH_SIZE)):
-        ids = CAMPAIGN_IDS[start:start + BATCH_SIZE]
-        scope = {'batch_index': index, 'campaign_ids': list(ids), 'complete': False,
-                 'rows': 0, 'pages': [], 'problem': None}
-        state['batches'].append(scope)
-        previous_keys = set()
-        offset = 0
-        try:
-            while True:
-                params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST,
-                          'Filter': [{'Field': 'CampaignId', 'Operator': 'IN',
-                                      'Values': [str(cid) for cid in ids]}]},
-                          'FieldNames': list(FIELDS), 'ReportType': 'SEARCH_QUERY_PERFORMANCE_REPORT',
-                          'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
-                          'Page': {'Limit': PAGE_SIZE, 'Offset': offset},
-                          'OrderBy': [{'Field': name, 'SortOrder': 'ASCENDING'}
-                                      for name in FIELDS[:5]]}
-                params['ReportName'] = 'AnyTour-account-demand-' + sha(params)[:32]
-                body, request_id = api.post('reports', {'params': params}, report=True)
-                rows = parse_tsv(body, set(ids), FIRST, LAST)
-                keys = {tuple(row[field] for field in FIELDS[:5]) for row in rows}
-                if len(keys) != len(rows):
-                    fail('DUPLICATE_KEYS_WITHIN_REPORT_PAGE')
-                if keys.intersection(previous_keys):
-                    fail('OVERLAPPING_REPORT_PAGES')
-                # Permit an empty cap probe; reject a nonempty page past the total cap.
-                if state['row_count'] + len(rows) > MAX_ROWS:
-                    fail('TOTAL_ROW_LIMIT_REACHED')
-                receipt = {'offset': offset, 'rows': len(rows), 'request_id': request_id,
-                           'rows_sha256': sha(rows)}
-                emit('page', batch_index=index, campaign_ids=list(ids), **receipt, data=rows)
-                scope['pages'].append(receipt)
-                scope['rows'] += len(rows)
-                state['row_count'] += len(rows)
-                previous_keys = keys
-                print(json.dumps({'stage': 'page', 'batch': index, 'offset': offset,
-                                  'rows': len(rows)}, separators=(',', ':')), file=sys.stderr, flush=True)
-                if len(rows) < PAGE_SIZE:
-                    scope['complete'] = True
-                    break
-                offset += PAGE_SIZE
-                if offset > MAX_ROWS:
-                    fail('TOTAL_ROW_LIMIT_REACHED')
-        except SafeError as exc:
-            scope['problem'] = exc.code
-            state['problems'].append(exc.code)
-            emit('batch_coverage', **scope)
-            if exc.code in {'TOTAL_TIME_BUDGET_REACHED', 'TOTAL_ROW_LIMIT_REACHED'}:
-                raise
+def duplicate_diagnostics(rows):
+    """Visible dimensions need not identify a native API row; never deduplicate."""
+    key_fields = FIELDS[:5]
+    groups = {}
+    exact_rows = set()
+    null_counts = {field: 0 for field in key_fields}
+    for row in rows:
+        key = tuple(row[field] for field in key_fields)
+        entry = groups.setdefault(key, {'rows': 0, 'metrics': set()})
+        entry['rows'] += 1
+        entry['metrics'].add(tuple(row[field] for field in FIELDS[5:]))
+        exact_rows.add(tuple(row[field] for field in FIELDS))
+        for field in key_fields:
+            null_counts[field] += row[field] in NULLS
+    duplicate_keys = {key for key, entry in groups.items() if entry['rows'] > 1}
+    metric_totals = {field: Decimal(0) for field in FIELDS[5:]}
+    metric_nulls = {field: 0 for field in FIELDS[5:]}
+    for row in rows:
+        if tuple(row[field] for field in key_fields) not in duplicate_keys:
             continue
+        for field in FIELDS[5:]:
+            if row[field] in NULLS:
+                metric_nulls[field] += 1
+            else:
+                metric_totals[field] += Decimal(row[field])
+    return {'key_fields': list(key_fields), 'native_rows': len(rows),
+            'unique_visible_keys': len(groups), 'duplicate_groups': len(duplicate_keys),
+            'rows_in_duplicate_groups': sum(groups[key]['rows'] for key in duplicate_keys),
+            'extra_rows_beyond_unique_keys': len(rows) - len(groups),
+            'exact_duplicate_extra_rows': len(rows) - len(exact_rows),
+            'groups_with_differing_metrics': sum(len(groups[key]['metrics']) > 1 for key in duplicate_keys),
+            'maximum_visible_key_multiplicity': max((entry['rows'] for entry in groups.values()), default=0),
+            'metrics_in_duplicate_groups': {field: str(value) for field, value in metric_totals.items()},
+            'null_metrics_in_duplicate_groups': metric_nulls, 'null_dimension_rows': null_counts,
+            'all_api_rows_preserved': True, 'deduplicated': False,
+            'native_row_order_preserved': True,
+            'row_identity': 'SOURCE_CAPTURE_DIGEST_PLUS_ZERO_BASED_RAW_ROWS_INDEX'}
+
+
+def collect_batches(api, state):
+    """Exactly one API response, no pagination, preserving all native rows."""
+    ids = list(CAMPAIGN_IDS)
+    scope = {'batch_index': 0, 'campaign_ids': ids, 'complete': False,
+             'rows': 0, 'pages': [], 'problem': None}
+    state['batches'].append(scope)
+    try:
+        params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST,
+                  'Filter': [{'Field': 'CampaignId', 'Operator': 'IN',
+                              'Values': [str(cid) for cid in ids]}]},
+                  'FieldNames': list(FIELDS), 'ReportType': 'SEARCH_QUERY_PERFORMANCE_REPORT',
+                  'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
+                  'Page': {'Limit': PAGE_SIZE, 'Offset': 0},
+                  'OrderBy': [{'Field': name, 'SortOrder': 'ASCENDING'}
+                              for name in FIELDS[:5]]}
+        params['ReportName'] = 'AnyTour-native-row-capture-' + sha(params)[:32]
+        body, request_id = api.post('reports', {'params': params}, report=True)
+        rows = parse_tsv(body, set(ids), FIRST, LAST)
+        diagnostics = duplicate_diagnostics(rows)
+        receipt = {'offset': 0, 'rows': len(rows), 'request_id': request_id,
+                   'rows_sha256': sha(rows), 'api_response_body_sha256': hashlib.sha256(body).hexdigest()}
+        emit('page', batch_index=0, campaign_ids=ids, **receipt, data=rows,
+             duplicate_visible_keys=diagnostics)
+        scope['pages'].append(receipt)
+        scope['rows'] = state['row_count'] = len(rows)
+        state['report_response_count'] = 1
+        state['duplicate_visible_keys'] = diagnostics
+        state['data_ambiguity_note'] = ('NATIVE_API_ROWS_PRESERVED_WITHOUT_DEDUPLICATION; '
+            'VISIBLE_DIMENSION_KEYS_ARE_NOT_ASSUMED_UNIQUE; '
+            'DUPLICATE_ORIGIN_AND_METRIC_ADDITIVITY_REQUIRE_SEPARATE_RECONCILIATION')
+        if len(rows) == PAGE_SIZE:
+            fail('SINGLE_RESPONSE_AT_LIMIT_COMPLETENESS_UNKNOWN')
+        scope['complete'] = True
+    except SafeError as exc:
+        scope['problem'] = exc.code
+        state['problems'].append(exc.code)
         emit('batch_coverage', **scope)
+        if exc.code == 'TOTAL_TIME_BUDGET_REACHED':
+            raise
+        return
+    emit('batch_coverage', **scope)
 
 
 def main():
@@ -421,20 +448,24 @@ def main():
                 'configuration_scope': 'CAMPAIGNS_GET_FIELDS_ONLY_PORTFOLIO_POINTERS_NOT_RESOLVED',
                 'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
                 'page_size': PAGE_SIZE, 'batch_size': BATCH_SIZE, 'max_rows': MAX_ROWS,
-                'scope': 'REPAIR_OF_INCOMPLETE_BATCH_ONLY',
+                'scope': 'SINGLE_UNPAGINATED_NATIVE_API_RESPONSE',
+                'single_response_capture': True,
+                'duplicate_policy': 'PRESERVE_NATIVE_ROWS_WITHIN_SINGLE_RESPONSE_ONLY',
                 'query_network_type': 'SEARCH', 'report_type': 'SEARCH_QUERY_PERFORMANCE_REPORT',
                 'pagination_not_atomic_snapshot': True,
-                'repair_of': {'run_id': 39858358002, 'batch_index': 2, 'parent_report_sha256': 'af062c635b45167b9dd8af06a0e2b275be06f45365686e8f94e21d50cb5c1c19', 'discarded_partial_rows': 60000}}
+                'repair_of': {'run_id': 39859577281, 'batch_index': 7, 'parent_report_sha256': 'e27ccb80bff157b5ffd817e9d18b7c099cb6a595d833f16960687d2f6717e043', 'discarded_partial_rows': 0}}
     emit('header', **metadata)
     state = {'status': 'FAILED', 'row_count': 0, 'batches': [], 'problems': [],
-             'config_before': None, 'config_after': None, 'config_unchanged': None}
+             'config_before': None, 'config_after': None, 'config_unchanged': None,
+             'report_response_count': 0, 'duplicate_visible_keys': None}
     api = None
     def timeout_handler(signum, frame):
         fail('TOTAL_TIME_BUDGET_REACHED')
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(TOTAL_SECONDS)
     try:
-        if (sys.argv[1:] or not CAMPAIGN_IDS or len(CAMPAIGN_IDS) != len(set(CAMPAIGN_IDS))
+        if (sys.argv[1:] or CAMPAIGN_IDS != (715091398,) or PAGE_SIZE != 50000
+                or len(CAMPAIGN_IDS) != len(set(CAMPAIGN_IDS))
                 or any(type(cid) is not int or cid <= 0 for cid in CAMPAIGN_IDS)):
             fail('EXPLICIT_INVENTORY_CAMPAIGN_SCOPE_REQUIRED')
         token, installed_sha = credentials()
