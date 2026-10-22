@@ -24,7 +24,7 @@ def metrics(rows):
     return {'rows': len(rows), 'impressions': sum(int(r['Impressions']) for r in rows),
             'clicks': sum(int(r['Clicks']) for r in rows),
             'cost_rub_ex_vat': float(sum((Decimal(r['Cost']) for r in rows), Decimal(0))),
-            'distinct_queries': len({re.sub(r'\s+', ' ', r['Query'].casefold().replace('ё', 'е')).strip() for r in rows})}
+            'distinct_queries': len({normalize(r['Query']) for r in rows})}
 
 
 def examples(rows):
