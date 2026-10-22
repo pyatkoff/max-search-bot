@@ -74,6 +74,26 @@ foreach (['author','reviewer'] as $role) {
 virtualCheck('ordinary instruction revision also changes with shared policy',hash('sha256',ManagerAiDraftService::instructions())!==hash('sha256',str_replace($policy,'',ManagerAiDraftService::instructions())));
 virtualCheck('frozen caller contract stays exact after current shared policy is loaded',VirtualReplyClient::requestBody('author','FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY',$payload)['input'][0]['content'][0]['text']==='FROZEN_AUTHOR_CONTRACT_BEFORE_SHARED_POLICY');
 
+
+// Synthetic window shapes remain source data; this instruction edit never parses or narrows them.
+$windowRule='Каникулы/отпуск — исходное окно поездки без повторного подтверждения. Диапазон вылета не задаёт срок возвращения; «начиная с» не задаёт конец. Уточняй неясный смысл периода, конфликт с длительностью/дорогой или явную гибкость.';
+$windowInputs=[
+    'closed_holiday'=>['text'=>'Отпуск с 12 по 20 ноября, нужна поездка.'],
+    'departure_range'=>['text'=>'Вылет 12–14 ноября, на 8 ночей.'],
+    'open_departure'=>['text'=>'Вылет начиная с 12 ноября.'],
+    'conflict'=>['text'=>'Свободны с 12 по 16 ноября, хотим 9 ночей.'],
+    'ambiguous'=>['text'=>'С 12 по 20 ноября, на 5 ночей.'],
+];
+foreach ($windowInputs as $name=>$message) {
+    $source=['messages'=>[['id'=>91,'sender_type'=>'tourist']+$message],'history_incomplete'=>false];
+    $request=VirtualReplyClient::requestBody('author',VirtualReplyProtocol::instructions('author'),$source);
+    virtualCheck($name.' source window survives the actual author envelope unchanged',json_decode($request['input'][1]['content'][0]['text'],true)===$source);
+    virtualCheck($name.' source text is not promoted to system instructions',!str_contains($request['input'][0]['content'][0]['text'],$message['text']));
+}
+foreach (['ordinary'=>ManagerAiDraftService::instructions(),'author'=>VirtualReplyProtocol::instructions('author'),'reviewer'=>VirtualReplyProtocol::instructions('reviewer')] as $name=>$instruction) {
+    virtualCheck($name.' consumes exact bounded-window rule with departure/open/conflict exceptions once',substr_count($instruction,$windowRule)===1);
+}
+
 foreach (['AUTHOR','judge','','author/../reviewer'] as $role) {
     virtualCheck('reject unknown role '.json_encode($role),virtualReject(static fn()=>VirtualReplyClient::requestBody($role,'test',[])));
 }

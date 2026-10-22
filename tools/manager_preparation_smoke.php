@@ -5,8 +5,16 @@ require_once dirname(__DIR__).'/config.php';
 require_once dirname(__DIR__).'/services/ProjectAccessService.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
+require_once dirname(__DIR__).'/services/ManagerAiDraftService.php';
+require_once dirname(__DIR__).'/services/VirtualReplyProtocol.php';
 $pdo=null;
 try{
+    // Pure installed-code check: no model invocation, source read or instruction text in logs.
+    $policy=TourConsultationPolicy::instructions();
+    $consumers=[ManagerAiDraftService::instructions(),VirtualReplyProtocol::instructions('author'),VirtualReplyProtocol::instructions('reviewer')];
+    foreach($consumers as $instruction)if(substr_count($instruction,$policy)!==1)throw new RuntimeException('consultation_contract_mismatch');
+    $consultation=['policy_sha256'=>hash('sha256',$policy),'author_revision'=>VirtualReplyProtocol::revision('author'),
+        'reviewer_revision'=>VirtualReplyProtocol::revision('reviewer'),'consumers'=>count($consumers)];
     $pdo=ConversationDb::connection();
     $pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();
     ProjectAccessService::initializeReadOnly();
@@ -33,7 +41,7 @@ try{
     }
     if (!$delivered) throw new RuntimeException('mcp_header_not_delivered');
     echo json_encode(['ok'=>true,'schema_tables'=>count($tables),'mcp_bearer_header_delivered'=>true,
-        'invalid_bearer_rejected'=>true,'provider_calls'=>0,'database_writes'=>0],JSON_THROW_ON_ERROR)."\n";
+        'invalid_bearer_rejected'=>true,'provider_calls'=>0,'database_writes'=>0,'consultation_contract'=>$consultation],JSON_THROW_ON_ERROR)."\n";
 }catch(Throwable $ignored){
     if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
     $reason=in_array($ignored->getMessage(),['mcp_header_not_delivered','mcp_header_probe_unexpected_response'],true)
