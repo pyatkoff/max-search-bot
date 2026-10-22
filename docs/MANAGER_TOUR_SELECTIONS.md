@@ -90,3 +90,34 @@ and trial receipts are preserved rather than replayed.
 Next in the same constructor: shareable revocable public page, convenient photo
 intake/import and the first bounded TO extension adapter. This native sender is
 not a public link, a TO browser collector or live flight/fare verification.
+
+## Explicit shared public page
+
+The next bounded implementation uses `ManagerTourSelectionShareService` and
+migration055 for an explicit publish/update/revoke action in the existing
+Manager2 preview. The public page uses the same immutable publication. Editing
+or previewing a draft never changes the shared page; publishing changed terms
+retains its URL. Revocation denies both page and images. Re-publication after
+revocation creates a new token so a revoked URL cannot become live again.
+
+The public projection is an allowlist: whole-party amount, conditions, public
+comment and already-reviewed images. It excludes conversation/customer/channel
+identities, contacts, exact child ages, callbacks and source/photo URLs. Public
+requests never download remote images, read the transcript, mark it read, send
+messages or attribute a visitor to the original client. Responses are no-store,
+noindex and no-referrer. A stale publication cannot overwrite current draft
+terms; a reused identical immutable publication is valid. Concurrent and lost
+responses require status readback, never automatic replay.
+
+This first page package is read-only for visitors. Native bot choices continue
+through their existing exact-offer path. Direct web choices, confirmed visitor
+binding/contact, hotel grouping, page-interest events, convenient import and the
+first FUN&SUN extension adapter remain parts of the same unfinished constructor.
+No placeholder web action is reported as a saved tourist preference.
+
+Owner specification v1.2 moves FUN&SUN reconnaissance to the beginning alongside
+native sender acceptance, requires confirmed/manual hotel grouping, avoids
+asking an already verified client for contact again and measures manager effort
+on the complete path. Extra templates and detailed analytics cannot block that
+path. FUN&SUN remains the first required V1 adapter; observing its public search
+form alone does not prove offer extraction or final-fare verification.

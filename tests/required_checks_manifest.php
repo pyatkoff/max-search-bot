@@ -170,6 +170,7 @@ return [
         'php tests/run_manager_internal_note_regression.php',
         'php tests/run_manager_tour_selection_regression.php',
         'php tests/run_manager_tour_delivery_regression.php',
+        'php tests/run_manager_tour_share_regression.php',
         'node tests/run_manager_internal_notes_behavior_regression.js',
         'php tests/run_manager_customer_name_regression.php',
         'php tests/run_manager_customer_avatar_regression.php',

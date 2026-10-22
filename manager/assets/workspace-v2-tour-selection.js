@@ -3,7 +3,7 @@
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0;
+let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
 function current(target=context){const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
@@ -34,7 +34,7 @@ async function request(action,data={}){
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
 function close(){clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
-function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend()}
 function sync(c){
   if(context&&!current())suspend();
@@ -55,7 +55,7 @@ function ensure(){
   dialog.innerHTML=`<div class="tsShell"><header class="tsHead"><div><span class="tsKicker">Подборка туров</span><h2 id="tsTitle"></h2><p id="tsRecipient"></p></div><button id="tsClose" type="button" class="tsClose" aria-label="Закрыть подборку">×</button></header><div id="tsStatus" class="tsStatus" role="status" aria-live="polite"></div><div id="tsRecovery" class="tsRecovery" hidden></div><div class="tsLayout"><aside class="tsSidebar"><div class="tsListHead"><strong id="tsCount">Варианты</strong><button id="tsAdd" type="button">+ Добавить</button></div><div id="tsList" class="tsList"></div><div class="tsSidebarHint">Черновик сохраняется для этого клиента. Добавление варианта ничего не отправляет.</div></aside><main id="tsEditor" class="tsEditor"></main></div><footer class="tsFooter"><span id="tsSaved">Загружаем черновик…</span><button id="tsSave" type="button" class="tsPrimary">Сохранить</button><button id="tsDone" type="button">Готово</button></footer></div>`;
   document.body.appendChild(dialog);
   const footer=dialog.querySelector('.tsFooter');
-  for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',()=>{preview=false;render()}],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
+  for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',()=>{preview=false;render()}],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   $('tsClose').onclick=close;$('tsDone').onclick=()=>{if(preview)close();else if(dirty&&!busy&&!pending&&!conflict)void save();else close()};$('tsSave').onclick=()=>save();$('tsAdd').onclick=add;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('keydown',e=>e.stopPropagation());
   dialog.addEventListener('close',()=>{if(current()&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true})});
@@ -65,7 +65,7 @@ function ensure(){
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
+  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -135,8 +135,10 @@ function controls(){
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
+  $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
+  if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
-  $('tsSend').disabled=sending||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
+  $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
   $('tsSend').textContent=sending?'Отправляем…':unknown?'Результат неизвестен':photoPending?'Загружаем фото…':known?'Проверить доставку':remaining?'Отправить варианты ('+remaining+')':'Подборка отправлена';
   if(item()){const at=draft.offers.findIndex(x=>x.id===selected);const up=dialog.querySelector('[data-ts-action="up"]'),down=dialog.querySelector('[data-ts-action="down"]');if(up)up.disabled=disabled||busy||at===0;if(down)down.disabled=disabled||busy||at===draft.offers.length-1}
 }
@@ -222,6 +224,39 @@ async function sendAll(){
     }
     if(token===epoch&&publication.cards.every(x=>x.state==='delivered'))status('Подборка отправлена. Выбор туриста появится в карточке клиента.');
   }finally{if(token===epoch){sending=false;updateDelivery()}}
+}
+async function showShare(){
+  if(!current()||!preview||!publication||busy||sending||sharing)return;
+  const token=epoch,id=publication.id;sharing=true;controls();
+  const result=await request('share');if(token!==epoch)return;sharing=false;controls();
+  if(!current()||publication?.id!==id||!preview)return;
+  if(!result?.ok||!validShare(result.share)){status('Не удалось прочитать состояние общей ссылки. Повторите проверку.',true);return}
+  renderShare(result.share);
+}
+function validShare(value){return value&&Number.isInteger(value.version)&&value.version>=0&&typeof value.active==='boolean'&&(!value.active||typeof value.path==='string'&&/^\/selection\/\?t=[a-f0-9]{64}$/.test(value.path))}
+function renderShare(share){
+  const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
+  const heading=document.createElement('strong');heading.textContent='Общая страница подборки';root.appendChild(heading);
+  const hint=document.createElement('p');hint.textContent='Публикуются показанные туры, фото и публичный комментарий. Проверьте, что заголовок и комментарий не содержат личных данных. Ссылку можно пересылать; публикация ничего не отправляет в мессенджер.';root.appendChild(hint);
+  if(share.active){
+    const url=new URL(share.path,location.origin).href,input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Общая ссылка на подборку');root.appendChild(input);
+    const copy=document.createElement('button');copy.type='button';copy.textContent='Скопировать ссылку';copy.onclick=async()=>{if(!current())return;input.select();try{await navigator.clipboard.writeText(url);if(current())status('Ссылка скопирована.')}catch(e){if(current())status('Выделена ссылка — скопируйте её.')}};root.appendChild(copy);
+    const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
+    const label=document.createElement('p');label.textContent=share.publication_id===publication.id?'По ссылке опубликована эта версия.':'По ссылке опубликована другая версия. Обновление заменит страницу, сохранив адрес.';root.appendChild(label);
+  }else{const label=document.createElement('p');label.textContent=share.version?'Ссылка отозвана. Повторная публикация создаст новый адрес.':'Подборка ещё не опубликована.';root.appendChild(label)}
+  const change=(label,action)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=(!canEdit&&!(action==='revoke'&&share.can_revoke))||sharing||(action==='publish'&&(dirty||!!pending||!!conflict||photoPending>0||photoFailures>0));b.onclick=()=>changeShare(action,share);root.appendChild(b)};
+  if(!share.active||share.publication_id!==publication.id)change(share.active?'Обновить по той же ссылке':'Опубликовать эту версию','publish');
+  if(share.active)change('Отозвать ссылку','revoke');
+}
+async function changeShare(action,share){
+  if(!current()||sharing||(!canEdit&&!(action==='revoke'&&share.can_revoke))||sending)return;
+  if(action==='publish'&&(dirty||pending||conflict||photoPending||photoFailures))return;
+  const token=epoch;sharing=true;controls();$('tsRecovery').querySelectorAll('button').forEach(b=>b.disabled=true);
+  const result=await request(action,{share_version:share.version,publication_id:action==='revoke'?share.publication_id:publication.id});if(token!==epoch)return;sharing=false;controls();
+  if(result?.ok&&validShare(result.share)){renderShare(result.share);status(action==='revoke'?'Ссылка отозвана.':'Страница опубликована. Сообщения туристу не отправлялись.');return}
+  // Read back after an uncertain write. Never retry a publish/revoke automatically.
+  await showShare();if(token!==epoch)return;
+  status(result?.error==='draft_changed'?'Черновик изменился. Сначала подготовьте новый предпросмотр.':result?.error==='share_changed'?'Состояние ссылки изменилось в другой вкладке. Показано актуальное состояние.':'Ответ на действие не подтверждён. Проверьте состояние ссылки перед новым действием.',true);
 }
 window.addEventListener('resize',()=>{if(S.detail?.conversation)sync(S.detail.conversation)});
 window.WorkspaceV2TourSelection={sync,activate,suspend,open,close};

@@ -7,7 +7,7 @@ async function fixture(page,options={}){
   const base=await setup(page),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
   const snapshot=id=>({conversation_id:id,version:drafts.get(id)?.version||0,draft:copy(drafts.get(id)?.draft||{title:'Подборка туров',intro:'',offers:[]}),can_edit:!options.readOnly,updated_at:null,updated_by_manager_id:7});
   if(options.draft)drafts.set(11,{version:1,draft:copy(options.draft)});
-  let publication=null,creations=0;const heldPhotos=[];
+  let publication=null,creations=0,share={version:0,active:false,publication_id:null,path:null};const heldPhotos=[];
   await page.route(/\/manager\/tour-selection-photo\.php\?/,async route=>{
     if(options.holdPhotos)await new Promise(resolve=>heldPhotos.push(resolve));
     const headers={'Cache-Control':'private, no-store'};
@@ -17,6 +17,14 @@ async function fixture(page,options={}){
     const d=route.request().postDataJSON();calls.push(copy(d));expect(d.csrf).toBe('fixture-csrf');expect([11,12]).toContain(d.conversation_id);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
     if(d.action==='get')return reply({ok:true,selection:snapshot(d.conversation_id)});
+    if(d.action==='share')return reply({ok:true,share:copy(share)});
+    if(['publish','revoke'].includes(d.action)){
+      if(options.readOnly)return reply({ok:false,error:'forbidden'},403);
+      if(d.share_version!==share.version)return reply({ok:false,error:'share_changed'},409);
+      share={version:share.version+1,active:d.action==='publish',publication_id:d.publication_id,path:d.action==='publish'?'/selection/?t='+'d'.repeat(64):null};
+      if(options.shareMode==='after'){options.shareMode='';return route.abort('failed')}
+      return reply({ok:true,share:copy(share)});
+    }
     if(d.action==='operation')return reply({ok:true,found:receipts.has(d.operation_id),saved_version:receipts.get(d.operation_id)?.version??null,selection:snapshot(d.conversation_id)});
     if(d.action==='prepare'){
       const built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $draft=json_decode(stream_get_contents(STDIN),true); $result=ManagerTourSelectionPublicationDraft::build($draft); if ($result['ok']) foreach ($result['offers'] as &$offer) $offer['card']=TourOfferCardRenderer::render($offer['snapshot'],$offer['presentation'],'tour_like_1_'.str_repeat('a',24)); echo json_encode($result,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(snapshot(d.conversation_id).draft),encoding:'utf8'}));
@@ -154,4 +162,38 @@ test('pending selection photos cannot send or overwrite another clients editor',
   const s=await fixture(page,{draft:completeDraft(),holdPhotos:true,photoError:true});await open(page);await page.locator('#tsPreview').click();await expect.poll(()=>s.heldPhotos()).toBe(3);await expect(page.locator('#tsSend')).toBeDisabled();await expect(page.locator('#tsSend')).toHaveText('Загружаем фото…');
   await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await expect(page.locator('#tsTitle')).toHaveText('Алексей Иванов');
   s.releasePhotos();await expect.poll(()=>s.pending.size).toBeLessThanOrEqual(2);await expect(page.locator('#tsStatus')).not.toContainText('Не удалось загрузить фото');expect(s.creations()).toBe(0);clean(s,deliveryActions);
+});
+
+for(const width of [390,430,768,1440])test('selection shared link explicit publish and revoke preserve composer at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await fixture(page,{draft:completeDraft()});
+  await page.locator('#replyText').fill('Несохранённый ответ менеджера');await open(page);await page.locator('#tsPreview').click();
+  await expect(page.locator('#tsSend')).toBeEnabled();await page.locator('#tsShare').click();
+  expect(s.calls.filter(x=>x.action==='publish')).toHaveLength(0);await page.getByRole('button',{name:'Опубликовать эту версию',exact:true}).click();
+  const input=page.getByRole('textbox',{name:'Общая ссылка на подборку'});await expect(input).toHaveValue(/\/selection\/\?t=d{64}$/);
+  await expect(page.locator('#tsStatus')).toContainText('Сообщения туристу не отправлялись');expect(s.creations()).toBe(0);
+  await expect(page.locator('#tourSelectionDialog')).toBeVisible();expect(await page.locator('#tourSelectionDialog').evaluate(e=>e.scrollWidth-e.clientWidth)).toBeLessThanOrEqual(1);
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-share-${browserName}-${width}.png`)});
+  await page.getByRole('button',{name:'Отозвать ссылку',exact:true}).click();await expect(input).toHaveCount(0);await expect(page.locator('#tsRecovery')).toContainText('Ссылка отозвана');
+  await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Несохранённый ответ менеджера');
+  clean(s,[...deliveryActions,'share','publish','revoke']);
+});
+
+test('selection lost publish response reads status without another publication',async({page})=>{
+  const s=await fixture(page,{draft:completeDraft(),shareMode:'after'});await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsSend')).toBeEnabled();
+  await page.locator('#tsShare').click();await page.getByRole('button',{name:'Опубликовать эту версию',exact:true}).click();
+  await expect(page.getByRole('textbox',{name:'Общая ссылка на подборку'})).toBeVisible();expect(s.calls.filter(x=>x.action==='publish')).toHaveLength(1);expect(s.creations()).toBe(0);
+  clean(s,[...deliveryActions,'share','publish']);
+});
+
+for(const width of [390,430,768,1440])test('public selection has exact terms and no private metadata at '+width,async({page,browserName})=>{
+  const source=completeDraft(),built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $r=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); echo json_encode($r,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(source),encoding:'utf8'}));
+  expect(built.ok).toBe(true);const s=built.offers[0].snapshot;
+  const selection={title:'Отдых у моря',intro:'Подобрали варианты под ваше путешествие.',version:2,updated_at:'2026-10-22 12:00:00',offers:[{...s,index:0,children:2,destination:'Турция, Лара',flights:'Рейсы уточняются',inclusions:'Трансфер',constraints:'Доплаты необходимо проверить',observed_at:'2026-10-22T10:00:00Z',photos:['cover','beach','room'].map(x=>'/'+x+'.jpg')}]};
+  delete selection.offers[0].child_ages;
+  const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true); function selectionEscape(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');} $h='selectionEscape';require getcwd().'/selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
+  await page.route('https://selection-fixture.invalid/**',route=>{const p=new URL(route.request().url()).pathname;if(p==='/selection/')return route.fulfill({contentType:'text/html',body:html});if(p==='/selection/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(/^\/(cover|beach|room)\.jpg$/.test(p))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',p.slice(1)))});throw new Error('Unexpected public request '+p)});
+  await page.setViewportSize({width,height:1000});await page.goto('https://selection-fixture.invalid/selection/');await expect(page.locator('.offer')).toHaveCount(1);await expect(page.locator('.party')).toContainText('детей 2');await expect(page.locator('.fareNotice')).toContainText('требуют подтверждения');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(await page.locator('body').innerText()).not.toContain('child_ages');
+  await expect.poll(()=>page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-public-${browserName}-${width}.png`)});
 });
