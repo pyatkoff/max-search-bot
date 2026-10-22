@@ -136,6 +136,7 @@ function controls(){
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
+  const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
   $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
@@ -240,11 +241,11 @@ function renderShare(share){
   const hint=document.createElement('p');hint.textContent='Публикуются показанные туры, фото и публичный комментарий. Проверьте, что заголовок и комментарий не содержат личных данных. Ссылку можно пересылать; публикация ничего не отправляет в мессенджер.';root.appendChild(hint);
   if(share.active){
     const url=new URL(share.path,location.origin).href,input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Общая ссылка на подборку');root.appendChild(input);
-    const copy=document.createElement('button');copy.type='button';copy.textContent='Скопировать ссылку';copy.onclick=async()=>{if(!current())return;input.select();try{await navigator.clipboard.writeText(url);if(current())status('Ссылка скопирована.')}catch(e){if(current())status('Выделена ссылка — скопируйте её.')}};root.appendChild(copy);
+    const copy=document.createElement('button');copy.type='button';copy.textContent='Скопировать ссылку';copy.onclick=async()=>{if(!current())return;const token=epoch;input.select();try{await navigator.clipboard.writeText(url);if(token===epoch&&current())status('Ссылка скопирована.')}catch(e){if(token===epoch&&current())status('Выделена ссылка — скопируйте её.')}};root.appendChild(copy);
     const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
     const label=document.createElement('p');label.textContent=share.publication_id===publication.id?'По ссылке опубликована эта версия.':'По ссылке опубликована другая версия. Обновление заменит страницу, сохранив адрес.';root.appendChild(label);
   }else{const label=document.createElement('p');label.textContent=share.version?'Ссылка отозвана. Повторная публикация создаст новый адрес.':'Подборка ещё не опубликована.';root.appendChild(label)}
-  const change=(label,action)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=(!canEdit&&!(action==='revoke'&&share.can_revoke))||sharing||(action==='publish'&&(dirty||!!pending||!!conflict||photoPending>0||photoFailures>0));b.onclick=()=>changeShare(action,share);root.appendChild(b)};
+  const change=(label,action)=>{const b=document.createElement('button');b.id=action==='publish'?'tsPublish':'tsRevoke';b.type='button';b.textContent=label;b.disabled=(!canEdit&&!(action==='revoke'&&share.can_revoke))||sharing||(action==='publish'&&(dirty||!!pending||!!conflict||photoPending>0||photoFailures>0));b.onclick=()=>changeShare(action,share);root.appendChild(b)};
   if(!share.active||share.publication_id!==publication.id)change(share.active?'Обновить по той же ссылке':'Опубликовать эту версию','publish');
   if(share.active)change('Отозвать ссылку','revoke');
 }

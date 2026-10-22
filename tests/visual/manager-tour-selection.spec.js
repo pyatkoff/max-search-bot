@@ -185,6 +185,13 @@ test('selection lost publish response reads status without another publication',
   clean(s,[...deliveryActions,'share','publish']);
 });
 
+test('selection publish becomes available when held preview photos finish',async({page})=>{
+  const s=await fixture(page,{draft:completeDraft(),holdPhotos:true});await open(page);await page.locator('#tsPreview').click();await expect.poll(()=>s.heldPhotos()).toBe(3);
+  await page.locator('#tsShare').click();await expect(page.locator('#tsPublish')).toBeDisabled();expect(s.calls.filter(x=>x.action==='publish')).toHaveLength(0);
+  s.releasePhotos();await expect(page.locator('#tsPublish')).toBeEnabled();await page.locator('#tsPublish').click();await expect(page.getByRole('textbox',{name:'Общая ссылка на подборку'})).toBeVisible();
+  expect(s.calls.filter(x=>x.action==='publish')).toHaveLength(1);expect(s.creations()).toBe(0);clean(s,[...deliveryActions,'share','publish']);
+});
+
 for(const width of [390,430,768,1440])test('public selection has exact terms and no private metadata at '+width,async({page,browserName})=>{
   const source=completeDraft(),built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $r=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); echo json_encode($r,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(source),encoding:'utf8'}));
   expect(built.ok).toBe(true);const s=built.offers[0].snapshot;
