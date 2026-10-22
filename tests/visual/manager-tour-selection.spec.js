@@ -128,12 +128,12 @@ test('selection unknown creation prevents another send after reopening',async({p
   const s=await fixture(page,{draft:completeDraft(),sendMode:'unknown'});await open(page);await page.locator('#tsPreview').click();await page.locator('#tsSend').click();await expect(page.locator('.tsDeliveryState')).toContainText('Результат неизвестен');await expect(page.locator('#tsSend')).toBeDisabled();
   await page.locator('#tsClose').click();s.holdPhotos();await open(page);await page.locator('#tsPreview').click();
   const photosReady=()=>page.locator('.tsPhotos img').evaluateAll(images=>images.length===3&&images.every(img=>img.complete&&img.naturalWidth>0));
-  // A browser may reuse decoded images in the same document. Otherwise hold
-  // and identify all three new authenticated GETs before allowing completion.
-  await expect.poll(async()=>s.heldPhotos()===3||(s.heldPhotos()===0&&await photosReady())).toBe(true);
+  // A browser may reuse decoded images in the same document. Every other
+  // image must have its authenticated GET held before allowing completion.
+  await expect.poll(async()=>s.heldPhotos()+await page.locator('.tsPhotos img').evaluateAll(images=>images.filter(img=>img.complete&&img.naturalWidth>0).length)).toBe(3);
   const photoRequests=[...s.pending].filter(r=>new URL(r.url()).pathname==='/manager/tour-selection-photo.php');
-  if(s.heldPhotos()===3)expect(photoRequests.map(r=>({method:r.method(),conversation:new URL(r.url()).searchParams.get('conversation_id'),photo:new URL(r.url()).searchParams.get('photo')})).sort((a,b)=>a.photo.localeCompare(b.photo))).toEqual([0,1,2].map(photo=>({method:'GET',conversation:'11',photo:String(photo)})));
-  else {expect(photoRequests).toEqual([]);expect(await photosReady()).toBe(true)}
+  const waitingPhotos=await page.locator('.tsPhotos img').evaluateAll(images=>images.flatMap((img,i)=>img.complete&&img.naturalWidth>0?[]:[i]));
+  expect(photoRequests.map(r=>({method:r.method(),conversation:new URL(r.url()).searchParams.get('conversation_id'),photo:new URL(r.url()).searchParams.get('photo')})).sort((a,b)=>a.photo.localeCompare(b.photo))).toEqual(waitingPhotos.map(photo=>({method:'GET',conversation:'11',photo:String(photo)})));
   await expect(page.locator('#tsSend')).toBeDisabled();expect(s.creations()).toBe(1);expect(s.calls.filter(x=>x.action==='send')).toHaveLength(1);
   s.releasePhotos();
   await expect.poll(photosReady).toBe(true);
