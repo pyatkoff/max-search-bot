@@ -136,13 +136,46 @@ final class ManagerPreparedReplyService
         try {
             $pdo = ConversationDb::connection();
             if ($pdo->inTransaction()) return self::failure('queue_unavailable');
-            $q = $pdo->prepare("SELECT job_id,conversation_id,manager_id,project_key,context_revision,instruction_revision,latest_message_id,created_at,expires_at FROM manager_prepared_replies j WHERE project_key=? AND status='pending' AND created_at<=? AND expires_at>? AND instruction_revision=?"
+            $sql = "SELECT j.job_id,j.conversation_id,j.manager_id,j.project_key,j.context_revision,j.instruction_revision,j.latest_message_id,j.created_at,j.expires_at FROM manager_prepared_replies j WHERE j.project_key=? AND j.status='pending' AND j.created_at<=? AND j.expires_at>? AND j.instruction_revision=?"
                 ." AND EXISTS (SELECT 1 FROM conversations c LEFT JOIN managers m ON m.id=c.manager_id WHERE c.id=j.conversation_id AND c.project_key=j.project_key AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')." AND ((c.manager_id=j.manager_id AND c.status='manager' AND m.is_active=1) OR (j.manager_id=0 AND c.manager_id IS NULL AND c.status='waiting_manager' AND EXISTS (SELECT 1 FROM managers a JOIN manager_projects ap ON ap.manager_id=a.id JOIN projects p ON p.id=ap.project_id WHERE a.is_active=1 AND a.role='admin' AND p.is_active=1 AND p.project_key=j.project_key))))"
-                .' AND latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id) ORDER BY created_at,job_id LIMIT '.$limit);
+                .' AND j.latest_message_id=(SELECT MAX(pm.id) FROM messages pm WHERE pm.conversation_id=j.conversation_id)';
             $now = self::utc(time());
-            $q->execute([ProjectConfig::projectId(),$now,$now,self::instructionRevision()]);
+            $params = [ProjectConfig::projectId(),$now,$now,self::instructionRevision()];
+            $order = ' ORDER BY j.created_at,j.job_id LIMIT '.$limit;
+            if ($limit < 3) {
+                // One or two slots cannot reserve all three lanes. Preserve FIFO
+                // rather than starving ordinary work in these explicit tiny reads.
+                $q = $pdo->prepare($sql.$order);
+                $q->execute($params);
+                $selected = $q->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                // Match the collector's genuine-human/due-task classification at
+                // read time: a reply or task edit can change priority after enqueue.
+                $metadata = "CASE WHEN JSON_VALID(mc.metadata_json) THEN mc.metadata_json ELSE '{}' END";
+                $type = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
+                    ? "JSON_UNQUOTE(JSON_EXTRACT({$metadata},'$.type'))" : "JSON_EXTRACT({$metadata},'$.type')";
+                $lane = "CASE WHEN COALESCE((SELECT MAX(mc.id) FROM messages mc WHERE mc.conversation_id=j.conversation_id AND mc.direction='inbound' AND mc.sender_type='customer' AND COALESCE({$type},'message') NOT IN ('callback','start','bot_started')),0)>COALESCE((SELECT MAX(mo.id) FROM messages mo WHERE mo.conversation_id=j.conversation_id AND mo.direction='outbound' AND mo.sender_type='manager'),0) THEN 'waiting' WHEN EXISTS (SELECT 1 FROM lead_tasks t WHERE t.conversation_id=j.conversation_id AND t.status='open' AND t.due_at_utc IS NOT NULL AND t.due_at_utc<=? AND (t.assigned_manager_id IS NULL OR t.assigned_manager_id=j.manager_id)) THEN 'due' ELSE 'active' END";
+                $q = $pdo->prepare($sql.' AND ('.$lane.')=?'.$order);
+                $batches = [];
+                foreach (['waiting','due','active'] as $key) {
+                    $q->execute(array_merge($params,[$now,$key]));
+                    $batches[$key] = $q->fetchAll(PDO::FETCH_ASSOC);
+                    $q->closeCursor();
+                }
+                $reserve = max(1,intdiv($limit,4));
+                $selected = []; $seen = [];
+                $take = static function(string $key,int $count) use (&$selected,&$seen,$batches): void {
+                    foreach ($batches[$key] as $row) {
+                        if ($count <= 0) break;
+                        if (isset($seen[$row['job_id']])) continue;
+                        $seen[$row['job_id']] = true; $selected[] = $row; --$count;
+                    }
+                };
+                foreach (['waiting'=>$limit-2*$reserve,'due'=>$reserve,'active'=>$reserve] as $key=>$quota) $take($key,$quota);
+                foreach (['waiting','due','active'] as $key) $take($key,$limit-count($selected));
+            }
             $jobs = [];
-            foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            foreach ($selected as $row) {
                 if (!self::validRow($row)) continue;
                 foreach (['conversation_id','manager_id','latest_message_id'] as $field) $row[$field] = (int)$row[$field];
                 $jobs[] = $row;

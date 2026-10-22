@@ -212,6 +212,10 @@ function preparedReplyCoverage(): void
     foreach (range(1001,1045) as $id) $seed($id,false);
     foreach (range(2001,2009) as $id) $seed($id,true,true);
     foreach (range(3001,3014) as $id) $seed($id,true);
+    foreach ([3001=>'callback',3002=>'start',3003=>'bot_started'] as $id=>$type) {
+        $pdo->prepare("INSERT INTO messages VALUES(?,?,'inbound','customer','Synthetic control','2020-01-01 10:02:00','telegram',?,'synthetic','synthetic')")->execute([$id*10+2,$id,json_encode(['type'=>$type],JSON_THROW_ON_ERROR)]);
+    }
+    $pdo->exec("INSERT INTO lead_tasks VALUES(1001,1001,1,'open','2020-01-02 10:00:00')");
     $pdo->guard = true;
     $before = preparedReplySourceState($pdo);
     $first = ManagerPreparedReplyService::collectAndEnqueue([1]);
@@ -226,6 +230,53 @@ function preparedReplyCoverage(): void
     preparedReplyCheck('all68eligible clients eventually enter existingqueue without repeated fresh jobs', $ids===array_merge(range(1001,1045),range(2001,2009),range(3001,3014)));
     preparedReplyCheck('rotation uses only3versioned projectcursor rows', (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_cursors')->fetchColumn()===3 && (int)$pdo->query('SELECT MIN(version) FROM manager_preparation_cursors')->fetchColumn()===8);
     preparedReplyCheck('coverage does not change tasks,messages,assignment,readmarkers or businessdata', preparedReplySourceState($pdo)===$before && $pdo->sourceWriteAttempts===0);
+
+    // Old ordinary work must not hide a later unanswered enquiry or due reminder.
+    // Every lane still gets capacity; none of these reads may consume a job.
+    $old=gmdate('Y-m-d H:i:s',time()-600);$middle=gmdate('Y-m-d H:i:s',time()-300);$recent=gmdate('Y-m-d H:i:s',time()-60);
+    $pdo->guard=false;
+    $pdo->prepare('UPDATE manager_prepared_replies SET created_at=CASE WHEN conversation_id>=3000 THEN ? WHEN conversation_id>=2000 THEN ? ELSE ? END')->execute([$old,$middle,$recent]);
+    $pdo->guard=true;
+    $unchanged=$pdo->query('SELECT * FROM manager_prepared_replies ORDER BY job_id')->fetchAll();
+    $pending=ManagerPreparedReplyService::pending(20);
+    $selected=array_column($pending['jobs']??[],'conversation_id');
+    $counts=static fn(array $ids):array=>[count(array_filter($ids,static fn(int $id):bool=>$id<2000)),count(array_filter($ids,static fn(int $id):bool=>$id>=2000&&$id<3000)),count(array_filter($ids,static fn(int $id):bool=>$id>=3000))];
+    preparedReplyCheck('worker batch reserves10waiting5due5active even behind older ordinary work', ($pending['ok']??false)&&$counts($selected)===[10,5,5]&&count(array_unique($selected))===20);
+    preparedReplyCheck('callback,start,and bot-started events do not manufacture waiting priority', count(array_intersect(array_slice($selected,0,10),[3001,3002,3003]))===0);
+    foreach ([3,8,19] as $limit) {
+        $batch=ManagerPreparedReplyService::pending($limit);
+        $parts=$counts(array_column($batch['jobs']??[],'conversation_id'));
+        preparedReplyCheck('bounded worker batch '.$limit.' retains progress in all3lanes', ($batch['ok']??false)&&count($batch['jobs'])===$limit&&min($parts)>0);
+    }
+    foreach ([1,2] as $limit) {
+        $batch=ManagerPreparedReplyService::pending($limit);
+        preparedReplyCheck('tiny worker batch '.$limit.' retains oldest-first progress', ($batch['ok']??false)&&count($batch['jobs'])===$limit&&$counts(array_column($batch['jobs'],'conversation_id'))===[0,0,$limit]);
+    }
+    preparedReplyCheck('worker prioritization leaves jobs and business state unchanged', $unchanged===$pdo->query('SELECT * FROM manager_prepared_replies ORDER BY job_id')->fetchAll()&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+    $pdo->executed=[];
+    ManagerPreparedReplyService::pending(20);
+    preparedReplyCheck('worker selection uses3bounded metadata reads not one query per client', count($pdo->executed)===3&&count(array_filter($pdo->executed,static fn(string $sql):bool=>str_starts_with($sql,'SELECT ')))===3);
+    // Deadline changes are current priority, not a frozen lane written to a job.
+    $pdo->mutate("UPDATE lead_tasks SET status='done' WHERE conversation_id=2001; UPDATE lead_tasks SET due_at_utc='2099-01-01 00:00:00' WHERE conversation_id=2002; UPDATE lead_tasks SET assigned_manager_id=3 WHERE conversation_id=2003");
+    $changed=ManagerPreparedReplyService::pending(20)['jobs'];
+    $dueIds=array_column(array_slice($changed,10,5),'conversation_id');
+    preparedReplyCheck('pending priority ignores completed,future,and different-owner tasks', count(array_diff($dueIds,range(2004,2009)))===0);
+    $pdo->mutate("UPDATE lead_tasks SET status='open',due_at_utc='2020-01-02 10:00:00',assigned_manager_id=1");
+    // Completing each bounded page drains every lane, including spare-capacity
+    // fills at its end. This is fixture-only completion, never a worker claim.
+    $processed=[];
+    for($pass=0;$pass<5;$pass++) {
+        $batch=ManagerPreparedReplyService::pending(20)['jobs'];
+        foreach($batch as $row) {
+            $processed[]=$row['conversation_id'];
+            $pdo->guard=false;
+            $pdo->prepare("UPDATE manager_prepared_replies SET status='ready' WHERE job_id=?")->execute([$row['job_id']]);
+            $pdo->guard=true;
+        }
+    }
+    sort($processed);
+    preparedReplyCheck('worker pages drain all68clients without duplicates or ordinary-lane starvation', $processed===array_merge(range(1001,1045),range(2001,2009),range(3001,3014)));
+    $pdo->mutate("UPDATE manager_prepared_replies SET status='pending'");
 
     // Eligibility is still source/owner scoped in every lane, before and after capture.
     $pdo->mutate("UPDATE conversations SET status='closed' WHERE id=3001; UPDATE conversations SET is_test=1 WHERE id=3002; UPDATE conversations SET project_key='other' WHERE id=3003; UPDATE conversations SET manager_id=3 WHERE id=3004; UPDATE lead_tasks SET status='done' WHERE conversation_id=2001; UPDATE lead_tasks SET due_at_utc='2099-01-01 00:00:00' WHERE conversation_id=2002; UPDATE lead_tasks SET assigned_manager_id=3 WHERE conversation_id=2003");
