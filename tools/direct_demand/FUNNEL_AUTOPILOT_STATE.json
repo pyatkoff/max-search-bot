@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-22T22:39:46.922Z",
+  "updated_at_utc": "2026-10-22T22:52:46.479Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 3
+      "version": 4
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 3
+      "version": 4
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -62,7 +62,8 @@
       "archive_member": "funnel-content-preparation.json",
       "incomplete_xml_member": "funnel-collections.INCOMPLETE-DRAFT.xml",
       "draft_input_member": "funnel-post-drafts-input.json",
-      "report_section": "Автопилот: подготовка контента"
+      "report_section": "Автопилот: подготовка контента",
+      "catalog_review_member": "funnel-catalog-review.json"
     }
   },
   "operations": {
@@ -71,42 +72,74 @@
     "expanded_demand_queue": "DONE",
     "knowledge_materialization": "DONE",
     "content_match_pass": "DONE",
-    "wordstat_access": "NOT_YET_VERIFIED",
+    "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "first_post_drafts": "DONE",
     "inactive_feed_templates": "DONE",
-    "active_operation": null
+    "active_operation": null,
+    "catalog_cohort_492_read": "DONE",
+    "first_native_catalog_bindings": "DONE",
+    "five_additional_posts": "DONE",
+    "first_four_cover_photos": "DONE"
   },
   "next_steps": [
-    "Resolve the six TOP500 rows left unmatched after name and country checks; preserve uncertain aliases and properties separately.",
-    "Verify native LOCAL/TV catalogue bindings read-only. 32 Direct and 494 TOP500 exact-name content references are not verified catalogue IDs.",
-    "Check authorized read-only Wordstat access and collect full frequency with region and period stated; do not rerun the full Direct report.",
-    "Select approved photos and extend posts/thematic selections using the saved source scopes; first ten drafts already saved in archive v3.",
-    "Wait for owner channel only for publication/destination IDs; all 353 XML templates are incomplete, URL/picture absent, not upload-ready."
+    "Find an existing completed LOCAL catalog export/artifact with names, country and local-tv IDs for additional read-only matching; do not start or resume paused LOCAL jobs.",
+    "Expand hotel and thematic posts from current knowledge and existing exact name references; current saved total15 posts and356 incomplete feed templates.",
+    "Resolve remaining TOP500 aliases with explicit name/country evidence; no positional name-to-ID joins.",
+    "Find an unambiguous Palma de Mirette photo via saved official sources; rejected El Palacio images must stay excluded.",
+    "When authorized Search API access is connected, execute a bounded pilot from saved wordstat_preparation.prepared_seed_requests, retain actual30day period and geography, then continue larger collection.",
+    "Wait for owner channel only for posts and issued destination IDs. No real campaigns, publication or production changes."
   ],
   "publication_blocker": "Owner will provide channel later. This does not block preparation.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
-    "generated_at_utc": "2026-10-22T22:38:38.716921+00:00",
+    "generated_at_utc": "2026-10-22T22:51:36.945690+00:00",
     "direct_candidates": 317,
     "direct_exact_name_references": 32,
     "top500_rows": 500,
     "top500_exact_name_references": 494,
-    "verified_catalog_ids": 0,
-    "post_drafts": 10,
-    "source_claim_references": 32,
-    "draft_feed_records": 353,
+    "verified_catalog_ids": 5,
+    "post_drafts": 15,
+    "source_claim_references": 46,
+    "draft_feed_records": 356,
     "upload_ready_feed_records": 0,
     "channel": null,
     "published_posts": 0,
-    "wordstat_access": "NOT_YET_VERIFIED"
+    "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
+    "verified_catalog_source_references": 6,
+    "selected_draft_covers": 4
   },
   "validation": {
-    "post_drafts": 10,
-    "claim_references_resolved": 32,
-    "collection_keys_unique": 353,
-    "destination_urls_in_collections": 0,
+    "post_drafts": 15,
+    "claim_references_resolved": 46,
+    "collection_keys_unique": 356,
+    "collection_destinations": 0,
+    "selected_cover_records": 4,
+    "distinct_verified_local_tv_ids": 5,
     "xml_parsed": true,
     "zip_crc": "PASSED",
+    "provenance_hashes": "PASSED",
     "source_knowledge_modified": false
+  },
+  "catalog_evidence": {
+    "requested_ids": 492,
+    "returned_profiles": 72,
+    "missing_requested_ids": 420,
+    "scope": "Only supplied TOP500 ID cohort, not the whole LOCAL database",
+    "distinct_hotel_identities": 5,
+    "source_references_bound": 6,
+    "selected_draft_covers": 4,
+    "rejected_sister_hotel_photos": 4
+  },
+  "blockers": {
+    "channel": "Owner will provide later; preparation continues.",
+    "wordstat": "Current Wordstat is Yandex Search API. Connected folder and suitable Search API credential not found in available tools/local environment/Direct repository config; other server accounts were not inspected. No frequency requests issued.",
+    "catalog_name_discovery": "Legacy hotel-search and provider gateway GET returned403; do not bypass or repeatedly retry unchanged requests.",
+    "palma_cover": "Four inspected photos show or belong to El Palacio; no Palma cover selected."
+  },
+  "retry_policy": {
+    "blocked_wordstat": "Retry only after a new authorized credential/connector/folder appears; continue content meanwhile.",
+    "catalog_403": "Do not repeat unchanged rejected legacy discovery routes. Prefer existing completed LOCAL export/artifact; never enumerate guessed IDs.",
+    "rejected_photos": "Do not select the four saved Palma/El Palacio images again.",
+    "working_files": "Use current archive funnel-content-preparation.json as active work. Baseline package_expanded_funnel.py resets later preparation; do not run it over current deliverables without preserving/reapplying subsequent passes."
   }
 }
