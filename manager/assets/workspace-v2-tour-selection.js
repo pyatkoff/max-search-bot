@@ -127,7 +127,7 @@ function recovery(kind){
   const text=document.createElement('p');text.textContent=kind==='conflict'?'На сервере есть другая версия. Ваши правки сохранены; выберите, с какой версией продолжить.':kind==='pending'?'Сервер мог сохранить изменения. Сначала проверьте результат, чтобы не перезаписать чужую правку.':'Не удалось загрузить подборку. Ваши локальные правки сохранены.';root.appendChild(text);
   const button=(label,fn)=>{const el=document.createElement('button');el.type='button';el.textContent=label;el.onclick=fn;root.appendChild(el)};
   if(kind==='conflict'){
-    button('Показать версию коллеги',()=>{if(!conflict||busy)return;draft=clone(conflict.draft);version=conflict.version;canEdit=conflict.can_edit;dirty=false;conflict=null;stash();render();recovery('');status('Загружена версия с сервера.');});
+    button('Показать версию коллеги',()=>{if(!conflict||busy)return;draft=clone(conflict.draft);version=conflict.version;canEdit=conflict.can_edit;rawAges={};dirty=false;conflict=null;stash();render();recovery('');status('Загружена версия с сервера.');});
     button('Продолжить с моими правками',()=>{if(!conflict||busy)return;version=conflict.version;canEdit=conflict.can_edit;conflict=null;dirty=true;stash();render();recovery('');status('Ваш вариант в редакторе. Проверьте его и нажмите «Сохранить».');});
   }else if(kind==='pending')button('Проверить сохранение',()=>reconcile());
   else button('Повторить загрузку',()=>load());
@@ -140,6 +140,9 @@ async function submit(command){
   const token=epoch;busy=true;stash();controls();
   const result=await request('save',command);if(token!==epoch)return;busy=false;
   if(result?.ok&&validSnapshot(result.selection)){
+    // An identical retry can find its old receipt after a colleague has saved
+    // a newer draft. Confirming our command must not silently adopt their terms.
+    if(result.saved_version!==result.selection.version){pending=null;canEdit=result.selection.can_edit;conflict=result.selection;dirty=true;stash();render();status('Сохранение подтверждено, но затем подборку изменили. Сравните версии.',true);return;}
     version=result.selection.version;canEdit=result.selection.can_edit;draft=clone(result.selection.draft);rawAges={};dirty=false;pending=null;conflict=null;stash();render();status('Черновик сохранён.');return;
   }
   if(result?.error==='conflict'&&validSnapshot(result.selection)){pending=null;conflict=result.selection;canEdit=conflict.can_edit;stash();controls();recovery('conflict');status(error(result),true);return}
@@ -150,7 +153,7 @@ async function reconcile(){
   if(!pending||busy||!current())return;busy=true;controls();const token=epoch,result=await request('operation',{operation_id:pending.operation_id});if(token!==epoch)return;busy=false;
   if(result?.ok&&result.found&&validSnapshot(result.selection)){
     const sameVersion=result.saved_version===result.selection.version;pending=null;canEdit=result.selection.can_edit;
-    if(sameVersion){draft=clone(result.selection.draft);version=result.selection.version;dirty=false;conflict=null}else{conflict=result.selection;dirty=true}
+    if(sameVersion){draft=clone(result.selection.draft);version=result.selection.version;rawAges={};dirty=false;conflict=null}else{conflict=result.selection;dirty=true}
     stash();render();recovery(conflict?'conflict':'');status(sameVersion?'Сохранение подтверждено.':'Сохранение подтверждено, но затем подборку изменили. Сравните версии.',!sameVersion);return;
   }
   controls();recovery('pending');status(result?.ok?'Подтверждение ещё не найдено. Можно повторить тот же запрос с защитой от дублей.':error(result),true);
