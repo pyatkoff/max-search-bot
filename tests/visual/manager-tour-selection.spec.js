@@ -68,8 +68,8 @@ for(const width of [390,430,768,1440])test('selection editor preserves order con
   await page.locator('#tsAdd').click();await page.locator('#ts-hotel').fill('Семейный вариант');await page.locator('[data-ts-action="up"]').click();await save(page);
   expect(s.drafts.get(11).draft.offers.map(x=>x.hotel)).toEqual(['Семейный вариант','Тихий отель у моря']);
   const groupTarget=s.drafts.get(11).draft.offers[1].id;
-  await page.locator('#ts-hotel-group').selectOption(groupTarget);await save(page);
-  expect(s.drafts.get(11).draft.offers.map(x=>x.hotel_group)).toEqual([groupTarget,groupTarget]);
+  await page.locator('#ts-hotel-group').selectOption('o:'+groupTarget);await save(page);
+  const group=s.drafts.get(11).draft.offers[0].hotel_group;expect(group).toMatch(/^[a-f0-9]{32}$/);expect(s.drafts.get(11).draft.offers[1].hotel_group).toBe(group);
   await expect(page.locator('.tsGroupLabel')).toContainText('вариантов 2');
   await page.locator('[data-ts-field="selected"]').uncheck();await save(page);expect(s.drafts.get(11).draft.offers[0].selected).toBe(false);
   await page.locator('[data-ts-select]').nth(1).click();await expect(page.locator('#ts-child_ages')).toHaveValue('0, 4, 4');
@@ -222,11 +222,16 @@ test('explicit hotel grouping survives reload and renaming separates only that o
   const s=await fixture(page,{draft:source});await open(page);
   // Equal names do not silently group. Choose the other exact offer explicitly.
   expect(s.drafts.get(11).draft.offers.every(x=>!x.hotel_group)).toBe(true);
-  await page.locator('#ts-hotel-group').selectOption(other.id);await save(page);
+  await page.locator('#ts-hotel-group').selectOption('o:'+other.id);await save(page);let group=s.drafts.get(11).draft.offers[0].hotel_group;
+  expect(group).toMatch(/^[a-f0-9]{32}$/);expect(group).not.toBe(other.id);
+  // Any valid stored key is allowed, including an existing offer's ID.
+  // An ungrouped offer must stay in its own namespace after rename.
+  group=other.id;const stored=s.drafts.get(11);stored.version++;stored.draft.offers.forEach(x=>x.hotel_group=group);
   await page.locator('#tsClose').click();await page.reload();await expect.poll(()=>page.evaluate(()=>!!WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
   if(!await page.locator('#tourSelectionOpen').count())await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page);
-  await expect(page.locator('#ts-hotel-group')).toHaveValue(other.id);
+  await expect(page.locator('#ts-hotel-group')).toHaveValue('g:'+group);
+  await page.locator('[data-ts-select="'+other.id+'"]').click();
   await page.locator('#ts-hotel').fill('Другая гостиница');await save(page);
-  expect(s.drafts.get(11).draft.offers[0].hotel_group).toBeUndefined();expect(s.drafts.get(11).draft.offers[1].hotel_group).toBe(other.id);
-  await expect(page.locator('#ts-hotel-group')).toHaveValue('');expect(s.creations()).toBe(0);clean(s);
+  expect(s.drafts.get(11).draft.offers[1].hotel_group).toBeUndefined();expect(s.drafts.get(11).draft.offers[0].hotel_group).toBe(group);
+  await expect(page.locator('#ts-hotel-group')).toHaveValue('');await expect(page.locator('.tsGroupLabel')).toHaveCount(0);expect(s.creations()).toBe(0);clean(s);
 });

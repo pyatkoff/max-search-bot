@@ -90,10 +90,10 @@ function edit(event){
   if(event.target.id==='ts-hotel-group'&&editable()){
     const offer=item(),value=event.target.value;if(!offer)return;
     if(value){
-      const other=draft.offers.find(x=>x.id!==offer.id&&(x.hotel_group||x.id)===value);if(!other)return;
-      offer.hotel_group=value;other.hotel_group=value;
+      const other=draft.offers.find(x=>x.id!==offer.id&&(value==='g:'+x.hotel_group||value==='o:'+x.id));if(!other)return;
+      const group=other.hotel_group||id();offer.hotel_group=group;other.hotel_group=group;
     }else delete offer.hotel_group;
-    changed();renderList();return;
+    changed();renderList();renderGrouping();$('ts-hotel-group')?.focus({preventScroll:true});return;
   }
   if(event.target.dataset.tsPhoto&&editable()){
     const offer=item(),kind=event.target.dataset.tsPhoto;if(!offer)return;const photos=new Map(offer.photos.map(x=>[x.kind,x]));
@@ -122,16 +122,16 @@ function input(key,label,type='text',extra=''){
 function textarea(key,label){return `<label class="tsWide" for="ts-${key}">${esc(label)}<textarea id="ts-${key}" data-ts-field="${key}" rows="2" maxlength="${['rationale','compromise','inclusions'].includes(key)?600:1200}">${esc(item()[key]||'')}</textarea></label>`}
 function hotelGroups(){
   const groups=new Map();for(const [index,offer] of draft.offers.entries()){
-    const key=offer.hotel_group||offer.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push({offer,index});
+    const key=offer.hotel_group?'group:'+offer.hotel_group:'offer:'+offer.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push({offer,index});
   }return groups;
 }
 function renderGrouping(){
   const root=$('tsGrouping'),offer=item();if(!root||!offer)return;
   const options=new Map();for(const [index,other] of draft.offers.entries()){
-    if(other.id!==offer.id)options.set(other.hotel_group||other.id,'вариант '+(index+1)+' · '+(other.hotel||'Без названия'));
+    if(other.id!==offer.id)options.set(other.hotel_group?'g:'+other.hotel_group:'o:'+other.id,'вариант '+(index+1)+' · '+(other.hotel||'Без названия'));
   }
-  if(offer.hotel_group&&!options.has(offer.hotel_group))options.set(offer.hotel_group,offer.hotel||'Текущий отель');
-  root.innerHTML='<label for="ts-hotel-group">Варианты одного отеля<select id="ts-hotel-group"><option value="">Отдельный отель</option>'+[...options].map(([key,name])=>`<option value="${esc(key)}" ${offer.hotel_group===key?'selected':''}>Тот же отель: ${esc(name)}</option>`).join('')+'</select></label><p>Объединяйте только один и тот же отель. На общей странице фото будут общими, условия и цены — отдельными. Изменение названия снимает объединение этого варианта.</p>';
+  if(offer.hotel_group&&!options.has('g:'+offer.hotel_group))options.set('g:'+offer.hotel_group,offer.hotel||'Текущий отель');
+  root.innerHTML='<label for="ts-hotel-group">Варианты одного отеля<select id="ts-hotel-group"><option value="">Отдельный отель</option>'+[...options].map(([key,name])=>`<option value="${esc(key)}" ${'g:'+offer.hotel_group===key?'selected':''}>Тот же отель: ${esc(name)}</option>`).join('')+'</select></label><p>Объединяйте только один и тот же отель. На общей странице фото будут общими, условия и цены — отдельными. Изменение названия снимает объединение этого варианта.</p>';
   $('ts-hotel-group').disabled=!editable()||busy;
 }
 function renderList(){
