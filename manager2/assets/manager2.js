@@ -286,6 +286,7 @@
     });
   }
   function syncNavigation(){
+    const analytics=$('m2Analytics');if(analytics){analytics.hidden=!S.manager||S.authExpired||!(S.manager.supervision_available||S.manager.role==='admin');document.body.classList.toggle('m2HasAnalytics',!analytics.hidden)}
     const personal=window.WorkspaceV2PersonalWorkspace?.selectionScope?.();
     if(S.viewMode==='kanban')section='sales';else if(!personal&&S.queue==='closed')section='archive';else if(personal||section==='sales'||section==='archive')section='dialogues';
     document.querySelectorAll('[data-m2-nav]').forEach(b=>{const active=b.dataset.m2Nav===section;b.classList.toggle('active',active);b.disabled=!S.manager||S.authExpired;if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});

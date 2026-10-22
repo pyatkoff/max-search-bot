@@ -140,3 +140,13 @@ Confirmed uploads are removed from the captured queue. Caption receipts compare 
 Manager detail projects an optional cancellation notice only after its existing fresh conversation visibility check. `ManagerHandoffCancellationViewService` reads at most32 indexed events for the selected AI conversation, uses the newest authoritative lifecycle transition and exposes only confirmed customer `ai_resumed` with `handoff_cancelled` reason plus time. Missing/unparseable/out-of-window context is unknown; literal customer text/callback names cannot establish this event. No new query runs on Inbox or manager-owned detail.
 
 The focused presentation module renders outside the original transcript with ManagerTime Moscow formatting; Conversation owns loading, current-context, account/access reset and clearing. MAX/Telegram handoff copy describes the existing cancellation consequence explicitly, without changing callbacks, transport, ownership, source or queue policy.
+
+## Project supervision and readonly analytics
+
+Owner-authorized project/source capabilities, explicit audited grants, separated
+AI viewer/assigned owner and complete server cohorts are owned by
+`ManagerSupervisorAccessService` / `ManagerDialogueAnalyticsService`. The
+identity-free `/manager2/analytics.php` uses the canonical protected endpoint;
+legacy mutation visibility and ordinary sending remain separate from extended
+reads. See [supervision and analytics](../docs/MANAGER_SUPERVISION_ANALYTICS.md)
+for exact cohort/event/current-state definitions, freshness and grant boundaries.

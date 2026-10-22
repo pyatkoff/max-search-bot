@@ -270,3 +270,6 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 @media(max-height:540px){.manager2 #composer.m2ReplyAnimate .composerMain,.manager2 #composer.m2ReplyAnimate .composerActions,.manager2 #composer.m2ReplyAnimate #replyText{transition:none}}
 .manager2.pwCompact #inboxList .leadItem{padding-top:6px;padding-bottom:6px}
 .manager2.pwCompact #inboxList .leadPreview{-webkit-line-clamp:2;max-height:2.8em}
+
+.manager2 #m2Analytics[hidden]{display:none!important}
+@media(max-width:740px){.manager2.m2HasAnalytics .m2Rail{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}.manager2.m2HasAnalytics .m2Rail .m2Nav{font-size:10px}}
