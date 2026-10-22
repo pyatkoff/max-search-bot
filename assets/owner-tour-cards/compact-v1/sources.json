@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "asset_set": "grand-park-lara-compact-v1",
+  "purpose": "Technical 4:3 framing of the approved original hotel photographs for native bot cards.",
+  "target_aspect_ratio": "4:3",
+  "crop_box_format": "[left, top, width, height], in source pixels",
+  "processing": "Cover and beach use only a horizontal centre crop, without resizing, padding, generated pixels, retouching or colour adjustments. Their JPEG files are re-encoded at quality 96 with 4:4:4 sampling. The room file is copied byte for byte.",
+  "encoder": "ImageMagick 6.9.12-98 Q16 x86_64",
+  "crop_command": ["convert", "SOURCE", "-crop", "1440x1080+240+0", "+repage", "-sampling-factor", "4:4:4", "-quality", "96", "OUTPUT"],
+  "images": {
+    "cover": {
+      "file": "cover.jpg",
+      "source_url": "https://www.corendonhotels.com.tr/storage/slides/March2026/ZuI2cGTDetugSWKhnE93.jpg",
+      "source_sha256": "dd0a2a54509b7ca7ccec24a3162278e3f0dd53d2d8e4484d9901eacb7cc8ebbb",
+      "source_dimensions": [1920, 1080],
+      "source_bytes": 388701,
+      "operation": "centre_crop",
+      "crop_box": [240, 0, 1440, 1080],
+      "output_sha256": "d987ecfee047479d6d19328e04849916b96d06256ddc83bf048fe7f8fc544edf",
+      "output_dimensions": [1440, 1080],
+      "output_bytes": 665126,
+      "output_mime": "image/jpeg"
+    },
+    "beach": {
+      "file": "beach.jpg",
+      "source_url": "https://www.corendonhotels.com.tr/storage/pages/May2026/iX5LgEU46J2oOMC8VFjS.jpg",
+      "source_sha256": "fcf38e3a92f244bcf55fe78ecd61da4f4716054cce734999f575507ef1c4d5a9",
+      "source_dimensions": [1920, 1080],
+      "source_bytes": 373436,
+      "operation": "centre_crop",
+      "crop_box": [240, 0, 1440, 1080],
+      "output_sha256": "a46b5c66f95203665d97fde342a9bccfd734eedc50f3e5e6092fee4fbe09d863",
+      "output_dimensions": [1440, 1080],
+      "output_bytes": 512373,
+      "output_mime": "image/jpeg"
+    },
+    "room": {
+      "file": "room.jpg",
+      "source_url": "https://www.corendonhotels.com.tr/storage/rooms/March2026/hJ0wq9HCId31KoXNb6MI.jpg",
+      "source_sha256": "39bcd0b7441919990b94cd29cfc92e3e27bada0835b73bbd7b204df4e0c6e117",
+      "source_dimensions": [800, 600],
+      "source_bytes": 38666,
+      "operation": "byte_copy",
+      "crop_box": [0, 0, 800, 600],
+      "output_sha256": "39bcd0b7441919990b94cd29cfc92e3e27bada0835b73bbd7b204df4e0c6e117",
+      "output_dimensions": [800, 600],
+      "output_bytes": 38666,
+      "output_mime": "image/jpeg"
+    }
+  }
+}

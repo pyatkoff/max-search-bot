@@ -16,16 +16,18 @@ function ownerPhotoChoiceArguments(array $args): ?string
 function ownerPhotoChoiceSpec(?array $spec): ?array
 {
     if ($spec === null) return null;
+    $compact = ($spec['id'] ?? null) === 'owner-card-compact-20261022-grand-park';
     if (count($spec) !== 3 || array_diff(array_keys($spec), ['id','snapshot','presentation']) !== []
         || !is_string($spec['id'] ?? null) || !is_array($spec['snapshot'] ?? null) || !is_array($spec['presentation'] ?? null)
-        || preg_match('/\Aowner-live-quote-20261021-(palace|imperial|be-grand|grand-park)\z/D', $spec['id'], $match) !== 1) {
+        || (!$compact && preg_match('/\Aowner-live-quote-20261021-(palace|imperial|be-grand|grand-park)\z/D', $spec['id'], $match) !== 1)) {
         throw new InvalidArgumentException('Invalid fixed quote specification');
     }
     $snapshot = TourChoiceService::normalize($spec['snapshot']);
-    if ($snapshot === null || $snapshot['is_demo'] !== false || $snapshot['price_verified'] !== false) {
+    if ($snapshot === null || $snapshot['is_demo'] !== $compact || $snapshot['price_verified'] !== false) {
         throw new InvalidArgumentException('Invalid fixed quote snapshot');
     }
-    if ($match[1] === 'grand-park' && $snapshot['hotel'] !== 'Grand Park Lara 5★') {
+    $key = $compact ? 'grand-park' : $match[1];
+    if ($key === 'grand-park' && $snapshot['hotel'] !== 'Grand Park Lara 5★') {
         throw new InvalidArgumentException('Invalid fixed quote hotel');
     }
     $card = TourOfferCardRenderer::render($snapshot, $spec['presentation'], 'tour_like_1_'.str_repeat('0', 24));
@@ -40,10 +42,11 @@ function ownerPhotoChoiceSpec(?array $spec): ?array
             'https://www.corendonhotels.com.tr/storage/pages/May2026/iX5LgEU46J2oOMC8VFjS.jpg',
             'https://www.corendonhotels.com.tr/storage/rooms/March2026/hJ0wq9HCId31KoXNb6MI.jpg'],
     ];
-    if (array_column($card['presentation']['photos'], 'url') !== $photos[$match[1]]
+    if (array_column($card['presentation']['photos'], 'url') !== $photos[$key]
         || $card['presentation']['inclusions'] !== [] || $card['presentation']['room_illustrative'] !== true) {
         throw new InvalidArgumentException('Invalid fixed quote photo presentation');
     }
+    if ($compact !== (($card['presentation']['layout'] ?? null) === 'compact-v1')) throw new InvalidArgumentException('Invalid fixed card revision');
     return ['id'=>$spec['id'], 'snapshot'=>$snapshot, 'presentation'=>$card['presentation']];
 }
 

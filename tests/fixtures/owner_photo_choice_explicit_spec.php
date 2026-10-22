@@ -83,7 +83,7 @@ function explicitRun(array $spec, ?string $directory = null, string $failure = '
     foreach (['telegram','max'] as $channel) $targets[$channel]=static function() use (&$calls,$channel): array {$calls[]=['target',$channel];return photoChoiceRow($channel);};
     $prepare=static function(int $conversationId,array $snapshot) use (&$writes,$spec): array {
         $writes[]=['prepare',$conversationId,$snapshot];
-        photoChoiceAssert($snapshot===TourChoiceService::normalize($spec['snapshot']) && !$snapshot['is_demo'] && !$snapshot['price_verified'], 'Explicit canonical unverified quote snapshot is prepared exactly');
+        photoChoiceAssert($snapshot===TourChoiceService::normalize($spec['snapshot']) && $snapshot['is_demo']===$spec['snapshot']['is_demo'] && !$snapshot['price_verified'], 'Explicit canonical unverified quote snapshot is prepared exactly');
         return ['ok'=>true,'offer_id'=>2000+$conversationId,'callback_data'=>'tour_like_'.(2000+$conversationId).'_'.str_repeat('b',24)];
     };
     $delivered=static function(int $id,string $mid,string $chat) use (&$writes,$failure): array {
@@ -108,6 +108,7 @@ function explicitRun(array $spec, ?string $directory = null, string $failure = '
     return [$out,$calls,$directory,$writes];
 }
 
+if (!defined('OWNER_EXPLICIT_PHOTO_FIXTURE_LIBRARY')) {
 photoChoiceAssert(ownerPhotoChoiceSpec(null)===null && ownerPhotoChoiceSnapshot()['is_demo']===true, 'Null specification preserves the original fixed demo profile');
 foreach (['palace','imperial','be-grand','grand-park'] as $key) {
     $spec=explicitSpec($key);$spec['snapshot']['hotel']='  '.$spec['snapshot']['hotel'].'  ';
@@ -211,3 +212,4 @@ foreach ($invalid as $bad) {
 }
 foreach ($directories as $directory) if (is_dir($directory)) { foreach (glob($directory.'/*') ?: [] as $path) unlink($path); foreach (glob($directory.'/.owner-preview-image-*') ?: [] as $path) unlink($path); rmdir($directory); }
 echo "EXPLICIT OWNER PHOTO CHOICE: $checks checks PASSED\n";
+}

@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - 'assets/owner-tour-cards/compact-v1/**'
       - 'tools/max_owner_tour_preview.php'
       - 'tools/max_owner_preview_images.php'
       - 'tools/telegram_owner_tour_preview.php'
@@ -13,6 +14,7 @@ on:
       - 'tools/owner_tour_card_emphasis_preview.php'
       - 'tools/owner_tour_choice_trial.php'
       - 'tools/owner_tour_photo_choice_trial.php'
+      - 'tools/owner_tour_compact_choice_trial.php'
       - 'tools/owner_tour_live_quote_trial.php'
       - 'services/TourChoiceService.php'
       - 'services/TourOfferCardRenderer.php'
@@ -23,6 +25,7 @@ on:
       - 'tests/run_owner_tour_choice_trial_regression.php'
       - 'tests/run_owner_tour_photo_choice_trial_regression.php'
       - 'tests/fixtures/owner_live_quote_trial.php'
+      - 'tests/fixtures/owner_compact_choice_trial.php'
       - 'tests/run_tour_offer_card_renderer_regression.php'
       - 'tests/run_max_owner_tour_workflow_regression.py'
       - '.github/workflows/max-owner-tour-preview.yml'
@@ -87,6 +90,12 @@ on:
         required: true
         default: false
 
+      card_revision:
+        description: Optional fixed photo-choice revision (empty or compact-v1)
+        type: string
+        required: false
+        default: ''
+
 permissions:
   contents: read
 
@@ -122,6 +131,8 @@ jobs:
         run: php tests/run_owner_tour_photo_choice_trial_regression.php
       - name: Verify fixed current-quote cards and separate permanent receipts
         run: php tests/fixtures/owner_live_quote_trial.php
+      - name: Verify compact historical example and separate permanent receipts
+        run: php tests/fixtures/owner_compact_choice_trial.php
       - name: Verify fixed manual workflow command and stop gates
         run: python3 tests/run_max_owner_tour_workflow_regression.py
 
@@ -145,6 +156,7 @@ jobs:
           CONFIRM_OWNER_CHOICE: ${{ inputs.confirm_owner_choice }}
           CONFIRM_OWNER_PHOTO_CHOICE: ${{ inputs.confirm_owner_photo_choice }}
           CONFIRM_OWNER_LIVE_QUOTE: ${{ inputs.confirm_owner_live_quote }}
+          CARD_REVISION: ${{ inputs.card_revision }}
           REPOSITORY_READ_TOKEN: ${{ github.token }}
         shell: bash
         run: |
@@ -169,10 +181,11 @@ jobs:
                       or os.environ.get('GITHUB_ACTOR') != owner['login']
                       or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
                   raise SystemExit(2)
-              command = re.fullmatch(r'/(owner-tour-preview(?:-recover|-compare|-variants|-telegram|-trio|-emphasis)?|owner-tour-choice-trial|owner-tour-photo-choice-trial|owner-tour-live-quote-trial) ([0-9a-f]{40})', comment.get('body', ''))
+              command = re.fullmatch(r'/(owner-tour-preview(?:-recover|-compare|-variants|-telegram|-trio|-emphasis)?|owner-tour-choice-trial|owner-tour-photo-choice-trial|owner-tour-live-quote-trial) ([0-9a-f]{40})(?: (compact-v1))?', comment.get('body', ''))
               if command is None:
                   raise SystemExit(2)
               expected = command.group(2)
+              revision = command.group(3) or ''
               mode = {'owner-tour-preview-recover': 'recover', 'owner-tour-preview-compare': 'compare', 'owner-tour-preview-variants': 'variants', 'owner-tour-preview-telegram': 'telegram', 'owner-tour-preview-trio': 'trio', 'owner-tour-preview': 'send', 'owner-tour-preview-emphasis': 'emphasis', 'owner-tour-choice-trial': 'choice', 'owner-tour-photo-choice-trial': 'photo-choice', 'owner-tour-live-quote-trial': 'live-quote'}[command.group(1)]
           elif os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
               send = os.environ.get('CONFIRM_OWNER_SEND') == 'true'
@@ -188,8 +201,11 @@ jobs:
               if sum([send, recover, compare, variants, telegram, trio, emphasis, choice, photo_choice, live_quote]) != 1:
                   raise SystemExit(2)
               expected = os.environ.get('EXPECTED_SHA', '')
+              revision = os.environ.get('CARD_REVISION', '')
               mode = 'live-quote' if live_quote else ('photo-choice' if photo_choice else ('choice' if choice else ('emphasis' if emphasis else ('trio' if trio else ('telegram' if telegram else ('variants' if variants else ('compare' if compare else ('recover' if recover else 'send'))))))))
           else:
+              raise SystemExit(2)
+          if revision not in ['', 'compact-v1'] or (revision and mode != 'photo-choice'):
               raise SystemExit(2)
           if mode in ['recover', 'compare', 'variants', 'telegram', 'trio', 'emphasis', 'choice', 'photo-choice', 'live-quote'] and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
               raise SystemExit(2)
@@ -216,7 +232,7 @@ jobs:
           if head.get('ref') != 'refs/heads/main' or head.get('object', {}).get('type') != 'commit' or head.get('object', {}).get('sha') != expected:
               raise SystemExit(2)
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
-              output.write('expected_sha=' + expected + '\nowner_mode=' + mode + '\n')
+              output.write('expected_sha=' + expected + '\nowner_mode=' + mode + '\nowner_revision=' + revision + '\n')
           PY
 
       - name: Prepare existing deployment SSH key
@@ -243,17 +259,21 @@ jobs:
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}
           OWNER_MODE: ${{ steps.authorize.outputs.owner_mode }}
+          OWNER_REVISION: ${{ steps.authorize.outputs.owner_revision }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
           [[ "$OWNER_MODE" == send || "$OWNER_MODE" == recover || "$OWNER_MODE" == compare || "$OWNER_MODE" == variants || "$OWNER_MODE" == telegram || "$OWNER_MODE" == trio || "$OWNER_MODE" == emphasis || "$OWNER_MODE" == choice || "$OWNER_MODE" == photo-choice || "$OWNER_MODE" == live-quote ]] || exit 2
+          [[ -z "$OWNER_REVISION" || ( "$OWNER_MODE" == photo-choice && "$OWNER_REVISION" == compact-v1 ) ]] || exit 2
           ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -i "$RUNNER_TEMP/deploy_key" "$DEPLOY_USER@$DEPLOY_HOST" \
-            bash -s -- "$EXPECTED_SHA" "$OWNER_MODE" <<'REMOTE'
+            bash -s -- "$EXPECTED_SHA" "$OWNER_MODE" "$OWNER_REVISION" <<'REMOTE'
           set -euo pipefail
           expected_sha="$1"
           owner_mode="$2"
+          owner_revision="${3-}"
           [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ -z "$owner_revision" || ( "$owner_mode" == photo-choice && "$owner_revision" == compact-v1 ) ]] || exit 2
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = "$expected_sha"
           git diff --quiet
@@ -267,7 +287,12 @@ jobs:
             trio) php tools/owner_tour_selection_preview.php --expected-sha="$expected_sha" --confirm-owner-trio ;;
             emphasis) php tools/owner_tour_card_emphasis_preview.php --expected-sha="$expected_sha" --confirm-owner-emphasis ;;
             choice) php tools/owner_tour_choice_trial.php --expected-sha="$expected_sha" --confirm-owner-choice ;;
-            photo-choice) php tools/owner_tour_photo_choice_trial.php --expected-sha="$expected_sha" --confirm-owner-photo-choice ;;
+            photo-choice)
+              if [[ "$owner_revision" == compact-v1 ]]; then
+                php tools/owner_tour_compact_choice_trial.php --expected-sha="$expected_sha" --confirm-owner-photo-choice --revision=compact-v1
+              else
+                php tools/owner_tour_photo_choice_trial.php --expected-sha="$expected_sha" --confirm-owner-photo-choice
+              fi ;;
             live-quote) php tools/owner_tour_live_quote_trial.php --expected-sha="$expected_sha" --confirm-owner-live-quote ;;
             *) exit 2 ;;
           esac
