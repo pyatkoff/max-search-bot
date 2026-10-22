@@ -545,14 +545,16 @@ function preparedReplyWaitingFixture(): array
 
 function preparedReplyWaitingRun(): void
 {
+    // Keep the fixed source fixture inside the collector's unchanged 72-hour window.
+    $capturedAtUtc = '2026-10-19 10:03:00';
     [$pdo,$waiting,$job] = preparedReplyWaitingFixture();
     $sourceBefore = preparedReplySourceState($pdo);
     preparedReplyCheck('unassigned preparation does not grant manual reply rights to manager or admin', empty(ManagerAiDraftContextService::snapshot(101,1)['ok']) && empty(ManagerAiDraftContextService::snapshot(101,2)['ok']));
     $pending = ManagerPreparedReplyService::pending(20);
     $context = ManagerPreparedReplyService::context($job);
     preparedReplyCheck('worker can read current waiting enquiry without assigning an administrator', ($pending['jobs'][0]['manager_id'] ?? -1) === 0 && ($context['ok'] ?? false) && $context['preparation_scope'] === 'unassigned_waiting' && $context['revision'] === $waiting['revision'] && preparedReplySourceState($pdo) === $sourceBefore);
-    $ordinary = ManagerDraftPilotCollector::collect($pdo,[1,2],20);
-    $both = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,null,true);
+    $ordinary = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,$capturedAtUtc);
+    $both = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,$capturedAtUtc,true);
     preparedReplyCheck('cron opt-in includes waiting inbound enquiries while old pilot scope is unchanged', ($ordinary['exported_count'] ?? -1) === 0 && ($both['exported_count'] ?? 0) === 1 && $both['conversations'][0]['assigned_manager_id'] === 0 && $both['conversations'][0]['revision'] === $waiting['revision'] && preparedReplySourceState($pdo) === $sourceBefore && $pdo->sourceWriteAttempts === 0);
     $proposal = preparedReplyProposal();
     preparedReplyCheck('unassigned private proposal saves without customer or ownership writes', (ManagerPreparedReplyService::complete($job,$waiting['revision'],$proposal)['ok'] ?? false) && preparedReplySourceState($pdo) === $sourceBefore && $pdo->sourceWriteAttempts === 0);
@@ -566,7 +568,7 @@ function preparedReplyWaitingRun(): void
 
     [$pdo,$waiting,$job] = preparedReplyWaitingFixture();
     $pdo->mutate("INSERT INTO conversations SELECT 2,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,'manager',lead_stage_key,1,started_at,last_message_at,closed_at,'OTHER PRIVATE',is_test FROM conversations WHERE id=101; INSERT INTO messages VALUES(3,2,'inbound','customer','Нужен тур на двоих','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE'); UPDATE managers SET is_working=0 WHERE id=1");
-    $mixed = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,null,true);
+    $mixed = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,$capturedAtUtc,true);
     $owners = array_column($mixed['conversations'] ?? [],'assigned_manager_id'); sort($owners);
     preparedReplyCheck('one bounded cron batch includes waiting and assigned off-shift enquiries', ($mixed['candidate_count'] ?? 0) === 2 && ($mixed['exported_count'] ?? 0) === 2 && $owners === [0,1] && $pdo->sourceWriteAttempts === 0);
     foreach ([
@@ -576,7 +578,7 @@ function preparedReplyWaitingRun(): void
         'already_answered'=>"INSERT INTO messages VALUES(3,101,'outbound','manager','Уже ответили','2026-10-19 10:02:00','telegram',NULL,'PRIVATE','PRIVATE')",
     ] as $case=>$sql) {
         [$pdo,$waiting,$job] = preparedReplyWaitingFixture(); $pdo->mutate($sql);
-        $batch = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,null,true);
+        $batch = ManagerDraftPilotCollector::collect($pdo,[1,2],20,null,null,$capturedAtUtc,true);
         preparedReplyCheck($case.' does not manufacture unassigned reply work', ($batch['candidate_count'] ?? -1) === 0 && ($batch['exported_count'] ?? -1) === 0 && $pdo->sourceWriteAttempts === 0);
     }
 
