@@ -28,6 +28,12 @@ check('demo and historical prices never imply current verification or booking',(
   const html=ui.markup({offers:[real]});assert(!html.includes('Демонстрационный вариант'));assert(html.includes('актуальность и наличие нужно проверить'));
   assert(!html.includes('Забронировать'));assert(!html.includes('<button'));
 });
+check('manager sees complete sent inclusions without a calculated return promise',()=>{
+  const item=offer();item.snapshot={...item.snapshot,is_demo:false,quoted_details:{flights:'Время рейсов уточняется',inclusions:'Трансфер',constraints:'Топливный сбор проверить',source_label:'Проверенный источник'}};
+  const html=ui.markup({offers:[item]});
+  for(const value of ['С 03.11.2026','Время рейсов уточняется','Трансфер','Топливный сбор проверить','Проверенный источник'])assert(html.includes(value),value);
+  assert(!html.includes('03.11.2026 — 10.11.2026'));
+});
 check('hotel variants and currencies remain separate without totals',()=>{
   const second=offer({offer_id:18});second.snapshot={...second.snapshot,room:'Standard',amount:'999.99',currency:'EUR',date_from:'2026-12-01'};
   const html=ui.markup({offers:[offer(),second]});assert.equal((html.match(/class="leadDetails tourChoice"/g)||[]).length,2);
