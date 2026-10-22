@@ -222,10 +222,177 @@ def build(root, knowledge_path, draft_path):
     return summary
 
 
+def append_reviewed_batch(root, knowledge_path, batch_path):
+    """Append reviewed drafts without rebuilding or losing catalog/media work."""
+    out = root / 'deliverables'
+    data = read_json(out / 'funnel-content-preparation.json')
+    batch = read_json(batch_path)
+    batch_hash = hashlib.sha256(batch_path.read_bytes()).hexdigest()
+    for previous in data.get('reviewed_content_batches', []):
+        if previous['batch_id'] == batch['batch_id']:
+            if previous['input_sha256'] != batch_hash:
+                raise ValueError('A completed batch ID cannot be reused with different contents')
+            return {'changed': False, 'reason': 'BATCH_ALREADY_COMPLETED', 'summary': data['summary']}
+    existing_keys = {d['draft_key'] for d in data['post_drafts']}
+    feed_by_source = {r['source_candidate_key']: r for r in data['draft_feed_records']}
+    assert len(existing_keys) == len(data['post_drafts'])
+    batch_keys = [d['draft_key'] for d in batch['drafts']]
+    assert len(batch_keys) == len(set(batch_keys)) and not existing_keys.intersection(batch_keys)
+    with zipfile.ZipFile(knowledge_path) as archive:
+        index_bytes = archive.read(batch['knowledge_index_member'])
+        index = json.loads(index_bytes)
+    added = []
+    for draft in batch['drafts']:
+        key = draft['source_candidate_key']
+        if key not in feed_by_source:
+            raise ValueError('Draft has no existing funnel/feed source: ' + key)
+        proof = []
+        for cid in draft['claim_ids']:
+            variants = index['claims'][cid]
+            hotels = {v['record'].get('hotel_key') for v in variants} - {None}
+            if not hotels or not hotels <= set(draft['knowledge_profile_keys']):
+                raise ValueError('Hotel scope mismatch: ' + cid)
+            source_ids = sorted({s for v in variants for s in v['record'].get('source_ids', [])})
+            if not source_ids:
+                raise ValueError('Claim has no sources: ' + cid)
+            sources = []
+            for sid in source_ids:
+                for variant in index['sources_including_unclaimed'][sid]:
+                    record = variant['record']
+                    source = {k: record.get(k) for k in ('id', 'hotel_key', 'url', 'kind',
+                              'retrieved_on', 'document_season', 'read_scope', 'limitations')}
+                    if source not in sources:
+                        sources.append(source)
+            proof.append({'claim_id': cid, 'record_variants': [v['record'] for v in variants],
+                          'sources': sources, 'future_validity': 'UNVERIFIED'})
+        row = feed_by_source[key]
+        is_selection = row['kind'] == 'selection'
+        if is_selection and not draft.get('selection_eligibility', {}).get('required_checks'):
+            raise ValueError('A thematic draft requires explicit eligibility checks')
+        draft.update(kind='selection' if is_selection else 'hotel',
+                     status='REVIEWABLE_CONTENT_DRAFT_IDENTITY_AND_DATE_CHECKS_PENDING',
+                     publishable=False, channel_id=None, post_id=None, entry_id=None,
+                     button_url=None, catalog_ids=[row['catalog_id']] if row.get('catalog_id') else [],
+                     catalog_namespace=row.get('catalog_namespace'), price=None, availability=None,
+                     images={'status': 'NOT_SELECTED', 'urls': []}, proof=proof,
+                     prepared_from={'library_file_id': 'libfile_e554d6c3171c8191926e5a7ae8bcd1e4',
+                                    'version': batch['knowledge_library_version'],
+                                    'index_member': batch['knowledge_index_member'],
+                                    'index_sha256': hashlib.sha256(index_bytes).hexdigest(),
+                                    'new_live_property_verification': False})
+        row['post_draft_key'] = draft['draft_key']
+        if draft.get('feed_description'):
+            row['description'] = draft['feed_description']
+        added.append(draft)
+    data['post_drafts'].extend(added)
+    theme_keys = {r['source_candidate_key'] for r in data['draft_feed_records'] if r['kind'] == 'selection'}
+    for draft in data['post_drafts']:
+        draft.setdefault('kind', 'selection' if draft['source_candidate_key'] in theme_keys else 'hotel')
+    now = datetime.now(timezone.utc).isoformat()
+    summary = data['summary']
+    summary.update(generated_at_utc=now, post_drafts=len(data['post_drafts']),
+                   hotel_post_drafts=sum(d['kind'] == 'hotel' for d in data['post_drafts']),
+                   thematic_post_drafts=sum(d['kind'] == 'selection' for d in data['post_drafts']),
+                   source_claim_references=sum(len(d['proof']) for d in data['post_drafts']))
+    completed = {'batch_id': batch['batch_id'], 'input_sha256': batch_hash,
+                 'completed_at_utc': now, 'new_drafts': len(added),
+                 'new_hotels': sum(d['kind'] == 'hotel' for d in added),
+                 'new_selections': sum(d['kind'] == 'selection' for d in added),
+                 'skipped': batch.get('skipped', []), 'source_version': batch['knowledge_library_version']}
+    data.setdefault('reviewed_content_batches', []).append(completed)
+    data['limitations'] = [
+        'These are reviewable drafts. Identity, dates, service operation and photos remain partial.',
+        'Only the five previously verified native LOCAL identities are confirmed; new content does not issue IDs.',
+        'No prices, availability, entry/post IDs or channel publication.',
+        'Thematic source facts retain room/facility/season/child-age boundaries.',
+        'Incomplete XML is not upload-ready; no Wordstat frequency has been collected.']
+    # Change only descriptions in the existing incomplete XML, preserving catalog and photo work.
+    xml_path = out / 'funnel-collections.INCOMPLETE-DRAFT.xml'
+    xml = ET.parse(xml_path)
+    by_collection = {r['draft_collection_key']: r for r in data['draft_feed_records']}
+    for collection in xml.findall('./shop/collections/collection'):
+        row = by_collection[collection.attrib['id']]
+        collection.find('description').text = row['description']
+        assert collection.find('url') is None
+    assert len(xml.findall('./shop/collections/collection')) == len(data['draft_feed_records'])
+    ET.indent(xml)
+    xml_bytes = ET.tostring(xml.getroot(), encoding='utf-8', xml_declaration=True)
+    esc = lambda s: html.escape(str(s), quote=True)
+    cards = []
+    for draft in added:
+        urls = sorted({s['url'] for p in draft['proof'] for s in p['sources'] if s.get('url')})
+        checks = draft.get('selection_eligibility', {}).get('required_checks', [])
+        cards.append('<details><summary>' + esc(draft['title']) + '</summary><p>' +
+                     esc(draft['body']).replace('\n\n', '</p><p>').replace('\n', '<br>') +
+                     '</p><p><b>Кнопка:</b> ' + esc(draft['button_label']) + ' · адрес ещё не выдан</p>' +
+                     ('<small>Перед включением в подборку: ' + esc('; '.join(checks)) + '</small>' if checks else '') +
+                     '<small>Основание: ' + ', '.join(esc(x) for x in draft['claim_ids']) + '</small><small>' +
+                     ' · '.join('<a href="' + esc(u) + '">Источник</a>' for u in urls) + '</small></details>')
+    section = ('<!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_BEGIN --><section><h2>Новые посты и подборки</h2><p><b>Всего ' +
+               str(summary['post_drafts']) + ' черновика</b>: ' + str(summary['hotel_post_drafts']) + ' гостиничных постов и ' +
+               str(summary['thematic_post_drafts']) + ' тематические подборки. Добавлено за проход: ' + str(len(added)) +
+               '. Коллекций фида — ' + str(summary['draft_feed_records']) + '; активных адресов перехода — 0.</p>' +
+               '<p class="note">Факты повторно использованы из гостиничной базы версии ' + str(batch['knowledge_library_version']) +
+               '. Это подготовка контента: новая проверка сайтов, цен и услуг на даты поездки в этом проходе не выполнялась. ID и фотографии новых отелей ещё требуют проверки.</p>' +
+               ''.join(cards) + '<p class="note">Crystal Prestige временно отложен: в источнике другое полное название, и связь с коротким названием очереди пока не подтверждена.</p></section><!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_END -->')
+    report_path = out / 'anytour-demand-20261022.html'
+    report = report_path.read_text()
+    report = report.replace('<b>Всего 15 черновиков постов</b>', '<b>Пакет каталога: 15 черновиков на момент подготовки</b>')
+    report = report.replace('</header>', '</header>' + section, 1)
+    report_bytes = report.encode()
+    content_bytes = encoded(data)
+    queue_path = out / 'anytour-demand-priorities-20261022.json'
+    queue = read_json(queue_path)
+    queue['content_post_counts'] = {k: summary[k] for k in ('post_drafts', 'hotel_post_drafts', 'thematic_post_drafts')}
+    queue['latest_content_batch'] = completed
+    queue_bytes = encoded(queue)
+    provenance_path = out / 'source-provenance.json'
+    provenance = read_json(provenance_path)
+    provenance['content_preparation']['summary'] = summary
+    provenance['content_preparation']['sha256'] = hashlib.sha256(content_bytes).hexdigest()
+    provenance['report_sha256'] = hashlib.sha256(report_bytes).hexdigest()
+    provenance['working_queue_sha256'] = hashlib.sha256(queue_bytes).hexdigest()
+    provenance.setdefault('content_batches', []).append(completed)
+    replacements = {'report.html': report_bytes, 'priorities.json': queue_bytes,
+                    'source-provenance.json': encoded(provenance),
+                    'funnel-content-preparation.json': content_bytes,
+                    'funnel-collections.INCOMPLETE-DRAFT.xml': xml_bytes,
+                    'funnel-content-batches/' + batch['batch_id'] + '.json': batch_path.read_bytes(),
+                    'prepare-funnel-content.py': Path(__file__).read_bytes(),
+                    'README.txt': ('Актуальная очередь: priorities.json; тексты, источники, связи и ограничения: funnel-content-preparation.json. '
+                                   + str(summary['post_drafts']) + ' черновика: ' + str(summary['hotel_post_drafts']) + ' отелей и '
+                                   + str(summary['thematic_post_drafts']) + ' тематические подборки.5 подтверждённых LOCAL ID,4 обложки. '
+                                   'Фид содержит356 неполных заготовок без адресов входа; не загружать. '
+                                   'Канал ещё не передан; публикации, трат и изменений гостиничной базы нет. '
+                                   'Частотность Wordstat не собрана. Исходный запросный отчёт и предыдущие материалы сохранены.\n').encode()}
+    archive_path = out / 'anytour-demand-20261022.zip'
+    pending = archive_path.with_suffix('.batch-pending.zip')
+    with zipfile.ZipFile(archive_path) as old, zipfile.ZipFile(pending, 'w', zipfile.ZIP_DEFLATED, compresslevel=7) as new:
+        for entry in old.infolist():
+            if entry.filename not in replacements:
+                new.writestr(entry, old.read(entry.filename))
+        for name, value in replacements.items():
+            new.writestr(name, value)
+    with zipfile.ZipFile(pending) as checked:
+        assert checked.testzip() is None and len(checked.namelist()) == len(set(checked.namelist()))
+    report_path.write_bytes(report_bytes)
+    queue_path.write_bytes(queue_bytes)
+    provenance_path.write_bytes(replacements['source-provenance.json'])
+    (out / 'funnel-content-preparation.json').write_bytes(content_bytes)
+    xml_path.write_bytes(xml_bytes)
+    (out / 'funnel-preparation-summary.json').write_bytes(encoded(summary))
+    pending.replace(archive_path)
+    return {'changed': True, 'batch': completed, 'summary': summary}
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parent)
     parser.add_argument('--knowledge', type=Path, required=True)
-    parser.add_argument('--drafts', type=Path, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--drafts', type=Path)
+    mode.add_argument('--append-drafts', type=Path)
     args = parser.parse_args()
-    print(json.dumps(build(args.root.resolve(), args.knowledge, args.drafts), ensure_ascii=False))
+    result = (append_reviewed_batch(args.root.resolve(), args.knowledge, args.append_drafts)
+              if args.append_drafts else build(args.root.resolve(), args.knowledge, args.drafts))
+    print(json.dumps(result, ensure_ascii=False))
