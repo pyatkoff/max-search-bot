@@ -1,0 +1,76 @@
+{
+  "schema": "anytour.funnel.autopilot_state.v1",
+  "updated_at_utc": "2026-10-22T22:35:06.847Z",
+  "owner": "direct-demand-funnel",
+  "automation": {
+    "id": "6ada8f0084888191b12c6619c12fb35c",
+    "enabled": true,
+    "frequency": "hourly",
+    "timezone": "Europe/Kaliningrad"
+  },
+  "status": "PREPARING_CONTENT_AND_FEED_CHANNEL_PENDING",
+  "channel": null,
+  "scope": {
+    "prepare_catalog_matches": true,
+    "prepare_drafts": true,
+    "prepare_feed": true,
+    "publish_posts": false,
+    "upload_live_feed": false,
+    "modify_paid_campaigns": false,
+    "merge_or_deploy": false,
+    "modify_canonical_hotel_knowledge": false
+  },
+  "attribution_contract": {
+    "context": "our ID linked to post/hotel/selection",
+    "click_id": "yclid",
+    "match": "chat ID",
+    "keyword_macro_used": false
+  },
+  "baseline": {
+    "observed_hotel_candidates": 317,
+    "thematic_candidates": 36,
+    "top500_name_rows": 500,
+    "top500_unique_legacy_tv_ids": 492,
+    "direct_report_rows": 240296,
+    "direct_normalized_queries": 141216,
+    "period": [
+      "2026-09-23",
+      "2026-10-22"
+    ],
+    "metrics_note": "Ad impressions are not full Yandex/Wordstat frequency"
+  },
+  "artifacts": {
+    "report": {
+      "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
+      "version": 2
+    },
+    "archive": {
+      "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
+      "version": 2
+    },
+    "canonical_hotel_knowledge": {
+      "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
+      "version": 92,
+      "read_only": true,
+      "index_member": "plan155/working-knowledge-index.json",
+      "hotel_names": 526,
+      "claim_ids": 5073,
+      "source_ids": 2058
+    }
+  },
+  "operations": {
+    "automation_create": "DONE",
+    "source_export": "DONE",
+    "expanded_demand_queue": "DONE",
+    "knowledge_materialization": "DONE",
+    "content_match_pass": "IN_PROGRESS",
+    "wordstat_access": "NOT_YET_VERIFIED"
+  },
+  "next_steps": [
+    "Read canonical profiles and prepare source-linked name matches without assigning guessed catalog IDs.",
+    "Prepare finite post drafts using confirmed source claims and preserve scope/season limitations.",
+    "Prepare inactive collection feed and destination bindings; wait for owner channel only for publication."
+  ],
+  "publication_blocker": "Owner will provide channel later. This does not block preparation.",
+  "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows."
+}
