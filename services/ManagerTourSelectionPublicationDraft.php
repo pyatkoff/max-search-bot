@@ -23,7 +23,7 @@ final class ManagerTourSelectionPublicationDraft
             // This is a derived lodging boundary, never a confirmed return flight.
             $snapshot=TourChoiceService::normalize([
                 'hotel'=>$offer['hotel'].($offer['stars']?' '.$offer['stars'].'★':''),'departure'=>$offer['departure'],
-                'date_from'=>$offer['date_from'],'date_to'=>$until,'nights'=>$offer['nights'],'adults'=>$offer['adults'],'child_ages'=>$offer['child_ages'],
+                'date_from'=>$offer['date_from'],'date_to'=>$until,'date_to_basis'=>'lodging_estimate','nights'=>$offer['nights'],'adults'=>$offer['adults'],'child_ages'=>$offer['child_ages'],
                 'room'=>$offer['room'],'meal'=>$offer['meal'],'amount'=>$offer['amount'],'currency'=>$offer['currency'],'price_basis'=>'party',
                 'is_demo'=>false,'price_verified'=>false,'flights'=>[],
                 'rationale'=>str_replace("\n",' ',$offer['rationale']),'compromise'=>str_replace("\n",' ',$offer['compromise']),
@@ -33,8 +33,9 @@ final class ManagerTourSelectionPublicationDraft
             $presentation=['destination'=>$offer['destination'],'inclusions'=>[],'layout'=>'departure-v1',
                 'room_illustrative'=>$offer['photos'][2]['illustrative'],
                 'photos'=>array_map(static fn(array $photo):array=>['role'=>$photo['kind'],'url'=>$photo['url']],$offer['photos'])];
-            try {TourOfferCardRenderer::render($snapshot,$presentation,'tour_like_1_'.str_repeat('0',24));}
+            try {$card=TourOfferCardRenderer::render($snapshot,$presentation,'tour_like_1_'.str_repeat('0',24));}
             catch (InvalidArgumentException $e) {$errors[]=['offer_id'=>$offer['id'],'position'=>$index+1,'fields'=>['photos']];continue;}
+            if (preg_match_all('/./us',$card['plain_text'])>3500) return ['ok'=>false,'error'=>'card_too_long','position'=>$index+1];
             $offers[]=['draft_offer_id'=>$offer['id'],'snapshot'=>$snapshot,'presentation'=>$presentation];
         }
         if ($errors!==[]) return ['ok'=>false,'error'=>'incomplete_offers','fields'=>$errors];

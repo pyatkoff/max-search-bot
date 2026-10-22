@@ -74,6 +74,11 @@ recipient and callback. A known-MID recovery never creates another message.
 Missing creation results stay UNKNOWN and block automatic or manual replay of
 that quote. Partial batches stop; reopening history only reads saved results.
 Closing the editor or changing conversation prevents the next card in a batch.
+Completed structured native 4xx rejections are distinct from unknown outcomes:
+they record no delivery and permit a later explicit retry. Network errors,
+timeouts, malformed replies and 5xx never receive that permission. Overlong cards
+are rejected in preview rather than losing quoted conditions. Derived lodging
+end dates are explicitly marked `date_to_basis=lodging_estimate` in saved data.
 
 The source package includes synthetic actual-HTTP access coverage, real-shell
 desktop/mobile preview/send fixtures, loss/recovery and native-MySQL migration /

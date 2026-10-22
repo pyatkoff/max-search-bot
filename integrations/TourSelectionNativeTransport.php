@@ -50,7 +50,7 @@ final class TourSelectionNativeTransport
             $response=$request('max','POST','/messages',['user_id'=>$identity['user']],$body,[]);
         } else $response=$request('telegram','POST','sendRichMessage',[],['chat_id'=>$identity['user']]+$body,$images);
         $message=$response['data']['message']??$response['data']??null;
-        return ['mid'=>is_array($message)?self::messageId($channel,$message):null,'message'=>is_array($message)?$message:null];
+        return ['mid'=>is_array($message)?self::messageId($channel,$message):null,'message'=>is_array($message)?$message:null,'rejected'=>($response['rejected']??false)===true];
     }
 
     public function verify(string $channel,array $card,array $identity,array $receipt): bool
@@ -125,8 +125,13 @@ final class TourSelectionNativeTransport
             CURLOPT_WRITEFUNCTION=>static function($handle,string $chunk) use (&$raw):int {if (strlen($raw)+strlen($chunk)>262144) return 0;$raw.=$chunk;return strlen($chunk);},
         ];if ($fields!==null) $options[CURLOPT_POSTFIELDS]=$fields;
         curl_setopt_array($ch,$options);$ok=curl_exec($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$error=curl_errno($ch);curl_close($ch);
-        $data=$ok!==false&&!$error&&$status>=200&&$status<300?json_decode($raw,true,64,JSON_BIGINT_AS_STRING):null;
+        $decoded=$ok!==false&&!$error?json_decode($raw,true,64,JSON_BIGINT_AS_STRING):null;
+        // Only a completed, structured native 4xx rejection proves no creation.
+        // Timeouts, proxy HTML, malformed bodies and all 5xx remain UNKNOWN.
+        $rejected=$status>=400&&$status<500&&$status!==408&&is_array($decoded)
+            &&($channel==='telegram'?($decoded['ok']??null)===false&&($decoded['error_code']??null)===$status:isset($decoded['code'])&&is_string($decoded['code'])&&!isset($decoded['message']['body']['mid']));
+        $data=$status>=200&&$status<300?$decoded:null;
         if ($channel==='telegram') $data=is_array($data)&&($data['ok']??false)===true?($data['result']??null):null;
-        return ['data'=>is_array($data)?$data:null];
+        return ['data'=>is_array($data)?$data:null,'rejected'=>$rejected];
     }
 }

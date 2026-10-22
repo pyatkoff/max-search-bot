@@ -170,6 +170,10 @@ final class TourChoiceService
             $out[$key] = $value;
         }
         if ($out['date_to'] <= $out['date_from']) return null;
+        if (array_key_exists('date_to_basis',$input)) {
+            if ($input['date_to_basis']!=='lodging_estimate') return null;
+            $out['date_to_basis']='lodging_estimate';
+        }
         foreach (['nights'=>60, 'adults'=>20] as $key=>$max) { if (!is_int($input[$key] ?? null) || $input[$key] < 1 || $input[$key] > $max) return null; $out[$key] = $input[$key]; }
         $ages = $input['child_ages'] ?? [];
         if (!is_array($ages) || count($ages) > 12 || array_values($ages) !== $ages) return null;

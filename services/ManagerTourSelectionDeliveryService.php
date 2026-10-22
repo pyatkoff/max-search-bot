@@ -91,7 +91,7 @@ final class ManagerTourSelectionDeliveryService
             if (!$transport->verify($context['conversation']['channel'],$card,$receipt['identity'],$receipt['native'])) return self::error('delivery_unverified')+self::get($actor,$conversation,$id);
             self::finish($publication,$row,$receipt,$card);return self::get($actor,$conversation,$id);
         }
-        if ($row['state']!=='pending') return self::error('delivery_unknown')+self::get($actor,$conversation,$id);
+        if (!in_array($row['state'],['pending','rejected'],true)) return self::error('delivery_unknown')+self::get($actor,$conversation,$id);
         $q=ConversationDb::connection()->prepare("SELECT offer_id FROM manager_tour_selection_deliveries WHERE conversation_id=? AND state IN ('reserved','unknown','known') LIMIT 1");$q->execute([$conversation]);
         if ($q->fetchColumn()) return self::error('delivery_unknown');
         // Preparation can be retried: it never creates a customer message.
@@ -109,7 +109,7 @@ final class ManagerTourSelectionDeliveryService
             // Never create another card while any earlier creation is unresolved.
             $q=$pdo->prepare("SELECT state FROM manager_tour_selection_deliveries WHERE conversation_id=? AND state IN ('reserved','unknown','known') LIMIT 1".self::lock($pdo));$q->execute([$conversation]);
             if ($q->fetchColumn()) {$pdo->rollBack();return self::error('delivery_unknown');}
-            $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='reserved',receipt_json=?,updated_at=? WHERE offer_id=? AND state='pending'");
+            $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state='reserved',receipt_json=?,updated_at=? WHERE offer_id=? AND state IN ('pending','rejected')");
             $q->execute([self::json($receipt),gmdate('Y-m-d H:i:s'),$row['offer_id']]);
             if ($q->rowCount()!==1) {$pdo->rollBack();return self::error('delivery_in_progress');}
             $pdo->commit();
@@ -119,8 +119,9 @@ final class ManagerTourSelectionDeliveryService
         catch (Throwable $e) {$native=['mid'=>null,'message'=>null];}
         $receipt['native']=$native;$known=is_string($native['mid']??null)&&$native['mid']!=='';
         $q=$pdo->prepare("UPDATE manager_tour_selection_deliveries SET state=?,receipt_json=?,updated_at=? WHERE offer_id=? AND state='reserved'");
-        $q->execute([$known?'known':'unknown',self::json($receipt),gmdate('Y-m-d H:i:s'),$row['offer_id']]);
-        if (!$known) return self::error('delivery_unknown')+self::get($actor,$conversation,$id);
+        $rejected=!$known&&($native['rejected']??false)===true;
+        $q->execute([$known?'known':($rejected?'rejected':'unknown'),self::json($receipt),gmdate('Y-m-d H:i:s'),$row['offer_id']]);
+        if (!$known) return self::error($rejected?'delivery_rejected':'delivery_unknown')+self::get($actor,$conversation,$id);
         if (!$transport->verify($context['conversation']['channel'],$card,$identity,$native)) return self::error('delivery_unverified')+self::get($actor,$conversation,$id);
         self::finish($publication,$row,$receipt,$card);
         return self::get($actor,$conversation,$id);

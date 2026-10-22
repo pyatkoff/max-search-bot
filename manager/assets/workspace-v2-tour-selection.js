@@ -24,7 +24,7 @@ function restore(){
   draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;return true;
 }
 function status(text,error=false){const el=$('tsStatus');if(el){el.textContent=text;el.classList.toggle('tsError',error)}}
-function error(result){return {forbidden:'Отправить подборку может менеджер, который ведёт диалог.',not_found:'Доступ к диалогу изменился.',invalid_draft:'Проверьте даты, сумму, возраст детей и ссылки.',conflict:'Подборку изменил другой сотрудник. Ваши правки сохранены отдельно.',storage_unavailable:'Сервер пока не подтвердил действие.',network_error:'Нет связи с сервером. Проверьте результат в истории отправки.',operation_mismatch:'Не удалось сопоставить сохранение. Требуется проверка.',draft_changed:'Подборка изменилась. Загрузите актуальный черновик.',empty_selection:'Включите хотя бы один вариант в подборку.',unsupported_channel:'Подборки доступны в личных Telegram и MAX диалогах этого проекта.',preparation_failed:'Не удалось подготовить фото или подтвердить получателя. Карточка не отправлена.',delivery_unknown:'Результат отправки неизвестен. Проверьте переписку; повторная отправка заблокирована.',delivery_unverified:'Карточка создана. Нажмите «Проверить доставку».',delivery_in_progress:'Отправка уже начата в другой вкладке.'}[result?.error]||'Не удалось подтвердить действие. Ваши правки сохранены.'}
+function error(result){return {forbidden:'Отправить подборку может менеджер, который ведёт диалог.',not_found:'Доступ к диалогу изменился.',invalid_draft:'Проверьте даты, сумму, возраст детей и ссылки.',conflict:'Подборку изменил другой сотрудник. Ваши правки сохранены отдельно.',storage_unavailable:'Сервер пока не подтвердил действие.',network_error:'Нет связи с сервером. Проверьте результат в истории отправки.',operation_mismatch:'Не удалось сопоставить сохранение. Требуется проверка.',draft_changed:'Подборка изменилась. Загрузите актуальный черновик.',empty_selection:'Включите хотя бы один вариант в подборку.',unsupported_channel:'Подборки доступны в личных Telegram и MAX диалогах этого проекта.',preparation_failed:'Не удалось подготовить фото или подтвердить получателя. Карточка не отправлена.',delivery_rejected:'Канал отклонил этот вариант. Можно повторить отправку; доставленные карточки не повторятся.',delivery_unknown:'Результат отправки неизвестен. Проверьте переписку; повторная отправка заблокирована.',delivery_unverified:'Карточка создана. Нажмите «Проверить доставку».',delivery_in_progress:'Отправка уже начата в другой вкладке.'}[result?.error]||'Не удалось подтвердить действие. Ваши правки сохранены.'}
 async function request(action,data={}){
   const target=context,token=epoch;if(!current(target))return {ok:false,error:'stale_context'};
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),action==='send'?120000:20000);
@@ -184,7 +184,7 @@ function renderPreview(){
   updateDelivery();
 }
 function updateDelivery(){
-  const labels={pending:'Ещё не отправлен',reserved:'Отправка началась. Результат уточняется.',unknown:'Результат неизвестен — повторная отправка заблокирована.',known:'Карточка создана. Требуется проверка доставки.',delivered:'✓ Отправлен'};
+  const labels={pending:'Ещё не отправлен',rejected:'Канал отклонил отправку. Вариант не доставлен.',reserved:'Отправка началась. Результат уточняется.',unknown:'Результат неизвестен — повторная отправка заблокирована.',known:'Карточка создана. Требуется проверка доставки.',delivered:'✓ Отправлен'};
   for(const card of publication?.cards||[]){const el=dialog.querySelector('[data-ts-state="'+card.index+'"]');if(el){el.textContent=labels[card.state]||'Результат уточняется';el.classList.toggle('isDelivered',card.state==='delivered')}}
   controls();
 }
@@ -194,6 +194,7 @@ async function showPreview(){
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
   if(result?.ok&&result.publication){publication=result.publication;preview=true;render();status('Предпросмотр готов. Проверьте подборку перед отправкой.');return}
   const names={hotel:'отель',departure:'вылет',date_from:'дату',nights:'ночи',adults:'состав',room:'номер',meal:'питание',amount:'общую цену',photos:'три фото',conditions:'условия'};
+  if(result?.error==='card_too_long'){status('Сократите пояснения и дополнительные условия в варианте '+result.position+'. Условия не будут обрезаны при отправке.',true);controls();return}
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
