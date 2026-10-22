@@ -103,6 +103,7 @@ class NeedApplicationService
     public static function applyParameters($chatId, array $params): array
     {
         if (empty($params) || !class_exists('MaxSearchApi')) return [];
+        $params = self::invalidateChildAgesOnCountChange($chatId, $params);
         $metadataApplied = [];
         if (array_key_exists('budget_update', $params)) {
             if (is_array($params['budget_update']) && ConversationStateRepository::applyBudget($chatId, $params['budget_update'], (int)MaxSearchApi::$statusStart)) {
@@ -118,6 +119,45 @@ class NeedApplicationService
         }
         $applied = $params === [] ? [] : MaxSearchApi::applyAiParameters($chatId, $params);
         return array_merge(is_array($applied) ? $applied : [], $metadataApplied);
+    }
+
+    /**
+     * Child ages belong to one exact party composition. If the AI path changes
+     * the child count without an exact fresh age list, shadow the old ages with
+     * the canonical invalidation marker so a later count correction cannot make
+     * historical ages silently valid again. Same-count restatements keep known
+     * ages and a valid fresh same-message list always wins.
+     */
+    private static function invalidateChildAgesOnCountChange($chatId, array $params): array
+    {
+        if (!array_key_exists('children', $params)) return $params;
+        $raw = $params['children'];
+        if (is_int($raw)) {
+            $next = $raw;
+        } elseif (is_string($raw) && preg_match('/^\d+$/D', trim($raw))) {
+            $next = (int)trim($raw);
+        } else {
+            return $params;
+        }
+        if ($next < 0 || $next > 3) return $params;
+
+        try {
+            $saved = (array)MaxSearchApi::getSavedData($chatId);
+        } catch (Throwable $e) {
+            return $params;
+        }
+        $status = (int)MaxSearchApi::$statusChild;
+        if (!array_key_exists($status, $saved)) return $params;
+        $previous = (int)$saved[$status];
+        if ($previous === $next) return $params;
+
+        if ($next > 0 && array_key_exists('child_ages', $params)
+            && ChildAgeValueContract::fromStorage($params['child_ages'], $next) !== null) {
+            return $params;
+        }
+
+        $params['child_ages'] = [];
+        return $params;
     }
 
     private static function acceptedExtractedPreferences(array $changes, array $confidence): array
