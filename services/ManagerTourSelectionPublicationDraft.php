@@ -36,7 +36,11 @@ final class ManagerTourSelectionPublicationDraft
             try {$card=TourOfferCardRenderer::render($snapshot,$presentation,'tour_like_1_'.str_repeat('0',24));}
             catch (InvalidArgumentException $e) {$errors[]=['offer_id'=>$offer['id'],'position'=>$index+1,'fields'=>['photos']];continue;}
             if (preg_match_all('/./us',$card['plain_text'])>3500) return ['ok'=>false,'error'=>'card_too_long','position'=>$index+1];
-            $offers[]=['draft_offer_id'=>$offer['id'],'snapshot'=>$snapshot,'presentation'=>$presentation];
+            $entry=['draft_offer_id'=>$offer['id'],'snapshot'=>$snapshot,'presentation'=>$presentation];
+            // Page grouping is publication metadata, not different native quote
+            // conditions: regrouping cannot create another native delivery.
+            if (isset($offer['hotel_group'])) $entry['hotel_group']=$offer['hotel_group'];
+            $offers[]=$entry;
         }
         if ($errors!==[]) return ['ok'=>false,'error'=>'incomplete_offers','fields'=>$errors];
         if ($offers===[]) return ['ok'=>false,'error'=>'empty_selection'];

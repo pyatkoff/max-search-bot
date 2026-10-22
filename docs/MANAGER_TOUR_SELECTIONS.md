@@ -121,3 +121,24 @@ asking an already verified client for contact again and measures manager effort
 on the complete path. Extra templates and detailed analytics cannot block that
 path. FUN&SUN remains the first required V1 adapter; observing its public search
 form alone does not prove offer extraction or final-fare verification.
+
+## Explicit hotel variants
+
+The editor's “Варианты одного отеля” control records a manager's explicit decision,
+never a fuzzy name match or a claimed local hotel ID. It is optional on old drafts
+and publications. Changing that variant's hotel name clears its decision; choosing
+“Отдельный отель” separates it without deleting its terms. Exclusion, deletion,
+reordering and optimistic save conflicts retain their canonical owners.
+
+A publication freezes grouping separately from each canonical native offer. Thus
+regrouping unchanged terms does not resend an already-delivered native card or
+rewrite a historical choice. Public grouping exports only per-page ordinals, not
+private draft/group IDs. The first variant supplies the shared hotel/territory
+photos. Each variant retains its own illustrative room photo, dates, room, flight,
+whole-party price, restrictions and visible variant number. Equal/similar names
+alone remain separate hotels. Previous publications and links keep their frozen
+terms until explicit publish/update; revocation still closes all images.
+
+This package does not add web likes, visitor identity/contact, measured interest
+or the FUN&SUN collector. Those remain the next connected constructor stages;
+public grouping must not be described as a saved tourist choice.

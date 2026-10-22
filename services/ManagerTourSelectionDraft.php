@@ -30,6 +30,12 @@ final class ManagerTourSelectionDraft
     {
         if (!is_array($input) || !is_string($input['id']??null) || !preg_match('/\A[a-f0-9]{32}\z/D',$input['id']) || !is_bool($input['selected']??null)) return null;
         $out=['id'=>$input['id'],'selected'=>$input['selected']];
+        // A manager's explicit grouping decision, never an inferred hotel ID.
+        // Keep absent on legacy drafts so existing publication hashes stay stable.
+        if (array_key_exists('hotel_group',$input)) {
+            if (!is_string($input['hotel_group']) || !preg_match('/\A[a-f0-9]{32}\z/D',$input['hotel_group'])) return null;
+            $out['hotel_group']=$input['hotel_group'];
+        }
         foreach (['hotel'=>191,'destination'=>160,'departure'=>160,'room'=>300,'meal'=>160,'source_label'=>160] as $key=>$length) {
             $text=self::text($input[$key]??'', $length); if ($text===null) return null; $out[$key]=$text;
         }

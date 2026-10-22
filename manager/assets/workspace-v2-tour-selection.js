@@ -87,6 +87,14 @@ function validAges(value){const raw=String(value).trim();return raw===''||/^\d{1
 function changed(){dirty=true;stash();status(invalidAges()?'Возраст детей укажите числами от 0 до 17 через запятую.':'Есть несохранённые изменения.',invalidAges());controls();clearTimeout(timer);timer=setTimeout(()=>{if(editable()&&!busy&&!invalidAges()&&dialog?.open)void save()},900)}
 function item(){return draft?.offers.find(x=>x.id===selected)}
 function edit(event){
+  if(event.target.id==='ts-hotel-group'&&editable()){
+    const offer=item(),value=event.target.value;if(!offer)return;
+    if(value){
+      const other=draft.offers.find(x=>x.id!==offer.id&&(x.hotel_group||x.id)===value);if(!other)return;
+      offer.hotel_group=value;other.hotel_group=value;
+    }else delete offer.hotel_group;
+    changed();renderList();return;
+  }
   if(event.target.dataset.tsPhoto&&editable()){
     const offer=item(),kind=event.target.dataset.tsPhoto;if(!offer)return;const photos=new Map(offer.photos.map(x=>[x.kind,x]));
     if(event.target.value.trim())photos.set(kind,{kind,url:event.target.value.trim(),illustrative:true});else photos.delete(kind);
@@ -97,7 +105,8 @@ function edit(event){
   let value=input.type==='checkbox'?input.checked:input.value;
   if(['stars','nights','adults'].includes(key)){value=value===''?null:Number(value);if(value!==null&&!Number.isInteger(value))return}
   if(key==='child_ages'){rawAges[offer.id]=String(value);if(!validAges(value)){changed();return}const raw=String(value).trim();value=raw?raw.split(',').map(x=>Number(x.trim())):[]}
-  offer[key]=value;changed();renderList();
+  if(key==='hotel'&&offer.hotel!==value){delete offer.hotel_group;}
+  offer[key]=value;changed();renderList();if(key==='hotel')renderGrouping();
 }
 function mutate(action){
   if(!editable()||busy)return;const at=draft.offers.findIndex(x=>x.id===selected);if(at<0)return;
@@ -111,10 +120,25 @@ function input(key,label,type='text',extra=''){
   return `<label for="ts-${key}">${esc(label)}<input id="ts-${key}" data-ts-field="${key}" type="${type}" value="${esc(value)}" ${extra}></label>`;
 }
 function textarea(key,label){return `<label class="tsWide" for="ts-${key}">${esc(label)}<textarea id="ts-${key}" data-ts-field="${key}" rows="2" maxlength="${['rationale','compromise','inclusions'].includes(key)?600:1200}">${esc(item()[key]||'')}</textarea></label>`}
+function hotelGroups(){
+  const groups=new Map();for(const [index,offer] of draft.offers.entries()){
+    const key=offer.hotel_group||offer.id;if(!groups.has(key))groups.set(key,[]);groups.get(key).push({offer,index});
+  }return groups;
+}
+function renderGrouping(){
+  const root=$('tsGrouping'),offer=item();if(!root||!offer)return;
+  const options=new Map();for(const [index,other] of draft.offers.entries()){
+    if(other.id!==offer.id)options.set(other.hotel_group||other.id,'вариант '+(index+1)+' · '+(other.hotel||'Без названия'));
+  }
+  if(offer.hotel_group&&!options.has(offer.hotel_group))options.set(offer.hotel_group,offer.hotel||'Текущий отель');
+  root.innerHTML='<label for="ts-hotel-group">Варианты одного отеля<select id="ts-hotel-group"><option value="">Отдельный отель</option>'+[...options].map(([key,name])=>`<option value="${esc(key)}" ${offer.hotel_group===key?'selected':''}>Тот же отель: ${esc(name)}</option>`).join('')+'</select></label><p>Объединяйте только один и тот же отель. На общей странице фото будут общими, условия и цены — отдельными. Изменение названия снимает объединение этого варианта.</p>';
+  $('ts-hotel-group').disabled=!editable()||busy;
+}
 function renderList(){
   const list=$('tsList');if(!list||!draft)return;
   $('tsCount').textContent='Варианты · '+draft.offers.length;
-  list.innerHTML=draft.offers.length?draft.offers.map((x,i)=>`<button type="button" data-ts-select="${esc(x.id)}" class="tsOption ${x.id===selected?'isSelected':''}" aria-pressed="${x.id===selected}"><span class="tsOptionNumber">${i+1}</span><span><strong>${esc(x.hotel||'Новый вариант')}</strong><small>${esc(x.amount?x.amount+' '+x.currency+' за всех':'Цена не указана')}</small><small>${x.selected?'Включён в подборку':'Исключён из подборки'}</small></span></button>`).join(''):'<p class="tsEmptyList">Добавьте первое предложение. Можно сохранить незаполненный вариант и вернуться к нему позже.</p>';
+  list.innerHTML=draft.offers.length?[...hotelGroups().values()].map(members=>
+    members.map(({offer:x,index:i})=>`<button type="button" data-ts-select="${esc(x.id)}" class="tsOption ${x.id===selected?'isSelected':''}" aria-pressed="${x.id===selected}"><span class="tsOptionNumber">${i+1}</span><span>${members.length>1&&i===members[0].index?`<span class="tsGroupLabel">Один отель · вариантов ${members.length}</span>`:''}<strong>${esc(x.hotel||'Новый вариант')}</strong><small>${esc([x.date_from,x.room].filter(Boolean).join(' · '))}</small><small>${esc(x.amount?x.amount+' '+x.currency+' за всех':'Цена не указана')}</small><small>${x.selected?'Включён в подборку':'Исключён из подборки'}</small></span></button>`).join('')).join(''):'<p class="tsEmptyList">Добавьте первое предложение. Можно сохранить незаполненный вариант и вернуться к нему позже.</p>';
 }
 function render(){
   if(!draft||!dialog)return;
@@ -123,6 +147,7 @@ function render(){
   if(!item())selected=draft.offers[0]?.id||'';renderList();const editor=$('tsEditor'),offer=item();
   if(!offer){editor.innerHTML='<div class="tsEmpty"><span aria-hidden="true">＋</span><h3>Соберите подборку для клиента</h3><p>Добавьте найденный тур, укажите условия и общую цену. Варианты сохранятся здесь отдельно от переписки.</p><button type="button" id="tsEmptyAdd" class="tsPrimary">Добавить предложение</button></div>';$('tsEmptyAdd').onclick=add;controls();return}
   editor.innerHTML=`<div class="tsEditorHead"><h3>Условия предложения</h3><div class="tsOrder"><button type="button" data-ts-action="up" aria-label="Поднять предложение">↑</button><button type="button" data-ts-action="down" aria-label="Опустить предложение">↓</button><button type="button" data-ts-action="remove">Удалить</button></div></div><label class="tsInclude"><input data-ts-field="selected" type="checkbox" ${offer.selected?'checked':''}> Включить в подборку</label><div class="tsFields">${input('hotel','Название отеля','text','maxlength="191"')}${input('stars','Звёздность','number','min="0" max="5"')}${input('destination','Страна и курорт','text','maxlength="160"')}${input('departure','Вылет из','text','maxlength="160"')}${input('date_from','Дата вылета','date')}${input('nights','Ночей','number','min="1" max="60"')}${input('adults','Взрослых','number','min="1" max="20"')}${input('child_ages','Возраст детей через запятую','text','inputmode="numeric" placeholder="Например, 4, 10" maxlength="60"')}${input('room','Номер и размещение','text','maxlength="300"')}${input('meal','Питание','text','maxlength="160"')}${input('amount','Цена за всех','text','inputmode="decimal" placeholder="Например, 240000" maxlength="12"')}<label for="ts-currency">Валюта<select id="ts-currency" data-ts-field="currency">${['RUB','EUR','USD'].map(v=>`<option ${offer.currency===v?'selected':''}>${v}</option>`).join('')}</select></label>${textarea('rationale','Почему рекомендуем')}${textarea('compromise','Что важно учесть')}</div><details class="tsDetails"><summary>Источник и дополнительные условия</summary><div class="tsFields">${input('source_label','Туроператор или источник','text','maxlength="160"')}${input('source_url','Ссылка на предложение','url','maxlength="2048" placeholder="https://…"')}${textarea('flights','Перелёт и багаж')}${textarea('inclusions','Что включено')}${textarea('constraints','Непроверенные условия и доплаты')}</div></details><p class="tsPriceHint">Сохранение черновика не подтверждает актуальность цены. Перед отправкой условия потребуется проверить.</p>`;
+  const grouping=document.createElement('section');grouping.id='tsGrouping';grouping.className='tsGrouping';editor.insertBefore(grouping,editor.querySelector('.tsDetails'));renderGrouping();
   controls();recovery(conflict?'conflict':pending?'pending':'');
   const photoSection=document.createElement('section');photoSection.className='tsPhotoFields';
   photoSection.innerHTML='<h3>Три фото для карточки</h3><p>Прямые HTTPS-ссылки на фото отеля, пляжа и номера. Фото номера будет отмечено как пример интерьера.</p><div class="tsFields">'+[['cover','Отель'],['beach','Пляж или бассейн'],['room','Номер']].map(([kind,label])=>`<label class="tsWide" for="ts-photo-${kind}">${esc(label)}<input id="ts-photo-${kind}" type="url" data-ts-photo="${kind}" maxlength="2048" placeholder="https://…/photo.jpg" value="${esc(offer.photos.find(x=>x.kind===kind)?.url||'')}" ${!editable()||busy?'disabled':''}></label>`).join('')+'</div>';
