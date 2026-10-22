@@ -6,6 +6,7 @@ from decimal import Decimal
 import hashlib
 import html
 import json
+import os
 from pathlib import Path
 import re
 import zipfile
@@ -141,9 +142,13 @@ def main():
         paths.append((hotel_path, 'hotel-shortlist.json'))
         paths.append((ROOT / 'account_hotel_recipes.json', 'hotel-matching-recipes.json'))
     archive = OUT / 'anytour-demand-20261022.zip'
-    with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=7) as z:
+    temporary_archive = OUT / 'anytour-demand-20261022.pending.zip'
+    with zipfile.ZipFile(temporary_archive, 'w', zipfile.ZIP_DEFLATED, compresslevel=7) as z:
         for path, name in paths:
             z.write(path, name)
+    with zipfile.ZipFile(temporary_archive) as z:
+        assert z.testzip() is None
+    os.replace(temporary_archive, archive)
     print(json.dumps({'campaigns':len(source['campaign_ids']), **all_metrics,
                       'previous_two_share': priority_data['old_two_share_of_exposed_clicks'],
                       'topics': [{'title':t['proposed_post_title'],'clicks':t['all_search_30d']['clicks']} for t in themes],
