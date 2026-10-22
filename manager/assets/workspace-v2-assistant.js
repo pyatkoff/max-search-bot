@@ -71,7 +71,7 @@
     if(valid(scope)&&dialog.open&&modal===opened){if(loaded&&detailTicket===initialDetail&&listTicket===initialList)$('assistantClose').focus();schedule()}
     return true;
   }
-  function close(){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(authenticated()&&opener?.isConnected){if(opener.id==='assistantClientOpen'){const menu=opener.closest?.('details');if(menu)menu.open=true}opener.focus({preventScroll:true})}}}
+  function close({restoreFocus=true}={}){modal++;clearTimeout(timer);timer=null;detailTicket++;listTicket++;busy=false;if(dialog?.open){dialog.close();if(restoreFocus&&authenticated()&&opener?.isConnected){if(opener.id==='assistantClientOpen'){const menu=opener.closest?.('details');if(menu)menu.open=true}opener.focus({preventScroll:true})}}}
 function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())return;timer=setTimeout(()=>{if(!dialog?.open)return;if(!$('assistantTaskEditor')?.querySelector('form')){render();if(selected)void loadDetail(selected)}else if(!fresh(rows.get(selected))){const advice=$('assistantDetail').querySelector('.assistantRecommendation');if(advice)advice.hidden=true}schedule()},20000)}
   async function loadList(more=false){
     if(!authenticated()||busy)return false;
@@ -140,7 +140,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   async function openConversation(id){
     if(!authenticated())return false;
     if(protectTaskDraft())return false;
-    close();return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true});
+    close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true});
   }
   function protectTaskDraft(){
     if(!window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;

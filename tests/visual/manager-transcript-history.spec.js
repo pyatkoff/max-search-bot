@@ -412,6 +412,7 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  else await useConversationTool(page,'assistantClientOpen');
  await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');
  await page.locator('#assistantConversation').click();await expect(page.locator('#assistantDialog')).not.toBeVisible();await settled(page);
+ await expect(page.locator('.m2ConversationMenu')).not.toHaveAttribute('open','');
  await expect(page.locator('#messages .msg')).toHaveCount(400);
  await expect(page.locator('#replyText')).toHaveValue(proof.draft);await expect(page.locator('#replyText')).toBeEnabled();
  await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');
