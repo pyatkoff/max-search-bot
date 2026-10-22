@@ -32,7 +32,7 @@ FIRST = '2026-09-23'
 LAST = '2026-10-22'
 BASE = 'https://api.direct.yandex.com/json/v501/'
 FIELDS = ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query', 'Impressions', 'Clicks', 'Cost')
-PAGE_SIZE = 1000
+PAGE_SIZE = 10000
 MAX_ROWS = 100000
 MAX_RESPONSE = 8 * 1024 * 1024
 TOTAL_SECONDS = 590
@@ -280,6 +280,17 @@ class API:
                 if not isinstance(result, dict) or 'error' in result:
                     fail('API_READ_REJECTED')
                 return result, headers.get('RequestId', '')
+            rate_limited = False
+            if status == 400:
+                try:
+                    rate_limited = str(json.loads(body.decode('utf-8-sig')).get('error', {}).get('error_code')) == '56'
+                except (ValueError, UnicodeError, AttributeError, TypeError):
+                    pass
+            if rate_limited:
+                if attempt == 19:
+                    fail('API_RATE_LIMIT_RETRY_EXHAUSTED')
+                self.wait(11)
+                continue
             if (report and status in {201, 202}) or status in {429, 500, 502, 503, 504}:
                 if attempt == 19:
                     fail('API_REPORT_PENDING_OR_RETRY_EXHAUSTED')
