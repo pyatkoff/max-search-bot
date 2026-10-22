@@ -59,6 +59,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify the prepared native runtime
         run: |
+          chown "$(id -u):$(id -g)" "$HOME"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Check actual workspace and channel setup
