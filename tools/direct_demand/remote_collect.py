@@ -1,4 +1,4 @@
-"""Bounded read-only Direct account inventory; intended for SSH stdin, stdlib only.
+"""Streaming read-only Direct account query export; SSH stdin, stdlib only.
 
 No installed application imports, local database access, server file writes, or
 advertising mutations. Credentials are read only from the verified project's .env.
@@ -27,16 +27,15 @@ from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHand
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 REPOSITORY = 'pyatkoff/yandex-direct-autopilot'
 LOGIN = 'anytour2024tp'
+CAMPAIGN_IDS = (116302082, 116302526, 116773442, 116862972, 116862975, 116862986, 116999383, 116999391, 116999395, 117002963, 119230848, 119232872, 119232873, 119607403, 710098637, 710099107, 710100086, 710140850, 710140851, 710149159, 710149160, 710149161, 710149162, 710149163, 710149164, 710156106, 710156162, 710165291, 710165327, 710171114, 710171115, 710183948, 710187715, 710283666, 710320185, 710737601, 710737605, 710737978, 710741085, 710753136, 710759897, 710764850, 710776420, 710776422, 710793156, 710793157, 710874696, 710895331, 713216424, 713231029, 713555035, 713747091, 713757657, 713759213, 713759214, 714260445, 714320748, 715091398, 715091443, 715096911, 715109284, 715137003, 715137014, 715331883)  # Parent fills verified search-active IDs from the account inventory.
 FIRST = '2026-09-23'
 LAST = '2026-10-22'
 BASE = 'https://api.direct.yandex.com/json/v501/'
-FIELDS = ('CampaignId', 'AdNetworkType', 'Impressions', 'Clicks', 'Cost')
-STATES = ('ARCHIVED', 'CONVERTED', 'ENDED', 'OFF', 'ON', 'SUSPENDED')
-CONFIG_PAGE_SIZE = 1000
-PAGE_SIZE = 10000
-MAX_ROWS = 100000
-MAX_RESPONSE = 8 * 1024 * 1024
-TOTAL_SECONDS = 590
+FIELDS = ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query', 'Impressions', 'Clicks', 'Cost')
+PAGE_SIZE = 20000
+MAX_ROWS = 1000000
+MAX_RESPONSE = 16 * 1024 * 1024
+TOTAL_SECONDS = 840
 ENV_NAMES = {'YANDEX_OAUTH_TOKEN', 'YANDEX_DIRECT_CLIENT_LOGIN', 'READ_ONLY', 'YANDEX_DIRECT_SANDBOX'}
 NULLS = {'', '--'}
 
@@ -184,6 +183,37 @@ def number(value, integer=False, nullable=True):
     return parsed
 
 
+def parse_tsv(body, campaign_ids, first, last, *, max_rows=PAGE_SIZE):
+    """Keep API cell strings exactly; validate nulls, scope and numeric bounds."""
+    try:
+        text = body.decode('utf-8-sig') if isinstance(body, bytes) else body
+        reader = csv.DictReader(io.StringIO(text), delimiter='\t', strict=True)
+        if reader.fieldnames != list(FIELDS):
+            fail('REPORT_COLUMNS_MISMATCH')
+        rows = []
+        for row in reader:
+            if len(rows) >= max_rows or set(row) != set(FIELDS) or any(v is None for v in row.values()):
+                fail('REPORT_ROW_SHAPE_OR_LIMIT')
+            day = date.fromisoformat(row['Date'])
+            if day.isoformat() != row['Date'] or not first <= row['Date'] <= last:
+                fail('REPORT_DATE_OUT_OF_SCOPE')
+            if positive_id(row['CampaignId']) not in campaign_ids:
+                fail('REPORT_CAMPAIGN_OUT_OF_SCOPE')
+            positive_id(row['AdGroupId'], nullable=True)
+            positive_id(row['AdId'], nullable=True)
+            if not isinstance(row['Query'], str) or len(row['Query']) > 4096:
+                fail('REPORT_QUERY_MALFORMED')
+            number(row['Impressions'], integer=True)
+            number(row['Clicks'], integer=True)
+            number(row['Cost'])
+            rows.append(dict(row))
+        return rows
+    except SafeError:
+        raise
+    except (ValueError, UnicodeError, csv.Error, TypeError):
+        fail('REPORT_PARSE_FAILED')
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, msg, headers, newurl):
         fail('API_REDIRECT_REFUSED')
@@ -272,218 +302,179 @@ class API:
                 continue
             try:
                 error = json.loads(body.decode('utf-8-sig')).get('error', {})
-                raw_code = str(error.get('error_code', ''))
-                code = raw_code if re.fullmatch(r'[0-9]{1,10}', raw_code) else 'UNAVAILABLE'
-                self.errors.append({'service': service, 'http_status': int(status), 'code': code})
+                detail = str(error.get('error_detail', ''))
+                detail = detail.replace(self.headers['Authorization'].removeprefix('Bearer '), '[REDACTED]')[:500]
+                self.errors.append({'service': service, 'http_status': status, 'code': error.get('error_code'), 'detail': detail})
             except (UnicodeError, ValueError, AttributeError, TypeError):
-                self.errors.append({'service': service, 'http_status': int(status), 'code': 'NON_JSON_ERROR'})
+                self.errors.append({'service': service, 'http_status': status, 'code': 'NON_JSON_ERROR'})
             fail('API_READ_REJECTED')
         fail('API_RETRY_EXHAUSTED')
 
 
+BATCH_SIZE = 25
 
-def inventory(api):
-    rows, seen, pages, offset = [], set(), [], 0
-    complete = False
-    problem = None
+
+def emit(kind, **data):
+    print(json.dumps({'event': kind, **data}, ensure_ascii=False,
+                     separators=(',', ':'), allow_nan=False), flush=True)
+
+
+def campaign_configuration(api):
+    """Read only the explicit, inventory-derived scope; include all campaign types."""
     fields = ['CounterIds', 'BiddingStrategy', 'PriorityGoals', 'AttributionModel', 'PackageBiddingStrategy']
-    for _ in range(100):
+    campaigns, requests, read_problems = [], [], []
+    for start in range(0, len(CAMPAIGN_IDS), 1000):
+        ids = CAMPAIGN_IDS[start:start + 1000]
         try:
             response, request_id = api.post('campaigns', {'method': 'get', 'params': {
-                'SelectionCriteria': {'States': list(STATES)},
+                'SelectionCriteria': {'Ids': list(ids)},
                 'FieldNames': ['Id', 'Name', 'Type', 'State', 'Status', 'TimeZone', 'Currency'],
-                'TextCampaignFieldNames': fields, 'UnifiedCampaignFieldNames': fields,
-                'Page': {'Limit': CONFIG_PAGE_SIZE, 'Offset': offset}}})
-            result = response.get('result')
-            page = result.get('Campaigns') if isinstance(result, dict) else None
-            if not isinstance(page, list) or len(page) > CONFIG_PAGE_SIZE:
-                fail('CAMPAIGN_PAGE_MALFORMED')
-            new_ids = []
-            for item in page:
-                if not isinstance(item, dict) or type(item.get('Id')) is not int or item['Id'] <= 0:
-                    fail('CAMPAIGN_ID_MALFORMED')
-                if item['Id'] in seen or item['Id'] in new_ids:
-                    fail('CAMPAIGN_PAGE_DUPLICATE_OR_DRIFT')
-                if item.get('State') not in STATES:
-                    fail('CAMPAIGN_STATE_NOT_REQUESTED')
-                new_ids.append(item['Id'])
-            if len(rows) + len(page) > MAX_ROWS:
-                fail('CAMPAIGN_INVENTORY_LIMIT')
-            rows.extend(page); seen.update(new_ids)
-            pages.append({'offset': offset, 'rows': len(page), 'request_id': request_id})
-            limited = result.get('LimitedBy')
-            if limited is None:
-                complete = True
-                break
-            if type(limited) is not int or limited != offset + len(page) or not page:
-                fail('CAMPAIGN_CURSOR_INCONSISTENT')
-            offset = limited
+                'TextCampaignFieldNames': fields, 'UnifiedCampaignFieldNames': fields}})
         except SafeError as exc:
-            problem = exc.code
-            break
-    else:
-        problem = 'CAMPAIGN_PAGE_BUDGET_REACHED'
-    rows.sort(key=lambda item: item['Id'])
-    return {'at_utc': stamp(), 'campaigns': rows, 'sha256': sha(rows),
-            'pages': pages, 'complete': complete, 'problem': problem,
-            'states_requested': list(STATES), 'archived_and_converted_explicitly_included': True,
-            'configuration_fields_scope': 'COMMON_ALL_TYPES_TEXT_AND_UNIFIED_STRATEGY_FIELDS_PORTFOLIO_POINTERS'}
+            if exc.code != 'API_READ_REJECTED':
+                raise
+            # Stats can retain removed/hidden IDs. Missing configuration must not
+            # erase their independently available historical query data.
+            read_problems.append({'campaign_ids': list(ids), 'problem': exc.code})
+            continue
+        result = response.get('result')
+        batch = result.get('Campaigns') if isinstance(result, dict) else None
+        if not isinstance(batch, list) or result.get('LimitedBy') is not None:
+            fail('EXACT_CAMPAIGN_CONFIGURATION_UNAVAILABLE')
+        if any(not isinstance(row, dict) or type(row.get('Id')) is not int for row in batch):
+            fail('CAMPAIGN_CONFIGURATION_SCHEMA_MISMATCH')
+        returned = [row['Id'] for row in batch]
+        if len(returned) != len(set(returned)) or not set(returned).issubset(ids):
+            fail('CAMPAIGN_CONFIGURATION_SCOPE_MISMATCH')
+        campaigns.extend(batch)
+        requests.append(request_id)
+    campaigns.sort(key=lambda row: row['Id'])
+    returned_ids = {row['Id'] for row in campaigns}
+    missing_ids = sorted(set(CAMPAIGN_IDS) - returned_ids)
+    return {'at_utc': stamp(), 'campaigns': campaigns, 'sha256': sha(campaigns),
+            'request_ids': requests, 'requested_ids': list(CAMPAIGN_IDS),
+            'missing_ids': missing_ids, 'configuration_complete': not missing_ids,
+            'read_problems': read_problems}
 
 
-def parse_stats(body, max_rows=PAGE_SIZE):
-    try:
-        text = body.decode('utf-8-sig') if isinstance(body, bytes) else body
-        reader = csv.DictReader(io.StringIO(text), delimiter='\t', strict=True)
-        if reader.fieldnames != list(FIELDS):
-            fail('STATS_COLUMNS_MISMATCH')
-        rows, keys = [], set()
-        for row in reader:
-            if len(rows) >= max_rows or set(row) != set(FIELDS) or any(value is None for value in row.values()):
-                fail('STATS_ROW_SHAPE_OR_LIMIT')
-            positive_id(row['CampaignId'])
-            surface = row['AdNetworkType']
-            if not isinstance(surface, str) or not re.fullmatch(r'[A-Z_]{1,64}', surface):
-                fail('STATS_SURFACE_MALFORMED')
-            number(row['Impressions'], integer=True); number(row['Clicks'], integer=True); number(row['Cost'])
-            key = (row['CampaignId'], surface)
-            if key in keys:
-                fail('STATS_PAGE_DUPLICATE')
-            keys.add(key); rows.append(dict(row))
-        return rows
-    except SafeError:
-        raise
-    except (ValueError, UnicodeError, csv.Error, TypeError):
-        fail('STATS_PARSE_FAILED')
-
-
-def account_stats(api, result):
-    rows, seen, pages, offset = result['raw_stats'], set(), [], 0
-    coverage = result['stats_coverage']
-    for _ in range(101):
-        params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST},
-                  'FieldNames': list(FIELDS), 'ReportType': 'CAMPAIGN_PERFORMANCE_REPORT',
-                  'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
-                  'Page': {'Limit': PAGE_SIZE, 'Offset': offset},
-                  'OrderBy': [{'Field': 'CampaignId', 'SortOrder': 'ASCENDING'},
-                              {'Field': 'AdNetworkType', 'SortOrder': 'ASCENDING'}]}
-        params['ReportName'] = 'AnyTour-account-inventory-' + sha(params)[:24]
+def collect_batches(api, state):
+    """Keep one page plus its predecessor in memory; runner checks global keys."""
+    for index, start in enumerate(range(0, len(CAMPAIGN_IDS), BATCH_SIZE)):
+        ids = CAMPAIGN_IDS[start:start + BATCH_SIZE]
+        scope = {'batch_index': index, 'campaign_ids': list(ids), 'complete': False,
+                 'rows': 0, 'pages': [], 'problem': None}
+        state['batches'].append(scope)
+        previous_keys = set()
+        offset = 0
         try:
-            body, request_id = api.post('reports', {'params': params}, report=True)
-            page = parse_stats(body)
-            keys = {(row['CampaignId'], row['AdNetworkType']) for row in page}
-            if keys & seen:
-                fail('STATS_DRIFT_OR_DUPLICATE_PAGE')
-            if len(rows) + len(page) > MAX_ROWS:
-                fail('STATS_TOTAL_ROW_LIMIT')
-            rows.extend(page); seen.update(keys)
-            pages.append({'offset': offset, 'rows': len(page), 'request_id': request_id})
-            if len(page) < PAGE_SIZE:
-                coverage['complete'] = True
-                break
-            offset += PAGE_SIZE
+            while True:
+                params = {'SelectionCriteria': {'DateFrom': FIRST, 'DateTo': LAST,
+                          'Filter': [{'Field': 'CampaignId', 'Operator': 'IN',
+                                      'Values': [str(cid) for cid in ids]}]},
+                          'FieldNames': list(FIELDS), 'ReportType': 'SEARCH_QUERY_PERFORMANCE_REPORT',
+                          'DateRangeType': 'CUSTOM_DATE', 'Format': 'TSV', 'IncludeVAT': 'NO',
+                          'Page': {'Limit': PAGE_SIZE, 'Offset': offset},
+                          'OrderBy': [{'Field': name, 'SortOrder': 'ASCENDING'}
+                                      for name in FIELDS[:5]]}
+                params['ReportName'] = 'AnyTour-account-demand-' + sha(params)[:32]
+                body, request_id = api.post('reports', {'params': params}, report=True)
+                rows = parse_tsv(body, set(ids), FIRST, LAST)
+                keys = {tuple(row[field] for field in FIELDS[:5]) for row in rows}
+                if len(keys) != len(rows) or keys.intersection(previous_keys):
+                    fail('DUPLICATE_OR_DRIFTING_REPORT_PAGE')
+                # Permit an empty cap probe; reject a nonempty page past the total cap.
+                if state['row_count'] + len(rows) > MAX_ROWS:
+                    fail('TOTAL_ROW_LIMIT_REACHED')
+                receipt = {'offset': offset, 'rows': len(rows), 'request_id': request_id,
+                           'rows_sha256': sha(rows)}
+                emit('page', batch_index=index, campaign_ids=list(ids), **receipt, data=rows)
+                scope['pages'].append(receipt)
+                scope['rows'] += len(rows)
+                state['row_count'] += len(rows)
+                previous_keys = keys
+                print(json.dumps({'stage': 'page', 'batch': index, 'offset': offset,
+                                  'rows': len(rows)}, separators=(',', ':')), file=sys.stderr, flush=True)
+                if len(rows) < PAGE_SIZE:
+                    scope['complete'] = True
+                    break
+                offset += PAGE_SIZE
+                if offset > MAX_ROWS:
+                    fail('TOTAL_ROW_LIMIT_REACHED')
         except SafeError as exc:
-            coverage['problem'] = exc.code
-            break
-    else:
-        coverage['problem'] = 'STATS_PAGE_BUDGET_REACHED'
-    coverage['pages'] = pages
-    result['campaign_ids_with_search_impressions'] = sorted({int(row['CampaignId']) for row in rows
-        if row['AdNetworkType'] == 'SEARCH' and number(row['Impressions']) is not None
-        and number(row['Impressions']) > 0})
-    result['campaign_ids_with_search_clicks'] = sorted({int(row['CampaignId']) for row in rows
-        if row['AdNetworkType'] == 'SEARCH' and number(row['Clicks']) is not None
-        and number(row['Clicks']) > 0})
-
-
-def self_test():
-    header = '\t'.join(FIELDS) + '\n'
-    valid = header + '123\tSEARCH\t12\t0\t0.00\n456\tAD_NETWORK\t--\t--\t--\n'
-    assert len(parse_stats(valid)) == 2 and parse_stats(valid)[1]['Cost'] == '--'
-    rejected = 0
-    for bad in (valid.replace('12\t0', '-1\t0'), valid.replace('0.00', 'NaN'),
-                valid.replace('Cost', 'Wrong'), valid + '123\tSEARCH\t1\t1\t1\n'):
-        try:
-            parse_stats(bad)
-        except SafeError:
-            rejected += 1
-        else:
-            raise AssertionError('bad statistics accepted')
-    class Fake:
-        def post(self, service, payload, report=False):
-            assert service == 'campaigns' and payload['method'] == 'get'
-            params = payload['params']
-            assert set(params['SelectionCriteria']['States']) == set(STATES)
-            offset = params['Page']['Offset']
-            if offset == 0:
-                return {'result': {'Campaigns': [{'Id': 1, 'State': 'ARCHIVED'}], 'LimitedBy': 1}}, 'fake1'
-            assert offset == 1
-            return {'result': {'Campaigns': [{'Id': 2, 'State': 'CONVERTED'}]}}, 'fake2'
-    inv = inventory(Fake())
-    assert inv['complete'] and len(inv['campaigns']) == 2 and len(inv['pages']) == 2
-    assert not inv['problem']
-    print(json.dumps({'self_test': 'passed', 'invalid_stats_rejected': rejected,
-                      'archived_converted_pagination': 'passed', 'network_called': False}))
+            scope['problem'] = exc.code
+            state['problems'].append(exc.code)
+            emit('batch_coverage', **scope)
+            if exc.code in {'TOTAL_TIME_BUDGET_REACHED', 'TOTAL_ROW_LIMIT_REACHED'}:
+                raise
+            continue
+        emit('batch_coverage', **scope)
 
 
 def main():
-    if sys.argv[1:] == ['--self-test']:
-        self_test(); return 0
-    if sys.argv[1:]:
-        print(json.dumps({'status': 'FAILED', 'problems': ['ARGUMENTS_NOT_SUPPORTED']})); return 2
     started = time.monotonic()
-    result = {'schema': 1, 'status': 'FAILED', 'started_at_utc': stamp(), 'client_login': LOGIN,
-              'scope': 'ALL_ACCESSIBLE_CAMPAIGNS_OF_EXACT_CLIENT_LOGIN', 'date1': FIRST, 'date2': LAST,
-              'stats_granularity': 'PERIOD_TOTAL_BY_CAMPAIGN_AND_AD_NETWORK_TYPE',
-              'read_only': True, 'database_opened': False, 'server_files_written': False,
-              'production_changes': False, 'conversions_requested': False,
-              'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
-              'config_before': None, 'config_after': None, 'config_unchanged': None,
-              'raw_stats': [], 'stats_coverage': {'complete': False, 'problem': None, 'pages': []},
-              'campaign_ids_with_search_impressions': [], 'campaign_ids_with_search_clicks': [],
-              'problems': []}
+    metadata = {'schema': 2, 'client_login': LOGIN, 'campaign_ids': list(CAMPAIGN_IDS),
+                'date1': FIRST, 'date2': LAST, 'started_at_utc': stamp(),
+                'read_only': True, 'production_changes': False, 'server_files_written': False,
+                'database_opened': False, 'conversions_requested': False,
+                'configuration_scope': 'CAMPAIGNS_GET_FIELDS_ONLY_PORTFOLIO_POINTERS_NOT_RESOLVED',
+                'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
+                'page_size': PAGE_SIZE, 'batch_size': BATCH_SIZE, 'max_rows': MAX_ROWS,
+                'scope': 'INVENTORY_DERIVED_CAMPAIGNS_WITH_SEARCH_ACTIVITY',
+                'query_network_type': 'SEARCH', 'report_type': 'SEARCH_QUERY_PERFORMANCE_REPORT',
+                'pagination_not_atomic_snapshot': True}
+    emit('header', **metadata)
+    state = {'status': 'FAILED', 'row_count': 0, 'batches': [], 'problems': [],
+             'config_before': None, 'config_after': None, 'config_unchanged': None}
     api = None
-    def alarm(signum, frame):
+    def timeout_handler(signum, frame):
         fail('TOTAL_TIME_BUDGET_REACHED')
-    signal.signal(signal.SIGALRM, alarm); signal.alarm(TOTAL_SECONDS)
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(TOTAL_SECONDS)
     try:
+        if (sys.argv[1:] or not CAMPAIGN_IDS or len(CAMPAIGN_IDS) != len(set(CAMPAIGN_IDS))
+                or any(type(cid) is not int or cid <= 0 for cid in CAMPAIGN_IDS)):
+            fail('EXPLICIT_INVENTORY_CAMPAIGN_SCOPE_REQUIRED')
         token, installed_sha = credentials()
-        result['verified_project_sha'] = installed_sha
+        state['verified_project_sha'] = installed_sha
         api = API(token, started + TOTAL_SECONDS - 5)
-        result['config_before'] = inventory(api)
-        account_stats(api, result)
-        result['config_after'] = inventory(api)
-        result['config_unchanged'] = result['config_before']['sha256'] == result['config_after']['sha256']
-        for inv in (result['config_before'], result['config_after']):
-            if not inv['complete']:
-                result['problems'].append(inv['problem'] or 'INVENTORY_INCOMPLETE')
-        if not result['stats_coverage']['complete']:
-            result['problems'].append(result['stats_coverage']['problem'] or 'STATS_INCOMPLETE')
-        if not result['config_unchanged']:
-            result['problems'].append('CAMPAIGN_CONFIGURATION_CHANGED_DURING_COLLECTION')
-        ids = {item['Id'] for item in result['config_before']['campaigns'] + result['config_after']['campaigns']}
-        result['stats_campaign_ids_outside_inventory'] = sorted({int(row['CampaignId']) for row in result['raw_stats']} - ids)
-        if result['stats_campaign_ids_outside_inventory']:
-            result['problems'].append('STATS_CAMPAIGNS_OUTSIDE_INVENTORY')
-        result['status'] = 'COLLECTED' if not result['problems'] else 'PARTIAL'
+        state['config_before'] = campaign_configuration(api)
+        emit('configuration', phase='before', snapshot=state['config_before'])
+        collect_batches(api, state)
+        state['config_after'] = campaign_configuration(api)
+        emit('configuration', phase='after', snapshot=state['config_after'])
+        state['config_unchanged'] = state['config_before']['sha256'] == state['config_after']['sha256']
+        state['config_stability_scope'] = 'RETURNED_CAMPAIGN_OBJECTS_NOT_MISSING_CAMPAIGNS'
+        state['config_missing_ids'] = sorted(set(state['config_before']['missing_ids'])
+                                          | set(state['config_after']['missing_ids']))
+        state['configuration_coverage'] = {
+            'status': 'PARTIAL' if state['config_missing_ids'] else 'COMPLETE',
+            'complete': not state['config_missing_ids'],
+            'requested_ids': list(CAMPAIGN_IDS),
+            'missing_ids_before': state['config_before']['missing_ids'],
+            'missing_ids_after': state['config_after']['missing_ids'],
+            'comparison_scope': state['config_stability_scope']}
+        if not state['config_unchanged']:
+            state['problems'].append('CAMPAIGN_CONFIGURATION_CHANGED_DURING_COLLECTION')
+        expected_batches = (len(CAMPAIGN_IDS) + BATCH_SIZE - 1) // BATCH_SIZE
+        complete = len(state['batches']) == expected_batches and all(b['complete'] for b in state['batches'])
+        state['status'] = 'COLLECTED' if complete and not state['problems'] else 'PARTIAL'
     except SafeError as exc:
-        result['problems'].append(exc.code)
-        result['status'] = 'PARTIAL' if result['raw_stats'] or result['config_before'] else 'FAILED'
+        state['problems'].append(exc.code)
+        state['status'] = 'PARTIAL' if state['row_count'] else 'FAILED'
     except Exception:
-        result['problems'].append('INVENTORY_RUNTIME_OR_SCHEMA_FAILURE')
-        result['status'] = 'PARTIAL' if result['raw_stats'] or result['config_before'] else 'FAILED'
+        state['problems'].append('COLLECTION_RUNTIME_OR_SCHEMA_FAILURE')
+        state['status'] = 'PARTIAL' if state['row_count'] else 'FAILED'
     finally:
         signal.alarm(0)
-    result['finished_at_utc'] = stamp()
-    result['http_attempts'] = api.calls if api else 0
-    result['api_errors'] = api.errors if api else []
-    result['stats_row_count'] = len(result['raw_stats'])
-    result['elapsed_seconds'] = round(time.monotonic() - started, 2)
-    result['problems'] = sorted(set(result['problems']))
-    print(json.dumps({'stage': 'finished', 'status': result['status'], 'stats_rows': result['stats_row_count'],
-                      'http_attempts': result['http_attempts']}, separators=(',', ':')), file=sys.stderr)
-    print(json.dumps(result, ensure_ascii=False, separators=(',', ':'), allow_nan=False))
-    return 0 if result['status'] == 'COLLECTED' else 2
+    state['problems'] = sorted(set(state['problems']))
+    state['finished_at_utc'] = stamp()
+    state['http_attempts'] = api.calls if api else 0
+    state['api_errors'] = api.errors if api else []
+    state['elapsed_seconds'] = round(time.monotonic() - started, 2)
+    emit('summary', **state)
+    return 0 if state['status'] == 'COLLECTED' else 2
 
 
 if __name__ == '__main__':
     raise SystemExit(main())
+

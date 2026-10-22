@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/direct-demand-readonly.yml
       - tools/direct_demand/remote_collect.py
+      - tools/direct_demand/consolidate_account_stream.py
 
 permissions:
   contents: read
@@ -17,7 +18,7 @@ concurrency:
 jobs:
   export:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout collector
         uses: actions/checkout@v4
@@ -48,29 +49,16 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
           mkdir -m 700 direct-demand-output
-          ssh -i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" 'python3 -I -B -S -' < tools/direct_demand/remote_collect.py > direct-demand-output/report.json 2> "$RUNNER_TEMP/direct-demand-ssh.log" || capture_status=$?
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          path = Path('direct-demand-output/report.json')
-          try:
-              data = json.loads(path.read_text())
-          except (OSError, ValueError):
-              data = {'status': 'FAILED', 'problems': ['SSH_OR_COLLECTOR_NO_VALID_REPORT']}
-              path.write_text(json.dumps(data))
-          summary = {key: data.get(key) for key in ('status', 'campaign_ids', 'date1', 'date2', 'row_count', 'config_unchanged', 'problems')}
-          summary['pagination_complete'] = data.get('coverage', {}).get('pagination_complete', False)
-          print(json.dumps(summary, ensure_ascii=False))
-          if data.get('status') != 'COLLECTED':
-              raise SystemExit(1)
-          PY
+          ssh -i "$key_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=15 -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" 'python3 -I -B -S -' < tools/direct_demand/remote_collect.py > direct-demand-output/raw-stream.jsonl 2> "$RUNNER_TEMP/direct-demand-ssh.log" || capture_status=$?
+          python3 tools/direct_demand/consolidate_account_stream.py direct-demand-output/raw-stream.jsonl direct-demand-output/report.json || consolidate_status=$?
           test "${capture_status:-0}" = 0
+          test "${consolidate_status:-0}" = 0
 
       - name: Save private report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: direct-demand-20261022-${{ github.run_id }}-${{ github.run_attempt }}
+          name: direct-demand-account-20261022-${{ github.run_id }}-${{ github.run_attempt }}
           path: direct-demand-output/report.json
           if-no-files-found: warn
           retention-days: 7
@@ -81,3 +69,4 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/direct_demand_key" "$RUNNER_TEMP/direct-demand-ssh.log"
           rm -rf direct-demand-output
+
