@@ -3,7 +3,7 @@
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let publication=null,preview=false,sending=false,photoFailures=0;
+let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
 function current(target=context){const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
@@ -56,7 +56,7 @@ function ensure(){
   document.body.appendChild(dialog);
   const footer=dialog.querySelector('.tsFooter');
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',()=>{preview=false;render()}],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
-  $('tsClose').onclick=close;$('tsDone').onclick=()=>{if(dirty&&!busy&&!pending&&!conflict)void save();else close()};$('tsSave').onclick=()=>save();$('tsAdd').onclick=add;
+  $('tsClose').onclick=close;$('tsDone').onclick=()=>{if(preview)close();else if(dirty&&!busy&&!pending&&!conflict)void save();else close()};$('tsSave').onclick=()=>save();$('tsAdd').onclick=add;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close()});dialog.addEventListener('keydown',e=>e.stopPropagation());
   dialog.addEventListener('close',()=>{if(current()&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true})});
   $('tsList').addEventListener('click',event=>{const button=event.target.closest('[data-ts-select]');if(button){selected=button.dataset.tsSelect;render()}});
@@ -130,14 +130,14 @@ function render(){
 }
 function controls(){
   if(!dialog)return;const disabled=!editable();
-  $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||invalidAges();
+  $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
   $('tsSaved').textContent=busy?'Сохраняем…':pending?'Результат сохранения уточняется':conflict?'Есть конфликт правок':dirty?'Не все изменения сохранены':version?'Сохранено на сервере':'Новый черновик';
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;
   $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
-  $('tsSend').disabled=sending||!publication?.can_send||unknown||!remaining||photoFailures>0;
-  $('tsSend').textContent=sending?'Отправляем…':unknown?'Результат неизвестен':known?'Проверить доставку':remaining?'Отправить варианты ('+remaining+')':'Подборка отправлена';
+  $('tsSend').disabled=sending||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
+  $('tsSend').textContent=sending?'Отправляем…':unknown?'Результат неизвестен':photoPending?'Загружаем фото…':known?'Проверить доставку':remaining?'Отправить варианты ('+remaining+')':'Подборка отправлена';
   if(item()){const at=draft.offers.findIndex(x=>x.id===selected);const up=dialog.querySelector('[data-ts-action="up"]'),down=dialog.querySelector('[data-ts-action="down"]');if(up)up.disabled=disabled||busy||at===0;if(down)down.disabled=disabled||busy||at===draft.offers.length-1}
 }
 function recovery(kind){
@@ -178,9 +178,13 @@ async function reconcile(){
   if(result?.ok&&!result.found&&validSnapshot(result.selection)&&result.selection.can_edit){const button=document.createElement('button');button.type='button';button.textContent='Повторить это сохранение';button.onclick=()=>{if(pending&&!busy&&current())void submit(pending)};$('tsRecovery').appendChild(button)}
 }
 function renderPreview(){
-  dialog.classList.add('tsPreviewMode');photoFailures=0;
-  $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Так турист увидит предложения</h3><p>Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos">${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div><p class="tsCardText">${esc(card.text)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
-  $('tsEditor').querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{photoFailures++;img.classList.add('tsPhotoFailed');controls();status('Не удалось загрузить фото. Вернитесь к редактированию и проверьте прямую ссылку.',true)},{once:true}));
+  dialog.classList.add('tsPreviewMode');photoFailures=0;photoPending=publication.cards.length*3;const imageRun=++photoEpoch,token=epoch,publicationId=publication.id;
+  $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.')+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos">${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div><p class="tsCardText">${esc(card.text)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
+  const active=()=>imageRun===photoEpoch&&token===epoch&&preview&&publication?.id===publicationId&&current();
+  $('tsEditor').querySelectorAll('img').forEach(img=>{
+    img.addEventListener('load',()=>{if(active()){photoPending--;controls()}},{once:true});
+    img.addEventListener('error',()=>{if(!active())return;photoPending--;photoFailures++;img.classList.add('tsPhotoFailed');controls();status('Не удалось загрузить фото. Вернитесь к редактированию и проверьте прямую ссылку.',true)},{once:true});
+  });
   updateDelivery();
 }
 function updateDelivery(){
@@ -206,7 +210,7 @@ async function showHistory(){
   for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{const t=epoch;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch)return;if(read?.ok&&read.publication){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function sendAll(){
-  if(!current()||sending||!publication?.can_send||photoFailures)return;const target=publication.id,token=epoch;sending=true;controls();
+  if(!current()||sending||!publication?.can_send||photoFailures||photoPending)return;const target=publication.id,token=epoch;sending=true;controls();
   try{
     for(const next of publication.cards.filter(x=>x.state!=='delivered')){
       if(token!==epoch||!current()||!dialog.open||publication.id!==target)break;
