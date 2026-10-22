@@ -16,12 +16,15 @@
     const form=$('composer'),reply=$('replyText'),c=S.detail?.conversation,issue=$('conversationLifecycleStatus');
     return !!form&&!!reply&&!form.hidden&&!form.classList.contains('hidden')&&!reply.disabled&&!S.authExpired&&!!S.manager?.id&&!!S.current&&Number(c?.id)===Number(S.current)&&c.status==='manager'&&Number(c.manager_id)===Number(S.manager.id)&&S.detail?.delivery_failure?.category!=='suspended'&&!(issue&&!issue.classList.contains('hidden'));
   }
+  function supervisorRead(){const c=S.detail?.conversation;return S.detail?.supervisor_read===true&&!S.authExpired&&!!S.manager?.id&&Number(c?.id)===Number(S.current)&&c?.status==='manager'&&Number(c.manager_id)>0&&Number(c.manager_id)!==Number(S.manager.id)&&S.detail?.delivery_failure?.category!=='suspended'}
+  const canAnalyze=()=>canCompose()||supervisorRead();
   function sameContext(saved){
     const current=context();
     return !!saved&&!!current&&Object.keys(current).every(key=>current[key]===saved[key]);
   }
-  function snapshot(){return {context:context(),latest:latestMessageId(),messages:messageState()}}
-  function currentSnapshot(saved){return canCompose()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState()}
+  const ownerBinding=()=>JSON.stringify([S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.conversation?.project_key,S.detail?.conversation?.source_id,S.detail?.supervisor_read]);
+  function snapshot(){return {context:context(),latest:latestMessageId(),messages:messageState(),owner:ownerBinding()}}
+  function currentSnapshot(saved){return canAnalyze()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState()&&saved.owner===ownerBinding()}
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
   function timeLabel(value){return window.ManagerTime?.format?window.ManagerTime.format(value)+' '+window.ManagerTime.label:''}
   function hideNotice(hidden){if(notice&&notice.hidden!==hidden)notice.hidden=hidden}
@@ -88,14 +91,15 @@
   function rememberSelection(){if(view)view.selection=selection()}
   function positionPanel(){
     if(!view||panel.hidden)return;
+    if(supervisorRead())return;
     const rect=$('composer').getBoundingClientRect?.();if(!rect)return;
     const top=window.visualViewport?.offsetTop||0;
     panel.style.setProperty('--ai-draft-room',Math.max(0,rect.top-top-8)+'px');
   }
   function setBusy(value){
     panel.setAttribute('aria-busy',String(value));
-    insert.disabled=value||!view?.result?.should_draft;retry.disabled=value;
-    const disabled=!canCompose()||value;if(button.disabled!==disabled)button.disabled=disabled;
+    insert.disabled=value||!view?.result?.should_draft||!canCompose();retry.disabled=value;
+    const disabled=!canAnalyze()||value;if(button.disabled!==disabled)button.disabled=disabled;
     renderButton();
   }
   function clearBody(){body.replaceChildren();insert.hidden=true;insert.disabled=true}
@@ -118,9 +122,12 @@
   }
   function sync(){
     if(!bound)return;
-    if(view&&(!canCompose()||!sameContext(view.snapshot.context))){resetSession();return}
+    const supervised=supervisorRead(),host=supervised?$('conversationZone'):$('composer');
+    if(host&&panel.parentElement!==host)host.appendChild(panel);
+    panel.classList.toggle('aiDraftSupervisor',supervised);
+    if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
-    const disabled=!canCompose()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
+    const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
     syncWatch();renderButton();
     positionPanel();
   }
@@ -136,7 +143,7 @@
     clearBody();
     const actions={clarify:'Уточнить запрос',answer_question:'Ответить на вопрос',check_offer:'Проверить данные',prepare_selection:'Подготовить подборку',no_contact:'Сейчас не писать'};
     const rawAction=readable(result.next_action),action=actions[rawAction]||rawAction,reason=readable(result.reason);
-    if(result.should_draft){addText('p','aiDraftText',result.draft);insert.hidden=false}
+    if(result.should_draft){addText('p','aiDraftText',result.draft);insert.hidden=!canCompose()}
     if(action)addText('p','aiDraftAction',action);
     if(reason)addText('p','aiDraftReason',reason);
     if(result.history_incomplete)addText('p','aiDraftWarning','В доступной истории есть пропуски. Проверьте контекст перед ответом.');
@@ -146,6 +153,7 @@
     }
     const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
     status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
+    if(supervisorRead())status.textContent='Просмотр руководителя · Ответственный: '+(S.detail?.conversation?.manager_name||'менеджер')+'. Просмотр не считается использованием или отправкой ответа.';
     retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
   }
   function failure(result,action){
@@ -169,7 +177,7 @@
     void loadProposal('prepared',true);
   }
   async function loadProposal(action,generateIfNeeded=false){
-    if(!canCompose()||flight)return false;
+    if(!canAnalyze()||flight)return false;
     abortStatusRead();dismissNotice();
     const saved=snapshot(),savedSelection=selection();abortFlight();
     view={snapshot:saved,selection:savedSelection,result:null,stale:false};
@@ -197,7 +205,7 @@
     finally{if(flight===current){flight=null;setBusy(false);if(watch)scheduleStatus(watch)}}
   }
   async function insertDraft(){
-    sync();if(!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
+    sync();if(!canCompose()||!view?.result?.should_draft||flight||view.stale||!currentSnapshot(view.snapshot))return false;
     if(view.result.prepared===true&&view.result.expires_at&&timeValue(view.result.expires_at)<=Date.now()){stale();return false}
     const saved=view.snapshot,result=view.result,draftId=validDraftId(view.result.draft_id)?view.result.draft_id:null;
     const current={ticket:sequence,controller:typeof AbortController==='function'?new AbortController():null};flight=current;setBusy(true);status.textContent='Проверяем, что контекст не изменился…';
@@ -260,6 +268,6 @@
     }
     sync();
   }
-  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences};
+  window.WorkspaceV2AiDraft={bind,sync,resetSession,syncPreferences,openSupervisor:()=>{sync();if(supervisorRead())openReady()}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();

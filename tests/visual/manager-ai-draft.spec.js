@@ -8,11 +8,11 @@ const proposal=(changes={})=>({ok:true,should_draft:true,draft:'Какие да�
 const prepared=(changes={})=>proposal({prepared:true,prepared_at:'2026-10-19T10:30:00Z',source:'chatgpt',draft_id:null,...changes});
 // Render the actual PHP shell and canonical assets. Every identity, message,
 // proposal and HTTP response in this fixture is synthetic and stays in loopback.
-async function setup(page,{readiness=false,hideNotice=false}={}){
+async function setup(page,{readiness=false,hideNotice=false,supervisor=false}={}){
   const calls=[],unexpected=[],errors=[],messages=new Map();
   let ai=async data=>data.action==='prepared'?{body:prepared()}:data.action==='generate'?{body:proposal()}:{body:{ok:true,revision:'1'.repeat(64),latest_message_id:35,draft_id:data.draft_id||null}};
-  const manager={id:7,role:'manager',display_name:'Мария',is_working:true};
-  const conversation=id=>({id,status:'manager',manager_id:7,manager_name:'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
+  const manager={id:7,role:'manager',display_name:'Мария',is_working:true,supervision_available:supervisor};
+  const conversation=id=>({id,status:'manager',manager_id:supervisor&&id===11?9:7,manager_name:supervisor&&id===11?'Другой менеджер':'Мария',channel:'telegram',display_name:id===11?'Анна Морозова':'Алексей Иванов'});
   for(const id of [11,12])messages.set(id,Array.from({length:35},(_,i)=>({id:i+1,sender_type:i%3?'customer':'manager',manager_id:i%3?null:7,text:'Синтетическое сообщение '+(i+1)+'. Обсуждаем пожелания к поездке.',created_at:'2026-10-17 12:00:00'})));
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
@@ -31,7 +31,7 @@ async function setup(page,{readiness=false,hideNotice=false}={}){
     calls.push({path:url.pathname,...data});
     if(url.pathname==='/manager/api.php'){
       if(['me','login'].includes(data.action))return reply({ok:true,manager,csrf:'fixture-csrf',projects:[]});
-      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:null});
+      if(data.action==='detail')return reply({ok:true,conversation:conversation(data.conversation_id),messages:messages.get(data.conversation_id),delivery_failure:null,supervisor_read:supervisor&&data.conversation_id===11});
       if(data.action==='counts')return reply({ok:true,counts:{waiting:{count:2,unread:0},mine:{count:2}}});
       if(data.action==='edit_candidates')return reply({ok:true,messages:[],candidates:[]});
     }
@@ -54,8 +54,7 @@ async function setup(page,{readiness=false,hideNotice=false}={}){
   });
   await page.goto(origin+'/manager2/index.php?qa=1');await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
   await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.workspaceBound&&!WorkspaceV2.S.booting)).toBe(true);
-  await page.locator('#inboxList [data-conversation-id="11"]').click();await expect(page.locator('#replyText')).toBeEnabled();
-  await expect(page.locator('#aiDraftOpen')).toBeEnabled();
+  await page.locator('#inboxList [data-conversation-id="11"]').click();if(supervisor)await expect(page.getByRole('button',{name:'AI · Просмотр',exact:true})).toBeVisible();else{await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#aiDraftOpen')).toBeEnabled()}
   return {calls,unexpected,errors,setAI:handler=>{ai=handler},messages,aiCalls:()=>calls.filter(call=>call.path==='/manager/ai-draft.php'&&call.action!=='prepared_status'),statusCalls:()=>calls.filter(call=>call.action==='prepared_status')};
 }
 function clean(state){expect(state.errors).toEqual([]);expect(state.unexpected).toEqual([]);expect(state.calls.filter(call=>['send','take','release','close','reopen'].includes(call.action))).toEqual([])}
@@ -281,3 +280,13 @@ for(const choice of [{decision:'allow',label:'Разрешить',width:1440},{d
     try{await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}
   }
 });
+
+for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:844},{width:390,height:420}])test('Supervisor foreign AI is readonly and preserves own draft/File '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const state=await setup(page,{supervisor:true});
+  await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toBeVisible();await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic own attachment')});await page.evaluate(()=>window.supervisorOwnFile=document.querySelector('#replyFile').files[0]);
+  await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.getByRole('button',{name:'AI · Просмотр',exact:true}).click();await expect(page.locator('#aiDraftPanel')).toBeVisible();await expect(page.locator('#aiDraftStatus')).toContainText('Просмотр руководителя');await expect(page.locator('#aiDraftInsert')).toBeHidden();await expect(page.locator('#composer')).toBeHidden();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);const b=await page.locator('#aiDraftPanel').boundingBox();expect(b.x).toBeGreaterThanOrEqual(0);expect(b.x+b.width).toBeLessThanOrEqual(viewport.width+1);expect(b.y+b.height).toBeLessThanOrEqual(viewport.height+1);
+  const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});await page.screenshot({animations:'disabled',path:path.join(directory,'supervisor-ai-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});
+  await page.locator('#aiDraftRetry').click();await expect.poll(()=>state.aiCalls().filter(c=>c.action==='generate').length).toBe(1);await page.locator('#aiDraftPanel .aiDraftClose').click();await page.evaluate(()=>WorkspaceV2Conversation.open(12));await expect(page.locator('#replyText')).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('keep.txt');expect(state.aiCalls().filter(c=>c.action==='validate')).toEqual([]);clean(state);
+});
+require('./fixtures/manager-supervision')({test,expect});

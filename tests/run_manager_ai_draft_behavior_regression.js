@@ -37,6 +37,20 @@ async function harness(handler=()=>response(prepared()),{manager2=false}={}){
   h.close=()=>h.ids.get('aiDraftPanel').children[0].children[1].dispatch('click');
   return h;
 }
+test('supervisor reads and explicitly prepares foreign AI without insertion or automatic polling',async()=>{
+  const h=await harness(data=>response(data.action==='prepared'?prepared({supervisor_read:true,owner_id:9,draft_id:null}):generated({supervisor_read:true,owner_id:9,draft_id:null})),{manager2:false});
+  h.W.S.detail.conversation.manager_id=9;h.W.S.detail.supervisor_read=true;h.ids.get('composer').classList.add('hidden');h.ai.sync();
+  const file={name:'retained.txt'};h.setFile(file);await h.draft('Existing private draft');const initial=h.aiCalls().length;
+  h.ai.openSupervisor();await tick();
+  assert.equal(h.aiCalls().length,initial+1);assert.equal(h.aiCalls().at(-1).action,'prepared');assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftInsert').disabled,true);assert.match(h.ids.get('aiDraftStatus').textContent,/Просмотр руководителя/);
+  await h.insert();assert.equal(h.aiCalls().filter(c=>c.action==='validate').length,0);assert.equal(h.ids.get('replyText').value,'Existing private draft');assert.equal(h.getFile(),file);
+  await h.click('aiDraftRetry');assert.equal(h.aiCalls().at(-1).action,'generate');assertNoMutations(h);
+});
+test('supervisor late foreign response cannot survive a reassignment or scope loss',async()=>{
+  for(const change of [h=>{h.W.S.detail.conversation.manager_id=10},h=>{h.W.S.detail.supervisor_read=false},h=>{h.W.S.authGeneration++}]){
+    const pending=deferred(),h=await harness(()=>pending.promise);h.W.S.detail.conversation.manager_id=9;h.W.S.detail.supervisor_read=true;h.ids.get('composer').classList.add('hidden');h.ai.sync();h.ai.openSupervisor();change(h);h.ai.sync();pending.resolve(response(prepared({supervisor_read:true,owner_id:9})));await tick();assert.equal(h.ids.get('aiDraftInsert').hidden,true);assert.equal(h.ids.get('aiDraftPanel').textContent.includes('Уточните удобные даты'),false);assertNoMutations(h);
+  }
+});
 test('binding is lazy and adds one stable button without another draft, file or submit owner',async()=>{
   const h=await harness();h.ai.bind();h.observe();
   assert.equal(h.aiCalls().length,0);assert.equal(h.ids.get('quickReplies').firstChild,h.ids.get('aiDraftOpen'));

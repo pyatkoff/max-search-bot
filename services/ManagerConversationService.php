@@ -227,11 +227,11 @@ class ManagerConversationService
     }
 
     /** Visible conversation metadata without read-state or transcript side effects. */
-    public static function visibleConversation(int $conversationId,int $managerId): ?array
+    public static function visibleConversation(int $conversationId,int $managerId,bool $allowSupervisor=false): ?array
     {
         RoutingAccessService::ensureSchema();
         $q=ConversationDb::connection()->prepare('SELECT c.id,c.project_key,c.source_id,c.channel,c.entry_channel,c.attribution_region,c.attribution_campaign,c.status,c.lead_stage_key,c.manager_id,c.started_at,c.last_message_at,c.closed_at,c.customer_id,c.external_chat_id,cu.display_name AS original_display_name,cn.working_name,COALESCE(cn.version,0) AS customer_name_version,COALESCE(cn.working_name,cu.display_name) AS display_name,cu.phone,cu.email,m.display_name AS manager_name,p.display_name AS project_name,s.display_name AS source_name FROM conversations c JOIN customers cu ON cu.id=c.customer_id LEFT JOIN manager_customer_names cn ON cn.customer_id=c.customer_id LEFT JOIN managers m ON m.id=c.manager_id LEFT JOIN projects p ON p.project_key=c.project_key LEFT JOIN conversation_sources s ON s.id=c.source_id WHERE c.id=? LIMIT 1');
-        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!ManagerConversationAccessPolicy::canView($managerId,$conversation))return null;
+        $q->execute([$conversationId]);$conversation=$q->fetch();if(!$conversation||!($allowSupervisor?ManagerConversationAccessPolicy::canRead($managerId,$conversation):ManagerConversationAccessPolicy::canView($managerId,$conversation)))return null;
         return$conversation;
     }
 
@@ -240,7 +240,8 @@ class ManagerConversationService
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
         $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
-        $conversation=self::visibleConversation($conversationId,$managerId);if(!$conversation)return null;
+        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+        $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
         $sql='SELECT id,direction,sender_type,text,created_at FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
         $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
@@ -258,7 +259,13 @@ class ManagerConversationService
         }
         // HTTP callers defer this until hydration succeeds. Existing direct
         // detail callers retain their bounded latest-page read behaviour.
-        if($markRead&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);
+        if($supervisorRead){
+            $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh)return null;
+            foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
+        }
+        $supervisor=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
+        $detail['supervisor_read']=$supervisor;
+        if($markRead&&!$supervisorRead&&!$supervisor&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);
         return$detail;
     }
 

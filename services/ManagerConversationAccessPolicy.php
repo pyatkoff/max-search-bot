@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/ManagerAuthService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
+require_once __DIR__ . '/ManagerSupervisorAccessService.php';
 
 final class ManagerConversationAccessPolicy
 {
@@ -15,6 +16,12 @@ final class ManagerConversationAccessPolicy
     public static function visibleRows(int $managerId,array $conversations): array
     {
         return $managerId > 0 ? RoutingAccessService::visibleConversations($managerId,$conversations) : [];
+    }
+
+    /** Read surfaces opt in. Legacy mutation/queue visibility is deliberately unchanged. */
+    public static function canRead(int $managerId,array $conversation): bool
+    {
+        return self::canView($managerId,$conversation)||ManagerSupervisorAccessService::canRead($managerId,$conversation);
     }
 
     /** The conversation must already have passed canView(). */

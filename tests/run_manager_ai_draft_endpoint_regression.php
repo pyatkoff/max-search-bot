@@ -200,9 +200,9 @@ try {
         managerAiEndpointCheck('responses retain no-store JSON headers',count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'cache-control:') && preg_match('/(?:^|[ ,:])no-store(?:[ ,]|$)/i',$header) === 1)) === 1 && count(array_filter($response['headers'],static fn(string $header): bool=>str_starts_with(strtolower($header),'content-type: application/json'))) === 1);
     }
 
-    $race = static function(string $name,array $change,?string $sessionMutation,int $status,string $error,int $snapshotCount) use ($tmp,$fixture,$address,$body,$writeState,$clearEvents,$events,$login,$expectError,&$children): void {
-        $writeState(); $cookie = $login();
-        $writeState(['provider_mode'=>'wait']); $clearEvents();
+    $race = static function(string $name,array $change,?string $sessionMutation,int $status,string $error,int $snapshotCount,array $setup=[]) use ($tmp,$fixture,$address,$body,$writeState,$clearEvents,$events,$login,$expectError,&$children): void {
+        $writeState($setup); $cookie = $login();
+        $writeState(['provider_mode'=>'wait']+$setup); $clearEvents();
         foreach (['provider-ready','provider-release','result.json'] as $file) if (is_file($tmp.'/'.$file)) unlink($tmp.'/'.$file);
         $worker = proc_open([PHP_BINARY,$fixture,'http-request'],[0=>['pipe','r'],1=>['file',$tmp.'/client.log','a'],2=>['file',$tmp.'/client.log','a']],$pipes);
         if (!is_resource($worker)) throw new RuntimeException('Cannot start asynchronous HTTP client');
@@ -223,7 +223,7 @@ try {
                 managerAiEndpointCheck($name.' can change real session while provider waits',!$processState['running'] && $processState['exitcode'] === 0);
                 proc_close($mutator); array_pop($children);
             }
-            if ($change) $writeState(['provider_mode'=>'wait']+$change);
+            if ($change) $writeState(['provider_mode'=>'wait']+$change+$setup);
         } finally { file_put_contents($tmp.'/provider-release','release'); }
         $exit = proc_close($worker); array_pop($children);
         managerAiEndpointCheck($name.' completes HTTP worker',$exit === 0 && is_file($tmp.'/result.json'));
@@ -240,6 +240,15 @@ try {
     $race('logout during provider',[],'logout',401,'unauthorized',1);
     $race('CSRF rotates during provider',[],'rotate_csrf',401,'unauthorized',1);
     $race('account changes during provider',[],'change_account',401,'unauthorized',1);
+    $writeState(['supervisor_read'=>true,'prepared_result'=>$stored]);$cookie=$login();$clearEvents();
+    $super=$request($prepared,$cookie);
+    managerAiEndpointCheck('supervisor cache uses actual owner without feedback',$super['status']===200&&$super['json']['owner_id']===8&&$super['json']['supervisor_read']&&$super['json']['draft_id']===null&&!in_array('feedback_record',array_column($events(),'event'),true)&&(array_values(array_filter($events(),static fn($e)=>$e['event']==='prepared_read'))[0]['manager_id']??null)===8);
+    $writeState(['supervisor_read'=>true]);$clearEvents();$super=$request($body,$cookie);
+    managerAiEndpointCheck('explicit supervisor generation uses existing provider without foreign feedback',$super['status']===200&&$super['json']['draft_id']===null&&$super['json']['owner_id']===8&&count(array_filter($events(),static fn($e)=>$e['event']==='provider'))===1&&!in_array('feedback_record',array_column($events(),'event'),true));
+    $clearEvents();$expectError('supervisor cannot validate insertion',$request(array_replace($body,['action'=>'validate','revision'=>$baseState['revision']]),$cookie),403,'forbidden');$assertNoProvider('supervisor insertion refusal has no provider');
+    $race('supervisor loses scope during provider',['access'=>false],null,403,'forbidden',2,['supervisor_read'=>true]);
+    $race('supervisor account changes during provider',[],'change_account',401,'unauthorized',1,['supervisor_read'=>true]);
+    $child=proc_open([PHP_BINARY,__DIR__.'/support/manager-supervision-http.php'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$childPipes);if(!is_resource($child))throw new RuntimeException('Cannot run supervisor HTTP boundary');fclose($childPipes[0]);$childOutput=stream_get_contents($childPipes[1]);$childError=stream_get_contents($childPipes[2]);fclose($childPipes[1]);fclose($childPipes[2]);$childExit=proc_close($child);echo $childOutput;if($childError!=='')fwrite(STDERR,$childError);managerAiEndpointCheck('canonical supervisor HTTP boundary suite',$childExit===0);
     managerAiEndpointCheck('temporary application never creates a production-style runtime/config directory',!is_dir($tmp.'/.runtime'));
 } finally {
     foreach ($children as $child) if (is_resource($child)) { proc_terminate($child); proc_close($child); }

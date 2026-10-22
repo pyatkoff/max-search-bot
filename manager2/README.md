@@ -235,3 +235,13 @@ The page binds that command independently of push registration/readiness. Canoni
 Expiry during startup keeps that explicit URL target available for the same account's next login, including another failed Inbox load. A known account change discards the old target before its first protected read, so a second expiry cannot carry it into the new account. Clicks while the canonical sign-in form is already open update only the target; typed credentials, native selection and an in-flight submit remain intact. The latest click and a newer explicit conversation choice retain their existing navigation priority. The URL is still the only pending intent; detail failures keep canonical recovery and never replay a send.
 
 An accepted conversation choice withdraws an older startup URL before starting its protected detail read. That choice keeps priority across session expiry, including a failed newer detail; the old client cannot return as a login fallback. Refused navigation (expired authentication, invalid target or an unsaved task) leaves the pending URL available. Withdrawal changes only a valid notification fragment through the core URL owner and preserves the current history entry.
+
+## Project supervision and readonly analytics
+
+Owner-authorized project/source capabilities, explicit audited grants, separated
+AI viewer/assigned owner and complete server cohorts are owned by
+`ManagerSupervisorAccessService` / `ManagerDialogueAnalyticsService`. The
+identity-free `/manager2/analytics.php` uses the canonical protected endpoint;
+legacy mutation visibility and ordinary sending remain separate from extended
+reads. See [supervision and analytics](../docs/MANAGER_SUPERVISION_ANALYTICS.md)
+for exact cohort/event/current-state definitions, freshness and grant boundaries.

@@ -61,7 +61,7 @@ if($action==='list'){
 }
 
 $id=(int)($data['conversation_id']??0);
-$c=pipelineConversation($id,(int)$m['id']);
+$c=$action==='detail'?ManagerConversationService::visibleConversation($id,(int)$m['id'],true):pipelineConversation($id,(int)$m['id']);
 if(!$c)ManagerHttp::respond(['ok'=>false,'error'=>'not_found'],404);
 $can=ManagerHttp::canEditConversation($c,$m);
 
