@@ -1,12 +1,13 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-22T22:35:06.847Z",
+  "updated_at_utc": "2026-10-22T22:39:46.922Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
     "enabled": true,
     "frequency": "hourly",
-    "timezone": "Europe/Kaliningrad"
+    "timezone": "Europe/Kaliningrad",
+    "enabled_verified_at_utc": "2026-10-22T22:39:46.922Z"
   },
   "status": "PREPARING_CONTENT_AND_FEED_CHANNEL_PENDING",
   "channel": null,
@@ -42,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 2
+      "version": 3
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 2
+      "version": 3
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -56,6 +57,12 @@
       "hotel_names": 526,
       "claim_ids": 5073,
       "source_ids": 2058
+    },
+    "content_preparation": {
+      "archive_member": "funnel-content-preparation.json",
+      "incomplete_xml_member": "funnel-collections.INCOMPLETE-DRAFT.xml",
+      "draft_input_member": "funnel-post-drafts-input.json",
+      "report_section": "Автопилот: подготовка контента"
     }
   },
   "operations": {
@@ -63,14 +70,43 @@
     "source_export": "DONE",
     "expanded_demand_queue": "DONE",
     "knowledge_materialization": "DONE",
-    "content_match_pass": "IN_PROGRESS",
-    "wordstat_access": "NOT_YET_VERIFIED"
+    "content_match_pass": "DONE",
+    "wordstat_access": "NOT_YET_VERIFIED",
+    "first_post_drafts": "DONE",
+    "inactive_feed_templates": "DONE",
+    "active_operation": null
   },
   "next_steps": [
-    "Read canonical profiles and prepare source-linked name matches without assigning guessed catalog IDs.",
-    "Prepare finite post drafts using confirmed source claims and preserve scope/season limitations.",
-    "Prepare inactive collection feed and destination bindings; wait for owner channel only for publication."
+    "Resolve the six TOP500 rows left unmatched after name and country checks; preserve uncertain aliases and properties separately.",
+    "Verify native LOCAL/TV catalogue bindings read-only. 32 Direct and 494 TOP500 exact-name content references are not verified catalogue IDs.",
+    "Check authorized read-only Wordstat access and collect full frequency with region and period stated; do not rerun the full Direct report.",
+    "Select approved photos and extend posts/thematic selections using the saved source scopes; first ten drafts already saved in archive v3.",
+    "Wait for owner channel only for publication/destination IDs; all 353 XML templates are incomplete, URL/picture absent, not upload-ready."
   ],
   "publication_blocker": "Owner will provide channel later. This does not block preparation.",
-  "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows."
+  "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
+  "completed_preparation": {
+    "generated_at_utc": "2026-10-22T22:38:38.716921+00:00",
+    "direct_candidates": 317,
+    "direct_exact_name_references": 32,
+    "top500_rows": 500,
+    "top500_exact_name_references": 494,
+    "verified_catalog_ids": 0,
+    "post_drafts": 10,
+    "source_claim_references": 32,
+    "draft_feed_records": 353,
+    "upload_ready_feed_records": 0,
+    "channel": null,
+    "published_posts": 0,
+    "wordstat_access": "NOT_YET_VERIFIED"
+  },
+  "validation": {
+    "post_drafts": 10,
+    "claim_references_resolved": 32,
+    "collection_keys_unique": 353,
+    "destination_urls_in_collections": 0,
+    "xml_parsed": true,
+    "zip_crc": "PASSED",
+    "source_knowledge_modified": false
+  }
 }
