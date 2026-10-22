@@ -405,7 +405,7 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
   await route.fulfill({contentType:'application/json',body:JSON.stringify(data.action==='list'?{ok:true,items:[item],has_more:false,next_cursor:null}:{ok:true,item})});
  });
  await page.evaluate(()=>window.assistantRetainedFile=document.getElementById('replyFile').files[0]);
- const details=refreshDetails(state),older=olderDetails(state).length;
+ const details=refreshDetails(state),older=olderDetails(state).length,historyLength=await page.evaluate(()=>history.length);
  await screenshot(page,browserName,width,'assistant-return-before-'+height);
  const globalEntry=await page.locator('#assistantOpen').isVisible();
  if(globalEntry){await page.locator('#assistantOpen').click();await page.locator('[data-assistant-client="11"]').click()}
@@ -420,9 +420,12 @@ for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]]
  expect(await page.locator('#messages audio').evaluate(audio=>audio===window.retainedPlayingAudio&&!audio.paused&&audio.currentTime>=window.retainedAudioTime-.05)).toBe(true);
  await sameAnchor(page,proof.before);expect(refreshDetails(state)).toBe(details+1);expect(olderDetails(state)).toHaveLength(older);
  expect(assistantReads).toEqual(globalEntry?['list','detail']:['detail']);await screenshot(page,browserName,width,'assistant-return-after-'+height);
- // Verify the canonical different-client boundary without relying on the
- // unrelated mobile Back stack created by reopening the same conversation.
- expect(await page.evaluate(()=>WorkspaceV2Conversation.open(12))).toBe(true);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#messages .msg')).toHaveCount(3);await expect(page.locator('#replyText')).toHaveValue('');
+ expect(await page.evaluate(()=>history.length)).toBe(historyLength);
+ if(await page.evaluate(()=>WorkspaceV2Mobile.isMobile())){
+  await page.locator('#mobileBack').click();await expect.poll(()=>page.evaluate(()=>WorkspaceV2Mobile.getScreen())).toBe('inbox');
+  await page.locator('#inboxList [data-conversation-id="12"]').click();
+ }else await page.locator('#inboxList [data-conversation-id="12"]').click();
+ await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент Б');await expect(page.locator('#messages .msg')).toHaveCount(3);await expect(page.locator('#replyText')).toHaveValue('');
  await expect(page.locator('#mediaSelection')).not.toContainText('retained-history.txt');clean(state);
 });
 for(const [width,height,outcome] of [[390,844,'500'],[430,844,'500'],[768,844,'500'],[1440,844,'500'],[390,420,'500'],...[403,404,'network','application','mismatched'].map(status=>[1440,844,String(status)])]){

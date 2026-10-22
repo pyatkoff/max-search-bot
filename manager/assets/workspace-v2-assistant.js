@@ -140,7 +140,8 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   async function openConversation(id){
     if(!authenticated())return false;
     if(protectTaskDraft())return false;
-    close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true});
+    const mobileHistory=Number(S.current)===Number(id)&&window.WorkspaceV2Mobile?.getScreen?.()==='conversation'?'none':'push';
+    close({restoreFocus:false});return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true,mobileHistory});
   }
   function protectTaskDraft(){
     if(!window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;

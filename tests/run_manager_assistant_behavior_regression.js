@@ -69,6 +69,10 @@ test('opening a conversation dismisses its menu but explicit Close restores the 
   button.focus();await h.A.open(101);await h.click('#assistantClose');assert.equal(menu.open,true);assert.equal(h.document.activeElement,button);h.onlyReads();
 });
 
+for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'push'],['inbox',101,'push'],['lead',101,'push']])test('assistant navigation preserves the canonical history boundary '+screen+' '+id,async()=>{
+  const h=harness();h.window.WorkspaceV2Mobile={getScreen:()=>screen};h.A.activate(7);await h.A.open(id);await h.click('#assistantConversation');assert.equal(h.opened[0].opts.mobileHistory,mode);h.onlyReads();
+});
+
 test('activation is lazy and exposes current-owner controls without transport',async()=>{
   const h=harness();h.A.activate(7);h.A.bind();assert.equal(h.calls.length,0);assert.equal(h.$('assistantOpen').disabled,false);assert.equal(h.$('assistantClientOpen').hidden,false);h.S.detail.conversation.manager_id=8;h.A.sync();assert.equal(h.$('assistantClientOpen').hidden,true);assert.equal(h.calls.length,0);
 });

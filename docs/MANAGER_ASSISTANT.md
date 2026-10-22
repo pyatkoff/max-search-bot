@@ -10,6 +10,9 @@ message/media nodes, reading position and reply/File remain under those owners;
 opening another client still resets history and rechecks its access normally.
 Navigation dismisses the originating menu instead of reopening it over the
 conversation. Explicit Close/Escape still restores that menu and its opener focus.
+Returning to the same mobile conversation adds no duplicate browser-history
+entry; Back still reaches the Inbox once. Opening another client or returning
+from the Inbox keeps the canonical navigation entry.
 
 Prepared proposals retain the canonical one-hour TTL and all content, instructions, knowledge, ownership and source/project visibility fences. Only the actual assigned manager sees recommendations, including when the viewer is an administrator. Opening a different client rechecks the current proposal. An open detail refreshes every 20 seconds, pausing while a deadline is being edited; explicit refresh updates the loaded client list. Identical background reads retain the actual controls, expanded basis, text selection and scroll position. Changed or expired reasoning still disappears. No background scan runs while the assistant is closed.
 
