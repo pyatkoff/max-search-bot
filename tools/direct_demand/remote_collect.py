@@ -27,14 +27,14 @@ from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHand
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 REPOSITORY = 'pyatkoff/yandex-direct-autopilot'
 LOGIN = 'anytour2024tp'
-CAMPAIGN_IDS = (116302082, 116302526, 116773442, 116862972, 116862975, 116862986, 116999383, 116999391, 116999395, 117002963, 119230848, 119232872, 119232873, 119607403, 710098637, 710099107, 710100086, 710140850, 710140851, 710149159, 710149160, 710149161, 710149162, 710149163, 710149164, 710156106, 710156162, 710165291, 710165327, 710171114, 710171115, 710183948, 710187715, 710283666, 710320185, 710737601, 710737605, 710737978, 710741085, 710753136, 710759897, 710764850, 710776420, 710776422, 710793156, 710793157, 710874696, 710895331, 713216424, 713231029, 713555035, 713747091, 713757657, 713759213, 713759214, 714260445, 714320748, 715091398, 715091443, 715096911, 715109284, 715137003, 715137014, 715331883)  # Parent fills verified search-active IDs from the account inventory.
+CAMPAIGN_IDS = (713555035, 713747091, 713757657, 713759213, 713759214, 714260445, 714320748, 715091398, 715091443, 715096911, 715109284, 715137003, 715137014, 715331883)
 FIRST = '2026-09-23'
 LAST = '2026-10-22'
 BASE = 'https://api.direct.yandex.com/json/v501/'
 FIELDS = ('Date', 'CampaignId', 'AdGroupId', 'AdId', 'Query', 'Impressions', 'Clicks', 'Cost')
-PAGE_SIZE = 20000
+PAGE_SIZE = 50000
 MAX_ROWS = 1000000
-MAX_RESPONSE = 16 * 1024 * 1024
+MAX_RESPONSE = 32 * 1024 * 1024
 TOTAL_SECONDS = 840
 ENV_NAMES = {'YANDEX_OAUTH_TOKEN', 'YANDEX_DIRECT_CLIENT_LOGIN', 'READ_ONLY', 'YANDEX_DIRECT_SANDBOX'}
 NULLS = {'', '--'}
@@ -311,7 +311,7 @@ class API:
         fail('API_RETRY_EXHAUSTED')
 
 
-BATCH_SIZE = 25
+BATCH_SIZE = 1
 
 
 def emit(kind, **data):
@@ -380,8 +380,10 @@ def collect_batches(api, state):
                 body, request_id = api.post('reports', {'params': params}, report=True)
                 rows = parse_tsv(body, set(ids), FIRST, LAST)
                 keys = {tuple(row[field] for field in FIELDS[:5]) for row in rows}
-                if len(keys) != len(rows) or keys.intersection(previous_keys):
-                    fail('DUPLICATE_OR_DRIFTING_REPORT_PAGE')
+                if len(keys) != len(rows):
+                    fail('DUPLICATE_KEYS_WITHIN_REPORT_PAGE')
+                if keys.intersection(previous_keys):
+                    fail('OVERLAPPING_REPORT_PAGES')
                 # Permit an empty cap probe; reject a nonempty page past the total cap.
                 if state['row_count'] + len(rows) > MAX_ROWS:
                     fail('TOTAL_ROW_LIMIT_REACHED')
@@ -419,9 +421,10 @@ def main():
                 'configuration_scope': 'CAMPAIGNS_GET_FIELDS_ONLY_PORTFOLIO_POINTERS_NOT_RESOLVED',
                 'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
                 'page_size': PAGE_SIZE, 'batch_size': BATCH_SIZE, 'max_rows': MAX_ROWS,
-                'scope': 'INVENTORY_DERIVED_CAMPAIGNS_WITH_SEARCH_ACTIVITY',
+                'scope': 'REPAIR_OF_INCOMPLETE_BATCH_ONLY',
                 'query_network_type': 'SEARCH', 'report_type': 'SEARCH_QUERY_PERFORMANCE_REPORT',
-                'pagination_not_atomic_snapshot': True}
+                'pagination_not_atomic_snapshot': True,
+                'repair_of': {'run_id': 39858358002, 'batch_index': 2, 'parent_report_sha256': 'af062c635b45167b9dd8af06a0e2b275be06f45365686e8f94e21d50cb5c1c19', 'discarded_partial_rows': 60000}}
     emit('header', **metadata)
     state = {'status': 'FAILED', 'row_count': 0, 'batches': [], 'problems': [],
              'config_before': None, 'config_after': None, 'config_unchanged': None}

@@ -87,16 +87,16 @@ def consolidate(stream):
                         and all(type(v) is int and v > 0 for v in ids), 'STREAM_SCOPE_MALFORMED')
                 require(header.get('client_login') == 'anytour2024tp' and header.get('read_only') is True
                         and header.get('production_changes') is False, 'STREAM_AUTHORITY_MISMATCH')
-                require(type(header.get('page_size')) is int and 1 <= header['page_size'] <= 20000,
+                require(type(header.get('page_size')) is int and 1 <= header['page_size'] <= 50000,
                         'STREAM_PAGE_LIMIT_MALFORMED')
-                require(header.get('batch_size') == 25 and header.get('max_rows') == MAX_ROWS,
+                require(header.get('batch_size') == 1 and header.get('max_rows') == MAX_ROWS,
                         'STREAM_LIMIT_CONTRACT_MISMATCH')
                 first, last = header.get('date1'), header.get('date2')
                 require(isinstance(first, str) and isinstance(last, str)
                         and date.fromisoformat(first).isoformat() == first
                         and date.fromisoformat(last).isoformat() == last and first <= last,
                         'STREAM_PERIOD_MALFORMED')
-                expected_batches = [ids[i:i + 25] for i in range(0, len(ids), 25)]
+                expected_batches = [ids[i:i + 1] for i in range(0, len(ids), 1)]
                 campaign_rows = {str(cid): 0 for cid in ids}
                 continue
             if kind == 'configuration':
@@ -189,7 +189,7 @@ def consolidate(stream):
         result['status'] = 'PARTIAL' if raw_rows else 'FAILED'
     pagination_complete = bool(not problems and summary and summary.get('status') == 'COLLECTED')
     result['coverage'] = {
-        'scope': 'INVENTORY_DERIVED_CAMPAIGNS_WITH_SEARCH_ACTIVITY',
+        'scope': 'REPAIR_OF_INCOMPLETE_BATCH_ONLY',
         'pagination_complete': pagination_complete, 'data_complete': pagination_complete,
         'all_market_queries': False,
         'pagination_not_atomic_snapshot': True, 'batches': batches,
