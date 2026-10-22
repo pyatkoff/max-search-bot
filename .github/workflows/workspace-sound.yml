@@ -56,7 +56,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify the prepared native runtime
-        run: node /opt/manager2-qa/verify-runtime.js --require-source
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Sound controller unit regression
         run: node tests/notification-sound/client.unit.js
       - name: Read-only authentication bootstrap regression
