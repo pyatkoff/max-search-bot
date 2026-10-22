@@ -223,6 +223,7 @@ class API:
     def __init__(self, token, deadline):
         self.deadline = deadline
         self.calls = 0
+        self.errors = []
         self.headers = {'Authorization': 'Bearer ' + token, 'Client-Login': LOGIN,
                         'Accept-Language': 'ru', 'Content-Type': 'application/json; charset=utf-8'}
         self.opener = build_opener(ProxyHandler({}), HTTPSHandler(context=ssl.create_default_context()), NoRedirect())
@@ -288,6 +289,13 @@ class API:
                     delay = 5
                 self.wait(delay)
                 continue
+            try:
+                error = json.loads(body.decode('utf-8-sig')).get('error', {})
+                detail = str(error.get('error_detail', ''))[:500]
+                detail = detail.replace(self.headers['Authorization'].removeprefix('Bearer '), '[REDACTED]')
+                self.errors.append({'service': service, 'http_status': status, 'code': error.get('error_code'), 'detail': detail})
+            except (UnicodeError, ValueError, AttributeError, TypeError):
+                self.errors.append({'service': service, 'http_status': status, 'code': 'NON_JSON_ERROR'})
             fail('API_READ_REJECTED')
         fail('API_RETRY_EXHAUSTED')
 
@@ -406,6 +414,7 @@ def main():
               'client_login': LOGIN, 'campaign_ids': list(CAMPAIGNS), 'date1': FIRST, 'date2': LAST,
               'read_only': True, 'production_changes': False, 'server_files_written': False,
               'database_opened': False, 'conversions_requested': False,
+              'configuration_scope': 'CAMPAIGNS_GET_FIELDS_ONLY_PORTFOLIO_POINTERS_NOT_RESOLVED',
               'cost_basis': 'ACCOUNT_CURRENCY_EXCLUDING_VAT_NOT_MICROS',
               'coverage': {'campaigns': [], 'pagination_complete': False,
                            'all_market_queries': False, 'includes_current_calendar_day': True,
@@ -441,6 +450,7 @@ def main():
         signal.alarm(0)
     output['finished_at_utc'] = stamp()
     output['http_attempts'] = api.calls if api else 0
+    output['api_errors'] = api.errors if api else []
     output['row_count'] = len(output['raw_rows'])
     output['elapsed_seconds'] = round(time.monotonic() - started, 2)
     output['problems'] = sorted(set(output['problems']))
