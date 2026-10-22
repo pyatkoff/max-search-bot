@@ -293,9 +293,10 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
 (function supervisorAnalyticsCases(){
   const shell=execFileSync('php',['manager2/analytics.php'],{cwd:sourceRoot,encoding:'utf8'});
   const scope={project_id:1,project_key:'anytour',display_name:'AnyTour',version:1,include_unsourced:false,sources:[{id:11,name:'Основной источник',channel:'telegram'}]};
-  const result=(offset=0)=>({ok:true,as_of:'2026-10-22T10:00:00Z',mode:'started',metric:'all',totals:{conversations:206,assigned:205,waiting:155,requested:205,replied:103,continued:52,ready_candidates:7,won:1,lost:0,recorded_stage:1},first_reply:{n:103,p50_seconds:60,p95_seconds:120},by_manager:[{manager_id:9,manager_name:'Ответственный менеджер',conversations:206,waiting:155,replied:103,reply_n:103}],period_events:{requests:206,assignments:205,reply_messages:104,reply_conversations:104,delivery_failures:1},rows:Array.from({length:offset?50:50},(_,i)=>({id:1205-offset-i,display_name:'Синтетический клиент '+(offset+i+1),channel:'telegram',manager_id:9,manager_name:'Ответственный менеджер',first_reply_at:i%2?'2026-10-22T10:00:00Z':null,first_reply_seconds:i%2?60:null,first_reply_manager_id:i%2?7:null})),has_more:offset<150,next_cursor:1156-offset});
+  const allResult=(offset=0)=>({ok:true,access_revision:'1'.repeat(64),as_of:'2026-10-22T10:00:00Z',mode:'started',metric:'all',totals:{conversations:206,assigned:205,waiting:155,requested:205,replied:103,continued:52,ready_candidates:7,won:1,lost:0,recorded_stage:1},first_reply:{n:103,p50_seconds:60,p95_seconds:120},by_manager:[{manager_id:9,manager_name:'Ответственный менеджер',conversations:206,waiting:155,replied:103,reply_n:103}],period_events:{requests:206,assignments:205,reply_messages:104,reply_conversations:104,delivery_failures:1},rows:Array.from({length:offset?50:50},(_,i)=>({id:1205-offset-i,display_name:'Синтетический клиент '+(offset+i+1),channel:'telegram',manager_id:9,manager_name:'Ответственный менеджер',first_reply_at:i%2?'2026-10-22T10:00:00Z':null,first_reply_seconds:i%2?60:null,first_reply_manager_id:i%2?7:null})),has_more:offset<150,next_cursor:1156-offset});
+  const result=(offset=0,manager=0)=>{const r=allResult(offset);if(!manager)return r;return {...r,totals:{conversations:55,assigned:55,waiting:15,requested:55,replied:23,continued:12,ready_candidates:2,won:0,lost:0,recorded_stage:0},first_reply:{n:23,p50_seconds:60,p95_seconds:120},by_manager:[{manager_id:9,manager_name:'Ответственный менеджер',conversations:55,waiting:15,replied:23,reply_n:23}],rows:Array.from({length:offset?5:50},(_,i)=>({...r.rows[i],id:2205-offset-i,display_name:'Клиент команды B '+(offset+i+1)})),has_more:offset===0,next_cursor:offset?null:2156}};
   async function setup(page,{admin=false}={}){
-    const calls=[],errors=[],unexpected=[];let mode='success',grant=null;
+    const calls=[],errors=[],unexpected=[],held=[];let mode='success',grant=null;
     page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',async route=>{
       const req=route.request(),url=new URL(req.url());const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify({viewer_id:4,...body})});
       if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
@@ -310,18 +311,19 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
       expect(d.csrf).toBe('synthetic-csrf');
       if(d.action==='scope')return json({ok:true,scopes:[scope],managers:[{id:9,name:'Ответственный менеджер'}]});
       if(d.action==='analytics'){
-        if(mode==='wait')return;
+        if(mode==='hold'){mode='success';held.push(()=>json(result(d.cursor?50:0,Number(d.manager_id))));return}
         if(mode==='account')return json({...result(),viewer_id:9});
+        if(mode==='scope')return json({...result(d.cursor?50:0,Number(d.manager_id)),access_revision:'2'.repeat(64)});
         if(mode==='denied')return json({ok:false,error:'forbidden'},403);
         if(mode==='error')return json({ok:false,error:'analytics_unavailable'},503);
         if(mode==='empty')return json({...result(),totals:Object.fromEntries(Object.keys(result().totals).map(k=>[k,0])),rows:[],by_manager:[],has_more:false,next_cursor:null});
-        return json(result(d.cursor?50:0));
+        return json(result(d.cursor?50:0,Number(d.manager_id)));
       }
       if(d.action==='directory')return json({ok:true,projects:[{id:1,display_name:'AnyTour'}],managers:[{id:4,project_id:1,login:'synthetic-manager',display_name:'Руководитель'}],sources:[{id:11,project_id:1,display_name:'Основной источник'}],grants:grant?[grant]:[]});
       if(d.action==='set'){grant={manager_id:d.manager_id,project_id:d.project_id,enabled:Number(d.enabled),include_unsourced:Number(d.include_unsourced),source_ids:d.source_ids,version:1};return json({ok:true,...grant})}
       unexpected.push(d.action);return json({ok:false,error:'unexpected'},400);
     });
-    await page.goto(origin+'/manager2/analytics.php');await expect(page.locator('#analyticsStatus')).toHaveText('Готово.');return {calls,errors,unexpected,setMode:v=>mode=v};
+    await page.goto(origin+'/manager2/analytics.php');await expect(page.locator('#analyticsStatus')).toHaveText('Готово.');return {calls,errors,unexpected,setMode:v=>mode=v,releaseHeld:async()=>{for(const send of held.splice(0))await send()}};
   }
   for(const v of [{width:390,height:844},{width:430,height:844},{width:768,height:844},{width:1440,height:844},{width:390,height:420}])test('Supervisor analytics complete totals, readonly pages and responsive states '+v.width+'x'+v.height,async({page,browserName})=>{
     await page.setViewportSize(v);const s=await setup(page);await expect(page.locator('#analyticsTotals')).toContainText('206');await expect(page.locator('#analyticsRows .dialogue')).toHaveCount(50);await expect(page.locator('#analyticsLatency')).toContainText('N = 103');
@@ -330,6 +332,14 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
     s.setMode('empty');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('данных нет');await expect(page.locator('#analyticsMore')).toBeHidden();
     s.setMode('error');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('Не удалось');await expect(page.locator('#analyticsReport')).toBeHidden();
     s.setMode('denied');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsStatus')).toContainText('отозван');await expect(page.locator('#analyticsApp')).toBeHidden();expect(s.calls.some(c=>['send','take','generate','validate','decision','set'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+  });
+  test('Supervisor analytics keeps edited filters and late pages out of the applied cohort',async({page})=>{
+    const s=await setup(page);const rows=page.locator('#analyticsRows .dialogue'),more=page.locator('#analyticsMore'),manager=page.locator('[name=manager_id]'),show=page.getByRole('button',{name:'Показать',exact:true});
+    s.setMode('scope');await more.click();await expect(page.locator('#analyticsReport')).toBeHidden();await expect(rows).toHaveCount(0);await expect(page.locator('#analyticsStatus')).toContainText('Область доступа изменилась');await show.click();await expect(rows).toHaveCount(50);await more.click();await expect(rows).toHaveCount(100);s.setMode('success');
+    await manager.selectOption('9');await expect(page.locator('#analyticsReport')).toBeHidden();await expect(more).toBeHidden();await expect(page.locator('#analyticsStatus')).toContainText('Фильтры изменены');const beforeApply=s.calls.filter(c=>c.action==='analytics').length;expect(s.calls.filter(c=>c.action==='analytics').at(-1).manager_id).toBe(0);
+    await show.click();await expect(rows).toHaveCount(50);expect(s.calls.filter(c=>c.action==='analytics').length).toBe(beforeApply+1);await expect(page.locator('#analyticsTotals .metric strong').first()).toHaveText('55');await more.click();await expect(rows).toHaveCount(55);await expect(rows.first()).toContainText('команды B');expect(s.calls.filter(c=>c.action==='analytics').at(-1)).toMatchObject({manager_id:9,cursor:2156});
+    await manager.selectOption('0');await show.click();await expect(rows).toHaveCount(50);s.setMode('hold');await more.click();await expect.poll(()=>s.calls.filter(c=>c.action==='analytics').at(-1)?.cursor).toBe(1156);
+    await manager.selectOption('9');await show.click();await expect(rows).toHaveCount(50);await more.click();await expect(rows).toHaveCount(55);const late=page.waitForResponse(r=>r.request().method()==='POST'&&r.request().postDataJSON()?.action==='analytics'&&r.request().postDataJSON()?.cursor===1156);await s.releaseHeld();await (await late).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(resolve)));await expect(rows).toHaveCount(55);await expect(page.locator('#analyticsTotals .metric strong').first()).toHaveText('55');await expect(rows.last()).toContainText('команды B');await expect(more).toBeHidden();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
   });
   test('Supervisor analytics never renders a different logged-in account response',async({page})=>{
     const s=await setup(page);s.setMode('account');await page.getByRole('button',{name:'Показать',exact:true}).click();await expect(page.locator('#analyticsApp')).toBeHidden();await expect(page.locator('#analyticsRows .dialogue')).toHaveCount(0);await expect(page.locator('#analyticsLogin')).toBeVisible();expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);

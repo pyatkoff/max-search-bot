@@ -172,7 +172,7 @@ final class ManagerTourSelectionDeliveryService
         return $row;
     }
     private static function photoUrl(int $conversation,string $id,int $card,int $photo): string {return 'tour-selection-photo.php?'.http_build_query(['conversation_id'=>$conversation,'publication_id'=>$id,'card'=>$card,'photo'=>$photo]);}
-    private static function imageKey(int $offer): string {return substr(hash('sha256','tour-offer:'.$offer),0,32);}
+    private static function imageKey(int $offer): string {return TourSelectionPhotoStore::offerKey($offer);}
     private static function lock(PDO $pdo): string {return $pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' FOR UPDATE':'';}
     private static function begin(PDO $pdo): void {if ($pdo->inTransaction()) throw new LogicException('Selection delivery owns its transaction');$pdo->beginTransaction();}
     private static function json(array $data): string {return json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}

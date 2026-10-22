@@ -74,7 +74,7 @@ final class ManagerDialogueAnalyticsService
             $pdo->commit();$started=false;
             // Do not return an earlier permission snapshot after revoke/account/project/source changes.
             if($scopes!==ManagerSupervisorAccessService::scopes($actor))return ['ok'=>false,'error'=>'forbidden'];
-            return ['ok'=>true,'as_of'=>$now.'Z','timezone'=>'Europe/Moscow','period'=>['from'=>$filters['from'],'to'=>$filters['to'],'start_utc'=>$startUtc,'end_exclusive_utc'=>$endUtc],
+            return ['ok'=>true,'access_revision'=>hash('sha256',json_encode($scopes,JSON_THROW_ON_ERROR)),'as_of'=>$now.'Z','timezone'=>'Europe/Moscow','period'=>['from'=>$filters['from'],'to'=>$filters['to'],'start_utc'=>$startUtc,'end_exclusive_utc'=>$endUtc],
                 'mode'=>$mode,'metric'=>$metric,'totals'=>$totals,'first_reply'=>$percentiles,'by_manager'=>$byManager,
                 'period_events'=>['requests'=>(int)$requests['n'],'assignments'=>(int)$assignments['n'],'reply_messages'=>(int)$replies['n'],'reply_conversations'=>(int)$replies['conversations'],'delivery_failures'=>(int)$failures['n']],
                 'stages'=>$stageRows,'coverage'=>['population'=>'all_authorized_non_test_conversations','ai'=>'latest_ttl_instruction_candidates_only_full_revision_checked_on_open','verified_fresh_ai'=>null],

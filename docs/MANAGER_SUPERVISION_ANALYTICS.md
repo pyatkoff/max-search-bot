@@ -111,6 +111,11 @@ project/source/channel scope. Explicit tests and fixed owner demos are excluded.
 - Aggregates/group totals cover the whole allowed cohort. Drilldown pages use a
   descending conversation-ID keyset,50rows and explicit continuation. Each request
   is a fresh authorized snapshot; concurrent live changes are not a frozen export.
+- Editing any filter invalidates the visible report and its continuation until
+  Show is applied. Each request is bound to the applied filter/metric signature;
+  a late page from the previous cohort cannot append rows or update its timestamp. Access
+  revision is also pinned; a changed grant/source scope clears earlier rows and
+  requires a fresh first page. Same-scope continuation refreshes aggregate counts.
 
 ## Acceptance
 
