@@ -62,7 +62,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 5
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
@@ -156,7 +156,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     # Whole-spec parts run on isolated runners. Preserve workers=1 within each
     # part because the fixtures share ports and output names inside that job.
     timeout-minutes: 25
@@ -211,7 +211,7 @@ jobs:
         run: node tools/manager2_visual_shards.js inventory "${{ matrix.browser }}" "${{ matrix.part }}"
 
       - name: Start static server
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
         run: |
           set -euo pipefail
           grep -q 'workspace-v2-mobile.css' tests/visual/workspace-v2-fixture.html
@@ -240,7 +240,7 @@ jobs:
 
       - name: Capture responsive screenshots
         if: matrix.browser == 'chromium' && matrix.part == 0
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
         run: |
           set -euo pipefail
           mkdir -p visual-artifacts
@@ -380,7 +380,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 8
     env:
       QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
@@ -391,7 +391,7 @@ jobs:
       - name: Verify the prepared native runtime
         run: node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Start isolated history fixture server
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
         run: |
           set -euo pipefail
           python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/firefox-history-server.log" 2>&1 &
@@ -428,7 +428,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 8
     env:
       QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
@@ -439,7 +439,7 @@ jobs:
       - name: Verify the prepared native runtime
         run: node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Start isolated static fixture server
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
         run: |
           set -euo pipefail
           python3 -m http.server 4173 --bind 127.0.0.1 > "$RUNNER_TEMP/firefox-notifications-server.log" 2>&1 &
@@ -533,7 +533,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 8
     strategy:
       fail-fast: false
@@ -576,7 +576,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 25
     strategy:
       fail-fast: false

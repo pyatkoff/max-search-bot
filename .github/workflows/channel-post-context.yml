@@ -46,7 +46,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 12
     strategy:
       fail-fast: false

@@ -29,7 +29,7 @@ jobs:
       options: --init --shm-size=1g
     defaults:
       run:
-        shell: "/opt/manager2-qa/run {0}"
+        shell: "bash /opt/manager2-qa/run {0}"
     timeout-minutes: 12
     env:
       QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a

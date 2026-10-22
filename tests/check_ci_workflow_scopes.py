@@ -85,7 +85,7 @@ for name,jobs in native_jobs.items():
         steps=job['steps']
         checkout=next(i for i,s in enumerate(steps) if s.get('uses')=='actions/checkout@v4')
         check(steps[checkout+1].get('run')=='node /opt/manager2-qa/verify-runtime.js --require-source',name+'/'+job_name+' must verify the actual runtime immediately after checkout')
-        check(all(s.get('shell',job['defaults']['run']['shell'])=='/opt/manager2-qa/run {0}' for s in steps if 'run' in s),name+'/'+job_name+' cannot bypass the prepared native shell')
+        check(all(s.get('shell',job['defaults']['run']['shell'])=='bash /opt/manager2-qa/run {0}' for s in steps if 'run' in s),name+'/'+job_name+' cannot bypass the prepared native shell')
         check(not any(s.get('uses','').startswith(('actions/setup-node@','shivammathur/setup-php@','actions/cache@')) for s in steps),name+'/'+job_name+' must not provision another runtime/cache')
         commands='\n'.join(s.get('run','') for s in steps)
         check(not any(command in commands for command in ['apt-get','npm install','npm ci','playwright install']),name+'/'+job_name+' must not reinstall OS/browser/packages')
