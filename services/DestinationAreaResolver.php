@@ -46,7 +46,7 @@ class DestinationAreaResolver
     public static function infer($text)
     {
         $destinationText = self::destinationPart((string)$text);
-        $tokens = self::tokens($destinationText);
+        $tokens = self::inferenceTokens($destinationText);
         if (!$tokens) return null;
 
         foreach ($tokens as $token) {
@@ -127,6 +127,59 @@ class DestinationAreaResolver
         }
 
         return $text;
+    }
+
+    /**
+     * Area inference is a pre-application helper, not the owner of dialogue intent.
+     * Keep the existing catalog heuristic for positive/bare destination evidence,
+     * but do not turn an exclusion or a neutral question into canonical geography.
+     */
+    private static function inferenceTokens($text)
+    {
+        $text = trim((string)$text);
+        $tokens = self::tokens($text);
+        if (!$tokens) return [];
+
+        $norm = self::intentNorm($text);
+        if (preg_match('/[?？]\s*$/u', $text)
+            && !preg_match('/(?:^|\s)(?:хочу|хотим|давайте|выбираю|выбираем|нужен|нужна|нужно|тогда|теперь|лучше|поедем|летим|интересует)(?:\s|$)/u', $norm)) {
+            return [];
+        }
+
+        $intentNoise = ['давайте','только','теперь','тогда','выбираю','выбираем'];
+        $out = [];
+        foreach ($tokens as $token) {
+            if (in_array($token, $intentNoise, true)) continue;
+            if (self::isNegatedAreaToken($norm, $token)) continue;
+            $out[] = $token;
+        }
+        return array_values($out);
+    }
+
+    private static function isNegatedAreaToken($normText, $token)
+    {
+        $token = self::intentNorm((string)$token);
+        if ($token === '') return false;
+        $quoted = preg_quote($token, '/');
+
+        return (bool)preg_match(
+            '/(?:^|\s)(?:только\s+)?не(?:\s+(?:хочу|хотим|нужен|нужна|нужно))?(?:\s+(?:в|на))?\s+' . $quoted . '(?:\s|$)/u',
+            $normText
+        ) || (bool)preg_match(
+            '/(?:^|\s)(?:кроме|исключить|исключите|исключаем)(?:\s+(?:в|на))?\s+' . $quoted . '(?:\s|$)/u',
+            $normText
+        ) || (bool)preg_match(
+            '/(?:^|\s)' . $quoted . '\s+(?:не\s+(?:хочу|хотим|подходит|нужен|нужна|нужно))(?:\s|$)/u',
+            $normText
+        );
+    }
+
+    private static function intentNorm($text)
+    {
+        $s = function_exists('mb_strtolower') ? mb_strtolower((string)$text, 'UTF-8') : strtolower((string)$text);
+        $s = str_replace('ё', 'е', $s);
+        $s = preg_replace('/[^a-zа-я0-9]+/ui', ' ', $s);
+        return trim(preg_replace('/\s+/u', ' ', (string)$s));
     }
 
     private static function getCountry($cid)
