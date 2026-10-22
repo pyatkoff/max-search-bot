@@ -25,6 +25,8 @@ final class PreparedReplyPdo extends PDO
     public int $cacheWrites = 0;
     public array $executed = [];
     public ?Closure $beforeCursorUpdate = null;
+    public ?Closure $beforeRetire = null;
+    public bool $failSnapshotOnce = false;
 
     public function __construct()
     {
@@ -62,6 +64,8 @@ final class PreparedReplyPdo extends PDO
         if ($this->beforeCursorUpdate !== null && str_starts_with($sql, 'UPDATE manager_preparation_cursors SET')) {
             $callback=$this->beforeCursorUpdate; $this->beforeCursorUpdate=null; $callback($this);
         }
+        if ($this->failSnapshotOnce && preg_match('/\bFROM messages\b/i',$sql)){$this->failSnapshotOnce=false;throw new RuntimeException('synthetic_snapshot_failure');}
+        if ($this->beforeRetire !== null && str_contains($sql,"WHERE job_id=? AND status='pending' AND context_revision=")){$callback=$this->beforeRetire;$this->beforeRetire=null;$callback($this);}
         $this->executed[] = $sql;
         if (preg_match('/\A\s*SELECT\b/i', $sql)) return;
         if ($this->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql'
@@ -228,7 +232,7 @@ function preparedReplyCoverage(): void
     }
     $ids = array_map('intval',$pdo->query('SELECT conversation_id FROM manager_prepared_replies ORDER BY conversation_id')->fetchAll(PDO::FETCH_COLUMN));
     preparedReplyCheck('all68eligible clients eventually enter existingqueue without repeated fresh jobs', $ids===array_merge(range(1001,1045),range(2001,2009),range(3001,3014)));
-    preparedReplyCheck('rotation uses only3versioned projectcursor rows', (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_cursors')->fetchColumn()===3 && (int)$pdo->query('SELECT MIN(version) FROM manager_preparation_cursors')->fetchColumn()===8);
+    preparedReplyCheck('rotation preserves three collection cursors plus one bounded verification cursor', (int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_cursors')->fetchColumn()===4 && (int)$pdo->query("SELECT COUNT(*) FROM manager_preparation_cursors WHERE lane IN ('waiting','due','active')")->fetchColumn()===3 && (int)$pdo->query('SELECT MIN(version) FROM manager_preparation_cursors')->fetchColumn()===8);
     preparedReplyCheck('coverage does not change tasks,messages,assignment,readmarkers or businessdata', preparedReplySourceState($pdo)===$before && $pdo->sourceWriteAttempts===0);
 
     // Old ordinary work must not hide a later unanswered enquiry or due reminder.
@@ -330,10 +334,88 @@ function preparedReplyCoverage(): void
     preparedReplyCheck('new conditions invalidate no_contact rather than creating permanent exclusion', ($fresh['inserted']??0)===1 && ($fresh['job_ids'][0]??'')!==$job);
 }
 
+function preparedReplyReferenceRecovery(): void
+{
+    $catalog=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $catalog->sqliteCreateFunction('UNIX_TIMESTAMP',static fn(string $value):int=>(int)strtotime($value.' UTC'),1);
+    $catalog->exec("CREATE TABLE catalog_departures(id INTEGER PRIMARY KEY,name TEXT,name_genitive TEXT,is_active INTEGER); CREATE TABLE catalog_countries(id INTEGER PRIMARY KEY,name TEXT,is_active INTEGER); INSERT INTO catalog_departures VALUES(1,'Москва','Москвы',1); INSERT INTO catalog_countries VALUES(4,'Турция',1)");
+    foreach(['catalog_departure_countries','catalog_departure_countries_direct','catalog_departure_countries_charter','catalog_departure_countries_direct_charter'] as $table){
+        $catalog->exec("CREATE TABLE {$table}(departure_id INTEGER,country_id INTEGER,is_active INTEGER,synced_at TEXT)");
+        $catalog->prepare("INSERT INTO {$table} VALUES(1,4,1,?)")->execute([gmdate('Y-m-d H:i:s',time()-120)]);
+    }
+    (new ReflectionProperty(HotelDatabase::class,'pdo'))->setValue(null,$catalog);
+    try{
+        $pdo=preparedReplyFixture();$snapshot=preparedReplySnapshot();$old=preparedReplyQueue($snapshot);
+        $before=preparedReplySourceState($pdo);
+        foreach(['catalog_departure_countries','catalog_departure_countries_direct','catalog_departure_countries_charter','catalog_departure_countries_direct_charter'] as $table)$catalog->exec("UPDATE {$table} SET synced_at='".gmdate('Y-m-d H:i:s',time()-60)."'");
+        $current=preparedReplySnapshot();
+        preparedReplyCheck('catalog sync changes full revision without changing latest message', $current['latest_message_id']===$snapshot['latest_message_id']&&$current['revision']!==$snapshot['revision']);
+        preparedReplyCheck('old nonexpired reference job context and save remain rejected', (ManagerPreparedReplyService::context($old)['error']??'')==='stale_context'&&(ManagerPreparedReplyService::complete($old,$snapshot['revision'],preparedReplyProposal())['error']??'')==='stale_context');
+        // Ordinary collector starts AFTER the affected client; new enquiries must
+        // not be required to revisit it before pending capacity is reconciled.
+        $pdo->mutate("INSERT INTO manager_preparation_cursors VALUES('anytour','waiting',101,1),('anytour','due',101,1),('anytour','active',101,1)");
+        $pdo->guard=false;
+        foreach(range(201,225) as $id){
+            $pdo->prepare("INSERT INTO conversations SELECT ?,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=101")->execute([$id]);
+            $pdo->prepare("INSERT INTO messages SELECT ?,?,direction,sender_type,text,created_at,channel,metadata_json,sender_id,external_message_id FROM messages WHERE id=2")->execute([$id*10,$id]);
+        }
+        $pdo->guard=true;$before=preparedReplySourceState($pdo);
+        $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+        $ids=array_column(ManagerPreparedReplyService::pending(20)['jobs']??[],'job_id');
+        preparedReplyCheck('scheduled full revision reconciliation releases old inventory beforeTTL', ($pass['ok']??false)&&!in_array($old,$ids,true));
+        $q=$pdo->query("SELECT job_id FROM manager_prepared_replies WHERE conversation_id=101 AND status='pending' AND expires_at>='".gmdate('Y-m-d H:i:s',time()+1)."'");$fresh=$q->fetchColumn();
+        preparedReplyCheck('same client receives a different readable canonical job before its collector turn', is_string($fresh)&&$fresh!==$old&&(ManagerPreparedReplyService::context($fresh)['ok']??false));
+        preparedReplyCheck('reconciliation is bounded and does not mutate business source', ($pass['reconciliation']['checked']??0)===1&&($pass['reconciliation']['retired']??0)===1&&($pass['reconciliation']['renewed']??0)===1&&preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+    }finally{HotelDatabase::resetForTests();}
+}
+
+function preparedReplyReconciliationBoundaries(): void
+{
+    $pdo=preparedReplyFixture();preparedReplyQueue(preparedReplySnapshot());$pdo->guard=false;$old='';
+    foreach(range(201,221) as $id){
+        $pdo->prepare("INSERT INTO conversations SELECT ?,customer_id,project_key,source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=101")->execute([$id]);
+        $pdo->prepare("INSERT INTO messages SELECT ?,?,direction,sender_type,text,created_at,channel,metadata_json,sender_id,external_message_id FROM messages WHERE id=2")->execute([$id*10,$id]);
+        $snap=ManagerAiDraftContextService::snapshot($id,1);$queued=ManagerPreparedReplyService::enqueue([preparedReplyRow($snap,['conversation_id'=>$id])]);
+        if($id===221)$old=$queued['job_ids'][0];
+    }
+    $pdo->guard=true;$pdo->mutate("UPDATE messages SET text='Новые существенные условия' WHERE conversation_id=221");$before=preparedReplySourceState($pdo);
+    $first=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('valid prefix consumes only20 full validations in one scheduled pass',($first['reconciliation']['checked']??0)===20&&($first['reconciliation']['retired']??-1)===0);
+    preparedReplyCheck('first bounded validation does not claim whole pending coverage', (ManagerPreparedReplyService::context($old)['error']??'')==='stale_context');
+    $second=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('verification cursor reaches stale work behind20 current jobs beforeTTL', ($second['reconciliation']['checked']??0)===2&&($second['reconciliation']['retired']??0)===1&&($second['reconciliation']['renewed']??0)===1);
+    $q=$pdo->prepare("SELECT job_id FROM manager_prepared_replies WHERE conversation_id=221 AND expires_at>? AND status='pending'");$q->execute([gmdate('Y-m-d H:i:s')]);$new=$q->fetchColumn();
+    preparedReplyCheck('new full revision stays single readable work and old completion refused',is_string($new)&&$new!==$old&&(ManagerPreparedReplyService::context($new)['ok']??false)&&!(ManagerPreparedReplyService::context($old)['ok']??false));
+    $third=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('verification wraps through valid clients without renewing them',($third['reconciliation']['checked']??0)===20&&($third['reconciliation']['retired']??-1)===0&&($third['reconciliation']['renewed']??-1)===0);
+    preparedReplyCheck('rotating verification leaves every business table and readmarker unchanged', preparedReplySourceState($pdo)===$before&&$pdo->sourceWriteAttempts===0);
+
+    $pdo=preparedReplyFixture();$job=preparedReplyQueue(preparedReplySnapshot());$pdo->mutate('DELETE FROM manager_projects WHERE manager_id=1');$before=preparedReplySourceState($pdo);
+    $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    $q=$pdo->prepare('SELECT expires_at FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);
+    preparedReplyCheck('revoked work releases capacity without enqueuing under another owner',strtotime($q->fetchColumn().' UTC')<=time()&&(int)$pdo->query('SELECT COUNT(*) FROM manager_prepared_replies')->fetchColumn()===1&&preparedReplySourceState($pdo)===$before);
+
+    $pdo=preparedReplyFixture();$job=preparedReplyQueue(preparedReplySnapshot());$cache=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();$pdo->failSnapshotOnce=true;
+    $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('snapshot uncertainty defers rather than expiring a current job',($pass['ok']??false)&&($pass['reconciliation']['deferred']??0)===1&&($pass['reconciliation']['retired']??-1)===0&&$cache===$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll());
+
+    $pdo=preparedReplyFixture();$job=preparedReplyQueue(preparedReplySnapshot());$pdo->mutate("UPDATE messages SET text='Изменённые условия' WHERE id=2");
+    $before=$pdo->query('SELECT * FROM manager_prepared_replies')->fetch();$pdo->beforeRetire=static function(PreparedReplyPdo $pdo):void{$pdo->mutate("UPDATE manager_prepared_replies SET status='ready',proposal_json='synthetic immutable completion'");};
+    $pass=ManagerPreparedReplyService::collectAndEnqueue([1]);$q=$pdo->prepare('SELECT * FROM manager_prepared_replies WHERE job_id=?');$q->execute([$job]);$saved=$q->fetch();
+    preparedReplyCheck('concurrent ready completion is never retired or overwritten',($pass['reconciliation']['retired']??-1)===0&&$saved['status']==='ready'&&$saved['expires_at']===$before['expires_at']&&$saved['proposal_json']==='synthetic immutable completion');
+
+    $pdo=preparedReplyFixture();$snap=preparedReplySnapshot();$job=preparedReplyQueue($snap);$hold=preparedReplyProposal(['should_draft'=>false,'draft'=>null,'next_action'=>'no_contact','reason'=>'Ответ не требуется.']);
+    preparedReplyCheck('boundary no_contact completion is valid',ManagerPreparedReplyService::complete($job,$snap['revision'],$hold)['ok']);
+    $cache=$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll();$pass=ManagerPreparedReplyService::collectAndEnqueue([1]);
+    preparedReplyCheck('ready no_contact rows remain immutable and are not regenerated',($pass['reconciliation']['checked']??-1)===0&&$cache===$pdo->query('SELECT * FROM manager_prepared_replies')->fetchAll());
+}
+
 function preparedReplyRun(): void
 {
     global $preparedReplyPassed;
     $startedWith = $preparedReplyPassed;
+    preparedReplyReferenceRecovery();
+    preparedReplyReconciliationBoundaries();
 
     foreach (['telegram'=>1,'max'=>2] as $channel=>$internalId) {
         foreach (['pending','ready'] as $state) {

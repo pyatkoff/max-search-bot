@@ -78,7 +78,7 @@ final class ManagerPreparedReplyService
             if ($pdo->inTransaction()) return self::failure('queue_unavailable');
             $project = ProjectConfig::projectId();
             if (!self::project($project)) return self::failure('queue_unavailable');
-            $q = $pdo->prepare('SELECT lane,after_id,version FROM manager_preparation_cursors WHERE project_key=?');
+            $q = $pdo->prepare("SELECT lane,after_id,version FROM manager_preparation_cursors WHERE project_key=? AND lane IN ('waiting','due','active')");
             $q->execute([$project]);
             $states = [];
             foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -87,6 +87,7 @@ final class ManagerPreparedReplyService
                     || filter_var($row['version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) === false) return self::failure('queue_unavailable');
                 $states[$row['lane']] = ['after_id'=>(int)$row['after_id'],'version'=>(int)$row['version']];
             }
+            $reconciliation = self::reconcilePending($pdo, $project);
             $candidates = 0; $rows = []; $pages = [];
             $capture = static function(string $lane, int $limit, bool $wrap) use ($pdo,$managerIds,$capturedAtUtc,&$pages,&$states,&$candidates,&$rows): void {
                 $cursor = $pages[$lane]['next_cursor'] ?? $states[$lane]['after_id'] ?? 0;
@@ -125,8 +126,55 @@ final class ManagerPreparedReplyService
                     $q->execute([$page['next_cursor'],$project,$lane,$old['version']]);
                 }
             }
-            return ['ok'=>true,'candidate_count'=>$candidates,'exported_count'=>count($unique),'queue'=>$queued];
+            return ['ok'=>true,'candidate_count'=>$candidates,'exported_count'=>count($unique),'queue'=>$queued,'reconciliation'=>$reconciliation];
         } catch (Throwable $ignored) { return self::failure('queue_unavailable'); }
+    }
+
+    /** Scheduled queue maintenance only; full snapshots never run in Inbox/pending reads. */
+    private static function reconcilePending(PDO $pdo, string $project): array
+    {
+        $q=$pdo->prepare("SELECT after_id,version FROM manager_preparation_cursors WHERE project_key=? AND lane='verify'");
+        $q->execute([$project]);$cursor=$q->fetch(PDO::FETCH_ASSOC);
+        if ($cursor && (filter_var($cursor['after_id'],FILTER_VALIDATE_INT,['options'=>['min_range'=>0]])===false
+            || filter_var($cursor['version'],FILTER_VALIDATE_INT,['options'=>['min_range'=>1]])===false)) throw new RuntimeException('invalid_cursor');
+        $after=(int)($cursor['after_id']??0);$now=self::utc(time());
+        $read=static function(int $after) use($pdo,$project,$now): array {
+            $q=$pdo->prepare("SELECT * FROM manager_prepared_replies WHERE project_key=? AND status='pending' AND created_at<=? AND expires_at>? AND conversation_id>? ORDER BY conversation_id,job_id LIMIT ".self::MAX_BATCH);
+            $q->execute([$project,$now,$now,$after]);return $q->fetchAll(PDO::FETCH_ASSOC);
+        };
+        $rows=$read($after);if (!$rows && $after>0) $rows=$read(0);
+        $stats=['checked'=>0,'retired'=>0,'renewed'=>0,'deferred'=>0];$next=0;
+        foreach($rows as $row){
+            ++$stats['checked'];$next=(int)$row['conversation_id'];
+            if (!self::validRow($row)){++$stats['deferred'];continue;}
+            $snapshot=ManagerAiDraftContextService::preparationSnapshot((int)$row['conversation_id'],(int)$row['manager_id']);
+            $available=($snapshot['ok']??false)===true;
+            if (!$available && !in_array($snapshot['error']??'', ['unauthorized','not_found','reply_not_allowed','suspended','invalid_conversation_id'],true)){
+                // Storage/transport uncertainty is not proof of stale work.
+                ++$stats['deferred'];continue;
+            }
+            $sameProject=$available && self::projectFor($pdo,(int)$row['conversation_id'],(int)$row['manager_id'])===$project;
+            if ($sameProject && self::matches($snapshot,$row['context_revision'],(int)$row['latest_message_id'])
+                && hash_equals(self::instructionRevision(),$row['instruction_revision'])) continue;
+            // Never touch a ready result, newer binding or concurrent completion.
+            $q=$pdo->prepare("UPDATE manager_prepared_replies SET expires_at=? WHERE job_id=? AND status='pending' AND context_revision=? AND instruction_revision=? AND expires_at=?");
+            $q->execute([$now,$row['job_id'],$row['context_revision'],$row['instruction_revision'],$row['expires_at']]);
+            if ($q->rowCount()!==1) continue;
+            ++$stats['retired'];
+            if (!$sameProject) continue;
+            $renewed=self::enqueue([['conversation_id'=>(int)$row['conversation_id'],'manager_id'=>(int)$row['manager_id'],
+                'project_key'=>$project,'context_revision'=>$snapshot['revision'],'latest_message_id'=>$snapshot['latest_message_id']]],true);
+            if (empty($renewed['ok'])) throw new RuntimeException('reconciliation_failed');
+            $stats['renewed']+=(int)$renewed['inserted'];
+        }
+        if (!$cursor){
+            $ignore=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'INSERT IGNORE':'INSERT OR IGNORE';
+            $q=$pdo->prepare($ignore." INTO manager_preparation_cursors (project_key,lane,after_id,version) VALUES (?,'verify',?,1)");$q->execute([$project,$next]);
+        }else{
+            $q=$pdo->prepare("UPDATE manager_preparation_cursors SET after_id=?,version=version+1 WHERE project_key=? AND lane='verify' AND version=?");
+            $q->execute([$next,$project,(int)$cursor['version']]);
+        }
+        return $stats;
     }
 
     /** Worker inventory has no message text, customer identity, links or draft body. */

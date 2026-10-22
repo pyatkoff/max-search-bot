@@ -53,8 +53,8 @@ The existing subscription-gated cron collects at most20 candidates per pass thro
 `ManagerPreparedReplyService::collectAndEnqueue` and the canonical collector. It
 reserves10 places for clients awaiting a human reply,5 for arrived open tasks and5
 for other active assigned clients; unused places return to the busy lanes. Each
-lane progresses by conversation ID and wraps at its end. Three versioned private
-project cursor rows in migration050 preserve progress across cron invocations;
+lane progresses by conversation ID and wraps at its end. Three collection lanes and one `verify` lane reuse the versioned private
+project cursor rows from migration050 across cron invocations;
 compare-and-set prevents a slower overlapping pass from rewinding progress. This
 is scan metadata for the existing queue, not another generation or task store.
 Neither a bounded pass nor its counters claim that every client has fresh analysis.
@@ -112,9 +112,21 @@ passes share the active job and its original TTL. A validated unchanged
 source/context/instructions can establish new work. No result or frozen worker
 contract is overwritten, and an expired worker cannot complete the renewed job. Active pending inventory skips
 obvious owner/status/latest-message changes; fine-grained source access is checked
-again before exposing context or completing work. Stale or revoked jobs may remain
-private metadata until their bounded expiry. These are read-time checks, not a send
-reservation; the existing send path remains authoritative.
+again before exposing context or completing work. The same scheduled pass first validates at most20 active pending bindings against
+fresh canonical full snapshots (including reference/post/knowledge revisions,
+not merely latest message ID). Its separate rotating `verify` cursor advances
+past currently valid jobs and wraps; one limited pass is not full coverage.
+Confirmed obsolete/revoked pending rows release capacity through an exact-binding
+compare-and-set expiry. Ready results/concurrent completion remain immutable.
+Storage uncertainty defers validation rather than expiring by guess. A still
+permitted new revision enters only canonical enqueue with fresh access/revision
+rechecks and deterministic deduplication; source changes during that recheck may
+safely defer replacement to the ordinary collector. Unchanged no_contact is not
+regenerated. Counters distinguish checked, retired, inserted renewals and deferred.
+This bounded maintenance adds no schema, model call, worker claim or schedule.
+Pending/UI reads stay metadata-only; they do not hydrate all job contexts or write
+queue state. Old context/save refusals remain mandatory until reconciliation or
+expiry. These are not a send reservation; the existing send path remains authoritative.
 
 The worker reads each bounded canonical context separately and uses the exact
 server-owned instructions and approved knowledge facts returned with it. Unread
