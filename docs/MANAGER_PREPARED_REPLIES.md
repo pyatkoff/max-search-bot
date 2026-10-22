@@ -59,6 +59,17 @@ compare-and-set prevents a slower overlapping pass from rewinding progress. This
 is scan metadata for the existing queue, not another generation or task store.
 Neither a bounded pass nor its counters claim that every client has fresh analysis.
 
+The worker inventory preserves those priorities after collection. A normal20-job
+read reserves10 unanswered enquiries,5 arrived tasks and5 other active clients,
+then fills unused capacity from available lanes. Each lane remains oldest-first.
+Classification uses current genuine customer/manager messages and existing open,
+arrived, actual-owner tasks; callbacks/start events and future/completed/foreign
+tasks do not elevate work. Limits3–19 reserve at least one slot per lane; explicit
+limits1–2 retain global oldest-first progress because they cannot reserve all three.
+Three fixed bounded metadata reads return at most three times the requested limit,
+with no per-client query, context/photo load, job consumption or new priority store.
+All ordinary pending eligibility and later context/save fences remain in force.
+
 Preparation is not restricted to the former72-hour tail: an older waiting client,
 an arrived reminder or an answered active client can need fresh advice. Closed,
 self-service, test and exact internal-owner demo conversations remain excluded.
