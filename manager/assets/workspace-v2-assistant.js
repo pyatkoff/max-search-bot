@@ -140,7 +140,7 @@ function schedule(){clearTimeout(timer);if(!dialog?.open||!authenticated())retur
   async function openConversation(id){
     if(!authenticated())return false;
     if(protectTaskDraft())return false;
-    close();return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true});
+    close();return window.WorkspaceV2Conversation?.open(id,{preserveAttachment:true,preserveMessageScroll:true,preserveHistory:true});
   }
   function protectTaskDraft(){
     if(!window.WorkspaceV2Tasks?.blockNavigationForDirtyDraft?.())return false;

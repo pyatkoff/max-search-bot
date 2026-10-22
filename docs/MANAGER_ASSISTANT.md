@@ -4,6 +4,11 @@ The Manager2 rail opens one private assistant across the signed-in manager's act
 
 The feed pages by conversation ID (20 per page), independent of the Inbox's capped candidate set. Sorting and filters describe the loaded part of the feed. An absent or expired proposal means **no fresh analysis**, not that all work is complete. The existing preparation collector is not an analysis of every client. A `no_contact` result is displayed as waiting, with no automatic due date or new reminder.
 
+Returning from the assistant to the already-open conversation retains explicitly
+loaded older history through the canonical History/Conversation option. Existing
+message/media nodes, reading position and reply/File remain under those owners;
+opening another client still resets history and rechecks its access normally.
+
 Prepared proposals retain the canonical one-hour TTL and all content, instructions, knowledge, ownership and source/project visibility fences. Only the actual assigned manager sees recommendations, including when the viewer is an administrator. Opening a different client rechecks the current proposal. An open detail refreshes every 20 seconds, pausing while a deadline is being edited; explicit refresh updates the loaded client list. Identical background reads retain the actual controls, expanded basis, text selection and scroll position. Changed or expired reasoning still disappears. No background scan runs while the assistant is closed.
 
 `Выполнено`, `Неактуально` and `Вернуть в работу` change only private assistant decision metadata in migration048. Decisions are bound to the precise proposal and context, so a new analysis does not inherit an old dismissal. Compare-and-set state protects conflicting actions; an unknown response is reconciled by a read, never by automatically repeating a write.

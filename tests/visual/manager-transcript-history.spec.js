@@ -396,6 +396,30 @@ async function assertRetainedHistory(page,{before,draft},count=400){
  expect(await page.locator('#messages audio').evaluate(audio=>audio===window.retainedPlayingAudio&&!audio.paused&&audio.currentTime>=window.retainedAudioTime-.05)).toBe(true);
  await sameAnchor(page,before);
 }
+for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])test('assistant return retains loaded history, audio and reply '+width+'x'+height,async({page,browserName})=>{
+ const proof=await prepareRetainedHistory(page,{width,height}),{state}=proof;
+ const item={conversation_id:11,display_name:'Синтетический клиент А',channel:'max',last_message_at:'2026-10-14 08:00:00',tasks:[],recommendation:null},assistantReads=[];
+ await page.route('**/manager/assistant-api.php',async route=>{
+  const data=route.request().postDataJSON();assistantReads.push(data.action);expect(data.csrf).toBe('synthetic-history-csrf');
+  expect(['list','detail']).toContain(data.action);
+  await route.fulfill({contentType:'application/json',body:JSON.stringify(data.action==='list'?{ok:true,items:[item],has_more:false,next_cursor:null}:{ok:true,item})});
+ });
+ await page.evaluate(()=>window.assistantRetainedFile=document.getElementById('replyFile').files[0]);
+ const details=refreshDetails(state),older=olderDetails(state).length;
+ await screenshot(page,browserName,width,'assistant-return-before-'+height);
+ await page.locator('#assistantOpen').click();await page.locator('[data-assistant-client="11"]').click();
+ await expect(page.locator('#assistantDetail')).toContainText('Нет свежего разбора');
+ await page.locator('#assistantConversation').click();await expect(page.locator('#assistantDialog')).not.toBeVisible();await settled(page);
+ await expect(page.locator('#messages .msg')).toHaveCount(400);
+ await expect(page.locator('#replyText')).toHaveValue(proof.draft);await expect(page.locator('#replyText')).toBeEnabled();
+ await expect(page.locator('#mediaSelection')).toContainText('retained-history.txt');
+ expect(await page.evaluate(()=>document.getElementById('replyFile').files[0]===window.assistantRetainedFile&&document.querySelector('#messages [data-scroll-message-key="402"]')===window.retainedMessageRow)).toBe(true);
+ expect(await page.locator('#messages audio').evaluate(audio=>audio===window.retainedPlayingAudio&&!audio.paused&&audio.currentTime>=window.retainedAudioTime-.05)).toBe(true);
+ await sameAnchor(page,proof.before);expect(refreshDetails(state)).toBe(details+1);expect(olderDetails(state)).toHaveLength(older);
+ expect(assistantReads).toEqual(['list','detail']);await screenshot(page,browserName,width,'assistant-return-after-'+height);
+ await open(page,12);await expect(page.locator('#messages .msg')).toHaveCount(3);await expect(page.locator('#replyText')).toHaveValue('');
+ await expect(page.locator('#mediaSelection')).not.toContainText('retained-history.txt');clean(state);
+});
 for(const [width,height,outcome] of [[390,844,'500'],[430,844,'500'],[768,844,'500'],[1440,844,'500'],[390,420,'500'],...[403,404,'network','application','mismatched'].map(status=>[1440,844,String(status)])]){
  test('retained history survives failed target '+outcome+' at '+width+'x'+height,async({page,browserName})=>{
   const saved=await prepareRetainedHistory(page,{width,height}),{state}=saved,history=await page.evaluate(()=>WorkspaceV2History.getState()),details=refreshDetails(state),older=olderDetails(state).length;
