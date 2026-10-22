@@ -14,17 +14,44 @@ const OAUTH_PATHS = new Set([
 ]);
 const FIXTURE = 'tests/visual/fixtures/oauth-consent.js';
 const DOCUMENT = 'docs/MANAGER_PREPARED_REPLIES.md';
+// Existing component owners only. Shared auth, shell, callbacks, fixtures,
+// migrations and CI files deliberately cannot select this browser scope.
+const TOUR_SELECTION_PATHS = new Set([
+  'manager/assets/workspace-v2-tour-selection.js',
+  'manager/assets/workspace-v2-tour-selection.css',
+  'manager/tour-selections-api.php',
+  'manager/tour-selection-photo.php',
+  'selection/index.php', 'selection/photo.php', 'selection/view.php', 'selection/selection.css',
+  'services/ManagerTourSelectionService.php',
+  'services/ManagerTourSelectionPublicationDraft.php',
+  'services/ManagerTourSelectionDeliveryService.php',
+  'services/ManagerTourSelectionShareService.php',
+  'services/TourSelectionPhotoStore.php',
+  'tests/run_manager_tour_selection_regression.php',
+  'tests/run_manager_tour_delivery_regression.php',
+  'tests/run_manager_tour_share_regression.php',
+  'tests/support/manager-tour-selection.php',
+  'tests/visual/manager-tour-selection.spec.js',
+  'docs/MANAGER_TOUR_SELECTIONS.md',
+]);
+const TOUR_DOCUMENT = 'docs/MANAGER_TOUR_SELECTIONS.md';
+const TOUR_CI_PROOF_PATHS = new Set([
+  'tools/ci_change_scope.js', 'tools/verify_tour_selection_browser_report.js',
+  '.github/workflows/ci-change-scope.yml', '.github/workflows/workspace-v2-visual-qa.yml',
+]);
 const full = reason => ({ mode: 'full', reason });
 const regular = mode => mode === '100644' || mode === '100755';
 
 // Optional modes are supplied by the CLI's raw diff, never inferred from disk.
 function classifyChanges(changes) {
   if (!Array.isArray(changes) || changes.length === 0) return full('empty_changes');
+  const tour = changes.every(change => change && TOUR_SELECTION_PATHS.has(change.path));
+  const paths = tour ? TOUR_SELECTION_PATHS : OAUTH_PATHS;
   let hasCode = false;
   for (const change of changes) {
-    if (!change || !OAUTH_PATHS.has(change.path)) return full('outside_oauth_allowlist');
+    if (!change || !paths.has(change.path)) return full('outside_reviewed_allowlist');
     if (change.previousPath !== undefined) return full('rename_or_copy');
-    if (change.status !== 'M' && !(change.status === 'A' && change.path === FIXTURE)) {
+    if (change.status !== 'M' && !(change.status === 'A' && !tour && change.path === FIXTURE)) {
       return full('unsupported_change_status');
     }
     const hasModes = change.oldMode !== undefined || change.newMode !== undefined;
@@ -33,9 +60,9 @@ function classifyChanges(changes) {
       if (change.status === 'M' && change.oldMode !== change.newMode) return full('file_mode_change');
       if (change.status === 'A' && change.oldMode !== '000000') return full('invalid_addition_mode');
     }
-    if (change.path !== DOCUMENT) hasCode = true;
+    if (change.path !== (tour ? TOUR_DOCUMENT : DOCUMENT)) hasCode = true;
   }
-  return hasCode ? { mode: 'oauth', reason: 'bounded_oauth_changes' } : full('documentation_only');
+  return hasCode ? { mode: tour ? 'tour-selection' : 'oauth', reason: tour ? 'bounded_tour_selection_changes' : 'bounded_oauth_changes' } : full('documentation_only');
 }
 
 function parseRawDiff(raw) {
@@ -103,14 +130,16 @@ function selectScope(env = process.env) {
         !oauthSpecOnlyChange(git(['show', `${base}:${browserSpec}`]), git(['show', `${head}:${browserSpec}`]))) {
       return full('shared_browser_spec_changed');
     }
-    return result;
+    // CI-rule edits retain full coverage AND exercise the new scoped runner.
+    // Ordinary full changes do not pay for this additional commissioning proof.
+    return { ...result, proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
   } catch (_) { return full('diff_unavailable'); }
 }
 
 if (require.main === module) {
   const result = selectScope();
-  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\n`);
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\n`);
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { classifyChanges, parseRawDiff, oauthSpecOnlyChange, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, selectScope };

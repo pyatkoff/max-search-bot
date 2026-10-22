@@ -5,9 +5,14 @@ on:
     branches: [main]
     paths:
       - 'services/ManagerPreparationOAuth.php'
+      - 'services/ManagerTourSelection*.php'
+      - 'services/TourSelectionPhotoStore.php'
+      - 'tests/run_manager_tour_*_regression.php'
+      - 'tests/support/manager-tour-selection.php'
       - 'tests/run_manager_preparation_oauth_regression.php'
       - 'manager/**'
       - 'manager2/**'
+      - 'selection/**'
       - 'tests/visual/**'
       - '.github/workflows/workspace-v2-visual-qa.yml'
       - 'tools/verify_manager2_visual_evidence.js'
@@ -20,6 +25,7 @@ on:
       - 'tests/run_workspace_v2_visual_qa_contract_regression.php'
       - '.github/workflows/ci-change-scope.yml'
       - 'tools/verify_oauth_browser_report.js'
+      - 'tools/verify_tour_selection_browser_report.js'
       - 'tests/run_oauth_browser_report_regression.js'
       - 'tests/check_ci_workflow_scopes.py'
       - 'tools/ci_change_scope.js'
@@ -51,6 +57,7 @@ jobs:
       donor-name: ${{ steps.donor.outputs.name }}
       donor-id: ${{ steps.donor.outputs.id }}
       donor-digest: ${{ steps.donor.outputs.digest }}
+      plan-id: ${{ steps.plan-artifact.outputs.artifact-id }}
     env:
       QA_TESTED_SHA: ${{ github.sha }}
       QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -116,6 +123,7 @@ jobs:
         id: plan
         run: node tools/manager2_visual_reuse.js plan
       - name: Publish exact current selection plan
+        id: plan-artifact
         uses: actions/upload-artifact@v4
         with:
           name: manager2-visual-plan-${{ github.run_id }}-${{ github.run_attempt }}
@@ -177,10 +185,15 @@ jobs:
           npx playwright install-deps "$QA_BROWSER"
           npx playwright install "$QA_BROWSER"
 
+      - name: Require the immutable selection plan artifact ID
+        env:
+          PLAN_ARTIFACT_ID: ${{ needs.selection.outputs.plan-id }}
+        run: '[[ "$PLAN_ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]'
       - name: Read exact current selection plan
         uses: actions/download-artifact@v4
         with:
-          name: manager2-visual-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          artifact-ids: ${{ needs.selection.outputs.plan-id }}
+          merge-multiple: true
           path: .
       - name: Read immutable donor in separate namespace
         if: needs.selection.outputs.mode == 'affected'
@@ -572,9 +585,73 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  tour-browser:
+    needs: change-scope
+    # Rule edits still run the full suite and also commission this shorter path.
+    if: needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      QA_TESTED_SHA: ${{ github.sha }}
+      QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QA_RUN_ID: ${{ github.run_id }}
+      QA_RUN_ATTEMPT: ${{ github.run_attempt }}
+      QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, dom
+          coverage: none
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ runner.arch }}-node22-playwright1.55.0-${{ matrix.browser }}-npm-v1
+      - name: Cache Playwright browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node22-playwright1.55.0-${{ matrix.browser }}-browser-v1
+      - name: Install pinned native browser
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.55.0
+          npx playwright install --with-deps ${{ matrix.browser }}
+      # The spec renders the real PHP shell/template and intercepts its local
+      # synthetic requests. It needs no production connection or static server.
+      - name: List the complete component inventory
+        run: npx playwright test tests/visual/manager-tour-selection.spec.js --browser=${{ matrix.browser }} --workers=1 --forbid-only --list --reporter=json > tour-selection-expected.json
+      - name: Execute every selection case on all four widths
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: tour-selection-browser.json
+        run: npx playwright test tests/visual/manager-tour-selection.spec.js --browser=${{ matrix.browser }} --workers=1 --forbid-only --reporter=line,json
+      - name: Require complete current-source component evidence
+        run: node tools/verify_tour_selection_browser_report.js tour-selection-browser.json tour-selection-expected.json ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tour-selection-browser-${{ matrix.browser }}-${{ github.sha }}
+          overwrite: true
+          path: |
+            tour-selection-receipt.json
+            tour-selection-browser.json
+            tour-selection-expected.json
+            manager2-artifacts/tour-selection-*.png
+            test-results/**/error-context.md
+          if-no-files-found: error
+          retention-days: 14
+
   screenshots:
     if: always()
-    needs: [change-scope, full-screenshots, oauth-browser]
+    needs: [change-scope, full-screenshots, oauth-browser, tour-browser]
     runs-on: ubuntu-latest
     steps:
       - name: Require the selected current-run evidence
@@ -583,16 +660,29 @@ jobs:
           CI_MODE: ${{ needs.change-scope.outputs.mode }}
           FULL_RESULT: ${{ needs.full-screenshots.result }}
           OAUTH_RESULT: ${{ needs.oauth-browser.result }}
+          TOUR_RESULT: ${{ needs.tour-browser.result }}
+          TOUR_PROOF: ${{ needs.change-scope.outputs.tour-proof }}
         run: |
           test "$SCOPE_RESULT" = success
-          case "$CI_MODE" in
-            oauth)
+          case "$CI_MODE:$TOUR_PROOF" in
+            oauth:false)
               test "$OAUTH_RESULT" = success
               test "$FULL_RESULT" = skipped
+              test "$TOUR_RESULT" = skipped
               ;;
-            full)
+            tour-selection:false)
+              test "$TOUR_RESULT" = success
+              test "$FULL_RESULT" = skipped
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            full:false|full:true)
               test "$FULL_RESULT" = success
               test "$OAUTH_RESULT" = skipped
+              if test "$TOUR_PROOF" = true; then
+                test "$TOUR_RESULT" = success
+              else
+                test "$TOUR_RESULT" = skipped
+              fi
               ;;
             *) exit 1 ;;
           esac

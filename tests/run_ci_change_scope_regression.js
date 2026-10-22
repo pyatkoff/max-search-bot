@@ -11,6 +11,9 @@ const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
 const fixture = 'tests/visual/fixtures/oauth-consent.js';
 const doc = 'docs/MANAGER_PREPARED_REPLIES.md';
+const tour = 'manager/assets/workspace-v2-tour-selection.js';
+const tourService = 'services/ManagerTourSelectionShareService.php';
+const tourDoc = 'docs/MANAGER_TOUR_SELECTIONS.md';
 const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
 const sharedSpec = "const {test}=require('@playwright/test');\ntest('AI baseline',()=>{});\n";
 const fixtureImport = "const {startOAuthFixture}=require('./fixtures/oauth-consent');\n";
@@ -22,6 +25,12 @@ check(classify([{ status: 'M', path: oauth }]), 'oauth', 'bounded OAuth modifica
 check(classify([{ status: 'M', path: oauth }, { status: 'M', path: doc }]), 'oauth', 'OAuth with documentation');
 check(classify([{ status: 'A', path: fixture }]), 'oauth', 'new isolated browser fixture');
 check(classify([{ status: 'M', path: 'tests/visual/manager-ai-draft.spec.js' }]), 'oauth', 'whole browser spec remains selected');
+for(const file of [tour,tourService,'selection/view.php','selection/selection.css','manager/tour-selections-api.php','tests/visual/manager-tour-selection.spec.js'])check(classify([{status:'M',path:file}]),'tour-selection','existing isolated selection owner: '+file);
+check(classify([{status:'M',path:tour},{status:'M',path:tourDoc}]),'tour-selection','selection with its documentation');
+check(classify([{status:'M',path:tourDoc}]),'full','selection documentation alone does not narrow');
+for(const file of ['manager/_bootstrap.php','manager/assets/workspace-v2.js','services/ManagerAuthService.php','services/TourOfferCallbackService.php','tests/visual/fixtures/internal-notes.js','tests/visual/manager-media-compose.spec.js','migrations/056_future.sql',oauth,'tools/ci_change_scope.js','.github/workflows/workspace-v2-visual-qa.yml'])check(classify([{status:'M',path:tour},{status:'M',path:file}]),'full','selection mixed/shared change: '+file);
+for(const status of ['A','D','R100','C100','T','U',undefined])check(classify([{status,path:tour}]),'full','selection requires existing regular modification: '+status);
+check(classify([{status:'M',path:tour,oldMode:'100644',newMode:'100755'}]),'full','selection mode changes stay full');
 for (const changes of [[], null, [{}], [{ status: 'M', path: doc }], [{ status: 'M', path: oauth, previousPath: oauth }]]) {
   check(classify(changes), 'full', 'malformed, empty, documentation or rename');
 }
@@ -59,25 +68,35 @@ try {
   git(['init', '-q']); git(['config', 'user.name', 'CI scope regression']); git(['config', 'user.email', 'ci@example.invalid']);
   git(['config', 'core.filemode', 'true']);
   put(oauth, 'base\n'); put(doc, 'docs\n'); put('manager/_bootstrap.php', 'shared\n');
+  put(tour,'base selection\n');put(tourService,'<?php // base\n');put(tourDoc,'selection docs\n');
   put(browserSpec, sharedSpec);
   git(['add', '.']); git(['commit', '-qm', 'base']);
   const base = git(['rev-parse', 'HEAD']);
   const eventPath = path.join(temp, 'event.json');
   const outputPath = path.join(temp, 'output.txt');
+  let lastProof=false;
   function run(event, overrides = {}) {
     fs.writeFileSync(eventPath, typeof event === 'string' ? event : JSON.stringify(event));
     fs.writeFileSync(outputPath, '');
     const env = { ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath, ...overrides };
     const result = JSON.parse(execFileSync(process.execPath, [selector], { cwd: temp, env, encoding: 'utf8' }));
-    check(fs.readFileSync(outputPath, 'utf8'), `mode=${result.mode}\n`, 'GitHub output matches JSON');
+    lastProof=result.proveTourSelection===true;
+    check(fs.readFileSync(outputPath, 'utf8'), `mode=${result.mode}\ntour-proof=${lastProof}\n`, 'GitHub outputs match JSON');
     return result.mode;
   }
   const event = head => ({ pull_request: { base: { sha: base }, head: { sha: head } } });
-  function commitCase(message, mutate, expected) {
+  function commitCase(message, mutate, expected,proof=false) {
     git(['reset', '--hard', '-q', base]); git(['clean', '-fdq']);
     mutate(); git(['add', '-A']); git(['commit', '-qm', message]);
     check(run(event(git(['rev-parse', 'HEAD']))), expected, message);
+    check(lastProof,proof,'additional component proof only for its CI-rule edits');
   }
+  commitCase('selection UI change',()=>put(tour,'changed selection\n'),'tour-selection');
+  commitCase('selection private/public server owner',()=>put(tourService,'<?php // changed\n'),'tour-selection');
+  commitCase('selection with docs',()=>{put(tour,'changed\n');put(tourDoc,'updated\n');},'tour-selection');
+  commitCase('selection plus shared bootstrap',()=>{put(tour,'changed\n');put('manager/_bootstrap.php','shared changed\n');},'full');
+  commitCase('selection runtime addition',()=>put('selection/photo.php','<?php\n'),'full');
+  commitCase('CI edits retain full and commission scoped browser runner',()=>put('tools/ci_change_scope.js','// changed CI\n'),'full',true);
   commitCase('OAuth change', () => put(oauth, 'changed\n'), 'oauth');
   commitCase('new browser fixture', () => put(fixture, 'module.exports = {};\n'), 'oauth');
   commitCase('documentation only', () => put(doc, 'changed docs\n'), 'full');

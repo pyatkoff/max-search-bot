@@ -4,8 +4,11 @@ on:
   workflow_call:
     outputs:
       mode:
-        description: Exact OAuth-only change or conservative full coverage
+        description: Audited component change or conservative full coverage
         value: ${{ jobs.scope.outputs.mode }}
+      tour-proof:
+        description: Also commission the scoped tour runner when its CI rules change
+        value: ${{ jobs.scope.outputs.tour-proof }}
 
 permissions:
   contents: read
@@ -16,6 +19,7 @@ jobs:
     timeout-minutes: 3
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
+      tour-proof: ${{ steps.scope.outputs.tour-proof }}
     steps:
       - uses: actions/checkout@v4
         with:

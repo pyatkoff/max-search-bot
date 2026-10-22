@@ -77,4 +77,48 @@ try {
   assert.equal(spawnSync(process.execPath, [validator, path.join(temp, 'missing.json'), 'chromium']).status, 1); assertions++;
   assert.equal(spawnSync(process.execPath, [validator]).status, 1); assertions++;
 } finally { fs.rmSync(temp, { recursive: true, force: true }); }
-process.stdout.write(`OAuth browser report regression: ${assertions} assertions passed\n`);
+// The same fail-closed browser-profile gate also owns the complete selection
+// component. Its errors cannot be hidden by a smaller matching --list report.
+const tour=require('../tools/verify_tour_selection_browser_report');
+function tourPair(browser='chromium'){
+  const report={config:{forbidOnly:true,projects:[{name:browser}]},errors:[],
+    suites:[{title:'selection file',file:tour.SPEC,specs:tour.mandatoryTitles.map((title,index)=>({id:'tour-'+index,title,file:tour.SPEC,
+      tests:[{projectName:browser,expectedStatus:'passed',status:'expected',results:[{status:'passed',retry:0}]}]}))}],
+    stats:{expected:tour.mandatoryTitles.length,skipped:0,unexpected:0,flaky:0,startTime:'2026-10-22T12:00:00Z',duration:1000}};
+  const expected=structuredClone(report);expected.stats.expected=0;
+  for(const spec of expected.suites[0].specs)spec.tests[0].results=[];
+  return {report,expected,browser};
+}
+function tourCheck(pair){return tour.verifyReport(pair.report,pair.expected,pair.browser);}
+function tourReject(change){const pair=tourPair();change(pair);assert.throws(()=>tourCheck(pair));assertions++;}
+for(const browser of ['chromium','webkit']){assert.equal(tourCheck(tourPair(browser)).length,29);assertions++;}
+tourReject(pair=>{pair.browser='firefox';});
+tourReject(pair=>{pair.browser='webkit';});
+tourReject(pair=>{pair.report.config.forbidOnly=false;});
+tourReject(pair=>{pair.report.config.projects.push({name:'webkit'});});
+tourReject(pair=>{delete pair.report.errors;});
+tourReject(pair=>{pair.report.errors=[{message:'worker crashed'}];});
+tourReject(pair=>{pair.report.suites=[];});
+tourReject(pair=>{pair.expected.suites=[];});
+tourReject(pair=>{pair.report.suites[0].specs.pop();});
+tourReject(pair=>{pair.expected.suites[0].specs.pop();});
+tourReject(pair=>{pair.report.suites[0].specs.pop();pair.expected.suites[0].specs.pop();pair.report.stats.expected--;});
+tourReject(pair=>{pair.report.suites[0].specs.push(structuredClone(pair.report.suites[0].specs[0]));});
+tourReject(pair=>{pair.report.suites[0].specs[0].file='tests/visual/manager-ai-draft.spec.js';});
+for(const status of ['failed','timedOut','skipped','interrupted'])tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].results[0].status=status;});
+tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].status='flaky';});
+tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].expectedStatus='failed';});
+tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].annotations=[{type:'skip'}];});
+tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].results.push({status:'passed',retry:1});});
+tourReject(pair=>{pair.report.suites[0].specs[0].tests[0].results[0].retry=1;});
+tourReject(pair=>{pair.expected.suites[0].specs[0].tests[0].results=[{status:'passed',retry:0}];});
+for(const field of ['expected','skipped','unexpected','flaky'])tourReject(pair=>{pair.report.stats[field]++;});
+tourReject(pair=>{delete pair.report.stats.startTime;});
+tourReject(pair=>{pair.report.stats.duration=-1;});
+// Additional feature coverage is permitted, but all of it must execute.
+const more=tourPair();
+const extra=structuredClone(more.report.suites[0].specs[0]);extra.title='additional selection contract';extra.id='extra';
+more.report.suites[0].specs.push(extra);more.report.stats.expected++;
+const listedExtra=structuredClone(extra);listedExtra.tests[0].results=[];more.expected.suites[0].specs.push(listedExtra);
+assert.equal(tourCheck(more).length,30);assertions++;
+process.stdout.write(`Scoped browser report regression (OAuth and selection): ${assertions} assertions passed\n`);
