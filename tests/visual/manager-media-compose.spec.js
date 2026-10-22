@@ -69,7 +69,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   window.addEventListener('keydown',event=>{if(['Tab','Enter'].includes(event.key))proof.keys.push({key:event.key,trusted:event.isTrusted})},{capture:true});
  });
  const s=await setup(page),reply=page.locator('#replyText'),draft='Точный черновик перед удалением вложений.\n  Сохраняем текст и выделение.';
- const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aV1sAAAAASUVORK5CYII=','base64');
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64');
  await reply.fill(draft);await page.locator('#replyFile').setInputFiles(['A','B','C'].map(name=>({name:name+'.png',mimeType:'image/png',buffer:png})));
  await expect(page.locator('.mediaSelectedItem')).toHaveCount(3);
  await expect.poll(()=>page.locator('.mediaPreview img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth===1))).toBe(true);

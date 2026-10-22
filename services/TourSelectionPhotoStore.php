@@ -7,6 +7,28 @@ final class TourSelectionPhotoStore
 {
     public const MAX_BYTES=2097152;
 
+    public static function offerKey(int $offer): string
+    {
+        if ($offer<=0) throw new InvalidArgumentException('invalid_offer');
+        return substr(hash('sha256','tour-offer:'.$offer),0,32);
+    }
+
+    /** Public readers may read reviewed bytes, never initiate source downloads. */
+    public static function cached(string $publication,int $card,int $photo,string $url): ?array
+    {
+        if (!preg_match('/\A[a-f0-9]{32}\z/D',$publication) || $card<0 || $card>=20 || $photo<0 || $photo>=3 || self::source($url)===null) return null;
+        $log=DiagnosticLogger::filePath();
+        if ($log==='' || $log[0]!=='/') return null;
+        $root=dirname($log).'/tour-selection-photos';
+        $base=$root.'/'.hash('sha256',$publication.':'.$card.':'.$photo.':'.$url);
+        if (is_link($root) || is_link($base.'.json') || is_link($base.'.bin') || !is_file($base.'.json') || !is_file($base.'.bin') || filesize($base.'.json')>4096) return null;
+        $meta=json_decode((string)file_get_contents($base.'.json'),true);
+        if (!is_array($meta) || ($meta['source_hash']??null)!==hash('sha256',$url) || !in_array($meta['mime']??null,['image/jpeg','image/png'],true)
+            || !is_int($meta['bytes']??null) || $meta['bytes']<=0 || $meta['bytes']>self::MAX_BYTES || filesize($base.'.bin')!==$meta['bytes']
+            || ($meta['sha256']??null)!==hash_file('sha256',$base.'.bin')) return null;
+        return $meta+['path'=>$base.'.bin'];
+    }
+
     public static function publicAddress(string $ip): bool
     {
         if (!filter_var($ip,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4|FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)) return false;
