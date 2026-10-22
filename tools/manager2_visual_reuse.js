@@ -177,8 +177,11 @@ function validatePlan(plan,p,root) {
   // Selection and execution run on separate runners. Their environment is not
   // proof of browser execution; a browser's actual environment is recorded below.
   for (const [key,value] of Object.entries(p)) {
-    if (key!=='execution') check(same(plan[key],value), 'Plan belongs to another version/run: '+key);
+    if (!['execution','runAttempt'].includes(key)) check(same(plan[key],value), 'Plan belongs to another version/run: '+key);
   }
+  // A failed-only rerun retains the successful selection job and its immutable
+  // artifact. Source/run/PR/workflow stay exact; only its earlier attempt may differ.
+  check(typeof plan.runAttempt==='string' && ID.test(plan.runAttempt) && BigInt(plan.runAttempt)<=BigInt(p.runAttempt), 'Plan belongs to a malformed or future run attempt');
   check(same(plan.inputs,inventory.sourceManifest(root,p.testedSha)), 'Current tracked source differs from planned inputs');
   if (plan.mode==='affected') validateDonor(plan.donor,p);
   return plan;

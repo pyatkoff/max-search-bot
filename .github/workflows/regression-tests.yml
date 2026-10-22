@@ -38,7 +38,7 @@ jobs:
         run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
   required:
-    if: needs.change-scope.outputs.mode == 'full'
+    if: needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'
     needs: [inventory, change-scope]
     strategy:
       fail-fast: false
@@ -70,7 +70,7 @@ jobs:
 
   prepared-mysql:
     needs: change-scope
-    if: needs.change-scope.outputs.mode == 'full'
+    if: needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -149,7 +149,7 @@ jobs:
               test "$REQUIRED_RESULT" = skipped
               test "$PREPARED_MYSQL_RESULT" = skipped
               ;;
-            full)
+            full|tour-selection)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = success
               test "$OAUTH_RESULT" = skipped

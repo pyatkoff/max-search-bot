@@ -141,6 +141,12 @@ function modernProtocolChecks() {
       assert.equal(reuse.validatePlan(clone(plan),otherRunner,sourceRoot).mode,'full');
       assert.throws(()=>reuse.validatePlan({...clone(plan),mode:'preview'},p,sourceRoot),/Invalid selection plan/);
     });
+    protocolCheck('failed-only rerun retains an immutable earlier same-source selection plan',()=>{
+      const next={...p,runAttempt:'2'};
+      assert.equal(reuse.validatePlan(clone(plan),next,sourceRoot).runAttempt,'1');
+      for(const runAttempt of ['0','01','-1','1e2','3','',null,1])assert.throws(()=>reuse.validatePlan({...clone(plan),runAttempt},next,sourceRoot),/run attempt/);
+      for(const [key,value]of Object.entries({testedSha:donorSha,headSha:donorSha,runId:'201',prNumber:'999',repository:'foreign/repo',workflow:'foreign.yml'}))assert.throws(()=>reuse.validatePlan({...clone(plan),[key]:value},next,sourceRoot),/version\/run/);
+    });
     protocolCheck('FULL receipts reconstruct every spec including the daily cache',()=>{
       for(const browser of ['chromium','webkit']){
         const receipt=verify(path.join(currentEvidence,browser),browser,p);

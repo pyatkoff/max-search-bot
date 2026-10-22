@@ -74,7 +74,7 @@ Presentation of SLA/urgency must not silently mutate routing or manager shift st
 
 ## Required verification
 
-Before merge: the required `regression` and `guard` CI checks must pass. PR CI selects the audited OAuth scope described in `docs/CI_SCOPES.md`; mixed, shared, unknown and manual changes retain the full required suite. `bash tests/run_required_checks.sh` remains the canonical full local and deployment check.
+Before merge: the required `regression` and `guard` CI checks must pass. PR CI selects the audited OAuth or tour-selection component scope described in `docs/CI_SCOPES.md`; selection keeps the full backend/MySQL suite and narrows browser execution only. Mixed, shared, unknown, migration, CI-rule and manual changes retain full coverage. `bash tests/run_required_checks.sh` remains the canonical full local and deployment check.
 
 After merge: production deploy must pass verify, SSH/sync, migrations, smoke, diagnostics and deploy telemetry. Treat diagnostic-transfer failure as deployment-health failure, not a warning.
 
