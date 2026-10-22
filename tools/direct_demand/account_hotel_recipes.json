@@ -1,0 +1,961 @@
+{
+  "schema": "anytour.direct.account_hotel_recipes.v1",
+  "recipes": [
+    {
+      "key": "swiss_heaven_sharming_inn",
+      "label": "Swiss Heaven Sharming Inn",
+      "observed_anchor_literals": [
+        "swiss heaven sharming inn"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "sunrise_remal_resort",
+      "label": "Sunrise Remal Resort",
+      "observed_anchor_literals": [
+        "sunrise remal resort",
+        "санрайз ремал резорт",
+        "санрайс ремал резорт"
+      ],
+      "excluded_observed_literals": [
+        "beach",
+        "бич"
+      ],
+      "note": "Sunrise Remal Beach kept separate; generic Remal omitted.",
+      "scope_regex": null
+    },
+    {
+      "key": "sunrise_remal_beach",
+      "label": "Sunrise Remal Beach",
+      "observed_anchor_literals": [
+        "sunrise remal beach",
+        "санрайз ремал бич",
+        "санрайс ремал бич",
+        "ремал бич резорт"
+      ],
+      "excluded_observed_literals": [
+        "posh club"
+      ],
+      "note": "Posh Club variant omitted; Remal Resort kept separate.",
+      "scope_regex": null
+    },
+    {
+      "key": "alma_cam_ranh",
+      "label": "Alma Resort Cam Ranh",
+      "observed_anchor_literals": [
+        "alma resort cam ranh",
+        "alma resort camranh",
+        "alma resort вьетнам",
+        "вьетнам alma resort",
+        "alma resort цена вьетнам"
+      ],
+      "excluded_observed_literals": [
+        "serenity"
+      ],
+      "note": "Serenity Alma in Egypt excluded; identity still requires local matching.",
+      "scope_regex": null
+    },
+    {
+      "key": "lugano_cam_ranh",
+      "label": "Lugano / Cam Ranh",
+      "observed_anchor_literals": [
+        "lugano",
+        "лугано"
+      ],
+      "excluded_observed_literals": [
+        "building b"
+      ],
+      "note": "Lunago and Лугана not treated as verified aliases. Building B omitted. Unqualified Lugano without hotel/destination marker excluded to avoid the city name.",
+      "scope_regex": "cam ranh|camranh|камран|вьетнам|нячанг|resort|отел|фан сан|fun sun|fun and sun"
+    },
+    {
+      "key": "xanadu_makadi",
+      "label": "Xanadu Makadi Bay",
+      "observed_anchor_literals": [
+        "xanadu makadi",
+        "ксанаду макади",
+        "ханаду макади"
+      ],
+      "excluded_observed_literals": [
+        "club",
+        "клаб",
+        "турция"
+      ],
+      "note": "Club/Klab variant kept separately; generic Xanadu without destination omitted.",
+      "scope_regex": null
+    },
+    {
+      "key": "xanadu_club_makadi",
+      "label": "Xanadu Club Makadi Bay",
+      "observed_anchor_literals": [
+        "xanadu club makadi",
+        "ксанаду клаб макади",
+        "ханаду клаб макади",
+        "xanadu club 5 макади бей хургада"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Club and non-Club query labels kept separate pending hotel identity check.",
+      "scope_regex": null
+    },
+    {
+      "key": "jaz_fanara_resort",
+      "label": "Jaz Fanara Resort",
+      "observed_anchor_literals": [
+        "jaz fanara resort",
+        "jas fanara resort",
+        "джаз фанара резорт"
+      ],
+      "excluded_observed_literals": [
+        "residence"
+      ],
+      "note": "Residence and generic Jaz Fanara excluded; no automatic merging.",
+      "scope_regex": null
+    },
+    {
+      "key": "sorgun_akadia",
+      "label": "Sorgun Akadia Luxury",
+      "observed_anchor_literals": [
+        "sorgun akadia"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "seven_seas_jolie_bay",
+      "label": "Seven Seas Jolie Bay",
+      "observed_anchor_literals": [
+        "seven seas jolie bay"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "pinnacle_grand_jomtien",
+      "label": "Pinnacle Grand Jomtien",
+      "observed_anchor_literals": [
+        "pinnacle grand jomtien"
+      ],
+      "excluded_observed_literals": [
+        "w22 hotel"
+      ],
+      "note": "Mixed Bangkok+Pattaya itinerary omitted.",
+      "scope_regex": null
+    },
+    {
+      "key": "amiana_cam_ranh",
+      "label": "Amiana Resort Cam Ranh",
+      "observed_anchor_literals": [
+        "amiana resort cam ranh",
+        "amiana resort camranh",
+        "амиана камрань отель вьетнам"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Amiana Nha Trang without Cam Ranh excluded.",
+      "scope_regex": null
+    },
+    {
+      "key": "pickalbatros_palace_sharm",
+      "label": "Pickalbatros Palace Sharm",
+      "observed_anchor_literals": [
+        "pickalbatros palace resort sharm"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Pickalbatros Palace Hurghada excluded.",
+      "scope_regex": null
+    },
+    {
+      "key": "throne_beach",
+      "label": "Throne Beach Resort",
+      "observed_anchor_literals": [
+        "throne beach resort"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "lago_side",
+      "label": "Lago Hotel / Side",
+      "observed_anchor_literals": [
+        "lago hotel"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "naama_waves",
+      "label": "FUN&SUN Active Naama Waves",
+      "observed_anchor_literals": [
+        "naama waves"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "selectum_family_comfort_side",
+      "label": "Selectum Family Comfort Side",
+      "observed_anchor_literals": [
+        "selectum family comfort side"
+      ],
+      "excluded_observed_literals": [
+        "здравствуйте вы оставляли"
+      ],
+      "note": "Multi-hotel pasted offer omitted.",
+      "scope_regex": null
+    },
+    {
+      "key": "kata_sea_boutique",
+      "label": "Kata Sea Boutique",
+      "observed_anchor_literals": [
+        "kata sea boutique"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "worldhotels_long_beach_phu_quoc",
+      "label": "WorldHotels Long Beach Phu Quoc",
+      "observed_anchor_literals": [
+        "world hotels long beach resort phu quoc",
+        "worldhotels long beach resort phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Not merged with Long Beach Turkey, Hurghada, Garden Pattaya or Sheraton.",
+      "scope_regex": null
+    },
+    {
+      "key": "pickalbatros_golf_beach",
+      "label": "Pickalbatros Golf Beach",
+      "observed_anchor_literals": [
+        "pickalbatros golf beach",
+        "пикальбатрос гольф бич резорт шарм"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "sunrise_azalea",
+      "label": "Sunrise Azalea Aqua Park",
+      "observed_anchor_literals": [
+        "sunrise azalea"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "pullman_phu_quoc",
+      "label": "Pullman Phu Quoc Beach",
+      "observed_anchor_literals": [
+        "pullman phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Pullman Phuket excluded.",
+      "scope_regex": null
+    },
+    {
+      "key": "rixos_radamis_general",
+      "label": "Rixos Radamis / unspecified section",
+      "observed_anchor_literals": [
+        "rixos radamis"
+      ],
+      "excluded_observed_literals": [
+        "tirana",
+        "beach side",
+        "blue planet",
+        "radamis beach"
+      ],
+      "note": "Tirana, Beach Side and Blue Planet excluded; section not assigned.",
+      "scope_regex": null
+    },
+    {
+      "key": "mida_grande_resort_phuket",
+      "label": "Mida Grande Resort Phuket",
+      "observed_anchor_literals": [
+        "mida grande resort phuket"
+      ],
+      "excluded_observed_literals": [
+        "villas"
+      ],
+      "note": "Queries explicitly mentioning Villas omitted; not merged.",
+      "scope_regex": null
+    },
+    {
+      "key": "parrotel_lagoon",
+      "label": "Parrotel Lagoon",
+      "observed_anchor_literals": [
+        "parrotel lagoon"
+      ],
+      "excluded_observed_literals": [
+        "grand rotana"
+      ],
+      "note": "Parrotel Beach and mixed Grand Rotana itinerary excluded.",
+      "scope_regex": null
+    },
+    {
+      "key": "wb_dreams_vacation",
+      "label": "WB Travel Dreams Vacation",
+      "observed_anchor_literals": [
+        "wb travel dreams vacation",
+        "wb dreams vacation",
+        "dreams vacation resort 4 шарм эль шейх вб"
+      ],
+      "excluded_observed_literals": [],
+      "note": "Sharm Dreams Vacation Club not merged.",
+      "scope_regex": null
+    },
+    {
+      "key": "long_beach_turkey",
+      "label": "Long Beach / Turkey",
+      "observed_anchor_literals": [
+        "long beach",
+        "лонг бич"
+      ],
+      "excluded_observed_literals": [
+        "хургада",
+        "hurghada",
+        "египет",
+        "фукуок",
+        "phu quoc",
+        "паттай",
+        "pattaya",
+        "таиланд",
+        "garden",
+        "муйне"
+      ],
+      "note": "Requires explicit Turkey/Alanya/Turkler evidence; mixed Turkey+Hurghada query excluded.",
+      "scope_regex": "турци|алани|аланья|тюрклер"
+    },
+    {
+      "key": "crystal_aura",
+      "label": "Crystal Aura Aqua Collection",
+      "observed_anchor_literals": [
+        "crystal aura"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "albatros_makadi",
+      "label": "Albatros Makadi Resort",
+      "observed_anchor_literals": [
+        "albatros makadi"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "dynasty_muine",
+      "label": "Dynasty Mui Ne Beach",
+      "observed_anchor_literals": [
+        "dynasty mui ne",
+        "dynasty muine"
+      ],
+      "excluded_observed_literals": [],
+      "note": null,
+      "scope_regex": null
+    },
+    {
+      "key": "rewaya_inn",
+      "label": "Rewaya Inn Resort",
+      "observed_anchor_literals": [
+        "rewaya inn resort"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "moreno_horizon",
+      "label": "Moreno Horizon Spa Resort",
+      "observed_anchor_literals": [
+        "moreno horizon"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "edge_rotana_sea_beach",
+      "label": "Edge Rotana Sea Beach Aqua Park",
+      "observed_anchor_literals": [
+        "edge rotana sea beach"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sunny_days_el_palacio",
+      "label": "Sunny Days El Palacio",
+      "observed_anchor_literals": [
+        "sunny days el palacio",
+        "санни дейс эль паласио"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "palace_beach_white_valley",
+      "label": "Palace Beach Hotel / query alias White Valley",
+      "observed_anchor_literals": [
+        "palace beach hotel"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "White Valley Diamond kept separately. ex-name is query wording, not a verified identity fact."
+    },
+    {
+      "key": "new_eagles_aqua_park",
+      "label": "New Eagles Aqua Park",
+      "observed_anchor_literals": [
+        "new eagles aqua park"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Singular New Eagle not automatically merged."
+    },
+    {
+      "key": "safir_sharm_waterfalls",
+      "label": "Safir Sharm Waterfalls",
+      "observed_anchor_literals": [
+        "safir sharm waterfalls"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "maris_nha_trang",
+      "label": "Maris Hotel Nha Trang",
+      "observed_anchor_literals": [
+        "maris hotel nha trang"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Maris Beach Phu Quoc not merged."
+    },
+    {
+      "key": "sun_heaven",
+      "label": "Sun Heaven Hotel",
+      "observed_anchor_literals": [
+        "sun heaven hotel"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "rewaya_luxury",
+      "label": "Rewaya Luxury Resort",
+      "observed_anchor_literals": [
+        "rewaya luxury resort"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Rewaya Inn and Rewaya Majestic kept separately."
+    },
+    {
+      "key": "srnty_sun_ray",
+      "label": "SRNTY Sun Ray",
+      "observed_anchor_literals": [
+        "srnty sun ray"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Serenity Alma/Heights without SRNTY Sun Ray not automatically merged."
+    },
+    {
+      "key": "novotel_palm",
+      "label": "Novotel Palm / Sharm",
+      "observed_anchor_literals": [
+        "novotel palm"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Novotel Beach and Novotel Nha Trang not merged."
+    },
+    {
+      "key": "faraana_reef",
+      "label": "Faraana Reef Resort",
+      "observed_anchor_literals": [
+        "faraana reef resort"
+      ],
+      "excluded_observed_literals": [
+        "faraana residence"
+      ],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "white_valley_diamond",
+      "label": "White Valley Diamond Resort",
+      "observed_anchor_literals": [
+        "white valley diamond"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Palace Beach/White Valley query label kept separately."
+    },
+    {
+      "key": "long_beach_garden_pattaya",
+      "label": "Long Beach Garden / Pattaya",
+      "observed_anchor_literals": [
+        "long beach garden hotel",
+        "long beach garden pattaya",
+        "лонг бич гарден"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Not merged with other Long Beach hotels."
+    },
+    {
+      "key": "long_beach_hurghada",
+      "label": "Long Beach Resort Hurghada",
+      "observed_anchor_literals": [
+        "long beach resort hurghada",
+        "hurghada long beach",
+        "лонг бич резорт хургада",
+        "лонг бич египет хургада",
+        "купить путевку в египет в отель long beach resort"
+      ],
+      "excluded_observed_literals": [
+        "турция"
+      ],
+      "scope_regex": null,
+      "note": "Mixed Turkey+Hurghada query excluded; other Long Beach destinations kept separate."
+    },
+    {
+      "key": "jaz_sharm_dreams",
+      "label": "Jaz Sharm Dreams Resort",
+      "observed_anchor_literals": [
+        "jaz sharm dreams"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "ma_biche_kemer",
+      "label": "Ma Biche Kemer",
+      "observed_anchor_literals": [
+        "ma biche kemer"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "lavender_phu_quoc",
+      "label": "Lavender Resort Phu Quoc",
+      "observed_anchor_literals": [
+        "lavender resort phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "rehana_royal_beach",
+      "label": "Rehana Royal Beach",
+      "observed_anchor_literals": [
+        "rehana royal beach"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Rehana Sharm without Royal Beach kept separately."
+    },
+    {
+      "key": "naama_promenade_mountain",
+      "label": "Naama Bay Promenade Mountain",
+      "observed_anchor_literals": [
+        "naama bay promenade mountain"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Beach variant and unspecified Promenade omitted."
+    },
+    {
+      "key": "solivia",
+      "label": "Solivia Hotel",
+      "observed_anchor_literals": [
+        "solivia hotel"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "matie_muine",
+      "label": "Matie Beach Hotel Mui Ne",
+      "observed_anchor_literals": [
+        "matie beach hotel muine"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "monaco_phu_quoc",
+      "label": "Monaco Hotel Phu Quoc",
+      "observed_anchor_literals": [
+        "monaco hotel phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "saigon_1979_phu_quoc",
+      "label": "Saigon 1979 Phu Quoc",
+      "observed_anchor_literals": [
+        "saigon 1979 phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Generic Saigon and Saigon Phan Rang not merged."
+    },
+    {
+      "key": "portobello_antalya",
+      "label": "Portobello / Antalya",
+      "observed_anchor_literals": [
+        "портобелло отель турция анталия"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "amwaj_oyoun",
+      "label": "Amwaj Oyoun",
+      "observed_anchor_literals": [
+        "amwaj oyoun"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Amwaj Beach Club Abu Soma kept separate."
+    },
+    {
+      "key": "titanic_royal",
+      "label": "Titanic Royal",
+      "observed_anchor_literals": [
+        "titanic royal"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Titanic Palace, Beach, Pearl and unspecified Titanic not merged."
+    },
+    {
+      "key": "rixos_premium_magawish",
+      "label": "Rixos Premium Magawish",
+      "observed_anchor_literals": [
+        "риксос премиум магавиш",
+        "rixos premium magawish"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Generic Rixos Magawish not automatically merged."
+    },
+    {
+      "key": "club_sera",
+      "label": "Club Hotel Sera",
+      "observed_anchor_literals": [
+        "club hotel sera"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sandali_walauwa",
+      "label": "Sandali Walauwa",
+      "observed_anchor_literals": [
+        "sandali walauwa"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "invidia_coral_beach",
+      "label": "Invidia Coral Beach",
+      "observed_anchor_literals": [
+        "invidia coral beach"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "milana_phu_quoc",
+      "label": "Milana Beach Resort Phu Quoc",
+      "observed_anchor_literals": [
+        "milana beach resort spa phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sunrise_serano_club",
+      "label": "Sunrise Serano Club",
+      "observed_anchor_literals": [
+        "sunrise serano club"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Serano Aqua Park kept separately pending local matching."
+    },
+    {
+      "key": "sunrise_serano_aqua",
+      "label": "Sunrise Serano Aqua Park",
+      "observed_anchor_literals": [
+        "sunrise serano aqua park"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Serano Club kept separately pending local matching."
+    },
+    {
+      "key": "swissotel_sharm",
+      "label": "Swissotel / Sharm El Sheikh",
+      "observed_anchor_literals": [
+        "swissotel sharm",
+        "swissotel шарм",
+        "свис отель шармаль шейх"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Swissotel Sanya and Swiss Heaven Sharming Inn not merged."
+    },
+    {
+      "key": "v_grand_sahl_hasheesh",
+      "label": "V Grand Beach Sahl Hasheesh",
+      "observed_anchor_literals": [
+        "v grand beach resort sahl hasheesh"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "V Hotel Sharm kept separately; shared ex-Pyramisa name is not a match."
+    },
+    {
+      "key": "selectum_noa_cam_ranh",
+      "label": "Selectum Noa Cam Ranh",
+      "observed_anchor_literals": [
+        "selectum noa resort cam ranh"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "stella_makadi_gardens",
+      "label": "Stella Makadi Gardens",
+      "observed_anchor_literals": [
+        "stella makadi gardens"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Stella Beach variant omitted."
+    },
+    {
+      "key": "movenpick_waverly_phu_quoc",
+      "label": "Movenpick Waverly Phu Quoc",
+      "observed_anchor_literals": [
+        "movenpick resort waverly phu quoc"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "rehana_sharm",
+      "label": "Rehana Sharm Resort",
+      "observed_anchor_literals": [
+        "rehana sharm resort"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Rehana Royal Beach kept separately."
+    },
+    {
+      "key": "pickalbatros_luxury_suites",
+      "label": "Pickalbatros Luxury Suites",
+      "observed_anchor_literals": [
+        "pickalbatros luxury suites"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Golf Beach kept separately; old Rixos names not automatically merged."
+    },
+    {
+      "key": "jaz_elite_palace",
+      "label": "Jaz Elite Palace",
+      "observed_anchor_literals": [
+        "jaz elite palace"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sugar_marina_pop_kata",
+      "label": "Sugar Marina Hotel POP Kata",
+      "observed_anchor_literals": [
+        "sugar marina hotel pop kata"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Other Sugar Marina hotels omitted."
+    },
+    {
+      "key": "v_hotel_sharm",
+      "label": "V Hotel Sharm El Sheikh",
+      "observed_anchor_literals": [
+        "v hotel sharm el sheikh"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "V Grand Sahl Hasheesh kept separately."
+    },
+    {
+      "key": "pickalbatros_royal_moderna",
+      "label": "Pickalbatros Royal Moderna",
+      "observed_anchor_literals": [
+        "pickalbatros royal moderna"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sunrise_solara",
+      "label": "Sunrise Solara Aqua Park",
+      "observed_anchor_literals": [
+        "sunrise solara aqua park"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Some observed searches are pasted offer texts; this is demand evidence only, not current price/property data."
+    },
+    {
+      "key": "jaz_aquamarine",
+      "label": "Jaz Aquamarine",
+      "observed_anchor_literals": [
+        "jaz aquamarine"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Jaz Aquaviva and Blue Marine omitted."
+    },
+    {
+      "key": "sunrise_diamond",
+      "label": "Sunrise Diamond Beach",
+      "observed_anchor_literals": [
+        "sunrise diamond beach"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "phuket_graceland",
+      "label": "Phuket Graceland",
+      "observed_anchor_literals": [
+        "phuket graceland"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "seahorse_muine",
+      "label": "Seahorse Resort / Mui Ne",
+      "observed_anchor_literals": [
+        "seahorse resort spa 4 вьетнам фантьет",
+        "seahorse отель вьетнам"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Unqualified Sea Horse in other locations omitted."
+    },
+    {
+      "key": "crystal_admiral",
+      "label": "Crystal Admiral Aqua Collection",
+      "observed_anchor_literals": [
+        "crystal admiral"
+      ],
+      "excluded_observed_literals": [
+        "выбор между"
+      ],
+      "scope_regex": null,
+      "note": "Mixed multi-hotel comparison omitted."
+    },
+    {
+      "key": "pickalbatros_royal_grand",
+      "label": "Pickalbatros Royal Grand / Sharm",
+      "observed_anchor_literals": [
+        "pickalbatros royal grand",
+        "albatros royal grand",
+        "пикальбатрос роял гранд"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "sultan_gardens",
+      "label": "Sultan Gardens",
+      "observed_anchor_literals": [
+        "sultan gardens",
+        "султан гарденс"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    },
+    {
+      "key": "concorde_front",
+      "label": "Concorde El Salam Front",
+      "observed_anchor_literals": [
+        "concorde el salam front",
+        "concorde el salam sharm el sheikh front"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Sport variant not merged."
+    },
+    {
+      "key": "concorde_sport",
+      "label": "Concorde El Salam Sport",
+      "observed_anchor_literals": [
+        "concorde el salam sport"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": "Front variant not merged."
+    },
+    {
+      "key": "xperience_sea_breeze",
+      "label": "Xperience Sea Breeze",
+      "observed_anchor_literals": [
+        "xperience sea breeze"
+      ],
+      "excluded_observed_literals": [],
+      "scope_regex": null,
+      "note": null
+    }
+  ],
+  "manual_review_scope": "Partial account export 232366 rows; top400 active-priority hotel-like clicked queries and top120 all-lifecycle clicked queries reviewed; every added literal observed."
+}
