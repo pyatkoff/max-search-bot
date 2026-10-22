@@ -15,6 +15,9 @@
 .aiDraftPanel[hidden],.aiDraftPanel button[hidden]{display:none!important}
 .aiDraftPanel{position:absolute;z-index:12;bottom:calc(100% + 6px);left:8px;right:8px;box-sizing:border-box;display:flex;flex-direction:column;max-height:min(46dvh,360px,var(--ai-draft-room,360px));overflow:hidden;border:1px solid #cbdac2;border-radius:12px;padding:12px;background:#fff;box-shadow:0 8px 30px #203b3926;color:#273a30;font-size:13px;line-height:1.4}
 .aiDraftPanel:focus{outline:2px solid #739663;outline-offset:2px}
+/* Keep a supervised preview inside its conversation; mobile keeps its fixed host. */
+@media(min-width:901px){body:not(.manager2) .conversationZone.aiDraftSupervisorHost{position:relative}}
+@media(min-width:1101px){.manager2 .conversationZone.aiDraftSupervisorHost{position:relative}}
 .aiDraftPanel.aiDraftSupervisor{position:absolute;top:72px;bottom:auto;max-height:calc(100% - 130px);left:10px;right:10px;z-index:30}
 @media(max-height:540px){.aiDraftPanel.aiDraftSupervisor{top:64px;max-height:calc(100% - 80px)}}
 .aiDraftHead,.aiDraftActions{display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;gap:8px}

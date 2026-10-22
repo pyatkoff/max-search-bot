@@ -125,6 +125,7 @@
     const supervised=supervisorRead(),host=supervised?$('conversationZone'):$('composer');
     if(host&&panel.parentElement!==host)host.appendChild(panel);
     panel.classList.toggle('aiDraftSupervisor',supervised);
+    $('conversationZone')?.classList.toggle('aiDraftSupervisorHost',supervised);
     if(view&&(!canAnalyze()||!sameContext(view.snapshot.context))){resetSession();return}
     if(view&&!currentSnapshot(view.snapshot))stale();
     const disabled=!canAnalyze()||!!flight;if(button.disabled!==disabled)button.disabled=disabled;
