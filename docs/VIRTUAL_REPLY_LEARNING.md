@@ -429,3 +429,22 @@ nights does not impose a 14 November return; "starting 12 November" has no known
 end; a four-day window with nine requested nights needs conflict clarification;
 a date range without a clear departure/stay meaning can need a short question.
 Existing active/completed jobs keep their frozen instruction bytes and revision.
+
+## Explicit dates and times in ordinary wording
+
+The shared policy's known-condition boundary includes time as well as dates,
+including ordinary conversational wording. A clearly named departure date/time
+does not need a formal confirmation before initial selection. Continue asking
+only for genuinely missing essentials. Preserve real ambiguity or conflicts,
+and do not silently turn an arrival deadline into a departure time.
+
+Manual synthetic calibration (not generated replies or a quality benchmark):
+"17 November from ten in the evening" and "17 November after 22:00" do not
+need reconfirmation; an explicit night from 17 to 18 November after 00:30 keeps
+that boundary; "night departure on 17 November" can require clarification if
+the midnight boundary affects selection; an arrival deadline is not a selected
+departure; inconsistent departure/arrival conditions still need clarification.
+Existing contract transport, shared-consumer and revision regressions remain
+the implementation checks. A successful publication verifies installed policy,
+not that a model will never ask another unnecessary question. Active/completed
+jobs retain their original frozen instructions, results and lesson provenance.
