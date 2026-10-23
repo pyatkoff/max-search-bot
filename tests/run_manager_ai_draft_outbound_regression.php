@@ -324,6 +324,13 @@ try {
         $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('d',32),'Synthetic lock boundary',$draftId);
         draftOutboundCheck('after-advisory-lock '.$change.' is checked on the actual dispatch row',($result['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
     }
+    $pdo=DraftOutboundFixture::reset('max');$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id)); ALTER TABLE messages ADD COLUMN created_at TEXT');
+    $pdo->prepare('INSERT INTO conversation_events(id,conversation_id,event_type,created_at,payload_json) VALUES(1,42,?,?,?)')->execute(['manager_message_failed','2026-10-19 10:00:00',json_encode(['category'=>'suspended'])]);
+    $pdo->afterCommit=static function(){DraftOutboundFixture::$recipient='changed-suspended-recipient';};
+    $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('e',32),'Synthetic suspended boundary',$draftId);
+    draftOutboundCheck('changed MAX context is rejected before a different recipient suspension can mask its receipt',($result['failure']['category']??'')==='attempt_context_changed'&&(ManagerSendAttemptService::receipt(7,42,str_repeat('e',32))['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0);
+    $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('f',32),'Synthetic unchanged suspended context',$draftId);
+    draftOutboundCheck('unchanged scoped MAX suspension still rejects before transport',($result['attempt']['state']??'')==='rejected'&&($result['failure']['category']??'')==='suspended'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
     DraftOutboundFixture::reset();
     draftOutboundCheck('empty text is rejected before feedback or delivery',ManagerOutboundService::send(42,7," \n ",$draftId) === false
         && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);

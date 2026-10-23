@@ -51,7 +51,7 @@ class ManagerOutboundService
         $chatId = $c['external_chat_id']; $channel = strtolower((string)$c['channel']);
         $projectKey = (string)$c['project_key'];
 
-        if ($channel === 'max') {
+        if ($channel === 'max' && $attemptContext === null) {
             $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
             if ($suspended) { self::$lastFailure=$suspended; return false; }
         }
