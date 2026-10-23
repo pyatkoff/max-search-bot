@@ -183,3 +183,12 @@ customer sends or read/assignment changes are needed for acceptance: actual JS a
 services use isolated synthetic fixtures, with native MySQL race proof in the
 existing personal-workspace workflow. Browser fixtures are not natural/physical
 manager acceptance.
+
+The reservation context is passed into the canonical sender, which checks the
+fresh authorized row after any advisory-lock wait and uses that exact row for
+the adapter destination. Active account, actual assignment and recipient/project/
+source/channel mismatches prove zero dispatch and persist a rejected receipt.
+Only that zero-dispatch rejection may reconcile across a changed context for the
+same freshly authorized actual owner; confirmed/UNKNOWN receipts stay context
+fenced. The UI refreshes authorized detail before unlocking a new explicit send,
+retaining the intent fence if the refresh fails. No database lock spans transport.

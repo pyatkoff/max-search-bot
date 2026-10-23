@@ -568,6 +568,18 @@ async function sendReply(reconcileAction='send_receipt'){
     }
     if(attempt){
       const state=j?.attempt?.state||(j?.ok===true&&!reconcile?'confirmed':'unknown');
+      if(state==='rejected'&&j?.failure?.category==='attempt_context_changed'){
+        // Zero dispatch is confirmed, but the old UI target is no longer safe.
+        // Keep the intent fenced until a fresh authorized detail is shown.
+        if(!currentAttempt())return;
+        let refreshed=false,refreshGeneration=openSeq;
+        try{const refreshing=open(target,{preserveMessageScroll:true,preserveHistory:true,preserveAttachment:true,mobileHistory:'none'});refreshGeneration=openSeq;refreshed=await refreshing}catch(e){}
+        if(sameTarget()&&openSeq===refreshGeneration){
+          if(refreshed&&owner===replySessionOwner&&pendingAttempt(target)?.id===attempt.id){const d=drafts.get(target);delete d.attempt;if(!d.text)drafts.delete(target);persistReplySession();}
+          setReplyStatus(refreshed?'Отправка не начата: диалог изменился. Проверьте обновлённые данные перед новой отправкой.':'Отправка не начата. Переписку не удалось обновить; повтор заблокирован. Проверьте отправку ещё раз.','error');
+        }
+        return;
+      }
       if(['confirmed','rejected','cancelled'].includes(state)){
         if(sameSession()&&owner===replySessionOwner&&pendingAttempt(target)?.id===attempt.id){const d=drafts.get(target);delete d.attempt;if(!d.text)drafts.delete(target);persistReplySession();}
         if(state==='cancelled'){if(currentAttempt())setReplyStatus('Непринятая попытка отменена. Текст и файлы сохранены; отправьте их явно.');return}

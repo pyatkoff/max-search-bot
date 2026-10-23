@@ -794,3 +794,18 @@ for(const viewport of [{width:390,height:420},{width:430,height:844},{width:768,
  await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Новый текст, который нельзя стирать');await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);expect(await page.evaluate(url=>sendFileProof.objects.get(url)===sendFileProof.original,url)).toBe(true);expect(sends).toHaveLength(1);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
  await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-receipt-restored.png`});
 });
+
+for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('Manager2 context rejection keeps the send fence until fresh detail '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await setup(page);await openLead(page);const sends=[],receipts=[];let detailFails=true;
+ await page.route('**/manager/api.php',async route=>{
+  const d=route.request().postDataJSON();if(!['send','send_receipt','detail'].includes(d.action))return route.fallback();expect(d.csrf).toBe('synthetic-csrf');expect(d.conversation_id).toBe(11);
+  if(d.action==='send'){sends.push(d);return route.abort('failed')}
+  if(d.action==='detail')return detailFails?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false})}):route.fallback();
+  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
+ });
+ await page.locator('#replyText').fill('Исходный ответ');await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');
+ await page.locator('#replyText').fill('Сохранённый новый текст');await page.locator('#replyFile').setInputFiles({name:'retained-context.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')});await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);const url=await page.locator('.mediaPreview img').getAttribute('src');
+ await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('повтор заблокирован');await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);
+ fs.mkdirSync('send-feedback-artifacts',{recursive:true});await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-context-refresh-failed.png`});
+ detailFails=false;await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('#replyStatus')).toContainText('Отправка не начата: диалог изменился');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);expect(sends).toHaveLength(1);expect(receipts).toHaveLength(2);expect(receipts.every(r=>r.operation_id===sends[0].operation_id)).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});

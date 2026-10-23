@@ -30,14 +30,14 @@ final class ManagerSendAttemptService
         }
         $state='unknown';$failure=null;
         try {
-            $result=$send();
+            $result=$send($context);
             if (($result['ok']??false)===true) $state='confirmed';
             else {
                 $raw=$result['failure']??null;
                 if (is_array($raw)) {
                     $category=(string)($raw['category']??'unknown');$code=(int)($raw['http_code']??0);
-                    $definite=in_array($category,['suspended','blocked','unsupported'],true)||($code>=400&&$code<500&&!in_array($code,[408,409,429],true));
-                    if ($definite) {$state='rejected';$failure=['category'=>in_array($category,['suspended','blocked','unavailable','unsupported'],true)?$category:'unknown'];}
+                    $definite=in_array($category,['suspended','blocked','unsupported','attempt_context_changed'],true)||($code>=400&&$code<500&&!in_array($code,[408,409,429],true));
+                    if ($definite) {$state='rejected';$failure=['category'=>in_array($category,['suspended','blocked','unavailable','unsupported','attempt_context_changed'],true)?$category:'unknown'];}
                 }
             }
         } catch (Throwable $e) { /* No exception/provider payload in the receipt. */ }
@@ -88,7 +88,19 @@ final class ManagerSendAttemptService
         if ($lock) {$q=$pdo->prepare('SELECT id FROM conversations WHERE id=?'.$suffix);$q->execute([$conversationId]);if (!$q->fetchColumn()) return null;}
         $c=ManagerConversationService::visibleConversation($conversationId,$actor);
         if (!$c||(string)$c['status']!=='manager'||(int)$c['manager_id']!==$actor) return null;
-        return hash('sha256',json_encode([$conversationId,(string)$c['project_key'],(int)$c['source_id'],(string)$c['channel'],(string)$c['external_chat_id']],JSON_THROW_ON_ERROR));
+        return self::contextHash($c);
+    }
+    /** The caller must use THIS freshly authorized row for its adapter target.
+     * No second conversation read may silently replace it after this check.
+     */
+    public static function dispatchAllowed(array $conversation,int $actor,string $expected): bool
+    {
+        if($actor<=0||(string)($conversation['status']??'')!=='manager'||(int)($conversation['manager_id']??0)!==$actor||!hash_equals($expected,self::contextHash($conversation)))return false;
+        $q=ConversationDb::connection()->prepare('SELECT is_active FROM managers WHERE id=?');$q->execute([$actor]);return (int)$q->fetchColumn()===1;
+    }
+    private static function contextHash(array $c): string
+    {
+        return hash('sha256',json_encode([(int)$c['id'],(string)$c['project_key'],(int)$c['source_id'],(string)$c['channel'],(string)$c['external_chat_id']],JSON_THROW_ON_ERROR));
     }
     private static function row(PDO $pdo,int $actor,string $id): ?array
     {
@@ -100,7 +112,13 @@ final class ManagerSendAttemptService
     }
     private static function replay(array $row,int $conversationId,string $context,?string $hash=null): array
     {
-        if ((int)$row['conversation_id']!==$conversationId||!hash_equals((string)$row['context_hash'],$context)||($hash!==null&&$row['state']!=='cancelled'&&!hash_equals((string)$row['request_hash'],$hash))) return self::error('send_attempt_mismatch');
+        if ((int)$row['conversation_id']!==$conversationId||($hash!==null&&$row['state']!=='cancelled'&&!hash_equals((string)$row['request_hash'],$hash))) return self::error('send_attempt_mismatch');
+        $saved=json_decode((string)($row['result_json']??''),true);
+        // This terminal result proves zero dispatch. It can be reconciled by
+        // the same freshly authorized actual owner after context changed,
+        // without exposing the old recipient or reviving the operation.
+        $zeroDispatch=$row['state']==='rejected'&&($saved['failure']['category']??'')==='attempt_context_changed';
+        if(!hash_equals((string)$row['context_hash'],$context)&&!$zeroDispatch)return self::error('send_attempt_mismatch');
         return self::view($row);
     }
     private static function view(array $row): array
