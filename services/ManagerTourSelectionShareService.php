@@ -150,6 +150,23 @@ final class ManagerTourSelectionShareService
         return $row && is_string($url)?TourSelectionPhotoStore::cached(TourSelectionPhotoStore::offerKey((int)$row['offer_id']),0,$photo,$url):null;
     }
 
+    /** PHP-only context. Never serialize its private signing key or identities. */
+    public static function interestContext(string $token,int $version): ?array
+    {
+        $link=self::byToken($token);
+        if (!$link || (int)$link['version']!==$version) return null;
+        $p=self::publication((int)$link['conversation_id'],$link['publication_id']);
+        if (!$p) return null;
+        $groups=[];$ordinals=[];
+        foreach ($p['selection']['offers'] as $i=>$offer) {
+            $key=isset($offer['hotel_group'])?'manual:'.$offer['hotel_group']:'offer:'.$i;
+            if (!array_key_exists($key,$ordinals)) $ordinals[$key]=count($ordinals);
+            $groups[$i]=$ordinals[$key];
+        }
+        return ['conversation_id'=>(int)$link['conversation_id'],'publication_id'=>$link['publication_id'],
+            'version'=>$version,'key'=>(string)$p['cards'][0]['callback_data'],'groups'=>$groups];
+    }
+
     private static function byToken(string $token): ?array
     {
         if (!preg_match('/\A[a-f0-9]{64}\z/D',$token)) return null;
@@ -171,8 +188,13 @@ final class ManagerTourSelectionShareService
     }
     private static function view(?array $row): array
     {
-        return ['version'=>$row?(int)$row['version']:0,'active'=>$row?(bool)$row['is_active']:false,'publication_id'=>$row['publication_id']??null,
+        $out=['version'=>$row?(int)$row['version']:0,'active'=>$row?(bool)$row['is_active']:false,'publication_id'=>$row['publication_id']??null,
             'path'=>$row && (bool)$row['is_active']?'/selection/?t='.$row['token']:null,'updated_at'=>$row['updated_at']??null];
+        if ($out['active']) {
+            require_once __DIR__.'/ManagerTourSelectionInterestService.php';
+            $out['preview_path']=ManagerTourSelectionInterestService::previewPath($row['token'],(int)$row['version']);
+        }
+        return $out;
     }
     private static function error(string $error): array {return ['ok'=>false,'error'=>$error];}
 }

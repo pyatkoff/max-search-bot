@@ -33,6 +33,7 @@ async function fixture(page,options={}){
       publication=publication||{id:'a'.repeat(32),draft_version:d.version,title:built.title,channel:'telegram',can_send:!options.readOnly,cards:built.offers.map((offer,i)=>({index:i,offer_id:i+1,state:'pending',snapshot:offer.snapshot,text:offer.card.plain_text,photos:[0,1,2].map(p=>'tour-selection-photo.php?publication_id='+'a'.repeat(32)+'&card='+i+'&photo='+p+'&conversation_id='+d.conversation_id)}))};
       return reply({ok:true,publication:copy(publication)});
     }
+    if(d.action==='interest')return reply(options.interest||{ok:false,error:'observations_unavailable'},options.interest?.ok?200:503);
     if(d.action==='history')return reply({ok:true,publications:publication?[{publication_id:publication.id,draft_version:1,created_at:'2026-10-22 12:00:00'}]:[]});
     if(d.action==='publication')return reply({ok:true,publication:copy(publication)});
     if(d.action==='send'){
@@ -321,4 +322,54 @@ test('collector popup clearly separates destination review waiting and saved row
  await page.addInitScript(data=>{window.popupCommands=[];window.chrome={runtime:{sendMessage:async m=>{popupCommands.push(m);return m.type==='status'?data:{ok:true}}},storage:{onChanged:{addListener(){}}}}},data);await page.goto('https://collector.fixture/popup.html');
  await expect(page.locator('.item')).toHaveCount(5);await expect(page.getByRole('button',{name:'Добавить для этого клиента'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Проверить и продолжить'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Добавить отдельным вариантом'})).toHaveCount(1);await expect(page.getByRole('button',{name:'Продолжить с новым подключением этой поездки'})).toHaveCount(1);expect(await page.evaluate(()=>popupCommands.some(x=>x.type!=='status'))).toBe(false);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-collector-popup-${browserName}.png`)});
+});
+
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('selection interest separates anonymous native and automated signals '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);
+ const interest={ok:true,interest:{window_days:30,limited:true,totals:{browser:{page_view:{unique:3,repeat:2},hotel_view:{unique:4,repeat:1},bot_open:{unique:1,repeat:0}},preview:{page_fetch:{unique:2,repeat:0}},robot:{page_fetch:{unique:1,repeat:0}}},variants:[{index:0,hotel_views:4,bot_opens:1}],last_browser_at:'2026-10-23 14:00:00',native:{liked:0,inquiries:0,likes_limited:false,inquiries_limited:false}}};
+ const state=await fixture(page,{draft:completeDraft(),interest});
+ await page.locator('#replyText').fill('Мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'interest-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
+ await open(page);await page.locator('#tsPreview').click();await expect(page.locator('#tsInterest')).toBeVisible();await page.locator('#tsInterest').click();
+ await expect(page.locator('#tsInterestPanel')).toContainText('анонимные сигналы браузера');await expect(page.locator('.tsInterestCounts')).toContainText('3 · повторов 2');
+ await expect(page.locator('#tsInterestPanel')).toContainText('«Нравится» — 0, обращений — 0');await expect(page.locator('#tsInterestPanel')).toContainText('Достигнут предел выборки');
+ await expect(page.locator('#tsInterestPanel')).toContainText('События предпросмотра: 2');await expect(page.locator('#tsInterestPanel')).toContainText('События распознанной автоматизации: 1');
+ await expect(page.locator('#tsInterestPanel')).toContainText('23.10.2026 17:00 МСК');
+ await page.locator('#tsInterestPanel h3').scrollIntoViewIfNeeded();expect(await page.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ await expect(page.locator('#tsClose')).toBeInViewport();await expect(page.locator('#tsDone')).toBeInViewport();
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-interest-${browserName}-${viewport.width}x${viewport.height}.png`)});
+ await page.locator('#tsClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('interest-retained.txt');
+ expect(state.creations()).toBe(0);expect(state.calls.filter(x=>x.action==='interest')).toHaveLength(1);clean(state,['prepare','interest']);
+});
+
+test('selection interest read failure is unknown instead of a false zero',async({page})=>{
+ const state=await fixture(page,{draft:completeDraft()});await open(page);await page.locator('#tsPreview').click();await page.locator('#tsInterest').click();
+ await expect(page.locator('#tsInterestPanel')).toContainText('не означает, что просмотров не было');await expect(page.locator('.tsInterestCounts')).toHaveCount(0);expect(state.creations()).toBe(0);clean(state,['prepare','interest']);
+});
+
+test('public interest observes visible hotels without changing exact bot links or creating native choices',async({page})=>{
+ const cap={t:'a'.repeat(64),version:2,expires:Math.floor(Date.now()/1000)+900,nonce:'b'.repeat(32),bucket:'browser',mac:'c'.repeat(64)};
+ const offer={index:0,hotel_group:0,hotel:'Синтетический отель',departure:'Москва',date_from:'2027-06-05',nights:7,adults:2,children:0,room:'Standard',meal:'Всё включено',amount:'200000',currency:'RUB',rationale:'',compromise:'',destination:'Турция',flights:'',inclusions:'',constraints:'',observed_at:'',photos:['cover','beach','room'].map(x=>'/'+x+'.jpg'),bot_links:{telegram:'https://t.me/synthetic_bot?start=exact-version-2'}};
+ const selection={title:'Синтетическая подборка',intro:'',version:2,updated_at:'2026-10-23 14:00:00',offers:[offer,{...copy(offer),index:1,room:'Suite',amount:'250000'},{...copy(offer),index:2,hotel_group:1,hotel:'Другой отель'}]};
+ const html=execFileSync('php',['-r',`$in=json_decode(stream_get_contents(STDIN),true);$selection=$in['selection'];$interest=$in['cap'];$h=static fn(string $v):string=>htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');require getcwd().'/selection/view.php';`],{cwd:root,input:JSON.stringify({selection,cap}),encoding:'utf8'});
+ const calls=[],unexpected=[];
+ await page.route('**/*',route=>{
+  const request=route.request(),url=new URL(request.url()),p=url.pathname;
+  if(url.origin==='https://t.me'&&request.isNavigationRequest())return route.abort();
+  if(url.origin!=='https://selection-fixture.invalid'){unexpected.push(url.href);return route.abort()}
+  if(p==='/selection/')return route.fulfill({contentType:'text/html',body:html});
+  if(p==='/selection/activity.php'&&request.method()==='POST'){calls.push(request.postDataJSON());return route.fulfill({contentType:'application/json',body:'{"ok":true,"saved":true}'})}
+  if(p==='/selection/activity.js')return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(root,'selection/activity.js'))});
+  if(p==='/selection/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});
+  if(/^\/(cover|beach|room)\.jpg$/.test(p))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',p.slice(1)))});
+  unexpected.push(p);return route.abort();
+ });
+ await page.setViewportSize({width:390,height:900});await page.goto('https://selection-fixture.invalid/selection/');
+ await expect.poll(()=>calls.filter(x=>x.kind==='page_view').length).toBe(1);
+ await page.locator('[data-interest-hotel]').first().scrollIntoViewIfNeeded();await expect.poll(()=>calls.some(x=>x.kind==='hotel_view'&&x.card_index===0)).toBe(true);
+ await page.locator('[data-interest-hotel]').last().scrollIntoViewIfNeeded();await expect.poll(()=>calls.some(x=>x.kind==='hotel_view'&&x.card_index===2)).toBe(true);
+ expect(calls.some(x=>x.kind==='hotel_view'&&x.card_index===1)).toBe(false);
+ const first=calls.find(x=>x.kind==='page_view');await page.reload();await expect.poll(()=>calls.filter(x=>x.kind==='page_view').length).toBe(2);
+ const second=calls.filter(x=>x.kind==='page_view')[1];expect(second.visitor_id).toBe(first.visitor_id);expect(second.event_id).not.toBe(first.event_id);
+ const link=page.locator('#variant-2 .botActions a');await expect(link).toHaveAttribute('href',offer.bot_links.telegram);await link.click();await expect.poll(()=>calls.some(x=>x.kind==='bot_open'&&x.card_index===1&&x.platform==='telegram')).toBe(true);
+ expect(calls.every(x=>['page_view','hotel_view','bot_open'].includes(x.kind))).toBe(true);expect(unexpected).toEqual([]);
 });
