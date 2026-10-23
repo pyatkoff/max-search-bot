@@ -104,6 +104,7 @@ const refreshDetails=state=>state.calls.filter(c=>c.path==='/manager/api.php'&&c
 for(const width of [390,1440])test('history media waits for explicit playback '+width,async({page,browserName})=>{
  await page.setViewportSize({width,height:900});const state=await setup(page,{total:205,httpMedia:true});await open(page);
  await expect(page.locator('#messages audio')).toHaveCount(10);await expect(page.locator('#messages video')).toHaveCount(10);
+ expect(await page.locator('#messages audio, #messages video').evaluateAll(players=>players.every(player=>player.controls))).toBe(true);
  await expect(page.locator('#replyText')).toBeEnabled();
  // Native resource selection runs asynchronously after DOM insertion. Settle its
  // actual network lifecycle before counting requests; this is not a latency SLA.
@@ -132,6 +133,7 @@ for(const width of [390,1440])test('history media waits for explicit playback '+
  await readTop(page);expect(await page.locator('#messages').evaluate(el=>el.scrollTop)).toBe(0);
  const before=await anchor(page);await useConversationTool(page,'conversationLoadOlder');await expect(page.locator('#messages [data-scroll-message-key="1"]')).toHaveCount(1);await settled(page);await sameAnchor(page,before);
  await expect(page.locator('#messages audio')).toHaveCount(11);await expect(page.locator('#messages video')).toHaveCount(11);await page.waitForLoadState('networkidle');
+ expect(await page.locator('#messages audio, #messages video').evaluateAll(players=>players.every(player=>player.controls))).toBe(true);
  expect(new Set(state.mediaRequests.map(r=>r.path))).toEqual(new Set(['/synthetic-demand/200.wav','/synthetic-demand/200.webm']));
  for(const [kind,node] of [['audio',audio],['video',video]])expect(await node.evaluate((el,kind)=>el===window['demandPlaying'+kind]&&!el.paused&&el.currentTime>=window['demandTime'+kind],kind)).toBe(true);
  await expect(page.locator('#replyText')).toHaveValue('Черновик во время прослушивания');await expect(page.locator('#mediaSelection')).toContainText('retained.txt');

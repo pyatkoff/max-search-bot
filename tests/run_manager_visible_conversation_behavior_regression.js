@@ -61,6 +61,16 @@ test('unchanged history retains its DOM and media nodes; same-id synthetic summa
  h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary A'}]);await h.C.refreshVisible();const summary=box.children[0];h.arrive([{id:0,sender_type:'ai',text:'Synthetic summary B'}]);await h.C.refreshVisible();assert.notEqual(box.children[0],summary);assert.equal(h.W.S.detail.messages[0].text,'Synthetic summary B');
 });
 
+test('new media controls initialize against the complete reconciled transcript',async()=>{
+ const h=await setup({reconcileMessages:true}),box=h.ids.get('messages'),create=h.document.createElement.bind(h.document),activated=[];
+ h.document.createElement=tag=>{
+  const node=create(tag);if(['audio','video'].includes(tag)){let controls=false;Object.defineProperty(node,'controls',{get:()=>controls,set:value=>{controls=value;if(value)activated.push({node,connected:node.isConnected,rows:box.children.length})}})}return node;
+ };
+ h.arrive([{...first,attachments:[{type:'audio',url:'synthetic-audio'}]},{...next,attachments:[{type:'video',url:'synthetic-video'}]}]);await h.C.refreshVisible();
+ assert.equal(activated.length,2);for(const item of activated){assert.equal(item.connected,true,'Native controls need the connected final transcript');assert.equal(item.rows,2);assert.equal(item.node.controls,true)}
+ const players=activated.map(item=>item.node);await h.C.refreshVisible();assert.equal(activated.length,2,'Unchanged players must not reinitialize');assert.ok(players.every(node=>node.isConnected));assertNoMutations(h);
+});
+
 function trackedMedia(h,row,tag){
  const media=h.document.createElement(tag);media.setAttribute('src','synthetic-'+tag);media.currentTime=42;media.playing=true;media.onerror=()=>{};
  media.pauses=0;media.loads=0;media.pause=()=>{assert.equal(media.isConnected,true);media.pauses++;media.playing=false};media.load=()=>{assert.equal(media.src,undefined);media.loads++};row.appendChild(media);return media;

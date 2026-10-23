@@ -20,11 +20,11 @@ on:
         required: false
         type: string
       journey:
-        description: 'Frozen workspace protocol or complete AI reply journey'
+        description: 'Workspace, complete AI reply, or paired opening protocol'
         required: true
         default: workspace
         type: choice
-        options: [workspace, reply]
+        options: [workspace, reply, open]
 
 permissions:
   contents: read
@@ -37,7 +37,7 @@ concurrency:
 
 env:
   PRODUCT_SHA: ${{ inputs.product_sha || github.event.pull_request.base.sha || github.sha }}
-  JOURNEY: ${{ inputs.journey || 'reply' }}
+  JOURNEY: ${{ inputs.journey || 'open' }}
 
 jobs:
   input:

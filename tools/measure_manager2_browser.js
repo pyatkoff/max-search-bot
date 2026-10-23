@@ -15,9 +15,9 @@ const viewports=selectedWidths.map(value=>value==='390-short'?{width:390,height:
 const samples=positive(arg('samples'),30,30),warmups=positive(arg('warmups'),3,3),cold=positive(arg('cold'),3,5);
 let experimentWatchdog,lastOperation='input_verification';
 const engine=arg('engine')||'chromium';assert.ok(['chromium','webkit'].includes(engine));
-const journey=arg('journey')||'workspace';assert.ok(['workspace','reply'].includes(journey));
-const protocol=journey==='reply'?'manager2-reply-v1':'manager2-workspace-v1';
-const recordsPerCycle=journey==='reply'?13:14;
+const journey=arg('journey')||'workspace';assert.ok(['workspace','reply','open'].includes(journey));
+const protocol=journey==='open'?'manager2-open-v1':journey==='reply'?'manager2-reply-v1':'manager2-workspace-v1';
+const recordsPerCycle=journey==='open'?2:journey==='reply'?13:14;
 const productSha=arg('product-sha')||git('rev-parse','HEAD');assert.match(productSha,/^[a-f0-9]{40}$/);
 const output=path.resolve(arg('output')||path.join(root,'manager2-artifacts','measurement-'+engine));fs.mkdirSync(output,{recursive:true});
 const assets=path.resolve(arg('assets')||path.join(output,'installed'));
@@ -148,6 +148,26 @@ function summarise(records){
  const groups={};for(const r of records){const key=[r.engine,r.viewport.width+'x'+r.viewport.height,r.cacheMode,r.name].join('/');(groups[key]??=[]).push(r.duration)}
  return Object.entries(groups).map(([key,values])=>{const sorted=[...values].sort((a,b)=>a-b),n=sorted.length;return {key,n,median_ms:n%2?sorted[(n-1)/2]:(sorted[n/2-1]+sorted[n/2])/2,min_ms:sorted[0],max_ms:sorted[n-1],p95:'not_measured',tail_reason:'Bounded synthetic descriptive series; no stable production-tail or SLA claim'}});
 }
+function openingComparisons(records){
+ const median=values=>{values.sort((a,b)=>a-b);const n=values.length;return n%2?values[(n-1)/2]:(values[n/2-1]+values[n/2])/2};
+ return viewports.map(viewport=>{
+  const selected=records.filter(r=>r.cacheMode==='same_page_after_warmup'&&r.viewport.width===viewport.width&&r.viewport.height===viewport.height),pairs=[];
+  for(let i=0;i<samples;i++){const pair=selected.filter(r=>r.sample===i),baseline=pair.find(r=>r.cohort==='baseline'),candidate=pair.find(r=>r.cohort==='candidate');assert.equal(pair.length,2);assert.ok(baseline&&candidate);pairs.push({sample:i,baseline_ms:baseline.duration,candidate_ms:candidate.duration,delta_ms:baseline.duration-candidate.duration})}
+  return {engine,viewport,n:pairs.length,baseline_median_ms:median(pairs.map(p=>p.baseline_ms)),candidate_median_ms:median(pairs.map(p=>p.candidate_ms)),paired_delta_median_ms:median(pairs.map(p=>p.delta_ms)),pairs};
+ });
+}
+async function openSample(page,state,cohort,index){
+ state.reset();
+ await bounded(()=>page.evaluate(async()=>{if(!await WorkspaceV2Conversation.open(12,{mobileHistory:'none'}))throw Error('Precondition B did not open')}),'precondition_B');
+ await page.waitForFunction(()=>WorkspaceV2.S.current===12&&WorkspaceV2.S.detail?.lead&&WorkspaceV2History.getState().loaded===200);
+ await inbox(page);const selector='#inboxList [data-conversation-id="11"] .m2RowOpen';
+ const record=await phase(page,{name:cohort+'_open',kind:'open',event:'click',selector,from:12,id:11,loaded:200},()=>page.locator(selector).click());
+ assert.equal(await page.locator('#messages .msg').count(),200);
+ assert.equal(await page.locator('#messages audio').count(),10);
+ assert.equal(await page.locator('#messages audio, #messages video').evaluateAll(players=>players.every(player=>player.controls&&player.preload==='none')),true);
+ assert.deepEqual(state.rejected,[]);assert.deepEqual(state.unexpected,[]);assert.deepEqual(state.errors,[]);
+ return {...record,cohort,sample:index,synthetic:true};
+}
 async function main(){
  if(has('capture'))await capture();const input=verifyInputs();
  if(has('capture-only')){assert.ok(has('capture'));process.stdout.write('Verified '+input.assets.length+' installed assets and worker\n');return}
@@ -159,10 +179,37 @@ async function main(){
  const rawFile=path.join(output,'samples.jsonl');fs.writeFileSync(rawFile,'');const records=[],environments=[];
  const manifest={schema:2,protocol,started_at:new Date().toISOString(),productSha,productTree:input.tree,toolingSha:git('rev-parse','HEAD'),datasetSha:journey==='reply'?digest(JSON.stringify({dataset,datasetSha,aiText,editedAiText})):datasetSha,dataset:{inbox:200,initialMessages:200,availableHistory:600,refreshAppend:journey==='workspace'?1:0,role:'manager',manager_id:7,synthetic:true},method:{purpose:samples===30&&warmups===3&&cold===3?'baseline':'protocol_check',journey,recordsPerCycle,expectedRawRecords:viewports.length*(cold+samples*recordsPerCycle),samples,warmups,cold,engine,viewports,httpCache:'disabled by Playwright routing',warm:'same page/context after discarded whole-path warmups; no HTTP-cache warming claim',coldDescription:'fresh browser context/page; shared browser process/OS cache uncontrolled',cpuThrottle:'none',network:'loopback synthetic interception; bridge overhead included',timestamps:'browser performance.now; captured event or armed canonical command to first matching state plus two animation frames; command completion required for history/refresh',milestones:'first RAF observing transcript/authorized reply/card state; main duration additionally waits two animation frames',instrumentation:'fetch JSON timestamps and reserialization byte count; resource/longtask observers and state polling; observer overhead included',order:journey==='reply'?'prepared then generated/lost-ack cohorts: open, AI preview, validated insert, native edit, explicit send, optional receipt, full-cycle span; no randomized crossover':'fixed 14-phase whole-path cycles; viewports in supplied order; no randomized crossover',fullCycle:journey==='reply'?'open event through confirmed transcript; includes driver gaps and phase verification; aggregate overlaps its phases':'not_measured',modelAndChannelLatency:'not_measured: synthetic immediate responses and one deliberate lost acknowledgement',humanThinkTime:'not_measured: automated immediate edits and clicks',p95:'not_measured',serverSQL:'not_measured',productionBrowser:'not_measured',realCustomerOrProviderSends:0,productionDataWrites:0},node:process.version,playwright:require('@playwright/test/package.json').version,browserVersion:browser.version(),platform:{os:os.platform(),release:os.release(),arch:os.arch(),cpuCount:os.cpus().length,cpuModel:os.cpus()[0]?.model,totalMemory:os.totalmem(),loadAverage:os.loadavg()},input:{shell_sha256:input.shell_sha256,assets:input.assets,worker:input.worker},scriptHashes:Object.fromEntries(['tools/measure_manager2_browser.js','tools/fixtures/manager2_browser_measurement.js','tests/visual/fixtures/personal-workspace.js'].map(p=>[p,digest(fs.readFileSync(path.join(root,p)))]))};
  manifest.toolingTrackedClean=toolingTrackedClean;
+ const candidatePath='manager/assets/workspace-v2-conversation.js',candidateSource=journey==='open'?fs.readFileSync(path.join(root,candidatePath)):null;
+ if(journey==='open'){
+  const baseline=input.assets.find(asset=>asset.path===candidatePath);assert.ok(baseline);
+  manifest.candidate={path:candidatePath,sha256:digest(candidateSource),baseline_sha256:baseline.sha256,sourceSha:manifest.toolingSha,override:'Only this canonical asset; verified installed shell, worker and all other assets unchanged'};
+  manifest.method.expectedRawRecords=viewports.length*(2*cold+samples*recordsPerCycle);
+  manifest.method.order='Paired baseline/candidate contexts on the same runner; order alternates per sample, starting baseline; B→A native row click in each cohort; warmups discarded per cohort';
+  manifest.method.modelAndChannelLatency='not_measured: no AI, send or receipt action in opening comparison';
+ }
  json(path.join(output,'manifest.json'),manifest);
  experimentWatchdog=setTimeout(()=>{json(path.join(output,'watchdog-failure.json'),{ok:false,time:new Date().toISOString(),lastOperation,error:'Experiment watchdog timeout; partial artifacts are not a baseline'});process.stderr.write('Experiment watchdog timeout at '+lastOperation+'\n');process.exit(1)},manifest.method.purpose==='protocol_check'?180000:960000);
  const save=record=>{records.push(record);fs.appendFileSync(rawFile,JSON.stringify(record)+'\n')};
  try{for(const viewport of viewports){
+  if(journey==='open'){
+   const prepare=async cohort=>{
+    const context=await browser.newContext({viewport,deviceScaleFactor:1,timezoneId:'Europe/Moscow'}),page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(15000);await page.addInitScript(installMeter);
+    const state=await setup(page,{sourceRoot:assets,beforeNavigate:cohort==='candidate'?async p=>{
+     await p.route('**/manager/assets/workspace-v2-conversation.js*',route=>route.fulfill({contentType:'application/javascript',body:candidateSource}));
+    }:undefined});await startup(page);return {context,page,state,cohort};
+   };
+   for(const cohort of ['baseline','candidate'])for(let i=0;i<cold;i++){
+    const {context,page,state}=await prepare(cohort);save({...await page.evaluate(()=>window.__managerMeasurement.record()),name:cohort+'_startup',cohort,protocol,engine,viewport,sample:i,cacheMode:'fresh_context',synthetic:true});
+    assert.deepEqual(state.rejected,[]);assert.deepEqual(state.unexpected,[]);assert.deepEqual(state.errors,[]);environments.push({cohort,...await page.evaluate(()=>window.__managerMeasurement.environment())});await bounded(()=>context.close(),'close_context');
+   }
+   const cohorts=[await prepare('baseline'),await prepare('candidate')];
+   for(let i=-warmups;i<samples;i++){
+    const ordered=(i>=0?i:i+warmups)%2?[...cohorts].reverse():cohorts;
+    for(const {page,state,cohort} of ordered){const record=await openSample(page,state,cohort,i);if(i>=0)save({...record,protocol,engine,viewport,cacheMode:'same_page_after_warmup'});process.stdout.write(JSON.stringify({protocol,engine,viewport,cohort,sample:i,duration:record.duration})+'\n')}
+   }
+   for(const {context,page,cohort} of cohorts){await page.screenshot({path:path.join(output,'final-'+cohort+'-'+viewport.width+'x'+viewport.height+'.png'),animations:'disabled'});await bounded(()=>context.close(),'close_context')}
+   continue;
+  }
   for(let i=0;i<cold;i++){const context=await browser.newContext({viewport,deviceScaleFactor:1,timezoneId:'Europe/Moscow'}),page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(15000);await page.addInitScript(installMeter);const state=await setup(page,{sourceRoot:assets,journey});await startup(page);save({...await page.evaluate(()=>window.__managerMeasurement.record()),protocol,engine,viewport,sample:i,cacheMode:'fresh_context',synthetic:true});assert.deepEqual(state.rejected,[]);assert.deepEqual(state.unexpected,[]);assert.deepEqual(state.errors,[]);environments.push(await page.evaluate(()=>window.__managerMeasurement.environment()));await bounded(()=>context.close(),'close_context')}
   const context=await browser.newContext({viewport,deviceScaleFactor:1,timezoneId:'Europe/Moscow'}),page=await context.newPage();page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(15000);await page.addInitScript(installMeter);const state=await setup(page,{sourceRoot:assets,journey});await startup(page);
   for(let i=-warmups;i<samples;i++){const result=await (journey==='reply'?replyCycle:cycle)(page,state,i);assert.equal(result.length,recordsPerCycle);if(i>=0)for(const record of result)save({...record,protocol,engine,viewport,cacheMode:'same_page_after_warmup'});process.stdout.write(JSON.stringify({protocol,engine,viewport,sample:i,operations:result.length})+'\n')}
@@ -170,6 +217,7 @@ async function main(){
  }}catch(error){json(path.join(output,'primary-error.json'),{ok:false,time:new Date().toISOString(),operation:lastOperation,error:error.message,stack:error.stack});throw error}finally{try{await bounded(()=>browser.close(),'close_browser')}catch(error){json(path.join(output,'cleanup-failure.json'),{ok:false,time:new Date().toISOString(),error:error.message});process.stderr.write(error.stack+'\n');process.exit(1)}}
  clearTimeout(experimentWatchdog);
  assert.equal(records.length,manifest.method.expectedRawRecords);
+ if(journey==='open')json(path.join(output,'opening-comparison.json'),{protocol,comparisons:openingComparisons(records),sign:'Positive delta means candidate faster; bounded descriptive observations, no stable tail or SLA'});
  const summary={ok:true,protocol,purpose:manifest.method.purpose,completed_at:new Date().toISOString(),raw_samples_sha256:digest(fs.readFileSync(rawFile)),raw_records:records.length,groups:summarise(records),environments,scope:'Synthetic installed-assets browser baseline only; production browser/API/SQL/model/channel/human time and stable P95 not measured'};json(path.join(output,'summary.json'),summary);process.stdout.write('M2_BROWSER_MEASUREMENT '+JSON.stringify({ok:true,protocol,engine,records:records.length,raw_sha256:summary.raw_samples_sha256})+'\n');
 }
 main().catch(error=>{clearTimeout(experimentWatchdog);json(path.join(output,'failure.json'),{ok:false,time:new Date().toISOString(),name:error.name,message:error.message,stack:error.stack});process.stderr.write(error.stack+'\n');process.exitCode=1});
