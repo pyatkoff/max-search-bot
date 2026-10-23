@@ -297,10 +297,21 @@ final class ManagerPreparedReplyService
         $empty = ['ok'=>true,'prepared'=>false];
         try {
             $pdo = ConversationDb::connection();
-            if ($pdo->inTransaction() || $cid <= 0 || $actor <= 0) return $empty;
-            $fresh = ManagerAiDraftContextService::snapshot($cid, $actor);
+            if ($pdo->inTransaction() || $cid <= 0 || $actor < 0) return $empty;
+            $fresh = $actor>0 ? ManagerAiDraftContextService::snapshot($cid, $actor)
+                : ManagerAiDraftContextService::viewerSnapshot($cid,(int)($snapshot['viewer_id']??0));
+            if($actor===0&&((int)($fresh['owner_id']??-1)!==0||empty($fresh['owner_read'])))return $empty;
             if (!self::matches($fresh, $snapshot['revision'] ?? null, $snapshot['latest_message_id'] ?? null)) return $empty;
-            $project = self::projectFor($pdo, $cid, $actor);
+            $readProject=null;
+            if($actor===0||ManagerAuthService::isAdmin(ManagerAuthService::byId($actor)))$readProject=$fresh['project_key']??null;
+            elseif(!empty($snapshot['owner_read'])&&(int)($snapshot['viewer_id']??0)>0){
+                $viewer=ManagerAiDraftContextService::viewerSnapshot($cid,(int)$snapshot['viewer_id']);
+                if(empty($viewer['ok'])||empty($viewer['owner_read'])||(int)$viewer['owner_id']!==$actor
+                    ||!self::matches($viewer,$snapshot['revision']??null,$snapshot['latest_message_id']??null)
+                    ||($viewer['viewer_access_revision']??null)!==($snapshot['viewer_access_revision']??null))return $empty;
+                $readProject=$fresh['project_key']??null;
+            }
+            $project = self::projectFor($pdo, $cid, $actor,$readProject);
             if ($project === null) return $empty;
             $q = $pdo->prepare("SELECT * FROM manager_prepared_replies WHERE conversation_id=? AND project_key=? AND instruction_revision=? AND latest_message_id=? AND status='ready' AND ((manager_id=? AND context_revision=?) OR (manager_id=0 AND context_revision=?)) ORDER BY prepared_at DESC LIMIT 1");
             $q->execute([$cid,$project,self::instructionRevision(),$fresh['latest_message_id'],$actor,$fresh['revision'],$fresh['preparation_revision'] ?? '']);
@@ -348,12 +359,12 @@ final class ManagerPreparedReplyService
             && self::projectFor($pdo, (int)$row['conversation_id'], (int)$row['manager_id']) === $row['project_key'] ? $snapshot : null;
     }
 
-    private static function projectFor(PDO $pdo, int $cid, int $actor): ?string
+    private static function projectFor(PDO $pdo, int $cid, int $actor,?string $readProject=null): ?string
     {
         $q = $pdo->prepare('SELECT c.project_key FROM conversations c WHERE c.id=? AND c.is_test=0 AND NOT '.InternalOwnerDialogueScope::conversationSql('c').' AND '.($actor === 0 ? "c.manager_id IS NULL AND c.status='waiting_manager'" : "c.manager_id=? AND c.status='manager'"));
         $q->execute($actor === 0 ? [$cid] : [$cid,$actor]);
         $project = $q->fetchColumn();
-        return self::project($project) && $project === ProjectConfig::projectId() ? $project : null;
+        return self::project($project) && $project === ($readProject??ProjectConfig::projectId()) ? $project : null;
     }
 
     private static function latestBinding(PDO $pdo, int $cid, int $actor, string $project, string $revision, string $instruction): ?array

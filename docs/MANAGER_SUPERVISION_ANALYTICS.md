@@ -29,6 +29,28 @@ source groups, grant other projects or issue unreviewed production SQL. Source
 publication and a confirmed production grant/readback are separate results. This
 change does not itself establish a privileged signed-in session.
 
+## Workspace owner
+
+The owner's explicit correction on 23 October 2026 supersedes the supervisor-only
+scope for the existing administrator account. `admin` already owns broad workspace
+administration and project access; its AI, analytics and team Assistant reads now
+use all of its current active project memberships without a separate employee
+grant. No role is assigned or widened by publication, and no login is special.
+Ordinary employee supervision still requires the explicit audited source grant.
+The administrative role and project list are reread for each request; source
+filters do not silently turn into employee permissions. Historical and unsourced
+conversations in an owned project remain readable to its administrator.
+
+Owner AI can explicitly analyze waiting, self-service and closed clients without
+taking or reopening them. For an active assigned employee, ready results retain
+that employee's canonical context/TTL/identity. A waiting client's ready result
+retains zero assignment. Other states can be explicitly analyzed but do not reuse
+an incompatible historical ready result. Existing provider, budgets, account and
+late-context fences remain unchanged. Viewing creates no foreign feedback,
+read mark or customer send. Cross-project ready reads are restricted to freshly
+verified owner access; worker enqueue, completion and ordinary employee runtime
+project restrictions remain unchanged.
+
 ## Read owner versus viewer
 
 `ManagerConversationAccessPolicy::canView` remains the legacy mutation/queue

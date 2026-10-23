@@ -1,6 +1,6 @@
 # Manager2 assistant
 
-The Manager2 rail opens one private assistant across the signed-in manager's active assigned clients. The conversation toolbar opens the same client recommendation. Both paths read the same prepared proposal; opening the assistant never generates a reply, reads media/selection links, changes unread state, or sends a customer message.
+The Manager2 rail opens one assistant. Ordinary employees see their active assigned clients; the existing active administrator role opens the workspace owner's team view across all currently accessible projects, including unassigned waiting clients. The conversation toolbar opens the same client recommendation. Both paths read the same prepared proposal; opening the assistant never generates a reply, reads media/selection links, changes unread state, or sends a customer message.
 
 The feed prioritizes the full freshly authorized own-active scope before paging (20 per page), independent of the Inbox's capped candidate set. Canonical unanswered-manager-response facts come first, then arrived existing open tasks assigned to the actual owner (or unassigned), then other clients; conversation ID is the stable tie-breaker. Callback/start-only entries are not new human questions. Future/completed/foreign tasks do not become arrived work. Sorting and filters describe the loaded part of the feed. An absent or expired proposal means **no fresh analysis**, not that all work is complete. The existing preparation collector is not an analysis of every client. A `no_contact` result is displayed as waiting, with no automatic due date or new reminder.
 
@@ -14,7 +14,7 @@ Returning to the same mobile conversation adds no duplicate browser-history
 entry; Back still reaches the Inbox once. Opening another client or returning
 from the Inbox keeps the canonical navigation entry.
 
-Prepared proposals retain the canonical one-hour TTL and all content, instructions, knowledge, ownership and source/project visibility fences. Only the actual assigned manager sees recommendations, including when the viewer is an administrator. Opening a different client rechecks the current proposal. An open detail refreshes every 20 seconds, pausing while a deadline is being edited; explicit refresh updates the loaded client list. Identical background reads retain the actual controls, expanded basis, text selection and scroll position. Changed or expired reasoning still disappears. No background scan runs while the assistant is closed.
+Prepared proposals retain the canonical one-hour TTL and all content, instructions, knowledge, ownership and source/project visibility fences. The workspace owner also reads the actual assigned manager's current recommendation and decision. Foreign recommendation decisions remain owned by that employee; their completion controls are not shown to the viewer. The team view labels each client's project and responsible manager. Employee personal feeds retain their original visibility and task filters. Opening a different client rechecks the current proposal. An open detail refreshes every 20 seconds, pausing while a deadline is being edited; explicit refresh updates the loaded client list. Identical background reads retain the actual controls, expanded basis, text selection and scroll position. Changed or expired reasoning still disappears. No background scan runs while the assistant is closed.
 
 `Выполнено`, `Неактуально` and `Вернуть в работу` change only private assistant decision metadata in migration048. Decisions are bound to the precise proposal and context, so a new analysis does not inherit an old dismissal. Compare-and-set state protects conflicting actions; an unknown response is reconciled by a read, never by automatically repeating a write.
 
@@ -50,3 +50,18 @@ The final whole-feed visibility/active-account check also replaces repeated
 per-item trailing singleton checks for a listing only; selected-client detail
 retains its independent recheck. A concurrent revoke/reassignment while task or
 AI data is read returns no page. No read permission is retained between calls.
+
+## Workspace owner (23 October 2026)
+
+The existing `admin` role is the technical owner capability; there is no named-login
+exception, role elevation, new store or automatic project grant. Its team feed
+intersects fresh active project membership before pagination and binds the role,
+project set, actual assignment and state into continuation receipts. Role or project
+revocation discards foreign rows and saved continuation. Existing admin task editing
+continues through canonical task commands; another employee's AI feedback and
+recommendation decision are never impersonated.
+
+Only metadata is scanned for the whole team. The selected page hydrates labels,
+existing tasks and current separately prepared reasoning, using the real assigned
+manager's snapshot and project. Unassigned waiting preparation keeps owner ID zero
+and never takes a client. No model is called merely by opening the team panel.

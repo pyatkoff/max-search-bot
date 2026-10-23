@@ -78,7 +78,7 @@ CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT,display_name TEXT,role T
 CREATE TABLE customers(id INTEGER PRIMARY KEY,display_name TEXT,phone TEXT,email TEXT);
 CREATE TABLE manager_customer_names(customer_id INTEGER PRIMARY KEY,working_name TEXT,version INTEGER);
 CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,source_id INTEGER,channel TEXT,entry_channel TEXT,attribution_region TEXT,attribution_campaign TEXT,status TEXT,lead_stage_key TEXT,manager_id INTEGER,started_at TEXT,last_message_at TEXT,closed_at TEXT,external_chat_id TEXT,is_test INTEGER NOT NULL DEFAULT 0);
-CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,display_name TEXT,is_active INTEGER,primary_group_id INTEGER,fallback_mode TEXT,fallback_group_id INTEGER,fallback_after_minutes INTEGER);
+CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,display_name TEXT,is_active INTEGER,primary_group_id INTEGER,fallback_mode TEXT,fallback_group_id INTEGER,fallback_after_minutes INTEGER,project_id INTEGER,channel TEXT);
 CREATE TABLE manager_group_members(manager_id INTEGER,group_id INTEGER);
 CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,actor_type TEXT,payload_json TEXT,created_at TEXT);
 CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,text TEXT,created_at TEXT,channel TEXT,metadata_json TEXT,sender_id TEXT,external_message_id TEXT);
@@ -176,7 +176,7 @@ try {
     assistantCheck('post-commit canonical recheck reports concurrent source change as stale without hiding a new proposal',($raced['error']??'')==='stale_context' && $fresh['revision']!==$old && $fresh['decision']===null && (int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()===1 && $pdo->businessWriteAttempts===0);
 
     foreach ([
-        'source revoked'=>"INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9",
+        'source revoked'=>"INSERT INTO conversation_sources(id,display_name,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9",
         'project revoked'=>"DELETE FROM manager_projects WHERE manager_id=1",
         'reassigned'=>"UPDATE conversations SET manager_id=2",
         'closed'=>"UPDATE conversations SET status='closed'",
@@ -188,7 +188,15 @@ try {
         assistantCheck($name.' cannot disclose details tasks analysis or accept decisions',!empty($out['ok']) && $out['items']===[] && (ManagerAssistantService::detail(1,1)['error']??'')==='not_found' && (ManagerAssistantService::decide(1,1,$old,'done')['error']??'')==='not_found');
     }
     $pdo=assistantFixture();
-    assistantCheck('admin view still cannot read another manager client',(ManagerAssistantService::detail(2,1)['error']??'')==='not_found' && ManagerAssistantService::listing(2)['items']===[]);
+    assistantPrepare();$beforeOwner=assistantBusinessState($pdo);$ownerList=ManagerAssistantService::listing(2);$ownerItem=ManagerAssistantService::detail(2,1)['item']??[];
+    assistantCheck('workspace owner sees team client and canonical manager recommendation',($ownerList['coverage']['scope']??'')==='team_active'&&count($ownerList['items'])===1&&($ownerItem['manager_id']??0)===1&&($ownerItem['recommendation']['reason']??'')!==''&&$ownerItem['can_decide']===false);
+    assistantCheck('workspace owner does not write the assigned manager decision',(ManagerAssistantService::decide(2,1,$ownerItem['recommendation']['revision'],'done')['error']??'')==='not_found'&&assistantBusinessState($pdo)===$beforeOwner);
+    $pdo->mutate("INSERT INTO conversations SELECT 2,customer_id,'other',source_id,channel,entry_channel,attribution_region,attribution_campaign,status,lead_stage_key,manager_id,started_at,last_message_at,closed_at,external_chat_id,is_test FROM conversations WHERE id=1");
+    assistantCheck('owner feed cannot escape current project membership',array_column(ManagerAssistantService::listing(2)['items'],'conversation_id')===[1]&&(ManagerAssistantService::detail(2,2)['error']??'')==='not_found');
+    $pdo->mutate('INSERT INTO manager_projects VALUES(2,2)');
+    assistantCheck('owner feed includes team work in every explicitly accessible project',array_column(ManagerAssistantService::listing(2)['items'],'conversation_id')===[1,2]);
+    $pdo->afterTaskRead=static fn(AssistantFixturePdo $p)=>$p->mutate("UPDATE managers SET role='manager' WHERE id=2");
+    assistantCheck('owner role loss during selected detail discards foreign work',(ManagerAssistantService::detail(2,1)['error']??'')==='not_found');
     $pdo->mutate('UPDATE managers SET is_active=0 WHERE id=1');
     assistantCheck('inactive manager cannot read feed or dialog',empty(ManagerAssistantService::listing(1)['ok']) && empty(ManagerAssistantService::detail(1,1)['ok']));
 
@@ -214,10 +222,10 @@ try {
     } while ($page['has_more']);
     assistantCheck('keyset pagination reaches all 235 own active clients without the old 200 cap',$ids===array_merge([1],range(235,2)) && $pages===12 && $cursor===null);
     assistantCheck('unanalysed clients are honest unavailable rows rather than fabricated work',$page['items'][0]['analysis_state']==='unavailable' && $page['items'][0]['recommendation']===null && $page['coverage']===['scope'=>'own_active','analysis'=>'current_prepared_only'] && assistantBusinessState($pdo)===$before && $pdo->businessWriteAttempts===0);
-    $pdo->mutate("INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id>=216");
+    $pdo->mutate("INSERT INTO conversation_sources(id,display_name,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id>=216");
     $hidden=ManagerAssistantService::listing(1,null,20); $next=ManagerAssistantService::listing(1,$hidden['next_cursor'],20);
     assistantCheck('hidden clients do not consume the priority page or leak through continuation',array_column($hidden['items'],'conversation_id')===array_merge([1],range(215,197)) && $hidden['has_more'] && is_string($hidden['next_cursor']) && array_column($next['items'],'conversation_id')===range(196,177));
-    foreach(['owner'=>"UPDATE conversations SET manager_id=2 WHERE id=1",'inactive actor'=>"UPDATE managers SET is_active=0 WHERE id=1",'revoked source'=>"INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0);UPDATE conversations SET source_id=9 WHERE id=1"]as$name=>$sql){
+    foreach(['owner'=>"UPDATE conversations SET manager_id=2 WHERE id=1",'inactive actor'=>"UPDATE managers SET is_active=0 WHERE id=1",'revoked source'=>"INSERT INTO conversation_sources(id,display_name,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES(9,'Restricted',1,9,'none',NULL,0);UPDATE conversations SET source_id=9 WHERE id=1"]as$name=>$sql){
         $pdo=assistantFixture();$pdo->afterTaskRead=static function(AssistantFixturePdo $db)use($sql):void{$db->mutate($sql);};$raced=ManagerAssistantService::listing(1);
         assistantCheck('late '.$name.' change cannot disclose an already hydrated page',empty($raced['ok'])&&!isset($raced['items'])&&$pdo->businessWriteAttempts===0);
     }
@@ -226,7 +234,7 @@ try {
     foreach([
         'reply changes priority'=>"INSERT INTO messages VALUES(3,1,'outbound','manager','Answer','2026-10-19 10:02:00','website',NULL,'1','receipt')",
         'owner changes'=>"UPDATE conversations SET manager_id=2 WHERE id=20",
-        'source access revoked'=>"INSERT INTO conversation_sources VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id=20",
+        'source access revoked'=>"INSERT INTO conversation_sources(id,display_name,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES(9,'Restricted',1,9,'none',NULL,0); UPDATE conversations SET source_id=9 WHERE id=20",
         'task becomes arrived'=>"INSERT INTO lead_tasks VALUES(99,20,'Now due','2000-01-01 10:00:00','open',0,1,1,NULL,NULL,NULL,'2026-10-19 10:00:00','2026-10-19 10:00:00')",
         'client closed'=>"UPDATE conversations SET status='closed' WHERE id=20"
     ]as$name=>$sql){

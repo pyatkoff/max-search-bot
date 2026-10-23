@@ -266,6 +266,7 @@ class ManagerConversationService
         }
         $supervisor=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $detail['supervisor_read']=$supervisor;
+        $detail['owner_read']=ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
         if($markRead&&!$supervisorRead&&!$supervisor&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);
         return$detail;
     }
