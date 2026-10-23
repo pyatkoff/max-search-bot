@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T09:39:07.625Z",
+  "updated_at_utc": "2026-10-23T09:59:51.000Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 19
+      "version": 20
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 19
+      "version": 20
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 0,
+      "version": 1,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -136,11 +136,12 @@
     "editorial24_save": "DONE_REPORT_ARCHIVE_V18_AND_STANDALONE_PREVIEW",
     "existing_posts_first_owner_priority": "RECORDED_REVIEW_AND_ADAPT_BEFORE_NEW_BATCH",
     "existing_direct_post_text_review": "DONE_107_DISTINCT_TEXTS_163_EXISTING_PUBLICATIONS",
-    "existing_post_adaptations": "DONE_12_ADAPTATIONS_30_NOT_APPLIED_PROPOSALS_3_REPLACEMENT_COVERS",
-    "existing_post_review_library": "DONE_REPORT_ARCHIVE_V19_AND_STANDALONE_PREVIEW"
+    "existing_post_adaptations": "DONE_12_ADAPTATIONS_30_NOT_APPLIED_PROPOSALS_12_BRANDED_COVERS",
+    "existing_post_review_library": "DONE_REPORT_ARCHIVE_V20_AND_PREVIEW_V1",
+    "existing_post_cover_style_correction": "DONE_12_OF_12_BRANDED_AFTER_COVERS"
   },
   "next_steps": [
-    "Existing Direct slice DONE:107different text variants representing163posts in archivev19;12adaptations for30existing posts plus3proposed cover replacements. Review is text/intent for all107 and scoped43claimrefs for12adaptations;not full fact/media approval. Do not repeat this completed pass or create a new batch of posts in parallel.",
+    "Existing Direct slice DONE:107texts/163posts,12adaptations for30existing posts. All12After variants now have the same branded cover layout;original Before photos labeled and unchanged. Captions/source IDs/20video holds unchanged. Saved report/archivev20 and existing previewv1. Do not regenerate this completed cover pass or replay old post edit test.",
     "Next finite block: read/review the85existing TOP500-mention publications outside the Direct slice (56distinct texts) from saved native-channel-review capture. Reconcile each to exact hotel/section and existing preparations;separate dedicated hotel posts,selections,events,testimonials and stale offers. Keep exact IDs/media per actual post. After these,remaining378posts/230textvariants still need review.",
     "Retain completed30NOT-APPLIED proposals and their fingerprints. Ten posts use supported text/photo path;20havevideo transport holds. Before any actually authorized batch edit,read exact fresh post/version/media/buttons/context and resolve canonical issued entry ID. No permission inferred from read/admin/edit capability alone. Preserve video;do not replace it with a cover to bypass transport guard.",
     "Keep completed TG1751 and MAXTurunc two-post edit receipts:neither may replay from the older07:28capture. Raw snapshot analysis is not current runtime confirmation. Telegram source remains16savedbusinessposts,not full history;use an already permitted readonly source for further history without consuming webhook updates or importing/recovering posts as analysis.",
@@ -262,10 +263,12 @@
       "new_context_ids_issued": 0,
       "new_posts_created": 0,
       "actual_old_post_edits_this_pass": 0,
-      "proposed_cover_dimensions": "3 ×1080x1080",
+      "proposed_cover_dimensions": "12 ×1080x1080",
       "claim_ids_resolved": 43,
       "canonical_knowledge_version": 92,
-      "research_interpretations_preserved_as_scope_only": true
+      "research_interpretations_preserved_as_scope_only": true,
+      "all12_after_cards_branded": true,
+      "caption_and_original_photo_fingerprints_unchanged": true
     }
   },
   "catalog_evidence": {
@@ -304,28 +307,18 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "Existing-post editorial review and concrete adaptations before new publications",
-    "completed_at_utc": "2026-10-23T09:39:07.625Z",
-    "reviewed_text_variants": 107,
-    "represented_existing_posts": 163,
-    "all_indexed_business_posts": 626,
-    "other_indexed_posts_not_substantively_reviewed": 463,
-    "raw_direct_name_groups": 82,
-    "reviewed_unique_hotels_with_adaptations": 12,
-    "proposed_existing_post_patches": 30,
-    "supported_text_photo_path": 10,
-    "video_transport_holds": 20,
-    "original_representative_images_inspected": 7,
-    "replacement_covers_prepared": 3,
-    "false_long_beach_turkey_edges_rejected": 2,
-    "original_99_fact_drafts_preserved": true,
-    "new_posts_created": 0,
-    "old_posts_edited_this_pass": 0,
-    "new_context_ids_issued": 0,
-    "active_feed_destinations": 0,
-    "telegram_full_history_reviewed": false,
-    "videos_fully_viewed": false,
-    "claim_references_resolved": 43
+    "name": "Unified all12After cover drafts with owner brand layout",
+    "covers_prepared": 12,
+    "additional_covers": 9,
+    "caption_texts_unchanged": 12,
+    "post_patch_proposals_preserved": 30,
+    "actual_post_edits": 0,
+    "new_posts": 0,
+    "video_holds_preserved": 20,
+    "library_report_archive_version": 20,
+    "preview_version": 1,
+    "prior_107_text_review_preserved": true,
+    "completed_at_utc": "2026-10-23T09:59:51.000Z"
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
@@ -389,18 +382,20 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "c3502a18b5dacee46ede15d0636f4755697b91e6",
+    "own_branch_head_before_write": "1d25a29c4475239e0d348ad4fb9e5560dbba66b7",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-23T09:37:36Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 18,
+    "demand_library_versions_before_write": 19,
     "foreign_claims_untouched": true,
     "scope_instructions_read": true,
     "full_direct_export_repeated": false,
     "full_native_channel_export_repeated": false,
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_tool_discovery": "NO_WORDSTAT_TOOL_EXPOSED_ACCESS_BLOCKER_UNCHANGED",
-    "blocked_wordstat_retried": false
+    "blocked_wordstat_retried": false,
+    "existing_review_preview_version_before_write": 0,
+    "current_task": "Owner cover-style correction only;no repeated demand/channel exports or full CI"
   },
   "latest_source_checks": {
     "scoped_operator_source_readbacks": 0,
@@ -586,7 +581,7 @@
     "full_626_post_review_complete": false,
     "full_property_claim_review_of_all_107_complete": false,
     "all_107_texts_substantively_read": true,
-    "media_review_scope": "Seven representative original images and three replacement cover exports inspected. All videos not fully watched;video transport holds retained.",
+    "media_review_scope": "Seven representative original images and all12draft branded cover exports inspected. Original photos unchanged;video transport holds retained;videos not fully watched.",
     "reviewed_text_variants": 107,
     "represented_existing_posts": 163,
     "all_indexed_business_posts": 626,
@@ -597,7 +592,7 @@
     "supported_text_photo_path": 10,
     "video_transport_holds": 20,
     "original_representative_images_inspected": 7,
-    "replacement_covers_prepared": 3,
+    "replacement_covers_prepared": 12,
     "false_long_beach_turkey_edges_rejected": 2,
     "original_99_fact_drafts_preserved": true,
     "new_posts_created": 0,
@@ -615,11 +610,12 @@
     "preapply_requires_fresh_exact_post_media_context_readback": true,
     "mass_edit_authorization_receipt": null,
     "save_receipt": {
-      "demand_report_version": 19,
-      "demand_archive_version": 19,
+      "demand_report_version": 20,
+      "demand_archive_version": 20,
       "preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "preview_version": 0,
-      "expected_previous_demand_versions": 18,
+      "preview_version": 1,
+      "expected_previous_demand_versions": 19,
+      "expected_previous_preview_version": 0,
       "all_local_metadata_applied": true
     },
     "asset_read_outcomes": {
@@ -628,5 +624,28 @@
       "seagull_official_photo": "DONE",
       "centara_photo": "REUSED_VERIFIED_EDITORIAL24_PROPERTY_PHOTO"
     }
+  },
+  "existing_post_cover_style_correction": {
+    "state": "DONE",
+    "owner_request": "Why some covers are outside our style",
+    "idempotency_key": "existing-review-covers12-brand-20261023-v1",
+    "before_brand_covers": 3,
+    "after_brand_covers": 12,
+    "additional_brand_covers": 9,
+    "same_original_logo_font_orange_layout": true,
+    "all_after_cards_branded": true,
+    "before_source_images_unchanged_and_labeled": true,
+    "caption_hashes_unchanged": 12,
+    "exact_existing_post_proposals_preserved": 30,
+    "video_holds_preserved": 20,
+    "new_posts": 0,
+    "actual_channel_edits": 0,
+    "new_context_ids": 0,
+    "canonical_knowledge_modified": false,
+    "new_side_photo_source": "Official Standard room page; photograph scoped to that category",
+    "private_artifacts_only": true,
+    "unknown_writes": [],
+    "library_save": "DONE_REPORT_ARCHIVE_19_TO_20_PREVIEW_0_TO_1",
+    "next_step": "Continue bounded existing TOP500 slice review; no completed edit test replay."
   }
 }
