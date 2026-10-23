@@ -13,7 +13,7 @@ sciCheck('successful send clears only the captured draft version for the authent
 // These contracts describe the current controller owner, not the old error copy
 // or the removed 1.4-second success timer. Executed race/failure behavior is also
 // covered by the required reauth/composer Node regression using the real asset.
-$sendStart=strpos($conversation,'async function sendReply(){');
+$sendStart=strpos($conversation,'async function sendReply(');
 $sendEnd=strpos($conversation,'function bind(){',$sendStart===false?0:$sendStart);
 $send=$sendStart!==false&&$sendEnd!==false?substr($conversation,$sendStart,$sendEnd-$sendStart):'';
 sciCheck('send feedback is pinned to authenticated session and source conversation',strpos($send,'const sameSession=()=>!S.authExpired&&S.authGeneration===authGeneration&&Number(S.manager?.id)===manager')!==false&&strpos($send,'const sameTarget=()=>sameSession()&&Number(S.current)===target')!==false&&strpos($send,'const currentAttempt=()=>sameTarget()&&openSeq===generation')!==false);
@@ -21,7 +21,7 @@ sciCheck('composer cleanup is gated to current send attempt and matching draft v
 sciCheck('post-send refresh preserves source, attachments, loaded history and its own generation',strpos($send,"const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true})")!==false&&strpos($send,'refreshGeneration=openSeq;refreshed=await refreshing;')!==false&&strpos($send,'if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus')!==false&&strpos($send,'open(S.current')===false);
 sciCheck('success feedback has no delayed timer that can clear another attempt',strpos($send,'setTimeout(')===false&&strpos($send,"setReplyStatus('Отправлено','success')")!==false);
 sciCheck('send failure cannot paint a newer conversation or session',strpos($send,'if(currentAttempt()&&failure&&S.detail?.conversation)')!==false&&strpos($send,"if(currentAttempt())setReplyStatus(hasFile&&!failure&&j?.error_message?j.error_message:sendFailureNotice(failure,j?.error_message),'error')")!==false);
-sciCheck('unknown network result is scoped and never labelled definite non-delivery',strpos($send,"catch(e){\n      if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error')")!==false&&strpos($send,"setReplyStatus('Не удалось отправить сообщение'")===false);
+sciCheck('unknown network result is scoped and never labelled definite non-delivery',strpos($send,'if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null)')!==false&&strpos($send,"setReplyStatus('Не удалось отправить сообщение'")===false);
 sciCheck('confirmed send and Inbox refresh failures have separate boundaries',strpos($send,"if(j?.ok!==true)")!==false&&strpos($send,"Отправлено. Переписку пока не удалось обновить.")!==false&&strpos($send,"if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}")!==false);
 sciCheck('send path has no automatic retry or duplicate transport call',substr_count($send,"api('send',")===1&&substr_count($send,'WorkspaceV2Media.send(text)')===1&&strpos($send,'setInterval(')===false);
 sciCheck('media upload captures source conversation id before request',strpos($media,'manager=account(),target=state.conversationId,sourceKey=draftKey(target),rows=files(),csrf=state.csrf')!==false&&strpos($media,"data.append('conversation_id',String(target))")!==false);

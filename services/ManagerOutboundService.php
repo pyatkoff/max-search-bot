@@ -28,23 +28,46 @@ class ManagerOutboundService
         return'file';
     }
 
-    public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null): bool
+    public static function sendAttempt(int $conversationId,int $managerId,string $operationId,string $text,?string $aiDraftId=null): array
+    {
+        require_once __DIR__ . '/ManagerSendAttemptService.php';
+        $result=ManagerSendAttemptService::execute($managerId,$conversationId,$operationId,$text,$aiDraftId,static function(string $expectedContext) use($conversationId,$managerId,$text,$aiDraftId): array {
+            $ok=self::send($conversationId,$managerId,$text,$aiDraftId,$expectedContext);
+            return ['ok'=>$ok,'failure'=>self::lastFailure()];
+        });
+        if(isset($result['failure']))$result['failure']['notice']=self::failureNotice($result['failure']);
+        return $result;
+    }
+
+    public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null, ?string $attemptContext = null): bool
     {
         self::$lastFailure = null;
         $text = trim($text); if ($text === '') return false;
         $c = ManagerConversationService::visibleConversation($conversationId,$managerId);
-        if (!$c) return false;
-        if ((string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) return false;
+        if (!$c || (string)$c['status'] !== 'manager' || (int)$c['manager_id'] !== $managerId) {
+            if($attemptContext!==null)self::$lastFailure=['category'=>'attempt_context_changed'];
+            return false;
+        }
         $chatId = $c['external_chat_id']; $channel = strtolower((string)$c['channel']);
         $projectKey = (string)$c['project_key'];
 
-        if ($channel === 'max') {
+        if ($channel === 'max' && $attemptContext === null) {
             $suspended=self::unresolvedSuspendedFailure($conversationId,(string)$c['project_key']);
             if ($suspended) { self::$lastFailure=$suspended; return false; }
         }
 
         $locked=ManagerSendGuardService::acquire($conversationId,$managerId);
         try {
+            if($attemptContext!==null){
+                // The reservation is durable and any advisory-lock wait is over.
+                // Bind the actual row used by the adapter, not another pre-read.
+                $c=ManagerConversationService::visibleConversation($conversationId,$managerId);
+                if(!$c||!ManagerSendAttemptService::dispatchAllowed($c,$managerId,$attemptContext)){
+                    self::$lastFailure=['category'=>'attempt_context_changed'];return false;
+                }
+                $chatId=$c['external_chat_id'];$channel=strtolower((string)$c['channel']);$projectKey=(string)$c['project_key'];
+                if($channel==='max'){$suspended=self::unresolvedSuspendedFailure($conversationId,$projectKey);if($suspended){self::$lastFailure=$suspended;return false;}}
+            }
             if($locked && ManagerSendGuardService::isImmediateDuplicate($conversationId,$text)){
                 ConversationControlService::event($conversationId,'manager_message_suppressed_duplicate','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
                 return true;

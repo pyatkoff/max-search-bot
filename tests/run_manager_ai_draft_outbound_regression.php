@@ -7,6 +7,12 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 // Only their external dependencies are doubles: no config, real transport,
 // provider or production DB is loaded. Feedback ownership/storage validation
 // belongs to its own service suite; null below models its declined lookups.
+final class DraftOutboundFixturePdo extends PDO
+{
+    public $afterCommit=null;
+    public function commit(): bool {$ok=parent::commit();if($this->afterCommit){$hook=$this->afterCommit;$this->afterCommit=null;$hook($this);}return $ok;}
+}
+
 final class DraftOutboundFixture
 {
     public static ?PDO $pdo = null;
@@ -18,6 +24,9 @@ final class DraftOutboundFixture
     public static string $channel = 'telegram';
     public static string $feedbackMode = 'available';
     public static string $proposal = '';
+    public static string $recipient='synthetic-chat-42',$project='synthetic-project';
+    public static int $assigned=7,$source=0;
+    public static $afterAcquire=null;
     public static array $trace = [];
     public static int $connections = 0;
 
@@ -25,12 +34,12 @@ final class DraftOutboundFixture
     {
         self::$configured = self::$visible = self::$delivered = self::$locked = true;
         self::$duplicate = false;
-        self::$channel = $channel;
+        self::$channel = $channel;self::$recipient='synthetic-chat-42';self::$project='synthetic-project';self::$assigned=7;self::$source=0;self::$afterAcquire=null;
         self::$feedbackMode = 'available';
         self::$proposal = 'Вариант <b>море</b> & "номер"';
         self::$trace = [];
         self::$connections = 0;
-        $pdo = new PDO('sqlite::memory:', null, null, [
+        $pdo = new DraftOutboundFixturePdo('sqlite::memory:', null, null, [
             PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
         ]);
@@ -68,13 +77,13 @@ class ManagerConversationService
     public static function visibleConversation(int $conversationId, int $managerId): ?array
     {
         if (!DraftOutboundFixture::$visible || $conversationId !== 42 || $managerId !== 7) return null;
-        return ['id'=>42,'manager_id'=>7,'status'=>'manager','project_key'=>'synthetic-project',
-            'channel'=>DraftOutboundFixture::$channel,'external_chat_id'=>'synthetic-chat-42'];
+        return ['id'=>42,'manager_id'=>DraftOutboundFixture::$assigned,'status'=>'manager','project_key'=>DraftOutboundFixture::$project,
+            'source_id'=>DraftOutboundFixture::$source,'channel'=>DraftOutboundFixture::$channel,'external_chat_id'=>DraftOutboundFixture::$recipient];
     }
 }
 class ManagerSendGuardService
 {
-    public static function acquire(int $conversationId, int $managerId): bool { return DraftOutboundFixture::$locked; }
+    public static function acquire(int $conversationId, int $managerId): bool {if(DraftOutboundFixture::$afterAcquire){$hook=DraftOutboundFixture::$afterAcquire;DraftOutboundFixture::$afterAcquire=null;$hook();}return DraftOutboundFixture::$locked; }
     public static function isImmediateDuplicate(int $conversationId, string $text): bool { return DraftOutboundFixture::$duplicate; }
     public static function release(int $conversationId, int $managerId): void
     {
@@ -169,7 +178,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ManagerOutboundService','ConversationRecorder'] as $service) {
+    foreach (['ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
@@ -281,6 +290,47 @@ try {
             && $meta === ['project_key'=>'synthetic-project','attachments'=>[['type'=>'file','name'=>'synthetic.txt','mime_type'=>'text/plain']]]
             && $rows[0]['text'] === '&lt;caption&gt;');
     }
+    $pdo=DraftOutboundFixture::reset();
+    $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+    $attemptId=str_repeat('b',32);$original=DraftOutboundFixture::$proposal;
+    $sent=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
+    $repeated=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
+    $readback=ManagerSendAttemptService::receipt(7,42,$attemptId);
+    $rows=DraftOutboundFixture::rows();$meta=json_decode((string)($rows[0]['metadata_json']??''),true);
+    draftOutboundCheck('receipt wrapper sends and records exactly once through canonical owners',($sent['attempt']['state']??'')==='confirmed'&&$repeated===$sent&&$readback===['ok'=>true,'attempt'=>['state'=>'confirmed']]&&count(DraftOutboundFixture::events('adapter_send'))===1&&count($rows)===1);
+    draftOutboundCheck('receipt wrapper retains actual owner and canonical AI provenance',($rows[0]['sender_id']??'')==='7'&&($meta['ai_draft']['draft_id']??'')===$draftId&&($meta['ai_draft']['sent_text_sha256']??'')===hash('sha256',$original)&&count(DraftOutboundFixture::events('feedback'))===1);
+    foreach(['recipient','project','source','channel','assignment','active','visibility'] as $change){
+        $pdo=DraftOutboundFixture::reset();
+        $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+        $pdo->afterCommit=static function(PDO $db)use($change): void {
+            if($change==='recipient')DraftOutboundFixture::$recipient='changed-recipient';
+            if($change==='project')DraftOutboundFixture::$project='changed-project';
+            if($change==='source')DraftOutboundFixture::$source=99;
+            if($change==='channel')DraftOutboundFixture::$channel='max';
+            if($change==='assignment')DraftOutboundFixture::$assigned=8;
+            if($change==='active')$db->exec('UPDATE managers SET is_active=0 WHERE id=7');
+            if($change==='visibility')DraftOutboundFixture::$visible=false;
+        };
+        $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('c',32),'Synthetic scoped attempt',$draftId);
+        draftOutboundCheck('post-reservation '.$change.' change cannot reach adapter or canonical message',($result['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
+        $freshReceipt=ManagerSendAttemptService::receipt(7,42,str_repeat('c',32));
+        draftOutboundCheck('post-reservation '.$change.' immediate readback respects fresh owner/access',in_array($change,['assignment','active','visibility'],true)?($freshReceipt['error']??'')==='forbidden':($freshReceipt['attempt']['state']??'')==='rejected');
+        DraftOutboundFixture::$recipient='synthetic-chat-42';DraftOutboundFixture::$project='synthetic-project';DraftOutboundFixture::$source=0;DraftOutboundFixture::$channel='telegram';DraftOutboundFixture::$assigned=7;DraftOutboundFixture::$visible=true;$pdo->exec('UPDATE managers SET is_active=1 WHERE id=7');
+        draftOutboundCheck('post-reservation '.$change.' rejection remains reconcilable without replay',(ManagerSendAttemptService::receipt(7,42,str_repeat('c',32))['attempt']['state']??'')==='rejected'&&(ManagerOutboundService::sendAttempt(42,7,str_repeat('c',32),'Synthetic scoped attempt',$draftId)['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0);
+    }
+    foreach(['recipient','assignment','active'] as $change){
+        $pdo=DraftOutboundFixture::reset();$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+        DraftOutboundFixture::$afterAcquire=static function()use($change,$pdo): void {if($change==='recipient')DraftOutboundFixture::$recipient='changed-after-lock';if($change==='assignment')DraftOutboundFixture::$assigned=8;if($change==='active')$pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');};
+        $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('d',32),'Synthetic lock boundary',$draftId);
+        draftOutboundCheck('after-advisory-lock '.$change.' is checked on the actual dispatch row',($result['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
+    }
+    $pdo=DraftOutboundFixture::reset('max');$pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id)); ALTER TABLE messages ADD COLUMN created_at TEXT');
+    $pdo->prepare('INSERT INTO conversation_events(id,conversation_id,event_type,created_at,payload_json) VALUES(1,42,?,?,?)')->execute(['manager_message_failed','2026-10-19 10:00:00',json_encode(['category'=>'suspended'])]);
+    $pdo->afterCommit=static function(){DraftOutboundFixture::$recipient='changed-suspended-recipient';};
+    $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('e',32),'Synthetic suspended boundary',$draftId);
+    draftOutboundCheck('changed MAX context is rejected before a different recipient suspension can mask its receipt',($result['failure']['category']??'')==='attempt_context_changed'&&(ManagerSendAttemptService::receipt(7,42,str_repeat('e',32))['attempt']['state']??'')==='rejected'&&count(DraftOutboundFixture::events('adapter_send'))===0);
+    $result=ManagerOutboundService::sendAttempt(42,7,str_repeat('f',32),'Synthetic unchanged suspended context',$draftId);
+    draftOutboundCheck('unchanged scoped MAX suspension still rejects before transport',($result['attempt']['state']??'')==='rejected'&&($result['failure']['category']??'')==='suspended'&&count(DraftOutboundFixture::events('adapter_send'))===0&&DraftOutboundFixture::rows()===[]);
     DraftOutboundFixture::reset();
     draftOutboundCheck('empty text is rejected before feedback or delivery',ManagerOutboundService::send(42,7," \n ",$draftId) === false
         && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);

@@ -15,6 +15,11 @@ on:
       - 'tests/run_manager_lifecycle_result_regression.php'
       - 'tests/fixtures/manager_lifecycle*'
       - 'tests/mysql/manager-conversation-lifecycle.php'
+      - 'services/ManagerSendAttemptService.php'
+      - 'services/ManagerOutboundService.php'
+      - 'migrations/059_manager_send_attempts.sql'
+      - 'tests/fixtures/manager_send_attempt_fixture.php'
+      - 'tests/mysql/manager-send-attempts.php'
       - '.github/workflows/manager-personal-workspace.yml'
   workflow_dispatch:
 
@@ -57,3 +62,11 @@ jobs:
         run: |
           php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4",getenv("MANAGER_LIFECYCLE_TEST_MYSQL_USER"),getenv("MANAGER_LIFECYCLE_TEST_MYSQL_PASSWORD"),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$pdo->exec("CREATE DATABASE manager_lifecycle_test CHARACTER SET utf8mb4");'
           php tests/mysql/manager-conversation-lifecycle.php
+      - name: Native text-send receipt and cancellation races in a separate empty fixture database
+        env:
+          MANAGER_SEND_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=manager_send_attempt_test;charset=utf8mb4
+          MANAGER_SEND_TEST_MYSQL_USER: root
+          MANAGER_SEND_TEST_MYSQL_PASSWORD: personal-workspace-test-only
+        run: |
+          php -r '$pdo=new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4",getenv("MANAGER_SEND_TEST_MYSQL_USER"),getenv("MANAGER_SEND_TEST_MYSQL_PASSWORD"),[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);$pdo->exec("CREATE DATABASE manager_send_attempt_test CHARACTER SET utf8mb4");'
+          php tests/mysql/manager-send-attempts.php

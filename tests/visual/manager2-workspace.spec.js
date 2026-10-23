@@ -715,13 +715,13 @@ test('Manager2 reply editor follows canonical client and account recovery bounda
 });
 test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send semantics',async({page})=>{
   await page.setViewportSize({width:1440,height:900});const s=await setup(page);await openLead(page);await editorReady(page);
-  let mode='unknown',release;const sends=[];
+  let mode='unknown',release;const sends=[],receipts=[];
   await page.route('**/manager/api.php',async route=>{
-    const data=route.request().postDataJSON();if(data.action!=='send')return route.fallback();
-    expect(data.csrf).toBe('synthetic-csrf');expect(data.conversation_id).toBe(11);sends.push(data);
+    const data=route.request().postDataJSON();if(!['send','send_receipt'].includes(data.action))return route.fallback();
+    expect(data.csrf).toBe('synthetic-csrf');expect(data.conversation_id).toBe(11);expect(data.operation_id).toMatch(/^[a-f0-9]{32}$/);(data.action==='send'?sends:receipts).push(data);
     if(mode==='unknown')return route.abort('failed');
     if(mode==='held')await new Promise(resolve=>{release=resolve});
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true})});
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,attempt:{state:'confirmed'}})});
   });
   const reply=page.locator('#replyText'),dialog=page.locator('#m2ReplyEditor');
   await reply.fill('Редактируемый ответ');await page.locator('#m2ReplyExpand').click();
@@ -743,12 +743,12 @@ test('Manager2 reply editor keeps canonical IME, unknown and newer-draft send se
   expect(sends).toHaveLength(1);await expect(dialog).toBeVisible();
   await page.setViewportSize({width:768,height:420});await page.locator('#m2ReplyCollapse').click();await page.locator('#m2ReplyExpand').click();
   expect(sends).toHaveLength(1);await expect(reply).toHaveValue(text);
-  mode='held';await reply.press('Control+Enter');await expect.poll(()=>sends.length).toBe(2);await expect(reply).toBeDisabled();
+  mode='held';await reply.press('Control+Enter');await expect.poll(()=>receipts.length).toBe(1);expect(sends).toHaveLength(1);expect(receipts[0].operation_id).toBe(sends[0].operation_id);await expect(reply).toBeDisabled();
   await reply.evaluate(el=>{el.value='Более новый сохранённый черновик';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}))});
-  expect(sends).toHaveLength(2);release();await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Более новый сохранённый черновик');
+  expect(sends).toHaveLength(1);release();await expect(reply).toBeEnabled();await expect(reply).toHaveValue('Более новый сохранённый черновик');
   await expect(dialog).not.toBeVisible();mode='success';await page.locator('#m2ReplyExpand').click();await reply.press('Control+Enter');
   await expect(reply).toHaveValue('');await expect(reply).toBeEnabled();await expect(dialog).not.toBeVisible();
-  expect(sends).toHaveLength(3);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
+  expect(sends).toHaveLength(2);expect(sends[1].operation_id).not.toBe(sends[0].operation_id);expect((await editorGeometry(page)).lines).toBeLessThanOrEqual(1.1);
   expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 test('Manager2 reply editor preserves native File identity and partial unknown delivery',async({page})=>{
@@ -776,4 +776,36 @@ test('Manager2 reply editor preserves native File identity and partial unknown d
   await expect(page.locator('#replyStatus')).toContainText('неизвестен');expect(uploads).toBe(2);
   await expect(page.locator('#mediaSelection')).toContainText('second.txt');
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const viewport of [{width:390,height:420},{width:430,height:844},{width:768,height:900},{width:1440,height:900}])test('Manager2 text receipt preserves newer input and original File '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await setup(page);await openLead(page);const sends=[],reads=[];let release;
+ await page.route('**/manager/api.php',async route=>{
+  const d=route.request().postDataJSON();if(!['send','send_receipt'].includes(d.action))return route.fallback();expect(d.csrf).toBe('synthetic-csrf');expect(d.conversation_id).toBe(11);
+  if(d.action==='send'){sends.push(d);return route.abort('failed')}
+  reads.push(d);await new Promise(resolve=>{release=resolve});return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,attempt:{state:'confirmed'}})});
+ });
+ await page.locator('#replyText').fill('Исходный ответ до потери подтверждения');await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');await expect(page.locator('#sendReply')).toHaveAccessibleName('Проверить отправку');expect(await page.locator('#sendReply').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThan(0);
+ await page.evaluate(()=>{const create=URL.createObjectURL.bind(URL);window.sendFileProof={objects:new Map(),original:null};URL.createObjectURL=file=>{const url=create(file);sendFileProof.objects.set(url,file);return url};document.querySelector('#replyFile').addEventListener('change',e=>{sendFileProof.original=e.target.files[0]},true)});
+ await page.locator('#replyText').fill('Новый текст, который нельзя стирать');await page.locator('#replyFile').setInputFiles({name:'receipt-proof.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')});
+ await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);const url=await page.locator('.mediaPreview img').getAttribute('src');expect(await page.evaluate(url=>sendFileProof.objects.get(url)===sendFileProof.original,url)).toBe(true);
+ await page.locator('#sendReply').click();await expect.poll(()=>reads.length).toBe(1);await expect(page.locator('#replyText')).toBeDisabled();await expect(page.locator('#sendReply')).toHaveText('Подождите…');expect(sends).toHaveLength(1);expect(reads[0].operation_id).toBe(sends[0].operation_id);
+ fs.mkdirSync('send-feedback-artifacts',{recursive:true});await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-receipt-loading.png`});release();
+ await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyText')).toHaveValue('Новый текст, который нельзя стирать');await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);expect(await page.evaluate(url=>sendFileProof.objects.get(url)===sendFileProof.original,url)).toBe(true);expect(sends).toHaveLength(1);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+ await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-receipt-restored.png`});
+});
+
+for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('Manager2 context rejection keeps the send fence until fresh detail '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const s=await setup(page);await openLead(page);const sends=[],receipts=[];let detailFails=true;
+ await page.route('**/manager/api.php',async route=>{
+  const d=route.request().postDataJSON();if(!['send','send_receipt','detail'].includes(d.action))return route.fallback();expect(d.csrf).toBe('synthetic-csrf');expect(d.conversation_id).toBe(11);
+  if(d.action==='send'){sends.push(d);return route.abort('failed')}
+  if(d.action==='detail')return detailFails?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false})}):route.fallback();
+  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
+ });
+ await page.locator('#replyText').fill('Исходный ответ');await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');
+ await page.locator('#replyText').fill('Сохранённый новый текст');await page.locator('#replyFile').setInputFiles({name:'retained-context.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')});await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);const url=await page.locator('.mediaPreview img').getAttribute('src');
+ await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('повтор заблокирован');await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);
+ fs.mkdirSync('send-feedback-artifacts',{recursive:true});await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-context-refresh-failed.png`});
+ detailFails=false;await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('#replyStatus')).toContainText('Отправка не начата: диалог изменился');await expect(page.locator('#replyText')).toHaveValue('Сохранённый новый текст');await expect(page.locator('.mediaPreview img')).toHaveAttribute('src',url);expect(sends).toHaveLength(1);expect(receipts).toHaveLength(2);expect(receipts.every(r=>r.operation_id===sends[0].operation_id)).toBe(true);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

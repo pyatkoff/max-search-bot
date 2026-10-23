@@ -158,8 +158,20 @@ if($action==='lifecycle_state'){
     if(!$state)out(['ok'=>false,'error'=>'unavailable','error_message'=>'Диалог недоступен. Возможно, изменились права доступа. Обновите список диалогов.'],404);
     out(['ok'=>true,'conversation_state'=>$state]);
 }
+if($action==='send_receipt'||$action==='cancel_send_attempt'){
+    require_once $baseDir . '/services/ManagerSendAttemptService.php';
+    $id=$data['operation_id']??null;$conversationId=$data['conversation_id']??null;
+    if(!is_string($id)||!is_int($conversationId))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+    $result=$action==='send_receipt'?ManagerSendAttemptService::receipt((int)$m['id'],$conversationId,$id):ManagerSendAttemptService::cancel((int)$m['id'],$conversationId,$id);
+    out($result,isset($result['attempt'])?200:409);
+}
 if($action==='send'){
     $draftId=is_string($data['ai_draft_id']??null)?$data['ai_draft_id']:null;
+    if(array_key_exists('operation_id',$data)){
+        if(!is_string($data['operation_id'])||!is_int($data['conversation_id']??null)||!is_string($data['text']??null))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+        $result=ManagerOutboundService::sendAttempt($data['conversation_id'],(int)$m['id'],$data['operation_id'],$data['text'],$draftId);
+        out($result,isset($result['attempt'])?200:409);
+    }
     $ok=ManagerOutboundService::send((int)($data['conversation_id']??0),(int)$m['id'],(string)($data['text']??''),$draftId);
     if($ok) out(['ok'=>true]);
     $failure=ManagerOutboundService::lastFailure();
