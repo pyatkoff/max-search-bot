@@ -1,48 +1,51 @@
 {
     "ok": true,
-    "generated_at": "2026-10-23T22:45:22+00:00",
+    "generated_at": "2026-10-23T23:39:28+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 6,
-        "raw_sessions": 6,
+        "sessions": 8,
+        "raw_sessions": 8,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 6,
+            "resolved": 8,
             "unresolved": 0
         },
-        "started": 6,
-        "needs_collected": 5,
+        "started": 8,
+        "needs_collected": 6,
         "tours_opened": 5,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 3,
+        "manager_requested": 4,
         "manager_replied": 1,
         "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
-            "still_unanswered": 0,
+            "still_unanswered": 1,
             "measured_responses": 1,
             "avg_seconds": 41777,
             "max_seconds": 41777
         },
         "drop_points": {
             "tours_opened": 3,
-            "manager_requested": 2,
-            "customer_replied_after_manager": 1
+            "manager_requested": 3,
+            "customer_replied_after_manager": 1,
+            "collecting_needs": 1
         },
-        "flags": [],
+        "flags": {
+            "manager_requested_no_reply": 1
+        },
         "calendar_day": {
-            "conversations_started": 5,
+            "conversations_started": 6,
             "needs_collected_from_started": 5,
             "tours_opened_from_started": 5,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 2,
+            "manager_requested": 3,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
