@@ -18,6 +18,7 @@ final class HistoryFixtureStatement extends PDOStatement
     public function execute(?array $params=null): bool
     {
         $this->owner->executed[]=['sql'=>$this->queryString,'args'=>$params??[]];
+        if(str_starts_with($this->queryString,'SELECT EXISTS(SELECT 1 FROM messages')&&$this->owner->beforeReplyCheck){$callback=$this->owner->beforeReplyCheck;$this->owner->beforeReplyCheck=null;$callback($this->owner);}
         if(str_starts_with($this->queryString,'SELECT id,channel,direction,metadata_json')&&$this->owner->failHydration)throw new RuntimeException('synthetic_hydration_failure');
         if(str_starts_with($this->queryString,'INSERT INTO manager_conversation_reads')){
             $this->owner->readWrites++;
@@ -38,7 +39,7 @@ final class HistoryFixturePdo extends PDO
     public array $executed=[];
     public int $readWrites=0;
     public bool $failHydration=false;
-    public $afterPage=null,$beforeReadWrite=null;
+    public $afterPage=null,$beforeReadWrite=null,$beforeReplyCheck=null;
     public function __construct()
     {
         parent::__construct('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -258,4 +259,6 @@ $pdo=fixture(500);$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1');
 check('initial unread seek retains fresh project access fence',$opened['status']===404&&transcriptPageQueries($pdo)===[]&&$pdo->readWrites===0);
 foreach([1,'true',null,[],0] as $flag){$pdo=fixture(5);$r=apiDetail(['conversation_id'=>1,'open_unread'=>$flag]);check('invalid initial unread flag '.json_encode($flag),$r['status']===422&&$pdo->executed===[]);}
 $pdo=fixture(500);$r=apiDetail(['conversation_id'=>1,'open_unread'=>true,'before_id'=>400]);check('older page cannot double as an unread opening',$r['status']===422&&$pdo->executed===[]);
+$pdo=fixture(500);$pdo->exec("UPDATE conversations SET status='closed' WHERE id=1");$pdo->beforeReplyCheck=static function(HistoryFixturePdo $db):void{$db->exec("UPDATE managers SET role='manager' WHERE id=1");};$r=apiDetail(['conversation_id'=>1]);
+check('owner presentation rechecks current role after transcript and metadata reads',empty($r['body']['owner_read'])&&$pdo->readWrites===0);
 echo "FINAL TOTAL $passed | FAIL 0\n";

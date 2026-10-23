@@ -248,8 +248,8 @@ class ManagerConversationService
         $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
         $hasMore=count($messages)>$limit;if($hasMore)array_pop($messages);$messages=array_reverse($messages);
         $opening=[];
-        $ownerRead=ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
-        if($openUnread&&$beforeId===0&&$limit===200&&!$supervisorRead&&!$ownerRead){
+        $openingOwnerRead=$openUnread&&ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
+        if($openUnread&&$beforeId===0&&$limit===200&&!$supervisorRead&&!$openingOwnerRead){
             $read=ManagerReadService::snapshot($managerId,$conversation);$target=(int)($read['first_unread_id']??0);
             if(!empty($read['acknowledge'])&&$target>0&&$messages){
                 if($hasMore&&$target<=(int)$messages[min(19,count($messages)-1)]['id']){
@@ -286,7 +286,7 @@ class ManagerConversationService
         }
         $supervisor=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $detail['supervisor_read']=$supervisor;
-        $detail['owner_read']=$ownerRead;
+        $detail['owner_read']=ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
         return$detail;
     }
 
