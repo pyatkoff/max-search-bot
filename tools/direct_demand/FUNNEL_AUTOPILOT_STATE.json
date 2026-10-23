@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-22T23:43:33.160Z",
+  "updated_at_utc": "2026-10-23T00:42:23.024Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 5
+      "version": 6
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 5
+      "version": 6
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -64,7 +64,8 @@
       "draft_input_member": "funnel-post-drafts-input.json",
       "report_section": "Новые посты и подборки",
       "catalog_review_member": "funnel-catalog-review.json",
-      "latest_batch_member": "funnel-content-batches/20261023-content-01.json"
+      "latest_batch_member": "funnel-content-batches/20261023-content-02.json",
+      "entry_binding_review_member": "funnel-entry-binding-review.json"
     }
   },
   "operations": {
@@ -81,28 +82,31 @@
     "first_native_catalog_bindings": "DONE",
     "five_additional_posts": "DONE",
     "first_four_cover_photos": "DONE",
-    "reviewed_content_batch_20261023_01": "DONE"
+    "reviewed_content_batch_20261023_01": "DONE",
+    "reviewed_content_batch_20261023_02": "DONE",
+    "entry_binding_review_manifest": "DONE"
   },
   "next_steps": [
-    "Prepare the eight remaining safe exact-name hotel drafts (Vinpearl Nha Trang Bay, Graceland Khao Lak, Crystal Flora, Alibu, SOL Phu Quoc, Crystal Sunset, Crystal De Luxe, Melissa Kata) from complete saved facts; do not fill unsupported benefits.",
-    "Extend reviewed country×need selections beyond the four Egypt drafts already saved. Preserve room/facility/season/age scopes and explicit travel-date checks.",
-    "Resolve Crystal Prestige and other ambiguous/rebranded names with explicit identity evidence before drafting an asserted hotel post or binding a native ID.",
-    "Find an existing completed LOCAL export/artifact with names/country/local-tv IDs; do not resume paused LOCAL/MATCH or repeat unchanged403 name-discovery routes.",
-    "Find a separately attributable Palma de Mirette cover through saved official sources. The four El Palacio photos stay excluded.",
-    "Only if new authorized Search API access appears, run a bounded frequency pilot from saved prepared requests; otherwise continue content and do not repeat the missing-credential check.",
-    "Wait for owner channel only for publication and issued post/entry IDs; no active URLs, paid-campaign changes, production changes or customer sends."
+    "Prioritize identity/alias work and existing native catalogue evidence. All31 safe exact-name knowledge references now have posts; do not recreate their40 total prepared drafts. CrystalPrestige remains held.",
+    "Resolve shortened/renamed observed hotel names against saved explicit names, countries and former-name evidence, then prepare specific new drafts. Similar generic tokens or equal numeric IDs are insufficient.",
+    "Locate an existing completed LOCAL data export/artifact through supported read-only GitHub tools; the inspected local-hotel-catalog workflow is fixture testing, not a catalogue export. Do not dispatch or resume paused LOCAL/MATCH jobs or repeat unchanged403 routes.",
+    "Expand selected country×need posts with scoped saved facts and explicit age/season/service checks. Current four Egypt posts are already complete as drafts.",
+    "Use funnel-entry-binding-review.json to track post/feed/context readiness. Content SHA and draft collection keys must never become issued runtime IDs; all40 runtime destinations remain null.",
+    "Find an attributable Palma de Mirette cover through saved official sources. The four El Palacio photos stay excluded.",
+    "Retry Wordstat only after a new authorized Search API credential/folder/connector appears. The lack of frequency and channel does not block independent preparation.",
+    "Wait for owner channel only for publication and canonical post/entry ID issuance. No real campaigns, paid traffic, production changes or customer sends."
   ],
   "publication_blocker": "Owner will provide channel later. This does not block preparation.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
   "completed_preparation": {
-    "generated_at_utc": "2026-10-22T23:41:14.265443+00:00",
+    "generated_at_utc": "2026-10-23T00:39:13.184844+00:00",
     "direct_candidates": 317,
     "direct_exact_name_references": 32,
     "top500_rows": 500,
     "top500_exact_name_references": 494,
     "verified_catalog_ids": 5,
-    "post_drafts": 32,
-    "source_claim_references": 104,
+    "post_drafts": 40,
+    "source_claim_references": 127,
     "draft_feed_records": 356,
     "upload_ready_feed_records": 0,
     "channel": null,
@@ -110,12 +114,12 @@
     "wordstat_access": "BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS",
     "verified_catalog_source_references": 6,
     "selected_draft_covers": 4,
-    "hotel_post_drafts": 28,
+    "hotel_post_drafts": 36,
     "thematic_post_drafts": 4
   },
   "validation": {
-    "post_drafts": 32,
-    "claim_references_resolved": 104,
+    "post_drafts": 40,
+    "claim_references_resolved": 127,
     "collection_keys_unique": 356,
     "collection_destinations": 0,
     "selected_cover_records": 4,
@@ -124,11 +128,16 @@
     "zip_crc": "PASSED",
     "provenance_hashes": "PASSED",
     "source_knowledge_modified": false,
-    "hotel_post_drafts": 28,
+    "hotel_post_drafts": 36,
     "thematic_post_drafts": 4,
     "batch_idempotence": "SAME_COMPLETED_BATCH_SKIPS_WITHOUT_MUTATION",
     "prior_catalog_bindings_preserved": 5,
-    "prior_cover_photos_preserved": 4
+    "prior_cover_photos_preserved": 4,
+    "entry_binding_rows": 40,
+    "entry_binding_payload_hashes": "PASSED_ALL_40",
+    "entry_context_ids_issued": 0,
+    "entry_destinations_active": 0,
+    "feed_post_pairing": "PASSED_ALL_40"
   },
   "catalog_evidence": {
     "requested_ids": 492,
@@ -154,24 +163,39 @@
     "working_files": "Use current archive funnel-content-preparation.json as active state. Add only new reviewed inputs with prepare_funnel_content.py --append-drafts. Reusing a completed batch ID with identical bytes skips; different bytes are rejected. Baseline --drafts, package_expanded_funnel.py and historical attach pass can replace/reset newer preparation or report counts; do not rerun them over the active package."
   },
   "latest_completed_block": {
-    "batch_id": "20261023-content-01",
-    "input_sha256": "a975b5883ab035d1cca8d25524959413a68e239dee611e9e4afeaf83abb831e2",
-    "completed_at_utc": "2026-10-22T23:41:14.265443+00:00",
-    "new_drafts": 17,
-    "new_hotels": 14,
-    "new_selections": 3,
-    "skipped": [
-      {
-        "source_candidate_key": "crystal_prestige_pearl",
-        "reason": "Claim top500_6571cf8381e22724_run04_c05 explicitly leaves the short-name/Prestige Elite identity unresolved. Do not create an asserted property post until identity is resolved."
-      }
-    ],
+    "batch_id": "20261023-content-02",
+    "input_sha256": "ef783a89b19703d881f6ca4bde250268e4552249832c33522dc1863e3bf332eb",
+    "completed_at_utc": "2026-10-23T00:39:13.184844+00:00",
+    "new_drafts": 8,
+    "new_hotels": 8,
+    "new_selections": 0,
+    "skipped": [],
     "source_version": 92
   },
   "catalog_export_lookup": {
     "searched_library_read_only": true,
     "matches": 0,
     "new_catalog_collector_started": false,
-    "blocked_discovery_routes_retried": false
+    "blocked_discovery_routes_retried": false,
+    "original_owner_csv_library_title_search_matches": 0,
+    "read_only_workflow_inspected": "search3-local-hotel-catalog.yml only runs disposable fixture tests; it exports no hotel data.",
+    "workflow_run_lookup": "Generic fetch rejected the workflow-filename route as INVALID_ARGUMENT; no export availability inferred."
+  },
+  "entry_binding_review": {
+    "prepared_post_rows": 40,
+    "hotel_rows": 36,
+    "selection_rows": 4,
+    "rows_with_verified_hotel_ids": 5,
+    "rows_with_selected_covers": 4,
+    "issued_context_ids": 0,
+    "active_destinations": 0
+  },
+  "content_reference_coverage": {
+    "direct_exact_knowledge_name_references": 32,
+    "covered_with_hotel_drafts": 31,
+    "held_for_identity_review": [
+      "crystal_prestige_pearl"
+    ],
+    "catalog_identity_status": "Only5nativeIDs verified; content coverage does not expand catalog certification."
   }
 }

@@ -306,6 +306,55 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
         'No prices, availability, entry/post IDs or channel publication.',
         'Thematic source facts retain room/facility/season/child-age boundaries.',
         'Incomplete XML is not upload-ready; no Wordstat frequency has been collected.']
+    verified_native_ids = {b['hotel_id'] for b in data.get('catalog_preparation', {}).get('bindings', [])
+                           if b.get('identity_verified') and b.get('catalog_namespace') == 'local-tv'}
+    binding_rows = []
+    for draft in data['post_drafts']:
+        row = feed_by_source[draft['source_candidate_key']]
+        native_ids = draft.get('catalog_ids', [])
+        if native_ids:
+            assert draft.get('catalog_namespace') == 'local-tv'
+            assert set(native_ids) <= verified_native_ids
+            assert row.get('catalog_namespace') == 'local-tv' and row.get('catalog_id') == native_ids[0]
+        frozen = {k: draft.get(k) for k in ('draft_key', 'title', 'body', 'button_label',
+                   'kind', 'knowledge_profile_keys', 'claim_ids')}
+        missing = ['channel', 'post_id', 'issued_entry_context_id', 'entry_url',
+                   'bot_button_url', 'final_editorial_check']
+        if draft['kind'] == 'hotel' and not native_ids:
+            missing.append('catalog_identity')
+        if not draft.get('images', {}).get('urls'):
+            missing.append('cover')
+        binding_rows.append({'draft_key': draft['draft_key'], 'title': draft['title'],
+                             'source_candidate_key': draft['source_candidate_key'],
+                             'draft_collection_key': row['draft_collection_key'],
+                             'context_kind': draft['kind'],
+                             'catalog_namespace': 'local-tv' if native_ids else None,
+                             'verified_hotel_ids': native_ids,
+                             'knowledge_profile_keys': draft.get('knowledge_profile_keys', []),
+                             'draft_payload_sha256': hashlib.sha256(json.dumps(frozen, ensure_ascii=False,
+                                 sort_keys=True, separators=(',', ':')).encode()).hexdigest(),
+                             'channel_id': None, 'post_id': None, 'issued_entry_context_id': None,
+                             'entry_url': None, 'bot_button_url': None,
+                             'button_label': draft['button_label'],
+                             'selected_cover_urls': draft.get('images', {}).get('urls', []),
+                             'missing_for_publication': missing, 'active': False})
+    assert len({r['draft_key'] for r in binding_rows}) == len(binding_rows)
+    assert len({r['draft_collection_key'] for r in binding_rows}) == len(binding_rows)
+    entry_review = {'schema': 'anytour.funnel.entry_binding_review.v1', 'generated_at_utc': now,
+                    'scope': 'Prepared drafts only; this is a review manifest, not a runtime registry.',
+                    'contract': {'entry_path': '/newmax/', 'click_id': 'yclid',
+                                 'match_by': 'chat ID', 'keyword_macro_used': False,
+                                 'context_id_issued_only_by_existing_mechanism': True,
+                                 'content_hash_is_not_an_entry_id': True,
+                                 'channel_still_pending': True},
+                    'summary': {'prepared_post_rows': len(binding_rows),
+                                'hotel_rows': summary['hotel_post_drafts'],
+                                'selection_rows': summary['thematic_post_drafts'],
+                                'rows_with_verified_hotel_ids': sum(bool(r['verified_hotel_ids']) for r in binding_rows),
+                                'rows_with_selected_covers': sum(bool(r['selected_cover_urls']) for r in binding_rows),
+                                'issued_context_ids': 0, 'active_destinations': 0},
+                    'rows': binding_rows}
+    data['entry_binding_review_file'] = 'funnel-entry-binding-review.json'
     # Change only descriptions in the existing incomplete XML, preserving catalog and photo work.
     xml_path = out / 'funnel-collections.INCOMPLETE-DRAFT.xml'
     xml = ET.parse(xml_path)
@@ -328,23 +377,46 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
                      ('<small>Перед включением в подборку: ' + esc('; '.join(checks)) + '</small>' if checks else '') +
                      '<small>Основание: ' + ', '.join(esc(x) for x in draft['claim_ids']) + '</small><small>' +
                      ' · '.join('<a href="' + esc(u) + '">Источник</a>' for u in urls) + '</small></details>')
-    section = ('<!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_BEGIN --><section><h2>Новые посты и подборки</h2><p><b>Всего ' +
-               str(summary['post_drafts']) + ' черновика</b>: ' + str(summary['hotel_post_drafts']) + ' гостиничных постов и ' +
-               str(summary['thematic_post_drafts']) + ' тематические подборки. Добавлено за проход: ' + str(len(added)) +
+    section = ('<!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_BEGIN --><section><h2>Новые посты и подборки</h2><p><b>Черновики: ' +
+               str(summary['post_drafts']) + '</b>. Гостиничных постов — ' + str(summary['hotel_post_drafts']) + '; подборок — ' +
+               str(summary['thematic_post_drafts']) + '. Добавлено за проход: ' + str(len(added)) +
                '. Коллекций фида — ' + str(summary['draft_feed_records']) + '; активных адресов перехода — 0.</p>' +
                '<p class="note">Факты повторно использованы из гостиничной базы версии ' + str(batch['knowledge_library_version']) +
                '. Это подготовка контента: новая проверка сайтов, цен и услуг на даты поездки в этом проходе не выполнялась. ID и фотографии новых отелей ещё требуют проверки.</p>' +
-               ''.join(cards) + '<p class="note">Crystal Prestige временно отложен: в источнике другое полное название, и связь с коротким названием очереди пока не подтверждена.</p></section><!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_END -->')
+               ''.join(cards) + ('<p class="note">Пропущены неоднозначные названия: ' +
+               esc('; '.join(x['source_candidate_key'] for x in batch.get('skipped', []))) +
+               '. Сначала требуется проверка идентичности.</p>' if batch.get('skipped') else '') +
+               '</section><!-- FUNNEL_BATCH_' + esc(batch['batch_id']) + '_END -->')
+    binding_table = ''.join('<tr><td>' + esc(r['title']) + '</td><td>' +
+                           esc(', '.join(map(str, r['verified_hotel_ids'])) if r['verified_hotel_ids']
+                               else ('Подборка' if r['context_kind'] == 'selection' else 'ID ещё не подтверждён')) +
+                           '</td><td><code>' + esc(r['draft_collection_key']) + '</code></td><td>' +
+                           ('Выбрана для черновика' if r['selected_cover_urls'] else 'Не выбрана') +
+                           '</td></tr>' for r in binding_rows)
+    binding_section = ('<!-- FUNNEL_BINDING_REVIEW_BEGIN --><section><h2>Связи постов и входов</h2><p>Собрана таблица для ' +
+                       str(len(binding_rows)) + ' подготовленных постов. С подтверждённым LOCAL ID — ' +
+                       str(entry_review['summary']['rows_with_verified_hotel_ids']) + '; с выбранной обложкой — ' +
+                       str(entry_review['summary']['rows_with_selected_covers']) + '. '
+                       'Для всех ещё требуются канал, post ID и выданный действующим механизмом ID входа; адреса перехода пустые.</p>' +
+                       '<details><summary>Пост → отель/подборка → коллекция</summary><div class="scroll"><table><thead><tr>' +
+                       '<th>Пост</th><th>Контекст / LOCAL ID</th><th>Коллекция черновика</th><th>Обложка</th></tr></thead><tbody>' +
+                       binding_table + '</tbody></table></div></details><p class="note">В JSON сохранён хеш текста и кнопки каждого черновика. '
+                       'Это контроль версии для будущей привязки, он не используется как ID входа. yclid сохраняется на входе; '
+                       'дальнейшее сопоставление — по chat ID. Рекламный трафик не запускался.</p></section><!-- FUNNEL_BINDING_REVIEW_END -->')
     report_path = out / 'anytour-demand-20261022.html'
     report = report_path.read_text()
+    report = re.sub(r'<!-- FUNNEL_BINDING_REVIEW_BEGIN -->.*?<!-- FUNNEL_BINDING_REVIEW_END -->', '', report, flags=re.S)
+    report = re.sub(r'<b>Всего ([0-9]+) черновика</b>', r'<b>Предыдущий пакет: \1</b>', report)
+    report = re.sub(r'<b>Черновики: ([0-9]+)</b>', r'<b>Предыдущий пакет: \1</b>', report)
     report = report.replace('<b>Всего 15 черновиков постов</b>', '<b>Пакет каталога: 15 черновиков на момент подготовки</b>')
-    report = report.replace('</header>', '</header>' + section, 1)
+    report = report.replace('</header>', '</header>' + section + binding_section, 1)
     report_bytes = report.encode()
     content_bytes = encoded(data)
     queue_path = out / 'anytour-demand-priorities-20261022.json'
     queue = read_json(queue_path)
     queue['content_post_counts'] = {k: summary[k] for k in ('post_drafts', 'hotel_post_drafts', 'thematic_post_drafts')}
     queue['latest_content_batch'] = completed
+    queue['entry_binding_review_file'] = 'funnel-entry-binding-review.json'
     queue_bytes = encoded(queue)
     provenance_path = out / 'source-provenance.json'
     provenance = read_json(provenance_path)
@@ -353,15 +425,20 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
     provenance['report_sha256'] = hashlib.sha256(report_bytes).hexdigest()
     provenance['working_queue_sha256'] = hashlib.sha256(queue_bytes).hexdigest()
     provenance.setdefault('content_batches', []).append(completed)
+    provenance['entry_binding_review'] = {'sha256': hashlib.sha256(encoded(entry_review)).hexdigest(),
+                                         'summary': entry_review['summary']}
     replacements = {'report.html': report_bytes, 'priorities.json': queue_bytes,
                     'source-provenance.json': encoded(provenance),
                     'funnel-content-preparation.json': content_bytes,
+                    'funnel-entry-binding-review.json': encoded(entry_review),
                     'funnel-collections.INCOMPLETE-DRAFT.xml': xml_bytes,
                     'funnel-content-batches/' + batch['batch_id'] + '.json': batch_path.read_bytes(),
                     'prepare-funnel-content.py': Path(__file__).read_bytes(),
                     'README.txt': ('Актуальная очередь: priorities.json; тексты, источники, связи и ограничения: funnel-content-preparation.json. '
-                                   + str(summary['post_drafts']) + ' черновика: ' + str(summary['hotel_post_drafts']) + ' отелей и '
-                                   + str(summary['thematic_post_drafts']) + ' тематические подборки.5 подтверждённых LOCAL ID,4 обложки. '
+                                   + 'Черновиков: ' + str(summary['post_drafts']) + '; гостиничных постов: ' + str(summary['hotel_post_drafts']) + '; подборок: '
+                                   + str(summary['thematic_post_drafts']) + '. Подтверждённых LOCAL ID: ' + str(summary['verified_catalog_ids'])
+                                   + '; выбранных обложек: ' + str(summary['selected_draft_covers']) + '. '
+                                   'Таблица связей и хеши текстов: funnel-entry-binding-review.json; это не runtime-реестр. '
                                    'Фид содержит356 неполных заготовок без адресов входа; не загружать. '
                                    'Канал ещё не передан; публикации, трат и изменений гостиничной базы нет. '
                                    'Частотность Wordstat не собрана. Исходный запросный отчёт и предыдущие материалы сохранены.\n').encode()}
@@ -379,6 +456,7 @@ def append_reviewed_batch(root, knowledge_path, batch_path):
     queue_path.write_bytes(queue_bytes)
     provenance_path.write_bytes(replacements['source-provenance.json'])
     (out / 'funnel-content-preparation.json').write_bytes(content_bytes)
+    (out / 'funnel-entry-binding-review.json').write_bytes(replacements['funnel-entry-binding-review.json'])
     xml_path.write_bytes(xml_bytes)
     (out / 'funnel-preparation-summary.json').write_bytes(encoded(summary))
     pending.replace(archive_path)
