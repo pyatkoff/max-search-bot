@@ -1,39 +1,48 @@
 # Selected Search3 tour → existing native conversation
 
-Status: receiver source contract only. Activation is held. The committed producer
-public-key allowlist is empty; the endpoint returns503 rather than trusting a
-browser observation. Source, current-head CI, installed endpoint, connected
-producer and natural native arrival are separate acceptance facts in issue#55.
-This continues constructor SOURCE6369459360/checkpoint6369864074, not Search3/INT
-implementation. It does not add another sender, transcript, queue or model call.
+Status: receiver source with the dedicated public verification pin. Activation remains
+held until current-head required CI, installed provenance and the connected producer/
+owner-only native gate. Source, CI, installed endpoint and natural arrival are separate
+facts in issue#55. This continues SOURCE6369459360/PR1095; no second sender, transcript,
+queue, model or selected-record owner is introduced.
 
 ## Producer responsibility and activation
 
-SEARCH owns its selection/lifecycle and server producer; INT owns retained
-supplier/session/price facts. Before signing, that owner must bind exactly the
-chosen row, room, party and selected flight pair (or explicit deferred flights)
-to its retained immutable server record/revision. Signing arbitrary posted
-browser fields is not an acceptable fallback. The881f observation module and a
-diagnostic quote receipt do not establish that provenance. Receiver activation
-requires a reviewed exact retained-record example, signing ownership, dedicated
-public verification material and end-to-end native proof. No supplier lookup,
-fresh search/quote or API session credential is requested by this receiver.
+INT4838 owns `anytour_anex_handoff_freeze` and the immutable record inside the
+existing retained ANEX quote pair. Producer4839 consumes that exact record JSON,
+binding and hash; it never signs browser money/identity or mints another projection.
+Its source57e041a → FEATURE5c83c4134f8f1c3aeec24be1713736cd058fc6d3 passed12 exact-head
+checks, including63 actual receiver interoperability checks and15 loopback HTTP/session
+checks. [Source terminal6375163967](https://github.com/pyatkoff/poisk-turov-test/issues/4709#issuecomment-6375163967)
+is not producer installation or natural arrival. The first adapter supplies completed
+exact ANEX selected pairs only. Deferred/listing/TV/Andromeda remain explicitly unavailable
+there; ordinary contact paths must remain usable without forced flights/substitution.
+SEARCH owns its separate unloaded selector/invocation. No fresh supplier call is requested.
 
-The authorized deployment owner retains the dedicated Ed25519 private key in
-its existing protected custody. It is never sent to the browser or this repo.
-Only public keys are pinned in resources/search3-handoff-producers.json:
+The authorized dedicated custody code4840 passed native/stock/current-head control CI and
+was merged/read back on mainafdb1eef. The original existing-executor operation
+`int-anex-search3-signing-20261023-v1`, run40029273671, then actually generated/read/validated
+the dedicated key in protected server-local0700/0600 custody and configured only its private
+file pointer. Public-only artifact12534450678 (631bytes), SHA256
+`26a04f934c22bae72f9a50972eac55d9454b153c58bfce028d0842e02925dd0c`, contains exactly
+result.json. [Custody terminal6375455463](https://github.com/pyatkoff/poisk-turov-test/issues/4709#issuecomment-6375455463)
+reports created/pointer-configured/ready, private_key_exported=false and zero supplier/DB/
+booking/lead calls. The consumed operation is never replayed. Readback mode is available
+only for necessary reconciliation, without remint/rotation. Private bytes never leave custody.
 
-```json
-{"schema":1,"keys":{}}
-```
+Only its PUBLIC verification material is pinned in
+`resources/search3-handoff-producers.json`, key ID `search3-anytour-v1`:
+producer search3, project anytour, not_before1792792045, not_after1800568105.
+The source file is authoritative for the32 public bytes. This key/time window comes from
+the original verified runtime receipt, not a locally generated test key. Key expiry/removal
+closes outstanding capabilities. Rotation requires reviewed source/deployment changes;
+no caller URL, environment override or borrowed bot/lead/supplier/AI secret is accepted.
+Tests continue to inject separate ephemeral verification keys through reflection; no runtime
+test switch or production private key is used. PHP sodium is mandatory.
 
-After acceptance, an entry keyed by a1–48 character lowercase `[a-z0-9_-]` ID has
-`producer:"search3"`, `project:"anytour"`, integer epoch-second `not_before` and
-`not_after`, and `public_key` (standard base64 of32 public bytes). Expiry/removal
-closes outstanding capabilities. Rotation is a reviewed source/deployment change,
-not a caller-controlled URL, environment override or borrowed bot/lead/AI secret.
-Tests inject ephemeral verification keys through reflection, never a runtime
-test switch or production private key. PHP sodium is mandatory.
+This pin does not prove migration060/receiver/producer installation, FPM access, actual UI
+loading or connected natural native arrival. Those existing release/owner-only gates remain
+open. The protocol/source boundary below is unchanged from the accepted e9b725 contract.
 
 ## HTTP and signature
 
