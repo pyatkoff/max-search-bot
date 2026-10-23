@@ -1,6 +1,6 @@
 {
   "schema": "anytour.funnel.autopilot_state.v1",
-  "updated_at_utc": "2026-10-23T10:47:04.181Z",
+  "updated_at_utc": "2026-10-23T11:45:01.129Z",
   "owner": "direct-demand-funnel",
   "automation": {
     "id": "6ada8f0084888191b12c6619c12fb35c",
@@ -43,11 +43,11 @@
   "artifacts": {
     "report": {
       "library_file_id": "libfile_81ae550da16881918bb6840b686d507f",
-      "version": 21
+      "version": 22
     },
     "archive": {
       "library_file_id": "libfile_1b69bb58e8d4819186e7ea461ef60cb6",
-      "version": 21
+      "version": 22
     },
     "canonical_hotel_knowledge": {
       "library_file_id": "libfile_e554d6c3171c8191926e5a7ae8bcd1e4",
@@ -87,7 +87,7 @@
     },
     "existing_post_review": {
       "library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
-      "version": 2,
+      "version": 3,
       "preview_member": "existing-post-review/anytour-existing-posts-review-20261023.html",
       "text_review_member": "existing-post-review/manual-text-review-107.json",
       "adaptations_member": "existing-post-review/existing-post-adaptations-12.json",
@@ -103,6 +103,18 @@
       "same_preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
       "preview_version": 2,
       "raw_private_materials_only_in_library": true
+    },
+    "remaining_u40_review": {
+      "review_member": "existing-post-review/u40-manual-text-review.json",
+      "adaptations_member": "existing-post-review/u40-existing-adaptations-5.json",
+      "patches_member": "existing-post-review/u40-existing-patches-5.NOT-APPLIED.json",
+      "binding_member": "existing-post-review/u40-binding-plan-87.NOT-APPLIED.json",
+      "media_hold_member": "existing-post-review/u40-media-only-47.json",
+      "fact_sources_member": "existing-post-review/u40-post-fact-checks.json",
+      "feed_member": "existing-post-review/u40-existing-feed-5.INCOMPLETE-DRAFT.xml",
+      "same_preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
+      "preview_version": 3,
+      "private_source_materials_only_in_library": true
     }
   },
   "operations": {
@@ -151,16 +163,19 @@
     "existing_post_cover_style_correction": "DONE_12_OF_12_BRANDED_AFTER_COVERS",
     "existing_top500_text_review": "DONE_56_TEXTS_85_POSTS",
     "existing_top500_adaptations": "DONE_7_NEW_CAPTIONS_1_POP_REUSE_22_NOT_APPLIED_PATCHES_8_INACTIVE_COLLECTIONS",
-    "existing_top500_save": "DONE_REPORT_ARCHIVE_V21_PREVIEW_V2"
+    "existing_top500_save": "DONE_REPORT_ARCHIVE_V21_PREVIEW_V2",
+    "remaining_u40_text_review": "DONE_39_NONEMPTY_TEXTS_40_POSTS_AND_47_MEDIA_ONLY_INVENTORY_NOT_VIEWED",
+    "remaining_u40_adaptations": "DONE_5_NEW_TEXT_DRAFTS_5_NOT_APPLIED_PATCHES_5_INACTIVE_COLLECTIONS",
+    "remaining_u40_save": "DONE_REPORT_ARCHIVE_V22_PREVIEW_V3"
   },
   "next_steps": [
-    "Completed Direct107texts/163posts plus TOP500outsideDirect56texts/85posts. Cumulative163different texts/248posts of626indexed. Do not repeat these completed passes,52NOT-APPLIED proposals or12cover exports.",
-    "Next finite block:review next40distinct remaining text variants in saved native capture order,representing87posts. Exclude alltexts in direct-107-review-input.json and top500-56-review-input.json. These40/87are PENDING,not read/approved.230texts/378posts remain overall. Preserve cases/reviews/events/selections and exact media/post IDs;prepare edits only when canonical facts and identity support them.",
-    "Preserve52proposals:30prior+22new.22text/photo paths and30video holds cumulatively;Mercure2new text/photo proposals additionally require supplier-notice review. Read fresh exact post/version/media/buttons/canonical context before actually authorized application;do not infer mass-edit permission from bot admin rights or prior2post experiment.",
-    "Seven new text adaptations are in top500-existing-adaptations-8.json plusone reused POP. Eightinactivecollections in top500-existing-feed-8.INCOMPLETE-DRAFT.xml have no destination URLs. Keep exact post/hotel/selection context,not a single hotel for multi-hotel selection;no guessed entry/localIDs. New7cover images not prepared;use original branded template when needed.",
-    "Palm Beach false substring edge rejected for2posts;POP reuse linked for4posts. Pyramisa/VGrand/TheVLuxury rename unresolved,Arabian2026childpromotion expired,AlMairidpromotion validity unknown. Mercure renovation/name-change plans are not completion;retain warning/hold and3previous supplier holds. Hotel/room/season/operator scopes remain separate.",
-    "Keep99factdrafts,319originalclaimrefs,356inactivefeedrows,99entrybindings,5verifiednativeIDs,3previoussupplierholds,24styledvariants and12existing-reviewcovers preserved. Reuse existing posts first,newposts only for verified coverage gaps. No hotel knowledge changes,Manager2/constructor/INT/LOCAL/MATCH/learning/CRM work or protected runtime/Metrica changes.",
-    "Wordstat BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS;currentdiscovery exposednoWordstattool. Do not retry unchanged failure or recollectDirect/channel exports. New-funnel publication/activefeed/RK/spend/merge/deploy remains outside preparation authorization;no customer sends. CompletedTG1751/MAXTurunc edit test must not replay."
+    "Completed text review:Direct107variants/163posts+TOP50056variants/85posts+U40new39nonemptyvariants/40posts =202nonemptyvariants/288posts.47empty-caption records only inventoried,not watched/approved.335dispositioned records is NOT335substantively reviewed posts. Do not repeat completed text blocks or57NOT-APPLIED proposals.",
+    "Next bounded text block:40nextdistinct nonempty remaining variants in saved capture order,representing70posts. Exclude texts in direct-107-review-input.json,top500-56-review-input.json,u40-input.json.190nonemptyvariants/291untriagedposts remain overall. Next40/70are PENDING,not approved. Preserve exact IDs/media and separate cases,events,selections,complexes.",
+    "Separate media queue:u40-media-only-47.json.43videoattachments,2images,2recordswithnoreturnedattachments;0exactsharedassetmatches tocaptionedposts. Do not assign hotel by adjacency/time/postnumber or declare these47viewed. U024unnamed luna-park video also holds for exactmediaidentity. Use permitted bounded media reads only;no import/recover/button-worker writes as analysis.",
+    "Preserve57patchproposals,allNOT-APPLIED:30+22+5.26text/photo paths and31video holds cumulatively. Mercure2suppliernoticeholds and4newhotelcatalog/identitylookupholds persist;Meri star/identityconflict additionally unresolved. Before authorized application read fresh exactpost/version/media/buttons/canonicalcontext;prior2post edit experiment is not mass-edit authority.",
+    "Five new text drafts and5inactivecollections in u40-*;no destinationURLs/newentryIDs. Preserve6sourcefamilycarouselcards and12priorbrandedcovers;do not replace videos or invent photos. Further covers use ownerbrandtemplate. Suakin≠ReefOasisSharm;HurghadaPickalbatroscomplex≠Sharm,SerenityAlma≠Queen/AlmaCamRanh,ArcadiaBodrum≠LimakArcadia.",
+    "Keep99factdrafts,319originalclaimrefs,356inactivefeedrows,99entrybindings,5verifiednativeIDs,3previoussupplierholds,24styledvariants and earlier52proposals byte-preserved. Scoped10fresh primaryfacts are exact post corrections only,not canonicalhotelprofiles or a parallel database;common archive92read-only. No Manager2/constructor/INT/LOCAL/MATCH/learning/CRM or protectedruntime/Metrica work.",
+    "Wordstat remains BLOCKED_NO_CONNECTED_SEARCH_API_ACCESS;no repeat unchanged failure/fullDirect/nativehistory export. New-funnel publication/activefeeds/RK/spend/merge/deploy/customer sends are outside current preparation authority. CompletedTG1751/MAXTurunc edits must not replay. Preserve all Library identities and exact version guards."
   ],
   "publication_blocker": "New funnel channel not designated for new publications. Existing30post changes are concrete NOT-APPLIED proposals with no bulk-write receipt and require fresh exact-post/context readback;20video posts retain transport holds. This does not block review of the remaining463existing posts.",
   "coordination": "Own audit/direct-demand-20261022 branch only; no foreign claims, CI, paused hotel tasks or production flows.",
@@ -307,6 +322,30 @@
       "expanded_new_captions_horizontal_overflow": false,
       "page_errors": 0,
       "library_version_guards": "20_TO_21_BOTH_DEMAND_ITEMS_AND_1_TO_2_PREVIEW"
+    },
+    "remaining_u40": {
+      "new_nonempty_texts": 39,
+      "represented_text_posts": 40,
+      "media_only_records_held_not_viewed": 47,
+      "new_caption_drafts": 5,
+      "patch_rows": 5,
+      "no_overlap_with_prior52": true,
+      "all_before_after_hashes_match": true,
+      "all5captions_utf16_under1024": true,
+      "primary_fact_refs_resolved": 10,
+      "canonical_claimrefs_reused": 3,
+      "feed_collections": 5,
+      "feed_destinations": 0,
+      "source_knowledge_modified": false,
+      "prior99drafts_356feedrows_99bindings_52patches_12covers_preserved": true,
+      "original6slide_hashes_preserved": true,
+      "zip_crc": "PASS",
+      "preview_images_loaded": true,
+      "preview_inactive_buttons": 24,
+      "mobile_width": 390,
+      "mobile_overflow": false,
+      "page_errors": 0,
+      "library_version_guards": "21_TO_22_BOTH_DEMAND_ITEMS_AND_2_TO_3_PREVIEW"
     }
   },
   "catalog_evidence": {
@@ -345,34 +384,36 @@
     "validation_sequence": "Use set -e for dependent preparation/write sequences. Resolve any failed preflight before saving. Batch07's overly broad all-declared assertion found1scope caution;17declarations and that separately labelled caution were reviewed before the Library write. The original completed batch bytes and canonical knowledge kinds were preserved."
   },
   "latest_completed_block": {
-    "name": "Existing TOP500 posts outside Direct slice reviewed and adapted",
-    "completed_at_utc": "2026-10-23T10:47:04.181Z",
-    "reviewed_text_variants_this_block": 56,
-    "represented_existing_posts_this_block": 85,
-    "cumulative_text_variants_reviewed": 163,
-    "cumulative_existing_posts_reviewed": 248,
-    "all_indexed_business_posts": 626,
-    "remaining_posts": 378,
-    "remaining_text_variants": 230,
-    "new_caption_adaptations": 7,
-    "reused_prior_caption_adaptations": 1,
-    "reused_POP_posts": 4,
-    "new_proposed_post_patches": 22,
-    "cumulative_proposed_post_patches": 52,
-    "new_patch_text_photo_path": 12,
-    "new_patch_video_holds": 10,
-    "new_supplier_notice_held_patches": 2,
-    "new_claim_refs": 28,
-    "new_branded_covers": 0,
-    "existing_branded_covers_preserved": 12,
-    "false_Palm_Beach_name_groups_corrected": 1,
-    "false_Palm_Beach_post_edges_rejected": 2,
-    "feed_draft_collections": 8,
-    "feed_active_destinations": 0,
-    "new_context_ids": 0,
-    "actual_post_edits": 0,
+    "name": "Remaining U40:39nonempty text variants plus47media-only records held for viewing",
+    "completed_at_utc": "2026-10-23T11:45:01.129Z",
+    "source_groups_processed": 40,
+    "nonempty_text_variants_read_this_block": 39,
+    "text_posts_reviewed_this_block": 40,
+    "media_only_records_inventoried_not_viewed": 47,
+    "total_post_records_in_block": 87,
+    "cumulative_nonempty_text_variants_reviewed": 202,
+    "cumulative_text_posts_reviewed": 288,
+    "cumulative_post_records_dispositioned": 335,
+    "remaining_untriaged_post_records": 291,
+    "remaining_nonempty_text_variants": 190,
+    "separate_media_only_review_queue": 47,
+    "new_caption_adaptations": 5,
+    "new_proposed_post_patches": 5,
+    "cumulative_proposed_post_patches": 57,
+    "new_patch_text_photo_path": 4,
+    "new_patch_video_holds": 1,
+    "new_patch_identity_lookup_holds": 4,
+    "new_scoped_primary_fact_refs": 10,
+    "canonical_claim_refs_reused": 3,
+    "new_feed_draft_collections": 5,
+    "new_feed_destinations": 0,
+    "original_branded_carousel_slides_viewed": 6,
+    "new_cover_images": 0,
+    "new_runtime_ids": 0,
     "new_posts": 0,
-    "all_property_claims_and_media_reviewed": false,
+    "actual_post_edits": 0,
+    "canonical_hotel_archive_modified": false,
+    "all626_media_and_facts_reviewed": false,
     "telegram_full_history_reviewed": false
   },
   "catalog_export_lookup": {
@@ -437,11 +478,11 @@
     "each_new_post_has_explicit_eligibility_checks": true
   },
   "last_run_readback": {
-    "own_branch_head_before_write": "961d10fc6f7ba6a43cc5b2d5fba91ac710561a4d",
+    "own_branch_head_before_write": "81f260ae2f64b01269c49943a9c8ca4fbafaffd4",
     "same_package_current_executor_handoff": true,
     "coordination_issue55_updated_at_utc": "2026-10-23T09:37:36Z",
     "source_archive_library_version": 92,
-    "demand_library_versions_before_write": 20,
+    "demand_library_versions_before_write": 21,
     "foreign_claims_untouched": true,
     "scope_instructions_read": true,
     "full_direct_export_repeated": false,
@@ -449,8 +490,8 @@
     "full_CI_or_unchanged_baseline_repeated": false,
     "wordstat_tool_discovery": "NO_WORDSTAT_TOOL_EXPOSED_ACCESS_BLOCKER_UNCHANGED",
     "blocked_wordstat_retried": false,
-    "existing_review_preview_version_before_write": 1,
-    "current_task": "Owner continue / same bounded package:85existing TOP500posts,not new publications"
+    "existing_review_preview_version_before_write": 2,
+    "current_task": "Same current executor U40 package,continued by explicit owner then automation handoff;no duplicate operation"
   },
   "latest_source_checks": {
     "scoped_operator_source_readbacks": 0,
@@ -618,15 +659,22 @@
         "distinct_text_variants": 107,
         "represented_posts": 163
       },
-      "remaining_existing_posts": 378,
+      "remaining_existing_posts": 338,
       "top500_outside_direct_text_review": {
         "distinct_text_variants": 56,
         "represented_posts": 85
       },
       "cumulative_text_review": {
-        "distinct_text_variants": 163,
-        "represented_posts": 248
-      }
+        "distinct_nonempty_text_variants": 202,
+        "represented_text_posts": 288
+      },
+      "remaining_u40_review": {
+        "nonempty_text_variants": 39,
+        "represented_text_posts": 40,
+        "media_only_records_inventoried_not_viewed": 47
+      },
+      "remaining_untriaged_post_records": 291,
+      "separate_media_only_review_hold": 47
     },
     "telegram_full_history_available": false,
     "completed_two_post_edit_test_is_not_mass_edit_authorization": true,
@@ -772,6 +820,85 @@
       "preview_version": 2,
       "expected_previous_demand_versions": 20,
       "expected_previous_preview_version": 1,
+      "all_local_metadata_applied": true
+    }
+  },
+  "remaining_u40_review_operation": {
+    "state": "DONE",
+    "idempotency_key": "remaining-u40-39text40posts-47mediainventory-20261023-v1",
+    "completed_at_utc": "2026-10-23T11:45:01.129Z",
+    "source_demand_archive_version": 21,
+    "source_knowledge_version": 92,
+    "source_capture_at_utc": "2026-10-23T07:28:41+00:00",
+    "source_groups_processed": 40,
+    "nonempty_text_variants_read_this_block": 39,
+    "text_posts_reviewed_this_block": 40,
+    "media_only_records_inventoried_not_viewed": 47,
+    "total_post_records_in_block": 87,
+    "cumulative_nonempty_text_variants_reviewed": 202,
+    "cumulative_text_posts_reviewed": 288,
+    "cumulative_post_records_dispositioned": 335,
+    "remaining_untriaged_post_records": 291,
+    "remaining_nonempty_text_variants": 190,
+    "separate_media_only_review_queue": 47,
+    "new_caption_adaptations": 5,
+    "new_proposed_post_patches": 5,
+    "cumulative_proposed_post_patches": 57,
+    "new_patch_text_photo_path": 4,
+    "new_patch_video_holds": 1,
+    "new_patch_identity_lookup_holds": 4,
+    "new_scoped_primary_fact_refs": 10,
+    "canonical_claim_refs_reused": 3,
+    "new_feed_draft_collections": 5,
+    "new_feed_destinations": 0,
+    "original_branded_carousel_slides_viewed": 6,
+    "new_cover_images": 0,
+    "new_runtime_ids": 0,
+    "new_posts": 0,
+    "actual_post_edits": 0,
+    "canonical_hotel_archive_modified": false,
+    "all626_media_and_facts_reviewed": false,
+    "telegram_full_history_reviewed": false,
+    "all39nonemptytexts_substantively_read": true,
+    "empty_group_not_counted_as_read_text": true,
+    "media_only_viewing_complete": false,
+    "exact_asset_matches_to_captioned_posts": 0,
+    "media_only_observed_video_attachments": 43,
+    "media_only_observed_images": 2,
+    "media_only_records_with_no_returned_attachments": 2,
+    "primary_source_pages_read": 5,
+    "primary_source_fact_refs": 10,
+    "scoped_facts_not_new_hotel_profiles": true,
+    "source_knowledge_modified": false,
+    "room_season_tariff_scopes_preserved": true,
+    "all_hotel_facts_and_media_approved": false,
+    "original_family_carousel6slides_visually_read_and_hashes_preserved": true,
+    "other_media_not_declared_viewed": true,
+    "prior12branded_covers_preserved": true,
+    "unknown_writes": [],
+    "actual_channel_writes": 0,
+    "new_context_ids": 0,
+    "mass_edit_authorization_receipt": null,
+    "canonical_catalog_ids_not_guessed": true,
+    "corrections": [
+      "Cascades pool750m2 is area,not750m length;65rooms/facilities not65treatmentrooms;no AI-to-SPA inclusion or health-effect claim",
+      "Bahi Ajman official dry-hotel policy preserved;pool heating not inferred",
+      "Suakin MarsaAlam separated fromReefOasisSharm;published heating not proof of future operation",
+      "Meri official location/AI scoped;shared operator3star vs owner4star unresolved,no star/nativeID assigned",
+      "U005family carousel preserved as original brand material;selection context not singlehotel",
+      "U032mixed UAE list must not be advertised as allDubai;otheroldprices/events/inclusion risks held"
+    ],
+    "source_read_failure": {
+      "url": "https://thecascadeshotel.com/spa-and-thalasso/",
+      "outcome": "TIMEOUT_EQUIVALENT_FACTS_RESOLVED_FROM_OFFICIAL_SPA_AND_SOMABAY_NO_UNCHANGED_RETRY"
+    },
+    "save_receipt": {
+      "report_version": 22,
+      "archive_version": 22,
+      "preview_library_file_id": "libfile_25486df816e88191b44ed4051858e99f",
+      "preview_version": 3,
+      "expected_previous_demand_versions": 21,
+      "expected_previous_preview_version": 2,
       "all_local_metadata_applied": true
     }
   }
