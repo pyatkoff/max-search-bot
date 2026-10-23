@@ -3,7 +3,7 @@
 const W=window.WorkspaceV2,{S,$,esc}=W,endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false;
+let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false;
 function actor(){return S.authExpired?0:Number(S.manager?.id||0)}
 function capture(c=S.detail?.conversation){return {actor:actor(),conversation:Number(c?.id||0),auth:Number(S.authGeneration||0),open:Number(window.WorkspaceV2Conversation?.getOpenGeneration?.()||0)}}
 function current(target=context){const now=capture();return !!target&&target.actor>0&&target.conversation>0&&target.actor===now.actor&&target.conversation===now.conversation&&target.conversation===Number(S.current)&&target.auth===now.auth&&target.open===now.open}
@@ -66,7 +66,7 @@ function ensure(){
 }
 async function open(c){
   if(!actor()||Number(c.id)!==Number(S.current))return;
-  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
+  close();epoch++;context=capture(c);version=0;draft=empty();selected='';dirty=false;busy=false;pending=null;conflict=null;rawAges={};canEdit=false;publication=null;preview=false;sending=false;sharing=false;interestLoading=false;restore();ensure();returnFocus=$('tourSelectionOpen')?.closest('details')?.querySelector('summary')||$('tourSelectionOpen');
   $('tsTitle').textContent=c.display_name||'Турист';$('tsRecipient').textContent=(c.channel==='telegram'?'Telegram':c.channel==='max'?'MAX':String(c.channel||''))+' · Сначала предпросмотр, затем отправка';
   render();if(!dialog.open)dialog.showModal();await load();
 }
@@ -164,6 +164,7 @@ function controls(){
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!canEdit||busy||loading||sending||sharing;
   $('tsPreview').disabled=busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=busy||loading||sending;$('tsEdit').disabled=sending;
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
+  if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
@@ -216,6 +217,8 @@ function renderPreview(){
     img.addEventListener('load',()=>{if(active()){photoPending--;controls()}},{once:true});
     img.addEventListener('error',()=>{if(!active())return;photoPending--;photoFailures++;img.classList.add('tsPhotoFailed');controls();status('Не удалось загрузить фото. Вернитесь к редактированию и проверьте прямую ссылку.',true)},{once:true});
   });
+  const activity=document.createElement('button');activity.id='tsInterest';activity.type='button';activity.textContent='Активность подборки';activity.onclick=()=>showInterest();$('tsEditor').querySelector('.tsPreviewHeading').appendChild(activity);
+  const interest=document.createElement('section');interest.id='tsInterestPanel';interest.className='tsInterestPanel';interest.hidden=true;interest.setAttribute('aria-live','polite');activity.parentElement.after(interest);
   updateDelivery();
 }
 function updateDelivery(){
@@ -239,6 +242,35 @@ async function showHistory(){
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
   for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{const t=epoch;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch)return;if(read?.ok&&read.publication){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+}
+async function showInterest(){
+  if(!current()||busy||sending||sharing||interestLoading||!publication)return;
+  const token=epoch,id=publication.id;interestLoading=true;controls();
+  const result=await request('interest',{publication_id:id});if(token!==epoch)return;interestLoading=false;controls();
+  if(!current()||publication?.id!==id||!preview)return;
+  const root=$('tsInterestPanel');if(!root)return;root.replaceChildren();root.hidden=false;root.scrollIntoView({block:'start'});
+  if(!result?.ok||!result.interest){root.textContent='Активность сейчас недоступна. Это не означает, что просмотров не было.';return}
+  const data=result.interest,number=v=>Number.isSafeInteger(v)&&v>=0?v:0;
+  const add=(tag,text)=>{const node=document.createElement(tag);node.textContent=text;root.appendChild(node);return node};
+  add('h3','Активность этой версии');
+  add('p','За последние '+number(data.window_days)+' дней. Это анонимные сигналы браузера, а не подтверждение личности или прочтения. Блокировщики и недоступная связь могут скрыть часть событий.');
+  const grid=document.createElement('dl');grid.className='tsInterestCounts';root.appendChild(grid);
+  const browser=data.totals?.browser||{};
+  for(const [key,label] of [['page_view','Показ страницы'],['hotel_view','Показ отеля'],['bot_open','Переход к боту']]){
+    const cell=document.createElement('div'),term=document.createElement('dt'),count=document.createElement('dd');
+    term.textContent=label;count.textContent=number(browser[key]?.unique)+' · повторов '+number(browser[key]?.repeat);cell.append(term,count);grid.appendChild(cell);
+  }
+  const native=data.native||{};
+  add('p','Подтверждено в ботах: «Нравится» — '+number(native.liked)+', обращений — '+number(native.inquiries)+'. Переход по кнопке сам по себе обращением не считается.');
+  for(const row of data.variants||[]){if(!Number.isInteger(row.index)||row.index<0||row.index>=publication.cards.length)continue;if(number(row.hotel_views))add('p','Отель в варианте '+(row.index+1)+': показов — '+number(row.hotel_views)+'.');if(number(row.bot_opens))add('p','Вариант '+(row.index+1)+': переходов к боту — '+number(row.bot_opens)+'.')}
+  if(data.last_browser_at)add('p','Последний сигнал браузера: '+window.ManagerTime.format(data.last_browser_at,{year:true})+' МСК.');
+  const automated=[];
+  for(const [bucket,label] of [['preview','События предпросмотра'],['robot','События распознанной автоматизации']]){
+    let count=0,repeats=0;for(const value of Object.values(data.totals?.[bucket]||{})){count+=number(value?.unique);repeats+=number(value?.repeat)}automated.push(label+': '+count+' · повторов '+repeats);
+  }
+  add('p',automated.join('. ')+'. Определение автоматизации ограничено доступными признаками.');
+  if(data.limited||native.likes_limited||native.inquiries_limited)add('p','Достигнут предел выборки. Показанные числа — только найденные события, а не полный итог.');
+  add('p','Обновление страницы подборки сохраняет прежние версии и выборы. Анонимные посещения не назначаются исходному клиенту.');
 }
 async function sendAll(){
   if(!current()||sending||!publication?.can_send||photoFailures||photoPending)return;const target=publication.id,token=epoch;sending=true;controls();
@@ -270,7 +302,7 @@ function renderShare(share){
   if(share.active){
     const url=new URL(share.path,location.origin).href,input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Общая ссылка на подборку');root.appendChild(input);
     const copy=document.createElement('button');copy.type='button';copy.textContent='Скопировать ссылку';copy.onclick=async()=>{if(!current())return;const token=epoch;input.select();try{await navigator.clipboard.writeText(url);if(token===epoch&&current())status('Ссылка скопирована.')}catch(e){if(token===epoch&&current())status('Выделена ссылка — скопируйте её.')}};root.appendChild(copy);
-    const open=document.createElement('a');open.href=url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
+    const open=document.createElement('a');const previewPath=typeof share.preview_path==='string'&&/^\/selection\/\?t=[a-f0-9]{64}&preview=[0-9]{10}\.[a-f0-9]{64}$/.test(share.preview_path)?share.preview_path:null;open.href=previewPath?new URL(previewPath,location.origin).href:url;open.target='_blank';open.rel='noopener noreferrer';open.textContent='Открыть страницу';root.appendChild(open);
     const label=document.createElement('p');label.textContent=share.publication_id===publication.id?'По ссылке опубликована эта версия.':'По ссылке опубликована другая версия. Обновление заменит страницу, сохранив адрес.';root.appendChild(label);
   }else{const label=document.createElement('p');label.textContent=share.version?'Ссылка отозвана. Повторная публикация создаст новый адрес.':'Подборка ещё не опубликована.';root.appendChild(label)}
   const change=(label,action)=>{const b=document.createElement('button');b.id=action==='publish'?'tsPublish':'tsRevoke';b.type='button';b.textContent=label;b.disabled=(!canEdit&&!(action==='revoke'&&share.can_revoke))||sharing||(action==='publish'&&(dirty||!!pending||!!conflict||photoPending>0||photoFailures>0));b.onclick=()=>changeShare(action,share);root.appendChild(b)};

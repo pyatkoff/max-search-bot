@@ -1,7 +1,7 @@
 # Manager2 tour selection constructor
 
 Owner specification: AnyTour_selection_development_spec_2026-10-22.docx.
-Coordination: issue #55; current bounded FUN&SUN source6363740796 and continuation6364355850/6364539352. Historical source6335241336 owns the first draft slice only.
+Coordination: issue #55; anonymous interest source6367229738 follows installed FUN&SUN1091/RELEASE6366634955. Historical source6335241336 owns the first draft slice only.
 
 ## First implementation slice: editable draft
 
@@ -242,3 +242,45 @@ the ordinary pre-work file deduplicator so a failed save/handoff can recover.
 This slice does not implement measured page/interest events, FUN&SUN import,
 booking or fare verification. Native physical/owner acceptance remains distinct
 from synthetic source/browser checks and the exact installed-release receipts.
+
+
+## Observed interest and confirmed native activity
+
+The preview's «Активность подборки» reads the selected immutable publication,
+including an older publication opened from history. It separates visible page
+and hotel observations, exact-variant bot-link intent, canonical native likes
+and canonical bot inquiries. A forwarded visitor is never identified as the
+source customer. Native inquiry totals can include other native conversations;
+the activity projection exposes no identity, contact, quote or transcript.
+Those inquiries remain in their actual canonical Manager2 conversation.
+
+The public page issues a domain-separated signed15-minute capability for its
+current link version. Ordinary GET/HEAD is not a browser view. Visible JavaScript
+reports after one second; a hotel heading must be at least half visible.
+The bot link remains unchanged and navigation never waits for observation save.
+A per-tab random visitor key groups repeat observations; it is not a person ID.
+No IP address, full user agent, account token or contact is stored. Recognized
+crawler/preview GETs are separate fetch events; the protected Manager2 open-page
+link carries a12-hour signed preview flag. Copy/send retains the ordinary URL.
+Classification is heuristic; an unrecognized bot or a manager opening a copied
+ordinary URL can still appear as a browser observation.
+
+Migration058 creates the sole anonymous-observation projection. An exact event
+retry returns its known result; a changed payload cannot overwrite it. Recording
+uses the canonical publish/revoke parent lock and rechecks current public source,
+link and version. Revoked/replaced links reject old capabilities. Observations
+never prepare/send cards, create choices/inquiries, alter read/assignment/queue
+or update the conversation's last message. Existing publication/TourChoice and
+native-envelope owners are unchanged.
+
+The indexed30-day read is capped at1000 observations; native likes use the
+canonical20-offer projection and inquiries inspect at most1000 recent project
+records. Limits are explicit lower-bound warnings, never a complete count.
+Writes are capped at100 events per anonymous visitor/publication/day and10000
+per conversation/day; bounded opportunistic cleanup removes at most1000 expired
+anonymous rows for that conversation. This is a rolling observation window,
+not guaranteed scheduled deletion. Preview/robot/repeated observations appear
+separately. Browser blockers, storage/network errors or capability expiry can
+hide events; a failed activity read says unavailable instead of zero. Manager2
+timestamps use the existing Moscow formatter; text/File/context remain owned
+by the conversation component. Natural/physical owner-onlyA1–A8 remain OPEN.

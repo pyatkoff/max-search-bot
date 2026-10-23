@@ -48,7 +48,7 @@ function groupingChecks(): void {
         $q=$pdo->prepare('SELECT selection_json FROM manager_tour_selection_publications WHERE publication_id=?');$q->execute([$old['id']]);
         deliveryCheck('previous immutable publication and native choice contract stay intact',$q->fetchColumn()===$oldJson&&!str_contains(json_encode($public),$one['id']));
         $selection=$public;$h=static fn(string $v):string=>htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
-        deliveryCheck('real public renderer has two hotel headers and three separately anchored exact variants',substr_count($html,'<article class="offer"')===2&&substr_count($html,'<h2>')===2&&substr_count($html,'class="offerVariant"')===3&&str_contains($html,'id="variant-2"')&&str_contains($html,'260 000,00'));
+        deliveryCheck('real public renderer has two hotel headers and three separately anchored exact variants',substr_count($html,'<article class="offer"')===2&&preg_match_all('/<h2\b[^>]*>/',$html)===2&&substr_count($html,'class="offerVariant"')===3&&str_contains($html,'id="variant-2"')&&str_contains($html,'260 000,00'));
         deliveryCheck('grouped room images stay with their own variants',substr_count($html,'class="variantRoom"')===2&&str_contains($html,'card=1&amp;photo=2'));
         deliveryCheck('grouping creates no send, like, read marker or routing change',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0&&(int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads LIMIT 1')->fetchColumn()===0);
     } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);}
@@ -86,16 +86,20 @@ try {
     $pdo->exec('UPDATE projects SET is_active=0');deliveryCheck('inactive project closes public reads',ManagerTourSelectionShareService::read($newToken)===null);$pdo->exec('UPDATE projects SET is_active=1');
     deliveryCheck('public sharing never sends or invents a tourist choice',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0);
     deliveryCheck('history preserves all five explicit revisions',(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_link_history')->fetchColumn()===5);
+    require_once __DIR__.'/support/manager-tour-interest.php';
+    $interestPdo=deliveryDb();interestScenarios($interestPdo);
+    (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
     groupingChecks();
     require_once __DIR__.'/fixtures/tour_selection_bot_entry.php';
     tourSelectionBotEntryChecks();
     // Exercise the unmodified public controllers and ManagerHttp over real HTTP.
     $http=sys_get_temp_dir().'/tour-share-http-'.bin2hex(random_bytes(8));mkdir($http,0700);mkdir($http.'/manager',0700);mkdir($http.'/selection',0700);mkdir($http.'/sessions',0700);$process=null;
     try {
+        interestSchema($pdo);
         $pdo->exec('VACUUM INTO '.$pdo->quote($http.'/fixture.sqlite'));
         $root=dirname(__DIR__);
         symlink($root.'/services',$http.'/services');symlink($root.'/integrations',$http.'/integrations');symlink($root.'/manager/lib',$http.'/manager/lib');
-        foreach (['index.php','photo.php','view.php','selection.css'] as $file) copy($root.'/selection/'.$file,$http.'/selection/'.$file);
+        foreach (['index.php','photo.php','view.php','selection.css','activity.php','activity.js'] as $file) copy($root.'/selection/'.$file,$http.'/selection/'.$file);
         copy($root.'/manager/tour-selections-api.php',$http.'/manager/tour-selections-api.php');
         $config="<?php\nrequire_once ".var_export($root.'/services/ManagerRequestContext.php',true).";\n".
             '$fixturePdo=new PDO('.var_export('sqlite:'.$http.'/fixture.sqlite',true).',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);' ."\n".
@@ -107,8 +111,8 @@ try {
         $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$errstr);if (!$socket) throw new RuntimeException('Share loopback unavailable');$address=stream_socket_get_name($socket,false);fclose($socket);
         $process=proc_open([PHP_BINARY,'-d','session.save_path='.$http.'/sessions','-S',$address,'-t',$http],[0=>['pipe','r'],1=>['file',$http.'/server.log','a'],2=>['file',$http.'/server.log','a']],$pipes);if(!is_resource($process))throw new RuntimeException('Cannot start share HTTP fixture');fclose($pipes[0]);
         $ready=false;for($i=0;$i<200;$i++){$probe=@stream_socket_client('tcp://'.$address,$errno,$errstr,0.05);if($probe){fclose($probe);$ready=true;break;}usleep(10000);}if(!$ready)throw new RuntimeException('Share HTTP fixture not ready');
-        $request=static function(string $path,string $method='GET',array $data=[],string $cookie='')use($address):array {
-            $headers=['Content-Type: application/json'];if($cookie!=='')$headers[]='Cookie: '.$cookie;
+        $request=static function(string $path,string $method='GET',array $data=[],string $cookie='',array $extra=[])use($address):array {
+            $headers=array_merge(['Content-Type: application/json'],$extra);if($cookie!=='')$headers[]='Cookie: '.$cookie;
             $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data):'','ignore_errors'=>true,'timeout'=>5]]);
             $body=file_get_contents('http://'.$address.$path,false,$ctx);$received=$http_response_header??[];preg_match('/\s(\d{3})\s/',$received[0]??'',$m);
             return ['status'=>(int)($m[1]??0),'body'=>$body,'headers'=>implode("\n",$received)];
@@ -121,12 +125,24 @@ try {
         $photo=$request('/selection/photo.php?t='.$newToken.'&v=5&card=0&photo=0');
         deliveryCheck('public HTTP photo serves original frozen JPEG',$photo['status']===200&&hash('sha256',$photo['body'])===hash_file('sha256',$root.'/assets/owner-tour-cards/compact-v1/cover.jpg'));
         deliveryCheck('public endpoint rejects writes without touching the publication',$request($path,'POST')['status']===405);
+        preg_match('/data-selection-interest="([^"]+)"/',$page['body'],$match);
+        $cap=json_decode(html_entity_decode($match[1]??'',ENT_QUOTES|ENT_HTML5,'UTF-8'),true);
+        $observe=$cap+['kind'=>'page_view','event_id'=>str_repeat('a',32),'visitor_id'=>str_repeat('b',32),'card_index'=>-1,'platform'=>''];
+        deliveryCheck('public observation endpoint requires POST and exact same-origin JSON',$request('/selection/activity.php')['status']===405&&$request('/selection/activity.php','POST',$observe)['status']===403&&$request('/selection/activity.php','POST',$observe,'',['Origin: https://other.example'])['status']===403);
+        $origin=['Origin: https://app.anytoour.ru'];$saved=$request('/selection/activity.php','POST',$observe,'',$origin);$again=$request('/selection/activity.php','POST',$observe,'',$origin);
+        deliveryCheck('actual anonymous HTTP records one signed observation and reconciles exact retry',$saved['status']===200&&$again['status']===200&&!empty(json_decode($again['body'],true)['duplicate'])&&!str_contains($saved['headers'],'Set-Cookie:'));
+        deliveryCheck('actual public observation rejects forged signature without becoming native action',$request('/selection/activity.php','POST',array_replace($observe,['mac'=>str_repeat('0',64)]),'',$origin)['status']===410);
         deliveryCheck('manager sharing HTTP requires authentication',$request('/manager/tour-selections-api.php','POST',['action'=>'share','conversation_id'=>1])['status']===401);
         $session=$request('/manager/session.php');preg_match('/Set-Cookie:\s*([^;\n]+)/i',$session['headers'],$cookieMatch);$cookie=$cookieMatch[1]??'';
+        $activity=['action'=>'interest','conversation_id'=>1,'publication_id'=>$id];
+        deliveryCheck('private activity retains canonical session and CSRF fences',$request('/manager/tour-selections-api.php','POST',$activity)['status']===401&&$request('/manager/tour-selections-api.php','POST',$activity,$cookie)['status']===403);
+        $activity['csrf']='share-fixture-csrf';$observed=$request('/manager/tour-selections-api.php','POST',$activity,$cookie);$data=json_decode($observed['body'],true);
+        deliveryCheck('actual Manager2 API returns anonymous scoped signals without visitor or sender identities',$observed['status']===200&&($data['interest']['totals']['browser']['page_view']['unique']??null)===1&&!str_contains($observed['body'],'visitor_hash')&&!str_contains($observed['body'],'external_user_id'));
         $command=['action'=>'revoke','conversation_id'=>1,'publication_id'=>$id,'share_version'=>5];
         deliveryCheck('manager sharing HTTP requires canonical CSRF',$request('/manager/tour-selections-api.php','POST',$command,$cookie)['status']===403);
         $command['csrf']='share-fixture-csrf';$rev=$request('/manager/tour-selections-api.php','POST',$command,$cookie);
         deliveryCheck('actual HTTP revoke immediately closes public page and images',$rev['status']===200&&$request($path)['status']===404&&$request('/selection/photo.php?t='.$newToken.'&v=5&card=0&photo=0')['status']===404);
+        deliveryCheck('HTTP revoke also rejects the previous observation capability',$request('/selection/activity.php','POST',$observe,'',$origin)['status']===410);
         deliveryCheck('stale HTTP revoke returns conflict without repeated history',$request('/manager/tour-selections-api.php','POST',$command,$cookie)['status']===409);
     } finally {
         if(is_resource($process)){proc_terminate($process);proc_close($process);}

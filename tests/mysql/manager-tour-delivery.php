@@ -33,3 +33,4 @@ try {
     if ($pdo && $safe) {if ($pdo->inTransaction()) $pdo->rollBack();foreach ($tables as $table) $pdo->exec('DROP TABLE IF EXISTS '.$table);}
 }
 require __DIR__.'/manager-tour-collector.php';
+require __DIR__.'/manager-tour-interest.php';

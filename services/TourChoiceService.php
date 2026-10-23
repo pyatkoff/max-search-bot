@@ -123,6 +123,24 @@ final class TourChoiceService
         return $out;
     }
 
+    /** Read-only aggregate for an already-authorized immutable publication.
+     * Native records remain authoritative; public clicks never enter this path.
+     */
+    public static function selectionActivity(PDO $pdo,int $conversation,string $publication,string $since): array
+    {
+        $q=$pdo->prepare('SELECT offer_id FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index LIMIT 20');$q->execute([$publication]);
+        $ids=array_map('intval',$q->fetchAll(PDO::FETCH_COLUMN));
+        $native=self::nativeForConversation($pdo,$conversation,20);$liked=0;
+        foreach ($native['offers'] as $offer) if (in_array($offer['offer_id'],$ids,true) && is_string($offer['liked_at']) && $offer['liked_at']>=$since) $liked++;
+        $q=$pdo->prepare('SELECT project_key FROM conversations WHERE id=?');$q->execute([$conversation]);$project=$q->fetchColumn();
+        $json=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(e.payload_json,'$.publication_id'))":"JSON_EXTRACT(e.payload_json,'$.publication_id')";
+        // Fixed project/window and row bound, no foreign identity or quote text.
+        $q=$pdo->prepare('SELECT CASE WHEN JSON_VALID(e.payload_json) THEN '.$json.' ELSE NULL END AS publication_id,e.created_at FROM conversation_events e JOIN conversations c ON c.id=e.conversation_id WHERE e.event_type=? AND c.project_key=? AND e.created_at>=? ORDER BY e.created_at DESC,e.id DESC LIMIT 1001');
+        $q->execute(['tour_web_inquiry',$project,$since]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$limited=count($rows)>1000;$inquiries=0;
+        foreach (array_slice($rows,0,1000) as $row) if ($row['publication_id']===$publication) $inquiries++;
+        return ['liked'=>$liked,'likes_limited'=>$native['limited'],'inquiries'=>$inquiries,'inquiries_limited'=>$limited];
+    }
+
     private static function nativeForConversation(PDO $pdo,int $conversationId,int $limit): array
     {
         if ($conversationId <= 0) return ['offers'=>[], 'limited'=>false];
