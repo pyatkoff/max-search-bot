@@ -448,3 +448,21 @@ Existing contract transport, shared-consumer and revision regressions remain
 the implementation checks. A successful publication verifies installed policy,
 not that a model will never ask another unnecessary question. Active/completed
 jobs retain their original frozen instructions, results and lesson provenance.
+
+## Unqualified travel for two
+
+For initial selection, an unqualified "for two" / "the two of us" means two
+adults as the working composition. Do not add a formal confirmation of two
+adults or ask about a hypothetical child. Explicit adult-plus-child wording,
+known children, a changed party or a real conflict takes precedence; clarify a
+genuinely unknown minor age when it affects calculation. This is not a room
+choice or a booking-age declaration. The shared policy owns the boundary for
+ordinary drafts, virtual authors and reviewers.
+
+Synthetic calibration, not independent quality evidence: "Vietnam for two,
+14 nights" needs only actually missing travel conditions; "for two: me and my
+eight-year-old son" preserves one adult and the known child age; "me and a
+child" can require the missing age; "two families" does not specify two adults;
+a later explicit change of party supersedes the earlier two-person default.
+The owner's review corrected a saved pass; existing results remain unchanged,
+and only untouched pending jobs receive a new frozen contract after publication.
