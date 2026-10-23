@@ -179,7 +179,12 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
   await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Мой ответ остаётся в черновике');await page.locator('#replyFile').setInputFiles({name:'retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained file')});
   const selection=await page.locator('#mediaSelection').textContent();
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
-  await page.locator('#messages').hover();await page.mouse.wheel(0,-250);await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  await page.locator('#messages').hover();const beforeWheel=await page.locator('#messages').evaluate(box=>box.scrollTop);
+  await page.mouse.wheel(0,-250);
+  // WebKit marks reading intent before its native wheel animation finishes.
+  // Capture the baseline only after the requested real scroll has completed.
+  await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(Math.max(0,beforeWheel-250));
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
   await page.evaluate(()=>{const host=document.querySelector('#messages');window.priorityReading={node:host.querySelector('[data-scroll-message-key]'),host,top:host.scrollTop}});
   if(viewport.width<=740)await page.locator('#mobileBack').click();
   await page.locator('#assistantOpen').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toBeVisible();await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();await page.locator('[data-assistant-filter="actions"]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(2);
