@@ -236,7 +236,7 @@ class ManagerConversationService
         return$conversation;
     }
 
-    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=true): ?array
+    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false): ?array
     {
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
         $limit=max(1,min(200,$limit));
@@ -258,8 +258,7 @@ class ManagerConversationService
             try { $detail['tour_choices'] = ['available'=>true] + TourChoiceService::forConversation($pdo, $conversationId); }
             catch (Throwable $ignored) { $detail['tour_choices'] = ['available'=>false,'offers'=>[],'limited'=>false]; }
         }
-        // HTTP callers defer this until hydration succeeds. Existing direct
-        // detail callers retain their bounded latest-page read behaviour.
+        // Transcript reads never acknowledge display, including direct callers.
         if($supervisorRead){
             $fresh=self::visibleConversation($conversationId,$managerId,true);if(!$fresh)return null;
             foreach(['manager_id','project_key','source_id','status','channel'] as $key)if($fresh[$key]!==$conversation[$key])return null;
@@ -267,7 +266,6 @@ class ManagerConversationService
         $supervisor=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $detail['supervisor_read']=$supervisor;
         $detail['owner_read']=ManagerAuthService::isAdmin(ManagerAuthService::byId($managerId))&&((int)($conversation['manager_id']??0)!==$managerId||$conversation['status']!=='manager');
-        if($markRead&&!$supervisorRead&&!$supervisor&&$beforeId===0&&$messages)ManagerReadService::markRead($managerId,$conversationId,(int)$messages[count($messages)-1]['id']);
         return$detail;
     }
 
