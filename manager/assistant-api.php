@@ -13,7 +13,7 @@ function assistantRespond(array $result): never
 {
     $status = !empty($result['ok']) ? 200 : match ((string)($result['error'] ?? '')) {
         'unauthorized'=>401, 'forbidden'=>403, 'not_found'=>404,
-        'stale_context','decision_conflict'=>409, 'invalid_request','unknown_action'=>400, default=>503,
+        'stale_context','decision_conflict','list_changed'=>409, 'invalid_request','unknown_action'=>400, default=>503,
     };
     ManagerHttp::respond($result,$status);
 }
@@ -28,7 +28,7 @@ try {
     if ($action === 'list') {
         $cursor = $data['cursor'] ?? null;
         $limit = $data['limit'] ?? ManagerAssistantService::MAX_PAGE;
-        if (($cursor !== null && (!is_int($cursor) || $cursor <= 0)) || !is_int($limit)) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
+        if (($cursor !== null && (!is_string($cursor) || strlen($cursor)>90)) || !is_int($limit)) assistantRespond(['ok'=>false,'error'=>'invalid_request']);
         session_write_close();
         assistantRespond(ManagerAssistantService::listing($actor,$cursor,$limit));
     }
