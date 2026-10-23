@@ -142,3 +142,50 @@ terms until explicit publish/update; revocation still closes all images.
 This package does not add web likes, visitor identity/contact, measured interest
 or the FUN&SUN collector. Those remain the next connected constructor stages;
 public grouping must not be described as a saved tourist choice.
+
+## Exact web variant through the existing bots
+
+Owner clarification of 23 October replaces the proposed website contact form:
+each public variant links directly to the configured canonical Telegram and MAX
+bots. The compact opaque selector binds project, bot, publication, link version
+and card using the existing private offer capability. The full public URL and
+native callback are not sent in the selector. Opening a page or following a link
+does not itself save an inquiry, prove identity, send a message or mark a chat read.
+
+Only the trusted native private `/start` or MAX `bot_started` envelope identifies
+the sender. The same client continues their existing native conversation without
+re-entering contacts. A forwarded visitor uses their own conversation and default
+channel source, never the original customer's assignment, attribution, private
+history or exact child ages. An unrelated account in another messenger is not
+silently linked to the original customer. The UI says that saving occurs after
+the bot is started; it retains a manual-contact fallback if bots are unavailable.
+
+`TourSelectionBotEntryService` rechecks the active project/source, recipient and
+current published version under the origin and target conversation locks. It
+commits an immutable allowlisted public quote to canonical `conversation_events`
+and one labelled native-action projection to existing `messages`, updating normal
+Inbox activity/unread/reply facts without a second message or reminder store.
+The projection has type `tour_web_inquiry`; it is not a fabricated literal text,
+native message ID, delivered card or native `Нравится` callback. A repeated
+variant/version/sender preserves the first event, quote and transcript projection.
+Manager2 shows these inquiries separately from native liked offers with their
+shown whole-party price and a warning that availability/price need checking.
+
+The dedicated entry family is consumed before ordinary source/wizard effects.
+An invalid, stale or revoked selector never resets the trip, changes assignment,
+falls through to an advertising start or creates a successful inquiry. A rejection
+acknowledgement has a durable once intent; an unknown provider outcome is not
+replayed. Updated/revoked pages also invalidate their old bot selectors, while
+previously accepted conditions remain readable in their actual sender's history.
+
+After inquiry commit, manager queue entry delegates to the existing handoff
+owner. A retry may finish a failed queue transition without duplicating the saved
+inquiry. Only the process that creates the durable `ai → waiting_manager`
+transition owns its initial greeting; concurrent starts and unknown greetings
+do not create another send. Working hours, shifts, routing, push and conversion
+goal policy stay canonical. MAX selection starts use this DB intent rather than
+the ordinary pre-work file deduplicator so a failed save/handoff can recover.
+
+This slice does not implement measured page/interest events, FUN&SUN import,
+booking or fare verification. Native physical/owner acceptance remains distinct
+from synthetic source/browser checks and the exact installed-release receipts.

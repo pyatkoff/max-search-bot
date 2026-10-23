@@ -10,7 +10,7 @@ class ConversationDb { public static $pdo; public static function isConfigured()
 class ProjectConfig { public static function projectId(){return 'fixture';} }
 class ManagerPushService { public static $calls=0,$fail=false; public static function notifyConversation(...$args){self::$calls++;if(self::$fail)throw new RuntimeException('synthetic push failure');} }
 class MetrikaConversionGoalService { public static function managerRequest(int $conversationId): bool { return false; } }
-class ManagerAvailabilityService { public static $hours=true,$available=true; public static function withinWorkingHours($now=null){return self::$hours;} public static function anyWorkingForConversation($c){return self::$available;} }
+class ManagerAvailabilityService { public static $hours=true,$available=true,$beforeAvailability=null; public static function withinWorkingHours($now=null){return self::$hours;} public static function anyWorkingForConversation($c){$hook=self::$beforeAvailability;self::$beforeAvailability=null;if($hook)$hook();return self::$available;} }
 class ManagerRequestService { public static $fail=false; public static function sourceEntryMessageText($hours){return $hours?'entry day':'entry night';} public static function prepare(...$args){if(self::$fail)throw new RuntimeException('synthetic prepare failure');return ['back_callback'=>'back_check','online_text'=>'online','working_wait_text'=>'waiting','outside_hours_text'=>'next working period'];} }
 class DialogueView {}
 class MaxSearchApi { public static function deletePrevMessage($chat){} }
@@ -68,6 +68,21 @@ try {
  ManagerHandoffDispatchService::dispatch('owned','max');
  $owned=ConversationControlService::statusByChat('max','owned');queueCheck([$owned['status'],(int)$owned['manager_id']],['manager',7],'repeat request cannot unassign manager');
  queueCheck(ManagerHandoffDispatchService::dispatch('missing','max')['queue_applied'],false,'missing conversation cannot claim successful queue');
+ // Deterministic concurrency: outer request has read ai, then a competing real
+ // dispatch commits the same queue and attempts its send before outer resumes.
+ foreach(['max','telegram'] as $platform)foreach(['ok','false','throw'] as $mode){
+  $id++;$chat='race-'.$id;
+  $pdo->prepare("INSERT INTO conversations VALUES(?,'fixture',1,?,?,'ai',NULL)")->execute([$id,$platform,$chat]);
+  ManagerAvailabilityService::$hours=true;ManagerRequestService::$fail=false;ManagerPushService::$fail=false;
+  IntegrationRegistry::$messenger->platform=$platform;IntegrationRegistry::$messenger->mode=$mode;
+  $sends=IntegrationRegistry::$messenger->calls;$pushes=ManagerPushService::$calls;$nested=null;
+  ManagerAvailabilityService::$beforeAvailability=static function()use($chat,$platform,&$nested):void{$nested=ManagerHandoffDispatchService::dispatch($chat,$platform,'',false,null,true);};
+  $outer=ManagerHandoffDispatchService::dispatch($chat,$platform,'',false,null,true);
+  queueCheck([$nested['queue_applied'],$outer['queue_applied']],[true,true],'concurrent native entries retain the same durable queue: '.$platform.' '.$mode);
+  queueCheck(IntegrationRegistry::$messenger->calls-$sends,1,'stale prequeue snapshot cannot repeat a created or UNKNOWN greeting: '.$platform.' '.$mode);
+  queueCheck(ManagerPushService::$calls-$pushes,1,'concurrent entries notify the queue only once');
+  queueCheck((int)$pdo->query('SELECT COUNT(*) FROM conversation_events WHERE conversation_id='.$id)->fetchColumn(),1,'concurrent entries preserve one waiting event');
+ }
  $pdo->exec("INSERT INTO conversations VALUES(101,'fixture',1,'max','atomic','ai',NULL); CREATE TRIGGER fail_event BEFORE INSERT ON conversation_events BEGIN SELECT RAISE(ABORT,'synthetic event failure'); END;");
  $thrown=false;try{ConversationControlService::markWaitingByChat('max','atomic');}catch(Throwable $e){$thrown=true;}
  queueCheck($thrown,true,'event failure reported');queueCheck(ConversationControlService::statusByChat('max','atomic')['status'],'ai','queue and event rollback together');queueCheck($pdo->inTransaction(),false,'failed mutation releases transaction');

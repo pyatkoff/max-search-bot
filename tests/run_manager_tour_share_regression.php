@@ -87,6 +87,8 @@ try {
     deliveryCheck('public sharing never sends or invents a tourist choice',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0&&(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type='tour_offer_liked'")->fetchColumn()===0);
     deliveryCheck('history preserves all five explicit revisions',(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_link_history')->fetchColumn()===5);
     groupingChecks();
+    require_once __DIR__.'/fixtures/tour_selection_bot_entry.php';
+    tourSelectionBotEntryChecks();
     // Exercise the unmodified public controllers and ManagerHttp over real HTTP.
     $http=sys_get_temp_dir().'/tour-share-http-'.bin2hex(random_bytes(8));mkdir($http,0700);mkdir($http.'/manager',0700);mkdir($http.'/selection',0700);mkdir($http.'/sessions',0700);$process=null;
     try {

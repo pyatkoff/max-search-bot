@@ -70,4 +70,28 @@ check('only the selected conversation may enhance the current customer card',()=
   S.current=7;S.detail.conversation.id=8;ui.enhanceCard({id:7});assert.equal(inserted,'');
   assert.equal(removed,4);
 });
+const inquiry=(overrides={})=>({variant:2,link_version:3,created_at:'2026-10-23 10:00:00',public_offer:{hotel:'Web sea hotel',departure:'Москва',date_from:'2027-06-12',nights:7,adults:2,children:2,room:'Exact web family room',meal:'Всё включено',amount:'260000.50',currency:'RUB',flights:'Рейсы требуют проверки',inclusions:'Трансфер',constraints:'Топливо необходимо уточнить'},...overrides});
+check('web inquiry has its own section and exact public quote without a fabricated native like',()=>{
+  const html=ui.markup({offers:[],web_inquiries:[inquiry()]});
+  for(const value of ['Обращения из веб-подборки','Турист перешёл в этот диалог','Web sea hotel','260 000,50 ₽ за всех','Вариант 2 · версия 3','12.06.2027','Взрослых: 2 · детей: 2','Exact web family room','Рейсы требуют проверки','Трансфер','Топливо необходимо уточнить'])assert(html.includes(value),value);
+  for(const value of ['Понравившиеся туры','Клиент отметил эти варианты','Возраст детей','Забронировать','<button','<form'])assert(!html.includes(value),value);
+});
+check('web inquiry rendering escapes public fields and ignores private original-client extras',()=>{
+  const item=inquiry();item.public_offer={...item.public_offer,hotel:'<img src=x onerror="webBad()">',room:'<script>webBad()</script>',flights:'<a href="javascript:webBad()">flight</a>',inclusions:'a & b',constraints:"'quoted'",child_ages:[11,12],source_label:'PRIVATE_SOURCE_LABEL',source_url:'https://private-source.invalid/SECRET',callback_data:'PRIVATE_CALLBACK',quoted_details:{source_label:'PRIVATE_NESTED_SOURCE'}};
+  item.snapshot=offer().snapshot;item.token='PRIVATE_TOKEN';
+  const html=ui.markup({offers:[],web_inquiries:[item]});
+  for(const value of ['<img','<script','<a ','onerror="webBad()"','Возраст детей','11, 12','PRIVATE_','private-source.invalid','child_ages','source_label','source_url','callback_data'])assert(!html.includes(value),value);
+  for(const value of ['&lt;img','&lt;script','&lt;a','a &amp; b','&#039;quoted&#039;'])assert(html.includes(value),value);
+});
+check('native choices and web inquiries stay separate in a mixed customer card',()=>{
+  const html=ui.markup({offers:[offer()],web_inquiries:[inquiry()]});
+  assert.equal((html.match(/class="leadDetails tourChoice"/g)||[]).length,2);
+  assert.equal((html.match(/Понравившиеся туры/g)||[]).length,1);assert.equal((html.match(/Обращения из веб-подборки/g)||[]).length,1);
+  assert(html.includes('Возраст детей: 5, 5'));assert(html.includes('Взрослых: 2 · детей: 2'));assert(html.includes('123 456,70 ₽ за всех'));assert(html.includes('260 000,50 ₽ за всех'));
+});
+check('web inquiries are bounded with explicit omission and malformed entries stay absent',()=>{
+  const items=Array.from({length:8},(_,i)=>{const item=inquiry();item.public_offer={...item.public_offer,hotel:'Web hotel '+i};return item;});
+  const html=ui.markup({offers:[],web_inquiries:items});assert.equal((html.match(/class="leadDetails tourChoice"/g)||[]).length,5);assert(html.includes('список неполный'));assert(!html.includes('Web hotel 5<'));
+  for(const value of [null,{}, {public_offer:null},{public_offer:{hotel:''}}])assert.equal(ui.markup({offers:[],web_inquiries:[value]}),'');
+});
 console.log('PASS manager tour choices '+checks+' checks');
