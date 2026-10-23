@@ -64,3 +64,28 @@ and routing boundaries, safe manager rendering and the fixed owner-only trial.
 CI also runs the canonical required suite and relevant Manager2 visual checks.
 Source/CI, deployed runtime, owner trial delivery and the owner's actual click
 are separate evidence; report only the stages that have really completed.
+
+## Inquiry from a shared web variant
+
+The owner's 23 October clarification routes the selected public variant straight
+to the existing Telegram/MAX bot instead of collecting website contact details.
+The public link identifies its original selection, not the visitor. A verified
+native start saves the exact shown public conditions in the actual sender's
+conversation; a forwarded visitor never acquires the original customer's history,
+contact or identity. Known native clients need not supply their contact again.
+
+`tour_web_inquiry` is separate from prepared/delivered/native-liked events. Its
+immutable publication/version/card and public quote live in the existing private
+event store. A labelled inbound action in canonical messages is committed in the
+same transaction, keeping normal Inbox unread/activity and response facts useful.
+It has no fabricated native MID and does not change the strict `tour_like_`
+envelope or authorize any native card send. Manager2 exposes the allowlisted quote
+under “Обращения из веб-подборки”, apart from “Понравившиеся туры”.
+
+Origin/target locks serialize equal native inquiries. Current project/source and
+publication/link checks reject revoked or updated capabilities before saving.
+The previous quote is not rewritten by a later update. Failed handoff recovery
+reuses the saved intent; a durable queue-transition receipt gives only its creator
+the initial canonical greeting. Rejection and already-owned inquiry acknowledgements
+also save their once intent before sending and never repeat an UNKNOWN outcome.
+An open/page visit is not an inquiry, a like or a sale.

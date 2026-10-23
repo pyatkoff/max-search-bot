@@ -26,12 +26,14 @@ class ManagerHandoffDispatchService
         string $platform,
         $chatId,
         array $payload = [],
-        ?callable $markWaiting = null
+        ?callable $markWaiting = null,
+        ?bool &$created = null
     ): bool {
+        $created = false;
         if (array_key_exists('queue_applied', $handoff)) return (bool)$handoff['queue_applied'];
         if (empty($handoff['queue_waiting'])) return false;
         if ($markWaiting !== null) return (bool)$markWaiting($platform, $chatId, $payload);
-        return ConversationControlService::markWaitingByChat($platform, $chatId, $payload);
+        return ConversationControlService::markWaitingByChat($platform, $chatId, $payload, $created);
     }
 
     public static function sourceEntryText(?int $now = null): string
@@ -55,16 +57,17 @@ class ManagerHandoffDispatchService
         }
 
         // Persist intent before claim preparation or any external customer send.
+        $created = false;
         $queued = self::applyQueueDecision(['queue_waiting'=>true], $platform, $chatId, [
             'source'=>'manager_dispatch',
             'manager_available'=>$managerAvailable,
             'within_working_hours'=>$withinWorkingHours,
-        ]);
+        ], null, $created);
         $result = ['sent'=>false, 'manager_available'=>$managerAvailable,
             'within_working_hours'=>$withinWorkingHours, 'queue_waiting'=>true,
             'queue_applied'=>$queued];
         if (!$queued) return $result;
-        if ($conversation && in_array((string)$conversation['status'], ['manager','waiting_manager'], true)) {
+        if (!$created) {
             $result['sent'] = true; // Already handed off: no duplicate confirmation or push.
             return $result;
         }

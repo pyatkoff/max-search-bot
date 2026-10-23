@@ -117,6 +117,14 @@ final class TourChoiceService
      */
     public static function forConversation(PDO $pdo, int $conversationId, int $limit = 20): array
     {
+        $out=self::nativeForConversation($pdo,$conversationId,$limit);
+        $inquiries=self::webInquiries($pdo,$conversationId,$limit);
+        if ($inquiries) $out['web_inquiries']=$inquiries;
+        return $out;
+    }
+
+    private static function nativeForConversation(PDO $pdo,int $conversationId,int $limit): array
+    {
         if ($conversationId <= 0) return ['offers'=>[], 'limited'=>false];
         $limit = max(1, min(20, $limit));
         $q = $pdo->prepare('SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? ORDER BY id DESC LIMIT '.($limit + 1));
@@ -153,6 +161,34 @@ final class TourChoiceService
         $out = [];
         foreach ($ids as $id) if (isset($offers[$id], $deliveries[$id])) $out[] = self::projection($offers[$id], $deliveries[$id], $likes[$id] ?? null);
         return ['offers'=>$out, 'limited'=>$limited];
+    }
+
+    /** Trusted native-entry composition; no fabricated callback/delivery event. */
+    public static function webInquiryInTransaction(PDO $pdo,int $conversation,string $externalUser,string $entryKey,array $entry): array
+    {
+        if (!$pdo->inTransaction()) throw new LogicException('Web inquiry requires native-entry transaction');
+        $offer=$entry['public_offer']??null;
+        $allowed=['index','hotel','departure','date_from','nights','adults','children','room','meal','amount','currency','rationale','compromise','destination','flights','inclusions','constraints','observed_at','price_verified'];
+        if (!is_array($offer) || array_diff(array_keys($offer),$allowed) || !is_string($offer['hotel']??null) || $offer['hotel']==='' || !preg_match('/\A[a-f0-9]{64}\z/D',$entryKey)) return self::error('invalid_offer');
+        $json=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.entry_key'))":"JSON_EXTRACT(payload_json,'$.entry_key')";
+        $q=$pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' AND ".$json.'=? LIMIT 1');
+        $q->execute([$conversation,$entryKey]);
+        if ($q->fetchColumn()) return ['ok'=>true,'changed'=>false,'conversation_id'=>$conversation];
+        self::append($pdo,$conversation,'tour_web_inquiry','customer',$externalUser,['schema'=>1,'entry_key'=>$entryKey,'publication_id'=>$entry['publication_id'],'link_version'=>(int)$entry['version'],'variant'=>(int)$entry['card']+1,'public_offer'=>$offer]);
+        return ['ok'=>true,'changed'=>true,'conversation_id'=>$conversation];
+    }
+
+    private static function webInquiries(PDO $pdo,int $conversation,int $limit): array
+    {
+        if ($conversation<=0) return [];
+        $q=$pdo->prepare("SELECT payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));
+        $q->execute([$conversation]);$out=[];
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $p=self::decode($row['payload_json']);
+            if (($p['schema']??null)!==1 || !is_array($p['public_offer']??null)) continue;
+            $out[]=['public_offer'=>$p['public_offer'],'link_version'=>(int)$p['link_version'],'variant'=>(int)$p['variant'],'created_at'=>$row['created_at']];
+        }
+        return $out;
     }
 
     public static function normalize(array $input): ?array

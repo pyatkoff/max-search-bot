@@ -22,8 +22,9 @@ class ConversationControlService
         return !in_array((string)$row['status'], ['waiting_manager','manager'], true);
     }
 
-    public static function markWaitingByChat(string $platform, $chatId, array $payload = []): bool
+    public static function markWaitingByChat(string $platform, $chatId, array $payload = [], ?bool &$created = null): bool
     {
+        $created = false;
         $row = self::statusByChat($platform, $chatId);
         if (!$row) return false;
         if (in_array((string)$row['status'], ['waiting_manager','manager'], true)) {
@@ -50,6 +51,9 @@ class ConversationControlService
             if ($ownTransaction && $pdo->inTransaction()) $pdo->rollBack();
             throw $e;
         }
+        // Only the successful transition owns its initial acknowledgement.
+        // Reentries and a lost concurrent UPDATE retain queue success, not send ownership.
+        $created = true;
         // No API call here: owned transactions capture after commit. An outer
         // transaction captured locally above, so a late commit cannot fall
         // behind the event cursor; its outbox and marker roll back together.

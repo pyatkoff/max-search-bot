@@ -51,7 +51,10 @@ class MaxUpdateHandler
             return;
         }
 
-        if (!IncomingUpdateDeduplicator::claim($update)) {
+        // Selection starts recover from failed saves/handoffs using their durable
+        // DB intent; ordinary file deduplication consumes before processing.
+        $selectionStart=$type==='bot_started' && str_starts_with(trim((string)($update['payload']??$update['start_payload']??'')),'ts_');
+        if (!$selectionStart && !IncomingUpdateDeduplicator::claim($update)) {
             if (function_exists('put_log_in')) put_log_in('DUPLICATE_UPDATE_SKIPPED ' . IncomingUpdateDeduplicator::key($update));
             http_response_code(200);
             echo 'ok';
@@ -102,6 +105,13 @@ class MaxUpdateHandler
         if (!$userId) return;
         $internalId = $userId > 0 ? -$userId : $userId;
         $payload = trim((string)($update['payload'] ?? $update['start_payload'] ?? ''));
+        // This explicit inquiry is not an advertising entry or a trip reset.
+        if (str_starts_with($payload,'ts_')) {
+            require_once __DIR__.'/../services/TourSelectionBotEntryService.php';
+            TourSelectionBotEntryService::handle(['platform'=>'max','type'=>'bot_started','start_payload'=>$payload,'raw'=>$update,
+                'user'=>['chat_id'=>$internalId,'external_user_id'=>$userId,'first_name'=>(string)($user['first_name']??$user['name']??''),'last_name'=>(string)($user['last_name']??''),'username'=>(string)($user['username']??'')]]);
+            return;
+        }
         $meta=TrafficAttributionService::parseStartPayload($payload);
         $postPayload=class_exists('ChannelPostEntryService')&&ChannelPostEntryService::isPayload($payload);
         $post=$postPayload?ChannelPostEntryService::resolve('max',$payload):null;

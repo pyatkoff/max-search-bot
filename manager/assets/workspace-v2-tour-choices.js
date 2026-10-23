@@ -23,9 +23,12 @@ function offerMarkup(offer){
 function markup(projection){
   if(!projection||!Array.isArray(projection.offers))return '';
   const liked=projection.offers.slice(0,20).filter(offer=>offer&&text(offer.liked_at,64)&&offer.snapshot&&typeof offer.snapshot==='object'&&text(offer.snapshot.hotel,160));
-  if(!liked.length)return '';
+  const inquiries=Array.isArray(projection.web_inquiries)?projection.web_inquiries.slice(0,20).filter(item=>item&&item.public_offer&&text(item.public_offer.hotel,191)):[];
+  if(!liked.length&&!inquiries.length)return '';
   const limited=projection.limited===true||projection.offers.length>20||liked.length>MAX_OFFERS;
-  return `<section class="leadPanel" data-tour-choices><div class="leadPanelHead"><div><div class="leadPanelTitle">Понравившиеся туры</div><div class="leadPanelHint">Клиент отметил эти варианты в подборке</div></div></div>${liked.slice(0,MAX_OFFERS).map(offerMarkup).join('')}${limited?'<div class="leadPanelHint">Показаны последние доступные варианты; список неполный.</div>':''}</section>`;
+  const native=liked.length?`<div class="leadPanelHead"><div><div class="leadPanelTitle">Понравившиеся туры</div><div class="leadPanelHint">Клиент отметил эти варианты в подборке</div></div></div>${liked.slice(0,MAX_OFFERS).map(offerMarkup).join('')}`:'';
+  const web=inquiries.length?`<div class="leadPanelHead"><div><div class="leadPanelTitle">Обращения из веб-подборки</div><div class="leadPanelHint">Турист перешёл в этот диалог с выбранным вариантом</div></div></div>${inquiries.slice(0,MAX_OFFERS).map(item=>{const o=item.public_offer;return `<details class="leadDetails tourChoice"><summary><span class="tourChoiceSummary"><span class="tourChoiceHotel">${esc(text(o.hotel,191))}</span><span class="tourChoicePrice">${esc(price({...o,price_basis:'party'}))}</span></span></summary><div class="leadDetailsBody"><div class="leadPanelHint">Вариант ${Number(item.variant)||'—'} · версия ${Number(item.link_version)||'—'}. Показанные условия, актуальность уточняется.</div>${row('Направление',o.destination,300)}${row('Вылет',o.departure,160)}${row('С даты',date(o.date_from))}${row('Ночей',count(o.nights,1,60))}${row('Состав',`Взрослых: ${count(o.adults,1,20)} · детей: ${count(o.children,0,12)}`)}${row('Номер',o.room,300)}${row('Питание',o.meal,160)}${row('Перелёт',o.flights,1200)}${row('Включено',o.inclusions,600)}${row('Уточнить',o.constraints,1200)}${row('Почему подходит',o.rationale,600)}${row('Компромисс',o.compromise,600)}${row('Условия получены',o.observed_at,64)}</div></details>`}).join('')}`:'';
+  return `<section class="leadPanel" data-tour-choices>${native}${web}${limited||inquiries.length>MAX_OFFERS?'<div class="leadPanelHint">Показаны последние доступные варианты; список неполный.</div>':''}</section>`;
 }
 function enhanceCard(conversation){
   const root=W.$('leadCard');if(!root)return;

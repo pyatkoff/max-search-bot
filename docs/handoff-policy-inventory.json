@@ -147,6 +147,14 @@
       "classification": "fallback_scheduler",
       "occurrences": 1,
       "rationale": "The existing follow-up cron is the only scheduler for five-minute fallback processing."
+    },
+    {
+      "path": "services/TourSelectionBotEntryService.php",
+      "receiver": "ManagerHandoffDispatchService",
+      "method": "dispatch",
+      "classification": "entrypoint",
+      "occurrences": 1,
+      "rationale": "Verified exact-version web inquiry enters its actual native sender conversation through the canonical durable manager handoff; public page reads and invalid links never queue."
     }
   ],
   "policy_surfaces": [

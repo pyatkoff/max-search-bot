@@ -197,6 +197,25 @@ test('selection publish becomes available when held preview photos finish',async
   expect(s.calls.filter(x=>x.action==='publish')).toHaveLength(1);expect(s.creations()).toBe(0);clean(s,[...deliveryActions,'share','publish']);
 });
 
+for(const width of [390,430,768,1440])test('Manager2 web inquiry retains exact public terms and the composer at '+width,async({page,browserName})=>{
+  await page.setViewportSize({width,height:900});const s=await fixture(page);
+  await page.locator('#replyText').fill('Мой несохранённый ответ');await page.locator('#replyFile').setInputFiles({name:'selection-inquiry.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic file, never sent')});
+  const detail=await page.evaluate(()=>JSON.parse(JSON.stringify(WorkspaceV2.S.detail)));
+  detail.tour_choices={offers:[],web_inquiries:[{variant:2,link_version:3,public_offer:{hotel:'Синтетический выбранный отель',departure:'Москва',date_from:'2027-06-12',nights:7,adults:2,children:2,room:'Именно семейный номер',meal:'Всё включено',amount:'260000.50',currency:'RUB',flights:'Рейсы уточняются',inclusions:'Трансфер',constraints:'Топливо требует проверки',rationale:'Песчаный пляж',compromise:'До пляжа 400 м',observed_at:'2026-10-23T08:00:00Z'}}]};
+  await page.route('**/manager/api.php',route=>{const d=route.request().postDataJSON();return d.action==='detail'&&Number(d.conversation_id)===11?route.fulfill({contentType:'application/json',body:JSON.stringify(detail)}):route.fallback()});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);
+  await page.locator('#mobileLeadBtn').click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
+  for(const value of ['Обращения из веб-подборки','Синтетический выбранный отель','260 000,50 ₽ за всех','Вариант 2 · версия 3','12.06.2027','Именно семейный номер','Взрослых: 2 · детей: 2','Рейсы уточняются','Топливо требует проверки','До пляжа 400 м'])await expect(panel).toContainText(value);
+  await expect(panel).not.toContainText('Понравившиеся туры');await expect(panel).not.toContainText('Возраст детей');await expect(panel.locator('button,form')).toHaveCount(0);
+  // The canonical summary arrow rotates for140ms. Its transient transformed
+  // glyph contributes to Chromium scrollWidth; measure the settled open state.
+  await panel.evaluate(el=>Promise.all(el.getAnimations({subtree:true}).map(a=>a.finished.catch(()=>{}))));
+  await panel.scrollIntoViewIfNeeded();expect(await panel.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-inquiry-${browserName}-${width}.png`)});
+  await page.locator('#mobileLeadClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой несохранённый ответ');await expect(page.locator('#mediaSelection')).toContainText('selection-inquiry.txt');
+  expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(call=>call.action==='send')).toEqual([]);
+});
+
 for(const width of [390,430,768,1440])test('public selection has exact terms and no private metadata at '+width,async({page,browserName})=>{
   const source=completeDraft(),built=JSON.parse(execFileSync('php',['-r',`require getcwd().'/services/ManagerTourSelectionPublicationDraft.php'; $r=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)); echo json_encode($r,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(source),encoding:'utf8'}));
   expect(built.ok).toBe(true);const s=built.offers[0].snapshot;
@@ -205,11 +224,21 @@ for(const width of [390,430,768,1440])test('public selection has exact terms and
   selection.offers[0].hotel_group=0;
   selection.offers.push({...copy(selection.offers[0]),index:1,hotel_group:0,room:'Номер с видом на море',date_from:'2027-06-12',amount:'260000',flights:'Другой перелёт'});
   selection.offers.push({...copy(selection.offers[0]),index:2,hotel_group:1,amount:'270000'});
+  for(const offer of selection.offers)offer.bot_links={
+    telegram:'https://t.me/synthetic_bot?start=ts_'+'c'.repeat(12)+'_2_'+offer.index.toString(36)+'_'+(offer.index+1).toString(16).repeat(32),
+    max:'https://max.ru/synthetic_max?start=ts_'+'c'.repeat(12)+'_2_'+offer.index.toString(36)+'_'+(offer.index+5).toString(16).repeat(32),
+  };
 
   const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true); function selectionEscape(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');} $h='selectionEscape';require getcwd().'/selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
-  await page.route('https://selection-fixture.invalid/**',route=>{const p=new URL(route.request().url()).pathname;if(p==='/selection/')return route.fulfill({contentType:'text/html',body:html});if(p==='/selection/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(/^\/(cover|beach|room)\.jpg$/.test(p))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',p.slice(1)))});throw new Error('Unexpected public request '+p)});
+  const unexpected=[];
+  await page.route('**/*',route=>{const request=route.request(),url=new URL(request.url()),p=url.pathname;if(url.origin!=='https://selection-fixture.invalid'||request.method()!=='GET'){unexpected.push({url:request.url(),method:request.method()});return route.abort()}if(p==='/selection/')return route.fulfill({contentType:'text/html',body:html});if(p==='/selection/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(/^\/(cover|beach|room)\.jpg$/.test(p))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1',p.slice(1)))});unexpected.push({url:request.url(),method:request.method()});return route.abort()});
   await page.setViewportSize({width,height:1000});await page.goto('https://selection-fixture.invalid/selection/');await expect(page.locator('.offer')).toHaveCount(2);await expect(page.locator('.offerVariant')).toHaveCount(3);await expect(page.locator('.party').first()).toContainText('детей 2');await expect(page.locator('.fareNotice').first()).toContainText('требуют подтверждения');await expect(page.locator('#variant-2')).toContainText('260 000,00');await expect(page.locator('#variant-2')).toContainText('2027-06-12');await expect(page.locator('.variantRoom')).toHaveCount(2);
+  await expect(page.getByRole('link',{name:'Уточнить в Telegram',exact:true})).toHaveCount(3);await expect(page.getByRole('link',{name:'Уточнить в MAX',exact:true})).toHaveCount(3);
+  for(const offer of selection.offers){const variant=page.locator('.offerVariant').nth(offer.index);for(const [platform,label]of[['telegram','Telegram'],['max','MAX']])await expect(variant.getByRole('link',{name:'Уточнить в '+label,exact:true})).toHaveAttribute('href',offer.bot_links[platform]);}
+  expect(new Set(await page.locator('.botActions a').evaluateAll(links=>links.map(link=>link.href))).size).toBe(6);
+  await expect(page.locator('form,input,textarea,script')).toHaveCount(0);await expect(page.locator('.nextStep').first()).toContainText('после перехода и запуска бота');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(await page.locator('body').innerText()).not.toContain('child_ages');
+  for(const field of ['child_ages','source_url','source_label','callback_data'])expect(await page.content()).not.toContain(field);
   // Native lazy loading need not fetch below-fold photos until they are viewed.
   // Visit every image and require a successful load before the full-page capture.
   for(const photo of await page.locator('img').all()){
@@ -220,6 +249,7 @@ for(const width of [390,430,768,1440])test('public selection has exact terms and
   await expect.poll(()=>page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);
   await page.locator('img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  expect(page.url()).toBe('https://selection-fixture.invalid/selection/');expect(unexpected).toEqual([]);
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',fullPage:true,path:path.join(root,'manager2-artifacts',`tour-selection-public-${browserName}-${width}.png`)});
 });
 

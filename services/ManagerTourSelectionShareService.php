@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ManagerTourSelectionDeliveryService.php';
+require_once __DIR__.'/ChannelPostRuntime.php';
 
 /** One explicit public link per conversation; private publications stay immutable. */
 final class ManagerTourSelectionShareService
@@ -83,6 +84,7 @@ final class ManagerTourSelectionShareService
             if (!array_key_exists($groupKey,$groups)) $groups[$groupKey]=count($groups);
             $offers[]=[
                 'hotel_group'=>$groups[$groupKey],
+                'bot_links'=>self::botLinks($link,$p,$i),
                 'index'=>$i,'hotel'=>(string)$s['hotel'],'departure'=>(string)$s['departure'],
                 'date_from'=>(string)$s['date_from'],'nights'=>(int)$s['nights'],'adults'=>(int)$s['adults'],'children'=>count($s['child_ages']),
                 'room'=>(string)$s['room'],'meal'=>(string)$s['meal'],'amount'=>(string)$s['amount'],'currency'=>(string)$s['currency'],
@@ -94,6 +96,48 @@ final class ManagerTourSelectionShareService
             ];
         }
         return ['title'=>(string)$p['selection']['title'],'intro'=>(string)$p['selection']['intro'],'version'=>(int)$link['version'],'updated_at'=>$link['updated_at'],'offers'=>$offers];
+    }
+
+    /** An opaque exact-version selector, not identity and not a native callback. */
+    private static function botLinks(array $link,array $publication,int $card): array
+    {
+        $version=(int)$link['version'];
+        if ($version<1 || $version>2176782335) return [];
+        $out=[];
+        foreach (ChannelPostRuntime::botIdentities() as $platform=>$identity) {
+            $prefix='ts_'.substr($link['token'],0,12).'_'.base_convert((string)$version,10,36).'_'.base_convert((string)$card,10,36);
+            $payload=$prefix.'_'.self::entryMac($identity,$link,$publication,$card);
+            $out[$platform]=$identity['bot_url'].'?start='.rawurlencode($payload);
+        }
+        return $out;
+    }
+
+    private static function entryMac(array $identity,array $link,array $publication,int $card): string
+    {
+        $message=['selection-bot-entry-v1',$identity['project_key'],$identity['platform'],$identity['bot_key'],$link['token'],$link['publication_id'],(int)$link['version'],$card];
+        return substr(hash_hmac('sha256',json_encode($message,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),(string)$publication['cards'][$card]['callback_data']),0,32);
+    }
+
+    /** Called only for a dedicated native start, before ordinary source/start effects. */
+    public static function botEntry(string $platform,string $payload): ?array
+    {
+        if (!preg_match('/\Ats_([a-f0-9]{12})_([0-9a-z]{1,6})_([0-9a-j])_([a-f0-9]{32})\z/D',$payload,$m)) return null;
+        $identity=ChannelPostRuntime::identity($platform);if (!$identity) return null;
+        $version=(int)base_convert($m[2],36,10);$card=(int)base_convert($m[3],36,10);
+        if (base_convert((string)$version,10,36)!==$m[2] || $card>=20) return null;
+        $q=ConversationDb::connection()->prepare('SELECT l.* FROM manager_tour_selection_links l JOIN conversations c ON c.id=l.conversation_id JOIN projects p ON p.project_key=c.project_key JOIN conversation_sources cs ON cs.id=c.source_id AND cs.is_active=1 WHERE l.token LIKE ? AND l.is_active=1 AND p.is_active=1 AND c.project_key=? LIMIT 2');
+        $q->execute([$m[1].'%',ProjectConfig::projectId()]);$links=$q->fetchAll(PDO::FETCH_ASSOC);
+        if (count($links)!==1 || (int)$links[0]['version']!==$version) return null;
+        $link=$links[0];$p=self::publication((int)$link['conversation_id'],$link['publication_id']);
+        if (!$p || !isset($p['cards'][$card],$p['selection']['offers'][$card]) || !hash_equals(self::entryMac($identity,$link,$p,$card),$m[4])) return null;
+        return ['conversation_id'=>(int)$link['conversation_id'],'publication_id'=>$link['publication_id'],'version'=>$version,'card'=>$card,'public_offer'=>self::publicOffer($link['token'],$card),'token'=>$link['token']];
+    }
+
+    private static function publicOffer(string $token,int $card): array
+    {
+        $offer=self::read($token)['offers'][$card]??[];
+        unset($offer['bot_links'],$offer['photos'],$offer['hotel_group']);
+        return $offer;
     }
 
     public static function photo(string $token,int $version,int $card,int $photo): ?array
@@ -109,7 +153,7 @@ final class ManagerTourSelectionShareService
     private static function byToken(string $token): ?array
     {
         if (!preg_match('/\A[a-f0-9]{64}\z/D',$token)) return null;
-        $q=ConversationDb::connection()->prepare('SELECT l.* FROM manager_tour_selection_links l JOIN conversations c ON c.id=l.conversation_id JOIN projects p ON p.project_key=c.project_key WHERE l.token=? AND l.is_active=1 AND p.is_active=1 AND c.project_key=?');
+        $q=ConversationDb::connection()->prepare('SELECT l.* FROM manager_tour_selection_links l JOIN conversations c ON c.id=l.conversation_id JOIN projects p ON p.project_key=c.project_key JOIN conversation_sources cs ON cs.id=c.source_id AND cs.is_active=1 WHERE l.token=? AND l.is_active=1 AND p.is_active=1 AND c.project_key=?');
         $q->execute([$token,ProjectConfig::projectId()]);$row=$q->fetch(PDO::FETCH_ASSOC);return $row?:null;
     }
     private static function link(int $conversation): ?array
@@ -121,7 +165,7 @@ final class ManagerTourSelectionShareService
         $q=ConversationDb::connection()->prepare('SELECT draft_version,selection_json FROM manager_tour_selection_publications WHERE conversation_id=? AND publication_id=?');$q->execute([$conversation,$id]);$p=$q->fetch(PDO::FETCH_ASSOC);
         if (!$p) return null;
         $p['selection']=json_decode($p['selection_json'],true,48,JSON_THROW_ON_ERROR);
-        $q=ConversationDb::connection()->prepare('SELECT card_index,offer_id FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index LIMIT 21');$q->execute([$id]);$p['cards']=$q->fetchAll(PDO::FETCH_ASSOC);
+        $q=ConversationDb::connection()->prepare('SELECT card_index,offer_id,callback_data FROM manager_tour_selection_cards WHERE publication_id=? ORDER BY card_index LIMIT 21');$q->execute([$id]);$p['cards']=$q->fetchAll(PDO::FETCH_ASSOC);
         if (count($p['cards'])!==count($p['selection']['offers']) || count($p['cards'])<1 || count($p['cards'])>20 || array_map('intval',array_column($p['cards'],'card_index'))!==range(0,count($p['cards'])-1)) return null;
         return $p;
     }
