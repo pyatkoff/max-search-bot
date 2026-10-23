@@ -89,3 +89,18 @@ reuses the saved intent; a durable queue-transition receipt gives only its creat
 the initial canonical greeting. Rejection and already-owned inquiry acknowledgements
 also save their once intent before sending and never repeat an UNKNOWN outcome.
 An open/page visit is not an inquiry, a like or a sale.
+
+
+## Selection activity projection
+
+`TourChoiceService::selectionActivity` is read-only and called only after fresh
+canonical publication visibility checks. It intersects existing native like
+receipts with that publication's exact offer IDs, and aggregates canonical
+`tour_web_inquiry` receipts for that publication within the same project/window.
+The bounded query returns only counts/limit flags, never another visitor's
+identity, contact or public-offer payload. Original inquiry history stays with
+the actual native sender's conversation. A public page/hotel observation or bot
+link click is an anonymous intent in the separate058 projection; it cannot call
+`like`, become a trusted callback, create an inquiry, or assign the original
+customer. Old publication/offer versions and strict native envelope checks keep
+their existing owners.

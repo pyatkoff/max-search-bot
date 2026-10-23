@@ -6,6 +6,7 @@ require_once dirname(__DIR__).'/services/ManagerTourSelectionService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionDeliveryService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionShareService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionCollectorSession.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionInterestService.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
@@ -25,6 +26,7 @@ try {
         'operation'=>ManagerTourSelectionService::operation((int)$manager['id'],$id,is_string($data['operation_id']??null)?$data['operation_id']:''),
         'prepare'=>is_int($data['version']??null)?ManagerTourSelectionDeliveryService::prepare((int)$manager['id'],$id,$data['version']):['ok'=>false,'error'=>'invalid_version'],
         'history'=>ManagerTourSelectionDeliveryService::history((int)$manager['id'],$id),
+        'interest'=>ManagerTourSelectionInterestService::summary((int)$manager['id'],$id,is_string($data['publication_id']??null)?$data['publication_id']:''),
         'share'=>ManagerTourSelectionShareService::get((int)$manager['id'],$id),
         'publish','revoke'=>is_int($data['share_version']??null)?ManagerTourSelectionShareService::change((int)$manager['id'],$id,$data['share_version'],is_string($data['publication_id']??null)?$data['publication_id']:'',$action==='publish'):['ok'=>false,'error'=>'invalid_version'],
         'publication'=>ManagerTourSelectionDeliveryService::get((int)$manager['id'],$id,is_string($data['publication_id']??null)?$data['publication_id']:''),
