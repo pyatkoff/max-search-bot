@@ -6,6 +6,7 @@ const vm = require('node:vm');
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
 function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false} = {}) {
+if(!storage){const values=new Map();storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
 const ids = new Map();
 class Element {
   constructor(tag = 'div') {
@@ -120,6 +121,7 @@ async function fetch(url, options) {
 let selectedFile = null;
 const events=new Map();
 const window = {
+  crypto:require('node:crypto').webcrypto,
   matchMedia:()=>({matches:mobile}),addEventListener:(name,fn)=>{events.set(name,fn)},
   WorkspaceV2Inbox: {bind(){},load:async()=>true,markRead(){},markActive(){}},
   WorkspaceV2LeadCard: {render(){},renderUnavailable(){}},
@@ -321,7 +323,7 @@ for(const result of ['network','invalid','unknown','temporary'])test('unconfirme
 });
 for(const category of ['suspended','blocked','unavailable','unsupported'])test('known '+category+' reason remains visible without retries',async()=>{
   const h=createHarness();await h.start();await h.draft();
-  h.setHook((url,r)=>r.action==='send'?response({ok:false,error_message:'Synthetic known reason',failure:{category,message:'Synthetic raw provider reason'}},409):null);
+  h.setHook((url,r)=>r.action==='send'?response({ok:false,attempt:{state:'rejected'},error_message:'Synthetic known reason',failure:{category,message:'Synthetic raw provider reason'}},409):null);
   await h.C.sendReply();assert.equal(h.ids.get('replyStatus').textContent,'Synthetic known reason');assert.equal(h.ids.get('deliveryFailure').textContent,'Synthetic known reason');
   assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.ids.get('replyText').value,'Unsent synthetic draft');assert.equal(h.ids.get('sendReply').disabled,category==='suspended');
 });
@@ -371,14 +373,14 @@ for(const mode of ['detail-error','detail-throw','inbox-throw','render-throw'])t
   assert.doesNotMatch(h.ids.get('replyStatus').textContent,/не подтверждена|Не удалось отправить/);
   assert.equal(h.ids.get('replyText').value,'');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
 });
-test('a new accepted attempt does not display an older uncertain warning',async()=>{
+test('confirmed readback clears an older uncertain warning without another send',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic reply');
   h.setHook((url,r)=>r.action==='send'?response({ok:false,failure:{category:'unknown',message:'Old uncertainty'}},409):null);
-  await h.C.sendReply();assert.match(h.ids.get('deliveryFailure').textContent,/Отправка не подтверждена/);
-  h.setHook((url,r)=>r.action==='send'?response({ok:true}):url==='api.php'&&r.action==='detail'?response({ok:false},500):null);
+  await h.C.sendReply();assert.match(h.ids.get('replyStatus').textContent,/Отправка не подтверждена/);
+  h.setHook((url,r)=>r.action==='send_receipt'?response({ok:true,attempt:{state:'confirmed'}}):url==='api.php'&&r.action==='detail'?response({ok:false},500):null);
   await h.C.sendReply();assert.match(h.ids.get('replyStatus').textContent,/^Отправлено/);
   assert.equal(h.ids.get('deliveryFailure').classList.contains('hidden'),true);
-  assert.equal(h.calls.filter(r=>r.action==='send').length,2);
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,1);
 });
 test('successful send and refresh reports sent without inferring client reading',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic text');h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);

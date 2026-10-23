@@ -40,14 +40,25 @@ let replySessionOwner=0,savedSelection=0,draftSequence=0;
 let photoViewer=null;
 function validId(value){return Number.isSafeInteger(value)&&value>0}
 function validAiDraftId(value){return typeof value==='string'&&/^[a-f0-9]{32}$/.test(value)}
+function validAttempt(value){return value&&validAiDraftId(value.id)&&typeof value.text==='string'&&value.text.trim().length>0&&value.text.length<=maxStoredDraftLength&&Number.isSafeInteger(value.version)&&value.version>0}
+function pendingAttempt(id=S.current){return drafts.get(Number(id))?.attempt||null}
+function newAttemptId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function showPendingAttempt(state='unknown'){
+  setReplyStatus(state==='not_found'?'Подтверждение пока не найдено. Это не означает, что сообщение не доставлено.':'Отправка не подтверждена. Проверьте результат этой попытки; повторная отправка заблокирована.','error');
+  if(state==='not_found'){
+    const button=document.createElement('button');button.type='button';button.textContent='Отменить непринятую попытку';button.onclick=()=>sendReply('cancel_send_attempt');button.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});$('replyStatus')?.appendChild(button);
+  }
+}
+
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
 function persistReplySession(){
-  if(!replySessionOwner)return;
-  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime).sort((a,b)=>b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text,updatedAt:d.updatedAt,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{})}));
-  // Remove the previous envelope first: a quota error must not revive a sent/cleared draft.
-  removeReplySession();
-  if(!savedSelection&&!entries.length)return;
-  try{sessionStorage.setItem(replySessionKey,JSON.stringify({version:1,managerId:replySessionOwner,selected:savedSelection,updatedAt:now,drafts:entries}))}catch(e){}
+  if(!replySessionOwner)return false;
+  const now=Date.now(),entries=[...drafts].reverse().filter(([id,d])=>validId(id)&&(validAttempt(d.attempt)||(d.text.length<=maxStoredDraftLength&&now-d.updatedAt<draftLifetime))).sort((a,b)=>Number(!!b[1].attempt)-Number(!!a[1].attempt)||b[1].updatedAt-a[1].updatedAt).slice(0,maxStoredDrafts).map(([id,d])=>({id,text:d.text.slice(0,maxStoredDraftLength),version:d.version,updatedAt:d.updatedAt,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:d.attempt}:{})}));
+  // An unresolved fence must survive a quota failure. A stale confirmed fence
+  // is safe to reconcile again; silently reviving a sendable draft is not.
+  if(!entries.some(d=>d.attempt))removeReplySession();
+  if(!savedSelection&&!entries.length)return true;
+  try{sessionStorage.setItem(replySessionKey,JSON.stringify({version:1,managerId:replySessionOwner,selected:savedSelection,updatedAt:now,drafts:entries}));return true}catch(e){return false}
 }
 function activateReplySession(managerId){
   managerId=Number(managerId||0);
@@ -58,9 +69,12 @@ function activateReplySession(managerId){
   try{
     const raw=sessionStorage.getItem(replySessionKey),now=Date.now();
     const value=raw&&raw.length<=2500000?JSON.parse(raw):null;
-    if(value?.version===1&&value.managerId===managerId&&Number.isFinite(value.updatedAt)&&value.updatedAt<=now&&now-value.updatedAt<draftLifetime&&Array.isArray(value.drafts)){
+    if(value?.version===1&&value.managerId===managerId&&Number.isFinite(value.updatedAt)&&value.updatedAt<=now&&Array.isArray(value.drafts)&&(now-value.updatedAt<draftLifetime||value.drafts.some(d=>validAttempt(d?.attempt)))){
       savedSelection=validId(value.selected)?value.selected:0;
-      for(const d of value.drafts.slice(0,maxStoredDrafts))if(validId(d?.id)&&typeof d.text==='string'&&d.text.length>0&&d.text.length<=maxStoredDraftLength&&Number.isFinite(d.updatedAt)&&d.updatedAt<=now&&now-d.updatedAt<draftLifetime)drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt,version:++draftSequence,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{})});
+      for(const d of value.drafts.slice(0,maxStoredDrafts))if(validId(d?.id)&&typeof d.text==='string'&&d.text.length<=maxStoredDraftLength&&Number.isFinite(d.updatedAt)&&d.updatedAt<=now&&(validAttempt(d.attempt)||(d.text.length>0&&now-d.updatedAt<draftLifetime))){
+        const version=Number.isSafeInteger(d.version)&&d.version>0?d.version:++draftSequence;draftSequence=Math.max(draftSequence,version,validAttempt(d.attempt)?d.attempt.version:0);
+        drafts.set(d.id,{text:d.text,updatedAt:d.updatedAt,version,...(validAiDraftId(d.aiDraftId)?{aiDraftId:d.aiDraftId}:{}),...(validAttempt(d.attempt)?{attempt:{id:d.attempt.id,text:d.attempt.text,version:d.attempt.version,...(validAiDraftId(d.attempt.aiDraftId)?{aiDraftId:d.attempt.aiDraftId}:{})}}:{})});
+      }
     }
   }catch(e){}
   persistReplySession();return savedSelection;
@@ -76,7 +90,7 @@ function setRefreshStatus(text=''){let el=$('conversationRefreshStatus');if(!el&
 function setBusy(value){busy=!!value;if(busy)refreshEpoch++;applyInteractionState();window.WorkspaceV2History?.render();if(!busy)void window.WorkspaceV2History?.recoverGap?.()}
 function lifecycleBlocked(){return !!lifecycleIssue&&!S.authExpired&&lifecycleIssue.target===Number(S.current)&&lifecycleIssue.manager===Number(S.manager?.id)&&lifecycleIssue.auth===S.authGeneration}
 function deliverySuspended(){return String(S.detail?.delivery_failure?.category||'')==='suspended'}
-function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||suspended||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight?'Подождите…':'Отправляем…'):'Отправить'}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
+function applyComposerState(){const suspended=deliverySuspended(),send=$('sendReply'),reply=$('replyText'),file=$('replyFile');if(send){send.disabled=busy||(suspended&&!pendingAttempt())||!!opening||accessLost||lifecycleBlocked();send.textContent=busy?(lifecycleFlight||pendingAttempt()?'Подождите…':'Отправляем…'):pendingAttempt()?'Проверить отправку':'Отправить';send.dataset.sendPending=pendingAttempt()?'true':'false';send.setAttribute('aria-label',send.textContent);send.title=send.textContent}if(reply)reply.disabled=busy||suspended||!!opening||accessLost;if(file)file.disabled=busy||suspended||!!opening||accessLost;document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>{b.disabled=busy||suspended||!!opening||accessLost});const emoji=$('emojiToggle');if(emoji)emoji.disabled=!canInsertEmoji();if(!canInsertEmoji())closeEmojiPicker();window.WorkspaceV2ReplyEditor?.sync()}
 function applyActionState(){document.querySelectorAll('[data-conversation-lifecycle]').forEach(b=>{b.disabled=busy||!!opening||accessLost||lifecycleBlocked()})}
 function applyInteractionState(){applyComposerState();applyActionState();renderLifecycleIssue()}
 // A failed request is not proof that the recipient did not receive the message.
@@ -98,9 +112,9 @@ function saveDraft(id=S.current,aiDraftId=undefined){
   const text=reply.value,previous=drafts.get(key),candidate=aiDraftId===undefined?previous?.aiDraftId:aiDraftId;
   const trackedId=validAiDraftId(candidate)?candidate:null;
   const version=previous&&previous.text===text&&(previous.aiDraftId||null)===trackedId?previous.version:++draftSequence;
-  drafts.delete(key);if(text)drafts.set(key,{text,updatedAt:Date.now(),version,...(trackedId?{aiDraftId:trackedId}:{})});persistReplySession();
+  drafts.delete(key);if(text||previous?.attempt)drafts.set(key,{text,updatedAt:Date.now(),version,...(trackedId?{aiDraftId:trackedId}:{}),...(previous?.attempt?{attempt:previous.attempt}:{})});persistReplySession();applyComposerState();
 }
-function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow()}
+function restoreDraft(id=S.current){const reply=$('replyText'),key=Number(id||0);if(!reply)return;reply.value=key?(drafts.get(key)?.text||''):'';autoGrow();if(pendingAttempt(key))showPendingAttempt();applyComposerState()}
 function captureReplyContext(){return {conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration:openSeq}}
 function insertQuickReply(text,context=captureReplyContext(),aiDraftId=undefined){
   const current=captureReplyContext(),addition=String(text||'');
@@ -515,31 +529,51 @@ async function change(a){
   }catch(e){if(feedbackCurrent())showLifecycleIssue(flight,confirmed?copy.success+'. Переписка пока не обновлена. Проверьте состояние перед следующим действием.':lifecycleUnknown,confirmed?'confirmed':'unknown')}
   finally{if(timer)clearTimeout(timer);if(lifecycleFlight===flight){lifecycleFlight=null;setBusy(false)}if(feedbackCurrent()&&lifecycleBlocked()&&(document.activeElement===flight.opener||document.activeElement===document.body&&flight.fromActions))$('conversationLifecycleStatus')?.querySelector('button')?.focus({preventScroll:true})}
 }
-async function sendReply(){
-  if(busy||deliverySuspended())return;
+async function sendReply(reconcileAction='send_receipt'){
+  if(busy||(deliverySuspended()&&!pendingAttempt()))return;
   if(opening)return;
   if(accessLost||S.authExpired||lifecycleBlocked())return;
-  const owner=replySessionOwner,draftText=$('replyText').value;
-  const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim(),hasFile=window.WorkspaceV2Media?.hasFile();
+  const owner=replySessionOwner;let draftText=$('replyText').value;
+  const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim();let attempt=pendingAttempt(target),hasFile=!attempt&&window.WorkspaceV2Media?.hasFile();
   saveDraft();
-  const draftVersion=drafts.get(target)?.version,aiDraftId=drafts.get(target)?.aiDraftId;
+  let draftVersion=drafts.get(target)?.version,aiDraftId=drafts.get(target)?.aiDraftId;
+  if(attempt){draftText=attempt.text;draftVersion=attempt.version;aiDraftId=attempt.aiDraftId;}
   const matchingDraft=()=>drafts.get(target)?.version===draftVersion&&(drafts.get(target)?.text||'')===draftText;
   const manager=Number(S.manager?.id),authGeneration=S.authGeneration;
   const sameSession=()=>!S.authExpired&&S.authGeneration===authGeneration&&Number(S.manager?.id)===manager;
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
   const currentAttempt=()=>sameTarget()&&openSeq===generation;
-  if(!target||(!text&&!hasFile))return;
+  if(!target||(!text&&!hasFile&&!attempt))return;
+  const reconcile=!!attempt;
+  if(!hasFile&&!attempt){
+    if(draftText.length>maxStoredDraftLength){setReplyStatus('Сократите сообщение до 20 000 знаков. Текущий текст сохранён.','error');return}
+    if([...drafts.values()].filter(d=>d.attempt).length>=maxStoredDrafts){setReplyStatus('Сначала проверьте незавершённые отправки. Текст сохранён.','error');return}
+    try{attempt={id:newAttemptId(),text:draftText,version:draftVersion,...(validAiDraftId(aiDraftId)?{aiDraftId}:{})}}catch(e){setReplyStatus('Безопасная отправка недоступна в этом браузере. Текст сохранён.','error');return}
+    drafts.get(target).attempt=attempt;
+    if(!persistReplySession()){delete drafts.get(target).attempt;setReplyStatus('Не удалось сохранить попытку отправки в этой вкладке. Текст сохранён; отправка не начата.','error');return}
+  }
   // The panel describes the latest attempt, not an unresolved older warning.
   // The existing suspended-recipient guard above is unchanged.
   renderDeliveryFailure(null);
-  setBusy(true);setReplyStatus('Отправляем сообщение…');
+  setBusy(true);setReplyStatus(reconcile?'Проверяем результат отправки…':'Отправляем сообщение…');
   try{
     let j;
     try{
-      if(hasFile)j=await window.WorkspaceV2Media.send(text);else j=await api('send',{conversation_id:target,text,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{})});
+      if(hasFile)j=await window.WorkspaceV2Media.send(text);
+      else if(reconcile)j=await api(reconcileAction==='cancel_send_attempt'?reconcileAction:'send_receipt',{conversation_id:target,operation_id:attempt.id},{isCurrent:currentAttempt});
+      else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{})},{isCurrent:currentAttempt});
     }catch(e){
-      if(currentAttempt())setReplyStatus(sendFailureNotice(null),'error');
+      if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
       return;
+    }
+    if(attempt){
+      const state=j?.attempt?.state||(j?.ok===true&&!reconcile?'confirmed':'unknown');
+      if(['confirmed','rejected','cancelled'].includes(state)){
+        if(sameSession()&&owner===replySessionOwner&&pendingAttempt(target)?.id===attempt.id){const d=drafts.get(target);delete d.attempt;if(!d.text)drafts.delete(target);persistReplySession();}
+        if(state==='cancelled'){if(currentAttempt())setReplyStatus('Непринятая попытка отменена. Текст и файлы сохранены; отправьте их явно.');return}
+        if(state==='confirmed')j={...j,ok:true};
+        else j={...j,ok:false};
+      }else{if(currentAttempt()){if(j?.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}showPendingAttempt(state)}return}
     }
     // A multi-file attempt may have delivered an earlier file before a later
     // rejection/unknown result. Consume only a confirmed caption and refresh

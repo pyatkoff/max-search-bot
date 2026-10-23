@@ -124,7 +124,7 @@ test('fresh delivery suspension disables the composer while preserving the unsen
 });
 
 test('a pre-send refresh cannot erase the newer failed-send delivery state after busy clears',async()=>{
- const h=await setup(),pending=deferred();await h.draft('Unsent');h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?pending.promise:r.action==='send'?response({ok:false,failure:{category:'suspended',message:'New failed-send state'}}):null);
+ const h=await setup(),pending=deferred();await h.draft('Unsent');h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?pending.promise:r.action==='send'?response({ok:false,attempt:{state:'rejected'},failure:{category:'suspended',message:'New failed-send state'}}):null);
  const refresh=h.C.refreshVisible();await flush();await h.C.sendReply();assert.equal(h.W.S.detail.delivery_failure.category,'suspended');pending.resolve(response({ok:true,conversation:h.conversation,messages:[first],delivery_failure:null}));assert.equal(await refresh,false);assert.equal(h.W.S.detail.delivery_failure.category,'suspended');assert.equal(h.ids.get('sendReply').disabled,true);
 });
 

@@ -28,6 +28,17 @@ class ManagerOutboundService
         return'file';
     }
 
+    public static function sendAttempt(int $conversationId,int $managerId,string $operationId,string $text,?string $aiDraftId=null): array
+    {
+        require_once __DIR__ . '/ManagerSendAttemptService.php';
+        $result=ManagerSendAttemptService::execute($managerId,$conversationId,$operationId,$text,$aiDraftId,static function() use($conversationId,$managerId,$text,$aiDraftId): array {
+            $ok=self::send($conversationId,$managerId,$text,$aiDraftId);
+            return ['ok'=>$ok,'failure'=>self::lastFailure()];
+        });
+        if(isset($result['failure']))$result['failure']['notice']=self::failureNotice($result['failure']);
+        return $result;
+    }
+
     public static function send(int $conversationId, int $managerId, string $text, ?string $aiDraftId = null): bool
     {
         self::$lastFailure = null;

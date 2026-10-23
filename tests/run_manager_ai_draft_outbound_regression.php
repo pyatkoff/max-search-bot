@@ -69,7 +69,7 @@ class ManagerConversationService
     {
         if (!DraftOutboundFixture::$visible || $conversationId !== 42 || $managerId !== 7) return null;
         return ['id'=>42,'manager_id'=>7,'status'=>'manager','project_key'=>'synthetic-project',
-            'channel'=>DraftOutboundFixture::$channel,'external_chat_id'=>'synthetic-chat-42'];
+            'source_id'=>0,'channel'=>DraftOutboundFixture::$channel,'external_chat_id'=>'synthetic-chat-42'];
     }
 }
 class ManagerSendGuardService
@@ -169,7 +169,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ManagerOutboundService','ConversationRecorder'] as $service) {
+    foreach (['ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');
@@ -281,6 +281,15 @@ try {
             && $meta === ['project_key'=>'synthetic-project','attachments'=>[['type'=>'file','name'=>'synthetic.txt','mime_type'=>'text/plain']]]
             && $rows[0]['text'] === '&lt;caption&gt;');
     }
+    $pdo=DraftOutboundFixture::reset();
+    $pdo->exec('CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER); INSERT INTO managers VALUES(7,1); CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))');
+    $attemptId=str_repeat('b',32);$original=DraftOutboundFixture::$proposal;
+    $sent=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
+    $repeated=ManagerOutboundService::sendAttempt(42,7,$attemptId,$original,$draftId);
+    $readback=ManagerSendAttemptService::receipt(7,42,$attemptId);
+    $rows=DraftOutboundFixture::rows();$meta=json_decode((string)($rows[0]['metadata_json']??''),true);
+    draftOutboundCheck('receipt wrapper sends and records exactly once through canonical owners',($sent['attempt']['state']??'')==='confirmed'&&$repeated===$sent&&$readback===['ok'=>true,'attempt'=>['state'=>'confirmed']]&&count(DraftOutboundFixture::events('adapter_send'))===1&&count($rows)===1);
+    draftOutboundCheck('receipt wrapper retains actual owner and canonical AI provenance',($rows[0]['sender_id']??'')==='7'&&($meta['ai_draft']['draft_id']??'')===$draftId&&($meta['ai_draft']['sent_text_sha256']??'')===hash('sha256',$original)&&count(DraftOutboundFixture::events('feedback'))===1);
     DraftOutboundFixture::reset();
     draftOutboundCheck('empty text is rejected before feedback or delivery',ManagerOutboundService::send(42,7," \n ",$draftId) === false
         && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);

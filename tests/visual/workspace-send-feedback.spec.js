@@ -23,13 +23,14 @@ async function setup(page){
     document.getElementById('sendReply').type='submit';
     window.fixtureTouches=[];
     for(const type of ['touchstart','touchend','mousedown','mouseup','click','focusin','focusout','submit'])document.addEventListener(type,e=>{const b=document.getElementById('sendReply').getBoundingClientRect();window.fixtureTouches.push({type,target:e.target.id||e.target.tagName,top:b.top,focused:document.activeElement?.id});},true);
-    window.fixtureCalls=[];window.fixtureResult={ok:false,failure:{category:'unknown',message:'Сообщение не доставлено'}};
+    window.fixtureCalls=[];window.fixtureResult={ok:false,attempt:{state:'unknown'},failure:{category:'unknown',message:'Сообщение не доставлено'}};
     window.fixtureHistoryFails=true;
     const conversation={id:11,manager_id:7,status:'manager',channel:'max',display_name:'Пример диалога'};
     window.WorkspaceV2={S:{manager:{id:7},current:11,authGeneration:1,authExpired:false,detail:{conversation}},$:id=>document.getElementById(id),statusText:()=> 'У менеджера',esc:v=>String(v),
       api:async(action,payload)=>{
         window.fixtureCalls.push({action,payload});
-        if(action==='send')return window.fixtureResult;
+        if(action==='send'||action==='send_receipt')return window.fixtureResult;
+        if(action==='cancel_send_attempt')return window.fixtureCancelResult;
         if(action==='detail')return window.fixtureHistoryFails?{ok:false,http_status:500}:{ok:true,conversation:{...conversation,id:payload.conversation_id},messages:[],delivery_failure:window.fixtureDeliveryFailure||null};
         throw new Error('Unexpected fixture action');
       },pipe:async()=>({ok:false})};
@@ -59,20 +60,20 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
     const unexpected=await setup(page),before=await page.locator('#messages').innerHTML();
     await page.locator('#sendReply').tap();
     await expect(page.locator('#replyStatus')).toContainText('Отправка не подтверждена');
-    await expect(page.locator('#deliveryFailure')).toContainText('Отправка не подтверждена');
+    await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');
     await expect(page.locator('#replyText')).toHaveValue('Синтетический ответ для проверки');
     expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);
     expect(await page.locator('#messages').innerHTML()).toBe(before);await assertFits(page,width);
     fs.mkdirSync('send-feedback-artifacts',{recursive:true});
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-unconfirmed.png`});
-    await page.evaluate(()=>{window.fixtureResult={ok:true};});
+    await page.evaluate(()=>{window.fixtureResult={ok:true,attempt:{state:'confirmed'}};});
     await page.locator('#sendReply').tap();
     const clicks=await page.evaluate(()=>fixtureTouches.filter(e=>e.type==='click'));
     expect(clicks.filter(e=>e.target==='sendReply')).toHaveLength(2);
     await expect(page.locator('#replyStatus')).toHaveText('Отправлено. Переписку пока не удалось обновить.');
     await expect(page.locator('#replyText')).toHaveValue('');
     await expect(page.locator('#deliveryFailure')).toBeHidden();
-    expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(2);
+    expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send_receipt').length)).toBe(1);
     expect(await page.locator('#messages').innerHTML()).toBe(before);await assertFits(page,width);
     await page.screenshot({path:`send-feedback-artifacts/${browserName}-${width}-confirmed.png`});
     expect(unexpected).toEqual([]);
@@ -102,7 +103,7 @@ for(const width of [390,430,768,1440])test.describe('send feedback '+width,()=>{
 });
 test('known suspension preserves the reason and blocks a repeat send',async({page})=>{
   const unexpected=await setup(page);
-  await page.evaluate(()=>{window.fixtureResult={ok:false,error_message:'Диалог MAX приостановлен. Клиенту нужно снова запустить бота.',failure:{category:'suspended',message:'Key: error.dialog.suspended, args: [990000001,].'}};});
+  await page.evaluate(()=>{window.fixtureResult={ok:false,attempt:{state:'rejected'},error_message:'Диалог MAX приостановлен. Клиенту нужно снова запустить бота.',failure:{category:'suspended',message:'Key: error.dialog.suspended, args: [990000001,].'}};});
   await page.locator('#sendReply').click();
   await expect(page.locator('#replyStatus')).toHaveText('Диалог MAX приостановлен. Клиенту нужно снова запустить бота.');
   await expect(page.locator('#deliveryFailure')).toHaveText('Диалог MAX приостановлен. Клиенту нужно снова запустить бота.');
@@ -114,7 +115,7 @@ test('known suspension preserves the reason and blocks a repeat send',async({pag
 });
 test('successful send is not relabelled when only the Inbox refresh throws',async({page})=>{
   const unexpected=await setup(page);
-  await page.evaluate(()=>{window.fixtureResult={ok:true};window.fixtureHistoryFails=false;window.WorkspaceV2Inbox={markRead(){},markActive(){},load:async()=>{throw new Error('Synthetic Inbox refresh failure');}};});
+  await page.evaluate(()=>{window.fixtureResult={ok:true,attempt:{state:'confirmed'}};window.fixtureHistoryFails=false;window.WorkspaceV2Inbox={markRead(){},markActive(){},load:async()=>{throw new Error('Synthetic Inbox refresh failure');}};});
   await page.locator('#sendReply').click();
   await expect(page.locator('#replyStatus')).toHaveText('Отправлено');
   await expect(page.locator('#replyText')).toHaveValue('');
@@ -123,11 +124,24 @@ test('successful send is not relabelled when only the Inbox refresh throws',asyn
 
 for(const key of ['Enter','Space'])test('keyboard '+key+' submits once without pointer events',async({page})=>{
   const unexpected=await setup(page);
-  await page.evaluate(()=>{window.fixtureResult={ok:true};window.fixtureHistoryFails=false;});
+  await page.evaluate(()=>{window.fixtureResult={ok:true,attempt:{state:'confirmed'}};window.fixtureHistoryFails=false;});
   await page.locator('#sendReply').focus();
   await page.keyboard.press(key);
   await expect(page.locator('#replyStatus')).toHaveText('Отправлено');
   expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);
   expect(await page.evaluate(()=>fixtureTouches.some(e=>['touchstart','mousedown'].includes(e.type)))).toBe(false);
   expect(unexpected).toEqual([]);
+});
+
+for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('missing receipt cancellation preserves input '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+ await page.setViewportSize(viewport);const unexpected=await setup(page);
+ await page.locator('#sendReply').click();
+ await page.locator('#replyText').fill('Новый текст после неопределённой отправки');
+ await page.locator('#replyFile').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic, never uploaded')});
+ await page.evaluate(()=>{fixtureResult={ok:true,attempt:{state:'not_found'}};fixtureCancelResult={ok:false,attempt:{state:'cancelled'}}});
+ await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toContainText('Это не означает');
+ const cancel=page.locator('#replyStatus button');await expect(cancel).toBeVisible();
+ const box=await cancel.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);
+ fs.mkdirSync('send-feedback-artifacts',{recursive:true});await page.screenshot({path:`send-feedback-artifacts/${browserName}-${viewport.width}x${viewport.height}-missing.png`});
+ await cancel.click();await expect(page.locator('#sendReply')).toHaveText('Отправить');await expect(page.locator('#replyText')).toHaveValue('Новый текст после неопределённой отправки');expect(await page.locator('#replyFile').evaluate(x=>x.files[0]?.name)).toBe('synthetic.txt');expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send').length)).toBe(1);expect(unexpected).toEqual([]);
 });

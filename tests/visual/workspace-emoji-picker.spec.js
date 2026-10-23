@@ -88,7 +88,7 @@ for(const width of [390,430,768,1440])test.describe('emoji composer '+width,()=>
     await expect(page.locator('#emojiPicker')).toBeHidden();await expect(page.locator('#replyText')).toHaveValue('');
     await expect(page.locator('#messages .msg.manager .msgBody')).toHaveText(text);
     expect(await page.evaluate(()=>fixtureCalls)).toEqual([
-      {action:'send',payload:{conversation_id:11,text}},
+      {action:'send',payload:{conversation_id:11,text,operation_id:expect.stringMatching(/^[a-f0-9]{32}$/)}},
       {action:'detail',payload:{conversation_id:11}},
       {action:'pipe:detail',payload:{conversation_id:11}},
     ]);
@@ -128,7 +128,7 @@ test('an emoji-only reply uses the existing Send action exactly once',async({pag
   await page.locator('#emojiToggle').click();await page.locator('#emojiPicker [data-emoji="😊"]').click();
   await expect(page.locator('#replyText')).toHaveValue('😊');await noRequests(page);
   await page.locator('#sendReply').click();await expect(page.locator('#replyStatus')).toHaveText('Отправлено');
-  expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send'))).toEqual([{action:'send',payload:{conversation_id:11,text:'😊'}}]);
+  expect(await page.evaluate(()=>fixtureCalls.filter(c=>c.action==='send'))).toEqual([{action:'send',payload:{conversation_id:11,text:'😊',operation_id:expect.stringMatching(/^[a-f0-9]{32}$/)}}]);
   await expect(page.locator('#messages .msg.manager .msgBody')).toHaveText('😊');expect(unexpected).toEqual([]);
 });
 
@@ -140,7 +140,7 @@ test('an in-flight send closes the palette and rejects stale choice clicks',asyn
   await expect(page.locator('#replyText')).toHaveValue('Сохраняемый ответ 😊');
   await page.evaluate(()=>fixtureFinishSend({ok:false,failure:{category:'unknown'}}));
   await expect(page.locator('#replyText')).toBeEnabled();await expect(page.locator('#replyStatus')).toContainText('Отправка не подтверждена');
-  expect(await page.evaluate(()=>fixtureCalls)).toEqual([{action:'send',payload:{conversation_id:11,text:'Сохраняемый ответ 😊'}}]);expect(unexpected).toEqual([]);
+  expect(await page.evaluate(()=>fixtureCalls)).toEqual([{action:'send',payload:{conversation_id:11,text:'Сохраняемый ответ 😊',operation_id:expect.stringMatching(/^[a-f0-9]{32}$/)}}]);expect(unexpected).toEqual([]);
 });
 
 test('suspension and auth recovery close the palette without changing the draft or sending',async({page})=>{

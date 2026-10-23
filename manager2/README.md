@@ -278,3 +278,34 @@ Foreign owner/supervisor previews keep latest-window semantics and never seek or
 acknowledge another manager's unread. Initial loading failure and obsolete results
 retain the existing selected dialogue, draft and file guards.
 No second transcript/read store, migration or provider delivery/read receipt is added.
+
+
+### Ordinary text-send receipts and UNKNOWN recovery
+
+The existing Conversation draft row/session envelope stores an opaque text-send
+operation ID before the request, with its original draft version and AI provenance.
+`ManagerOutboundService::sendAttempt` wraps the unchanged canonical sender/adapters:
+`ManagerSendAttemptService` commits a unique account/operation reservation before
+transport, without holding conversation locks over the network. Migration059 adds
+`manager_send_attempts`, a payload-free receipt journal, not a queue, transcript,
+second sender or automatic retry. Legacy callers and attachment sending retain
+their existing contracts; no provider or model is called by opening the workspace.
+
+After a lost/invalid response, “Проверить отправку” calls protected `send_receipt`
+only. Confirmed receipt consumes only the original unchanged draft version; newer
+text and selected files remain. Processing/UNKNOWN never permits another send. A
+missing row is not proof of non-delivery: explicit `cancel_send_attempt` can reserve
+a cancelled tombstone only before execution reserves that ID. A delayed original
+then cannot reach transport. If execution won the race, cancellation cannot reverse
+it. A subsequent new send always requires a separate explicit user action. Receipt
+reads and cancellation freshly enforce active account, canonical project/source
+visibility, actual assignment/status and the captured recipient/channel context.
+Supervisor read/AI access grants no ordinary-send or receipt authority.
+
+The pending fence survives same-account reload, draft clearing, the ordinary draft
+TTL and later storage quota failures; first send is refused if its intent cannot
+be saved. Existing account switch/access-loss privacy fences remain. No real
+customer sends or read/assignment changes are needed for acceptance: actual JS and
+services use isolated synthetic fixtures, with native MySQL race proof in the
+existing personal-workspace workflow. Browser fixtures are not natural/physical
+manager acceptance.
