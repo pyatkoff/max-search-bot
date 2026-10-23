@@ -16,13 +16,13 @@
     const form=$('composer'),reply=$('replyText'),c=S.detail?.conversation,issue=$('conversationLifecycleStatus');
     return !!form&&!!reply&&!form.hidden&&!form.classList.contains('hidden')&&!reply.disabled&&!S.authExpired&&!!S.manager?.id&&!!S.current&&Number(c?.id)===Number(S.current)&&c.status==='manager'&&Number(c.manager_id)===Number(S.manager.id)&&S.detail?.delivery_failure?.category!=='suspended'&&!(issue&&!issue.classList.contains('hidden'));
   }
-  function supervisorRead(){const c=S.detail?.conversation;return S.detail?.supervisor_read===true&&!S.authExpired&&!!S.manager?.id&&Number(c?.id)===Number(S.current)&&c?.status==='manager'&&Number(c.manager_id)>0&&Number(c.manager_id)!==Number(S.manager.id)&&S.detail?.delivery_failure?.category!=='suspended'}
+  function supervisorRead(){const c=S.detail?.conversation;return !S.authExpired&&!!S.manager?.id&&Number(c?.id)===Number(S.current)&&S.detail?.delivery_failure?.category!=='suspended'&&((S.detail?.owner_read===true&&S.manager.role==='admin')||(S.detail?.supervisor_read===true&&c?.status==='manager'&&Number(c.manager_id)>0&&Number(c.manager_id)!==Number(S.manager.id)))}
   const canAnalyze=()=>canCompose()||supervisorRead();
   function sameContext(saved){
     const current=context();
     return !!saved&&!!current&&Object.keys(current).every(key=>current[key]===saved[key]);
   }
-  const ownerBinding=()=>JSON.stringify([S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.conversation?.project_key,S.detail?.conversation?.source_id,S.detail?.supervisor_read]);
+  const ownerBinding=()=>JSON.stringify([S.detail?.conversation?.manager_id,S.detail?.conversation?.status,S.detail?.conversation?.project_key,S.detail?.conversation?.source_id,S.detail?.supervisor_read,S.detail?.owner_read,S.manager?.role]);
   function snapshot(){return {context:context(),latest:latestMessageId(),messages:messageState(),owner:ownerBinding()}}
   function currentSnapshot(saved){return canAnalyze()&&sameContext(saved?.context)&&saved.latest===latestMessageId()&&saved.messages===messageState()&&saved.owner===ownerBinding()}
   function timeValue(value){const parsed=window.ManagerTime?.parse?.(value)||new Date(String(value||'').replace(' ','T')+(/(?:Z|[+-]\d{2}:?\d{2})$/.test(String(value||''))?'':'Z'));return Number.isNaN(parsed.getTime())?0:parsed.getTime()}
@@ -154,7 +154,7 @@
     }
     const prepared=result.prepared===true&&result.should_draft?'Ответ подготовлен заранее. ':'';
     status.textContent=prepared+(result.should_draft?'Проверьте текст. Добавим в конец ответа.':rawAction==='no_contact'?'Сейчас отвечать не нужно.':'Перед ответом нужно проверить данные. Причина и следующий шаг — ниже.');
-    if(supervisorRead())status.textContent='Просмотр руководителя · Ответственный: '+(S.detail?.conversation?.manager_name||'менеджер')+'. Просмотр не считается использованием или отправкой ответа.';
+    if(supervisorRead())status.textContent=(S.detail?.owner_read?'Режим владельца':'Просмотр руководителя')+' · Ответственный: '+(S.detail?.conversation?.manager_name||'Без назначения')+'. Просмотр не считается использованием или отправкой ответа.';
     retry.textContent=result.should_draft?'Другой вариант':'Повторить подготовку';
   }
   function failure(result,action){

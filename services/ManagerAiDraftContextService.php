@@ -39,14 +39,22 @@ final class ManagerAiDraftContextService
             $c=ManagerConversationService::visibleConversation($conversationId,$viewer,true);
             if(!$c||!ManagerSupervisorAccessService::permits($scopes,$c))return $own;
             $owner=(int)($c['manager_id']??0);
-            if($owner<=0||$owner===$viewer||$c['status']!=='manager')return $own;
-            $snapshot=self::snapshot($conversationId,$owner);
-            if(empty($snapshot['ok']))return $snapshot;
+            $workspaceOwner=ManagerAuthService::isAdmin(ManagerAuthService::byId($viewer));
+            if($workspaceOwner&&($owner<=0||$owner===$viewer||$c['status']!=='manager'||ManagerAuthService::byId($owner)===null)){
+                $waiting=$owner===0&&$c['status']==='waiting_manager';
+                $snapshot=self::capture($conversationId,$viewer,$waiting,!$waiting);
+                if(empty($snapshot['ok']))return $snapshot;
+            }else{
+                if($owner<=0||$owner===$viewer||$c['status']!=='manager')return $own;
+                $snapshot=self::snapshot($conversationId,$owner);
+                if(empty($snapshot['ok'])&&$workspaceOwner&&in_array($snapshot['error']??'',['unauthorized','not_found','reply_not_allowed'],true))$snapshot=self::capture($conversationId,$viewer,false,true);
+                if(empty($snapshot['ok']))return $snapshot;
+            }
             $fresh=ManagerConversationService::visibleConversation($conversationId,$viewer,true);
             $after=ManagerSupervisorAccessService::scopes($viewer);
-            if(!$fresh||$fresh['manager_id']!=$owner||$fresh['status']!=='manager'||!ManagerSupervisorAccessService::permits($after,$fresh)
+            if(!$fresh||(int)$fresh['manager_id']!==$owner||!ManagerSupervisorAccessService::permits($after,$fresh)
                 ||$after!==$scopes||array_intersect_key($fresh,array_flip(['project_key','source_id','channel','status','manager_id']))!==array_intersect_key($c,array_flip(['project_key','source_id','channel','status','manager_id'])))return self::failure('reply_not_allowed');
-            return $snapshot+['owner_id'=>$owner,'viewer_id'=>$viewer,'supervisor_read'=>true,
+            return $snapshot+['owner_id'=>$owner,'viewer_id'=>$viewer,'supervisor_read'=>true,'owner_read'=>$workspaceOwner,
                 'viewer_access_revision'=>hash('sha256',json_encode($after,JSON_THROW_ON_ERROR))];
         }catch(Throwable $ignored){return self::failure('context_unavailable');}
     }
@@ -66,7 +74,7 @@ final class ManagerAiDraftContextService
         } catch (Throwable $ignored) { return self::failure('context_unavailable'); }
     }
 
-    private static function capture(int $conversationId, int $actor, bool $waiting): array
+    private static function capture(int $conversationId, int $actor, bool $waiting, bool $ownerRead=false): array
     {
         if ($conversationId <= 0) return self::failure('invalid_conversation_id');
         if ($actor <= 0) return self::failure('unauthorized');
@@ -91,15 +99,16 @@ final class ManagerAiDraftContextService
             if (!$manager) return self::failure('unauthorized');
             $conversation = ManagerConversationService::visibleConversation($conversationId, $actor);
             if (!$conversation) return self::failure('not_found');
+            if($ownerRead&&!ManagerAuthService::isAdmin($manager))return self::failure('reply_not_allowed');
             if ($waiting) {
                 if (($manager['role'] ?? '') !== 'admin' || ($conversation['status'] ?? '') !== 'waiting_manager'
                     || $conversation['manager_id'] !== null) return self::failure('reply_not_allowed');
                 $q = $pdo->prepare('SELECT 1 FROM conversations c JOIN projects p ON p.project_key=c.project_key JOIN manager_projects mp ON mp.project_id=p.id WHERE c.id=? AND c.is_test=0 AND c.project_key=? AND p.is_active=1 AND mp.manager_id=?');
-                $q->execute([$conversationId,ProjectConfig::projectId(),$actor]);
+                $q->execute([$conversationId,(string)$conversation['project_key'],$actor]);
                 if (!$q->fetchColumn()) return self::failure('unauthorized');
             }
             // Admin edit permission is deliberately not reply ownership.
-            if (!$waiting && (($conversation['status'] ?? '') !== 'manager'
+            if (!$waiting && !$ownerRead && (($conversation['status'] ?? '') !== 'manager'
                 || (int)($conversation['manager_id'] ?? 0) !== $actor)) {
                 return self::failure('reply_not_allowed');
             }
@@ -202,7 +211,7 @@ final class ManagerAiDraftContextService
             if ($waiting) $revision = $preparationRevision;
             $pdo->commit();
             $started = false;
-            return ['ok'=>true, 'context'=>$context, 'revision'=>$revision, 'preparation_revision'=>$preparationRevision, 'company_knowledge'=>$knowledge,
+            return ['ok'=>true, 'project_key'=>(string)$conversation['project_key'], 'context'=>$context, 'revision'=>$revision, 'preparation_revision'=>$preparationRevision, 'company_knowledge'=>$knowledge,
                 'reference_context'=>$references, 'photo_context'=>$photos,
                 'selection_sources'=>array_slice($selectionLinks, -41),
                 'latest_message_id'=>$latest, 'history_incomplete'=>$incomplete];

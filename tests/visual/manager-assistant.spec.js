@@ -4,8 +4,8 @@ const {setup,root}=require('./fixtures/internal-notes');
 
 // The fixture renders the real Manager2 PHP shell and production assets. These
 // extra routes are local synthetic assistant reads/decisions, never live data.
-async function setupAssistant(page){
-  const base=await setup(page);
+async function setupAssistant(page,{owner=false}={}){
+  const base=await setup(page,{role:owner?'admin':'manager'});
   const calls=[],detailResponses=[],heldDetails=[];
   const recommendation=(changes={})=>({revision:'a'.repeat(64),next_action:'check_offer',reason:'Клиент выбрал два отеля. Нужно сравнить питание и вылет из СПб.',checks:['Сравнить выбранные отели на двоих.','Проверить тарифы с завтраками и полную стоимость.'],prepared_at:new Date().toISOString(),expires_at:new Date(Date.now()+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null,...changes});
   const items=new Map([
@@ -13,6 +13,7 @@ async function setupAssistant(page){
     [12,{conversation_id:12,display_name:'Клиент выбирает отель',channel:'telegram',last_message_at:new Date().toISOString(),tasks:[],recommendation:recommendation({next_action:'no_contact',reason:'Клиент обсуждает варианты. Сейчас отвечать не нужно.',checks:['Дождаться обратной связи по подборке.']})}],
     [901,{conversation_id:901,display_name:'Ранний клиент с задачей',channel:'max',last_message_at:'2026-09-01T10:00:00Z',tasks:[{id:31,title:'Проверить ответ поставщика',status:'open',due_state:'overdue',due_at_utc:'2026-10-19T09:00:00Z'}],recommendation:null}]
   ]);
+  if(owner)for(const [id,item] of items){item.project_name=id===12?'Pegas':'AnyTour';item.manager_id=id===12?8:9;item.manager_name=id===12?'Анна':'Светлана';item.can_decide=false;}
   await page.route('**/manager/ai-draft.php',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,prepared:false})}));
   await page.route('**/manager/assistant-api.php',async route=>{
     const d=route.request().postDataJSON();calls.push(d);expect(d.csrf).toBe('fixture-csrf');
@@ -195,4 +196,11 @@ for(const viewport of [{width:390,height:844},{width:430,height:844},{width:768,
   await page.locator('#assistantOpen').click();await page.locator('[data-assistant-filter="all"]').click();await page.locator('#assistantMore').click();await expect.poll(()=>restarted).toBe(true);await expect(page.locator('[data-assistant-client]')).toHaveCount(20);await expect(page.locator('[data-assistant-client="11"]')).toHaveCount(0);await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();
   expect(s.calls.filter(c=>c.action==='list'&&c.cursor)).toHaveLength(1);await page.locator('#assistantMore').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(22);await expect(page.locator('#assistantMore')).toBeHidden();await page.locator('[data-assistant-filter="actions"]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(1);await expect(page.locator('[data-assistant-client="12"]')).toBeVisible();
   await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Мой ответ остаётся в черновике');await expect(page.locator('#mediaSelection')).toHaveText(selection);clean(s);
+});
+
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])test('Owner Assistant shows all managers and preserves own draft '+viewport.width+'x'+viewport.height,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const s=await setupAssistant(page,{owner:true});await page.evaluate(()=>WorkspaceV2Conversation.open(11));await page.locator('#replyText').fill('Сохранить мой незаконченный ответ');await page.locator('#replyFile').setInputFiles({name:'owner-kept.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic retained attachment')});
+  if(viewport.width<768){await page.getByRole('button',{name:'Назад к диалогам',exact:true}).click();await expect(page.locator('#inboxList')).toBeVisible();}
+  await page.locator('#assistantOpen').click();await expect(page.locator('#assistantTitle')).toHaveText('Помощник владельца');await expect(page.locator('#assistantSubtitle')).toContainText('всей команды');await expect(page.locator('[data-assistant-client="11"]')).toContainText('Светлана');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Анна');await expect(page.locator('[data-assistant-client="12"]')).toContainText('Pegas');await bounded(page);await capture(page,browserName,viewport.width,'owner-list-'+viewport.height);
+  await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('[data-assistant-decision]')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
 });
