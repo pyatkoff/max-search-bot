@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "image": "ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a",
+  "recipeSha": "e77c1cde26eef84d94fbd64790fe49907f2c306ec792e9677271e8cc114b3c16",
+  "runtime": {
+    "node": "v22.18.0",
+    "php": "8.3.6",
+    "playwright": "1.55.0",
+    "platform": "linux",
+    "arch": "x64",
+    "baseImage": "mcr.microsoft.com/playwright:v1.55.0-noble@sha256:ffc33305f7b4b04057ae4a0caa70aad4fde87454fb403a1a22e7f931707dfcf9"
+  }
+}

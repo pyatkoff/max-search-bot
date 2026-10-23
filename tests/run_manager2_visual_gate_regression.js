@@ -433,6 +433,7 @@ function modernProtocolChecks() {
       const fixtureCLI=path.join(temporary,'fixture-cli');
       write(path.join(fixtureCLI,'manager2_visual_inventory.js'),fixtureInventorySource);
       write(path.join(fixtureCLI,'manager2_visual_reuse.js'),reuseSource);
+      fs.copyFileSync(require.resolve('../tools/browser_qa_environment.js'),path.join(fixtureCLI,'browser_qa_environment.js'));
       execFileSync(process.execPath,[path.join(fixtureCLI,'manager2_visual_reuse.js'),'prepare','chromium'],{
         cwd:sourceRoot,env:{PATH:process.env.PATH,...env,ImageVersion:'different-actual-browser-runner',QA_TESTED_SHA:currentSha,QA_HEAD_SHA:currentSha,QA_RUN_ID:p.runId,QA_RUN_ATTEMPT:'1'},stdio:['ignore','pipe','pipe'],
       });

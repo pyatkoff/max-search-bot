@@ -78,9 +78,41 @@ for this exact family. The stable `regression`/`screenshots` aggregates still
 fail on missing/failed selected evidence. Changes to the selector, component
 verifier or visual workflow run **full coverage plus the component runner** once
 to commission its real invocation/report path; ordinary full changes do not pay
-for that additional proof. Browser/npm caches reuse the same pinned toolchain.
-Cold OS dependency installation may still take time; no test timeout or
-assertion has been relaxed to conceal it.
+for that additional proof. The prepared environment below also removes repeated
+OS, browser and npm installation; test timeouts and assertions are unchanged.
+
+## Prepared native browser environment
+
+The eight browser workflows run their native jobs in the immutable GHCR image
+committed in `tools/browser_qa_environment.json`. This includes the full visual
+selection planner, so strict same-environment donor comparison remains valid.
+Each consumer declares the exact digest and verifies its checked-out recipe,
+Node22, PHP8.3/extensions/SQLite, Playwright1.55.0 and all three native browser
+executables before running the existing commands. The image uses the pinned
+AMD64 Microsoft Playwright1.55.0 Ubuntu24.04 base. PHP and the locked npm package
+are installed once by `.github/workflows/browser-qa-environment.yml`.
+
+The builder launches Chromium, Firefox and WebKit, checks DOM/text and captures
+one PNG in each before publishing. Its artifact records source/head/run/recipe,
+actual runtime versions and the registry digest. To change a recipe input,
+first build and verify the replacement, then update the source pin and every
+consumer digest together. Consumers never follow a mutable tag. Pulls use the
+built-in repository token with read-only package access; only the separate
+builder has package write access. No production credential is involved.
+
+The prepared shell maps the packaged dependencies and browsers to their normal
+lookup locations. It removes only the official base image's known browser-path
+default and rejects other paths. Existing release override guards still run.
+Full partition and scoped-selection receipts additionally require the pinned
+image, recipe and exact runtime versions. Host assembly retains the original
+native partition proof. The canonical toolchain's `ubuntu-latest` field describes
+the Actions host; the receipt's `containerImage` and runtime identify execution.
+
+Photo-opening now uses the canonical PHP8.3 image instead of its previous8.2
+setup. The separate Telegram archive MySQL job keeps PHP8.2. Native case lists,
+matrices, assertions, per-job timeouts, report/PNG gates and failed-only retry
+rules are unchanged. Image transfer and container startup still take time;
+removing package installation does not establish an end-to-end latency SLA.
 
 ## Failed-job-only retries
 

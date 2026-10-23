@@ -40,6 +40,7 @@ function reportCases(root,browser,part,plan) {
 function envelope({root,browser,part,plan,p,artifacts}) {
   inventory.partitionSpecs(browser,part);
   check(['full','affected'].includes(plan.mode)&&inventory.validManifest(plan.inputs),'Invalid partition plan/inputs');
+  require('./browser_qa_environment.js').assertSourceExecution(p.execution,plan.inputs);
   const {expected,fresh}=reportCases(root,browser,part,plan);
   for(const name of ['cache','main']) {
     const file=path.join(root,'visual-reports',name+'.json');

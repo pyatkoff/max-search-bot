@@ -211,5 +211,34 @@ try {
     const r=report();r.suites[0].suites[0].specs[0].tests=[];assert.throws(()=>collectCases(r,options));
     assert.throws(()=>collectCases(report(),{...options,expectedFiles:[spec,spec]}));
   });
+  const prepared=require('../tools/browser_qa_environment');
+  const pinned=prepared.pin();
+  const native={...pinned.runtime,containerImage:pinned.image,recipeSha:pinned.recipeSha};
+  check('native prepared image and exact runtime are required when the source has an environment pin',()=>{
+    assert.equal(prepared.assertExecution(clone(native)).containerImage,pinned.image);
+    prepared.assertSourceExecution(clone(native),{entries:[{path:'tools/browser_qa_environment.json'}]});
+    assert.throws(()=>prepared.assertSourceExecution({}, {entries:[{path:'tools/browser_qa_environment.json'}]}));
+    prepared.assertSourceExecution({}, {entries:[]}); // Existing isolated legacy protocol fixtures.
+    for(const key of Object.keys(native)){
+      const missing=clone(native);delete missing[key];assert.throws(()=>prepared.assertExecution(missing));
+      const wrong=clone(native);wrong[key]='foreign';assert.throws(()=>prepared.assertExecution(wrong));
+    }
+  });
+  check('planning host cannot manufacture a prepared browser receipt through an environment override',()=>{
+    assert.deepEqual(prepared.fromEnvironment({}, {node:'host'}),{node:'host'});
+    for(const value of ['',pinned.image.replace(/.$/,'x'),'foreign'])assert.throws(()=>prepared.fromEnvironment({QA_BROWSER_IMAGE:value},{node:'host'}));
+    assert.throws(()=>prepared.fromEnvironment({QA_BROWSER_IMAGE:pinned.image},{node:'host'}));
+  });
+  check('every prepared recipe input changes its deterministic identity',()=>{
+    const recipe=require('../.github/browser-qa/verify-runtime');
+    const original=path.resolve(__dirname,'../.github/browser-qa');
+    const temp=path.join(cleanRoot,'prepared-recipe');fs.mkdirSync(temp,{recursive:true});
+    for(const file of recipe.RECIPE)fs.copyFileSync(path.join(original,file),path.join(temp,file));
+    assert.equal(recipe.recipeSha(temp),pinned.recipeSha);
+    for(const file of recipe.RECIPE){
+      fs.appendFileSync(path.join(temp,file),'\n');assert.notEqual(recipe.recipeSha(temp),pinned.recipeSha);
+      fs.copyFileSync(path.join(original,file),path.join(temp,file));
+    }
+  });
   process.stdout.write(passed+' visual inventory/selection checks passed\n');
 } finally {fs.rmSync(root,{recursive:true,force:true});fs.rmSync(cleanRoot,{recursive:true,force:true});}
