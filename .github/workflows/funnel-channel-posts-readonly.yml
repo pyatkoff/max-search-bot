@@ -1,0 +1,60 @@
+name: Read-only funnel channel posts
+on:
+  push:
+    branches: [audit/direct-demand-20261022]
+    paths:
+      - .github/workflows/funnel-channel-posts-readonly.yml
+      - tools/direct_demand/read_channel_posts.php
+      - tools/direct_demand/channel_export_recipient.pem
+permissions:
+  contents: read
+concurrency:
+  group: funnel-channel-posts-readonly
+  cancel-in-progress: false
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read saved channel publications and bounded MAX history
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/funnel_channel_key"
+          log_file="$RUNNER_TEMP/funnel_channel_ssh.log"
+          test -n "$DEPLOY_SSH_KEY_VALUE"
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+          ssh_opts=(-i "$key_file" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/funnel_channel_known_hosts" -o BatchMode=yes -o ConnectTimeout=15)
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php -l' < tools/direct_demand/read_channel_posts.php > /dev/null 2> "$log_file"
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'php -d display_errors=stderr -d log_errors=0' < tools/direct_demand/read_channel_posts.php 2>> "$log_file" \
+            | openssl cms -encrypt -aes-256-gcm -binary -outform DER -out "$RUNNER_TEMP/funnel-channel-posts.cms" tools/direct_demand/channel_export_recipient.pem
+          test -s "$RUNNER_TEMP/funnel-channel-posts.cms"
+      - name: Save encrypted channel read
+        uses: actions/upload-artifact@v4
+        with:
+          name: funnel-channel-posts-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/funnel-channel-posts.cms
+          retention-days: 1
+          if-no-files-found: error
+      - name: Cleanup private temporary files
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/funnel_channel_key" "$RUNNER_TEMP/funnel_channel_ssh.log" "$RUNNER_TEMP/funnel-channel-posts.cms" "$RUNNER_TEMP/funnel_channel_known_hosts"
