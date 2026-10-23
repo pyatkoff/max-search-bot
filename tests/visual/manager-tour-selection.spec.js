@@ -4,6 +4,16 @@ const {execFileSync}=require('node:child_process');
 const {setup,root}=require('./fixtures/internal-notes');
 const copy=x=>JSON.parse(JSON.stringify(x));
 const {sourceFixture,bridgeFixture}=require('./fixtures/selection-collector');
+function searchInquiryProjection(mode){
+  return JSON.parse(execFileSync('php',['-r',`
+    require getcwd().'/tests/support/search3-tour-handoff.php';
+    $pdo=deliveryDb();search3FixtureSchema($pdo);ProjectConfig::resetForTests(search3FixtureConfig());[$secret]=search3FixtureKeys();$intent=search3FixtureIntent();
+    $intent['observation']['hotel']['name']='Синтетический выбранный отель у моря';
+    if(${JSON.stringify(mode)}==='deferred'){$intent['observation']['flights']=['state'=>'manager-deferred','outward'=>[],'inward'=>[]];$intent['observation']['price']=array_replace($intent['observation']['price'],['amount'=>null,'state'=>'unknown','basis'=>'shown-offer']);}
+    $created=search3FixtureCommand($intent,$secret);$entry=TourSelectionBotEntryService::accept(search3FixtureNative('telegram',search3FixturePayload($created['links']['telegram']),101));
+    if(empty($entry['ok']))throw new RuntimeException('Synthetic native inquiry not saved');echo json_encode(TourChoiceService::forConversation($pdo,1),JSON_THROW_ON_ERROR);
+  `],{cwd:root,encoding:'utf8'}));
+}
 async function fixture(page,options={}){
   const base=await setup(page),calls=[],drafts=new Map(),receipts=new Map();let fail=options.fail||'',held=null;
   const snapshot=id=>({conversation_id:id,version:drafts.get(id)?.version||0,draft:copy(drafts.get(id)?.draft||{title:'Подборка туров',intro:'',offers:[]}),can_edit:!options.readOnly,updated_at:null,updated_by_manager_id:7});
@@ -59,6 +69,20 @@ async function fixture(page,options={}){
   return {...base,calls,drafts,receipts,snapshot,creations:()=>creations,publication:()=>publication,heldPhotos:()=>heldPhotos.length,holdPhotos:()=>{options.holdPhotos=true},releasePhotos:()=>{options.holdPhotos=false;heldPhotos.splice(0).forEach(resolve=>resolve())},release:()=>held?.(),setFail:x=>fail=x};
 }
 async function open(page){if(!await page.locator('#tourSelectionOpen').isVisible())await page.locator('#m2ConversationMenuToggle').click();await page.locator('#tourSelectionOpen').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText(/загружен|Просмотр|Восстановлены/)}
+
+for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}])for(const mode of ['selected','deferred'])test(`Manager2 Search3 native inquiry ${mode} preserves exact conditions and draft ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
+  await page.setViewportSize(viewport);const s=await fixture(page);
+  await page.locator('#replyText').fill('Мой новый ответ, который нельзя потерять');await page.locator('#replyFile').setInputFiles({name:'search3-inquiry.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic, never sent')});
+  const detail=await page.evaluate(()=>JSON.parse(JSON.stringify(WorkspaceV2.S.detail)));detail.tour_choices=searchInquiryProjection(mode);
+  await page.route('**/manager/api.php',route=>{const d=route.request().postDataJSON();return d.action==='detail'&&Number(d.conversation_id)===11?route.fulfill({contentType:'application/json',body:JSON.stringify(detail)}):route.fallback()});
+  expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await page.locator('#mobileLeadBtn').click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
+  for(const value of ['Выбранные туры из поиска','Синтетический выбранный отель у моря','Family sea view','Возраст детей: 0, 0, 12','12.06.2027','Полную стоимость и наличие необходимо подтвердить','ANEX'])await expect(panel).toContainText(value);
+  if(mode==='selected'){for(const value of ['231 456,50 ₽ за всех','Outward selected 10:00 synthetic','Inward selected 19:00 synthetic'])await expect(panel).toContainText(value)}else{await expect(panel).toContainText('Цена не указана');await expect(panel).toContainText('Подбор рейсов с менеджером');await expect(panel).not.toContainText('Outward selected')}
+  for(const value of ['Понравившиеся туры','record_id','anex_online:','s3_','19.06.2027'])await expect(panel).not.toContainText(value);await expect(panel.locator('button,form')).toHaveCount(0);
+  await panel.evaluate(el=>Promise.all(el.getAnimations({subtree:true}).map(a=>a.finished.catch(()=>{}))));expect(await panel.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
+  await expect(page.locator('#replyText')).toHaveValue('Мой новый ответ, который нельзя потерять');await expect(page.locator('#mediaSelection')).toContainText('search3-inquiry.txt');
+  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-search3-${browserName}-${mode}-${viewport.width}x${viewport.height}.png`)});clean(s);
+});
 async function save(page){await page.locator('#tsSave').click();await expect(page.locator('#tsSaved')).toHaveText('Сохранено на сервере')}
 function clean(s,extra=[]){expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);expect(s.calls.filter(x=>!['get','save','operation',...extra].includes(x.action))).toEqual([]);expect(s.pending.size).toBeLessThanOrEqual(2)}
 

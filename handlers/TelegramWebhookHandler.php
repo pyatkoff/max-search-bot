@@ -40,7 +40,7 @@ class TelegramWebhookHandler
         }
 
         // Dedicated selection entries must precede ordinary source/start effects.
-        if (($incoming['type']??'')==='message' && preg_match('~\A/start(?:@[A-Za-z0-9_]+)?\s+ts_\S*\s*\z~u',trim((string)($incoming['text']??'')))) {
+        if (($incoming['type']??'')==='message' && preg_match('~\A/start(?:@[A-Za-z0-9_]+)?\s+(?:ts_|s3_)\S*\s*\z~u',trim((string)($incoming['text']??'')))) {
             require_once __DIR__.'/../services/TourSelectionBotEntryService.php';
             IntegrationRegistry::useMessenger($messenger ?: new TelegramMessengerAdapter());
             return TourSelectionBotEntryService::handle($incoming);

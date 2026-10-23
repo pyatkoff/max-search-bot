@@ -34,3 +34,4 @@ try {
 }
 require __DIR__.'/manager-tour-collector.php';
 require __DIR__.'/manager-tour-interest.php';
+require __DIR__.'/search3-tour-handoff.php';

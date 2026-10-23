@@ -120,6 +120,8 @@ final class TourChoiceService
         $out=self::nativeForConversation($pdo,$conversationId,$limit);
         $inquiries=self::webInquiries($pdo,$conversationId,$limit);
         if ($inquiries) $out['web_inquiries']=$inquiries;
+        $search=self::searchInquiries($pdo,$conversationId,$limit);
+        if ($search) $out['search_inquiries']=$search;
         return $out;
     }
 
@@ -194,6 +196,37 @@ final class TourChoiceService
         if ($q->fetchColumn()) return ['ok'=>true,'changed'=>false,'conversation_id'=>$conversation];
         self::append($pdo,$conversation,'tour_web_inquiry','customer',$externalUser,['schema'=>1,'entry_key'=>$entryKey,'publication_id'=>$entry['publication_id'],'link_version'=>(int)$entry['version'],'variant'=>(int)$entry['card']+1,'public_offer'=>$offer]);
         return ['ok'=>true,'changed'=>true,'conversation_id'=>$conversation];
+    }
+
+    /** Caller holds the canonical native-entry conversation lock. No transport. */
+    public static function searchInquiryInTransaction(PDO $pdo,int $conversation,string $externalUser,string $entryKey,array $entry): array
+    {
+        if (!$pdo->inTransaction()) throw new LogicException('Search inquiry requires native-entry transaction');
+        require_once __DIR__.'/Search3TourHandoffSnapshot.php';
+        $snapshot=is_array($entry['snapshot']??null)?Search3TourHandoffSnapshot::normalize($entry['snapshot']):null;
+        $actual=self::conversation($pdo,$conversation,false);
+        if (!$snapshot||!$actual||$actual['project_key']!==ProjectConfig::projectId()||(string)$actual['external_user_id']!==$externalUser||($entry['origin']??null)!=='search3'
+            ||!preg_match('/\A[a-f0-9]{32}\z/D',$entry['handoff_id']??'')||!preg_match('/\A[a-f0-9]{64}\z/D',$entryKey)) return self::error('invalid_offer');
+        $json=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.entry_key'))":"JSON_EXTRACT(payload_json,'$.entry_key')";
+        $q=$pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry' AND ".$json.'=? LIMIT 1');$q->execute([$conversation,$entryKey]);
+        if ($q->fetchColumn()) return ['ok'=>true,'changed'=>false,'conversation_id'=>$conversation];
+        $price=$snapshot['observation']['price'];$state=is_int($price['expiresAt'])&&$price['expiresAt']<=time()?'expired':$price['state'];
+        self::append($pdo,$conversation,'tour_search_inquiry','customer',$externalUser,['schema'=>1,'entry_key'=>$entryKey,'handoff_id'=>$entry['handoff_id'],'snapshot'=>$snapshot,'price_at_arrival'=>$state]);
+        return ['ok'=>true,'changed'=>true,'conversation_id'=>$conversation];
+    }
+
+    private static function searchInquiries(PDO $pdo,int $conversation,int $limit): array
+    {
+        if ($conversation<=0) return [];
+        $q=$pdo->prepare("SELECT payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));$q->execute([$conversation]);$out=[];
+        require_once __DIR__.'/Search3TourHandoffSnapshot.php';
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $p=self::decode($row['payload_json']);
+            if (($p['schema']??null)!==1||!is_array($p['snapshot']??null)||Search3TourHandoffSnapshot::normalize($p['snapshot'])===null) continue;
+            $o=$p['snapshot']['observation'];$expiry=$o['price']['expiresAt'];
+            $out[]=['observation'=>$o,'price_at_arrival'=>$p['price_at_arrival']??'unknown','price_state_now'=>is_int($expiry)&&$expiry<=time()?'expired':$o['price']['state'],'created_at'=>$row['created_at']];
+        }
+        return $out;
     }
 
     private static function webInquiries(PDO $pdo,int $conversation,int $limit): array
