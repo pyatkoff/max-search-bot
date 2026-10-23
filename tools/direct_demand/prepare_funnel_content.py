@@ -243,6 +243,15 @@ def validate_observed_name_reference(draft, index, countries, candidates):
         raise ValueError('Name reference is not a saved observed source row')
     # Dotless Turkish i is an explicit orthographic fold, not a fuzzy match.
     fold = lambda value: normalized_name(value.replace('ı', 'i').replace('İ', 'I'))
+    profile_name = fold(name)
+    query_name = fold(query)
+    # A comparison can mention another exact hotel; require this candidate's anchor too.
+    anchors = [fold(a) for a in candidates[draft['source_candidate_key']]['observed_anchor_literals']]
+    if not any(profile_name == a or profile_name.startswith(a + ' ') or a.startswith(profile_name + ' ')
+               for a in anchors):
+        raise ValueError('Full profile name does not agree with the observed candidate anchor')
+    if re.search(r'(?:^| )ex(?: |$)', query_name.split(profile_name, 1)[0]):
+        raise ValueError('An old name after ex cannot establish a current-name content reference')
     if (len(query) > 180 or ' ' + fold(name) + ' ' not in ' ' + fold(query) + ' '
             or ' ' + fold(country_label) + ' ' not in ' ' + fold(query) + ' '):
         raise ValueError('Full profile name and country must occur in the same observed query')
